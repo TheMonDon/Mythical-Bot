@@ -48,7 +48,9 @@ class Ban extends Command {
       .setFooter(`ID: ${ban_mem.id}`)
       .setTimestamp();
     ban_mem.ban({ reason: reason });
-    if (log_chan) server.channels.cache.get(log_chan).send(em);
+    if (log_chan) {
+      msg.guild.channels.cache.get(log_chan).send(em);
+    }
     msg.channel.send(em);
   }
 }
