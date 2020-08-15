@@ -17,7 +17,7 @@ module.exports = class NPM extends Command {
 
   async run (msg, args) {
     const moduleName = args.join(' ');
-    const message = await msg.say(`Attempting to install Node Module: ${moduleName}`);
+    const message = await msg.channel.send(`Attempting to install Node Module: ${moduleName}`);
     try {
       require.resolve(moduleName);
       return message.edit(`The Node Module ${moduleName} is already installed.`);
