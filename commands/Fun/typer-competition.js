@@ -22,12 +22,11 @@ class typerCommand extends Command {
       description: 'PLay a game of speed',
       usage: 'typer-competition',
       category: 'Fun',
-      Aliases: ['typercompetition', 'tc']
+      aliases: ['typercompetition', 'tc']
     });
   }
 
   async run (msg) {
-    const me = msg.guild.me;
     const randWord = randomWords(1).toString();
     // Check if font file exists
     if (!fs.existsSync(path_fnt)) {
@@ -46,7 +45,7 @@ class typerCommand extends Command {
     const ctx = canvas.getContext('2d');
     ctx.font = '18px "Moms Typewriter';
 
-    if (me.permissions.has('MANAGE_MESSAGES')) msg.delete();
+    if (msg.guild.me.permissions.has('MANAGE_MESSAGES')) msg.delete();
 
     const em = new DiscordJS.MessageEmbed()
       .setTitle('Typer Competition')
