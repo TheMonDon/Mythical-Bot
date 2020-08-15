@@ -1,0 +1,65 @@
+{
+  "name": "guidebot",
+  "version": "6.1.0",
+  "description": "A boilerplate example bot with command handler and reloadable commands. Updated and Maintained by the Idiot's Guide Community",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js",
+    "prepublish": "node util/setup.js"
+  },
+  "engines": {
+    "node": ">=12"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/An-Idiots-Guide/guidebot-class.git"
+  },
+  "author": "Evelyne Lachance <eslachance@gmail.com> (http://evie.codes)",
+  "contributors": [
+    "York (http://anidiots.guide)"
+  ],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/An-Idiots-Guide/guidebot-class/issues"
+  },
+  "homepage": "https://github.com/An-Idiots-Guide/guidebot-class#readme",
+  "dependencies": {
+    "@discordjs/opus": "^0.3.2",
+    "better-sqlite3": "^5.4.1",
+    "blackjack-n-deck": "^1.0.0",
+    "chalk": "^2.4.1",
+    "color-convert": "^2.0.1",
+    "color-thief-node": "^1.0.3",
+    "common-tags": "^1.8.0",
+    "discord-player": "^2.3.1",
+    "discord.js": "^12.2.0",
+    "enmap": "^5.0.1",
+    "is-image-url": "^1.1.8",
+    "is-url": "^1.2.4",
+    "jsonpath": "^1.0.2",
+    "jsonpath-plus": "^4.0.0",
+    "klaw": "^2.1.1",
+    "mathjs": "^7.1.0",
+    "moment": "^2.22.2",
+    "moment-duration-format": "^2.2.2",
+    "node-superfetch": "^0.1.10",
+    "oxford-dictionaries-api": "^0.1.2",
+    "quick.db": "^7.1.1",
+    "readline-sync": "^1.4.9",
+    "request": "^2.88.2",
+    "request-promise-native": "^1.0.9",
+    "rgb-hex": "^3.0.0",
+    "speedtest-net": "^2.1.1",
+    "weather-js": "^2.0.0"
+  },
+  "devDependencies": {
+    "eslint": "^6.8.0",
+    "eslint-config-airbnb-base": "^11.3.2",
+    "eslint-config-standard": "^10.2.1",
+    "eslint-plugin-import": "^2.18.1",
+    "eslint-plugin-node": "^5.2.1",
+    "eslint-plugin-promise": "^3.8.0",
+    "eslint-plugin-standard": "^3.1.0"
+  }
+}
