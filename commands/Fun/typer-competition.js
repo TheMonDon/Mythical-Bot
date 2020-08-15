@@ -15,14 +15,14 @@ const {
 } = require('common-tags');
 const sleep = require('util').promisify(setTimeout);
 
-class showerthoughts extends Command {
+class typerCommand extends Command {
   constructor (client) {
     super(client, {
-      name: 'shower-thoughts',
-      description: 'Get a random shower thought',
-      usage: 'shower-thoughts',
+      name: 'typer-competition',
+      description: 'PLay a game of speed',
+      usage: 'typer-competition',
       category: 'Fun',
-      Aliases: ['showerthoughts', 'st']
+      Aliases: ['typercompetition', 'tc']
     });
   }
 
@@ -127,4 +127,4 @@ class showerthoughts extends Command {
       });
   }
 }
-module.exports = showerthoughts;
+module.exports = typerCommand;
