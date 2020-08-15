@@ -26,7 +26,8 @@ class typerCommand extends Command {
     });
   }
 
-  async run (msg, args) {
+  async run (msg) {
+    const me = msg.guild.me;
     const randWord = randomWords(1).toString();
     // Check if font file exists
     if (!fs.existsSync(path_fnt)) {
