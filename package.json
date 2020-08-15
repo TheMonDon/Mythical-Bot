@@ -1,29 +1,12 @@
 {
-  "name": "guidebot",
-  "version": "6.1.0",
-  "description": "A boilerplate example bot with command handler and reloadable commands. Updated and Maintained by the Idiot's Guide Community",
+  "name": "Mythical",
+  "version": "1.0.0",
+  "description": "Mythical Bot",
   "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node index.js",
-    "prepublish": "node util/setup.js"
-  },
   "engines": {
     "node": ">=12"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/An-Idiots-Guide/guidebot-class.git"
-  },
-  "author": "Evelyne Lachance <eslachance@gmail.com> (http://evie.codes)",
-  "contributors": [
-    "York (http://anidiots.guide)"
-  ],
   "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/An-Idiots-Guide/guidebot-class/issues"
-  },
-  "homepage": "https://github.com/An-Idiots-Guide/guidebot-class#readme",
   "dependencies": {
     "@discordjs/opus": "^0.3.2",
     "better-sqlite3": "^5.4.1",
