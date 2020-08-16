@@ -12,8 +12,17 @@ class Exec extends Command {
     });
   }
 
-  async run (msg, args) { // eslint-disable-line no-unused-vars
+  async run (msg, args) {
+    const prefix = msg.settings.prefix;
+    if (!args || args.length < 1) return msg.channel.send(`The current prefix is: \`${prefix}\``);
+    const newprefix = args.join(' ');
     
+    if (newprefix.length > 15) return msg.channel.send('The length of the prefix must be less than 15 characters.');
+
+    if (newprefix === prefix) return msg.channel.send(`The prefix is already set to ${prefix}`);
+
+    this.client.settings.set(msg.guild.id, newprefix, 'prefix');
+    msg.channel.send(`The prefix has been changed to: ${newprefix}`);
   }
 }
 

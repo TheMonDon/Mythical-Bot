@@ -85,6 +85,7 @@ module.exports = class {
     const args = message.content.slice(tag.length).trim().split(/ +/g);
     let command = args.shift().toLowerCase();
     if (tag === String(message.guild && message.guild.me)) {
+      if (args.length < 1) return message.channel.send(`The current prefix is: ${message.settings.prefix}`);
       command = args.shift().toLowerCase();
     }
 
@@ -120,11 +121,13 @@ This command requires level ${this.client.levelCache[cmd.conf.permLevel]} (${cmd
     // The "level" command module argument will be deprecated in the future.
     message.author.permLevel = level;
 
+    /*
     message.flags = [];
     while (args[0] &&args[0][0] === '-') {
       message.flags.push(args.shift().slice(1));
     }
-    
+    */
+   
     // If the command exists, **AND** the user has permission, run it.
     db.add('global.commands', 1);
     cmd.run(message, args, level);
