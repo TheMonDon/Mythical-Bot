@@ -10,7 +10,6 @@ class Ban extends Command {
       usage: 'ban <member> <reason>',
       category: 'Moderator',
       guildOnly: true,
-      permLevel: 'Moderator'
     });
   }
 
@@ -24,7 +23,7 @@ class Ban extends Command {
       ban_mem = msg.mentions.members.first() || server.members.cache.find(m => m.id === `${text[0]}`) || server.members.cache.find(m => m.displayName.toUpperCase() === `${text[0].toUpperCase()}`) || server.members.cache.find(m => m.user.username.toUpperCase() === `${text[0].toUpperCase()}`) || server.members.cache.find(m => m.user.username.toLowerCase()
         .includes(`${text[0].toLowerCase()}`));
     } else {
-      return msg.channel.send('Please provide a member and a reason.')
+      return msg.channel.send('Please provide a member and a reason.');
     }
 
     if (!msg.guild.me.permissions.has('BAN_MEMBERS')) return msg.channel.send('The bot is missing the ban members permission.');

@@ -29,6 +29,7 @@
     "node-superfetch": "^0.1.10",
     "oxford-dictionaries-api": "^0.1.2",
     "quick.db": "^7.1.1",
+    "random-words": "^1.1.1",
     "readline-sync": "^1.4.9",
     "request": "^2.88.2",
     "request-promise-native": "^1.0.9",

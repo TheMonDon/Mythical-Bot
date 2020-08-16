@@ -20,26 +20,25 @@ class Help extends Command {
     const cats = ['General', 'Economy', 'Fun', 'Memes', 'Information', 'Music', 'Moderator'];
     const allcats = ['General', 'Economy', 'Fun', 'Memes', 'Information', 'Music', 'Moderator', 'Administrator', 'Ticket', 'Logging', 'Owner'];
     const text = args.join(' ').toLowerCase();
+    const em = new MessageEmbed();
+    const name = msg.member && msg.member.displayName || msg.author.username;
+    em.setAuthor(name, msg.author.displayAvatarURL());
 
     if (!text) {
-      const em = new MessageEmbed()
-        .setColor('ORANGE')
-        .setDescription(`Please select a category to see all available commands. \nUsage: \`${msg.settings.prefix}help <category\` \nUsage: \`${msg.settings.prefix}help <command>\``)
-        .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
-        .addField('Current Categories:', cats, true)
-        .addField('Quick Bits', '[Invite Link](https://discord.com/oauth2/authorize?client_id=742407958729588767&scope=bot&permissions=171306176)', true);
+      em.setColor('ORANGE');
+      em.setDescription(`Please select a category to see all available commands. \nUsage: \`${msg.settings.prefix}help <category\` \nUsage: \`${msg.settings.prefix}help <command>\``);
+      em.addField('Current Categories:', cats, true);
+      em.addField('Quick Bits', '[Invite Link](https://discord.com/oauth2/authorize?client_id=742407958729588767&scope=bot&permissions=171306176)', true);
       return msg.channel.send(em);
     }
     // All Categories hidden thingy.
     if (['allcats', 'cats', 'all'].includes(text)) {
-      const embed = new MessageEmbed()
-        .setTitle('Hidden Feature: All Categories')
-        .setColor('#0099CC')
-        .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
-        .addField('Current Categories', allcats, true);
-      return msg.channel.send(embed);
+      em.setTitle('Hidden Feature: All Categories');
+      em.setColor('#0099CC');
+      em.setAuthor(msg.member.displayName, msg.author.displayAvatarURL());
+      em.addField('Current Categories', allcats, true);
+      return msg.channel.send(em);
     } else if (['eco', 'economy', 'money'].includes(text)) {
-      const em = new MessageEmbed();
       const category = 'Economy';
       em.setTitle(`${category} Commands`);
       em.setColor('0099CC');
@@ -55,7 +54,6 @@ class Help extends Command {
       });
       return msg.channel.send(em);
     } else if (['info', 'information'].includes(text)) {
-      const em = new MessageEmbed();
       const category = 'Information';
       em.setTitle(`${category} Commands`);
       em.setColor('0099CC');
@@ -71,7 +69,6 @@ class Help extends Command {
       });
       return msg.channel.send(em);
     } else if (['meme', 'memes'].includes(text)) {
-      const em = new MessageEmbed();
       const category = 'Memes';
       em.setTitle(`${category} Commands`);
       em.setColor('0099CC');
@@ -87,7 +84,6 @@ class Help extends Command {
       });
       return msg.channel.send(em);
     } else if (['fun'].includes(text)) {
-      const em = new MessageEmbed();
       const category = 'Fun';
       em.setTitle(`${category} Commands`);
       em.setColor('0099CC');
@@ -103,7 +99,6 @@ class Help extends Command {
       });
       return msg.channel.send(em);
     } else if (['gen', 'general'].includes(text)) {
-      const em = new MessageEmbed();
       const category = 'General';
       em.setTitle(`${category} Commands`);
       em.setColor('0099CC');
@@ -119,7 +114,6 @@ class Help extends Command {
       });
       return msg.channel.send(em);
     } else if (['music'].includes(text)) {
-      const em = new MessageEmbed();
       const category = 'Music';
       em.setTitle(`${category} Commands`);
       em.setColor('0099CC');
@@ -135,7 +129,6 @@ class Help extends Command {
       });
       return msg.channel.send(em);
     } else if (['ticket', 'tickets', 'tix'].includes(text)) {
-      const em = new MessageEmbed();
       const category = 'Tickets';
       em.setTitle(`${category} Commands`);
       em.setColor('0099CC');
@@ -151,7 +144,6 @@ class Help extends Command {
       });
       return msg.channel.send(em);
     } else if (['log', 'logging', 'logs'].includes(text)) {
-      const em = new MessageEmbed();
       const category = 'Logging';
       em.setTitle(`${category} Commands`);
       em.setColor('0099CC');
@@ -167,7 +159,6 @@ class Help extends Command {
       });
       return msg.channel.send(em);
     } else if (['mod', 'moderator', 'mods'].includes(text)) {
-      const em = new MessageEmbed();
       const category = 'Moderator';
       em.setTitle(`${category} Commands`);
       em.setColor('0099CC');
@@ -183,7 +174,6 @@ class Help extends Command {
       });
       return msg.channel.send(em);
     } else if (['owner'].includes(text)) {
-      const em = new MessageEmbed();
       const category = 'Owner';
       em.setTitle(`${category} Commands`);
       em.setColor('0099CC');
@@ -199,7 +189,6 @@ class Help extends Command {
       });
       return msg.channel.send(em);
     } else if (['bot admin'].includes(text)) {
-      const em = new MessageEmbed();
       const category = 'Bot Admin';
       em.setTitle(`${category} Commands`);
       em.setColor('0099CC');
@@ -221,13 +210,11 @@ class Help extends Command {
         if (level < this.client.levelCache[command.conf.permLevel]) return;
         return message.channel.send(`= ${command.help.name} = \n${command.help.description}\nusage:: ${command.help.usage}\nalises:: ${command.conf.aliases.join(', ')}`, {code:'asciidoc'});
       } else {
-        const em = new MessageEmbed()
-          .setColor('ORANGE')
-          .setTitle('Incorrect Usage')
-          .setDescription(`Please select a category to see all available commands. \nUsage: \`${msg.settings.prefix}help <category\` \nUsage: \`${msg.settings.prefix}help <command>\``)
-          .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
-          .addField('Current Categories:', cats, true)
-          .addField('Quick Bits', '[Invite Link](https://discord.com/oauth2/authorize?client_id=742407958729588767&scope=bot&permissions=171306176)', true);
+        em.setColor('ORANGE');
+        em.setTitle('Incorrect Usage');
+        em.setDescription(`Please select a category to see all available commands. \nUsage: \`${msg.settings.prefix}help <category\` \nUsage: \`${msg.settings.prefix}help <command>\``);
+        em.addField('Current Categories:', cats, true);
+        em.addField('Quick Bits', '[Invite Link](https://discord.com/oauth2/authorize?client_id=742407958729588767&scope=bot&permissions=171306176)', true);
         msg.channel.send(em);
       }
     }

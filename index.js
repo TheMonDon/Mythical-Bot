@@ -28,15 +28,7 @@ class bot extends Client {
     this.wait = require('util').promisify(setTimeout);
   }
 
-  /*
-  PERMISSION LEVEL FUNCTION
-
-  This is a very basic permission system for commands which uses "levels"
-  "spaces" are intentionally left black so you can add them if you want.
-  NEVER GIVE ANYONE BUT OWNER THE LEVEL 10! By default this can run any
-  command including the VERY DANGEROUS `eval` command!
-
-  */
+  // PERMISSION LEVEL FUNCTION
   permlevel (message) {
     let permlvl = 0;
 
@@ -149,25 +141,6 @@ class bot extends Client {
     }
     this.settings.set(id, settings);
   }
-
-  /*
-  SINGLE-LINE AWAITMESSAGE
-  A simple way to grab a single reply, from the user that initiated
-  the command. Useful to get "precisions" on certain things...
-  USAGE
-  const response = await client.awaitReply(msg, "Favourite Color?");
-  msg.reply(`Oh, I really love ${response} too!`);
-  */
-  async awaitReply (msg, question, limit = 60000) {
-    const filter = m => m.author.id === msg.author.id;
-    await msg.channel.send(question);
-    try {
-      const collected = await msg.channel.awaitMessages(filter, { max: 1, time: limit, errors: ['time'] });
-      return collected.first().content;
-    } catch (e) {
-      return false;
-    }
-  }
 }
 
 
@@ -214,11 +187,6 @@ init();
 
 String.prototype.toProperCase = function () {
   return this.replace(/([^\W_]+[^\s-]*) */g, function (txt) {return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
-};
-// <Array>.random() returns a single random element from an array
-// [1, 2, 3, 4, 5].random() can return 1, 2, 3, 4 or 5.
-Array.prototype.random = function () {
-  return this[Math.floor(Math.random() * this.length)];
 };
 
 client.on('disconnect', () => client.logger.warn('Bot is disconnecting...'))

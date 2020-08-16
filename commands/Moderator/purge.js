@@ -7,7 +7,7 @@ class Ping extends Command {
       description: 'Latency and API response times.',
       usage: 'purge',
       category: 'Moderator',
-      guildOnly: true
+      guildOnly: true,
     });
   }
 

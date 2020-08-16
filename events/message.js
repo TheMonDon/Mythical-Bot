@@ -30,7 +30,7 @@ module.exports = class {
     // Checks if the bot was mentioned, with no message after it, returns the prefix.
     // eslint-disable-next-line no-useless-escape
     const prefixMention = new RegExp(`^(<@!?${this.client.user.id}>)(\s+)?`);
-    if (message.content.match(prefixMention)) {
+    if (message.guild && message.content.match(prefixMention)) {
       bool = true;
       tag = String(message.guild.me);
     } else if (message.content.indexOf(settings.prefix) !== 0) {
@@ -84,7 +84,7 @@ module.exports = class {
     if (!bool) return;
     const args = message.content.slice(tag.length).trim().split(/ +/g);
     let command = args.shift().toLowerCase();
-    if (tag === String(message.guild.me)) {
+    if (tag === String(message.guild && message.guild.me)) {
       command = args.shift().toLowerCase();
     }
 
