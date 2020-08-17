@@ -1,7 +1,5 @@
 const Command = require('../../base/Command.js');
-const {
-  stripIndents
-} = require('common-tags');
+const { stripIndents } = require('common-tags');
 const DiscordJS = require('discord.js');
 
 class rps extends Command {

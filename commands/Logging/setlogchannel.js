@@ -52,6 +52,7 @@ class setlogchannel extends Command {
       embed.setThumbnail('https://cdn.discordapp.com/emojis/482184108555108358.png');
       embed.setDescription(`Everything related to logs will be posted in ${chan} from now on.`);
       embed.setTimestamp();
+      embed.setFooter('Logs System V3.0-BETA');
       msg.channel.send(embed);
     } else {
       db.set(`servers.${msg.guild.id}.logs.log_system`, log_system);
@@ -60,6 +61,7 @@ class setlogchannel extends Command {
       embed.setThumbnail('https://cdn.discordapp.com/emojis/482184108555108358.png');
       embed.setDescription(`Everything related to logs will be posted in ${chan}.`);
       embed.setTimestamp();
+      embed.setFooter('Logs System V3.0-BETA');
       msg.channel.send(embed);
     }
   }
