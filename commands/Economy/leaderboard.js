@@ -32,10 +32,12 @@ module.exports = class Leaderboard extends Command {
     for (var i in stuff) {
       try {
         const u = await this.client.users.cache.get(i);
-        lb.push({
-          user: u.tag || u.user.tag,
-          money: (stuff[i].economy.cash || 0) + (stuff[i].economy.bank || 0)
-        });
+        if (u) {
+          lb.push({
+            user: u.tag,
+            money: (stuff[i].economy.cash || 0) + (stuff[i].economy.bank || 0)
+          });
+        }
       } catch (err) {
         console.error(err);
       }

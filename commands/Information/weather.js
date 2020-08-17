@@ -24,7 +24,7 @@ class Weather extends Command {
     }, function (err, result) {
       if (err) console.log(err);
 
-      if (result.length === 0) {
+      if (!result || result.length === 0) {
         return msg.channel.send(`No data was available for the location \`${(String(city).length > 1959) ? String(city).substring(0, 1956) + '...' : city}\``);
       } else {
         const dc = Math.round(((result[0].current.temperature - 32) * 5 / 9) * 100) / 100;
