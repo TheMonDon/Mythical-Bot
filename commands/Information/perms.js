@@ -6,7 +6,7 @@ class Ping extends Command {
   constructor (client) {
     super(client, {
       name: 'perms',
-      description: 'Figure out what permissions you or another member have.',
+      description: 'Figure out what permissions you or another member have',
       usage: 'perms',
       category: 'Information',
       aliases: ['permissions'],

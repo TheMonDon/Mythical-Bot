@@ -7,7 +7,7 @@ class UserInfo extends Command {
   constructor (client) {
     super(client, {
       name: 'userinfo',
-      description: 'Gives some useful user information.',
+      description: 'Gives some useful user information',
       usage: 'userlinfo',
       category: 'Information',
       aliases: ['ui'],

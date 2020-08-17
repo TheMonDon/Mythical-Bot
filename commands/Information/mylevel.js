@@ -4,7 +4,7 @@ class MyLevel extends Command {
   constructor (client) {
     super(client, {
       name: 'mylevel',
-      description: 'Displays your permission level for your location.',
+      description: 'Displays your permission level',
       usage: 'mylevel',
       category: 'Information',
       guildOnly: true

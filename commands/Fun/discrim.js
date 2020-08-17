@@ -6,7 +6,7 @@ class Discrim extends Command {
       name: 'discrim',
       description: 'Find all the users the bot has with the same discrim',
       usage: 'discrim',
-      category: 'Information',
+      category: 'Fun',
       aliases: ['disc', 'discriminator']
     });
   }

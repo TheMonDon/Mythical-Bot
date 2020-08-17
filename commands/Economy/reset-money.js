@@ -6,7 +6,7 @@ module.exports = class ResetMoney extends Command {
   constructor (client) {
     super(client, {
       name: 'reset-money',
-      description: 'Reset money of you or another member.',
+      description: 'Reset money of you or another member',
       category: 'Economy',
       examples: ['reset-money <user>'],
       aliases: ['resetmoney', 'rm'],

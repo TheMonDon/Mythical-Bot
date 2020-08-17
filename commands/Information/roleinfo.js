@@ -7,7 +7,7 @@ class Stats extends Command {
   constructor (client) {
     super(client, {
       name: 'roleinfo',
-      description: 'Gives some useful role information.',
+      description: 'Gives some useful role information',
       usage: 'rolelinfo',
       category: 'Information',
       aliases: ['ri'],

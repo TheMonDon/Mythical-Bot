@@ -6,9 +6,9 @@ class Wiki extends Command {
   constructor (client) {
     super(client, {
       name: 'wikipedia',
-      description: 'Latency and API response times.',
+      description: 'Retrieve an article from wikipedia',
       usage: 'wikipedia',
-      category: 'Information',
+      category: 'Fun',
       aliases: ['wiki']
     });
   }

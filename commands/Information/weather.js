@@ -6,7 +6,7 @@ class Weather extends Command {
   constructor (client) {
     super(client, {
       name: 'weather',
-      description: 'Get the weather information from any city.',
+      description: 'Get the weather information from any city',
       usage: 'weather',
       category: 'Information',
       aliases: ['temp']

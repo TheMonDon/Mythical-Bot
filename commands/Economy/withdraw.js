@@ -7,7 +7,7 @@ module.exports = class Withdraw extends Command {
     super(client, {
       name: 'withdraw',
       category: 'Economy',
-      description: 'Withdraw your money from the bank.',
+      description: 'Withdraw your money from the bank',
       examples: ['withdraw <amount>'],
       aliases: ['with'],
       guildOnly: true

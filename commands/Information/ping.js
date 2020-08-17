@@ -5,7 +5,7 @@ class Ping extends Command {
   constructor (client) {
     super(client, {
       name: 'ping',
-      description: 'Latency and API response times.',
+      description: 'Latency and API response times',
       usage: 'ping',
       category: 'Information',
       aliases: ['pong']

@@ -6,7 +6,7 @@ class Ping extends Command {
   constructor (client) {
     super(client, {
       name: 'math',
-      description: 'Solve some math equations.',
+      description: 'Solve some math equations',
       usage: 'math',
       category: 'Information',
     });

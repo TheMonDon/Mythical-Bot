@@ -12,7 +12,7 @@ class Stats extends Command {
     super(client, {
       name: 'color',
       description: 'Get information about some colors.',
-      category: 'Information',
+      category: 'Fun',
       usage: 'color',
     });
   }

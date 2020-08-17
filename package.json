@@ -35,6 +35,7 @@
     "request-promise-native": "^1.0.9",
     "rgb-hex": "^3.0.0",
     "speedtest-net": "^2.1.1",
+    "superagent": "^6.0.0",
     "weather-js": "^2.0.0"
   },
   "devDependencies": {

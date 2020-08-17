@@ -4,7 +4,7 @@ class Ping extends Command {
   constructor (client) {
     super(client, {
       name: 'purge',
-      description: 'Latency and API response times.',
+      description: 'Get rid of some messages',
       usage: 'purge',
       category: 'Moderator',
       guildOnly: true,

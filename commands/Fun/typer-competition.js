@@ -19,7 +19,7 @@ class typerCommand extends Command {
   constructor (client) {
     super(client, {
       name: 'typer-competition',
-      description: 'PLay a game of speed',
+      description: 'Play a game of speed',
       usage: 'typer-competition',
       category: 'Fun',
       aliases: ['typercompetition', 'tc']
