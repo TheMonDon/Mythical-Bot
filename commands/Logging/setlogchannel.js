@@ -39,9 +39,9 @@ class setlogchannel extends Command {
     if (!text || text.length < 1) {
       return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}setlogchannel <channel>`);
     }
-    const chan = msg.mentions.channels.first() || server.channels.find(c => c.id === text) ||
-    server.channels.find(c => c.name.toLowerCase() === text.toLowerCase()) ||
-    server.channels.find(c => c.name.toLowerCase().includes(text.toLowerCase())); 
+    const chan = msg.mentions.channels.first() || server.channels.cache.find(c => c.id === text) ||
+    server.channels.cache.find(c => c.name.toLowerCase() === text.toLowerCase()) ||
+    server.channels.cache.find(c => c.name.toLowerCase().includes(text.toLowerCase())); 
 
     if (!chan) return msg.channel.send('Please provide a valid server channel.');
     const currentChan = db.get(`servers.${msg.guild.id}.logs.channel`);
