@@ -20,7 +20,7 @@ module.exports = class Blackjack extends Command {
     const server = msg.guild;
     const member = msg.member;
     const { Blackjack } = require('blackjack-n-deck');
-    const p =  this.client.settings.get(msg.guild.id).prefix;
+    const p = msg.settings.prefix;
 
     const usage = `${p}blackjack <bet>`;
     if (!args || args.length < 1) return msg.channel.send(`Incorrect Usage: \n${usage}`);
@@ -83,11 +83,11 @@ module.exports = class Blackjack extends Command {
       '?': '<:cardBack:740317913948618793>'
     };
 
-    const premium = db.get(`servers.${server.id}.premium`) || false;
+    const premium = db.get(`servers.${msg.guild.id}.premium`) || false;
     if (!premium) return msg.channel.send('Sorry, this is a beta command and requires the server to have premium status. \nContact TheMonDon#1721 for premium.');
 
-    const cs = db.get(`servers.${server.id}.economy.symbol`) || '$';
-    const cash = db.get(`servers.${server.id}.users.${member.id}.economy.cash`) || 0; // get the users cash amount
+    const cs = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
+    const cash = db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`) || 0; // get the users cash amount
 
     bet = bet.replace(/,/g, '');
     bet = bet.replace(cs, '');
@@ -98,7 +98,7 @@ module.exports = class Blackjack extends Command {
     if (bet < 1) return msg.channel.send(`You can't bet less than ${cs}1.`);
     if (bet > cash) return msg.channel.send('You can\'t bet more cash than you have.');
 
-    db.subtract(`servers.${server.id}.users.${member.id}.economy.cash`, bet); // Take the cash money bet
+    db.subtract(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bet); // Take the cash money bet
 
     let color = '#03A9F4';
 
