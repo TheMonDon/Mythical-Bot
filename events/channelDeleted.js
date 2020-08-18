@@ -12,19 +12,19 @@ module.exports = class {
 
     if (!logChan) return;
 
-    const logSys = db.get(`servers.${channel.guild.id}.logs.log_system.channel-created`);
+    const logSys = db.get(`servers.${channel.guild.id}.logs.log_system.channel-deleted`);
     if (!logSys === 'enabled') return;
     if (channel.name.startsWith('ticket-')) return;
 
     const embed = new DiscordJS.MessageEmbed()
-      .setTitle('Channel Created')
+      .setTitle('Channel Deleted')
       .setColor('#20fc3a')
       .addField('Name', channel.name, true)
       .addField('Category', (channel.parent && channel.parent.name) ? channel.parent.name : 'None', true)
       .setFooter(`ID: ${channel.id}`)
       .setTimestamp();
     channel.guild.channels.cache.get(logChan).send(embed);
-    db.add(`servers.${channel.guild.id}.logs.channel-created`, 1);
+    db.add(`servers.${channel.guild.id}.logs.channel-deleted`, 1);
     db.add(`servers.${channel.guild.id}.logs.all`, 1);
   }
 };
