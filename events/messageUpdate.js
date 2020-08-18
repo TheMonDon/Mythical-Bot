@@ -15,7 +15,7 @@ module.exports = class {
       if (!logChan) return;
   
       const logSys = db.get(`servers.${newmsg.guild.id}.logs.log_system.message-edited`);
-      if (!logSys === 'enabled') return;
+      if (logSys !== 'enabled') return;
 
       const msg1 = oldmsg;
       const msg2 = newmsg;

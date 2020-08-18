@@ -13,7 +13,7 @@ module.exports = class {
       if (!logChan) return;
 
       const logSys = db.get(`servers.${member.guild.id}.logs.log_system.member-leave`);
-      if (!logSys === 'enabled') return;
+      if (logSys !== 'enabled') return;
 
       const embed = new DiscordJS.MessageEmbed();
       await member.guild.members.fetch();

@@ -1,0 +1,37 @@
+5 messages deleted in spam:
+
+TheMonDon#1721 (User ID: 318592718832140289 Mesage ID: 745319237525962812)
+-eval const fs = require('fs');
+const txt = 'messages.txt';
+
+msg.channel.messages.fetch({ limit: 5})
+  .then(function (messages) {
+    const output = [];
+    output.push(`${messages.size} messages deleted in ${msg.channel.name}:`);
+    output.push('\n');
+    output.push('\n')
+    messages.forEach(m => {
+      output.push(`${m.author.tag} (User ID: ${m.author.id} Mesage ID: ${m.id})\n`);
+      output.push(m.content);
+      output.push('\n');
+      output.push('\n');
+    });
+    const text = output.join('');
+    console.log(text);
+    fs.writeFileSync(txt, text, function (err) {
+      if (err) console.error(err);
+    });
+  });
+
+TheMonDon#1721 (User ID: 318592718832140289 Mesage ID: 745319029992063167)
+four
+
+TheMonDon#1721 (User ID: 318592718832140289 Mesage ID: 745319022295515157)
+three
+
+TheMonDon#1721 (User ID: 318592718832140289 Mesage ID: 745319018839277700)
+two
+
+TheMonDon#1721 (User ID: 318592718832140289 Mesage ID: 745319015794212948)
+one
+

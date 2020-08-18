@@ -23,20 +23,20 @@ class logtoggle extends Command {
     if (!db.get(`servers.${msg.guild.id}.logs.channel`)) return msg.channel.send(`The log system is not set up! Use \`${msg.settings.prefix}setlogchannel <channel>\``);
 
     //define regex
-    const cc = /(channel[-]?created)/gi;
-    const cd = /(channel[-]?deleted)/gi;
-    const cu = /(channel[-]?deleted)/gi;
-    const vcc = /((voice|v)[-]?channel[-]?created)/gi;
-    const vcd = /((voice|v)[-]?channel[-]?created)/gi;
-    const mj = /(member[-]?join(ed)?)/gi;
-    const ml = /(member[-]?leave)/gi;
-    const me1 = /(message[-]?edited)/gi;
-    const md = /(message[-]?deleted)/gi;
-    const rc = /(role[-]?created)/gi;
-    const rd = /(role[-]?deleted)/gi;
-    const ru = /(role[-]?updated)/gi;
-    const ec = /(emoji[-]?created)/gi;
-    const ed = /(emoji[-]?deleted)/gi;
+    const cc = /^(channel[-]?created)/gi;
+    const cd = /^(channel[-]?deleted)/gi;
+    const cu = /^(channel[-]?updated)/gi;
+    const vcc = /^((voice|v)[-]?channel[-]?created)/gi;
+    const vcd = /^((voice|v)[-]?channel[-]?created)/gi;
+    const mj = /^(member[-]?join(ed)?)/gi;
+    const ml = /^(member[-]?leave)/gi;
+    const me1 = /^(message[-]?edited)/gi;
+    const md = /^(message[-]?deleted)/gi;
+    const rc = /^(role[-]?created)/gi;
+    const rd = /^(role[-]?deleted)/gi;
+    const ru = /^(role[-]?updated)/gi;
+    const ec = /^(emoji[-]?created)/gi;
+    const ed = /^(emoji[-]?deleted)/gi;
 
     error_embed.setTitle(':x: Invalid parameter.');
     error_embed.addField('Valid Parameters', stripIndents(`

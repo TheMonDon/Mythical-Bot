@@ -11,7 +11,7 @@ module.exports = class {
     if (!logChan) return;
 
     const logSys = db.get(`servers.${channel.guild.id}.logs.log_system.channel-created`);
-    if (!logSys === 'enabled') return;
+    if (logSys !== 'enabled') return;
     if (channel.name.startsWith('ticket-')) return;
 
     const embed = new DiscordJS.MessageEmbed()

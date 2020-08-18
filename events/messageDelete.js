@@ -14,7 +14,7 @@ module.exports = class {
     if (!logChan) return;
   
     const logSys = db.get(`servers.${msg.guild.id}.logs.log_system.message-deleted`);
-    if (!logSys === 'enabled') return;
+    if (logSys !== 'enabled') return;
 
     let delby;
     if (msg.guild.me.permissions.has('VIEW_AUDIT_LOG')) {
