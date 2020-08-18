@@ -23,6 +23,7 @@ module.exports = class {
       .addField('Category', (channel.parent && channel.parent.name) ? channel.parent.name : 'None', true)
       .setFooter(`ID: ${channel.id}`)
       .setTimestamp();
+    console.log(channel.guild.channels.cache);
     channel.guild.channels.cache.get(logChan).send(embed);
     db.add(`servers.${channel.guild.id}.logs.channel-created`, 1);
     db.add(`servers.${channel.guild.id}.logs.all`, 1);
