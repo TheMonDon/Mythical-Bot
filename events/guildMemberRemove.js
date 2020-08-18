@@ -12,12 +12,12 @@ module.exports = class {
       const logChan = db.get(`servers.${member.guild.id}.logs.channel`);
       if (!logChan) return;
 
-      const logSys = db.get(`servers.${member.guild.id}.logs.log_system.member-join`);
+      const logSys = db.get(`servers.${member.guild.id}.logs.log_system.member-leave`);
       if (!logSys === 'enabled') return;
 
       const embed = new DiscordJS.MessageEmbed();
       await member.guild.members.fetch();
-      embed.setTitle('Member Joined');
+      embed.setTitle('Member Left');
       embed.setColor('#3dd0f4');
       embed.setAuthor(member.user.tag, member.user.displayAvatarURL());
       embed.setThumbnail(member.user.displayAvatarURL());
@@ -26,7 +26,7 @@ module.exports = class {
       embed.setFooter(`ID: ${member.user.id}`);
       embed.setTimestamp();
       member.guild.channels.cache.get(logChan).send(embed);
-      db.add(`servers.${member.guild.id}.logs.member-join`, 1);
+      db.add(`servers.${member.guild.id}.logs.member-leave`, 1);
       db.add(`servers.${member.guild.id}.logs.all`, 1);
     })();
 

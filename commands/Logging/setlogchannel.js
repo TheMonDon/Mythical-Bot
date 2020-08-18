@@ -9,7 +9,8 @@ class setlogchannel extends Command {
       description: 'Set the log channel',
       usage: 'setlogchannel <channel>',
       category: 'Logging',
-      permLevel: 'Moderator'
+      permLevel: 'Moderator',
+      aliases: ['slc']
     });
   }
 
@@ -64,7 +65,7 @@ class setlogchannel extends Command {
       embed.setFooter('Logs System V3.0-BETA');
       msg.channel.send(embed);
     }
-    db.set(`servers.${msg.guild.id}.logs.channel`, chan);
+    db.set(`servers.${msg.guild.id}.logs.channel`, chan.id);
   }
 }
 
