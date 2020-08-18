@@ -31,7 +31,7 @@ module.exports = class {
       }
       const embed = new DiscordJS.MessageEmbed();
       embed.setTitle(`Channl ${channel.name} Updated`);
-      embed.setColor('#20fc3a');
+      embed.setColor('#EE82EE');
       embed.addField('Name', (channel.name == newChannel.name) ? 'Updated: ❌' : `Updated: ✅ \n New Name: ${newChannel.name}`, true);
       embed.addField('Topic', (channel.topic == newChannel.topic) ? 'Updated: ❌' : `Updated: ✅ \n New Topic: ${newChannel.topic}`, true);
       embed.addField('Is NSFW?', (newChannel.nsfw) ? '✅' : '❌', true);

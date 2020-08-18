@@ -1,7 +1,5 @@
-// The MESSAGE event runs anytime a message is received
-// Note that due to the binding of client to every event, every event
-// goes `client, other, args` when this function is run.
 const db = require('quick.db');
+const DiscordJS = require('discord.js');
 
 module.exports = class {
   constructor (client) {
@@ -10,6 +8,36 @@ module.exports = class {
 
   // eslint-disable-next-line no-unused-vars
   async run (oldmsg, newmsg) {
+    if (oldmsg.author.bot) return;
+
+    (async () => {
+      const logChan = db.get(`servers.${newmsg.guild.id}.logs.channel`);
+      if (!logChan) return;
+  
+      const logSys = db.get(`servers.${newmsg.guild.id}.logs.log_system.message-edited`);
+      if (!logSys === 'enabled') return;
+
+      const msg1 = oldmsg;
+      const msg2 = newmsg;
+  
+      const embed = new DiscordJS.MessageEmbed();
+      embed.setTitle('Message Edited');
+      embed.setURL(msg2.url);
+      embed.setAuthor(msg1.author.tag, msg1.author.displayAvatarURL());
+      embed.setColor('#EE82EE');
+      embed.setThumbnail(msg1.author.displayAvatarURL());
+      embed.addField('Original Message', (msg1.content.length <= 1024) ? msg1.content : `${msg1.content.substring(0, 1020)}...`, true);
+      embed.addField('Edited Message', (msg2.content.length <= 1024) ? msg2.content : `${msg2.content.substring(0, 1020)}...`, true);
+      embed.addField('Channel', msg1.channel, true);
+      embed.addField('Message Author', `${msg1.author} (${msg1.author.tag})`, true);
+      embed.addField('Number of Edits', msg2.edits.length, true);
+      (msg2.mentions.users.size === 0) ? embed.addField('Mentioned Users', 'None', true): embed.addField('Mentioned Users', `Mentioned Member Count: ${msg2.mentions.users.array().length} \n Mentioned Users List: \n ${msg2.mentions.users.array()}`, true);
+      embed.setTimestamp();
+      newmsg.guild.channels.cache.get(logChan).send(embed);
+      db.add(`servers.${newmsg.guild.id}.logs.message-edited`, 1);
+      db.add(`servers.${newmsg.guild.id}.logs.all`, 1);
+    })();
+
     let bool;
     let tag;
     const re = new RegExp('http');
@@ -18,7 +46,6 @@ module.exports = class {
     } else if (oldmsg.content === newmsg.content || oldmsg === newmsg) {
       return;
     } else {
-      if (oldmsg.author.bot) return;
       if (newmsg.guild && !newmsg.channel.permissionsFor(newmsg.guild.me).missing('SEND_MESSAGES')) return;
 
       const settings = this.client.getSettings(newmsg.guild);

@@ -17,7 +17,7 @@ class Help extends Command {
 
     const settings = msg.settings;
 
-    const cats = ['General', 'Economy', 'Fun', 'Memes', 'Information', 'Music', 'Moderator'];
+    const cats = ['General', 'Economy', 'Fun', 'Memes', 'Information', 'Music', 'Moderator', 'Administrator'];
     const allcats = ['General', 'Economy', 'Fun', 'Memes', 'Information', 'Music', 'Moderator', 'Administrator', 'Ticket', 'Logging', 'Owner'];
     const text = args.join(' ').toLowerCase();
     const em = new MessageEmbed();
@@ -188,8 +188,23 @@ class Help extends Command {
         }
       });
       return msg.channel.send(em);
-    } else if (['bot admin'].includes(text)) {
+    } else if (['bot admin', 'botadmin'].includes(text)) {
       const category = 'Bot Admin';
+      em.setTitle(`${category} Commands`);
+      em.setColor('0099CC');
+      const myCommands = this.client.commands.filter(cmd => this.client.levelCache[cmd.conf.permLevel] <= level);
+      const sorted = myCommands.array().sort((p, c) => p.help.category > c.help.category ? 1 :  p.help.name > c.help.name && p.help.category === c.help.category ? 1 : -1 );
+      sorted.forEach(c => {
+        const cat = c.help.category.toProperCase();
+        if (category !== cat) {
+          return;
+        } else {
+          em.addField(`${settings.prefix}${c.help.name.toProperCase()}`, `${c.help.description}`, false);
+        }
+      });
+      return msg.channel.send(em);
+    } else if (['admin', 'administrator', 'serveradmin'].includes(text)) {
+      const category = 'Administrator';
       em.setTitle(`${category} Commands`);
       em.setColor('0099CC');
       const myCommands = this.client.commands.filter(cmd => this.client.levelCache[cmd.conf.permLevel] <= level);
