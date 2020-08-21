@@ -14,6 +14,9 @@ module.exports = class {
     if (logSys !== 'enabled') return;
     if (channel.name.startsWith('ticket-')) return;
 
+    const chans = db.get(`servers.${channel.guild.id}.logs.noLogChans`);
+    if (chans.includes(channel.id)) return;
+
     const embed = new DiscordJS.MessageEmbed()
       .setTitle('Channel Created')
       .setColor('#20fc3a')

@@ -33,6 +33,7 @@ class setlogchannel extends Command {
       'v-channel-deleted': 'enabled',
       'emoji-created': 'enabled',
       'emoji-deleted': 'enabled',
+      'bulk-messages-deleted': 'enabled',
       'all': 'enabled'
     };
 

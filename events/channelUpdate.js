@@ -14,6 +14,9 @@ module.exports = class {
     if (logSys !== 'enabled') return;
     if (channel.name.startsWith('ticket-')) return;
 
+    const chans = db.get(`servers.${channel.guild.id}.logs.noLogChans`);
+    if (chans.includes(channel.id)) return;
+
     if (channel === newChannel) return;
     
     if (channel.parent === newChannel.parent && channel.name === newChannel.name && channel.topic === newChannel.topic) {} else {

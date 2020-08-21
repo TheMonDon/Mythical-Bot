@@ -16,6 +16,9 @@ module.exports = class {
     const logSys = db.get(`servers.${msg.guild.id}.logs.log_system.message-deleted`);
     if (logSys !== 'enabled') return;
 
+    const chans = db.get(`servers.${msg.guild.id}.logs.noLogChans`);
+    if (chans.includes(msg.channel.id)) return;
+
     let delby;
     if (msg.guild.me.permissions.has('VIEW_AUDIT_LOG')) {
       msg.guild.fetchAuditLogs()
@@ -27,6 +30,7 @@ module.exports = class {
   
     const embed = new DiscordJS.MessageEmbed();
     embed.setTitle('Message Deleted');
+    embed.setColor('RED');
     embed.setAuthor(msg.author.tag, msg.author.displayAvatarURL());
     embed.setThumbnail(msg.author.displayAvatarURL());
     embed.addField('Deleted Text', (msg.content.length <= 1024) ? msg.content : `${msg.content.substring(0, 1020)}...`, true);

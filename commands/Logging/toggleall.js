@@ -33,6 +33,7 @@ class toggleall extends Command {
       'v-channel-deleted': 'enabled',
       'emoji-created': 'enabled',
       'emoji-deleted': 'enabled',
+      'bulk-messages-deleted': 'enabled',
       'all': 'enabled'
     };
     const disable = {
@@ -50,6 +51,7 @@ class toggleall extends Command {
       'v-channel-deleted': 'disabled',
       'emoji-created': 'disabled',
       'emoji-deleted': 'disabled',
+      'bulk-messages-deleted': 'disabled',
       'all': 'disabled'
     };
 

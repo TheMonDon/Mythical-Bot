@@ -16,7 +16,7 @@ class logtoggle extends Command {
   }
 
   async run (msg, args) { // eslint-disable-line no-unused-vars
-    const query = args.join(' ');
+    const query = args.join(' ').toLowerCase();
 
     //define embeds
     const error_embed = new DiscordJS.MessageEmbed();
@@ -37,6 +37,7 @@ class logtoggle extends Command {
     const ru = /^(role[-]?updated)/gi;
     const ec = /^(emoji[-]?created)/gi;
     const ed = /^(emoji[-]?deleted)/gi;
+    const bmd = /^(bulk[-]?messages[-]?deleted)/gi;
 
     error_embed.setTitle(':x: Invalid parameter.');
     error_embed.addField('Valid Parameters', stripIndents(`
@@ -54,8 +55,63 @@ class logtoggle extends Command {
         role-updated
         emoji-created
         emoji-deleted
+        bulk-messages-deleted
         `), true);
-    if (cc.test(query)) {
+    error_embed.addField('Other Usage:', 'logtoggle <enable/disable> <channel> to enable/disable a channel from being logged.', false);
+    if (['enable', 'disable'].includes(args[0] && args[0].toLowerCase())) {
+      if (args[0] && args[0].toLowerCase() === 'enable') {
+        // Enable channel
+
+        let chan;
+        if (!args[1]) {
+          chan = msg.channel;
+        } else {
+          chan = msg.mentions.channels.first() ||
+          msg.guild.channels.cache.find(c => c.id === `${args[1]}`) ||
+          msg.guild.channels.cache.find(c => c.name.toLowerCase() === `${args[1].toLowerCase()}`) ||
+          msg.guild.channels.cache.find(c => c.name.toLowerCase().includes(`${args[1].toLowerCase()}`));
+        }
+        if (!chan) return msg.channel.send('I could not find a channel with that information.');
+
+        const chans = db.get(`servers.${msg.guild.id}.logs.noLogChans`);
+        if (chans) {
+          if (!chans.includes(chan.id)) return msg.channel.send('That channel is already enabled.');
+        }
+        const indx = chans.indexOf(chan.id);
+
+        if (indx > -1) {
+          chans.splice(indx, 1);
+          db.set(`servers.${msg.guild.id}.logs.noLogChans`, chans);
+          return msg.channel.send(`Succesfully removed ${chan.id} (${chan.name}) from the channel blacklist.`);
+        } else {
+          return msg.channel.send('I could not find a channel with that info in the blacklist.');
+        }
+
+      } else if (args[0] && args[0].toLowerCase() === 'disable') {
+        // disable channel
+
+        let chan;
+        if (!args[1]) {
+          chan = msg.channel;
+        } else {
+          chan = msg.mentions.channels.first() ||
+          msg.guild.channels.cache.find(c => c.id === `${args[1]}`) ||
+          msg.guild.channels.cache.find(c => c.name.toLowerCase() === `${args[1].toLowerCase()}`) ||
+          msg.guild.channels.cache.find(c => c.name.toLowerCase().includes(`${args[1].toLowerCase()}`));
+        }
+        if (!chan) return msg.channel.send('I could not find a channel with that information.');
+
+        const chans = db.get(`servers.${msg.guild.id}.logs.noLogChans`);
+        if (chans) {
+          if (chans.includes(chan)) return msg.channel.send('That channel is already disabled.');
+        } 
+        db.push(`servers.${msg.guild.id}.logs.noLogChans`, chan.id);
+        return msg.channel.send(`Succesfully added ${chan.id} (${chan.name}) to the channel blacklist.`);
+
+      } else {
+        return msg.channel.send(args[1]);
+      }
+    } else if (cc.test(query)) {
       if (db.get(`servers.${msg.guild.id}.logs.log_system.channel-created`) == 'enabled') {
         db.set(`servers.${msg.guild.id}.logs.log_system.channel-created`, 'disabled');
         msg.channel.send('Channel-Created logs has been disabled.');
@@ -166,6 +222,14 @@ class logtoggle extends Command {
       } else {
         db.set(`servers.${msg.guild.id}.logs.log_system.emoji-deleted`, 'enabled');
         msg.channel.send('Emoji-Deleted logs has been enabled');
+      }
+    } else if (bmd.test(query)) {
+      if (db.get(`servers.${msg.guild.id}.logs.log_system.bulk-messages-deleted`) == 'enabled') {
+        db.set(`servers.${msg.guild.id}.logs.log_system.bulk-messages-deleted`, 'disabled');
+        msg.channel.send('Bulk-Messages-Deleted logs has been disabled');
+      } else {
+        db.set(`servers.${msg.guild.id}.logs.log_system.bulk-messages-deleted`, 'enabled');
+        msg.channel.send('Bulk-Messages-Deleted logs has been enabled');
       }
     } else {
       msg.channel.send(error_embed);

@@ -25,12 +25,12 @@ class Stats extends Command {
       infoChan = msg.channel;
     } else {
       infoChan = msg.mentions.channels.first() ||
-        server.channels.find(c => c.id === `${text.join(' ')}`) ||
-        server.channels.find(c => c.name.toLowerCase() === `${text.join(' ').toLowerCase()}`) ||
-        server.channels.find(c => c.name.toLowerCase()
+        server.channels.cache.find(c => c.id === `${text.join(' ')}`) ||
+        server.channels.cache.find(c => c.name.toLowerCase() === `${text.join(' ').toLowerCase()}`) ||
+        server.channels.cache.find(c => c.name.toLowerCase()
           .includes(`${text.join(' ').toLowerCase()}`)) ||
-        client.channels.find(c => c.id === `${text.join(' ')}`) ||
-        client.channels.find(c => c.name.toLowerCase()
+        client.channels.cache.find(c => c.id === `${text.join(' ')}`) ||
+        client.channels.cache.find(c => c.name.toLowerCase()
           .includes(`${text.join(' ').toLowerCase()}`));
     }
 

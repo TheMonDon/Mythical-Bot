@@ -34,6 +34,7 @@ class logsystem extends Command {
 **Role Updated:** ${(db.get(`servers.${msg.guild.id}.logs.log_system.role-updated`) || ':x:')}
 **Emoji Created:** ${(db.get(`servers.${msg.guild.id}.logs.log_system.emoji-created`) || ':x:')}
 **Emoji Deleted:** ${(db.get(`servers.${msg.guild.id}.logs.log_system.emoji-deleted`) || ':x:')}
+**Bulk Messages Deleted:** ${db.get(`servers.${msg.guild.id}.logs.log_system.bulk-messages-deleted`) || ':x:'}
 `), true);
     embed.addField('System Status', stripIndents(`
 **Channels Created:** ${(db.get(`servers.${msg.guild.id}.logs.channel-created`) || '0')}
@@ -50,6 +51,7 @@ class logsystem extends Command {
 **Roles Updated:** ${(db.get(`servers.${msg.guild.id}.logs.role-updated`) || '0')}
 **Emojis Created:** ${(db.get(`servers.${msg.guild.id}.logs.emoji-created`) || '0')}
 **Emojis Deleted:** ${(db.get(`servers.${msg.guild.id}.logs.emoji-deleted`) || '0')}
+**Bulk Messages Deleted:** ${(db.get(`servers.${msg.guild.id}.logs.bulk-messages-deleted`) || '0')}
 **Total:** ${(db.get(`servers.${msg.guild.id}.logs.all`)) || '0'}
 `), true);
     embed.setFooter('Logs System V3.0-BETA');
