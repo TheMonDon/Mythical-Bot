@@ -159,6 +159,7 @@ class Help extends Command {
       });
       return msg.channel.send(em);
     } else if (['mod', 'moderator', 'mods'].includes(text)) {
+      if (!(msg.author.permLevel >= 2)) return msg.channel.send('This menu is locked to server mods only.')
       const category = 'Moderator';
       em.setTitle(`${category} Commands`);
       em.setColor('0099CC');
@@ -174,6 +175,7 @@ class Help extends Command {
       });
       return msg.channel.send(em);
     } else if (['owner'].includes(text)) {
+      if (!(msg.author.permLevel >= 10)) return msg.channel.send('This menu is locked to owner only.')
       const category = 'Owner';
       em.setTitle(`${category} Commands`);
       em.setColor('0099CC');
@@ -189,6 +191,7 @@ class Help extends Command {
       });
       return msg.channel.send(em);
     } else if (['bot admin', 'botadmin'].includes(text)) {
+      if (!(msg.author.permLevel >= 9)) return msg.channel.send('This menu is locked to bot admins only.')
       const category = 'Bot Admin';
       em.setTitle(`${category} Commands`);
       em.setColor('0099CC');
@@ -204,6 +207,7 @@ class Help extends Command {
       });
       return msg.channel.send(em);
     } else if (['admin', 'administrator', 'serveradmin'].includes(text)) {
+      if (!(msg.author.permLevel >= 3)) return msg.channel.send('This menu is locked to server admins only.')
       const category = 'Administrator';
       em.setTitle(`${category} Commands`);
       em.setColor('0099CC');
