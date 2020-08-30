@@ -190,7 +190,7 @@ class Help extends Command {
         }
       });
       return msg.channel.send(em);
-    } else if (['bot admin', 'botadmin'].includes(text)) {
+    } else if (['bot admin', 'botadmin', 'ba'].includes(text)) {
       if (!(msg.author.permLevel >= 9)) return msg.channel.send('This menu is locked to bot admins only.')
       const category = 'Bot Admin';
       em.setTitle(`${category} Commands`);
@@ -206,7 +206,7 @@ class Help extends Command {
         }
       });
       return msg.channel.send(em);
-    } else if (['admin', 'administrator', 'serveradmin'].includes(text)) {
+    } else if (['admin', 'administrator', 'serveradmin', 'sa'].includes(text)) {
       if (!(msg.author.permLevel >= 3)) return msg.channel.send('This menu is locked to server admins only.')
       const category = 'Administrator';
       em.setTitle(`${category} Commands`);
