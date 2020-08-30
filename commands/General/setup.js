@@ -16,7 +16,7 @@ class setup extends Command {
     const me = msg.guild.me;
     const p = msg.settings.prefix;
 
-    return msg.channel.send('This command is not setuo yet..haha.')
+    return msg.channel.send('This command is not setup yet..haha.')
   }
 }
 
