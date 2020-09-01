@@ -7,9 +7,9 @@ const {JSONPath} = require('jsonpath-plus');
 class mcAccount extends Command {
   constructor (client) {
     super(client, {
-      name: 'mcaccount',
-      description: 'Find information about a minecraft account',
-      usage: 'mcaccount',
+      name: 'mc-account',
+      description: 'Find information about a Minecraft account.',
+      usage: 'mc-account <username>',
       category: 'Fun',
       aliases: ['mca']
     });

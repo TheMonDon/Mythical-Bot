@@ -10,14 +10,14 @@
 // const action = args[0]; const key = args[1]; const value = args.slice(2);
 // OR the same as:
 // const [action, key, ...value] = args;
-const Command = require('../base/Command.js');
+const Command = require('../../base/Command.js');
 
-class SetCMD extends Command {
+class Set extends Command {
   constructor (client) {
     super(client, {
       name: 'set',
       description: 'View or change settings for your server.',
-      category: 'System',
+      category: 'Administrator',
       usage: 'set <view/get/edit> <key> <value>',
       guildOnly: true,
       aliases: ['setting', 'settings'],
@@ -90,4 +90,4 @@ class SetCMD extends Command {
   }
 }
 
-module.exports = SetCMD;
+module.exports = Set;

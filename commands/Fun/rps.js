@@ -6,7 +6,7 @@ class rps extends Command {
   constructor (client) {
     super(client, {
       name: 'rps',
-      description: 'Play a game of rock paper scissors',
+      description: 'Play a game of rock paper scissors.',
       usage: 'rps',
       category: 'Fun',
     });
@@ -58,7 +58,7 @@ class rps extends Command {
             msg.channel.send('Error: You did not reply in time.');
             mem.send(`${p1} did not reply in time, so they forfitted the game.`);
             reply.delete();
-            return chan.send('The game starter did not reply in time, so the game was forfitted.')
+            return chan.send('The game starter did not reply in time, so the game was forfitted.');
           });
       });
     await mem.send(stripIndents`
@@ -87,7 +87,7 @@ class rps extends Command {
             msg.channel.send('Error: You did not reply in time.');
             p1.send(`${mem} did not reply in time, so they forfitted the game.`);
             reply.delete();
-            return chan.send(`${mem.displayName} did not reply in time, so the game was forfitted.`)
+            return chan.send(`${mem.displayName} did not reply in time, so the game was forfitted.`);
           });
       });
 

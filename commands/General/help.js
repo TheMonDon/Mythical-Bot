@@ -159,7 +159,7 @@ class Help extends Command {
       });
       return msg.channel.send(em);
     } else if (['mod', 'moderator', 'mods'].includes(text)) {
-      if (!(msg.author.permLevel >= 2)) return msg.channel.send('This menu is locked to server mods only.')
+      if (!(msg.author.permLevel >= 2)) return msg.channel.send('This menu is locked to server mods only.');
       const category = 'Moderator';
       em.setTitle(`${category} Commands`);
       em.setColor('0099CC');
@@ -175,7 +175,7 @@ class Help extends Command {
       });
       return msg.channel.send(em);
     } else if (['owner'].includes(text)) {
-      if (!(msg.author.permLevel >= 10)) return msg.channel.send('This menu is locked to owner only.')
+      if (!(msg.author.permLevel >= 10)) return msg.channel.send('This menu is locked to owner only.');
       const category = 'Owner';
       em.setTitle(`${category} Commands`);
       em.setColor('0099CC');
@@ -191,7 +191,7 @@ class Help extends Command {
       });
       return msg.channel.send(em);
     } else if (['bot admin', 'botadmin', 'ba'].includes(text)) {
-      if (!(msg.author.permLevel >= 9)) return msg.channel.send('This menu is locked to bot admins only.')
+      if (!(msg.author.permLevel >= 9)) return msg.channel.send('This menu is locked to bot admins only.');
       const category = 'Bot Admin';
       em.setTitle(`${category} Commands`);
       em.setColor('0099CC');
@@ -207,7 +207,7 @@ class Help extends Command {
       });
       return msg.channel.send(em);
     } else if (['admin', 'administrator', 'serveradmin', 'sa'].includes(text)) {
-      if (!(msg.author.permLevel >= 3)) return msg.channel.send('This menu is locked to server admins only.')
+      if (!(msg.author.permLevel >= 3)) return msg.channel.send('This menu is locked to server admins only.');
       const category = 'Administrator';
       em.setTitle(`${category} Commands`);
       em.setColor('0099CC');
@@ -224,10 +224,16 @@ class Help extends Command {
       return msg.channel.send(em);
     } else {
       let command = args[0];
-      if (this.client.commands.has(command)) {
-        command = this.client.commands.get(command);
+      command = this.client.commands.get(command) || this.client.commands.get(this.client.aliases.get(command));
+      if (command) {
         if (level < this.client.levelCache[command.conf.permLevel]) return;
-        return message.channel.send(`= ${command.help.name} = \n${command.help.description}\nusage:: ${command.help.usage}\nalises:: ${command.conf.aliases.join(', ')}`, {code:'asciidoc'});
+        em.setTitle(`${command.help.name.toProperCase()} Information`);
+        em.setColor('0099CC');
+        em.addField('Description', command.help.description, false);
+        em.addField('Usage', command.help.usage, false);
+        em.addField('Aliases', command.conf.aliases.join(', ') || 'none', false);
+        return msg.channel.send(em);
+        // return message.channel.send(`= ${command.help.name} = \n${command.help.description}\nusage:: ${command.help.usage}\nalises:: ${command.conf.aliases.join(', ')}`, {code:'asciidoc'});
       } else {
         em.setColor('ORANGE');
         em.setTitle('Incorrect Usage');

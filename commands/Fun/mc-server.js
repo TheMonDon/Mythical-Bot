@@ -5,9 +5,9 @@ const fetch = require('node-fetch');
 class mcserver extends Command {
   constructor (client) {
     super(client, {
-      name: 'mcserver',
-      description: 'Get information about a minecraft server.',
-      usage: 'mcserver',
+      name: 'mc-server',
+      description: 'Get information about a Minecraft server.',
+      usage: 'mc-server <IP Address>',
       category: 'Fun',
       aliases: ['mcs']
     });

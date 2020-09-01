@@ -21,13 +21,11 @@ class Stats extends Command {
 
     if (!text || text.length < 1) {
       msg.channel.send(`:x: Incorrect Usage: ${server.tag}roleinfo <Role Name | role ID | @role>`);
-      if (msg.guild.me.permissions.has('MANAGE_MESSAGES')) msg.delete();
     } else {
       infoRole = msg.mentions.roles.first() || server.roles.cache.find(r => r.name === `${text.join(' ')}`) || server.roles.cache.find(r => r.id === `${text.join(' ')}`) || server.roles.cache.find(r => r.name.toLowerCase() === `${text.join(' ').toLowerCase()}`) || server.roles.cache.find(r => r.id === `${text.join(' ').replace('<@&', '').replace('>', '')}`);
 
       if (!infoRole) {
         msg.channel.send(`:x: Incorrect Usage: ${server.tag}roleinfo <Role Name | role ID | @role>`);
-        if (msg.guild.me.permissions.has('MANAGE_MESSAGES')) msg.delete();
       } else {
         //time
         const then = moment(infoRole.createdAt);
@@ -35,11 +33,15 @@ class Stats extends Command {
         const ca = then.format('MMM Do, YYYY');
         //color
         const decimal = infoRole.color;
-        const hex = '#' + decimal.toString(16)
-          .toUpperCase();
+        let hex;
+        if (decimal === 0) {
+          hex = '#95A5A6';
+        } else {
+          hex = '#' + decimal.toString(16).toUpperCase();
+        }
         const embed = new DiscordJS.MessageEmbed()
           .setTitle(`${infoRole.name}'s Information`)
-          .setColor(infoRole.color)
+          .setColor(hex)
           .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
           .addField('Name', infoRole.name, true)
           .addField('ID', infoRole.id, true)
@@ -52,7 +54,6 @@ class Stats extends Command {
           .addField('Managed', infoRole.managed, true)
           .addField('Created At', `${ca} (${time})`, true);
         msg.channel.send(embed);
-        if (msg.guild.me.permissions.has('MANAGE_MESSAGES')) msg.delete();
       }
     }
   }

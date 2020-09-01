@@ -1,6 +1,6 @@
+/* eslint-disable no-unused-vars */
 const Command = require('../../base/Command.js');
 const DiscordJS = require('discord.js');
-const fetch = require('node-superfetch');
 const https = require('https');
 const path_fnt = './fonts/Moms_Typewriter.ttf';
 const fs = require('fs');
@@ -19,7 +19,7 @@ class typerCommand extends Command {
   constructor (client) {
     super(client, {
       name: 'typer-competition',
-      description: 'Play a game of speed',
+      description: 'See who can type the fastest.',
       usage: 'typer-competition',
       category: 'Fun',
       aliases: ['typercompetition', 'tc']

@@ -8,7 +8,7 @@ class Wiki extends Command {
       name: 'wikipedia',
       description: 'Retrieve an article from wikipedia',
       usage: 'wikipedia',
-      category: 'Fun',
+      category: 'Information',
       aliases: ['wiki']
     });
   }

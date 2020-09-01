@@ -256,8 +256,8 @@ class country extends Command {
   constructor (client) {
     super(client, {
       name: 'country',
-      description: 'Get info about a country',
-      usage: 'country',
+      description: 'Get info about a country.',
+      usage: 'country <country code>',
       category: 'Fun',
     });
   }

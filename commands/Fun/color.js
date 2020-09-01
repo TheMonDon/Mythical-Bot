@@ -13,7 +13,7 @@ class Stats extends Command {
       name: 'color',
       description: 'Get information about some colors.',
       category: 'Fun',
-      usage: 'color',
+      usage: 'color <hex, rgb, name, imageURL>',
     });
   }
 

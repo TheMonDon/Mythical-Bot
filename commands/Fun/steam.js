@@ -6,8 +6,8 @@ class steam extends Command {
   constructor (client) {
     super(client, {
       name: 'steam',
-      description: 'Get some information about any steam game',
-      usage: 'steam',
+      description: 'Get some information about any steam game.',
+      usage: 'steam <game>',
       category: 'Fun',
     });
   }
