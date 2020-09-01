@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 const { MessageEmbed } = require('discord.js');
 const { inspect } = require('util');
 const Command = require('../../base/Command.js');
@@ -15,6 +16,11 @@ class Eval extends Command {
   }
 
   async run (msg, args, level) { // eslint-disable-line no-unused-vars
+    const db = require('quick.db');
+    const DiscordJS = require('discord.js');
+    const server = msg.guild;
+    const member = msg.member;
+    
     
     const embed = new MessageEmbed()
       .setFooter(msg.author.tag, msg.author.displayAvatarURL());

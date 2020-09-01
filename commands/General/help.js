@@ -17,7 +17,7 @@ class Help extends Command {
 
     const settings = msg.settings;
 
-    const cats = ['General', 'Economy', 'Fun', 'Memes', 'Information', 'Music', 'Moderator', 'Administrator'];
+    const cats = ['General', 'Economy', 'Fun', 'Memes', 'Logging', 'Information', 'Music', 'Moderator', 'Administrator'];
     const allcats = ['General', 'Economy', 'Fun', 'Memes', 'Information', 'Music', 'Moderator', 'Administrator', 'Ticket', 'Logging', 'Owner'];
     const text = args.join(' ').toLowerCase();
     const em = new MessageEmbed();
