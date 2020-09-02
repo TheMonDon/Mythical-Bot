@@ -64,7 +64,6 @@ class UserInfo extends Command {
         .addField('Account Created',  `${ca} \n (${caTime})`, true)
         .addField('Join Position', `${Number(joinPosition).toLocaleString()}`, true)
         .addField('Roles', roles1, false);
-      if (msg.guild.me.permissions.has('MANAGE_MESSAGES')) msg.delete();
       msg.channel.send(embed);
     } else {
       //not guild member
@@ -79,7 +78,6 @@ class UserInfo extends Command {
         .addField('User ID', infoMem.id)
         .addField('Is Bot?', infoMem.bot)
         .addField('Account Created', ca);
-      if (me.permissions.has('MANAGE_MESSAGES')) msg.delete();
       msg.channel.send(embed);
     }
     async function getJoinPosition (id, guild) {

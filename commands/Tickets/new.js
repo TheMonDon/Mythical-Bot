@@ -35,6 +35,10 @@ class New extends Command {
       {
         id: roleID,
         allow: ['VIEW_CHANNEL']
+      },
+      {
+        id: msg.guild.id,
+        deny: ['VIEW_CHANNEL']
       }
     ];
 
