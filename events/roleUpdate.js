@@ -12,6 +12,8 @@ module.exports = class {
 
     const logSys = db.get(`servers.${roleafter.guild.id}.logs.log_system.role-updated`);
     if (logSys !== 'enabled') return;
+    const logChannel = roleafter.guild.channels.cache.get(logChan);
+    if (!logChannel.permissionsFor(this.client.user.id).has('SEND_MESSAGES')) return;
 
     if (rolebefore.name === roleafter.name && rolebefore.hexColor === roleafter.hexColor) return;
 

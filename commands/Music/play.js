@@ -32,6 +32,7 @@ class Play extends Command {
     }
 
     const searchTracks = await client.player.searchTracks(query).catch(e => {
+      console.log(e)
       return msg.channel.send('No results found.');
     });
 

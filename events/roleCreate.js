@@ -12,6 +12,8 @@ module.exports = class {
 
     const logSys = db.get(`servers.${role.guild.id}.logs.log_system.role-created`);
     if (logSys !== 'enabled') return;
+    const logChannel = role.guild.channels.cache.get(logChan);
+    if (!logChannel.permissionsFor(this.client.user.id).has('SEND_MESSAGES')) return;
 
     const embed = new DiscordJS.MessageEmbed();
     embed.setTitle('Role Created');

@@ -2,6 +2,7 @@
   "name": "mythical",
   "version": "1.0.0",
   "description": "Mythical Bot",
+  "owner": "TheMonDon#1721",
   "main": "index.js",
   "engines": {
     "node": ">=12"
@@ -15,6 +16,9 @@
     "color-convert": "^2.0.1",
     "color-thief-node": "^1.0.3",
     "common-tags": "^1.8.0",
+    "cows": "^2.1.0",
+    "cowsay": "^1.4.0",
+    "custom-translate": "^2.2.8",
     "discord-player": "^2.3.1",
     "discord.js": "^12.3.1",
     "enmap": "^5.0.1",
@@ -30,13 +34,18 @@
     "node-superfetch": "^0.1.10",
     "oxford-dictionaries-api": "^0.1.2",
     "quick.db": "^7.1.1",
+    "random-number": "0.0.9",
     "random-words": "^1.1.1",
     "readline-sync": "^1.4.9",
+    "redditimage.js": "0.0.1",
     "request": "^2.88.2",
     "request-promise-native": "^1.0.9",
     "rgb-hex": "^3.0.0",
+    "search-npm-registry": "^2.0.3",
+    "soundcloud-scraper": "^3.0.2",
     "speedtest-net": "^2.1.1",
     "superagent": "^6.0.0",
+    "trev": "^2.0.8",
     "weather-js": "^2.0.0"
   },
   "devDependencies": {

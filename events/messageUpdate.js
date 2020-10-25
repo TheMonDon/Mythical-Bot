@@ -19,6 +19,8 @@ module.exports = class {
 
       const chans = db.get(`servers.${newmsg.guild.id}.logs.noLogChans`);
       if (chans.includes(newmsg.channel.id)) return;
+      const logChannel = newmsg.guild.channels.cache.get(logChan);
+      if (!logChannel.permissionsFor(this.client.user.id).has('SEND_MESSAGES')) return;
 
       const msg1 = oldmsg;
       const msg2 = newmsg;

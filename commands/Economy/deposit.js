@@ -28,7 +28,7 @@ module.exports = class deposit extends Command {
 
     amount = amount.replace(/,/g, '');
     amount = amount.replace(cs, '');
-    if (isNaN(amount)) {
+    if (isNaN(amount) || !amount) {
       if (amount.toLowerCase() === 'all') {
         if (cash <= 0) return msg.channel.send('You don\'t have any money to deposit.');
         if ((cash + bank) > Number.MAX_VALUE) {

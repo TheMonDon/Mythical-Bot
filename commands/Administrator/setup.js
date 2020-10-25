@@ -2,20 +2,22 @@
 const Command = require('../../base/Command.js');
 const DiscordJS = require('discord.js');
 const db = require('quick.db');
+const { stripIndents } = require('common-tags')
 
 class setup extends Command {
   constructor (client) {
     super(client, {
       name: 'setup',
       description: 'Setup the different systems of the bot.',
-      usage: 'setup <ticket>',
+      usage: 'setup <system>',
       category: 'Administator',
       guildOnly: true,
-      permLevel: 'Administator'
+      permLevel: 'Administator',
+      aliases: ['setlogchannel', 'setupticket', 'logsetup', 'ticketsetup']
     });
   }
 
-  async run (msg, args) { // eslint-disable-line no-unused-vars
+  async run (msg, args) {
     const type = args[0];
     const server = msg.guild;
 
@@ -27,7 +29,10 @@ class setup extends Command {
       if (!msg.guild.me.permissions.has('MANAGE_ROLES')) return msg.channel.send('The bot is missing manage roles perm');
       if (!msg.guild.me.permissions.has('MANAGE_MESSAGES')) return msg.channel.send('The bot is missing manage messages perm');
 
-      msg.channel.send('What is the name of the role you want to use for support team? \nYou have 60 seconds.');
+      msg.channel.send(stripIndents`What is the name of the role you want to use for support team?
+      You have 60 seconds.
+
+      Type \`cancel\` to exit.`);
       let reaction;
 
       // This is for the first question
@@ -57,7 +62,10 @@ class setup extends Command {
           }
           db.set(`servers.${server.id}.tickets.roleID`, role.id);
 
-          msg.channel.send('Do you want to create a new ticket reaction menu? \nYou have 60 seconds.');
+          msg.channel.send(stripIndents`Do you want to create a new ticket reaction menu?
+          You have 60 seconds.
+
+          Type \`cancel\` to exit.`);
 
           // This is for second question
           return msg.channel.awaitMessages(filter2, {
@@ -127,7 +135,9 @@ class setup extends Command {
                   }
                 ];
 
-                await msg.channel.send('What do you want the reaction message to say? \nPlesse note the reaction emoji is 📰 \nYou have 120 seconds.');
+                await msg.channel.send(stripIndents`What do you want the reaction message to say?
+                Plesse note the reaction emoji is: 📰.
+                You have 120 seconds.`);
 
                 // This is to ask what to put inside the embed description for reaction role
                 await msg.channel.awaitMessages(filter, {
@@ -167,7 +177,82 @@ class setup extends Command {
     }
     // End of ticket setup...what else do i need to use this for anyways?
 
-    return msg.channel.send('This command is not setup yet..haha. \nUse `setup ticket` to setup tickets. \nTHIS IS FOR TESTING PURPOSES ONLY. DO NOT USE IN PRODUCTION!');
+    if (['logging', 'log', 'logs'].includes(type)) {
+      const embed = new DiscordJS.MessageEmbed();
+  
+      const log_system = {
+        'channel-created': 'enabled',
+        'channel-deleted': 'enabled',
+        'channel-updated': 'enabled',
+        'member-join': 'enabled',
+        'member-leave': 'enabled',
+        'message-deleted': 'enabled',
+        'message-edited': 'enabled',
+        'role-created': 'enabled',
+        'role-deleted': 'enabled',
+        'role-updated': 'enabled',
+        'v-channel-created': 'enabled',
+        'v-channel-deleted': 'enabled',
+        'emoji-created': 'enabled',
+        'emoji-deleted': 'enabled',
+        'bulk-messages-deleted': 'enabled',
+        'all': 'enabled'
+      };
+  
+      args.shift();
+      const text = args.join(' ');
+      if (!args|| args.length < 1) {
+        return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}setup logging <channel>`);
+      }
+      const chan = msg.mentions.channels.first() || server.channels.cache.find(c => c.id === text) ||
+      server.channels.cache.find(c => c.name.toLowerCase() === text.toLowerCase()) ||
+      server.channels.cache.find(c => c.name.toLowerCase().includes(text.toLowerCase())); 
+  
+      if (!chan) return msg.channel.send('Please provide a valid server channel.');
+      const currentChan = db.get(`servers.${msg.guild.id}.logs.channel`);
+  
+      if (currentChan) {
+        embed.setTitle('Sucessfully Changed');
+        embed.setColor('GREEN');
+        embed.setThumbnail('https://cdn.discordapp.com/emojis/482184108555108358.png');
+        embed.setDescription(`Everything related to logs will be posted in ${chan} from now on.`);
+        embed.setTimestamp();
+        embed.setFooter('Logs System V3.0-BETA');
+        msg.channel.send(embed);
+      } else {
+        db.set(`servers.${msg.guild.id}.logs.log_system`, log_system);
+        embed.setTitle('Sucessfully Set');
+        embed.setColor('GREEN');
+        embed.setThumbnail('https://cdn.discordapp.com/emojis/482184108555108358.png');
+        embed.setDescription(`Everything related to logs will be posted in ${chan}.`);
+        embed.setTimestamp();
+        embed.setFooter('Logs System V3.0-BETA');
+        msg.channel.send(embed);
+      }
+      db.set(`servers.${msg.guild.id}.logs.channel`, chan.id);
+      return;
+    }
+    // End of logging setup
+
+    // Base command if there is not any
+    const embed = new DiscordJS.MessageEmbed()
+    .setTitle('Systems Setup')
+    .setColor('BLUE')
+    .addField('Tickets', stripIndents`
+    To setup the ticket system please use:
+    \`Setup Ticket\`
+
+    This is not finished!
+    `)
+    .addField('Logging', stripIndents`
+    To setup the logging system please use:
+    \`Setup Logging\`
+
+    This system should be fully operational.
+    `)
+    .setDescription('These systems are not fully operational and may have bugs.')
+    .setAuthor(msg.author.displayName, msg.author.displayAvatarURL());
+    return msg.channel.send(embed)
   }
 }
 

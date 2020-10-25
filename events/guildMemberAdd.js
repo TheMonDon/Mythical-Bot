@@ -15,6 +15,9 @@ module.exports = class {
       const logSys = db.get(`servers.${member.guild.id}.logs.log_system.member-join`);
       if (logSys !== 'enabled') return;
 
+      const logChannel = member.guild.channels.cache.get(logChan);
+      if (!logChannel.permissionsFor(this.client.user.id).has('SEND_MESSAGES')) return;
+
       const embed = new DiscordJS.MessageEmbed();
       await member.guild.members.fetch();
       embed.setTitle('Member Joined');

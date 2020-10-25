@@ -7,6 +7,9 @@ module.exports = class {
   }
 
   async run (channel) {
+    if (!channel) return;
+    if (channel.type === 'dm') return;
+
     const logChan = db.get(`servers.${channel.guild.id}.logs.channel`);
     if (!logChan) return;
 
@@ -16,6 +19,9 @@ module.exports = class {
 
     const chans = db.get(`servers.${channel.guild.id}.logs.noLogChans`);
     if (chans.includes(channel.id)) return;
+
+    const logChannel = channel.guild.channels.cache.get(logChan);
+    if (!logChannel.permissionsFor(this.client.user.id).has('SEND_MESSAGES')) return;
 
     const embed = new DiscordJS.MessageEmbed()
       .setTitle('Channel Created')

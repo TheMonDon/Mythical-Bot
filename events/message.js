@@ -17,8 +17,9 @@ module.exports = class {
     if (message.author.bot) return;
 
     // Cancel any attempt to execute commands if the bot cannot respond to the user.
+    if (message.guild && !message.channel.permissionsFor(this.client.user.id).has('SEND_MESSAGES')) return;
     if (message.guild && !message.guild.me.permissions.has('SEND_MESSAGES')) return;
-    
+
     // Grab the settings for this server from the Enmap
     // If there is no guild, get default conf (DMs)
     const settings = this.client.getSettings(message.guild);
@@ -41,14 +42,14 @@ module.exports = class {
       const server = msg.guild;
       const member = msg.member;
       const type = 'chat';
-    
+
       const min = db.get(`servers.${server.id}.economy.${type}.min`) || 10;
       const max = db.get(`servers.${server.id}.economy.${type}.max`) || 100;
-    
+
       const now = Date.now();
       const cooldown = db.get(`servers.${server.id}.economy.${type}.cooldown`) || 60; //get cooldown from database or set to 60 seconds (1 minute)
       let userCooldown = db.get(`servers.${server.id}.users.${member.id}.economy.${type}.cooldown`) || {};
-    
+
       if (userCooldown.active) {
         const timeleft = userCooldown.time - now;
         if (timeleft < 0 || timeleft > (cooldown * 1000)) {
@@ -60,13 +61,13 @@ module.exports = class {
           return;
         }
       }
-    
+
       const amount = Math.floor(Math.random() * (max - min + 1) + min);
       db.add(`servers.${server.id}.users.${member.id}.economy.cash`, amount);
       userCooldown.time = now + (cooldown * 1000);
       userCooldown.active = true;
       db.set(`servers.${server.id}.users.${member.id}.economy.${type}.cooldown`, userCooldown);
-    
+
       return setTimeout(() => {
         userCooldown = {};
         userCooldown.active = false;
@@ -102,10 +103,23 @@ module.exports = class {
     // and clean way to grab one of 2 values!
     if (!cmd) return;
 
+    // Check if the member is blacklisted from using commands in this guild.
+    if (message.guild) {
+      const bl = db.get(`servers.${message.guild.id}.users.${message.member.id}.blacklist`);
+      if (bl && level < 4 && (cmd.help.name !== 'blacklist')) {
+        return message.channel.send(`Sorry ${message.member.displayName}, you are currently blacklisted from using commands in this server.`);
+      }
+    }
+
     // Some commands may not be useable in DMs. This check prevents those commands from running
     // and return a friendly error message.
     if (cmd && !message.guild && cmd.conf.guildOnly)
       return message.channel.send('This command is unavailable via private message. Please run this command in a guild.');
+
+    // Some commands are nsfw only. This check prevents those commands from running
+    // and returns a friendly error message.
+    if (cmd && cmd.conf.nsfw && !message.channel.nsfw) return message.channel.send('This command can only be used in NSFW channels.');
+
 
     if (level < this.client.levelCache[cmd.conf.permLevel]) {
       if (settings.systemNotice === 'true') {
@@ -116,7 +130,7 @@ This command requires level ${this.client.levelCache[cmd.conf.permLevel]} (${cmd
         return;
       }
     }
-      
+
     // To simplify message arguments, the author's level is now put on level (not member, so it is supported in DMs)
     // The "level" command module argument will be deprecated in the future.
     message.author.permLevel = level;
@@ -127,7 +141,7 @@ This command requires level ${this.client.levelCache[cmd.conf.permLevel]} (${cmd
       message.flags.push(args.shift().slice(1));
     }
     */
-   
+
     // If the command exists, **AND** the user has permission, run it.
     db.add('global.commands', 1);
     cmd.run(message, args, level);

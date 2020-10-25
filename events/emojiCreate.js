@@ -14,6 +14,9 @@ module.exports = class {
     const logSys = db.get(`servers.${emoji.guild.id}.logs.log_system.emoji-created`);
     if (logSys !== 'enabled') return;
 
+    const logChannel = emoji.guild.channels.cache.get(logChan);
+    if (!logChannel.permissionsFor(this.client.user.id).has('SEND_MESSAGES')) return;
+
     const embed = new DiscordJS.MessageEmbed();
     embed.setTitle('Emoji Created');
     embed.setColor('#20fc3a');

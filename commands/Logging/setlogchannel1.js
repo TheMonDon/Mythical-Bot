@@ -5,9 +5,9 @@ const db = require('quick.db');
 class setlogchannel extends Command {
   constructor (client) {
     super(client, {
-      name: 'setlogchannel',
+      name: 'setlogchannel1',
       description: 'Set the log channel',
-      usage: 'setlogchannel <channel>',
+      usage: 'setlogchannel1 <channel>',
       category: 'Logging',
       permLevel: 'Moderator',
       aliases: ['slc']

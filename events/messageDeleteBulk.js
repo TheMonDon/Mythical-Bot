@@ -20,6 +20,8 @@ module.exports = class {
 
     const chans = db.get(`servers.${server.id}.logs.noLogChans`);
     if (chans.includes(chan.id)) return;
+    const logChannel = server.channels.cache.get(logChan);
+    if (!logChannel.permissionsFor(this.client.user.id).has('SEND_MESSAGES')) return;
 
     const output = [];
     output.push(`${messages.size} messages deleted in ${chan.name}:`);
@@ -27,7 +29,7 @@ module.exports = class {
     output.push('\n');
     messages.forEach(m => {
       output.push(`${m.author.tag} (User ID: ${m.author.id} Mesage ID: ${m.id})\n`);
-      output.push(m.content);
+      output.push(m.content ? m.content : 'No text included in this message, or it was an embed.');
       output.push('\n');
       output.push('\n');
     });
@@ -53,7 +55,7 @@ module.exports = class {
           .addField('Deleted Messages', link, true)
           .addField('Deleted Amount', messages.size, true)
           .addField('Channel', chan, true);
-        server.channels.cache.get(logChan).send(embed);
+        logChannel.send(embed);
   
         db.add(`servers.${server.id}.logs.bulk-messages-deleted`, 1);
         db.add(`servers.${server.id}.logs.all`, 1);

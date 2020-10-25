@@ -18,6 +18,10 @@ module.exports = class {
 
     const chans = db.get(`servers.${msg.guild.id}.logs.noLogChans`);
     if (chans.includes(msg.channel.id)) return;
+    const logChannel = msg.guild.channels.cache.get(logChan);
+    if (!logChannel.permissionsFor(this.client.user.id).has('SEND_MESSAGES')) return;
+
+    if (!msg.content) return;
 
     let delby;
     if (msg.guild.me.permissions.has('VIEW_AUDIT_LOG')) {
@@ -40,7 +44,7 @@ module.exports = class {
     (msg.mentions.users.size === 0) ? embed.addField('Mentioned Users', 'None', true): embed.addField('Mentioned Users', `Mentioned Member Count: ${msg.mentions.users.array().length} \n Mentioned Users List: \n ${msg.mentions.users.array()}`, true);
     embed.setTimestamp();
     embed.setFooter(`Message ID: ${msg.id}`);
-    msg.guild.channels.cache.get(logChan).send(embed);
+    logChannel.send(embed);
     db.add(`servers.${msg.guild.id}.logs.message-deleted`, 1);
     db.add(`servers.${msg.guild.id}.logs.all`, 1);
   }

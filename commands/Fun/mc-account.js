@@ -11,7 +11,7 @@ class mcAccount extends Command {
       description: 'Find information about a Minecraft account.',
       usage: 'mc-account <username>',
       category: 'Fun',
-      aliases: ['mca']
+      aliases: ['mca', 'mcaccount']
     });
   }
 

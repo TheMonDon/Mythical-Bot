@@ -17,8 +17,8 @@ class Help extends Command {
 
     const settings = msg.settings;
 
-    const cats = ['General', 'Economy', 'Fun', 'Memes', 'Logging', 'Information', 'Music', 'Moderator', 'Administrator'];
-    const allcats = ['General', 'Economy', 'Fun', 'Memes', 'Information', 'Music', 'Moderator', 'Administrator', 'Ticket', 'Logging', 'Owner'];
+    const cats = ['General', 'Economy', 'Fun', 'Memes', 'NSFW', 'Logging', 'Information', 'Music', 'Moderator', 'Administrator'];
+    const allcats = ['General', 'Economy', 'Fun', 'Memes', 'NSFW', 'Logging', 'Information', 'Music', 'Moderator', 'Administrator', 'Ticket', 'Owner'];
     const text = args.join(' ').toLowerCase();
     const em = new MessageEmbed();
     const name = msg.member && msg.member.displayName || msg.author.username;
@@ -158,6 +158,21 @@ class Help extends Command {
         }
       });
       return msg.channel.send(em);
+    } else if (['nsfw'].includes(text)) {
+      const category = 'NSFW';
+      em.setTitle(`${category} Commands`);
+      em.setColor('0099CC');
+      const myCommands = this.client.commands.filter(cmd => this.client.levelCache[cmd.conf.permLevel] <= level);
+      const sorted = myCommands.array().sort((p, c) => p.help.category > c.help.category ? 1 :  p.help.name > c.help.name && p.help.category === c.help.category ? 1 : -1 );
+      sorted.forEach(c => {
+        const cat = c.help.category.toUpperCase();
+        if (category !== cat) {
+          return;
+        } else {
+          em.addField(`${settings.prefix}${c.help.name.toProperCase()}`, `${c.help.description}`, false);
+        }
+      });
+      return msg.channel.send(em);
     } else if (['mod', 'moderator', 'mods'].includes(text)) {
       if (!(msg.author.permLevel >= 2)) return msg.channel.send('This menu is locked to server mods only.');
       const category = 'Moderator';
@@ -232,6 +247,8 @@ class Help extends Command {
         em.addField('Description', command.help.description, false);
         em.addField('Usage', command.help.usage, false);
         em.addField('Aliases', command.conf.aliases.join(', ') || 'none', false);
+        em.addField('Guild Only', command.conf.guildOnly, true);
+        em.addField('NSFW', command.conf.nsfw, true);
         return msg.channel.send(em);
         // return message.channel.send(`= ${command.help.name} = \n${command.help.description}\nusage:: ${command.help.usage}\nalises:: ${command.conf.aliases.join(', ')}`, {code:'asciidoc'});
       } else {

@@ -17,7 +17,7 @@ class Stats extends Command {
     });
   }
 
-  async run (msg, args, level) { // eslint-disable-line no-unused-vars
+  async run (msg, args) {
     let input = args.join(' ');
     let color;
     const embed = new MessageEmbed();
@@ -26,6 +26,28 @@ class Stats extends Command {
     const rgbRegex = new RegExp(/^rgb[\s+]?\((:?\d+\.?\d?%?)(,|-|\/\|)\s?(:?\d+\.?\d?%?)(,|-|\/\|)\s?(:?\d+\.?\d?%?)\)/i);
     const hexRegex = new RegExp('(^(#|0x)?([a-fA-F0-9]){6}$)|(^(#|0x)?([a-fA-F0-9]){3}$)');
     const cssRegex = new RegExp('^[a-zA-Z]+$');
+
+    const extra_colors = {
+      'beige': '#F5F5DC',
+      'black': '#000000',
+      'blue': '#0000FF',
+      'brown': '#964B00',
+      'cyan': '#00FFFF',
+      'gold': '#A57C00',
+      'gray': '#808080',
+      'grey': '#808080',
+      'green': '#00FF00',
+      'magenta': '#FF00FF',
+      'orange': '#FF7F00',
+      'plum': '#8E4585',
+      'purple': '#6A0DAD',
+      'red': '#FF0000',
+      'silver': '#C0C0C0',
+      'yellow': '#FFFF00',
+      'othercolorname': '#HEXCODE'
+    }
+
+    input = extra_colors[input.toString()] ? extra_colors[input.toString()] : input
   
     if (isURL(input)) {
       if (isImageURL(input)) {
@@ -135,6 +157,7 @@ class Stats extends Command {
               break;
             }
           }
+
           color = {
             'hex': convert.keyword.hex(input),
             'rgb': convert.keyword.rgb(input),
@@ -143,6 +166,7 @@ class Stats extends Command {
             'css': input
           };
         } catch (err) {
+          console.log(err)
           const rand = '000000'.replace(/0/g, function () {
             return (~~(Math.random() * 16))
               .toString(16);
