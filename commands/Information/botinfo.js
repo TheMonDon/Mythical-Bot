@@ -7,11 +7,11 @@ const db = require('quick.db');
 class Stats extends Command {
   constructor (client) {
     super(client, {
-      name: 'botinfo',
+      name: 'bot-info',
       description: 'Gives some useful this.client information',
-      usage: 'botinfo',
+      usage: 'bot-info',
       category: 'Information',
-      aliases: ['bi']
+      aliases: ['bi', 'botinfo']
     });
   }
 
@@ -28,7 +28,7 @@ class Stats extends Command {
       .addField('Guilds', this.client.guilds.cache.array().length.toLocaleString(), true)
       .addField('Channels', this.client.channels.cache.size.toLocaleString(), true)
       .addField('Users', this.client.users.cache.size.toLocaleString(), true)
-      .addField('Commands Used', db.get('global.commands'), true)
+      .addField('Commands Used', db.get('global.commands').toLocaleString(), true)
       .addField('Discord.js', DiscordJS.version, true)
       .addField('Node', process.version, true)
       .addField('RAM Usage', `${Math.floor((process.memoryUsage().heapUsed / 1024)/1024).toLocaleString()} MB`, true);

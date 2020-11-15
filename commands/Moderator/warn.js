@@ -16,9 +16,10 @@ class warn extends Command {
 
   async run (msg, args) {
     let mem;
+    const p = msg.settings.prefix
 
     if (!args || args.length < 3) {
-      return msg.channel.send('Incorrect Usage: [p]warn member points reason');
+      return msg.channel.send(`Incorrect Usage: ${p}warn <member> <points> <reason>`);
     } else {
       mem = msg.mentions.members.first() ||
       msg.guild.members.cache.find(m => m.id === args[0]) ||
@@ -33,14 +34,18 @@ class warn extends Command {
       try {
         mem = await this.client.users.fetch(ID);
       } catch (err) {
-        return msg.channel.send('Incorrect Usage: [p]warn member points reason');
+        return msg.channel.send(`Incorrect Usage: ${p}warn <member> <points> <reason>`);
       }
     }
 
     if (mem.user.bot) return msg.channel.send('You can\'t warn a bot.');
 
+    if ((mem.roles.highest.position > msg.member.roles.highest.position - 1) && !msg.author.id === msg.guild.owner.user.id) {
+      return msg.channel.send(`You can't warn someone who has a higher role than you.`)
+    }
+
     const points = parseInt(args[1]);
-    if (isNaN(points)) return msg.channel.send('You must input a valid number for points.');
+    if (isNaN(points)) return msg.channel.send(`Incorrect Usage: ${p}warn <member> <points> <reason>`);
 
     // Convert shorthand to fullhand for reason
     args.shift();

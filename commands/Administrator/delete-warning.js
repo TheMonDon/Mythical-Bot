@@ -11,7 +11,7 @@ class deletewarning extends Command {
       category: 'Administrator',
       guildOnly: true,
       permLevel: 'Administrator',
-      aliases: ['delwarn', 'clearwarn', 'deletecase', 'deletewarn', 'delcase', 'clearcase', 'deletewarning']
+      aliases: ['delwarn', 'clearwarn', 'deletecase', 'deletewarn', 'delcase', 'clearcase', 'deletewarning', 'delwarning']
     });
   }
 
@@ -30,15 +30,15 @@ class deletewarning extends Command {
     const previousPoints = getTotalPoints(userID, msg);
     db.delete(`servers.${msg.guild.id}.warns.warnings.${caseID}`);
     const newerPoints = getTotalPoints(userID, msg);
-    if (previousPoints >= 5 && newerPoints < 5) {
-      if (!msg.guild.me.permissions.has('BAN_MEMBERS')) msg.channel.send('The bot does not have ban members perms to unban the member.');
-      await msg.guild.unban(userID).catch(() => null);
+    if (previousPoints >= 10 && newerPoints < 10) {
+      if (!msg.guild.me.permissions.has('BAN_MEMBERS')) msg.channel.send('The bot does not have Ban_Members permission to unban the user.');
+      await msg.guild.members.unban(userID).catch(() => null);
     }
 
     const em = new DiscordJS.MessageEmbed()
       .setColor('BLUE')
       .setDescription(`${msg.author} has cleared a case from a user.`)
-      .addField('From User', user, true)
+      .addField('From User', `${user} (${user.id})`, true)
       .addField('Deleted Case', `\`${caseID}\``, true)
       .addField('Case Reason', warnReason, false);
     return msg.channel.send(em);

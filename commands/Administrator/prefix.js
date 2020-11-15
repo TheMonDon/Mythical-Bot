@@ -1,6 +1,6 @@
 const Command = require('../../base/Command.js');
 
-class Exec extends Command {
+class prefix extends Command {
   constructor (client) {
     super(client, {
       name: 'prefix',
@@ -26,4 +26,4 @@ class Exec extends Command {
   }
 }
 
-module.exports = Exec;
+module.exports = prefix;

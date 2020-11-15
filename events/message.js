@@ -2,13 +2,16 @@
 // Note that due to the binding of client to every event, every event
 // goes `client, other, args` when this function is run.
 const db = require('quick.db');
+const mkdirp = require('mkdirp');
+const fs = require('fs');
+const path = require('path');
 
 module.exports = class {
-  constructor (client) {
+  constructor(client) {
     this.client = client;
   }
 
-  async run (message) {
+  async run(message) {
     let bool = false;
     let tag;
 
@@ -35,6 +38,50 @@ module.exports = class {
       bool = true;
       tag = String(message.guild.me);
     } else if (message.content.indexOf(settings.prefix) !== 0) {
+      // Ticket message storage
+
+      if (message.channel.name.startsWith('ticket-')) {
+        if (message.channel.name === 'ticket-logs') return;
+        const tix = db.get(`servers.${message.guild.id}.tickets.${message.channel.name}`);
+        if (!tix) return;
+
+        const dirName = `./logs/${message.guild.id}/`
+        const fileName = message.channel.name;
+
+        const fpath = path.join(dirName, fileName + '.txt');
+
+        const d = new Date();
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, "0");
+        const day = String(d.getDay()).padStart(2, "0");
+        const hour = String(d.getHours()).padStart(2, "0");
+        const min = String(d.getMinutes()).padStart(2, "0");
+        const timestamp = month + "/" + day + "/" + year + " " + hour + ":" + min;
+
+        const output = `${timestamp} - [${message.author.tag}]: \n${message.content}`
+
+        const result = () => {
+          fs.appendFileSync(fpath, `${output}\r\n`, (err) => {
+            if (err) return console.log(`${lmg} appending: [${err}]`)
+          })
+        }
+
+        ensureDirExists(dirName, result)
+
+        function ensureDirExists(dirPath, cb) {
+          const dirname = path.normalize(dirPath)
+          if (!fs.existsSync(dirname)) {
+            mkdirp(dirname, { recursive: true }, cb)
+            return true
+          }
+          cb(null, '')
+          return false
+        }
+
+        return;
+      }
+
+
       // Use this for my chat money event since this is what i check for not existing in it.
       // Don't really know how else I would do it so this works fine for me.
       if (message.channel.type === 'dm') return;

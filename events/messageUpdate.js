@@ -2,18 +2,18 @@ const db = require('quick.db');
 const DiscordJS = require('discord.js');
 
 module.exports = class {
-  constructor (client) {
+  constructor(client) {
     this.client = client;
   }
 
   // eslint-disable-next-line no-unused-vars
-  async run (oldmsg, newmsg) {
+  async run(oldmsg, newmsg) {
     if (oldmsg.author.bot) return;
 
     (async () => {
       const logChan = db.get(`servers.${newmsg.guild.id}.logs.channel`);
       if (!logChan) return;
-  
+
       const logSys = db.get(`servers.${newmsg.guild.id}.logs.log_system.message-edited`);
       if (logSys !== 'enabled') return;
 
@@ -24,7 +24,8 @@ module.exports = class {
 
       const msg1 = oldmsg;
       const msg2 = newmsg;
-  
+      if (msg1.content === msg2.content) return;
+
       const embed = new DiscordJS.MessageEmbed();
       embed.setTitle('Message Edited');
       embed.setURL(msg2.url);
@@ -36,17 +37,18 @@ module.exports = class {
       embed.addField('Channel', msg1.channel, true);
       embed.addField('Message Author', `${msg1.author} (${msg1.author.tag})`, true);
       embed.addField('Number of Edits', msg2.edits.length, true);
-      (msg2.mentions.users.size === 0) ? embed.addField('Mentioned Users', 'None', true): embed.addField('Mentioned Users', `Mentioned Member Count: ${msg2.mentions.users.array().length} \n Mentioned Users List: \n ${msg2.mentions.users.array()}`, true);
+      (msg2.mentions.users.size === 0) ? embed.addField('Mentioned Users', 'None', true) : embed.addField('Mentioned Users', `Mentioned Member Count: ${msg2.mentions.users.array().length} \n Mentioned Users List: \n ${msg2.mentions.users.array()}`, true);
       embed.setTimestamp();
       newmsg.guild.channels.cache.get(logChan).send(embed);
       db.add(`servers.${newmsg.guild.id}.logs.message-edited`, 1);
       db.add(`servers.${newmsg.guild.id}.logs.all`, 1);
     })();
 
+
     let bool;
     let tag;
     const re = new RegExp('http');
-    if (re.test(newmsg)) { 
+    if (re.test(newmsg)) {
       return;
     } else if (oldmsg.content === newmsg.content || oldmsg === newmsg) {
       return;
@@ -73,7 +75,7 @@ module.exports = class {
       if (tag === String(newmsg.guild.me)) {
         command = args.shift().toLowerCase();
       }
-    
+
       // If the member on a guild is invisible or not cached, fetch them.
       if (newmsg.guild && !newmsg.member) await newmsg.guild.fetchMember(newmsg.author);
       // Get the user or member's permission level from the elevation
@@ -85,6 +87,14 @@ module.exports = class {
       // using this const varName = thing OR otherthign; is a pretty efficient
       // and clean way to grab one of 2 values!
       if (!cmd) return;
+
+      // Check if the member is blacklisted from using commands in this guild.
+      if (message.guild) {
+        const bl = db.get(`servers.${message.guild.id}.users.${message.member.id}.blacklist`);
+        if (bl && level < 4 && (cmd.help.name !== 'blacklist')) {
+          return message.channel.send(`Sorry ${message.member.displayName}, you are currently blacklisted from using commands in this server.`);
+        }
+      }
 
       // Some commands may not be useable in DMs. This check prevents those commands from running
       // and return a friendly error message.
@@ -101,11 +111,12 @@ This command requires level ${this.client.levelCache[cmd.conf.permLevel]} (${cmd
         }
       }
       newmsg.author.permLevel = level;
-
+/*
       newmsg.flags = [];
-      while (args[0] &&args[0][0] === '-') {
+      while (args[0] && args[0][0] === '-') {
         newmsg.flags.push(args.shift().slice(1));
       }
+      */
       // If the command exists, **AND** the user has permission, run it.
       db.add('global.commands', 1);
       cmd.run(newmsg, args, level);

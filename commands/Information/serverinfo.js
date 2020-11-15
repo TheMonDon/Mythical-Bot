@@ -44,7 +44,7 @@ class Stats extends Command {
     const embed = new DiscordJS.MessageEmbed()
       .setTitle(`${server.name}'s Information`)
       .setColor('#EE82EE')
-      .setThumbnail(server.iconURL)
+      .setThumbnail(msg.guild.iconURL())
       .setAuthor(msg.author.username, msg.author.displayAvatarURL())
       .addField('Name', server.name, true)
       .addField('ID', server.id, true)

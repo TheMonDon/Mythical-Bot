@@ -14,7 +14,7 @@ class Ping extends Command {
     });
   }
 
-  async run (msg, args) { // eslint-disable-line no-unused-vars
+  async run (msg, args) {
     const mem = args.join(' ');
     let infoMem;
     const server = msg.guild;

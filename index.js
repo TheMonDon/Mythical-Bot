@@ -10,10 +10,11 @@ const readdir = promisify(require('fs').readdir);
 const Enmap = require('enmap');
 const klaw = require('klaw');
 const path = require('path');
+const db = require('quick.db');
 
 
 class bot extends Client {
-  constructor (options) {
+  constructor(options) {
     super(options);
 
     this.config = require('./config.js');
@@ -29,7 +30,7 @@ class bot extends Client {
   }
 
   // PERMISSION LEVEL FUNCTION
-  permlevel (message) {
+  permlevel(message) {
     let permlvl = 0;
 
     const permOrder = this.config.permLevels.slice(0).sort((p, c) => p.level < c.level ? 1 : -1);
@@ -53,7 +54,7 @@ class bot extends Client {
   that unloading happens in a consistent manner across the board.
   */
 
-  loadCommand (commandPath, commandName) {
+  loadCommand(commandPath, commandName) {
     try {
       const props = new (require(`${commandPath}${path.sep}${commandName}`))(this);
       this.logger.log(`Loading Command: ${props.help.name}. 👌`, 'log');
@@ -71,7 +72,7 @@ class bot extends Client {
     }
   }
 
-  async unloadCommand (commandPath, commandName) {
+  async unloadCommand(commandPath, commandName) {
     let command;
     if (this.commands.has(commandName)) {
       command = this.commands.get(commandName);
@@ -94,7 +95,7 @@ class bot extends Client {
   and stringifies objects!
   This is mostly only used by the Eval and Exec commands.
   */
-  async clean (text) {
+  async clean(text) {
     if (text && text.constructor.name == 'Promise')
       text = await text;
     if (typeof text !== 'string')
@@ -116,7 +117,7 @@ class bot extends Client {
 
   // getSettings merges the client defaults with the guild settings. guild settings in
   // enmap should only have *unique* overrides that are different from defaults.
-  getSettings (guild) {
+  getSettings(guild) {
     const defaults = this.settings.get('default') || {};
     const guildData = guild ? this.settings.get(guild.id) || {} : {};
     const returnObject = {};
@@ -128,7 +129,7 @@ class bot extends Client {
 
   // writeSettings overrides, or adds, any configuration item that is different
   // than the defaults. This ensures less storage wasted and to detect overrides.
-  writeSettings (id, newSettings) {
+  writeSettings(id, newSettings) {
     const defaults = this.settings.get('default');
     let settings = this.settings.get(id);
     if (typeof settings != 'object') settings = {};
@@ -148,8 +149,61 @@ const client = new bot({ ws: { intents: DiscordJS.Intents.ALL } });
 
 const { Player } = require('discord-player');
 
-const player = new Player(client);
-client.player = player;
+client.player = new Player(client, {
+  leaveOnEmpty: false,
+});
+
+client.player
+  // Send a message when a track starts
+  .on('trackStart', (message, track) => {
+    const em = new DiscordJS.MessageEmbed()
+    .setTitle('Now Playing')
+    .setDescription(`[${track.title}](${track.url})\n\n Requested By: ${track.requestedBy}`)
+    .setColor('0099CC');
+    message.channel.send(em);
+  })
+
+  // Send a message when something is added to the queue
+  .on('trackAdd', (message, track) => {
+    message.channel.send(`${track.title || track.tracks[track.tracks.length - 1].title} has been added to the queue!`)
+  })
+  .on('playlistAdd', (message, playlist) => message.channel.send(`${playlist.title} has been added to the queue (${playlist.items.length} songs)!`))
+
+  // Send messages to format search results
+  .on('searchResults', (message, query, tracks) => {
+
+    const embed = new DiscordJS.MessageEmbed()
+      .setAuthor(`Here are your search results for ${query}!`)
+      .setDescription(tracks.map((t, i) => `${i + 1}. ${t.title}`))
+      .setFooter('Send the number of the song you want to play! Send cancel to cancel.')
+      .setColor('0099CC');
+    message.channel.send(embed);
+
+  })
+  .on('searchInvalidResponse', (message, query, tracks, content, collector) => message.channel.send(`You must send a valid number between 1 and ${tracks.length}!`))
+  .on('searchCancel', (message, query, tracks) => message.channel.send('You did not provide a valid response... Please send the command again!'))
+  .on('noResults', (message, query) => message.channel.send(`No results found on YouTube for ${query}!`))
+
+  // Send a message when the music is stopped
+  .on('queueEnd', (message, queue) => message.channel.send('Music stopped as there is no more music in the queue!'))
+  .on('botDisconnect', (message, queue) => message.channel.send('Music stopped as I have been disconnected from the channel!'))
+
+  // Error handling
+  .on('error', (error, message) => {
+    switch (error) {
+      case 'NotPlaying':
+        message.channel.send('There is no music being played on this server!')
+        break;
+      case 'NotConnected':
+        message.channel.send('You are not connected in any voice channel!')
+        break;
+      case 'UnableToJoin':
+        message.channel.send('I am not able to join your voice channel, please check my permissions!')
+        break;
+      default:
+        message.channel.send(`Something went wrong... Error: ${error}`)
+    }
+  })
 
 const init = async () => {
 
@@ -186,7 +240,7 @@ const init = async () => {
 init();
 
 String.prototype.toProperCase = function () {
-  return this.replace(/([^\W_]+[^\s-]*) */g, function (txt) {return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
+  return this.replace(/([^\W_]+[^\s-]*) */g, function (txt) { return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase(); });
 };
 
 client.on('disconnect', () => client.logger.warn('Bot is disconnecting...'))

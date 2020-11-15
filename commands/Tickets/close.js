@@ -6,14 +6,13 @@ const mkdirp = require('mkdirp');
 const fs = require('fs');
 const path = require('path');
 
-class New extends Command {
+class Close extends Command {
   constructor(client) {
     super(client, {
-      name: 'new',
-      description: 'Create a new ticket.',
-      usage: 'New <reason>',
+      name: 'close',
+      description: 'Close your ticket',
+      usage: 'close <reason>',
       category: 'Tickets',
-      aliases: ['new-ticket', 'nt', 'newt'],
       guildOnly: true
     });
   }
@@ -24,27 +23,8 @@ class New extends Command {
     const { catID, logID, roleID } = db.get(`servers.${msg.guild.id}.tickets`);
     if (!catID) return msg.channel.send('The ticket system has not been setup in this server.');
 
-    if (msg.channel.name.startsWith('ticket')) return msg.channel.send('You\'re already in a ticket, silly.');
+    if (!msg.channel.name.startsWith('ticket')) return msg.channel.send('You need to be inside the ticket you want to close.');
     if (!args || args.length < 1) return msg.channel.send(`Please provide a reason. Usage: ${p}New <reason>`);
-
-    const perms = [
-      {
-        id: msg.member.id,
-        allow: ['VIEW_CHANNEL']
-      },
-      {
-        id: msg.guild.me.id,
-        allow: ['VIEW_CHANNEL']
-      },
-      {
-        id: roleID,
-        allow: ['VIEW_CHANNEL']
-      },
-      {
-        id: msg.guild.id,
-        deny: ['VIEW_CHANNEL']
-      }
-    ];
 
     const count = db.get(`servers.${msg.guild.id}.tickets.count`) || 1;
     db.set(`servers.${msg.guild.id}.tickets.count`, count + 1);
@@ -131,4 +111,4 @@ class New extends Command {
   }
 }
 
-module.exports = New;
+module.exports = Close;

@@ -17,22 +17,22 @@ class nowPlaying extends Command {
   }
 
   async run (msg) {
-    if (!this.client.player.isPlaying(msg.guild.id)) return msg.channel.send('There is nothing playing.');
-    const song = await this.client.player.nowPlaying(msg.guild.id);
+    if (!this.client.player.isPlaying(msg)) return msg.channel.send('There is nothing playing.');
+    const song = await this.client.player.nowPlaying(msg);
 
 
-    const queue = this.client.player.getQueue(msg.guild.id);
+    const queue = this.client.player.getQueue(msg);
     const start = queue.voiceConnection.dispatcher.startTime || 0;
     const totalTime = queue.playing.durationMS;
     const timeLeft = moment.duration((start + totalTime) - Date.now()).format('d [days] h [hours] m [minutes] s [seconds]');
 
     const em = new MessageEmbed()
       .setDescription(stripIndents`
-    Now Playing ♪: [${song.name}](${song.url})
+    Now Playing ♪: [${song.title}](${song.url})
 
     Duration: ${song.duration}
     Time Remaining: ${timeLeft}
-    ${this.client.player.createProgressBar(msg.guild.id)}
+    ${this.client.player.createProgressBar(msg)}
 
     Requested By: ${song.requestedBy}
     `)

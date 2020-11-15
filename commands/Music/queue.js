@@ -15,11 +15,11 @@ class Queue extends Command {
 
   async run (msg) {
     const client = this.client;
-    const queue = client.player.getQueue(msg.guild.id);
+    const queue = client.player.getQueue(msg);
     if (!queue || queue.tracks.length < 1) return msg.channel.send('There are no more songs in the queue.');
 
     let q = queue.tracks.map((tracks, i) => {
-      return `${i+1}- ${tracks.name} : ${tracks.author}`;
+      return `${i+1}- ${tracks.title} : ${tracks.author}`;
     }).join('\n');
     q = q.slice(0, 1990) + '...';
     const em = new MessageEmbed()

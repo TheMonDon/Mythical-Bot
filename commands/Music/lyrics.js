@@ -15,11 +15,12 @@ class Lyrics extends Command {
   async run (msg, args) {
     let song;
     if (!args || args.length < 1) {
-      song = msg.client.player.getQueue(msg.guild.id) && msg.client.player.getQueue(msg.guild.id).playing.name;
+      song = msg.client.player.getQueue(msg) && msg.client.player.getQueue(msg).playing.title;
       if (!song) return msg.channel.send('I can\'t get the lyrics of nothing.');
     } else {
       song = args.join(' ');
     }
+    song = song.replace(/\(lyrics|lyric|official music video|audio|official|official video|official video hd|clip officiel|clip|extended|hq\)/g, "");
     const lyrics = await lf(song, '');
     if (!lyrics) return msg.channel.send(`No lyrics found for: ${song}`);
 

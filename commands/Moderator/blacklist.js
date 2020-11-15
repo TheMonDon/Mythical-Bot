@@ -16,13 +16,9 @@ class blacklist extends Command {
   }
 
   async run(msg, text) {
-    // this should be working fine. I think...
     let mem;
     let type;
     const server = msg.guild;
-
-    if (!(db.get(`servers.${server.id}.premium`) || false)) return msg.channel.send('Sorry, this is a beta command and requires the server to have premium status. \nContact TheMonDon#1721 for premium.');
-
     const usage = `${msg.settings.prefix}blacklist <add | remove | check> <user> <reason>`;
 
     if (!text || text.length < 1) {
