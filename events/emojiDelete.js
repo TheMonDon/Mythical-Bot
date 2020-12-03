@@ -1,4 +1,3 @@
-// This event executes when a new guild (server) is joined.
 const db = require('quick.db');
 const DiscordJS = require('discord.js');
 

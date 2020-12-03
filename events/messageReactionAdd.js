@@ -1,35 +1,30 @@
-const Command = require('../../base/Command.js');
 const db = require('quick.db');
 const DiscordJS = require('discord.js');
 const { stripIndents } = require('common-tags');
 
-class New extends Command {
-  constructor(client) {
-    super(client, {
-      name: 'new',
-      description: 'Create a new ticket.',
-      usage: 'New <reason>',
-      category: 'Tickets',
-      aliases: ['new-ticket', 'nt', 'newt', 'create'],
-      guildOnly: true
-    });
+module.exports = class {
+  constructor (client) {
+    this.client = client;
   }
 
-  async run(msg, args) {
-    const p = msg.settings.prefix;
+  async run (messageReaction, user) {
+    if (user.bot) return;
+    if (!messageReaction) return;
+    const msg = messageReaction.message;
 
-    if (!db.get(`servers.${msg.guild.id}.tickets`)) return msg.channel.send('The ticket system has not been setup in this server.');
-    const { catID, logID, roleID } = db.get(`servers.${msg.guild.id}.tickets`);
+    if (!db.get(`servers.${msg.guild.id}.tickets`)) return;
+    const { catID, logID, roleID, reactionID } = db.get(`servers.${msg.guild.id}.tickets`);
+    if (!reactionID) return;
+
+    if (reactionID !== msg.id) return;
 
     if (!msg.guild.me.permissions.has('MANAGE_CHANNELS')) return msg.channel.send('The bot is missing manage channels perm.');
     if (!msg.guild.me.permissions.has('MANAGE_ROLES')) return msg.channel.send('The bot is missing manage roles perm');
     if (!msg.guild.me.permissions.has('MANAGE_MESSAGES')) return msg.channel.send('The bot is missing manage messages perm');
 
-    if (msg.channel.name.startsWith('ticket')) return msg.channel.send('You\'re already in a ticket, silly.');
-    if (!args || args.length < 1) return msg.channel.send(`Please provide a reason. Usage: ${p}New <reason>`);
-
-    const reason = args.join(' ');
-    if (reason.length > 1024) return msg.channel.send('Your reason must be less than 1024 characters.');
+    if (messageReaction._emoji.name !== '📰') return;
+    const member = await msg.guild.members.fetch(user.id);
+    messageReaction.users.remove(user.id);
 
     const perms = [
       {
@@ -50,13 +45,14 @@ class New extends Command {
       }
     ];
 
+    const reason = `Ticket has been created from the reaction menu. Use \`topic\` to change it.`;
     const count = db.get(`servers.${msg.guild.id}.tickets.count`) || 1;
     db.set(`servers.${msg.guild.id}.tickets.count`, count + 1);
-    
-    let str = msg.member.displayName.toLowerCase();
+
+    let str = member.displayName.toLowerCase();
     str = str.replace(/[^a-zA-Z\d:]/g, '');
     if (str.length === 0) {
-      str = msg.member.user.username.replace(/[^a-zA-Z\d:]/g, '');
+      str = member.user.username.replace(/[^a-zA-Z\d:]/g, '');
       if (str.length === 0) {
         str = (Math.random().toString(36)+'00000000000000000').slice(2, 5)
       }
@@ -64,24 +60,12 @@ class New extends Command {
     const tName = `ticket-${str}-${count}`;
     const tixChan = await msg.guild.channels.create(tName, { type: 'text', parent: catID, permissionOverwrites: perms, topic: reason });
 
-    db.set(`servers.${msg.guild.id}.tickets.${tName}.owner`, msg.author.id);
-
-    const userEmbed = new DiscordJS.MessageEmbed()
-      .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
-      .setTitle(`${msg.member.displayName}'s Ticket`)
-      .addField('Reason', reason, true)
-      .addField('Channel', tixChan, true)
-      .setFooter('Self destructing in 2 minutes.')
-      .setColor('#E65DF4')
-      .setTimestamp();
-    const reply = await msg.channel.send(userEmbed);
-    reply.delete({ timeout: 60000 });
-    msg.delete();
+    db.set(`servers.${msg.guild.id}.tickets.${tName}.owner`, member.id);
 
     const logEmbed = new DiscordJS.MessageEmbed()
-      .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
+      .setAuthor(member.displayName, member.user.displayAvatarURL())
       .setTitle('New Ticket Created')
-      .addField('Author', `${msg.author} (${msg.author.id})`, false)
+      .addField('Author', `${member} (${member.id})`, false)
       .addField('Channel', `${tixChan} \n(${tName}: ${tixChan.id})`, false)
       .addField('Reason', reason, false)
       .setColor('#E65DF4')
@@ -90,8 +74,8 @@ class New extends Command {
     await logChan.send(logEmbed);
 
     const chanEmbed = new DiscordJS.MessageEmbed()
-      .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
-      .setTitle(`${msg.member.displayName}'s Ticket`)
+      .setAuthor(member.displayName, member.user.displayAvatarURL())
+      .setTitle(`${member.displayName}'s Ticket`)
       .addField('Reason', reason, false)
       .setDescription('Please wait patiently and our support team will be with you shortly.')
       .setColor('#E65DF4')
@@ -118,13 +102,11 @@ class New extends Command {
     const output = stripIndents`
     Ticket created at: ${timestamp}
 
-    Author: ${msg.author.id} (${msg.author.tag})
+    Author: ${member.id} (${member.user.tag})
 
     Topic: ${reason}\n
     `;
 
     db.push(`servers.${msg.guild.id}.tickets.${tName}.chatLogs`, output);
   }
-}
-
-module.exports = New;
+};

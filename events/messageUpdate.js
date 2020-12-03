@@ -17,7 +17,7 @@ module.exports = class {
       const logSys = db.get(`servers.${newmsg.guild.id}.logs.log_system.message-edited`);
       if (logSys !== 'enabled') return;
 
-      const chans = db.get(`servers.${newmsg.guild.id}.logs.noLogChans`);
+      const chans = db.get(`servers.${newmsg.guild.id}.logs.noLogChans`) || [];
       if (chans.includes(newmsg.channel.id)) return;
       const logChannel = newmsg.guild.channels.cache.get(logChan);
       if (!logChannel.permissionsFor(this.client.user.id).has('SEND_MESSAGES')) return;
@@ -89,10 +89,10 @@ module.exports = class {
       if (!cmd) return;
 
       // Check if the member is blacklisted from using commands in this guild.
-      if (message.guild) {
-        const bl = db.get(`servers.${message.guild.id}.users.${message.member.id}.blacklist`);
+      if (newmsg.guild) {
+        const bl = db.get(`servers.${newmsg.guild.id}.users.${newmsg.member.id}.blacklist`);
         if (bl && level < 4 && (cmd.help.name !== 'blacklist')) {
-          return message.channel.send(`Sorry ${message.member.displayName}, you are currently blacklisted from using commands in this server.`);
+          return message.channel.send(`Sorry ${newmsg.member.displayName}, you are currently blacklisted from using commands in this server.`);
         }
       }
 

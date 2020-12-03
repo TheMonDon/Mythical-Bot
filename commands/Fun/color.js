@@ -13,7 +13,7 @@ class Stats extends Command {
       name: 'color',
       description: 'Get information about some colors.',
       category: 'Fun',
-      usage: 'color <hex, rgb, name, imageURL>',
+      usage: 'color <hex, rgb, name, imageURL, attachment>',
     });
   }
 
@@ -49,6 +49,10 @@ class Stats extends Command {
 
     input = extra_colors[input.toString()] ? extra_colors[input.toString()] : input
   
+    if (msg.attachments.first()) {
+      input = msg.attachments.first().url;
+    };
+    
     if (isURL(input)) {
       if (isImageURL(input)) {
         const rgb = await getColorFromURL(input);

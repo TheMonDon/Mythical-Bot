@@ -45,39 +45,37 @@ module.exports = class {
         const tix = db.get(`servers.${message.guild.id}.tickets.${message.channel.name}`);
         if (!tix) return;
 
-        const dirName = `./logs/${message.guild.id}/`
-        const fileName = message.channel.name;
-
-        const fpath = path.join(dirName, fileName + '.txt');
+        const tName = message.channel.name;
 
         const d = new Date();
         const year = d.getFullYear();
         const month = String(d.getMonth() + 1).padStart(2, "0");
-        const day = String(d.getDay()).padStart(2, "0");
+        const day = String(d.getDate()).padStart(2, "0");
         const hour = String(d.getHours()).padStart(2, "0");
         const min = String(d.getMinutes()).padStart(2, "0");
         const timestamp = month + "/" + day + "/" + year + " " + hour + ":" + min;
 
-        const output = `${timestamp} - [${message.author.tag}]: \n${message.content}`
-
-        const result = () => {
-          fs.appendFileSync(fpath, `${output}\r\n`, (err) => {
-            if (err) return console.log(`${lmg} appending: [${err}]`)
-          })
-        }
-
-        ensureDirExists(dirName, result)
-
-        function ensureDirExists(dirPath, cb) {
-          const dirname = path.normalize(dirPath)
-          if (!fs.existsSync(dirname)) {
-            mkdirp(dirname, { recursive: true }, cb)
-            return true
+        let attachments = []
+        if (message.attachments.array().length > 0) {
+          for (let i = 0; i < message.attachments.array().length; i++) {
+            attachments.push(message.attachments.array()[i].url)
           }
-          cb(null, '')
-          return false
         }
 
+        let content;
+        if (!message.content.length > 0 && !attachments.length > 0) {
+          content = 'The bot could not read this message.';
+        } else if (message.content.length > 0 && attachments.length > 0) {
+          content = `${message.content} \nAttachments: ${attachments.join('\n')}`;
+        } else if (!message.content.length > 0 && attachments.length > 0) {
+          content = `Attachments: ${attachments.join('\n')}`;
+        } else {
+          content = message.content;
+        }
+
+        const output = `${timestamp} - [${message.author.tag}]: \n${content}`
+
+        db.push(`servers.${message.guild.id}.tickets.${tName}.chatLogs`, output);
         return;
       }
 

@@ -1,6 +1,6 @@
 const db = require('quick.db');
 const DiscordJS = require('discord.js');
-const nodefetch = require('node-fetch');
+const hastebin = require('hastebin');
 
 module.exports = class {
   constructor (client) {
@@ -18,7 +18,7 @@ module.exports = class {
     const logSys = db.get(`servers.${server.id}.logs.log_system.bulk-messages-deleted`);
     if (logSys !== 'enabled') return;
 
-    const chans = db.get(`servers.${server.id}.logs.noLogChans`);
+    const chans = db.get(`servers.${server.id}.logs.noLogChans`) || [];
     if (chans.includes(chan.id)) return;
     const logChannel = server.channels.cache.get(logChan);
     if (!logChannel.permissionsFor(this.client.user.id).has('SEND_MESSAGES')) return;
@@ -34,32 +34,28 @@ module.exports = class {
       output.push('\n');
     });
     const text = output.join('');
-    nodefetch('https://voidbin.cc/api/new', {
-      method: 'POST',
-      body: JSON.stringify({
-        title: 'Messages Deleted',
-        content: text,
-        code_language: 'text',
-        paste_expiration: '6mo',
-        view_destroy: false
-      }),
-      headers: { 'Content-Type': 'application/json' }
-    })
-      .then(c => c.json())
-      .then(c => {
-        const link = `https://voidbin.cc/paste/${c.pasteID}`;
 
-        const embed = new DiscordJS.MessageEmbed()
-          .setTitle('Bulk Messages Deleted')
-          .setColor('RED')
-          .addField('Deleted Messages', link, true)
-          .addField('Deleted Amount', messages.size, true)
-          .addField('Channel', chan, true);
-        logChannel.send(embed);
-  
-        db.add(`servers.${server.id}.logs.bulk-messages-deleted`, 1);
-        db.add(`servers.${server.id}.logs.all`, 1);
+    let url;
+
+    await hastebin.createPaste(text, {
+      raw: true,
+      contentType: 'text/plain',
+      server: 'https://hastebin.com'
+    })
+      .then(function (urlToPaste) {
+        url = urlToPaste;
       })
-      .catch(err => console.log(err));
+      .catch(function (requestError) { console.log(requestError) })
+
+      const embed = new DiscordJS.MessageEmbed()
+        .setTitle('Bulk Messages Deleted')
+        .setColor('RED')
+        .addField('Deleted Messages', url, true)
+        .addField('Deleted Amount', messages.size, true)
+        .addField('Channel', chan, true);
+      logChannel.send(embed);
+
+      db.add(`servers.${server.id}.logs.bulk-messages-deleted`, 1);
+      db.add(`servers.${server.id}.logs.all`, 1);
   }
 };

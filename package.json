@@ -23,6 +23,7 @@
     "discord.js": "^12.4.1",
     "enmap": "^5.8.0",
     "fetch": "^1.1.0",
+    "hastebin": "^0.2.1",
     "is-image-url": "^1.1.8",
     "is-url": "^1.2.4",
     "jsonpath": "^1.0.2",
@@ -49,6 +50,7 @@
     "speedtest-net": "^2.1.1",
     "superagent": "^6.1.0",
     "trev": "^2.0.8",
+    "twemoji": "^13.0.1",
     "weather-js": "^2.0.0"
   },
   "devDependencies": {

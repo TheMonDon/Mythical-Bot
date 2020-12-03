@@ -159,6 +159,7 @@ class Help extends Command {
       });
       return msg.channel.send(em);
     } else if (['nsfw'].includes(text)) {
+      if (!msg.channel.nsfw) return msg.channel.send('You need to be in a NSFW channel to view these commands.');
       const category = 'NSFW';
       em.setTitle(`${category} Commands`);
       em.setColor('0099CC');
@@ -244,11 +245,12 @@ class Help extends Command {
         if (level < this.client.levelCache[command.conf.permLevel]) return;
         em.setTitle(`${command.help.name.toProperCase()} Information`);
         em.setColor('0099CC');
-        em.addField('Description', command.help.description, false);
         em.addField('Usage', command.help.usage, false);
         em.addField('Aliases', command.conf.aliases.join(', ') || 'none', false);
         em.addField('Guild Only', command.conf.guildOnly, true);
         em.addField('NSFW', command.conf.nsfw, true);
+        em.addField('Description', command.help.description, false);
+        em.addField('Long Description', command.help.longDescription, false);
         return msg.channel.send(em);
         // return message.channel.send(`= ${command.help.name} = \n${command.help.description}\nusage:: ${command.help.usage}\nalises:: ${command.conf.aliases.join(', ')}`, {code:'asciidoc'});
       } else {

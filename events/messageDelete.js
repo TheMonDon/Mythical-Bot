@@ -16,7 +16,7 @@ module.exports = class {
     const logSys = db.get(`servers.${msg.guild.id}.logs.log_system.message-deleted`);
     if (logSys !== 'enabled') return;
 
-    const chans = db.get(`servers.${msg.guild.id}.logs.noLogChans`);
+    const chans = db.get(`servers.${msg.guild.id}.logs.noLogChans`) || [];
     if (chans.includes(msg.channel.id)) return;
     const logChannel = msg.guild.channels.cache.get(logChan);
     if (!logChannel.permissionsFor(this.client.user.id).has('SEND_MESSAGES')) return;
