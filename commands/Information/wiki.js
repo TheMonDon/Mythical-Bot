@@ -2,7 +2,7 @@ const Command = require('../../base/Command.js');
 const DiscordJS = require('discord.js');
 const fetch = require('node-superfetch');
 
-class Wiki extends Command {
+class wiki extends Command {
   constructor (client) {
     super(client, {
       name: 'wikipedia',
@@ -36,12 +36,14 @@ class Wiki extends Command {
       });
     if (body.query.pages[0].missing) return msg.channel.send('No Results.');
 
+    const str = body.query.pages[0].extract.replace(/[\n]/g, '\n\n');
+
     const embed = new DiscordJS.MessageEmbed()
       .setColor(0x00A2E8)
       .setTitle(body.query.pages[0].title)
       .setAuthor('Wikipedia', 'https://i.imgur.com/a4eeEhh.png')
-      .setDescription(body.query.pages[0].extract.substr(0, 2000).replace(/[\n]/g, '\n\n'));
+      .setDescription((str.length > 2043) ? str.substr(0, 2040)+' ...' : str);
     return msg.channel.send(embed);
   }
 }
-module.exports = Wiki;
+module.exports = wiki;

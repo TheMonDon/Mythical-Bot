@@ -7,7 +7,7 @@ class Emoji extends Command {
     super(client, {
       name: 'emoji',
       description: 'Sends the image of the provided emojis',
-      usage: 'emoji <create | delete | rename> <...>',
+      usage: 'emoji <create | delete | info | rename> <...>',
       category: 'Moderator',
       permLevel: 'Moderator',
       aliases: ['dl', 'downloademoji', 'dlemoji'],
