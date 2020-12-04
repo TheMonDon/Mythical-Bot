@@ -51,7 +51,7 @@ class Stats extends Command {
   
     if (msg.attachments.first()) {
       input = msg.attachments.first().url;
-    };
+    }
     
     if (isURL(input)) {
       if (isImageURL(input)) {
