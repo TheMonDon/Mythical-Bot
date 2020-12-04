@@ -7,11 +7,11 @@ require('moment-duration-format');
 class nowPlaying extends Command {
   constructor (client) {
     super(client, {
-      name: 'nowplaying',
+      name: 'now-playing',
       description: 'Shows what is currently playing',
       category: 'Music',
-      usage: 'nowplaying',
-      aliases: ['np'],
+      usage: 'now-playing',
+      aliases: ['np', 'nowplaying'],
       guildOnly: true
     });
   }
@@ -22,7 +22,7 @@ class nowPlaying extends Command {
 
 
     const queue = this.client.player.getQueue(msg);
-    const start = queue.voiceConnection.dispatcher.startTime || 0;
+    const start = queue.voiceConnection && queue.voiceConnection.dispatcher && queue.voiceConnection.dispatcher.startTime || 0;
     const totalTime = queue.playing.durationMS;
     const timeLeft = moment.duration((start + totalTime) - Date.now()).format('d [days] h [hours] m [minutes] s [seconds]');
 
