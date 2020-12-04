@@ -55,7 +55,7 @@ module.exports = class {
         const min = String(d.getMinutes()).padStart(2, "0");
         const timestamp = month + "/" + day + "/" + year + " " + hour + ":" + min;
 
-        let attachments = []
+        const attachments = []
         if (message.attachments.array().length > 0) {
           for (let i = 0; i < message.attachments.array().length; i++) {
             attachments.push(message.attachments.array()[i].url)

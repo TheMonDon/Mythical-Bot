@@ -33,7 +33,7 @@ class dlEmoji extends Command {
     if (clientEmojis) {
       clientEmojis = clientEmojis.map(e => e.substring(1, e.length - 1));
       clientEmojis.forEach((e) => {
-        let e1 = e.replace(/[^\d]/g, '');
+        const e1 = e.replace(/[^\d]/g, '');
         const clientEmoji = this.client.emojis.resolveIdentifier(e1);
         if (clientEmoji) result.push(clientEmoji);
       })
