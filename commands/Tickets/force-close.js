@@ -1,8 +1,7 @@
 const Command = require('../../base/Command.js');
 const db = require('quick.db');
 const DiscordJS = require('discord.js');
-const { stripIndents } = require('common-tags');
-const hastebin = require('hastebin')
+const hastebin = require('hastebin');
 
 class forceClose extends Command {
   constructor(client) {
@@ -116,7 +115,7 @@ class forceClose extends Command {
       .setFooter('Transcripts expire 30 days after last view date.')
       .setTimestamp();
     await tOwner.send(userEmbed)
-      .catch(e => {
+      .catch(() => {
         recieved = 'no';
       });
 

@@ -1,5 +1,4 @@
 const Command = require('../../base/Command.js');
-const DiscordJS = require('discord.js');
 const fetch = require('node-superfetch');
 
 class showerthoughts extends Command {

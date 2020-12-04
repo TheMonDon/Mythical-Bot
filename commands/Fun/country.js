@@ -283,7 +283,7 @@ class country extends Command {
     }
 
     if (!code) {
-      return this.error(message.channel, `I couldn't find a country matching ${args.join(' ')}`);
+      return message.channel.send(`I couldn't find a country matching ${args.join(' ')}`);
     }
 
     try {
@@ -302,62 +302,24 @@ class country extends Command {
       const countrycurrencysymbol = res.body.currencies[0].symbol;
       const countryflag = `http://www.countryflags.io/${res.body.alpha2Code}/flat/64.png`;
 
-      return message.channel.send({
-        embed: {
-          author: {
-            name: 'Country Information - ' + countrycode,
-            icon_url: countryflag,
-          },
-          thumbnail: {
-            url: countryflag,
-          },
-          color: 0x337fd5,
-          title: countryname,
-          fields: [
-            {
-              name: 'Population',
-              value: countrypopulation.toLocaleString('en'),
-              inline: true,
-            },
-            {
-              name: 'Capital City',
-              value: countrycapital,
-              inline: true,
-            },
-            {
-              name: 'Main currency',
-              value: countrycurrencyname + ' (' + countrycurrencysymbol + ')',
-              inline: true,
-            },
-            {
-              name: 'Located in',
-              value: countryregion,
-              inline: true,
-            },
-            {
-              name: 'Demonym',
-              value: countrydemonym,
-              inline: true,
-            },
-            {
-              name: 'Native Name',
-              value: countrynativename,
-              inline: true,
-            },
-            {
-              name: 'Area',
-              value: `${countryareakm.toLocaleString('en')}km (${countryaream}m)`,
-              inline: true,
-            },
-          ],
-          timestamp: new Date(),
-          footer: {
-            text: 'via restcountries.eu',
-          },
-        },
-      });
+      const em = new DiscordJS.MessageEmbed()
+      .setAuthor('Country Information - ' + countrycode, countryflag)
+      .setThumbnail(countryflag)
+      .setColor(0x337fd5)
+      .setTitle(countryname)
+      .addField('Population', countrypopulation.toLocaleString('en'), true)
+      .addField('Capital City', countrycapital, true)
+      .addField('Main Currency', countrycurrencyname + ' (' + countrycurrencysymbol + ')', true)
+      .addField('Located In', countryregion, true)
+      .addField('Demonym', countrydemonym, true)
+      .addField('Native Name', countrynativename, true)
+      .addField('Area', `${countryareakm.toLocaleString('en')}km (${countryaream}m)`, true)
+      .setFooter('Powered by: restcountries.eu')
+      .setTimestamp();
+
+      return message.channel.send(em);
     } catch (err) {
-      return this.error(message.channel, 'Error! Unable to fetch country information.');
+      return message.channel.send(`Error! Unable to fetch country information. \n${err}`);
     }
 
   }

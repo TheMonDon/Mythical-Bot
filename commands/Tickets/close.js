@@ -74,7 +74,7 @@ class Close extends Command {
 
         return msg.channel.send(em);
       })
-      .catch(async (_err) => {
+      .catch(async () => {
         let url;
 
         await hastebin.createPaste(chatLogs, {
@@ -97,7 +97,7 @@ class Close extends Command {
           .setFooter('Transcripts expire 30 days after last view date.')
           .setTimestamp();
         await msg.author.send(userEmbed)
-          .catch(e => {
+          .catch(() => {
             recieved = 'no';
           });
 

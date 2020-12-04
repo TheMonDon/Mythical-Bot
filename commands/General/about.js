@@ -1,6 +1,4 @@
 const Command = require('../../base/Command.js');
-const { stripIndents } = require('common-tags');
-const db = require('quick.db');
 const DiscordJS = require('discord.js');
 const pjson = require('../../package.json')
 
@@ -8,7 +6,7 @@ class about extends Command {
   constructor (client) {
     super(client, {
       name: 'about',
-      description: 'View the bot info.',
+      description: 'View the bots info.',
       usage: 'about',
       category: 'General',
       aliases: ['info', 'owner']

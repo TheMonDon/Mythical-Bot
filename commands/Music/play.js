@@ -1,5 +1,4 @@
 const Command = require('../../base/Command.js');
-const db = require('quick.db');
 
 class Play extends Command {
   constructor(client) {

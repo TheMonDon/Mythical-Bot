@@ -105,7 +105,7 @@ class Emoji extends Command {
       }
       if (!result) return msg.channel.send(`${msg.member}, that emoji was not found. Is it from this server?`);
       result.edit({ name: name })
-        .then(e => {
+        .then(() => {
           return msg.channel.send(`${msg.member}, ${result} has been renamed to \`${name}\``);
         })
         .catch(e => {

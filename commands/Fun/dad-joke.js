@@ -13,7 +13,7 @@ class dadJoke extends Command {
     });
   }
 
-  async run(msg, args) {
+  async run(msg) {
     fetch("https://icanhazdadjoke.com/", {
       headers: { "Accept": "text/plain" }
     })

@@ -13,7 +13,7 @@ class cow extends Command {
     });
   }
 
-  async run(msg, args) {
+  async run(msg) {
     const options = {
         min: 0,
         max: cows().length - 1,
