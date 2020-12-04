@@ -92,7 +92,7 @@ module.exports = class {
       if (newmsg.guild) {
         const bl = db.get(`servers.${newmsg.guild.id}.users.${newmsg.member.id}.blacklist`);
         if (bl && level < 4 && (cmd.help.name !== 'blacklist')) {
-          return message.channel.send(`Sorry ${newmsg.member.displayName}, you are currently blacklisted from using commands in this server.`);
+          return newmsg.channel.send(`Sorry ${newmsg.member.displayName}, you are currently blacklisted from using commands in this server.`);
         }
       }
 
