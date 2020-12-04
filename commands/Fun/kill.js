@@ -15,6 +15,7 @@ class kill extends Command {
   async run (msg, text) { // eslint-disable-line no-unused-vars
     let mem;
     const member = msg.member;
+    const p = msg.settings.prefix;
 
     if (!text || text.length < 1) {
       return msg.channel.send(`Incorrect Usage: ${p}kill <user>`);

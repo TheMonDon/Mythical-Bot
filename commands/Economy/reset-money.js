@@ -20,9 +20,7 @@ module.exports = class ResetMoney extends Command {
     let mem;
     const p = msg.settings.prefix;
 
-    if (!member.permissions.has('MANAGE_GUILD')) {
-      return msg.channel.send('You are missing **Manage Guild** permission.');
-    }
+    if (!member.permissions.has('MANAGE_GUILD')) return msg.channel.send('You are missing **Manage Guild** permission.');
 
     const filter = (response) => {
       return response.content.toLowerCase() === 'yes' || 'no' || 'y' || 'n' && response.author.id === msg.author.id;
@@ -62,7 +60,7 @@ module.exports = class ResetMoney extends Command {
       if (!mem) {
         const f_id = text.join(' ').replace('<@', '').replace('>', '');
         try {
-          mem = await client.users.fetch(f_id);
+          mem = await this.client.users.fetch(f_id);
         } catch (err) {
           const embed = new DiscordJS.MessageEmbed()
             .setColor('#EC5454')

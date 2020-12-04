@@ -12,6 +12,7 @@ class clap extends Command {
   }
 
   async run(msg, args) {
+    const p = msg.settings.prefix;
     const clapify = args.join(' ');
 
     if (!args || args.length < 2) return msg.channel.send(`Incorrect Usage: ${p}Clap <text>`);

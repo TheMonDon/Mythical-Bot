@@ -9,7 +9,6 @@ module.exports = class BalanceCommand extends Command {
       name: 'balance',
       category: 'Economy',
       description: 'Gives you your balance',
-      examples: ['balance'],
       aliases: ['bal'],
       guildOnly: true
     });    
@@ -18,6 +17,8 @@ module.exports = class BalanceCommand extends Command {
   run (msg, args) {
     let mem;
     const server = msg.guild;
+    const p = msg.settings.prefix;
+
     if (!args || args.length < 1) {
       mem = msg.member;
     } else {

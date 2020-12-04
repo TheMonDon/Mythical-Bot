@@ -14,6 +14,7 @@ class rps extends Command {
 
   async run (msg, text) { // eslint-disable-line no-unused-vars
     const p = msg.settings.prefix;
+    const server = msg.guild;
     let mem;
 
     if (!text || text.length < 1) {
@@ -26,13 +27,12 @@ class rps extends Command {
     const chan = msg.channel;
     let auth_reply;
     let mem_reply;
-    let winner;
 
     if (!mem) return msg.channel.send(`Incorrect Usage: ${p}rps <user> (Please enter a valid user)`);
     if (mem.user.id === msg.author.id) return msg.channel.send('You can\'t play against yourself, silly.');
     if (mem.user.bot) return msg.channel.send('You can\'t play rock paper scissors with someone who has no hands, now can you?');
 
-    const reply = await msg.channel.send(`Alright, get ready ${member} and ${mem}! ${member.displayName} is up first. I'll send you both a DM.`);
+    const reply = await msg.channel.send(`Alright, get ready ${msg.member} and ${mem}! ${msg.member.displayName} is up first. I'll send you both a DM.`);
     await msg.author.send(stripIndents`
     Please type your response below.
 
@@ -96,7 +96,6 @@ class rps extends Command {
     embed.setColor('RANDOM');
 
     if (auth_reply === mem_reply) {
-      winner = 'tie';
       embed.setDescription(stripIndents`
         No winner this time!
         ${mem} and ${p1} both chose the same thing.
@@ -105,13 +104,11 @@ class rps extends Command {
         `);
     } else if (auth_reply === 'rock') {
       if (mem_reply === 'scissors') {
-        winner = 'author';
         embed.setDescription(stripIndents`
             The winner was: ${p1}!
             The winning item was: ${auth_reply}
             `);
       } else {
-        winner = 'mem';
         embed.setDescription(stripIndents`
             The winner was: ${mem}!
             The winning item was: ${mem_reply}
@@ -119,14 +116,12 @@ class rps extends Command {
       }
     } else if (auth_reply === 'paper') {
       if (mem_reply === 'rock') {
-        winner = 'author';
         embed.setDescription(stripIndents`
             The winner was: ${p1}!
             The winning item was: ${auth_reply}
             `);
       } else {
         if (mem_reply === 'scissors') {
-          winner = 'mem';
           embed.setDescription(stripIndents`
                 The winner was: ${mem}!
                 The winning item was: ${mem_reply}
@@ -135,14 +130,12 @@ class rps extends Command {
       }
     } else if (auth_reply === 'scissors') {
       if (mem_reply === 'rock') {
-        winner = 'mem';
         embed.setDescription(stripIndents`
             The winner was: ${mem}!
             The winning item was: ${mem_reply}
             `);
       } else {
         if (mem_reply === 'paper') {
-          winner = 'author';
           embed.setDescription(stripIndents`
                 The winner was: ${p1}!
                 The winning item was: ${auth_reply}

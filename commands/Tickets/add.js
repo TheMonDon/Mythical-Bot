@@ -28,6 +28,7 @@ class Add extends Command {
     if (!mem) return msg.channel.send('That is not a valid user.')
 
     const { roleID } = db.get(`servers.${msg.guild.id}.tickets`);
+    const role = msg.guild.roles.cache.get(roleID);
     const tName = msg.channel.name;
     const owner = db.get(`servers.${msg.guild.id}.tickets.${tName}.owner`);
 

@@ -13,7 +13,8 @@ class tih extends Command {
     });
   }
 
-  async run (msg, text) { // eslint-disable-line no-unused-vars
+  async run (msg, text) {
+    const p = msg.settings.prefix;
 
     let month;
     let day;

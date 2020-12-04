@@ -17,9 +17,10 @@ class deletewarning extends Command {
 
   async run(msg, args) {
     const p = msg.settings.prefix;
+    let mem;
+
     if (!args || args.length < 1) return msg.channel.send(`Incorrect Usage: ${p}clear-warnings <user>`);
     const text = args.join(' ');
-    let mem;
 
     mem = msg.mentions.members.first() ||
       msg.guild.members.cache.find(m => m.id === text) ||
@@ -47,8 +48,8 @@ class deletewarning extends Command {
     }
 
     if (previousPoints >= 10) {
-      if (!msg.guild.me.permissions.has('BAN_MEMBERS')) msg.channel.send('The bot does not have Ban_Members permission to unban the user.');
-      await msg.guild.members.unban(userID).catch(() => null);
+      if (!msg.guild.me.permissions.has('BAN_MEMBERS')) return msg.channel.send('The bot does not have Ban_Members permission to unban the user.');
+      await msg.guild.members.unban(mem.id).catch(() => null);
     }
 
     const otherCases = otherWarns.map((w) => `\`${w.warnID}\``).join(', ');

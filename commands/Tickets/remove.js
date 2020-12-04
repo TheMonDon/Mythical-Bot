@@ -29,6 +29,7 @@ class Remove extends Command {
     if (mem.id === msg.author.id) return msg.channel.send(`Are you trying to close your ticket? Use \`${msg.settings.prefix}close\` instead`)
 
     const { roleID } = db.get(`servers.${msg.guild.id}.tickets`);
+    const role = msg.guild.roles.cache.get(roleID);
     const tName = msg.channel.name;
     const owner = db.get(`servers.${msg.guild.id}.tickets.${tName}.owner`);
 
