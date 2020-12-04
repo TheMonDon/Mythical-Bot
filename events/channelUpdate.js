@@ -2,11 +2,11 @@ const db = require('quick.db');
 const DiscordJS = require('discord.js');
 
 module.exports = class {
-  constructor (client) {
+  constructor(client) {
     this.client = client;
   }
 
-  async run (channel, newChannel) {
+  async run(channel, newChannel) {
     const logChan = db.get(`servers.${channel.guild.id}.logs.channel`);
     if (!logChan) return;
 
@@ -21,8 +21,8 @@ module.exports = class {
     if (!logChannel.permissionsFor(this.client.user.id).has('SEND_MESSAGES')) return;
 
     if (channel === newChannel) return;
-    
-    if (channel.parent === newChannel.parent && channel.name === newChannel.name && channel.topic === newChannel.topic) {} else {
+
+    if (channel.parent !== newChannel.parent && channel.name !== newChannel.name && channel.topic !== newChannel.topic) {
       let catUp;
       if (!channel.parent && newChannel.parent) {
         catUp = `Updated: ✅ \n New Category: ${newChannel.parent.name}`;
@@ -35,16 +35,17 @@ module.exports = class {
       } else if (channel.parent === newChannel.parent) {
         catUp = 'Updated: ❌';
       }
-      const embed = new DiscordJS.MessageEmbed();
-      embed.setTitle(`Channl ${channel.name} Updated`);
-      embed.setColor('#EE82EE');
-      embed.addField('Name', (channel.name == newChannel.name) ? 'Updated: ❌' : `Updated: ✅ \n New Name: ${newChannel.name}`, true);
-      embed.addField('Topic', (channel.topic == newChannel.topic) ? 'Updated: ❌' : `Updated: ✅ \n New Topic: ${newChannel.topic}`, true);
-      embed.addField('Is NSFW?', (newChannel.nsfw) ? '✅' : '❌', true);
-      embed.addField('Category', catUp, true);
-      embed.setFooter(`ID: ${newChannel.id}`);
-      embed.setTimestamp();
-      
+
+      const embed = new DiscordJS.MessageEmbed()
+        .setTitle(`Channl ${channel.name} Updated`)
+        .setColor('#EE82EE')
+        .addField('Name', (channel.name == newChannel.name) ? 'Updated: ❌' : `Updated: ✅ \n New Name: ${newChannel.name}`, true)
+        .addField('Topic', (channel.topic == newChannel.topic) ? 'Updated: ❌' : `Updated: ✅ \n New Topic: ${newChannel.topic}`, true)
+        .addField('Is NSFW?', (newChannel.nsfw) ? '✅' : '❌', true)
+        .addField('Category', catUp, true)
+        .setFooter(`ID: ${newChannel.id}`)
+        .setTimestamp();
+
       channel.guild.channels.cache.get(logChan).send(embed);
       db.add(`servers.${channel.guild.id}.logs.channel-updated`, 1);
       db.add(`servers.${channel.guild.id}.logs.all`, 1);
