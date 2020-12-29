@@ -10,7 +10,7 @@
   "license": "MIT",
   "dependencies": {
     "@discordjs/opus": "^0.3.3",
-    "better-sqlite3": "^7.1.1",
+    "better-sqlite3": "^7.1.2",
     "blackjack-n-deck": "^1.0.1",
     "chalk": "^4.1.0",
     "color-convert": "^2.0.1",
