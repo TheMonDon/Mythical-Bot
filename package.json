@@ -34,7 +34,7 @@
     "moment": "^2.29.1",
     "moment-duration-format": "^2.2.2",
     "node-fetch": "^2.6.1",
-    "node-html-parser": "^2.0.0",
+    "node-html-parser": "^2.0.1",
     "node-superfetch": "^0.1.10",
     "oxford-dictionaries-api": "^0.1.2",
     "quick.db": "^7.1.3",
