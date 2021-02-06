@@ -27,7 +27,7 @@
     "is-image-url": "^1.1.8",
     "is-url": "^1.2.4",
     "jsonpath": "^1.1.0",
-    "jsonpath-plus": "^4.0.0",
+    "jsonpath-plus": "^5.0.3",
     "klaw": "^3.0.0",
     "lyrics-finder": "^21.7.0",
     "mathjs": "^9.2.0",
