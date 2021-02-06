@@ -9,7 +9,7 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@discordjs/opus": "^0.3.3",
+    "@discordjs/opus": "^0.4.0",
     "better-sqlite3": "^7.1.2",
     "blackjack-n-deck": "^1.0.1",
     "chalk": "^4.1.0",
