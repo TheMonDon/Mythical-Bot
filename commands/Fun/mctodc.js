@@ -10,7 +10,7 @@ class mctodc extends Command {
     super(client, {
       name: 'mctodc',
       description: 'Find someones minecraft username from their discord',
-      usage: 'mcToDc [member]',
+      usage: 'mctodc [member]',
       category: 'Fun'
     });
   }
@@ -37,25 +37,21 @@ class mctodc extends Command {
     connection.query(`SELECT player_id FROM synced_players WHERE identifier = ${user}`, function (error, results, fields) {
       if (error) return msg.channel.send(`I could not find that user, did they sync their account on the server?`);
       const player_id = results[0].player_id;
-      console.log('1');
       connection.query(`SELECT * FROM player WHERE id = ${player_id}`, async function (error, results, fields) {
         if (error) return msg.channel.send(`I could not find that user, did they sync their account on the server?`);
         const id = results[0].uuid;
-        console.log('2');
 
         try {
-          console.log('3');
           const { body } = await fetch.get(`https://api.mojang.com/user/profiles/${id}/names`);
           const json = body;
           const nc = JSONPath({ path: '*.name', json }).join(', ');
           const em = new DiscordJS.MessageEmbed()
-            .setTitle(`${rn}'s Account Information`)
+            .setTitle(`${nc.slice(nc.lastIndexOf(',') + 1)}'s Account Information`)
             .setColor('00FF00')
             .setImage(`https://mc-heads.net/body/${id}`)
             .addField('Name Changes History', nc || 'Error fetching data...', false)
             .addField('UUID', id, false)
             .addField('NameMC Link', `Click [here](https://es.namemc.com/profile/${id}) to go to their NameMC Profile`, false);
-          console.log('4');
           msg.channel.send(em);
         } catch (err) {
           console.error(err);
