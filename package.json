@@ -19,7 +19,7 @@
     "cows": "^2.1.1",
     "cowsay": "^1.4.0",
     "custom-translate": "^2.2.8",
-    "discord-player": "^3.2.1",
+    "discord-player": "^3.3.2",
     "discord.js": "^12.5.1",
     "enmap": "^5.8.4",
     "fetch": "^1.1.0",
