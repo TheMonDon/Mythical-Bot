@@ -34,7 +34,7 @@ module.exports = class {
     } else if (message.content.indexOf(settings.prefix) !== 0) {
       // Ticket message storage
 
-      if (message.channel.name.startsWith('ticket-')) {
+      if (message.channel.type === 'text' && message.channel.name.startsWith('ticket-')) {
         if (message.channel.name === 'ticket-logs') return;
         const tix = db.get(`servers.${message.guild.id}.tickets.${message.channel.name}`);
         if (!tix) return;
@@ -74,7 +74,7 @@ module.exports = class {
       }
 
 
-      // Use this for my chat money event since this is what i check for not existing in it.
+      // Use this for my chat money event since this is what I check for not existing in it.
       // Don't really know how else I would do it so this works fine for me.
       if (message.channel.type === 'dm') return;
       const msg = message;
