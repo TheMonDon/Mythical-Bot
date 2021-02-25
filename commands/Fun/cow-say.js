@@ -4,11 +4,11 @@ const cowsay = require('cowsay');
 class Cowsay extends Command {
   constructor(client) {
     super(client, {
-      name: 'cowsay',
+      name: 'cow-say',
       description: 'Say stuff as a cow.. moo.',
-      usage: 'cowsay <text',
+      usage: 'cow-say <text>',
       category: 'Fun',
-      aliases: []
+      aliases: ['cowsay']
     });
   }
 
