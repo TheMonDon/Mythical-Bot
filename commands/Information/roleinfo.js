@@ -4,7 +4,7 @@ const moment = require('moment');
 require('moment-duration-format');
 
 class Stats extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'roleinfo',
       description: 'Gives some useful role information',
@@ -15,47 +15,40 @@ class Stats extends Command {
     });
   }
 
-  async run (msg, text) { // eslint-disable-line no-unused-vars
+  async run(msg, text) {
     let infoRole;
     const server = msg.guild;
+    const p = msg.settings.prefix;
 
     if (!text || text.length < 1) {
-      msg.channel.send(`:x: Incorrect Usage: ${server.tag}roleinfo <Role Name | role ID | @role>`);
+      return msg.channel.send(`:x: Incorrect Usage: ${p}roleinfo <Role Name | role ID | @role>`);
     } else {
       infoRole = msg.mentions.roles.first() || server.roles.cache.find(r => r.name === `${text.join(' ')}`) || server.roles.cache.find(r => r.id === `${text.join(' ')}`) || server.roles.cache.find(r => r.name.toLowerCase() === `${text.join(' ').toLowerCase()}`) || server.roles.cache.find(r => r.id === `${text.join(' ').replace('<@&', '').replace('>', '')}`);
-
-      if (!infoRole) {
-        msg.channel.send(`:x: Incorrect Usage: ${server.tag}roleinfo <Role Name | role ID | @role>`);
-      } else {
-        //time
-        const then = moment(infoRole.createdAt);
-        const time = then.from(moment());
-        const ca = then.format('MMM Do, YYYY');
-        //color
-        const decimal = infoRole.color;
-        let hex;
-        if (decimal === 0) {
-          hex = '#95A5A6';
-        } else {
-          hex = '#' + decimal.toString(16).toUpperCase();
-        }
-        const embed = new DiscordJS.MessageEmbed()
-          .setTitle(`${infoRole.name}'s Information`)
-          .setColor(hex)
-          .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
-          .addField('Name', infoRole.name, true)
-          .addField('ID', infoRole.id, true)
-          .addField('Mention', `\`${infoRole}\``, true)
-          .addField('Color', hex, true)
-          .addField('Members', infoRole.members.size.toLocaleString(), true)
-          .addField('Position', `${infoRole.position}/${server.roles.cache.size}`, true)
-          .addField('Hoisted', infoRole.hoist, true)
-          .addField('Mentionable', infoRole.mentionable, true)
-          .addField('Managed', infoRole.managed, true)
-          .addField('Created At', `${ca} (${time})`, true);
-        msg.channel.send(embed);
-      }
     }
+
+    if (!infoRole) {
+      return msg.channel.send(`:x: Incorrect Usage: ${p}roleinfo <Role Name | role ID | @role>`);
+    }
+    //time
+    const then = moment(infoRole.createdAt);
+    const time = then.from(moment());
+    const ca = then.format('MMM Do, YYYY');
+
+    const embed = new DiscordJS.MessageEmbed()
+      .setTitle(`${infoRole.name}'s Information`)
+      .setColor(hex)
+      .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
+      .addField('Name', infoRole.name, true)
+      .addField('ID', infoRole.id, true)
+      .addField('Mention', `\`${infoRole}\``, true)
+      .addField('Color', infoRole.hexColor, true)
+      .addField('Members', infoRole.members.size.toLocaleString(), true)
+      .addField('Position', `${infoRole.position}/${server.roles.cache.size}`, true)
+      .addField('Hoisted', infoRole.hoist, true)
+      .addField('Mentionable', infoRole.mentionable, true)
+      .addField('Managed', infoRole.managed, true)
+      .addField('Created At', `${ca} (${time})`, true);
+    msg.channel.send(embed);
   }
 }
 
