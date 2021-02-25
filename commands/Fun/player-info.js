@@ -6,6 +6,7 @@ const request = require('request'); // request is depreciated i will find someth
 const mysql = require('mysql2');
 const moment = require('moment');
 require('moment-duration-format');
+const config = require('./../../config.js');
 
 class playerinfo extends Command {
   constructor(client) {
@@ -39,9 +40,9 @@ class playerinfo extends Command {
     let member = !!server.members.cache.get(user)
 
     const connection = mysql.createPool({
-      host: 'localhost',
-      user: 'craftersisland',
-      password: 'Jmonahan13',
+      host: config.mysqlHost,
+      user: config.mysqlUsername,
+      password: config.mysqlPassword,
       waitForConnections: true,
       connectionLimit: 30,
       queueLimit: 0
