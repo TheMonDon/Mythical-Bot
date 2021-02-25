@@ -16,6 +16,8 @@ class deletewarning extends Command {
   }
 
   async run (msg, args) {
+    let title = "Case Cleared";
+    let color = "BLUE";
     if (!args || args.length < 1) return msg.channel.send('incorrect usage deletewarning <caseID>');
 
     const caseID = args.join(' ');
@@ -27,16 +29,19 @@ class deletewarning extends Command {
     const user = await this.client.users.fetch(userID);
     const warnReason = warning.reason || '???';
 
-    const previousPoints = getTotalPoints(userID, msg);
+    const previousPoints = await getTotalPoints(userID, msg);
     db.delete(`servers.${msg.guild.id}.warns.warnings.${caseID}`);
-    const newerPoints = getTotalPoints(userID, msg);
+    const newerPoints = await getTotalPoints(userID, msg);
     if (previousPoints >= 10 && newerPoints < 10) {
       if (!msg.guild.me.permissions.has('BAN_MEMBERS')) msg.channel.send('The bot does not have Ban_Members permission to unban the user.');
       await msg.guild.members.unban(userID).catch(() => null);
+      title = "User Unbanned";
+      color = "GREEN";
     }
 
     const em = new DiscordJS.MessageEmbed()
-      .setColor('BLUE')
+      .setColor(color)
+      .setTitle(title)
       .setDescription(`${msg.author} has cleared a case from a user.`)
       .addField('From User', `${user} (${user.id})`, true)
       .addField('Deleted Case', `\`${caseID}\``, true)

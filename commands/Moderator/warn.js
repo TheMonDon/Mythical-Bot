@@ -3,7 +3,7 @@ const db = require('quick.db');
 const DiscordJS = require('discord.js');
 
 class warn extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'warn',
       description: 'Warns a member',
@@ -14,18 +14,20 @@ class warn extends Command {
     });
   }
 
-  async run (msg, args) {
+  async run(msg, args) {
     let mem;
+    let member;
     const p = msg.settings.prefix
 
     if (!args || args.length < 3) {
       return msg.channel.send(`Incorrect Usage: ${p}warn <member> <points> <reason>`);
     } else {
       mem = msg.mentions.members.first() ||
-      msg.guild.members.cache.find(m => m.id === args[0]) ||
-      msg.guild.members.cache.find(m => m.displayName.toLowerCase() === args[0].toLowerCase()) ||
-      msg.guild.members.cache.find(m => m.user.username.toLowerCase() === args[0].toLowerCase()) ||
-      msg.guild.members.cache.find(m => m.user.username.toLowerCase().includes(args[0].toLowerCase()));
+        msg.guild.members.cache.find(m => m.id === args[0]) ||
+        msg.guild.members.cache.find(m => m.displayName.toLowerCase() === args[0].toLowerCase()) ||
+        msg.guild.members.cache.find(m => m.user.username.toLowerCase() === args[0].toLowerCase()) ||
+        msg.guild.members.cache.find(m => m.user.username.toLowerCase().includes(args[0].toLowerCase()));
+      member = true;
     }
 
     // Find the user by user ID
@@ -33,19 +35,23 @@ class warn extends Command {
       const ID = args[0].replace('<@', '').replace('>', '');
       try {
         mem = await this.client.users.fetch(ID);
+        member = false;
       } catch (err) {
         return msg.channel.send(`Incorrect Usage: ${p}warn <member> <points> <reason>`);
       }
     }
 
-    if (mem.user.bot) return msg.channel.send('You can\'t warn a bot.');
+    if (member ? mem.user.bot : mem.bot) return msg.channel.send('You can\'t warn a bot.');
 
-    if ((mem.roles.highest.position > msg.member.roles.highest.position - 1) && !msg.author.id === msg.guild.owner.user.id) {
-      return msg.channel.send(`You can't warn someone who has a higher role than you.`)
+    if (member) {
+      if ((mem.roles.highest.position > msg.member.roles.highest.position - 1) && !msg.author.id === msg.guild.owner.user.id) {
+        return msg.channel.send(`You can't warn someone who has a higher role than you.`)
+      }
     }
 
     const points = parseInt(args[1]);
     if (isNaN(points)) return msg.channel.send(`Incorrect Usage: ${p}warn <member> <points> <reason>`);
+    if (points < 0 || points > 1000) return msg.channel.send(`Incorrect Usage: ${p}warn <member> <0-1000 points> <reason>`);
 
     // Convert shorthand to fullhand for reason
     args.shift();
@@ -72,7 +78,7 @@ class warn extends Command {
     } else if (['-dms', '-unsoliciteddms', '-unsolicteddm', '-unsolicitedmsg', '-privatemessage', '-pm'].includes(reason)) {
       reason = 'Please do not private message users unless they have explicitly agreed to it.';
     } else if (['-mention', '-tag', '-ping', '-mentions', '-tags', '-pings'].includes(reason)) {
-      reason ='Please do not mention users unless they have explicitly agreed to it.';
+      reason = 'Please do not mention users unless they have explicitly agreed to it.';
     }
 
     const ka = db.get(`servers.${msg.guild.id}.warns.kick`) || 8; // add an option to change this later, for now this is fine.
@@ -101,7 +107,7 @@ class warn extends Command {
     let otherCases = otherWarns.length > 0 ? otherWarns.map((w) => `\`${w.warnID}\``).join(', ') : 'No other cases.';
 
     if (!reason) reason = 'Automated Ban';
-    if (!otherCases) otherCases = 'No other Cases';
+    if (!otherCases) otherCases = 'No other cases';
 
     // Send the embed to the users DMS
     const userEm = new DiscordJS.MessageEmbed()
@@ -128,7 +134,7 @@ class warn extends Command {
     if (!um) logEmbed.setFooter(`Failed to message the user in question • User ID: ${mem.id}`);
     const logMessage = await msg.channel.send(logEmbed); // Change this to send to the log channel 
 
-    const opts = {messageURL: logMessage.url, mod: msg.author.id, points, reason, timestamp: Date.now(), user: mem.id, warnID};
+    const opts = { messageURL: logMessage.url, mod: msg.author.id, points, reason, timestamp: Date.now(), user: mem.id, warnID };
     db.set(`servers.${msg.guild.id}.warns.warnings.${warnID}`, opts);
 
     if (warnAmount >= ba) {
@@ -142,13 +148,13 @@ class warn extends Command {
   }
 }
 
-function randomString (length) {
+function randomString(length) {
   let str = '';
   for (; str.length < length; str += Math.random().toString(36).substr(2));
   return str.substr(0, length);
 }
 
-function getWarns (userID, msg) {
+function getWarns(userID, msg) {
   const warns = db.get(`servers.${msg.guild.id}.warns.warnings`);
   const userCases = [];
   if (warns) {
@@ -162,7 +168,7 @@ function getWarns (userID, msg) {
   return userCases;
 }
 
-function getTotalPoints (userID, msg) {
+function getTotalPoints(userID, msg) {
   const warns = getWarns(userID, msg);
   let total = 0;
   if (warns) {
