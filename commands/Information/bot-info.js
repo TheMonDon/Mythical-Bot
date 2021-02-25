@@ -8,14 +8,14 @@ class Stats extends Command {
   constructor (client) {
     super(client, {
       name: 'bot-info',
-      description: 'Gives some useful this.client information',
+      description: 'Gives some useful bot information',
       usage: 'bot-info',
       category: 'Information',
       aliases: ['bi', 'botinfo']
     });
   }
 
-  async run (msg) { // eslint-disable-line no-unused-vars
+  async run (msg) {
     await this.client.guilds.cache.forEach((g) => g.available && g.members.fetch());
     const botuptime = moment.duration(this.client.uptime).format('y[ years][,] M[ Months]d[ days][,] h[ hours][,] m[ minutes][, and] s[ seconds]');
       

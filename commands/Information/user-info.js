@@ -6,16 +6,16 @@ require('moment-duration-format');
 class UserInfo extends Command {
   constructor (client) {
     super(client, {
-      name: 'userinfo',
+      name: 'user-info',
       description: 'Gives some useful user information',
-      usage: 'userlinfo',
+      usage: 'user-info [user]',
       category: 'Information',
-      aliases: ['ui'],
+      aliases: ['ui', 'userinfo'],
       guildOnly: true
     });
   }
 
-  async run (msg, text) { // eslint-disable-line no-unused-vars
+  async run (msg, text) {
     const server = msg.guild;
     let infoMem;
 
@@ -35,8 +35,8 @@ class UserInfo extends Command {
       }
     }
 
-
     if (server.member(infoMem)) {
+      // Guild Member
       const joinPosition = await getJoinPosition(infoMem.id, msg.guild);
       const ts = moment(infoMem.user.createdAt);
       const ts2 = moment(infoMem.joinedAt);
@@ -64,7 +64,7 @@ class UserInfo extends Command {
         .addField('Account Created',  `${ca} \n (${caTime})`, true)
         .addField('Join Position', `${Number(joinPosition).toLocaleString()}`, true)
         .addField('Roles', roles1, false);
-      msg.channel.send(embed);
+      return msg.channel.send(embed);
     } else {
       //not guild member
       const ts = moment(infoMem.createdAt);
@@ -78,7 +78,7 @@ class UserInfo extends Command {
         .addField('User ID', infoMem.id)
         .addField('Is Bot?', infoMem.bot)
         .addField('Account Created', ca);
-      msg.channel.send(embed);
+      return msg.channel.send(embed);
     }
     async function getJoinPosition (id, guild) {
       if (!guild.member(id)) return;

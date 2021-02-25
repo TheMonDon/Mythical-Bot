@@ -3,14 +3,14 @@ const DiscordJS = require('discord.js');
 const moment = require('moment');
 require('moment-duration-format');
 
-class Stats extends Command {
+class roleInfo extends Command {
   constructor(client) {
     super(client, {
-      name: 'roleinfo',
+      name: 'role-info',
       description: 'Gives some useful role information',
-      usage: 'rolelinfo',
+      usage: 'role-info <Role Name | Role ID | @role>',
       category: 'Information',
-      aliases: ['ri'],
+      aliases: ['ri', 'roleinfo'],
       guildOnly: true
     });
   }
@@ -21,14 +21,15 @@ class Stats extends Command {
     const p = msg.settings.prefix;
 
     if (!text || text.length < 1) {
-      return msg.channel.send(`:x: Incorrect Usage: ${p}roleinfo <Role Name | role ID | @role>`);
+      return msg.channel.send(`:x: Incorrect Usage: ${p}roleinfo <Role Name | Role ID | @role>`);
     } else {
       infoRole = msg.mentions.roles.first() || server.roles.cache.find(r => r.name === `${text.join(' ')}`) || server.roles.cache.find(r => r.id === `${text.join(' ')}`) || server.roles.cache.find(r => r.name.toLowerCase() === `${text.join(' ').toLowerCase()}`) || server.roles.cache.find(r => r.id === `${text.join(' ').replace('<@&', '').replace('>', '')}`);
     }
 
     if (!infoRole) {
-      return msg.channel.send(`:x: Incorrect Usage: ${p}roleinfo <Role Name | role ID | @role>`);
+      return msg.channel.send(`:x: Incorrect Usage: ${p}roleinfo <Role Name | Role ID | @role>`);
     }
+    
     //time
     const then = moment(infoRole.createdAt);
     const time = then.from(moment());
@@ -48,8 +49,8 @@ class Stats extends Command {
       .addField('Mentionable', infoRole.mentionable, true)
       .addField('Managed', infoRole.managed, true)
       .addField('Created At', `${ca} (${time})`, true);
-    msg.channel.send(embed);
+    return msg.channel.send(embed);
   }
 }
 
-module.exports = Stats;
+module.exports = roleInfo;
