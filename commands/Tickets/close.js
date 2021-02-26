@@ -80,7 +80,7 @@ class Close extends Command {
         await hastebin.createPaste(chatLogs, {
           raw: true,
           contentType: 'text/plain',
-          server: 'https://hastebin.com'
+          server: 'https://haste.crafters-island.com'
         })
           .then(function (urlToPaste) {
             url = urlToPaste;
