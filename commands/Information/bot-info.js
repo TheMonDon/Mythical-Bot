@@ -3,15 +3,16 @@ const DiscordJS = require('discord.js');
 const moment = require('moment');
 require('moment-duration-format');
 const db = require('quick.db');
+const pjson = require('../../package.json');
 
-class Stats extends Command {
+class BotInfo extends Command {
   constructor (client) {
     super(client, {
       name: 'bot-info',
       description: 'Gives some useful bot information',
       usage: 'bot-info',
       category: 'Information',
-      aliases: ['bi', 'botinfo']
+      aliases: ['bi', 'botinfo', 'about']
     });
   }
 
@@ -31,9 +32,12 @@ class Stats extends Command {
       .addField('Commands Used', db.get('global.commands').toLocaleString(), true)
       .addField('Discord.js', DiscordJS.version, true)
       .addField('Node', process.version, true)
-      .addField('RAM Usage', `${Math.floor((process.memoryUsage().heapUsed / 1024)/1024).toLocaleString()} MB`, true);
+      .addField('RAM Usage', `${Math.floor((process.memoryUsage().heapUsed / 1024)/1024).toLocaleString()} MB`, true)
+      .addField('Bot Version', pjson.version, true)
+      .addField('Bot Creator', pjson.owner, true)
+      .addField('Invite', '[cisn.xyz/mythical](https://cisn.xyz/mythical)', true);
     msg.channel.send(embed);
   }
 }
 
-module.exports = Stats;
+module.exports = BotInfo;
