@@ -40,7 +40,7 @@
     "node-fetch": "^2.6.1",
     "node-html-parser": "^3.0.3",
     "node-superfetch": "^0.1.11",
-    "npm": "^7.5.6",
+    "npm": "^7.6.0",
     "owlbot-js": "^2.0.2",
     "oxford-dictionaries-api": "^0.1.2",
     "quick.db": "^7.1.3",
