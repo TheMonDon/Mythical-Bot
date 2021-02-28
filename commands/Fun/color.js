@@ -8,7 +8,7 @@ const { getColorFromURL } = require('color-thief-node');
 const { stripIndent } = require('common-tags');
 
 class Stats extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'color',
       description: 'Get information about some colors.',
@@ -17,12 +17,13 @@ class Stats extends Command {
     });
   }
 
-  async run (msg, args) {
+  async run(msg, args) {
     let input = args.join(' ');
     let color;
-    const embed = new MessageEmbed();
-    embed.setAuthor(msg.member.displayName, msg.author.displayAvatarURL());
-  
+
+    const embed = new MessageEmbed()
+      .setAuthor(msg.author.username, msg.author.displayAvatarURL());
+
     const rgbRegex = new RegExp(/^rgb[\s+]?\((:?\d+\.?\d?%?)(,|-|\/\|)\s?(:?\d+\.?\d?%?)(,|-|\/\|)\s?(:?\d+\.?\d?%?)\)/i);
     const hexRegex = new RegExp('(^(#|0x)?([a-fA-F0-9]){6}$)|(^(#|0x)?([a-fA-F0-9]){3}$)');
     const cssRegex = new RegExp('^[a-zA-Z]+$');
@@ -48,11 +49,11 @@ class Stats extends Command {
     }
 
     input = extra_colors[input.toString()] ? extra_colors[input.toString()] : input
-  
+
     if (msg.attachments.first()) {
       input = msg.attachments.first().url;
     }
-    
+
     if (isURL(input)) {
       if (isImageURL(input)) {
         const rgb = await getColorFromURL(input);
@@ -60,14 +61,14 @@ class Stats extends Command {
         embed.setTitle('Dominant Color From Image');
       }
     }
-  
+
     if (rgbRegex.test(input)) {
       input = input.trim()
         .replace('rgb(', '')
         .replace(')', '');
       input = input.replace('/\s/g', '');
       input = input.split(',');
-  
+
       try {
         color = {
           'css': convert.rgb.keyword(input),
@@ -82,7 +83,7 @@ class Stats extends Command {
             .toString(16);
         });
         embed.setTitle('Invalid color, random one assigned:');
-  
+
         color = {
           'css': convert.hex.keyword(rand),
           'rgb': convert.hex.rgb(rand),
@@ -98,7 +99,7 @@ class Stats extends Command {
       } else if (input.charAt() == '0' && input.charAt(1) == 'X') {
         input = input.substr(2);
       }
-  
+
       if (input.length == '3') {
         input = input.slice();
         const pos1 = input[0];
@@ -106,7 +107,7 @@ class Stats extends Command {
         const pos3 = input[2];
         input = pos1 + pos1 + pos2 + pos2 + pos3 + pos3;
       }
-  
+
       try {
         color = {
           'css': convert.hex.keyword(input),
@@ -121,7 +122,7 @@ class Stats extends Command {
             .toString(16);
         });
         embed.setTitle('Invalid color, random one assigned:');
-  
+
         color = {
           'css': convert.hex.keyword(rand),
           'rgb': convert.hex.rgb(rand),
@@ -137,7 +138,7 @@ class Stats extends Command {
             .toString(16);
         });
         embed.setTitle('Random Color');
-  
+
         color = {
           'css': convert.hex.keyword(rand),
           'rgb': convert.hex.rgb(rand),
@@ -176,7 +177,7 @@ class Stats extends Command {
               .toString(16);
           });
           embed.setTitle('Invalid color, random one assigned:');
-  
+
           color = {
             'css': convert.hex.keyword(rand),
             'rgb': convert.hex.rgb(rand),
@@ -192,7 +193,7 @@ class Stats extends Command {
           .toString(16);
       });
       embed.setTitle('Invalid color, random one assigned:');
-  
+
       color = {
         'css': convert.hex.keyword(rand),
         'rgb': convert.hex.rgb(rand),
@@ -207,13 +208,13 @@ class Stats extends Command {
     rgb = rgb.replace(/['"]+/g, '')
       .split(',')
       .join(', ');
-  
+
     //Formatting cmyk
     let cmyk = JSON.stringify(color.cmyk)
       .slice(1, -1);
     cmyk = cmyk.split(',')
       .join('%, ') + '%';
-  
+
     //Formatting hsl
     const str = JSON.stringify(color.hsl)
       .slice(1, -1);
@@ -221,14 +222,14 @@ class Stats extends Command {
     const s = str.split(',')[1];
     const l = str.split(',')[2];
     const hsl = h + ', ' + s + '%, ' + l + '%';
-  
+
     //Getting originals back
     const css = JSON.stringify(color.css)
       .slice(1, -1);
     const hex = JSON.stringify(color.hex)
       .slice(1, -1)
       .toUpperCase();
-  
+
     //Saving color again
     color = {
       'css': css,
@@ -237,7 +238,7 @@ class Stats extends Command {
       'cmyk': cmyk,
       'hsl': hsl
     };
-  
+
     if (!embed.title) embed.setTitle('Color Information');
     embed.setThumbnail(`https://dummyimage.com/100x100/${color.hex}.png&text=+`);
     embed.setColor(color.hex);

@@ -8,15 +8,13 @@ module.exports = class Withdraw extends Command {
       name: 'withdraw',
       category: 'Economy',
       description: 'Withdraw your money from the bank',
-      examples: ['withdraw <amount>'],
+      usage: 'withdraw <amount>',
       aliases: ['with'],
       guildOnly: true
     });    
   }
 
   run (msg, text) {
-    const server = msg.guild;
-    const member = msg.member;
     const p =  msg.settings.prefix;
     let amount = text.join(' ');
 
@@ -29,9 +27,9 @@ module.exports = class Withdraw extends Command {
       return msg.channel.send(embed);
     }
 
-    const cs = db.get(`servers.${server.id}.economy.symbol`) || '$';
-    const bank = db.get(`servers.${server.id}.users.${member.id}.economy.bank`) || 0; //store bank info prior to checking args
-    const cash = db.get(`servers.${server.id}.users.${member.id}.economy.cash`) || 0; //same thing but cash
+    const cs = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
+    const bank = db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`) || 0; //store bank info prior to checking args
+    const cash = db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`) || 0; //same thing but cash
 
     amount = amount.replace(/,/g, '');
     amount = amount.replace(cs, '');
@@ -42,8 +40,8 @@ module.exports = class Withdraw extends Command {
           return msg.channel.send('You have too much cash to be able to withdraw all your bank');
         }
 
-        db.set(`servers.${server.id}.users.${member.id}.economy.bank`, 0);
-        db.add(`servers.${server.id}.users.${member.id}.economy.cash`, bank);
+        db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`, 0);
+        db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bank);
 
         const em = new DiscordJS.MessageEmbed()
           .setColor('#04ACF4')
@@ -68,8 +66,8 @@ module.exports = class Withdraw extends Command {
       return msg.channel.send('You have too much cash to be able to withdraw that much money.');
     }
 
-    db.subtract(`servers.${server.id}.users.${member.id}.economy.bank`, amount); //take money from bank
-    db.add(`servers.${server.id}.users.${member.id}.economy.cash`, amount); //set money to cash
+    db.subtract(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`, amount); //take money from bank
+    db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, amount); //set money to cash
 
     const embed = new DiscordJS.MessageEmbed()
       .setColor('#04ACF4')

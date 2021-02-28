@@ -19,7 +19,7 @@ class blbCommand extends Command {
         url: 'https://belikebill.ga/billgen-API.php',
         qs: {
           default: 1,
-          name: msg.member.displayName
+          name: msg.author.username
         },
         encoding: null
       };

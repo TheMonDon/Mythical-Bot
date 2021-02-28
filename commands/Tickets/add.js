@@ -18,9 +18,7 @@ class Add extends Command {
 
     if (!msg.channel.name.startsWith('ticket')) return msg.channel.send('You need to be inside the ticket you want to add a user to.');
 
-    if (!args[0]) {
-      return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}add <user>`)
-    }
+    if (!args[0]) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}add <user>`)
 
     const server = msg.guild;
     const mem = msg.mentions.members.first() || server.members.cache.find(m => m.id === `${args.join(' ')}`) || server.members.cache.find(m => m.displayName.toUpperCase() === `${args.join(' ').toUpperCase()}`) || server.members.cache.find(m => m.user.username.toUpperCase() === `${args.join(' ').toUpperCase()}`) || server.members.cache.find(m => m.user.username.toLowerCase()

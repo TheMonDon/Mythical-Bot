@@ -1,19 +1,19 @@
 const Command = require('../../base/Command.js');
 const DiscordJS = require('discord.js');
-const request = require('node-superfetch');
+const fetch = require('node-superfetch');
 
 class tih extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'today-in-history',
       description: 'Get information about a date in history',
       usage: 'today-in-history',
       category: 'Information',
-      Aliases: ['todayinhistory', 'tih']
+      aliases: ['todayinhistory', 'tih']
     });
   }
 
-  async run (msg, text) {
+  async run(msg, text) {
     const p = msg.settings.prefix;
 
     let month;
@@ -37,9 +37,7 @@ class tih extends Command {
 
     const date = month && day ? `/${month}/${day}` : '';
     try {
-      const {
-        text
-      } = await request.get(`http://history.muffinlabs.com/date${date}`);
+      const { text } = await fetch.get(`http://history.muffinlabs.com/date${date}`);
       const body = JSON.parse(text);
       const events = body.data.Events;
       const event = events[Math.floor(Math.random() * events.length)];
@@ -49,9 +47,7 @@ class tih extends Command {
         .setTitle(`On this day (${body.date})...`)
         .setTimestamp()
         .setDescription(`${event.year}: ${event.text}`)
-        .addField('❯ See More',
-          event.links.map(link => `[${link.title}](${link.link.replace(/\)/g, '%29')})`)
-            .join(', '));
+        .addField('❯ See More', event.links.map(link => `[${link.title}](${link.link.replace(/\)/g, '%29')})`).join(', '));
 
       return msg.channel.send(embed);
     } catch (err) {

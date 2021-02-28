@@ -1,22 +1,15 @@
-/* eslint-disable no-unused-vars */
 const Command = require('../../base/Command.js');
 const DiscordJS = require('discord.js');
 const https = require('https');
 const path_fnt = './fonts/Moms_Typewriter.ttf';
 const fs = require('fs');
-const {
-  registerFont,
-  createCanvas,
-  loadImage,
-} = require('canvas');
+const { registerFont, createCanvas, loadImage } = require('canvas');
 const randomWords = require('random-words');
-const {
-  stripIndents
-} = require('common-tags');
+const { stripIndents } = require('common-tags');
 const sleep = require('util').promisify(setTimeout);
 
 class typerCommand extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'typer-competition',
       description: 'See who can type the fastest.',
@@ -26,8 +19,9 @@ class typerCommand extends Command {
     });
   }
 
-  async run (msg) {
+  async run(msg) {
     const randWord = randomWords(1).toString();
+
     // Check if font file exists
     if (!fs.existsSync(path_fnt)) {
       const file = fs.createWriteStream(path_fnt);

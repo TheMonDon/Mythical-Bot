@@ -24,10 +24,11 @@ module.exports = class {
       .setTitle('Channel Deleted')
       .setColor('RED')
       .addField('Name', channel.name, true)
-      .addField('Category', (channel.parent && channel.parent.name) ? channel.parent.name : 'None', true)
+      .addField('Category', channel.parent?.name || 'None', true)
       .setFooter(`ID: ${channel.id}`)
       .setTimestamp();
     channel.guild.channels.cache.get(logChan).send(embed);
+
     db.add(`servers.${channel.guild.id}.logs.channel-deleted`, 1);
     db.add(`servers.${channel.guild.id}.logs.all`, 1);
   }

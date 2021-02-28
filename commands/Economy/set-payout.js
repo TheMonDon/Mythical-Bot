@@ -10,7 +10,7 @@ module.exports = class setCurrency extends Command {
       name: 'set-payout',
       category: 'Economy',
       description: 'Sets the payout of the economy commands',
-      examples: ['set-payout work min 10'],
+      usage: 'set-payout <work | crime> <min | max> <amount>',
       aliases: ['setpayout', 'sp'],
       guildOnly: true
     });    
@@ -102,7 +102,6 @@ module.exports = class setCurrency extends Command {
           db.set(`servers.${server.id}.economy.work.min`, amount);
           embed.setDescription(`The minimum amount for \`Work\` has been changed to ${cs}${amount}`);
         } else {
-
           db.set(`servers.${server.id}.economy.work.max`, amount);
           embed.setDescription(`The maximum amount for \`Work\` has been changed to ${cs}${amount}`);
         }

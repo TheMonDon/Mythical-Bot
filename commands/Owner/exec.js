@@ -7,13 +7,14 @@ class Exec extends Command {
       description: 'Executes stuff',
       category: 'Owner',
       usage: 'exec <expression>',
-      aliases: ['ex'],
+      aliases: ['ex', 'exe'],
       permLevel: 'Bot Owner'
     });
   }
 
-  async run (msg, args, level) { // eslint-disable-line no-unused-vars
+  async run (msg, args, level) {
     const code = args.join(' ');
+    if (!code) return msg.channel.send('You must include a code to execute!');
     
     const { exec } = require('child_process');
     exec(code, (err, stdout, stderr) => {

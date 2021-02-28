@@ -8,7 +8,7 @@ module.exports = class ResetMoney extends Command {
       name: 'reset-money',
       description: 'Reset money of you or another member',
       category: 'Economy',
-      examples: ['reset-money <user>'],
+      usage: 'Reset-Money <user>',
       aliases: ['resetmoney', 'rm'],
       guildOnly: true
     });    
@@ -17,8 +17,8 @@ module.exports = class ResetMoney extends Command {
   async run (msg, text) {
     const member = msg.member;
     const server = msg.guild;
-    let mem;
     const p = msg.settings.prefix;
+    let mem;
 
     if (!member.permissions.has('MANAGE_GUILD')) return msg.channel.send('You are missing **Manage Guild** permission.');
 
@@ -70,7 +70,7 @@ module.exports = class ResetMoney extends Command {
         }
       }
 
-      await msg.channel.send(`Are you sure you want to reset ${mem.user && mem.user.tag || mem.tag}'s money? (yes/no)`);
+      await msg.channel.send(`Are you sure you want to reset ${mem.user?.tag || mem.tag}'s money? (yes/no)`);
       msg.channel.awaitMessages(filter, {
         max: 1,
         time: 30000,
@@ -79,11 +79,11 @@ module.exports = class ResetMoney extends Command {
         .then((collected) => {
           const word = collected.first().content.trim();
           if (word === 'yes' || word === 'y') {
-            db.set(`servers.${server.id}.users.${mem.id}.economy.cash`, 0);
-            db.set(`servers.${server.id}.users.${mem.id}.economy.bank`, 0);
-            return msg.channel.send(`Successfully reset ${mem.user && mem.user.tag || mem.tag}'s money.`);
+            db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, 0);
+            db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`, 0);
+            return msg.channel.send(`Successfully reset ${mem.user?.tag || mem.tag}'s money.`);
           } else if (word === 'no' || word === 'n') {
-            return msg.channel.send(`Cancelled, ${mem.user && mem.user.tag || mem.tag}'s money won't be reset.`);
+            return msg.channel.send(`Cancelled, ${mem.user?.tag || mem.tag}'s money won't be reset.`);
           } else {
             return msg.channel.send(errEm);
           }

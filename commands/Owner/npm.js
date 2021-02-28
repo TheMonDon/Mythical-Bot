@@ -9,7 +9,7 @@ module.exports = class NPM extends Command {
       category: 'Owner',
       memberName: 'npm',
       description: 'Installs an NPM package and saves it to the package.json',
-      details: stripIndents`(Owner Only) It will install an npm package, 
+      longDescription: stripIndents`(Owner Only) It will install an npm package, 
 				save the package to the package.json and all its dependencies.`,
       permLevel: 'Bot Owner'
     });
@@ -18,6 +18,7 @@ module.exports = class NPM extends Command {
   async run (msg, args) {
     const moduleName = args.join(' ');
     const message = await msg.channel.send(`Attempting to install Node Module: ${moduleName}`);
+    
     try {
       require.resolve(moduleName);
       return message.edit(`The Node Module ${moduleName} is already installed.`);

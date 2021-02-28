@@ -4,7 +4,7 @@ const moment = require('moment');
 require('moment-duration-format');
 
 class Stats extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'channel-info',
       description: 'Gives some useful channel information',
@@ -15,7 +15,7 @@ class Stats extends Command {
     });
   }
 
-  async run (msg, text) {
+  async run(msg, text) {
     const server = msg.guild;
     let infoChan;
 
@@ -25,11 +25,9 @@ class Stats extends Command {
       infoChan = msg.mentions.channels.first() ||
         server.channels.cache.find(c => c.id === `${text.join(' ')}`) ||
         server.channels.cache.find(c => c.name.toLowerCase() === `${text.join(' ').toLowerCase()}`) ||
-        server.channels.cache.find(c => c.name.toLowerCase()
-          .includes(`${text.join(' ').toLowerCase()}`)) ||
+        server.channels.cache.find(c => c.name.toLowerCase().includes(`${text.join(' ').toLowerCase()}`)) ||
         this.client.channels.cache.find(c => c.id === `${text.join(' ')}`) ||
-        this.client.channels.cache.find(c => c.name.toLowerCase()
-          .includes(`${text.join(' ').toLowerCase()}`));
+        this.client.channels.cache.find(c => c.name.toLowerCase().includes(`${text.join(' ').toLowerCase()}`));
     }
 
     const then = moment(infoChan.createdAt);
@@ -55,7 +53,7 @@ class Stats extends Command {
     embed.addField('Created At', `${ca} \n (${time})`, true);
     if (infoChan.parent) embed.addField('Parent', `${infoChan.parent.name} \n \`${infoChan.parentID}\``, true);
     if (infoChan.type == 'text') embed.addField('Topic', `${(infoChan.topic) || 'None'}`, false);
-    
+
     msg.channel.send(embed);
   }
 }

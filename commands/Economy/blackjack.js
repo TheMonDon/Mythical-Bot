@@ -17,9 +17,10 @@ module.exports = class Blackjack extends Command {
   }
 
   async run (msg, args) {
+    const { Blackjack } = require('blackjack-n-deck');
+
     const server = msg.guild;
     const member = msg.member;
-    const { Blackjack } = require('blackjack-n-deck');
     const p = msg.settings.prefix;
 
     const usage = `${p}blackjack <bet>`;

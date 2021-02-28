@@ -57,19 +57,18 @@ class playerinfo extends Command {
         return msg.channel.send(em);
       }
 
-      let body;
       try {
-        body = await Nfetch.get(`https://api.mojang.com/users/profiles/minecraft/${user}`);
+        const body = await Nfetch.get(`https://api.mojang.com/users/profiles/minecraft/${user}`);
         const uuid = body.body.id;
         const id = uuid.substr(0, 8) + '-' + uuid.substr(8, 4) + '-' + uuid.substr(12, 4) + '-' + uuid.substr(16, 4) + '-' + uuid.substr(20);
 
         pool.query(`SELECT * FROM ranksync.player WHERE uuid = '${id}'`, function (error, results) {
-          const player_id = results && results[0] && results[0].id;
+          const player_id = results?.[0]?.id;
           if (error || !player_id) { member = false; }
 
           pool.query(`SELECT * FROM ranksync.synced_players WHERE player_id = ${player_id}`, async function (error, results) {
             if (error) { member = false; }
-            user = results && results[0] && results[0].identifier;
+            user = results?.[0]?.identifier;
             if (user && server.members.cache.get(user)) {
               member = true;
               user1 = server.members.cache.get(user);
@@ -89,12 +88,12 @@ class playerinfo extends Command {
       }
     } else {
       pool.query(`SELECT player_id FROM ranksync.synced_players WHERE identifier = ${user}`, function (error, results) {
-        const player_id = results && results[0] && results[0].player_id;
+        const player_id = results?.[0]?.player_id;
         if (error || !player_id) return msg.channel.send(errMsg);
 
         pool.query(`SELECT * FROM ranksync.player WHERE id = ${player_id}`, async function (error, results) {
           if (error) return msg.channel.send(errMsg);
-          const id = results && results[0].uuid;
+          const id = results[0]?.uuid;
 
           return information(id, pool, member, user1, msg);
         });
@@ -114,7 +113,7 @@ const information = async function (id, pool, member, user1, msg) {
       if (error) {
         wins = false;
       } else {
-        wins = results && results[0] && results[0].wins || false;
+        wins = results?.[0]?.wins || false;
       }
 
       pool.query(`SELECT * FROM friends.fr_players WHERE player_uuid = '${id}'`, function (error, results) {
@@ -122,7 +121,7 @@ const information = async function (id, pool, member, user1, msg) {
         if (error) {
           last_online = false;
         } else {
-          last_online = results && results[0] && results[0].last_online.toString() || false;
+          last_online = results?.[0]?.last_online.toString() || false;
         }
 
         pool.query(`SELECT SUM(session_end - session_start) FROM plan.plan_sessions WHERE uuid = '${id}'`, async function (error, results) {
@@ -130,7 +129,7 @@ const information = async function (id, pool, member, user1, msg) {
           if (error) {
             out = '0s';
           } else {
-            const sum = results[0]['SUM(session_end - session_start)'];
+            const sum = results?.[0]['SUM(session_end - session_start)'];
             out = moment.duration(sum).format('hh[h] mm[m] s[s]');
           }
 
@@ -139,7 +138,7 @@ const information = async function (id, pool, member, user1, msg) {
             if (error) {
               bal = 0;
             } else {
-              bal = results[0] && results[0].double_value || 0;
+              bal = results?.[0]?.double_value || 0;
             }
 
             const em = new DiscordJS.MessageEmbed()

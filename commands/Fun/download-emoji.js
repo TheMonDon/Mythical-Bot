@@ -14,7 +14,7 @@ class dlEmoji extends Command {
   }
 
   async run(msg, args) {
-    if (!args || args.length < 1) return msg.channel.send(`${msg.member}, you need to input at least 1 emoji.`);
+    if (!args || args.length < 1) return msg.channel.reply(`You need to input at least one emoji.`);
     const content = args.join(' ');
     const result = [];
     let res = [];
@@ -39,21 +39,20 @@ class dlEmoji extends Command {
       })
     }
 
-    if (result.length > 0) {
-      result.forEach((emoji) => {
-        if ((emoji.replace(/[^\d]/g, '')).length > 1) {
-          res.push(`https://cdn.discordapp.com/emojis/${emoji.replace(/[^\d]/g, '')}${emoji.charAt(0) === 'a' ? ".gif" : ".png"}`)
-        } else {
-          const out = twemoji.parse(emoji);
-          res.push(out.split('src="')[1].replace(/"\/>/g, ''));
-        }
-      });
-      res = res.splice(0, 10);
-      const text = res.length > 1 ? ', here are your emojis' : ', here is your emoji';
-      return msg.channel.send(`${msg.member}${text}`, { files: res });
-    } else {
-      return msg.channel.send(`${msg.member}, you need to input at least 1 emoji.`);
-    }
+    if (result.length < 1) return msg.channel.reply(`You need to input at least one emoji.`);
+    
+    result.forEach((emoji) => {
+      if ((emoji.replace(/[^\d]/g, '')).length > 1) {
+        res.push(`https://cdn.discordapp.com/emojis/${emoji.replace(/[^\d]/g, '')}${emoji.charAt(0) === 'a' ? ".gif" : ".png"}`)
+      } else {
+        const out = twemoji.parse(emoji);
+        res.push(out.split('src="')[1].replace(/"\/>/g, ''));
+      }
+    });
+    res = res.splice(0, 10);
+    const text = res.length > 1 ? ', here are your emojis' : ', here is your emoji';
+
+    return msg.channel.reply(text, { files: res });
   }
 }
 module.exports = dlEmoji;

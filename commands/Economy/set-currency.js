@@ -7,22 +7,21 @@ module.exports = class setCurrency extends Command {
       name: 'set-currency',
       category: 'Economy',
       description: 'Sets the currency symbol',
-      examples: ['set-currency $'],
+      usage: 'set-currency $',
       aliases: ['setcurrency', 'sc'],
       guildOnly: true
     });    
   }
 
   run (msg, args) {
-    const server = msg.guild;
     const member = msg.member;
-    const p =  msg.settings.prefix;
+    const p = msg.settings.prefix;
 
     let symbol = args.join(' ');
 
     if (!member.permissions.has('MANAGE_GUILD')) return msg.channel.send('Sorry this command requires you to have **Manage Guild** permissions.');
 
-    const oldSymbol = db.get(`servers.${server.id}.economy.symbol`) || '$'; //get the old symbol
+    const oldSymbol = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$'; //get the old symbol
 
     if (!symbol) return msg.channel.send(`The currency symbol for this server is: ${oldSymbol} \nUsage: ${p}set-currency <symbol>`);
 
@@ -32,7 +31,7 @@ module.exports = class setCurrency extends Command {
     
     symbol = symbol.trim();
 
-    db.set(`servers.${server.id}.economy.symbol`, symbol); //reset the new symbol
+    db.set(`servers.${msg.guild.id}.economy.symbol`, symbol); //reset the new symbol
 
     return msg.channel.send(`The currency symbol has been changed to: ${symbol}`);
   }

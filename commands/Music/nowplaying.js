@@ -20,7 +20,6 @@ class nowPlaying extends Command {
     if (!this.client.player.isPlaying(msg)) return msg.channel.send('There is nothing playing.');
     const song = await this.client.player.nowPlaying(msg);
 
-
     const queue = this.client.player.getQueue(msg);
     const start = queue.voiceConnection && queue.voiceConnection.dispatcher && queue.voiceConnection.dispatcher.startTime || 0;
     const totalTime = queue.playing.durationMS;
@@ -39,7 +38,7 @@ class nowPlaying extends Command {
       .setColor('e2e2e2')
       .setThumbnail(song.thumbnail)
       .setAuthor(msg.member.displayName, msg.author.displayAvatarURL());
-    msg.channel.send(em);
+    return msg.channel.send(em);
   }
 }
 

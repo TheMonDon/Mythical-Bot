@@ -4,7 +4,7 @@ const db = require('quick.db');
 const { stripIndents } = require('common-tags');
 
 class logtoggle extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'logtoggle',
       description: 'Toggle individual logs',
@@ -15,7 +15,7 @@ class logtoggle extends Command {
     });
   }
 
-  async run (msg, args) { // eslint-disable-line no-unused-vars
+  async run(msg, args) {
     const query = args.join(' ').toLowerCase();
 
     //define embeds
@@ -58,8 +58,8 @@ class logtoggle extends Command {
         bulk-messages-deleted
         `), true);
     error_embed.addField('Other Usage:', 'logtoggle <enable/disable> <channel> to enable/disable a channel from being logged.', false);
-    if (['enable', 'disable'].includes(args[0] && args[0].toLowerCase())) {
-      if (args[0] && args[0].toLowerCase() === 'enable') {
+    if (['enable', 'disable'].includes(args?.[0].toLowerCase())) {
+      if (args?.[0].toLowerCase() === 'enable') {
         // Enable channel
 
         let chan;
@@ -67,9 +67,9 @@ class logtoggle extends Command {
           chan = msg.channel;
         } else {
           chan = msg.mentions.channels.first() ||
-          msg.guild.channels.cache.find(c => c.id === `${args[1]}`) ||
-          msg.guild.channels.cache.find(c => c.name.toLowerCase() === `${args[1].toLowerCase()}`) ||
-          msg.guild.channels.cache.find(c => c.name.toLowerCase().includes(`${args[1].toLowerCase()}`));
+            msg.guild.channels.cache.find(c => c.id === `${args[1]}`) ||
+            msg.guild.channels.cache.find(c => c.name.toLowerCase() === `${args[1].toLowerCase()}`) ||
+            msg.guild.channels.cache.find(c => c.name.toLowerCase().includes(`${args[1].toLowerCase()}`));
         }
         if (!chan) return msg.channel.send('I could not find a channel with that information.');
 
@@ -87,7 +87,7 @@ class logtoggle extends Command {
           return msg.channel.send('I could not find a channel with that info in the blacklist.');
         }
 
-      } else if (args[0] && args[0].toLowerCase() === 'disable') {
+      } else if (args?.[0].toLowerCase() === 'disable') {
         // disable channel
 
         let chan;
@@ -95,16 +95,16 @@ class logtoggle extends Command {
           chan = msg.channel;
         } else {
           chan = msg.mentions.channels.first() ||
-          msg.guild.channels.cache.find(c => c.id === `${args[1]}`) ||
-          msg.guild.channels.cache.find(c => c.name.toLowerCase() === `${args[1].toLowerCase()}`) ||
-          msg.guild.channels.cache.find(c => c.name.toLowerCase().includes(`${args[1].toLowerCase()}`));
+            msg.guild.channels.cache.find(c => c.id === `${args[1]}`) ||
+            msg.guild.channels.cache.find(c => c.name.toLowerCase() === `${args[1].toLowerCase()}`) ||
+            msg.guild.channels.cache.find(c => c.name.toLowerCase().includes(`${args[1].toLowerCase()}`));
         }
         if (!chan) return msg.channel.send('I could not find a channel with that information.');
 
         const chans = db.get(`servers.${msg.guild.id}.logs.noLogChans`);
         if (chans) {
           if (chans.includes(chan)) return msg.channel.send('That channel is already disabled.');
-        } 
+        }
         db.push(`servers.${msg.guild.id}.logs.noLogChans`, chan.id);
         return msg.channel.send(`Succesfully added ${chan.id} (${chan.name}) to the channel blacklist.`);
 

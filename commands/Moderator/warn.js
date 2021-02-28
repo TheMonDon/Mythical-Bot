@@ -109,10 +109,12 @@ class warn extends Command {
     if (!reason) reason = 'Automated Ban';
     if (!otherCases) otherCases = 'No other cases';
 
+    const log_chan = db.get(`servers.${msg.guild.id}.logging.channel`);
+
     // Send the embed to the users DMS
     const userEm = new DiscordJS.MessageEmbed()
       .setColor(color)
-      .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
+      .setAuthor(msg.author.username, msg.author.displayAvatarURL())
       .setFooter(`Issued in ${msg.guild.name}`)
       .setTitle(`You have been ${status}`)
       .addField('Case ID', `\`${warnID}\``, true)
@@ -132,7 +134,7 @@ class warn extends Command {
       .addField('Other Cases', otherCases, true)
       .addField('Reason', reason, false);
     if (!um) logEmbed.setFooter(`Failed to message the user in question • User ID: ${mem.id}`);
-    const logMessage = await msg.channel.send(logEmbed); // Change this to send to the log channel 
+    if (log_chan) { await msg.guild.channels.cache.get(log_chan).send(embed); } else { await msg.channel.send(logEmbed) }
 
     const opts = { messageURL: logMessage.url, mod: msg.author.id, points, reason, timestamp: Date.now(), user: mem.id, warnID };
     db.set(`servers.${msg.guild.id}.warns.warnings.${warnID}`, opts);

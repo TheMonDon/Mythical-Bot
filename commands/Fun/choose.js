@@ -17,7 +17,9 @@ class choose extends Command {
 
     if (!text || text.length < 1) {
       return msg.channel.send(`Incorrect Usage: ${p}choose (1 1, 2 2, 3 3) or (one two three)`);
-    } else if (/^(.+( ?\, ?.+[^,])+)$/i.test(join)) {
+    }
+    
+    if (/^(.+( ?\, ?.+[^,])+)$/i.test(join)) {
       args = join.split(',');
     } else {
       args = join.split(' ');

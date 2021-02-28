@@ -12,10 +12,10 @@ class kill extends Command {
     });
   }
 
-  async run (msg, text) { // eslint-disable-line no-unused-vars
-    let mem;
+  async run (msg, text) {
     const member = msg.member;
     const p = msg.settings.prefix;
+    let mem;
 
     if (!text || text.length < 1) {
       return msg.channel.send(`Incorrect Usage: ${p}kill <user>`);
@@ -25,6 +25,7 @@ class kill extends Command {
       msg.guild.members.cache.find(m => m.user.username.toUpperCase() === `${text.join(' ').toUpperCase()}`) ||
       msg.guild.members.cache.find(m => m.user.username.toLowerCase().includes(`${text.join(' ').toLowerCase()}`));
     }
+
     if (mem.id === msg.author.id) {
       return msg.channel.send('Please don\'t try to kill yourself :(');
     }
@@ -76,7 +77,6 @@ class kill extends Command {
       .setTitle(deaths[num])
       .setFooter(`Reply #${num}`);
     return msg.channel.send(embed);
-
   }
 }
 

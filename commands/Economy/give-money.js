@@ -6,20 +6,19 @@ module.exports = class BalanceCommand extends Command {
   constructor (client) {
     super(client, {
       name: 'give-money',
-      description: 'Gives you your balance',
+      description: 'Pay another user',
       category: 'Economy',
-      examples: ['Give-Money <user> <amount | all>'],
+      usage: 'Give-Money <user> <amount | all>',
       aliases: ['givemoney', 'pay', 'send'],
       guildOnly: true
     });    
   }
 
-  run (msg, args) {
+  run (msg, text) {
     const server = msg.guild;
     const member = msg.member;
-    const text = args;
-    let mem;
     const p =  msg.settings.prefix;
+    let mem;
 
     const usage = `${p}Give-Money <user> <amount | all>`;
     const errEmbed = new DiscordJS.MessageEmbed()

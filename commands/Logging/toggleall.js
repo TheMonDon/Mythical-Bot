@@ -2,19 +2,18 @@ const Command = require('../../base/Command.js');
 const db = require('quick.db');
 
 class toggleall extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'toggleall',
       description: 'Toggle all logs',
       usage: 'toggleall',
       category: 'Logging',
       permLevel: 'Moderator',
-      aliases: ['ta']
+      aliases: ['ta', 'toggle-all']
     });
   }
 
-  async run (msg) { // eslint-disable-line no-unused-vars
-
+  async run(msg) {
     if (!db.get(`servers.${msg.guild.id}.logs.channel`)) return msg.channel.send(`The log system is not set up! Use \`${msg.settings.prefix}setlogchannel <channel>\``);
 
     const all = db.get(`servers.${msg.guild.id}.logs.log_system.all`);
@@ -57,14 +56,13 @@ class toggleall extends Command {
 
     if (all === 'enabled') {
       db.set(`servers.${msg.guild.id}.logs.log_system`, disable);
-      msg.channel.send('Everything has been disabled.');
+      return msg.channel.send('Everything has been disabled.');
     } else if (all === 'disabled') {
       db.set(`servers.${msg.guild.id}.logs.log_system`, enable);
-      msg.channel.send('Everything has been enabled.');
-    } else {
-      msg.channel.send('An error occured, this is probably due to the log system not beign setup in this server.');
+      return msg.channel.send('Everything has been enabled.');
     }
-     
+
+    return msg.channel.send('An error occured, this is probably due to the log system not beign setup in this server.');
   }
 }
 

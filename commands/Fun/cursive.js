@@ -7,8 +7,7 @@ class cursive extends Command {
       name: 'cursive',
       description: 'Convert your text into cursive!',
       usage: 'cursive',
-      category: 'Fun',
-      aliases: []
+      category: 'Fun'
     });
   }
 

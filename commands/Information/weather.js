@@ -13,7 +13,7 @@ class Weather extends Command {
     });
   }
 
-  async run (msg, text) { // eslint-disable-line no-unused-vars
+  async run (msg, text) {
     const city = text.join(' ');
 
     if (!city) return msg.channel.send('Please enter a city to get the weather in!');

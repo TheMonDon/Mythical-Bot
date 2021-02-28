@@ -3,7 +3,7 @@ const DiscordJS = require('discord.js');
 const math = require('mathjs');
 
 class Ping extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'math',
       description: 'Solve some math equations',
@@ -12,24 +12,25 @@ class Ping extends Command {
     });
   }
 
-  async run (msg, args) { // eslint-disable-line no-unused-vars
+  async run(msg, args) {
     const text = args.join(' ');
-    
+
     if (!text || text.length < 1) {
-      msg.channel.send('Please type something to evaluate.');
-    } else {
-      let solution;
-      try {
-        solution = math.evaluate(text);
-        const embed = new DiscordJS.MessageEmbed()
-          .setColor('#767CC1')
-          .addField('**📥 Expression**', `\`\`\`${text}\`\`\``)
-          .addField('**📤 Result**', `\`\`\`${solution}\`\`\``);
-        msg.channel.send(embed);
-      } catch (err) {
-        msg.channel.send(`Sorry, I couldn't solve that equation. \`${err}\``);
-      }
-    }}
+      return msg.channel.send('Please type something to evaluate.');
+    }
+
+    try {
+      const solution = math.evaluate(text);
+      const embed = new DiscordJS.MessageEmbed()
+        .setAuthor(msg.author.username, msg.author.displayAvatarURL())
+        .setColor('#767CC1')
+        .addField('**📥 Expression**', `\`\`\`${text}\`\`\``, false)
+        .addField('**📤 Result**', `\`\`\`${solution}\`\`\``, false);
+      return msg.channel.send(embed);
+    } catch (err) {
+      return msg.channel.send(`Sorry, I couldn't solve that equation. \`${err}\``);
+    }
+  }
 }
 
 module.exports = Ping;

@@ -3,7 +3,7 @@ const DiscordJS = require('discord.js');
 const fetch = require('node-superfetch');
 
 class wiki extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'wikipedia',
       description: 'Retrieve an article from wikipedia',
@@ -13,16 +13,13 @@ class wiki extends Command {
     });
   }
 
-  async run (msg, text) { // eslint-disable-line no-unused-vars
-    const p =  this.client.settings.get(msg.guild.id).prefix;
+  async run(msg, text) {
+    const p = msg.settings.prefix;
     const query = text.join(' ');
 
-    if (!query || query.length < 1) {
-      return msg.channel.send(`Incorrect Usage: ${p}wiki <wikipedia search>`);
-    }
-    const {
-      body
-    } = await fetch
+    if (!query || query.length < 1) return msg.channel.send(`Incorrect Usage: ${p}wiki <wikipedia search>`);
+    
+    const { body } = await fetch
       .get('https://en.wikipedia.org/w/api.php')
       .query({
         action: 'query',
@@ -42,7 +39,7 @@ class wiki extends Command {
       .setColor(0x00A2E8)
       .setTitle(body.query.pages[0].title)
       .setAuthor('Wikipedia', 'https://i.imgur.com/a4eeEhh.png')
-      .setDescription((str.length > 2043) ? str.substr(0, 2040)+' ...' : str);
+      .setDescription((str.length > 2043) ? str.substr(0, 2040) + ' ...' : str);
     return msg.channel.send(embed);
   }
 }

@@ -1,9 +1,9 @@
 const Command = require('../../base/Command.js');
 const DiscordJS = require('discord.js');
-const snekfetch = require('node-superfetch');
+const fetch = require('node-superfetch');
 
 class steam extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'steam',
       description: 'Get some information about any steam game.',
@@ -12,19 +12,19 @@ class steam extends Command {
     });
   }
 
-  async run (msg, text) { // eslint-disable-line no-unused-vars
+  async run(msg, text) {
     const query = text.join(' ');
 
     if (!text || text.length < 1) {
       const em = new DiscordJS.MessageEmbed()
-        .setAuthor(msg.member.displayName, msg.author.displayAvatarURL)
+        .setAuthor(msg.author.username, msg.author.displayAvatarURL())
         .setTitle('Please provide something to search for')
         .setDescription(`Incorrect Usage: ${msg.settings.prefix}steam <game search>`)
         .setTimestamp();
       return msg.channel.send(em);
     }
 
-    const search = await snekfetch
+    const search = await fetch
       .get('https://store.steampowered.com/api/storesearch')
       .query({
         cc: 'us',
@@ -34,31 +34,30 @@ class steam extends Command {
 
     if (!search.body.items.length) return msg.channel.send(`No results found for **${query}**!`);
 
-    const {
-      id,
-      tiny_image
-    } = search.body.items[0];
+    const { id, tiny_image } = search.body.items[0];
 
-    const {
-      body
-    } = await snekfetch
+    const { body } = await fetch
       .get('https://store.steampowered.com/api/appdetails')
       .query({
         appids: id
       });
 
-    const {
-      data
-    } = body[id.toString()];
-    const current = data.price_overview ? `$${data.price_overview.final / 100}` : 'Free';
-    const original = data.price_overview ? `$${data.price_overview.initial / 100}` : 'Free';
-    const price = current === original ? current : `~~${original}~~ ${current}`;
-    const platforms = [];
-    if (data.platforms) {
-      if (data.platforms.windows) platforms.push('Windows');
-      if (data.platforms.mac) platforms.push('Mac');
-      if (data.platforms.linux) platforms.push('Linux');
+    const { data } = body[id.toString()];
+
+    const final = data.price_overview?.final_formatted || '$0';
+    const initial = data.price_overview?.initial_formatted || '$0';
+
+    let price;
+    if (initial !== '$0') {
+      price = `~~${initial}~~ ${final} ${data.price_overview?.discount_percent || 0}% off`
+    } else {
+      price = final;
     }
+
+    const platforms = [];
+    if (data.platforms?.windows) platforms.push('Windows');
+    if (data.platforms?.mac) platforms.push('Mac');
+    if (data.platforms?.linux) platforms.push('Linux');
 
     const embed = new DiscordJS.MessageEmbed()
       .setColor(0x101D2F)

@@ -14,7 +14,7 @@ class logsystem extends Command {
     });
   }
 
-  async run (msg) { // eslint-disable-line no-unused-vars
+  async run (msg) {
     if (!db.get(`servers.${msg.guild.id}.logs.channel`)) return msg.channel.send(`The log system is not set up! Use \`${msg.settings.prefix}setlogchannel <channel>\``);
     const embed = new Discord.MessageEmbed();
 
@@ -55,8 +55,9 @@ class logsystem extends Command {
 **Total:** ${(db.get(`servers.${msg.guild.id}.logs.all`)) || '0'}
 `), true);
     embed.setFooter('Logs System V3.0-BETA');
+
     if (msg.guild.me.permissions.has('MANAGE_MESSAGES')) msg.delete();
-    msg.channel.send(embed);
+    return msg.channel.send(embed);
   }
 }
 

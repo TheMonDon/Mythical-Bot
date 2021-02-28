@@ -13,7 +13,7 @@ module.exports = class BalanceCommand extends Command {
       name: 'set-cooldown',
       category: 'Economy',
       description: 'Set the cooldown of economy modules',
-      examples: ['Set-Cooldown <work | rob | crime> <cooldown>'],
+      usage: 'Set-Cooldown <work | rob | crime> <cooldown>',
       aliases: ['scd', 'setcooldown'],
       guildOnly: true
     });    
@@ -21,7 +21,7 @@ module.exports = class BalanceCommand extends Command {
 
   run (msg, args) {
     const server = msg.guild;
-    const p =  msg.settings.prefix;
+    const p = msg.settings.prefix;
     let type;
 
     const types = ['rob', 'work', 'crime'];

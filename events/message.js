@@ -152,12 +152,12 @@ module.exports = class {
 
     // Some commands may not be useable in DMs. This check prevents those commands from running
     // and return a friendly error message.
-    if (cmd && !message.guild && cmd.conf.guildOnly)
+    if (!message.guild && cmd?.conf.guildOnly)
       return message.channel.send('This command is unavailable via private message. Please run this command in a guild.');
 
     // Some commands are nsfw only. This check prevents those commands from running
     // and returns a friendly error message.
-    if (cmd && cmd.conf.nsfw && !message.channel.nsfw) return message.channel.send('This command can only be used in NSFW channels.');
+    if (cmd?.conf.nsfw && !message.channel.nsfw) return message.channel.send('This command can only be used in NSFW channels.');
 
 
     if (level < this.client.levelCache[cmd.conf.permLevel]) {
@@ -173,13 +173,6 @@ This command requires level ${this.client.levelCache[cmd.conf.permLevel]} (${cmd
     // To simplify message arguments, the author's level is now put on level (not member, so it is supported in DMs)
     // The "level" command module argument will be deprecated in the future.
     message.author.permLevel = level;
-
-    /*
-    message.flags = [];
-    while (args[0] &&args[0][0] === '-') {
-      message.flags.push(args.shift().slice(1));
-    }
-    */
 
     // If the command exists, **AND** the user has permission, run it.
     db.add('global.commands', 1);

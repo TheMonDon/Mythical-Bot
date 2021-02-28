@@ -3,7 +3,7 @@ const db = require('quick.db');
 const DiscordJS = require('discord.js');
 
 class unban extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'unban',
       description: 'Unban a member',
@@ -13,7 +13,7 @@ class unban extends Command {
     });
   }
 
-  async run (msg, args) {
+  async run(msg, args) {
     if (!msg.member.permissions.has('BAN_MEMBERS')) return msg.channel.send('You are missing the BAN_MEMBERS permission.');
     if (!msg.guild.me.permissions.has('BAN_MEMBERS')) return msg.channel.send('The bot is missing BAN_MEMBERS permission.');
 
@@ -34,23 +34,22 @@ class unban extends Command {
       const banList = await msg.guild.fetchBans();
       const bannedUser = banList.find(user => user.id === userID);
 
-      if (bannedUser) {
-        msg.guild.unban(userID, reason)
-          .then(unbanP => {
-            embed.setTitle('Member Unbanned');
-            embed.setAuthor(msg.member.displayName, msg.author.displayAvatarURL());
-            embed.setColor('GREEN');
-            embed.addField('User', unbanP, true);
-            embed.addField('Unbanned By', msg.member, true);
-            embed.addField('Reason', reason, true);
-            embed.setFooter(`ID: ${unbanP.id}`);
-            embed.setTimestamp();
-            if (log_chan) msg.guild.channels.cache.get(log_chan).send(embed);
-            msg.channel.send(embed);
-          });
-      } else {
-        msg.channel.send(`The user with the ID ${userID} is not banned.`);
-      }
+      if (!bannedUser) return msg.channel.send(`The user with the ID ${userID} is not banned.`);
+
+      msg.guild.unban(userID, reason)
+        .then(unbanP => {
+          embed.setTitle('Member Unbanned');
+          embed.setAuthor(msg.member.displayName, msg.author.displayAvatarURL());
+          embed.setColor('GREEN');
+          embed.addField('User', unbanP, true);
+          embed.addField('Unbanned By', msg.member, true);
+          embed.addField('Reason', reason, true);
+          embed.setFooter(`ID: ${unbanP.id}`);
+          embed.setTimestamp();
+          if (log_chan) msg.guild.channels.cache.get(log_chan).send(embed);
+
+          return msg.channel.send(embed);
+        });
     } catch (err) {
       console.error(err);
     }

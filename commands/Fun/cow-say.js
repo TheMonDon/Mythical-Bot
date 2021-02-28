@@ -17,15 +17,13 @@ class Cowsay extends Command {
 
     if (!args || args.length < 1) return msg.channel.send('Please type a message for me to say as a cow.');
 
-    const text2 = text.replace(/@/g, '');
-
     const cmsg = cowsay.say({
-      text: text2
+      text: text.replace(/@/g, '')
     })
 
     if (cmsg.length + 6 > 2048) return msg.channel.send('The total message length I have to send is over 2048, try lowering the content length!');
 
-    return msg.channel.send(`\`\`\`${cmsg}\`\`\``);
+    return msg.channel.send(cmsg, { code: '' })
   }
 }
 module.exports = Cowsay;

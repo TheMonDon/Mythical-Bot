@@ -26,11 +26,12 @@ class fml extends Command {
       .setTitle("Fuck my Life, Random Edition!")
       .setColor(165868)
       .setThumbnail("http://i.imgur.com/5cMj0fw.png")
-      .setFooter(`Requested by: ${msg.member.displayName} | Powered By fmylife.com`)
-      .setDescription(`_${article && article.childNodes[0].text.replace(/&#039;/g, `'`).replace(/&quot;/g, `"`)}\n\n_`)
-      .addField("I agree, your life sucks", updoot && updoot.childNodes[0].text, true)
-      .addField("You deserved it:", downdoot && downdoot.childNodes[0].text, true);
-    if (!article || article.childNodes[0].text.length < 5) return msg.channel.send("Today, something went wrong, so you'll have to try again in a few moments. FML");
+      .setFooter(`Requested by: ${msg.author.username} | Powered By fmylife.com`)
+      .setDescription(`_${article?.childNodes[0].text.replace(/&#039;/g, `'`).replace(/&quot;/g, `"`)}\n\n_`)
+      .addField("I agree, your life sucks", updoot?.childNodes[0].text, true)
+      .addField("You deserved it:", downdoot?.childNodes[0].text, true);
+
+    if (article?.childNodes[0].text.length < 5) return msg.channel.send("Today, something went wrong, so you'll have to try again in a few moments. FML");
 
     return msg.channel.send(embed);
   }

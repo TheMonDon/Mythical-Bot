@@ -7,7 +7,6 @@ module.exports = class {
     this.client = client;
   }
 
-  // eslint-disable-next-line no-unused-vars
   async run (messages) {
     const server = messages.first().guild;
     const chan = messages.first().channel;

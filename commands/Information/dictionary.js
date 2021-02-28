@@ -1,7 +1,6 @@
 const Command = require('../../base/Command.js');
 const DiscordJS = require('discord.js');
 const config = require('../../config.js');
-// const Dictionary = require('oxford-dictionaries-api'); // Leaving this in here, but switching to owl if no issues.
 const owlBot = require('owlbot-js');
 
 class DictionaryCommand extends Command {
@@ -15,8 +14,7 @@ class DictionaryCommand extends Command {
     });
   }
 
-  async run(msg, input) { // eslint-disable-line no-unused-vars
-    // const dict = new Dictionary(config.appId, config.appKey); // again... leaving.
+  async run(msg, input) {
     const owl = owlBot(config.owlKey);
     const p = msg.settings.prefix;
 
@@ -38,25 +36,6 @@ class DictionaryCommand extends Command {
         if (result.definitions[0].image_url) em.setThumbnail(result.definitions[0].image_url);
         msg.channel.send(em);
       })
-
-    /*
-    dict.entries({
-      word_id: input,
-      fields: ['definitions']
-    })
-      .then((data) => {
-        const embed = new DiscordJS.MessageEmbed()
-          .setTitle('Dictionary Definition')
-          .setColor('RANDOM')
-          .setAuthor(msg.member.displayName, msg.author.displayAvatarURL()) // This should probably be username or have a check for member.
-          .addField(data.word, data.results[0].lexicalEntries[0].entries[0].senses[0].definitions[0], true)
-          .setTimestamp();
-        return msg.channel.send(embed);
-      })
-      .catch(() => {
-        return msg.channel.send('No entry was found for that word.');
-      });
-      */
   }
 }
 

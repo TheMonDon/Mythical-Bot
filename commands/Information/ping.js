@@ -15,10 +15,10 @@ class Ping extends Command {
   async run (msg) { // eslint-disable-line no-unused-vars
     const embed = new DiscordJS.MessageEmbed()
       .setTitle('Bot Ping')
-      .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
+      .setAuthor(msg.author.username, msg.author.displayAvatarURL())
       .setDescription(`🏓 The bots ping is: **${Math.round(this.client.ws.ping)}**ms`)
       .setTimestamp();
-    msg.channel.send(embed);
+    return msg.channel.send(embed);
   }
 }
 

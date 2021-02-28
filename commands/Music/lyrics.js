@@ -7,14 +7,14 @@ class Lyrics extends Command {
       name: 'lyrics',
       description: 'Find the lyrics of a song',
       category: 'Music',
-      usage: 'lyrics [optional song]',
-      guildOnly: true
+      usage: 'lyrics [song]'
     });
   }
 
   async run (msg, args) {
     let song;
     if (!args || args.length < 1) {
+      if (!msg.guild) return msg.channel.send('I can\'t get the lyrics of nothing.');
       song = msg.client.player.getQueue(msg) && msg.client.player.getQueue(msg).playing.title;
       if (!song) return msg.channel.send('I can\'t get the lyrics of nothing.');
     } else {
@@ -24,8 +24,7 @@ class Lyrics extends Command {
     const lyrics = await lf(song, '');
     if (!lyrics) return msg.channel.send(`No lyrics found for: ${song}`);
 
-    msg.channel.send(lyrics, { code: 'ascii', split: '\n'});
-
+    return msg.channel.send(lyrics, { code: 'ascii', split: '\n'});
   }
 }
 

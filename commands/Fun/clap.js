@@ -6,8 +6,7 @@ class clap extends Command {
       name: 'clap',
       description: 'Clappify your text.',
       usage: 'clap <text>',
-      category: 'Fun',
-      aliases: []
+      category: 'Fun'
     });
   }
 

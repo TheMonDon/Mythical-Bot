@@ -18,9 +18,7 @@ class Remove extends Command {
 
     if (!msg.channel.name.startsWith('ticket')) return msg.channel.send('You need to be inside the ticket you want to remove a user from.');
 
-    if (!args[0]) {
-      return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}remove <user>`)
-    }
+    if (!args[0]) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}remove <user>`)
 
     const server = msg.guild;
     const mem = msg.mentions.members.first() || server.members.cache.find(m => m.id === `${args.join(' ')}`) || server.members.cache.find(m => m.displayName.toUpperCase() === `${args.join(' ').toUpperCase()}`) || server.members.cache.find(m => m.user.username.toUpperCase() === `${args.join(' ').toUpperCase()}`) || server.members.cache.find(m => m.user.username.toLowerCase()

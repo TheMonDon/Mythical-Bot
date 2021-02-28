@@ -27,10 +27,10 @@ class forceClose extends Command {
       } else if (db.get(`servers.${msg.guild.id}.tickets.${args[0]}`)) {
         tName = args[0];
         args.shift();
-        reason = args && args.join(' ') || 'No reason specified';
+        reason = args?.join(' ') || 'No reason specified';
       } else {
         tName = msg.channel.name;
-        reason = args && args.join(' ') || 'No reason specified';
+        reason = args?.join(' ') || 'No reason specified';
       }
     } else {
       if (!args[0]) {
@@ -38,7 +38,7 @@ class forceClose extends Command {
       }
       tName = args[0];
       args.shift();
-      reason = args && args.join(' ') || 'No reason specified';
+      reason = args?.join(' ') || 'No reason specified';
       // not inside tix channel so need tix ID
     }
 
@@ -50,13 +50,9 @@ class forceClose extends Command {
     // Are they inside a ticket channel?
     if (!msg.channel.name.startsWith('ticket')) {
       // Do they have the support role?
-      if (!msg.member.roles.cache.some(r => r.id === roleID)) {
-        return msg.channel.send(`You need to be a member of ${role.name} to use force-close.`);
-      }
+      if (!msg.member.roles.cache.some(r => r.id === roleID)) return msg.channel.send(`You need to be a member of ${role.name} to use force-close.`);
       // Did they supply a ticket ID?
-      if (!tName) {
-        if (!msg.channel.name.startsWith('ticket')) return msg.channel.send('You need to supply the ticket ID.');
-      }
+      if (!tName && !msg.channel.name.startsWith('ticket')) return msg.channel.send('You need to supply the ticket ID.');
 
       if (!owner) return msg.channel.send('That is not a valid ticket. Please try again.');
 

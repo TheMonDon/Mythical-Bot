@@ -17,6 +17,7 @@ class Ban extends Command {
     const me = msg.guild.me;
     const server = msg.guild;
     let ban_mem;
+
     const log_chan = db.get(`servers.${msg.guild.id}.logging.channel`);
 
     if (text[0]) {
@@ -33,7 +34,7 @@ class Ban extends Command {
     text.shift();
     const reason = text.join(' ');
     if (!reason) return msg.channel.send('Please provide a reason.');
-    if (me.permissions.has('MANAGE_MESSAGES')) { msg.delete(); }
+    if (me.permissions.has('MANAGE_MESSAGES')) msg.delete();
     if (!ban_mem) return msg.channel.send('That user was not found.');
     if (!ban_mem.bannable) return msg.channel.send('That user is not bannable.');
 
@@ -47,10 +48,9 @@ class Ban extends Command {
       .setFooter(`ID: ${ban_mem.id}`)
       .setTimestamp();
     ban_mem.ban({ reason: reason });
-    if (log_chan) {
-      msg.guild.channels.cache.get(log_chan).send(em);
-    }
-    msg.channel.send(em);
+    
+    if (log_chan) msg.guild.channels.cache.get(log_chan).send(em);
+    return msg.channel.send(em);
   }
 }
 

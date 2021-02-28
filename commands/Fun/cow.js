@@ -8,8 +8,7 @@ class cow extends Command {
       name: 'cow',
       description: 'Send a random ascii image of a cow.',
       usage: 'cow',
-      category: 'Fun',
-      aliases: []
+      category: 'Fun'
     });
   }
 

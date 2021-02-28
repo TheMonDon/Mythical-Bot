@@ -3,7 +3,7 @@ const { stripIndents } = require('common-tags');
 const DiscordJS = require('discord.js');
 
 class rps extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'rps',
       description: 'Play a game of rock paper scissors.',
@@ -12,7 +12,7 @@ class rps extends Command {
     });
   }
 
-  async run (msg, text) { // eslint-disable-line no-unused-vars
+  async run(msg, text) {
     const p = msg.settings.prefix;
     const server = msg.guild;
     let mem;
@@ -34,13 +34,13 @@ class rps extends Command {
 
     const reply = await msg.channel.send(`Alright, get ready ${msg.member} and ${mem}! ${msg.member.displayName} is up first. I'll send you both a DM.`);
     await msg.author.send(stripIndents`
-    Please type your response below.
+      Please type your response below.
 
-    - Rock
-    - Paper
-    - Scissors
+      - Rock
+      - Paper
+      - Scissors
 
-    You have 1 minute!
+      You have 1 minute!
     `)
       .then(async (msg) => {
         setTimeout(function () { }, 1000);
@@ -62,13 +62,13 @@ class rps extends Command {
           });
       });
     await mem.send(stripIndents`
-    Please type your response below.
+      Please type your response below.
     
-    - Rock
-    - Paper
-    - Scissors
+      - Rock
+      - Paper
+      - Scissors
     
-    You have 1 minute!
+      You have 1 minute!
     `)
       .then(async (msg) => {
         setTimeout(function () { }, 1000);

@@ -20,7 +20,7 @@ class ClearQueue extends Command {
     this.client.player.clearQueue(msg);
     const em = new MessageEmbed()
       .setDescription(':recycle: The music queue has been cleared!');
-    msg.channel.send(em);
+    return msg.channel.send(em);
   }
 }
 
