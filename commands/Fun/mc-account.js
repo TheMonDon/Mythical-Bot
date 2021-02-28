@@ -16,6 +16,8 @@ class mcAccount extends Command {
   }
 
   async run(msg, args) {
+    const p = msg.settings.prefix;
+    
     if (!args || args.length < 1) {
       const embed = new DiscordJS.MessageEmbed()
         .setTitle('Invalid Username')

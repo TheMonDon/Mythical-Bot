@@ -26,9 +26,7 @@ class roleInfo extends Command {
       infoRole = msg.mentions.roles.first() || server.roles.cache.find(r => r.name === `${text.join(' ')}`) || server.roles.cache.find(r => r.id === `${text.join(' ')}`) || server.roles.cache.find(r => r.name.toLowerCase() === `${text.join(' ').toLowerCase()}`) || server.roles.cache.find(r => r.id === `${text.join(' ').replace('<@&', '').replace('>', '')}`);
     }
 
-    if (!infoRole) {
-      return msg.channel.send(`:x: Incorrect Usage: ${p}roleinfo <Role Name | Role ID | @role>`);
-    }
+    if (!infoRole) return msg.channel.send(`:x: Incorrect Usage: ${p}roleinfo <Role Name | Role ID | @role>`);
     
     //time
     const then = moment(infoRole.createdAt);
@@ -37,7 +35,7 @@ class roleInfo extends Command {
 
     const embed = new DiscordJS.MessageEmbed()
       .setTitle(`${infoRole.name}'s Information`)
-      .setColor(hex)
+      .setColor(infoRole.hexColo)
       .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
       .addField('Name', infoRole.name, true)
       .addField('ID', infoRole.id, true)
