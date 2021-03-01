@@ -3,7 +3,7 @@ const db = require('quick.db');
 const DiscordJS = require('discord.js');
 
 class deletewarning extends Command {
-  constructor(client) {
+  constructor (client) {
     super(client, {
       name: 'clear-warnings',
       description: 'Delete all the warnings of a specific user.',
@@ -15,7 +15,7 @@ class deletewarning extends Command {
     });
   }
 
-  async run(msg, args) {
+  async run (msg, args) {
     const p = msg.settings.prefix;
     let mem;
 
@@ -44,7 +44,7 @@ class deletewarning extends Command {
     if (!otherWarns || otherWarns.length < 1) return msg.channel.send('That user has no warnings.');
 
     for (const i of otherWarns) {
-      db.delete(`servers.${msg.guild.id}.warns.warnings.${i.warnID}`)
+      db.delete(`servers.${msg.guild.id}.warns.warnings.${i.warnID}`);
     }
 
     if (previousPoints >= 10) {
@@ -59,12 +59,12 @@ class deletewarning extends Command {
       .setColor('ORANGE')
       .addField('From User', `${mem} (${mem.id})`, true)
       .addField('Cleared Cases', otherCases, true);
-    mem.send(em).catch(() => null)
+    mem.send(em).catch(() => null);
     return msg.channel.send(em);
   }
 }
 
-function getWarns(userID, msg) {
+function getWarns (userID, msg) {
   const warns = db.get(`servers.${msg.guild.id}.warns.warnings`);
   const userCases = [];
   if (warns) {
@@ -78,7 +78,7 @@ function getWarns(userID, msg) {
   return userCases;
 }
 
-function getTotalPoints(userID, msg) {
+function getTotalPoints (userID, msg) {
   const warns = getWarns(userID, msg);
   let total = 0;
   if (warns) {

@@ -2,7 +2,7 @@ const Command = require('../../base/Command.js');
 const { MessageEmbed } = require('discord.js');
 
 class Help extends Command {
-  constructor(client) {
+  constructor (client) {
     super(client, {
       name: 'help',
       description: 'Displays all the available commands for you.',
@@ -12,7 +12,7 @@ class Help extends Command {
     });
   }
 
-  async run(msg, args, level) {
+  async run (msg, args, level) {
     const settings = msg.settings;
 
     const cats = ['Administrator', 'Economy', 'Fun', 'Games', 'General', 'Information', 'Logging', 'Memes', 'Minecraft', 'Moderator', 'Music', 'NSFW'];
@@ -38,11 +38,7 @@ class Help extends Command {
     const sorted = myCommands.array().sort((p, c) => p.help.category > c.help.category ? 1 : p.help.name > c.help.name && p.help.category === c.help.category ? 1 : -1);
     sorted.forEach(c => {
       const cat = c.help.category.toProperCase();
-      if (category !== cat) {
-        return;
-      } else {
-        em.addField(`${settings.prefix}${c.help.name.toProperCase()}`, `${c.help.description}`, false);
-      }
+      if (category === cat) em.addField(`${settings.prefix}${c.help.name.toProperCase()}`, `${c.help.description}`, false);
     });
     if (em.fields < 1) {
       let command = cat1.toLowerCase();
@@ -65,4 +61,3 @@ class Help extends Command {
 }
 
 module.exports = Help;
-
