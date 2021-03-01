@@ -11,7 +11,7 @@ class BotInfo extends Command {
       name: 'bot-info',
       description: 'Gives some useful bot information',
       usage: 'bot-info',
-      category: 'Information',
+      category: 'General',
       aliases: ['bi', 'botinfo', 'about']
     });
   }

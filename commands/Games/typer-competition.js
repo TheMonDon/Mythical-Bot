@@ -14,7 +14,7 @@ class typerCommand extends Command {
       name: 'typer-competition',
       description: 'See who can type the fastest.',
       usage: 'typer-competition',
-      category: 'Fun',
+      category: 'Games',
       aliases: ['typercompetition', 'tc']
     });
   }

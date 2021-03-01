@@ -8,7 +8,8 @@ class rps extends Command {
       name: 'rps',
       description: 'Play a game of rock paper scissors.',
       usage: 'rps',
-      category: 'Fun',
+      category: 'Games',
+      aliases: ['rockpaperscissors', 'rock-paper-scissors']
     });
   }
 

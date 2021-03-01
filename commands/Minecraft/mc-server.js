@@ -30,7 +30,7 @@ class mcserver extends Command {
     query = servers[query.toString()] ? servers[query.toString()] : query;
 
     const { body } = await fetch
-      .get(`https://api.mcsrvstat.us/2/${query}`)
+      .get(`https://api.mcsrvstat.us/2/${encodeURI(query)}`)
       .catch('Sorry, either that is not a valid IP or that server is offline.')
 
     if (!body.online) return msg.channel.send(`Sorry, either that is not a valid IP or that server is offline.`);

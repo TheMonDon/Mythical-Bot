@@ -6,9 +6,9 @@ class steam extends Command {
   constructor(client) {
     super(client, {
       name: 'steam',
-      description: 'Get some information about any steam game.',
-      usage: 'steam <game>',
-      category: 'Fun',
+      description: 'Get some information about any steam game or application.',
+      usage: 'steam <game/app>',
+      category: 'Information',
     });
   }
 
@@ -19,7 +19,7 @@ class steam extends Command {
       const em = new DiscordJS.MessageEmbed()
         .setAuthor(msg.author.username, msg.author.displayAvatarURL())
         .setTitle('Please provide something to search for')
-        .setDescription(`Incorrect Usage: ${msg.settings.prefix}steam <game search>`)
+        .setDescription(`Incorrect Usage: ${msg.settings.prefix}steam <game/app>`)
         .setTimestamp();
       return msg.channel.send(em);
     }
