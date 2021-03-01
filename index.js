@@ -1,7 +1,7 @@
 // This will check if the node version you are running is the required
 // Node version, if it isn't it will throw the following error to inform
 // you.
-if (Number(process.version.slice(1).split('.')[0]) < 12) throw new Error('Node 12.0.0 or higher is required. Update Node on your system.');
+if (Number(process.version.slice(1).split('.')[0]) < 14) throw new Error('Node 14.0.0 or higher is required. Update Node on your system.');
 
 const { Client, Collection } = require('discord.js');
 const DiscordJS = require('discord.js');
@@ -10,10 +10,12 @@ const readdir = promisify(require('fs').readdir);
 const Enmap = require('enmap');
 const klaw = require('klaw');
 const path = require('path');
-
+const { Player } = require('discord-player');
+const mysql = require('mysql2');
+const config = require('./config.js');
 
 class bot extends Client {
-  constructor (options) {
+  constructor(options) {
     super(options);
 
     this.config = require('./config.js');
@@ -29,7 +31,7 @@ class bot extends Client {
   }
 
   // PERMISSION LEVEL FUNCTION
-  permlevel (message) {
+  permlevel(message) {
     let permlvl = 0;
 
     const permOrder = this.config.permLevels.slice(0).sort((p, c) => p.level < c.level ? 1 : -1);
@@ -53,7 +55,7 @@ class bot extends Client {
   that unloading happens in a consistent manner across the board.
   */
 
-  loadCommand (commandPath, commandName) {
+  loadCommand(commandPath, commandName) {
     try {
       const props = new (require(`${commandPath}${path.sep}${commandName}`))(this);
       props.conf.location = commandPath;
@@ -70,7 +72,7 @@ class bot extends Client {
     }
   }
 
-  async unloadCommand (commandPath, commandName) {
+  async unloadCommand(commandPath, commandName) {
     let command;
     if (this.commands.has(commandName)) {
       command = this.commands.get(commandName);
@@ -93,7 +95,7 @@ class bot extends Client {
   and stringifies objects!
   This is mostly only used by the Eval and Exec commands.
   */
-  async clean (text) {
+  async clean(text) {
     if (text && text.constructor.name == 'Promise')
       text = await text;
     if (typeof text !== 'string')
@@ -115,7 +117,7 @@ class bot extends Client {
 
   // getSettings merges the client defaults with the guild settings. guild settings in
   // enmap should only have *unique* overrides that are different from defaults.
-  getSettings (guild) {
+  getSettings(guild) {
     const defaults = this.settings.get('default') || {};
     const guildData = guild ? this.settings.get(guild.id) || {} : {};
     const returnObject = {};
@@ -127,7 +129,7 @@ class bot extends Client {
 
   // writeSettings overrides, or adds, any configuration item that is different
   // than the defaults. This ensures less storage wasted and to detect overrides.
-  writeSettings (id, newSettings) {
+  writeSettings(id, newSettings) {
     const defaults = this.settings.get('default');
     let settings = this.settings.get(id);
     if (typeof settings != 'object') settings = {};
@@ -142,11 +144,17 @@ class bot extends Client {
   }
 }
 
-
+// Enable intents for the bot
 const client = new bot({ ws: { intents: DiscordJS.Intents.ALL } });
 
-const { Player } = require('discord-player');
+// Create MySQL Pool globally
+global.pool = mysql.createPool({
+  host: config.mysqlHost,
+  user: config.mysqlUsername,
+  password: config.mysqlPassword
+});
 
+// Load the music player stuff
 client.player = new Player(client, {
   leaveOnEmpty: false,
 });

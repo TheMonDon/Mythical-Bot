@@ -2,13 +2,11 @@ const Command = require('../../base/Command.js');
 const DiscordJS = require('discord.js');
 const Nfetch = require('node-superfetch');
 const { JSONPath } = require('jsonpath-plus');
-const mysql = require('mysql2');
 const moment = require('moment');
 require('moment-duration-format');
-const config = require('./../../config.js');
 
 class playerinfo extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'player-info',
       description: 'Get information about minecraft player from discord or minecraft username.',
@@ -18,7 +16,7 @@ class playerinfo extends Command {
     });
   }
 
-  async run (msg, text) {
+  async run(msg, text) {
     const server = msg.guild;
 
     let user;
@@ -38,12 +36,6 @@ class playerinfo extends Command {
 
     let member = !!server.members.cache.get(user);
 
-    const pool = mysql.createPool({
-      host: config.mysqlHost,
-      user: config.mysqlUsername,
-      password: config.mysqlPassword
-    });
-
     const errMsg = 'I could not find that user. Did they sync their accounts using `!link`? \nAdd \"\" around mc username if their discord name is the same.';
 
     if (!member) {
@@ -57,35 +49,34 @@ class playerinfo extends Command {
         return msg.channel.send(em);
       }
 
-      try {
-        const body = await Nfetch.get(`https://api.mojang.com/users/profiles/minecraft/${user}`);
-        const uuid = body.body.id;
-        const id = uuid.substr(0, 8) + '-' + uuid.substr(8, 4) + '-' + uuid.substr(12, 4) + '-' + uuid.substr(16, 4) + '-' + uuid.substr(20);
-
-        pool.query(`SELECT * FROM ranksync.player WHERE uuid = '${id}'`, function (error, results) {
-          const player_id = results?.[0]?.id;
-          if (error || !player_id) { member = false; }
-
-          pool.query(`SELECT * FROM ranksync.synced_players WHERE player_id = ${player_id}`, async function (error, results) {
-            if (error) { member = false; }
-            user = results?.[0]?.identifier;
-            if (user && server.members.cache.get(user)) {
-              member = true;
-              user1 = server.members.cache.get(user);
-            } else {
-              member = false;
-            }
-
-            return information(id, pool, member, user1, msg);
-          });
+      const body = await Nfetch.get(`https://api.mojang.com/users/profiles/minecraft/${user}`)
+        .catch(() => {
+          const em = new DiscordJS.MessageEmbed()
+            .setTitle('Account Not Found')
+            .setColor('FF0000')
+            .setDescription(`An account with the name \`${user}\` was not found.`);
+          return msg.channel.send(em);
         });
-      } catch (err) {
-        const em = new DiscordJS.MessageEmbed()
-          .setTitle('Account Not Found')
-          .setColor('FF0000')
-          .setDescription(`An account with the name \`${user}\` was not found.`);
-        return msg.channel.send(em);
-      }
+      const uuid = body.body.id;
+      const id = uuid.substr(0, 8) + '-' + uuid.substr(8, 4) + '-' + uuid.substr(12, 4) + '-' + uuid.substr(16, 4) + '-' + uuid.substr(20);
+
+      pool.query(`SELECT * FROM ranksync.player WHERE uuid = '${id}'`, function (error, results) {
+        const player_id = results?.[0]?.id;
+        if (error || !player_id) { member = false; }
+
+        pool.query(`SELECT * FROM ranksync.synced_players WHERE player_id = ${player_id}`, async function (error, results) {
+          if (error) { member = false; }
+          user = results?.[0]?.identifier;
+          if (user && server.members.cache.get(user)) {
+            member = true;
+            user1 = server.members.cache.get(user);
+          } else {
+            member = false;
+          }
+
+          return information(id, pool, member, user1, msg);
+        });
+      });
     } else {
       pool.query(`SELECT player_id FROM ranksync.synced_players WHERE identifier = ${user}`, function (error, results) {
         const player_id = results?.[0]?.player_id;
@@ -103,8 +94,14 @@ class playerinfo extends Command {
 }
 
 const information = async function (id, pool, member, user1, msg) {
-  try {
-    const { body } = await Nfetch.get(`https://api.mojang.com/user/profiles/${id}/names`);
+    const { body } = await Nfetch.get(`https://api.mojang.com/user/profiles/${id}/names`)
+      .catch(() => {
+        const em = new DiscordJS.MessageEmbed()
+          .setTitle('Account Not Found')
+          .setColor('FF0000')
+          .setDescription(`An account with the name \`${user}\` was not found.`);
+        return msg.channel.send(em);
+      });
     const nc = JSONPath({ path: '*.name', json: body }).join(', ');
     const name = nc.slice(nc.lastIndexOf(',') + 1);
 
@@ -159,9 +156,6 @@ const information = async function (id, pool, member, user1, msg) {
         });
       });
     });
-  } catch (err) {
-    console.error(err);
-  }
 };
 
 module.exports = playerinfo;

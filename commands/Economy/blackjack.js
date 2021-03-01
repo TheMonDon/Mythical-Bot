@@ -1,5 +1,3 @@
-/* eslint-disable no-unused-vars */
-/* eslint-disable no-undef */
 const Command = require('../../base/Command.js');
 const db = require('quick.db');
 const DiscordJS = require('discord.js');
@@ -19,8 +17,6 @@ module.exports = class Blackjack extends Command {
   async run (msg, args) {
     const { Blackjack } = require('blackjack-n-deck');
 
-    const server = msg.guild;
-    const member = msg.member;
     const p = msg.settings.prefix;
 
     const usage = `${p}blackjack <bet>`;
@@ -84,9 +80,6 @@ module.exports = class Blackjack extends Command {
       '?': '<:cardBack:740317913948618793>'
     };
 
-    const premium = db.get(`servers.${msg.guild.id}.premium`) || false;
-    if (!premium) return msg.channel.send('Sorry, this is a beta command and requires the server to have premium status. \nContact TheMonDon#1721 for premium.');
-
     const cs = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
     const cash = db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`) || 0; // get the users cash amount
 
@@ -104,7 +97,7 @@ module.exports = class Blackjack extends Command {
     let color = '#03A9F4';
 
     const bj = new Blackjack(bet, 1);
-    // this function is called every time something happens ig
+    // this function is called every time something happens
 
     let win = false;
     let bust = false;
@@ -142,18 +135,18 @@ module.exports = class Blackjack extends Command {
       bet1 = bet * 1.5;
 
       const embed = new DiscordJS.MessageEmbed()
-        .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
+        .setAuthor(msg.author.username, msg.author.displayAvatarURL())
         .setDescription(`Result: You win ${cs}${bet1.toLocaleString()}`)
         .setColor(color)
         .addField('**Your Hand**', `${pcards} \n\nScore: Blackjack`, true)
         .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
 
       bet = bet + bet1;
-      db.add(`servers.${server.id}.users.${member.id}.economy.cash`, bet); // Add the winning money
+      db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bet); // Add the winning money
       return msg.channel.send(embed);
     }
     const em = new DiscordJS.MessageEmbed()
-      .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
+      .setAuthor(msg.author.username, msg.author.displayAvatarURL())
       .setDescription('Type `hit` to draw another card or `stand` to pass.')
       .setColor(color)
       .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
@@ -170,7 +163,7 @@ module.exports = class Blackjack extends Command {
           dcards = getCards('dealer', bj);
 
           const embed = new DiscordJS.MessageEmbed()
-            .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
+            .setAuthor(msg.author.username, msg.author.displayAvatarURL())
             .setDescription(`Result: You win ${cs}${bet.toLocaleString()}`)
             .setColor(color)
             .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
@@ -178,14 +171,14 @@ module.exports = class Blackjack extends Command {
           mEm.edit(embed);
 
           bet = bet * 2;
-          db.add(`servers.${server.id}.users.${member.id}.economy.cash`, bet); // Add the winning money
+          db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bet); // Add the winning money
         } else if (blackjack) {
           pcards = getCards('player', bj);
           dcards = getCards('dealer', bj);
           bet1 = bet * 1.5;
 
           const embed = new DiscordJS.MessageEmbed()
-            .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
+            .setAuthor(msg.author.username, msg.author.displayAvatarURL())
             .setDescription(`Result: You win ${cs}${bet1.toLocaleString()}`)
             .setColor(color)
             .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
@@ -193,26 +186,26 @@ module.exports = class Blackjack extends Command {
           mEm.edit(embed);
 
           bet = bet + bet1;
-          db.add(`servers.${server.id}.users.${member.id}.economy.cash`, bet); // Add the winning money
+          db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bet); // Add the winning money
         } else if (push) {
           pcards = getCards('player', bj);
           dcards = getCards('dealer', bj);
 
           const embed = new DiscordJS.MessageEmbed()
-            .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
+            .setAuthor(msg.author.username, msg.author.displayAvatarURL())
             .setDescription('Result: Push, money back')
             .setColor(color)
             .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
             .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
           mEm.edit(embed);
 
-          db.add(`servers.${server.id}.users.${member.id}.economy.cash`, bet); // Add their original money back
+          db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bet); // Add their original money back
         } else if (bust) {
           pcards = getCards('player', bj);
           dcards = getCards('dealer', bj);
 
           const embed = new DiscordJS.MessageEmbed()
-            .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
+            .setAuthor(msg.author.username, msg.author.displayAvatarURL())
             .setDescription('Bust: you lose')
             .setDescription(`Result: You lose ${cs}${bet.toLocaleString()}`)
             .setColor(color)
@@ -225,7 +218,7 @@ module.exports = class Blackjack extends Command {
           dcards = getCards('dealer', bj);
 
           const embed = new DiscordJS.MessageEmbed()
-            .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
+            .setAuthor(msg.author.username, msg.author.displayAvatarURL())
             .setDescription('Type `hit` to draw another card or `stand` to pass.')
             .setColor(color)
             .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
@@ -239,7 +232,7 @@ module.exports = class Blackjack extends Command {
                 dcards = getCards('dealer', bj);
 
                 const embed = new DiscordJS.MessageEmbed()
-                  .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
+                  .setAuthor(msg.author.username, msg.author.displayAvatarURL())
                   .setDescription(`Result: You win ${cs}${bet.toLocaleString()}`)
                   .setColor(color)
                   .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
@@ -247,14 +240,14 @@ module.exports = class Blackjack extends Command {
                 mEm.edit(embed);
 
                 bet = bet * 2;
-                db.add(`servers.${server.id}.users.${member.id}.economy.cash`, bet); // Add the winning money
+                db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bet); // Add the winning money
               } else if (blackjack) {
                 pcards = getCards('player', bj);
                 dcards = getCards('dealer', bj);
                 bet1 = bet * 1.5;
 
                 const embed = new DiscordJS.MessageEmbed()
-                  .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
+                  .setAuthor(msg.author.username, msg.author.displayAvatarURL())
                   .setDescription(`Result: You win ${cs}${bet1.toLocaleString()}`)
                   .setColor(color)
                   .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
@@ -262,26 +255,26 @@ module.exports = class Blackjack extends Command {
                 mEm.edit(embed);
 
                 bet = bet + bet1;
-                db.add(`servers.${server.id}.users.${member.id}.economy.cash`, bet); // Add the winning money
+                db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bet); // Add the winning money
               } else if (push) {
                 pcards = getCards('player', bj);
                 dcards = getCards('dealer', bj);
 
                 const embed = new DiscordJS.MessageEmbed()
-                  .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
+                  .setAuthor(msg.author.username, msg.author.displayAvatarURL())
                   .setDescription('Result: Push, money back')
                   .setColor(color)
                   .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
                   .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
                 mEm.edit(embed);
 
-                db.add(`servers.${server.id}.users.${member.id}.economy.cash`, bet); // Add their original money back
+                db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bet); // Add their original money back
               } else if (bust) {
                 pcards = getCards('player', bj);
                 dcards = getCards('dealer', bj);
 
                 const embed = new DiscordJS.MessageEmbed()
-                  .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
+                  .setAuthor(msg.author.username, msg.author.displayAvatarURL())
                   .setDescription('Bust: you lose')
                   .setDescription(`Result: You lose ${cs}${bet.toLocaleString()}`)
                   .setColor(color)
@@ -294,7 +287,7 @@ module.exports = class Blackjack extends Command {
                 dcards = getCards('dealer', bj);
 
                 const embed = new DiscordJS.MessageEmbed()
-                  .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
+                  .setAuthor(msg.author.username, msg.author.displayAvatarURL())
                   .setDescription('Type `hit` to draw another card or `stand` to pass.')
                   .setColor(color)
                   .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
@@ -308,7 +301,7 @@ module.exports = class Blackjack extends Command {
                       dcards = getCards('dealer', bj);
 
                       const embed = new DiscordJS.MessageEmbed()
-                        .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
+                        .setAuthor(msg.author.username, msg.author.displayAvatarURL())
                         .setDescription(`Result: You win ${cs}${bet.toLocaleString()}`)
                         .setColor(color)
                         .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
@@ -316,14 +309,14 @@ module.exports = class Blackjack extends Command {
                       mEm.edit(embed);
 
                       bet = bet * 2;
-                      db.add(`servers.${server.id}.users.${member.id}.economy.cash`, bet); // Add the winning money
+                      db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bet); // Add the winning money
                     } else if (blackjack) {
                       pcards = getCards('player', bj);
                       dcards = getCards('dealer', bj);
                       bet1 = bet * 1.5;
 
                       const embed = new DiscordJS.MessageEmbed()
-                        .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
+                        .setAuthor(msg.author.username, msg.author.displayAvatarURL())
                         .setDescription(`Result: You win ${cs}${bet1.toLocaleString()}`)
                         .setColor(color)
                         .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
@@ -331,26 +324,26 @@ module.exports = class Blackjack extends Command {
                       mEm.edit(embed);
 
                       bet = bet + bet1;
-                      db.add(`servers.${server.id}.users.${member.id}.economy.cash`, bet); // Add the winning money
+                      db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bet); // Add the winning money
                     } else if (push) {
                       pcards = getCards('player', bj);
                       dcards = getCards('dealer', bj);
 
                       const embed = new DiscordJS.MessageEmbed()
-                        .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
+                        .setAuthor(msg.author.username, msg.author.displayAvatarURL())
                         .setDescription('Result: Push, money back')
                         .setColor(color)
                         .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
                         .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
                       mEm.edit(embed);
 
-                      db.add(`servers.${server.id}.users.${member.id}.economy.cash`, bet); // Add their original money back
+                      db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bet); // Add their original money back
                     } else if (bust) {
                       pcards = getCards('player', bj);
                       dcards = getCards('dealer', bj);
 
                       const embed = new DiscordJS.MessageEmbed()
-                        .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
+                        .setAuthor(msg.author.username, msg.author.displayAvatarURL())
                         .setDescription('Bust: you lose')
                         .setDescription(`Result: You lose ${cs}${bet.toLocaleString()}`)
                         .setColor(color)
@@ -365,7 +358,7 @@ module.exports = class Blackjack extends Command {
                       dcards = getCards('dealer', bj);
 
                       const embed = new DiscordJS.MessageEmbed()
-                        .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
+                        .setAuthor(msg.author.username, msg.author.displayAvatarURL())
                         .setDescription(`Result: You win ${cs}${bet.toLocaleString()}`)
                         .setColor(color)
                         .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
@@ -373,14 +366,14 @@ module.exports = class Blackjack extends Command {
                       mEm.edit(embed);
 
                       bet = bet * 2;
-                      db.add(`servers.${server.id}.users.${member.id}.economy.cash`, bet); // Add the winning money
+                      db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bet); // Add the winning money
                     } else if (blackjack) {
                       pcards = getCards('player', bj);
                       dcards = getCards('dealer', bj);
                       bet1 = bet * 1.5;
 
                       const embed = new DiscordJS.MessageEmbed()
-                        .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
+                        .setAuthor(msg.author.username, msg.author.displayAvatarURL())
                         .setDescription(`Result: You win ${cs}${bet1.toLocaleString()}`)
                         .setColor(color)
                         .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
@@ -388,26 +381,26 @@ module.exports = class Blackjack extends Command {
                       mEm.edit(embed);
 
                       bet = bet + bet1;
-                      db.add(`servers.${server.id}.users.${member.id}.economy.cash`, bet); // Add the winning money
+                      db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bet); // Add the winning money
                     } else if (push) {
                       pcards = getCards('player', bj);
                       dcards = getCards('dealer', bj);
 
                       const embed = new DiscordJS.MessageEmbed()
-                        .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
+                        .setAuthor(msg.author.username, msg.author.displayAvatarURL())
                         .setDescription('Result: Push, money back')
                         .setColor(color)
                         .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
                         .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
                       mEm.edit(embed);
 
-                      db.add(`servers.${server.id}.users.${member.id}.economy.cash`, bet); // Add their original money back
+                      db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bet); // Add their original money back
                     } else if (bust) {
                       pcards = getCards('player', bj);
                       dcards = getCards('dealer', bj);
 
                       const embed = new DiscordJS.MessageEmbed()
-                        .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
+                        .setAuthor(msg.author.username, msg.author.displayAvatarURL())
                         .setDescription('Bust: you lose')
                         .setDescription(`Result: You lose ${cs}${bet.toLocaleString()}`)
                         .setColor(color)
@@ -425,7 +418,7 @@ module.exports = class Blackjack extends Command {
                 dcards = getCards('dealer', bj);
 
                 const embed = new DiscordJS.MessageEmbed()
-                  .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
+                  .setAuthor(msg.author.username, msg.author.displayAvatarURL())
                   .setDescription(`Result: You win ${cs}${bet.toLocaleString()}`)
                   .setColor(color)
                   .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
@@ -433,14 +426,14 @@ module.exports = class Blackjack extends Command {
                 mEm.edit(embed);
 
                 bet = bet * 2;
-                db.add(`servers.${server.id}.users.${member.id}.economy.cash`, bet); // Add the winning money
+                db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bet); // Add the winning money
               } else if (blackjack) {
                 pcards = getCards('player', bj);
                 dcards = getCards('dealer', bj);
                 bet1 = bet * 1.5;
 
                 const embed = new DiscordJS.MessageEmbed()
-                  .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
+                  .setAuthor(msg.author.username, msg.author.displayAvatarURL())
                   .setDescription(`Result: You win ${cs}${bet1.toLocaleString()}`)
                   .setColor(color)
                   .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
@@ -448,26 +441,26 @@ module.exports = class Blackjack extends Command {
                 mEm.edit(embed);
 
                 bet = bet + bet1;
-                db.add(`servers.${server.id}.users.${member.id}.economy.cash`, bet); // Add the winning money
+                db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bet); // Add the winning money
               } else if (push) {
                 pcards = getCards('player', bj);
                 dcards = getCards('dealer', bj);
 
                 const embed = new DiscordJS.MessageEmbed()
-                  .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
+                  .setAuthor(msg.author.username, msg.author.displayAvatarURL())
                   .setDescription('Result: Push, money back')
                   .setColor(color)
                   .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
                   .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
                 mEm.edit(embed);
 
-                db.add(`servers.${server.id}.users.${member.id}.economy.cash`, bet); // Add their original money back
+                db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bet); // Add their original money back
               } else if (bust) {
                 pcards = getCards('player', bj);
                 dcards = getCards('dealer', bj);
 
                 const embed = new DiscordJS.MessageEmbed()
-                  .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
+                  .setAuthor(msg.author.username, msg.author.displayAvatarURL())
                   .setDescription('Bust: you lose')
                   .setDescription(`Result: You lose ${cs}${bet.toLocaleString()}`)
                   .setColor(color)
@@ -479,7 +472,7 @@ module.exports = class Blackjack extends Command {
                 dcards = getCards('dealer', bj);
 
                 const embed = new DiscordJS.MessageEmbed()
-                  .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
+                  .setAuthor(msg.author.username, msg.author.displayAvatarURL())
                   .setDescription('Type `hit` to draw another card or `stand` to pass.')
                   .setColor(color)
                   .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
@@ -493,7 +486,7 @@ module.exports = class Blackjack extends Command {
                       dcards = getCards('dealer', bj);
 
                       const embed = new DiscordJS.MessageEmbed()
-                        .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
+                        .setAuthor(msg.author.username, msg.author.displayAvatarURL())
                         .setDescription(`Result: You win ${cs}${bet.toLocaleString()}`)
                         .setColor(color)
                         .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
@@ -501,14 +494,14 @@ module.exports = class Blackjack extends Command {
                       mEm.edit(embed);
 
                       bet = bet * 2;
-                      db.add(`servers.${server.id}.users.${member.id}.economy.cash`, bet); // Add the winning money
+                      db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bet); // Add the winning money
                     } else if (blackjack) {
                       pcards = getCards('player', bj);
                       dcards = getCards('dealer', bj);
                       bet1 = bet * 1.5;
 
                       const embed = new DiscordJS.MessageEmbed()
-                        .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
+                        .setAuthor(msg.author.username, msg.author.displayAvatarURL())
                         .setDescription(`Result: You win ${cs}${bet1.toLocaleString()}`)
                         .setColor(color)
                         .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
@@ -516,26 +509,26 @@ module.exports = class Blackjack extends Command {
                       mEm.edit(embed);
 
                       bet = bet + bet1;
-                      db.add(`servers.${server.id}.users.${member.id}.economy.cash`, bet); // Add the winning money
+                      db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bet); // Add the winning money
                     } else if (push) {
                       pcards = getCards('player', bj);
                       dcards = getCards('dealer', bj);
 
                       const embed = new DiscordJS.MessageEmbed()
-                        .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
+                        .setAuthor(msg.author.username, msg.author.displayAvatarURL())
                         .setDescription('Result: Push, money back')
                         .setColor(color)
                         .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
                         .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
                       mEm.edit(embed);
 
-                      db.add(`servers.${server.id}.users.${member.id}.economy.cash`, bet); // Add their original money back
+                      db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bet); // Add their original money back
                     } else if (bust) {
                       pcards = getCards('player', bj);
                       dcards = getCards('dealer', bj);
 
                       const embed = new DiscordJS.MessageEmbed()
-                        .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
+                        .setAuthor(msg.author.username, msg.author.displayAvatarURL())
                         .setDescription('Bust: you lose')
                         .setDescription(`Result: You lose ${cs}${bet.toLocaleString()}`)
                         .setColor(color)
@@ -550,7 +543,7 @@ module.exports = class Blackjack extends Command {
                       dcards = getCards('dealer', bj);
 
                       const embed = new DiscordJS.MessageEmbed()
-                        .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
+                        .setAuthor(msg.author.username, msg.author.displayAvatarURL())
                         .setDescription(`Result: You win ${cs}${bet.toLocaleString()}`)
                         .setColor(color)
                         .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
@@ -558,14 +551,14 @@ module.exports = class Blackjack extends Command {
                       mEm.edit(embed);
 
                       bet = bet * 2;
-                      db.add(`servers.${server.id}.users.${member.id}.economy.cash`, bet); // Add the winning money
+                      db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bet); // Add the winning money
                     } else if (blackjack) {
                       pcards = getCards('player', bj);
                       dcards = getCards('dealer', bj);
                       bet1 = bet * 1.5;
 
                       const embed = new DiscordJS.MessageEmbed()
-                        .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
+                        .setAuthor(msg.author.username, msg.author.displayAvatarURL())
                         .setDescription(`Result: You win ${cs}${bet1.toLocaleString()}`)
                         .setColor(color)
                         .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
@@ -573,26 +566,26 @@ module.exports = class Blackjack extends Command {
                       mEm.edit(embed);
 
                       bet = bet + bet1;
-                      db.add(`servers.${server.id}.users.${member.id}.economy.cash`, bet); // Add the winning money
+                      db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bet); // Add the winning money
                     } else if (push) {
                       pcards = getCards('player', bj);
                       dcards = getCards('dealer', bj);
 
                       const embed = new DiscordJS.MessageEmbed()
-                        .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
+                        .setAuthor(msg.author.username, msg.author.displayAvatarURL())
                         .setDescription('Result: Push, money back')
                         .setColor(color)
                         .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
                         .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
                       mEm.edit(embed);
 
-                      db.add(`servers.${server.id}.users.${member.id}.economy.cash`, bet); // Add their original money back
+                      db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bet); // Add their original money back
                     } else if (bust) {
                       pcards = getCards('player', bj);
                       dcards = getCards('dealer', bj);
 
                       const embed = new DiscordJS.MessageEmbed()
-                        .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
+                        .setAuthor(msg.author.username, msg.author.displayAvatarURL())
                         .setDescription('Bust: you lose')
                         .setDescription(`Result: You lose ${cs}${bet.toLocaleString()}`)
                         .setColor(color)
@@ -614,7 +607,7 @@ module.exports = class Blackjack extends Command {
           dcards = getCards('dealer', bj);
 
           const embed = new DiscordJS.MessageEmbed()
-            .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
+            .setAuthor(msg.author.username, msg.author.displayAvatarURL())
             .setDescription(`Result: You win ${cs}${bet.toLocaleString()}`)
             .setColor(color)
             .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
@@ -622,14 +615,14 @@ module.exports = class Blackjack extends Command {
           mEm.edit(embed);
 
           bet = bet * 2;
-          db.add(`servers.${server.id}.users.${member.id}.economy.cash`, bet); // Add the winning money
+          db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bet); // Add the winning money
         } else if (blackjack) {
           pcards = getCards('player', bj);
           dcards = getCards('dealer', bj);
           bet1 = bet * 1.5;
 
           const embed = new DiscordJS.MessageEmbed()
-            .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
+            .setAuthor(msg.author.username, msg.author.displayAvatarURL())
             .setDescription(`Result: You win ${cs}${bet1.toLocaleString()}`)
             .setColor(color)
             .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
@@ -637,26 +630,26 @@ module.exports = class Blackjack extends Command {
           mEm.edit(embed);
 
           bet = bet + bet1;
-          db.add(`servers.${server.id}.users.${member.id}.economy.cash`, bet); // Add the winning money
+          db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bet); // Add the winning money
         } else if (push) {
           pcards = getCards('player', bj);
           dcards = getCards('dealer', bj);
 
           const embed = new DiscordJS.MessageEmbed()
-            .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
+            .setAuthor(msg.author.username, msg.author.displayAvatarURL())
             .setDescription('Result: Push, money back')
             .setColor(color)
             .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
             .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
           mEm.edit(embed);
 
-          db.add(`servers.${server.id}.users.${member.id}.economy.cash`, bet); // Add their original money back
+          db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bet); // Add their original money back
         } else if (bust) {
           pcards = getCards('player', bj);
           dcards = getCards('dealer', bj);
 
           const embed = new DiscordJS.MessageEmbed()
-            .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
+            .setAuthor(msg.author.username, msg.author.displayAvatarURL())
             .setDescription('Bust: you lose')
             .setDescription(`Result: You lose ${cs}${bet.toLocaleString()}`)
             .setColor(color)

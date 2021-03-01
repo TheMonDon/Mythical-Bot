@@ -1,6 +1,5 @@
 const Command = require('../../base/Command.js');
 const DiscordJS = require('discord.js');
-const request = require('request'); // request is depreciated i will find something else later
 const fetch = require('node-superfetch');
 const { JSONPath } = require('jsonpath-plus');
 
@@ -17,7 +16,7 @@ class mcAccount extends Command {
 
   async run(msg, args) {
     const p = msg.settings.prefix;
-    
+
     if (!args || args.length < 1) {
       const embed = new DiscordJS.MessageEmbed()
         .setTitle('Invalid Username')
@@ -53,11 +52,12 @@ class mcAccount extends Command {
           .addField('Name Chanmges History', nc || 'Error fetching data...', false)
           .addField('UUID', id, false)
           .addField('NameMC Link', `Click [here](https://es.namemc.com/profile/${id}) to go to their NameMC Profile`, false);
-        msg.channel.send(em);
+        return msg.channel.send(em);
 
       } catch (err) {
-        console.error(err);
+        return console.error(err);
       }
+
     } catch (err) {
       const em = new DiscordJS.MessageEmbed()
         .setTitle('Account Not Found')

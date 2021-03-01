@@ -2,7 +2,7 @@ const Command = require('../../base/Command.js');
 const { MessageEmbed } = require('discord.js');
 
 class Help extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'help',
       description: 'Displays all the available commands for you.',
@@ -12,17 +12,14 @@ class Help extends Command {
     });
   }
 
-  async run (message, args, level) {
-    const msg = message;
-
+  async run(msg, args, level) {
     const settings = msg.settings;
 
-    const cats = ['General', 'Economy', 'Fun', 'Memes', 'NSFW', 'Logging', 'Information', 'Music', 'Moderator', 'Administrator'];
-    const allcats = ['General', 'Economy', 'Fun', 'Memes', 'NSFW', 'Logging', 'Information', 'Music', 'Moderator', 'Administrator', 'Ticket', 'Owner'];
+    const cats = ['General', 'Economy', 'Fun', 'Memes', 'NSFW', 'Logging', 'Information', 'Music', 'Minecraft', 'Moderator', 'Administrator'];
+    const allcats = ['General', 'Economy', 'Fun', 'Memes', 'NSFW', 'Logging', 'Information', 'Music', 'Minecraft', 'Moderator', 'Administrator', 'Ticket', 'Owner'];
     const text = args.join(' ').toLowerCase();
-    const em = new MessageEmbed();
-    const name = msg.member && msg.member.displayName || msg.author.username;
-    em.setAuthor(name, msg.author.displayAvatarURL());
+    const em = new MessageEmbed()
+      .setAuthor(msg.author.username, msg.author.displayAvatarURL());
 
     if (!text) {
       em.setColor('ORANGE');
@@ -43,7 +40,7 @@ class Help extends Command {
       em.setTitle(`${category} Commands`);
       em.setColor('0099CC');
       const myCommands = this.client.commands.filter(cmd => this.client.levelCache[cmd.conf.permLevel] <= level);
-      const sorted = myCommands.array().sort((p, c) => p.help.category > c.help.category ? 1 :  p.help.name > c.help.name && p.help.category === c.help.category ? 1 : -1 );
+      const sorted = myCommands.array().sort((p, c) => p.help.category > c.help.category ? 1 : p.help.name > c.help.name && p.help.category === c.help.category ? 1 : -1);
       sorted.forEach(c => {
         const cat = c.help.category.toProperCase();
         if (category !== cat) {
@@ -58,7 +55,7 @@ class Help extends Command {
       em.setTitle(`${category} Commands`);
       em.setColor('0099CC');
       const myCommands = this.client.commands.filter(cmd => this.client.levelCache[cmd.conf.permLevel] <= level);
-      const sorted = myCommands.array().sort((p, c) => p.help.category > c.help.category ? 1 :  p.help.name > c.help.name && p.help.category === c.help.category ? 1 : -1 );
+      const sorted = myCommands.array().sort((p, c) => p.help.category > c.help.category ? 1 : p.help.name > c.help.name && p.help.category === c.help.category ? 1 : -1);
       sorted.forEach(c => {
         const cat = c.help.category.toProperCase();
         if (category !== cat) {
@@ -73,7 +70,7 @@ class Help extends Command {
       em.setTitle(`${category} Commands`);
       em.setColor('0099CC');
       const myCommands = this.client.commands.filter(cmd => this.client.levelCache[cmd.conf.permLevel] <= level);
-      const sorted = myCommands.array().sort((p, c) => p.help.category > c.help.category ? 1 :  p.help.name > c.help.name && p.help.category === c.help.category ? 1 : -1 );
+      const sorted = myCommands.array().sort((p, c) => p.help.category > c.help.category ? 1 : p.help.name > c.help.name && p.help.category === c.help.category ? 1 : -1);
       sorted.forEach(c => {
         const cat = c.help.category.toProperCase();
         if (category !== cat) {
@@ -88,7 +85,7 @@ class Help extends Command {
       em.setTitle(`${category} Commands`);
       em.setColor('0099CC');
       const myCommands = this.client.commands.filter(cmd => this.client.levelCache[cmd.conf.permLevel] <= level);
-      const sorted = myCommands.array().sort((p, c) => p.help.category > c.help.category ? 1 :  p.help.name > c.help.name && p.help.category === c.help.category ? 1 : -1 );
+      const sorted = myCommands.array().sort((p, c) => p.help.category > c.help.category ? 1 : p.help.name > c.help.name && p.help.category === c.help.category ? 1 : -1);
       sorted.forEach(c => {
         const cat = c.help.category.toProperCase();
         if (category !== cat) {
@@ -103,7 +100,7 @@ class Help extends Command {
       em.setTitle(`${category} Commands`);
       em.setColor('0099CC');
       const myCommands = this.client.commands.filter(cmd => this.client.levelCache[cmd.conf.permLevel] <= level);
-      const sorted = myCommands.array().sort((p, c) => p.help.category > c.help.category ? 1 :  p.help.name > c.help.name && p.help.category === c.help.category ? 1 : -1 );
+      const sorted = myCommands.array().sort((p, c) => p.help.category > c.help.category ? 1 : p.help.name > c.help.name && p.help.category === c.help.category ? 1 : -1);
       sorted.forEach(c => {
         const cat = c.help.category.toProperCase();
         if (category !== cat) {
@@ -118,7 +115,7 @@ class Help extends Command {
       em.setTitle(`${category} Commands`);
       em.setColor('0099CC');
       const myCommands = this.client.commands.filter(cmd => this.client.levelCache[cmd.conf.permLevel] <= level);
-      const sorted = myCommands.array().sort((p, c) => p.help.category > c.help.category ? 1 :  p.help.name > c.help.name && p.help.category === c.help.category ? 1 : -1 );
+      const sorted = myCommands.array().sort((p, c) => p.help.category > c.help.category ? 1 : p.help.name > c.help.name && p.help.category === c.help.category ? 1 : -1);
       sorted.forEach(c => {
         const cat = c.help.category.toProperCase();
         if (category !== cat) {
@@ -133,7 +130,7 @@ class Help extends Command {
       em.setTitle(`${category} Commands`);
       em.setColor('0099CC');
       const myCommands = this.client.commands.filter(cmd => this.client.levelCache[cmd.conf.permLevel] <= level);
-      const sorted = myCommands.array().sort((p, c) => p.help.category > c.help.category ? 1 :  p.help.name > c.help.name && p.help.category === c.help.category ? 1 : -1 );
+      const sorted = myCommands.array().sort((p, c) => p.help.category > c.help.category ? 1 : p.help.name > c.help.name && p.help.category === c.help.category ? 1 : -1);
       sorted.forEach(c => {
         const cat = c.help.category.toProperCase();
         if (category !== cat) {
@@ -148,7 +145,7 @@ class Help extends Command {
       em.setTitle(`${category} Commands`);
       em.setColor('0099CC');
       const myCommands = this.client.commands.filter(cmd => this.client.levelCache[cmd.conf.permLevel] <= level);
-      const sorted = myCommands.array().sort((p, c) => p.help.category > c.help.category ? 1 :  p.help.name > c.help.name && p.help.category === c.help.category ? 1 : -1 );
+      const sorted = myCommands.array().sort((p, c) => p.help.category > c.help.category ? 1 : p.help.name > c.help.name && p.help.category === c.help.category ? 1 : -1);
       sorted.forEach(c => {
         const cat = c.help.category.toProperCase();
         if (category !== cat) {
@@ -164,7 +161,7 @@ class Help extends Command {
       em.setTitle(`${category} Commands`);
       em.setColor('0099CC');
       const myCommands = this.client.commands.filter(cmd => this.client.levelCache[cmd.conf.permLevel] <= level);
-      const sorted = myCommands.array().sort((p, c) => p.help.category > c.help.category ? 1 :  p.help.name > c.help.name && p.help.category === c.help.category ? 1 : -1 );
+      const sorted = myCommands.array().sort((p, c) => p.help.category > c.help.category ? 1 : p.help.name > c.help.name && p.help.category === c.help.category ? 1 : -1);
       sorted.forEach(c => {
         const cat = c.help.category.toUpperCase();
         if (category !== cat) {
@@ -180,7 +177,7 @@ class Help extends Command {
       em.setTitle(`${category} Commands`);
       em.setColor('0099CC');
       const myCommands = this.client.commands.filter(cmd => this.client.levelCache[cmd.conf.permLevel] <= level);
-      const sorted = myCommands.array().sort((p, c) => p.help.category > c.help.category ? 1 :  p.help.name > c.help.name && p.help.category === c.help.category ? 1 : -1 );
+      const sorted = myCommands.array().sort((p, c) => p.help.category > c.help.category ? 1 : p.help.name > c.help.name && p.help.category === c.help.category ? 1 : -1);
       sorted.forEach(c => {
         const cat = c.help.category.toProperCase();
         if (category !== cat) {
@@ -196,7 +193,7 @@ class Help extends Command {
       em.setTitle(`${category} Commands`);
       em.setColor('0099CC');
       const myCommands = this.client.commands.filter(cmd => this.client.levelCache[cmd.conf.permLevel] <= level);
-      const sorted = myCommands.array().sort((p, c) => p.help.category > c.help.category ? 1 :  p.help.name > c.help.name && p.help.category === c.help.category ? 1 : -1 );
+      const sorted = myCommands.array().sort((p, c) => p.help.category > c.help.category ? 1 : p.help.name > c.help.name && p.help.category === c.help.category ? 1 : -1);
       sorted.forEach(c => {
         const cat = c.help.category.toProperCase();
         if (category !== cat) {
@@ -212,7 +209,7 @@ class Help extends Command {
       em.setTitle(`${category} Commands`);
       em.setColor('0099CC');
       const myCommands = this.client.commands.filter(cmd => this.client.levelCache[cmd.conf.permLevel] <= level);
-      const sorted = myCommands.array().sort((p, c) => p.help.category > c.help.category ? 1 :  p.help.name > c.help.name && p.help.category === c.help.category ? 1 : -1 );
+      const sorted = myCommands.array().sort((p, c) => p.help.category > c.help.category ? 1 : p.help.name > c.help.name && p.help.category === c.help.category ? 1 : -1);
       sorted.forEach(c => {
         const cat = c.help.category.toProperCase();
         if (category !== cat) {
@@ -228,7 +225,7 @@ class Help extends Command {
       em.setTitle(`${category} Commands`);
       em.setColor('0099CC');
       const myCommands = this.client.commands.filter(cmd => this.client.levelCache[cmd.conf.permLevel] <= level);
-      const sorted = myCommands.array().sort((p, c) => p.help.category > c.help.category ? 1 :  p.help.name > c.help.name && p.help.category === c.help.category ? 1 : -1 );
+      const sorted = myCommands.array().sort((p, c) => p.help.category > c.help.category ? 1 : p.help.name > c.help.name && p.help.category === c.help.category ? 1 : -1);
       sorted.forEach(c => {
         const cat = c.help.category.toProperCase();
         if (category !== cat) {
@@ -252,14 +249,14 @@ class Help extends Command {
         em.addField('Description', command.help.description, false);
         em.addField('Long Description', command.help.longDescription, false);
         return msg.channel.send(em);
-        // return message.channel.send(`= ${command.help.name} = \n${command.help.description}\nusage:: ${command.help.usage}\nalises:: ${command.conf.aliases.join(', ')}`, {code:'asciidoc'});
+
       } else {
         em.setColor('ORANGE');
         em.setTitle('Incorrect Usage');
         em.setDescription(`Please select a category to see all available commands. \nUsage: \`${msg.settings.prefix}help <category\` \nUsage: \`${msg.settings.prefix}help <command>\``);
         em.addField('Current Categories:', cats, true);
         em.addField('Quick Bits', '[Invite Link](https://discord.com/oauth2/authorize?client_id=742407958729588767&scope=bot&permissions=171306176)', true);
-        msg.channel.send(em);
+        return msg.channel.send(em);
       }
     }
   }
