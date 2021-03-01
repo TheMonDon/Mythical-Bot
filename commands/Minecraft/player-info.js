@@ -13,7 +13,7 @@ class playerinfo extends Command {
       name: 'player-info',
       description: 'Get information about minecraft player from discord or minecraft username.',
       usage: 'player-info [member]',
-      category: 'Fun',
+      category: 'Minecraft',
       aliases: ['mctodc', 'dctomc', 'playerinfo', 'pinfo']
     });
   }

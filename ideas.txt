@@ -1,9 +1,0 @@
-Idea: Wheel of fortune type thing, gif spinny wheel and see if they win any prices.
-
-LB Removal:
-const users = servers.${server.id}
-users.forEach(user => {
-if (!server.members.cache.get(user)) db.delete(user)
-})
-
-Add fine amount to Rob Command

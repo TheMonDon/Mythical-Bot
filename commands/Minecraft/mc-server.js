@@ -8,7 +8,7 @@ class mcserver extends Command {
       name: 'mc-server',
       description: 'Get information about a Minecraft server.',
       usage: 'mc-server <IP Address>',
-      category: 'Fun',
+      category: 'Minecraft',
       aliases: ['mcs', 'mcserver', 'stats', 'mcstats', 'mcip']
     });
   }
