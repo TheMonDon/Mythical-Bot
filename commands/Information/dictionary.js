@@ -25,12 +25,12 @@ class DictionaryCommand extends Command {
     owl.define(input)
       .then(function (result) {
         if (!result) return msg.channel.send('No entry was found for that word.'); // Edited owlbot-js index.js to return error.
-        const example = result.definitions[0].example.replace(/(<([^>]+)>)/gi, '');
+        const example = result.definitions?.[0]?.example?.replace(/(<([^>]+)>)/gi, '');
         const em = new DiscordJS.MessageEmbed()
           .setTitle('Dictionary Information')
           .setColor('RANDOM')
           .setAuthor(msg.author.username, msg.author.displayAvatarURL())
-          .addField('Definition', result.definitions[0].definition, true)
+          .addField('Definition', result.definitions?.[0]?.definition, true)
           .addField('Example', example || 'No example provided', true)
           .addField('Pronunciation', result.pronunciation || 'No pronunciation provided', true);
         if (result.definitions[0].image_url) em.setThumbnail(result.definitions[0].image_url);
