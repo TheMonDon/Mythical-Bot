@@ -68,7 +68,7 @@ class logtoggle extends Command {
         } else {
           chan = msg.mentions.channels.first() ||
             msg.guild.channels.cache.find(c => c.id === `${args[1]}`) ||
-            msg.guild.channels.cache.find(c => c.name.toLowerCase() ==== `${args[1].toLowerCase()}`) ||
+            msg.guild.channels.cache.find(c => c.name.toLowerCase() === `${args[1].toLowerCase()}`) ||
             msg.guild.channels.cache.find(c => c.name.toLowerCase().includes(`${args[1].toLowerCase()}`));
         }
         if (!chan) return msg.channel.send('I could not find a channel with that information.');

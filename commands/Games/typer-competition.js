@@ -16,7 +16,7 @@ class typerCommand extends Command {
       usage: 'typer-competition',
       category: 'Games',
       aliases: ['typercompetition', 'tc']
-    })
+    });
   }
 
   async run (msg) {
@@ -27,13 +27,13 @@ class typerCommand extends Command {
       const file = fs.createWriteStream(fntPath);
       https.get('https://raw.githubusercontent.com/TheMonDon/storage/master/Moms_Typewriter.ttf', function (response) {
         response.pipe(file);
-      })
+      });
       console.log('Downloaded file to: ' + fntPath);
     }
 
     registerFont(fntPath, {
-      family: 'Moms Typewriter';
-    })
+      family: 'Moms Typewriter'
+    });
 
     const canvas = createCanvas(290, 80);
     const ctx = canvas.getContext('2d');
@@ -53,7 +53,7 @@ class typerCommand extends Command {
 
     const filter = (reaction, user) => {
       return reaction.emoji.name === '🏁' && !user.bot;
-    }
+    };
 
     embed1.awaitReactions(filter, {
       max: 2,
@@ -80,11 +80,11 @@ class typerCommand extends Command {
               await sleep(1000);
               getReady.edit('Go!');
               theImage = await msg.channel.send(attachment);
-            })()
+            })();
 
             const filter2 = (message) => {
               return message.content.toLowerCase() === randWord.toLowerCase();
-            }
+            };
             msg.channel.awaitMessages(filter2, {
               max: 1,
               time: 30000,
@@ -103,18 +103,18 @@ class typerCommand extends Command {
                   .setColor('#41f4eb')
                   .setDescription(stripIndents`
                   ${winner} won! :tada:
-                  Time: ${time}s`)
+                  Time: ${time}s`);
                 return msg.channel.send(em1);
               })
               .catch(() => {
-                getReady.delete()
+                getReady.delete();
                 return msg.channel.send('No one guessed the correct word in time.');
-              })
-          })
+              });
+          });
       })
       .catch(() => {
         return msg.channel.send('No one reacted in time');
-      })
+      });
   }
 }
-module.exports = typerCommand
+module.exports = typerCommand;
