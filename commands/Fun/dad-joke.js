@@ -3,7 +3,7 @@ const fetch = require('node-fetch');
 const DiscordJS = require('discord.js');
 
 class dadJoke extends Command {
-  constructor(client) {
+  constructor (client) {
     super(client, {
       name: 'dad-joke',
       description: 'Send a dad joke.',
@@ -13,9 +13,9 @@ class dadJoke extends Command {
     });
   }
 
-  async run(msg) {
-    fetch("https://icanhazdadjoke.com/", {
-      headers: { "Accept": "text/plain" }
+  async run (msg) {
+    fetch('https://icanhazdadjoke.com/', {
+      headers: { Accept: 'text/plain' }
     })
       .then(res => res.text())
       .then(body => {
@@ -25,7 +25,7 @@ class dadJoke extends Command {
           .setDescription(body)
           .setFooter('Powered by: https://icanhazdadjoke.com/');
         return msg.channel.send(embed);
-      })
+      });
   }
 }
 module.exports = dadJoke;

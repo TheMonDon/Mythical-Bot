@@ -1,24 +1,25 @@
+/* eslint-disable prefer-regex-literals */
 const Command = require('../../base/Command.js');
 const db = require('quick.db');
 const DiscordJS = require('discord.js');
 
 class unban extends Command {
-  constructor(client) {
+  constructor (client) {
     super(client, {
       name: 'unban',
       description: 'Unban a member',
       usage: 'unban <userID> [reason]',
       category: 'Moderator',
-      guildOnly: true,
+      guildOnly: true
     });
   }
 
-  async run(msg, args) {
+  async run (msg, args) {
     if (!msg.member.permissions.has('BAN_MEMBERS')) return msg.channel.send('You are missing the BAN_MEMBERS permission.');
     if (!msg.guild.me.permissions.has('BAN_MEMBERS')) return msg.channel.send('The bot is missing BAN_MEMBERS permission.');
 
     if (!args || args.length < 1) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}unban <userID> [reason]`);
-    const log_chan = db.get(`servers.${msg.guild.id}.logging.channel`);
+    const logChan = db.get(`servers.${msg.guild.id}.logging.channel`);
 
     const regex = new RegExp(/\d+/g);
     const userID = args[0];
@@ -46,7 +47,7 @@ class unban extends Command {
           embed.addField('Reason', reason, true);
           embed.setFooter(`ID: ${unbanP.id}`);
           embed.setTimestamp();
-          if (log_chan) msg.guild.channels.cache.get(log_chan).send(embed);
+          if (logChan) msg.guild.channels.cache.get(logChan).send(embed);
 
           return msg.channel.send(embed);
         });

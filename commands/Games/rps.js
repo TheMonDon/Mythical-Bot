@@ -3,7 +3,7 @@ const { stripIndents } = require('common-tags');
 const DiscordJS = require('discord.js');
 
 class rps extends Command {
-  constructor(client) {
+  constructor (client) {
     super(client, {
       name: 'rps',
       description: 'Play a game of rock paper scissors.',
@@ -13,7 +13,7 @@ class rps extends Command {
     });
   }
 
-  async run(msg, text) {
+  async run (msg, text) {
     const p = msg.settings.prefix;
     const server = msg.guild;
     let mem;
@@ -48,7 +48,7 @@ class rps extends Command {
         await msg.channel.awaitMessages(msg => msg.content.match(/^rock|paper|scissors$/i) && msg.author.id === p1.id, {
           max: 1,
           time: 60000,
-          errors: ['time'],
+          errors: ['time']
         })
           .then((collected) => {
             auth_reply = collected.first()
@@ -76,7 +76,7 @@ class rps extends Command {
         await msg.channel.awaitMessages(msg => msg.content.match(/^rock|paper|scissors$/i) && msg.author.id === mem.id, {
           max: 1,
           time: 60000,
-          errors: ['time'],
+          errors: ['time']
         })
           .then((collected) => {
             mem_reply = collected.first()

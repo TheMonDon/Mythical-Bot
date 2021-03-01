@@ -15,27 +15,29 @@ class Exec extends Command {
   async run (msg, args, level) {
     const code = args.join(' ');
     if (!code) return msg.channel.send('You must include a code to execute!');
-    
+
     const { exec } = require('child_process');
     exec(code, (err, stdout, stderr) => {
       if (err) {
         msg.channel.send(err, {
-          code: 'xl'
+          code: 'xl',
+          split: 2000
         });
       }
       if (stderr) {
         msg.channel.send(stderr, {
-          code: 'xl'
+          code: 'xl',
+          split: 2000
         });
       }
       if (stdout) {
         msg.channel.send(stdout, {
-          code: 'xl'
+          code: 'xl',
+          split: 2000
         });
       }
       if (!stderr && !stdout) msg.channel.send('Code executed! There is no output.');
     });
-    
   }
 }
 

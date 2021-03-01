@@ -3,7 +3,7 @@ const { stripIndents } = require('common-tags');
 const DiscordJS = require('discord.js');
 
 class Emoji extends Command {
-  constructor(client) {
+  constructor (client) {
     super(client, {
       name: 'emoji',
       description: 'Sends the image of the provided emojis',
@@ -20,7 +20,7 @@ class Emoji extends Command {
     });
   }
 
-  async run(msg, args) {
+  async run (msg, args) {
     const p = msg.settings.prefix;
     const usage = stripIndents`
       Incorrect Usage:
@@ -62,7 +62,6 @@ class Emoji extends Command {
       if (!result.deletable) return msg.channel.send('That emoji is not deletable.');
       result.delete();
       return msg.channel.send(`${msg.member}, the emoji has been succesfully deleted.`);
-
     } else if (type === 'info') {
       const emoji = args[1];
       let result;
@@ -87,7 +86,6 @@ class Emoji extends Command {
         .addField('Emoji is Available?', result.available, true)
         .addField('Emoji Author', result.author || 'N/A', true);
       return msg.channel.send(em);
-
     } else if (type === 'rename') {
       const emoji = args[1];
       const name = args[2];

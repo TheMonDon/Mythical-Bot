@@ -1,3 +1,6 @@
+/* eslint-disable camelcase */
+/* eslint-disable no-undef */
+/* eslint-disable prefer-regex-literals */
 const Command = require('../../base/Command.js');
 const DiscordJS = require('discord.js');
 const Nfetch = require('node-superfetch');
@@ -6,7 +9,7 @@ const moment = require('moment');
 require('moment-duration-format');
 
 class playerinfo extends Command {
-  constructor(client) {
+  constructor (client) {
     super(client, {
       name: 'player-info',
       description: 'Get information about minecraft player from discord or minecraft username.',
@@ -16,7 +19,7 @@ class playerinfo extends Command {
     });
   }
 
-  async run(msg, text) {
+  async run (msg, text) {
     const server = msg.guild;
 
     let user;
@@ -94,68 +97,68 @@ class playerinfo extends Command {
 }
 
 const information = async function (id, pool, member, user1, msg) {
-    const { body } = await Nfetch.get(`https://api.mojang.com/user/profiles/${id}/names`)
-      .catch(() => {
-        const em = new DiscordJS.MessageEmbed()
-          .setTitle('Account Not Found')
-          .setColor('FF0000')
-          .setDescription(`An account with the name \`${user}\` was not found.`);
-        return msg.channel.send(em);
-      });
-    const nc = JSONPath({ path: '*.name', json: body }).join(', ');
-    const name = nc.slice(nc.lastIndexOf(',') + 1);
+  const { body } = await Nfetch.get(`https://api.mojang.com/user/profiles/${id}/names`)
+    .catch(() => {
+      const em = new DiscordJS.MessageEmbed()
+        .setTitle('Account Not Found')
+        .setColor('FF0000')
+        .setDescription(`An account with the name \`${user}\` was not found.`);
+      return msg.channel.send(em);
+    });
+  const nc = JSONPath({ path: '*.name', json: body }).join(', ');
+  const name = nc.slice(nc.lastIndexOf(',') + 1);
 
-    pool.query(`SELECT * FROM chatreaction.survival_newreactionstats WHERE uuid = '${id}'`, function (error, results) {
-      let wins;
+  pool.query(`SELECT * FROM chatreaction.survival_newreactionstats WHERE uuid = '${id}'`, function (error, results) {
+    let wins;
+    if (error) {
+      wins = false;
+    } else {
+      wins = results?.[0]?.wins || false;
+    }
+
+    pool.query(`SELECT * FROM friends.fr_players WHERE player_uuid = '${id}'`, function (error, results) {
+      let last_online;
       if (error) {
-        wins = false;
+        last_online = false;
       } else {
-        wins = results?.[0]?.wins || false;
+        last_online = results?.[0]?.last_online.toString() || false;
       }
 
-      pool.query(`SELECT * FROM friends.fr_players WHERE player_uuid = '${id}'`, function (error, results) {
-        let last_online;
+      pool.query(`SELECT SUM(session_end - session_start) FROM plan.plan_sessions WHERE uuid = '${id}'`, async function (error, results) {
+        let out;
         if (error) {
-          last_online = false;
+          out = '0s';
         } else {
-          last_online = results?.[0]?.last_online.toString() || false;
+          const sum = results?.[0]['SUM(session_end - session_start)'];
+          out = moment.duration(sum).format('hh[h] mm[m] s[s]');
         }
 
-        pool.query(`SELECT SUM(session_end - session_start) FROM plan.plan_sessions WHERE uuid = '${id}'`, async function (error, results) {
-          let out;
+        pool.query(`SELECT double_value FROM plan.plan_extension_user_values WHERE provider_id = 15 AND uuid = '${id}'`, function (error, results) {
+          let bal;
           if (error) {
-            out = '0s';
+            bal = 0;
           } else {
-            const sum = results?.[0]['SUM(session_end - session_start)'];
-            out = moment.duration(sum).format('hh[h] mm[m] s[s]');
+            bal = results?.[0]?.double_value || 0;
           }
 
-          pool.query(`SELECT double_value FROM plan.plan_extension_user_values WHERE provider_id = 15 AND uuid = '${id}'`, function (error, results) {
-            let bal;
-            if (error) {
-              bal = 0;
-            } else {
-              bal = results?.[0]?.double_value || 0;
-            }
+          const em = new DiscordJS.MessageEmbed()
+            .setTitle(`${name}'s Account Information`)
+            .setColor('00FF00')
+            .setImage(`https://mc-heads.net/body/${id}`)
+            .addField('Name Changes History', nc || 'Error fetching data...', false)
+            .addField('UUID', id, false)
+            .addField('NameMC Link', `Click [here](https://es.namemc.com/profile/${id}) to go to their NameMC Profile`, false);
+          if (member) em.addField('Discord', `${user1.user.tag} (${user1.id})`, false);
+          if (wins) em.addField('Reaction Wins', wins, false);
+          if (last_online) em.addField('Last Online', last_online, false);
+          if (out !== '0s') em.addField('Play Time', out, false);
+          if (bal) em.addField('Survival Balance', `$${bal.toLocaleString()}`, false);
 
-            const em = new DiscordJS.MessageEmbed()
-              .setTitle(`${name}'s Account Information`)
-              .setColor('00FF00')
-              .setImage(`https://mc-heads.net/body/${id}`)
-              .addField('Name Changes History', nc || 'Error fetching data...', false)
-              .addField('UUID', id, false)
-              .addField('NameMC Link', `Click [here](https://es.namemc.com/profile/${id}) to go to their NameMC Profile`, false);
-            if (member) em.addField('Discord', `${user1.user.tag} (${user1.id})`, false);
-            if (wins) em.addField('Reaction Wins', wins, false);
-            if (last_online) em.addField('Last Online', last_online, false);
-            if (out != '0s') em.addField('Play Time', out, false);
-            if (bal) em.addField('Survival Balance', `$${bal.toLocaleString()}`, false);
-
-            return msg.channel.send(em);
-          });
+          return msg.channel.send(em);
         });
       });
     });
+  });
 };
 
 module.exports = playerinfo;

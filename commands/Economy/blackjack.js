@@ -11,7 +11,7 @@ module.exports = class Blackjack extends Command {
       examples: ['blackjack 100'],
       aliases: ['bj'],
       guildOnly: true
-    });    
+    });
   }
 
   async run (msg, args) {

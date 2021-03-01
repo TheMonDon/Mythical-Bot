@@ -1,7 +1,7 @@
 const Command = require('../../base/Command.js');
 
 class Nickname extends Command {
-  constructor(client) {
+  constructor (client) {
     super(client, {
       name: 'nickname',
       description: 'Change the nickname of a member',
@@ -12,7 +12,7 @@ class Nickname extends Command {
     });
   }
 
-  async run(msg, text) {
+  async run (msg, text) {
     const me = msg.guild.me;
     const p = msg.settings.prefix;
 
@@ -27,7 +27,7 @@ class Nickname extends Command {
     if (!infoMem) return msg.channel.send('Please supply a proper member.');
     if (infoMem.id === msg.guild.owner.id) return msg.channel.send('Only the server owner of the server can change their nickname.');
     if (infoMem.roles.highest.position > me.roles.highest.position - 1) return msg.channel.send('I need my role higher to change that users nickname.');
-    
+
     text.shift();
     const nick = text.join(' ');
     if (nick) {

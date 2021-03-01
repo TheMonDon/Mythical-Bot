@@ -3,7 +3,7 @@ const db = require('quick.db');
 const DiscordJS = require('discord.js');
 
 class blacklist extends Command {
-  constructor(client) {
+  constructor (client) {
     super(client, {
       name: 'blacklist',
       description: 'Blacklist someone from using the bot',
@@ -11,11 +11,11 @@ class blacklist extends Command {
       category: 'Moderator',
       aliases: ['bl'],
       permLevel: 'Moderator',
-      guildOnly: true,
+      guildOnly: true
     });
   }
 
-  async run(msg, text) {
+  async run (msg, text) {
     let mem;
     let type;
     const usage = `${msg.settings.prefix}blacklist <add | remove | check> <user> <reason>`;
@@ -91,10 +91,10 @@ class blacklist extends Command {
       mem.send(em);
     } else if (type === 'check') { // check if member is blacklisted
       const reason = db.get(`servers.${msg.guild.id}.users.${mem.id}.blacklistReason`) || false;
-      /*let bl;
-      if (!blacklist) { bl = 'is not'; } else { bl = 'is'; }*/
+      /* let bl;
+      if (!blacklist) { bl = 'is not'; } else { bl = 'is'; } */
 
-      const bl = blacklist ? bl = 'is' : bl = 'is not';
+      const bl = blacklist ? 'is' : 'is not';
       const em = new DiscordJS.MessageEmbed()
         .setTitle(`${mem.user.tag} blacklist check`)
         .setColor('#0099CC')

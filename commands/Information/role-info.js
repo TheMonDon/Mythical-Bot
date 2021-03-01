@@ -4,7 +4,7 @@ const moment = require('moment');
 require('moment-duration-format');
 
 class roleInfo extends Command {
-  constructor(client) {
+  constructor (client) {
     super(client, {
       name: 'role-info',
       description: 'Gives some useful role information',
@@ -15,7 +15,7 @@ class roleInfo extends Command {
     });
   }
 
-  async run(msg, text) {
+  async run (msg, text) {
     let infoRole;
     const server = msg.guild;
     const p = msg.settings.prefix;
@@ -27,8 +27,8 @@ class roleInfo extends Command {
     }
 
     if (!infoRole) return msg.channel.send(`:x: Incorrect Usage: ${p}roleinfo <Role Name | Role ID | @role>`);
-    
-    //time
+
+    // time
     const then = moment(infoRole.createdAt);
     const time = then.from(moment());
     const ca = then.format('MMM Do, YYYY');

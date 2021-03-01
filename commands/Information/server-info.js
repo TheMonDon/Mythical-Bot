@@ -4,7 +4,7 @@ const moment = require('moment');
 require('moment-duration-format');
 
 class serverInfo extends Command {
-  constructor(client) {
+  constructor (client) {
     super(client, {
       name: 'server-info',
       description: 'Gives some useful server information',
@@ -14,7 +14,7 @@ class serverInfo extends Command {
     });
   }
 
-  async run(msg, args) {
+  async run (msg, args) {
     let server;
     if (!args || args.length < 1) {
       if (!msg.guild) return msg.channel.send('Please provide a server to get information for.');
@@ -58,7 +58,7 @@ class serverInfo extends Command {
       .addField(`Roles (${server.roles.cache.size.toLocaleString()})`, server === msg.guild ? roles1 : 'Can\'t display roles outside the server', true);
     return msg.channel.send(embed);
 
-    function cfl(string) {
+    function cfl (string) {
       return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
     }
   }

@@ -20,11 +20,11 @@ class Lyrics extends Command {
     } else {
       song = args.join(' ');
     }
-    song = song.replace(/\(lyrics|lyric|official music video|audio|official|official video|official video hd|clip officiel|clip|extended|hq\)/g, "");
+    song = song.replace(/\(lyrics|lyric|official music video|audio|official|official video|official video hd|clip officiel|clip|extended|hq\)/g, '');
     const lyrics = await lf(song, '');
     if (!lyrics) return msg.channel.send(`No lyrics found for: ${song}`);
 
-    return msg.channel.send(lyrics, { code: 'ascii', split: '\n'});
+    return msg.channel.send(lyrics, { code: 'ascii', split: '\n' });
   }
 }
 

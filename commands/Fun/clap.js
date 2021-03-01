@@ -1,7 +1,7 @@
 const Command = require('../../base/Command.js');
 
 class clap extends Command {
-  constructor(client) {
+  constructor (client) {
     super(client, {
       name: 'clap',
       description: 'Clappify your text.',
@@ -10,16 +10,16 @@ class clap extends Command {
     });
   }
 
-  async run(msg, args) {
+  async run (msg, args) {
     const p = msg.settings.prefix;
     const clapify = args.join(' ');
 
     if (!args || args.length < 2) return msg.channel.send(`Incorrect Usage: ${p}Clap <text>`);
 
-    const clap = clapify.replace(/\s/g, ' 👏 ').replace(/@/g, '')
+    const clap = clapify.replace(/\s/g, ' 👏 ').replace(/@/g, '');
 
     if (clap.length > 2000) return msg.channel.send(`Your message is too long. Please keep it under 2000 characters. (${clap.length}/2000)`);
-    msg.channel.send(clap)
+    return msg.channel.send(clap);
   }
 }
 module.exports = clap;

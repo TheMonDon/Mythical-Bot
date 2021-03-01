@@ -2,8 +2,8 @@ const Command = require('../../base/Command.js');
 const DiscordJS = require('discord.js');
 const { stripIndents } = require('common-tags');
 
-class Ping extends Command {
-  constructor(client) {
+class Perms extends Command {
+  constructor (client) {
     super(client, {
       name: 'perms',
       description: 'Figure out what permissions you or another member have.',
@@ -14,7 +14,7 @@ class Ping extends Command {
     });
   }
 
-  async run(msg, args) {
+  async run (msg, args) {
     const mem = args.join(' ');
     const server = msg.guild;
     let infoMem;
@@ -84,7 +84,7 @@ class Ping extends Command {
     \`Use External Emojis\`| ${(infoMem.hasPermission('USE_EXTERNAL_EMOJIS') ? yes : no)}
     \`Add Reactions\`| ${(infoMem.hasPermission('ADD_REACTIONS') ? yes : no)}
     `, true);
-    // \`Use Slash Commands\`| ${(infoMem.hasPermission('USE_SLASH_COMMANDS') ? yes : no)} 
+    // \`Use Slash Commands\`| ${(infoMem.hasPermission('USE_SLASH_COMMANDS') ? yes : no)}
     // Not added in d.js yet?
 
     // Voice Perms
@@ -102,4 +102,4 @@ class Ping extends Command {
   }
 }
 
-module.exports = Ping;
+module.exports = Perms;

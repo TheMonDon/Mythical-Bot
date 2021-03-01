@@ -21,7 +21,6 @@ class Play extends Command {
     if (!query) return msg.channel.send('Please enter something to search for.');
 
     await this.client.player.play(msg, query, true);
-
   }
 }
 

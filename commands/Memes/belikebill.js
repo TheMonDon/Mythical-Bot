@@ -23,7 +23,7 @@ class blbCommand extends Command {
         },
         encoding: null
       };
-      
+
       const response = await request(options);
       msg1.delete();
       msg.channel.send({
@@ -39,10 +39,10 @@ class blbCommand extends Command {
         },
         encoding: null
       };
-      
+
       const response = await request(options);
       msg1.delete();
-      
+
       msg.channel.send({
         files: [response]
       });

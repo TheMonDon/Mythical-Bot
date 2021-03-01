@@ -1,7 +1,7 @@
 const Command = require('../../base/Command.js');
 
 class Discrim extends Command {
-  constructor(client) {
+  constructor (client) {
     super(client, {
       name: 'discrim',
       description: 'Find all the users the bot has with the same discrim.',
@@ -11,7 +11,7 @@ class Discrim extends Command {
     });
   }
 
-  async run(msg, args) {
+  async run (msg, args) {
     const discrim = args.join(' ').replace('#', '');
     const output = this.client.users.cache.filter(user => user.discriminator == discrim).map(a => a.tag);
 

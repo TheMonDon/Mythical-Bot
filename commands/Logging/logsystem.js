@@ -20,9 +20,9 @@ class logsystem extends Command {
 
     embed.setColor('#36393F');
     embed.addField('Toggle Status', stripIndents(`
-**Channel Created:** ${(db.get(`servers.${msg.guild.id}.logs.log_system.channel-created`)|| ':x:')}
+**Channel Created:** ${(db.get(`servers.${msg.guild.id}.logs.log_system.channel-created`) || ':x:')}
 **Channel Deleted:** ${(db.get(`servers.${msg.guild.id}.logs.log_system.channel-deleted`) || ':x:')}
-**Channel Updated:** ${(db.get(`servers.${msg.guild.id}.logs.log_system.channel-updated`)|| ':x:')}
+**Channel Updated:** ${(db.get(`servers.${msg.guild.id}.logs.log_system.channel-updated`) || ':x:')}
 **Voice Channel Created:** ${(db.get(`servers.${msg.guild.id}.logs.log_system.v-channel-created`) || ':x:')}
 **Voice Channel Deleted:** ${(db.get(`servers.${msg.guild.id}.logs.log_system.v-channel-deleted`) || ':x:')}
 **Member Joined:** ${(db.get(`servers.${msg.guild.id}.logs.log_system.member-join`) || ':x:')}

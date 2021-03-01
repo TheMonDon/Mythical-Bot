@@ -1,18 +1,18 @@
 const Command = require('../../base/Command.js');
 
 class Ping extends Command {
-  constructor(client) {
+  constructor (client) {
     super(client, {
       name: 'purge',
       description: 'Get rid of some messages',
       usage: 'purge <2-100> (member) (channel)',
       category: 'Moderator',
       permLevel: 'Moderator',
-      guildOnly: true,
+      guildOnly: true
     });
   }
 
-  async run(msg, args) {
+  async run (msg, args) {
     const prefix = msg.settings.prefix;
 
     if (!msg.guild.me.permissions.has('MANAGE_MESSAGES')) return msg.channel.send('The bot needs `Manage_Messages` permission to use this.');
@@ -23,7 +23,7 @@ class Ping extends Command {
     const num = parseInt(args[0]);
     if (isNaN(num)) return msg.channel.send(`\`${num}\` is not a number, please input a valid number!`);
     if (num < 2 || num > 100) return msg.channel.send(`Incorrect Usage: ${prefix}purge <2-100> (member) (channel)`);
-    
+
     let num2;
     num >= 100 ? num2 = 100 : num2 = num + 1;
     if (msg.mentions.channels.first() && msg.mentions.members.first()) {

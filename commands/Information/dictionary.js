@@ -4,7 +4,7 @@ const config = require('../../config.js');
 const owlBot = require('owlbot-js');
 
 class DictionaryCommand extends Command {
-  constructor(client) {
+  constructor (client) {
     super(client, {
       name: 'dictionary',
       description: 'Get the definition of a word from owlbot English dictionary',
@@ -14,7 +14,7 @@ class DictionaryCommand extends Command {
     });
   }
 
-  async run(msg, input) {
+  async run (msg, input) {
     const owl = owlBot(config.owlKey);
     const p = msg.settings.prefix;
 
@@ -25,7 +25,7 @@ class DictionaryCommand extends Command {
     owl.define(input)
       .then(function (result) {
         if (!result) return msg.channel.send('No entry was found for that word.'); // Edited owlbot-js index.js to return error.
-        const example = result.definitions[0].example.replace(/(<([^>]+)>)/gi, "");
+        const example = result.definitions[0].example.replace(/(<([^>]+)>)/gi, '');
         const em = new DiscordJS.MessageEmbed()
           .setTitle('Dictionary Information')
           .setColor('RANDOM')
@@ -35,7 +35,7 @@ class DictionaryCommand extends Command {
           .addField('Pronunciation', result.pronunciation || 'No pronunciation provided', true);
         if (result.definitions[0].image_url) em.setThumbnail(result.definitions[0].image_url);
         msg.channel.send(em);
-      })
+      });
   }
 }
 

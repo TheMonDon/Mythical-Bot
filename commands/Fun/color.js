@@ -1,3 +1,4 @@
+/* eslint-disable prefer-regex-literals */
 const Command = require('../../base/Command.js');
 const { MessageEmbed } = require('discord.js');
 const isImageURL = require('is-image-url');
@@ -8,16 +9,16 @@ const { getColorFromURL } = require('color-thief-node');
 const { stripIndent } = require('common-tags');
 
 class Stats extends Command {
-  constructor(client) {
+  constructor (client) {
     super(client, {
       name: 'color',
       description: 'Get information about some colors.',
       category: 'Fun',
-      usage: 'color <hex, rgb, name, imageURL, attachment>',
+      usage: 'color <hex, rgb, name, imageURL, attachment>'
     });
   }
 
-  async run(msg, args) {
+  async run (msg, args) {
     let input = args.join(' ');
     let color;
 
@@ -29,26 +30,26 @@ class Stats extends Command {
     const cssRegex = new RegExp('^[a-zA-Z]+$');
 
     const extra_colors = {
-      'beige': '#F5F5DC',
-      'black': '#000000',
-      'blue': '#0000FF',
-      'brown': '#964B00',
-      'cyan': '#00FFFF',
-      'gold': '#A57C00',
-      'gray': '#808080',
-      'grey': '#808080',
-      'green': '#00FF00',
-      'magenta': '#FF00FF',
-      'orange': '#FF7F00',
-      'plum': '#8E4585',
-      'purple': '#6A0DAD',
-      'red': '#FF0000',
-      'silver': '#C0C0C0',
-      'yellow': '#FFFF00',
-      'othercolorname': '#HEXCODE'
-    }
+      beige: '#F5F5DC',
+      black: '#000000',
+      blue: '#0000FF',
+      brown: '#964B00',
+      cyan: '#00FFFF',
+      gold: '#A57C00',
+      gray: '#808080',
+      grey: '#808080',
+      green: '#00FF00',
+      magenta: '#FF00FF',
+      orange: '#FF7F00',
+      plum: '#8E4585',
+      purple: '#6A0DAD',
+      red: '#FF0000',
+      silver: '#C0C0C0',
+      yellow: '#FFFF00',
+      othercolorname: '#HEXCODE'
+    };
 
-    input = extra_colors[input.toString()] ? extra_colors[input.toString()] : input
+    input = extra_colors[input.toString()] ? extra_colors[input.toString()] : input;
 
     if (msg.attachments.first()) {
       input = msg.attachments.first().url;
@@ -71,11 +72,11 @@ class Stats extends Command {
 
       try {
         color = {
-          'css': convert.rgb.keyword(input),
-          'hex': convert.rgb.hex(input),
-          'hsl': convert.rgb.hsl(input),
-          'cmyk': convert.rgb.cmyk(input),
-          'rgb': input
+          css: convert.rgb.keyword(input),
+          hex: convert.rgb.hex(input),
+          hsl: convert.rgb.hsl(input),
+          cmyk: convert.rgb.cmyk(input),
+          rgb: input
         };
       } catch (err) {
         const rand = '000000'.replace(/0/g, function () {
@@ -85,22 +86,22 @@ class Stats extends Command {
         embed.setTitle('Invalid color, random one assigned:');
 
         color = {
-          'css': convert.hex.keyword(rand),
-          'rgb': convert.hex.rgb(rand),
-          'hsl': convert.hex.hsl(rand),
-          'cmyk': convert.hex.cmyk(rand),
-          'hex': rand
+          css: convert.hex.keyword(rand),
+          rgb: convert.hex.rgb(rand),
+          hsl: convert.hex.hsl(rand),
+          cmyk: convert.hex.cmyk(rand),
+          hex: rand
         };
       }
     } else if (hexRegex.test(input)) {
       input = input.toUpperCase();
-      if (input.charAt() == '#') {
+      if (input.charAt() === '#') {
         input = input.substr(1);
-      } else if (input.charAt() == '0' && input.charAt(1) == 'X') {
+      } else if (input.charAt() === '0' && input.charAt(1) === 'X') {
         input = input.substr(2);
       }
 
-      if (input.length == '3') {
+      if (input.length === '3') {
         input = input.slice();
         const pos1 = input[0];
         const pos2 = input[1];
@@ -110,11 +111,11 @@ class Stats extends Command {
 
       try {
         color = {
-          'css': convert.hex.keyword(input),
-          'rgb': convert.hex.rgb(input),
-          'hsl': convert.hex.hsl(input),
-          'cmyk': convert.hex.cmyk(input),
-          'hex': input
+          css: convert.hex.keyword(input),
+          rgb: convert.hex.rgb(input),
+          hsl: convert.hex.hsl(input),
+          cmyk: convert.hex.cmyk(input),
+          hex: input
         };
       } catch (err) {
         const rand = '000000'.replace(/0/g, function () {
@@ -124,15 +125,15 @@ class Stats extends Command {
         embed.setTitle('Invalid color, random one assigned:');
 
         color = {
-          'css': convert.hex.keyword(rand),
-          'rgb': convert.hex.rgb(rand),
-          'hsl': convert.hex.hsl(rand),
-          'cmyk': convert.hex.cmyk(rand),
-          'hex': rand
+          css: convert.hex.keyword(rand),
+          rgb: convert.hex.rgb(rand),
+          hsl: convert.hex.hsl(rand),
+          cmyk: convert.hex.cmyk(rand),
+          hex: rand
         };
       }
     } else if (cssRegex.test(input)) {
-      if (input == 'random') {
+      if (input === 'random') {
         const rand = '000000'.replace(/0/g, function () {
           return (~~(Math.random() * 16))
             .toString(16);
@@ -140,38 +141,29 @@ class Stats extends Command {
         embed.setTitle('Random Color');
 
         color = {
-          'css': convert.hex.keyword(rand),
-          'rgb': convert.hex.rgb(rand),
-          'hsl': convert.hex.hsl(rand),
-          'cmyk': convert.hex.cmyk(rand),
-          'hex': rand
+          css: convert.hex.keyword(rand),
+          rgb: convert.hex.rgb(rand),
+          hsl: convert.hex.hsl(rand),
+          cmyk: convert.hex.cmyk(rand),
+          hex: rand
         };
       } else {
         try {
-          while (input.length < 2) {
-            if (input === 'r') {
-              input = 'red';
-              break;
-            } else if (input === 'g') {
-              input = 'green';
-              break;
-            } else if (input === 'b') {
-              input = 'blue';
-              break;
-            } else {
-              break;
-            }
+          if (input.length < 2) {
+            if (input === 'r') input = 'red';
+            if (input === 'g') input = 'green';
+            if (input === 'b') input = 'blue';
           }
 
           color = {
-            'hex': convert.keyword.hex(input),
-            'rgb': convert.keyword.rgb(input),
-            'hsl': convert.keyword.hsl(input),
-            'cmyk': convert.keyword.cmyk(input),
-            'css': input
+            hex: convert.keyword.hex(input),
+            rgb: convert.keyword.rgb(input),
+            hsl: convert.keyword.hsl(input),
+            cmyk: convert.keyword.cmyk(input),
+            css: input
           };
         } catch (err) {
-          console.log(err)
+          console.log(err);
           const rand = '000000'.replace(/0/g, function () {
             return (~~(Math.random() * 16))
               .toString(16);
@@ -179,11 +171,11 @@ class Stats extends Command {
           embed.setTitle('Invalid color, random one assigned:');
 
           color = {
-            'css': convert.hex.keyword(rand),
-            'rgb': convert.hex.rgb(rand),
-            'hsl': convert.hex.hsl(rand),
-            'cmyk': convert.hex.cmyk(rand),
-            'hex': rand
+            css: convert.hex.keyword(rand),
+            rgb: convert.hex.rgb(rand),
+            hsl: convert.hex.hsl(rand),
+            cmyk: convert.hex.cmyk(rand),
+            hex: rand
           };
         }
       }
@@ -195,27 +187,27 @@ class Stats extends Command {
       embed.setTitle('Invalid color, random one assigned:');
 
       color = {
-        'css': convert.hex.keyword(rand),
-        'rgb': convert.hex.rgb(rand),
-        'hsl': convert.hex.hsl(rand),
-        'cmyk': convert.hex.cmyk(rand),
-        'hex': rand
+        css: convert.hex.keyword(rand),
+        rgb: convert.hex.rgb(rand),
+        hsl: convert.hex.hsl(rand),
+        cmyk: convert.hex.cmyk(rand),
+        hex: rand
       };
     }
-    //Formatting RGB
+    // Formatting RGB
     let rgb = JSON.stringify(color.rgb)
       .slice(1, -1);
     rgb = rgb.replace(/['"]+/g, '')
       .split(',')
       .join(', ');
 
-    //Formatting cmyk
+    // Formatting cmyk
     let cmyk = JSON.stringify(color.cmyk)
       .slice(1, -1);
     cmyk = cmyk.split(',')
       .join('%, ') + '%';
 
-    //Formatting hsl
+    // Formatting hsl
     const str = JSON.stringify(color.hsl)
       .slice(1, -1);
     const h = str.split(',')[0];
@@ -223,20 +215,20 @@ class Stats extends Command {
     const l = str.split(',')[2];
     const hsl = h + ', ' + s + '%, ' + l + '%';
 
-    //Getting originals back
+    // Getting originals back
     const css = JSON.stringify(color.css)
       .slice(1, -1);
     const hex = JSON.stringify(color.hex)
       .slice(1, -1)
       .toUpperCase();
 
-    //Saving color again
+    // Saving color again
     color = {
-      'css': css,
-      'hex': hex,
-      'rgb': rgb,
-      'cmyk': cmyk,
-      'hsl': hsl
+      css: css,
+      hex: hex,
+      rgb: rgb,
+      cmyk: cmyk,
+      hsl: hsl
     };
 
     if (!embed.title) embed.setTitle('Color Information');

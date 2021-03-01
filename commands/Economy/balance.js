@@ -11,7 +11,7 @@ module.exports = class BalanceCommand extends Command {
       description: 'Gives you your balance',
       aliases: ['bal'],
       guildOnly: true
-    });    
+    });
   }
 
   run (msg, args) {
@@ -29,14 +29,14 @@ module.exports = class BalanceCommand extends Command {
       const embed = new DiscordJS.MessageEmbed()
         .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
         .setColor('RED')
-        .setDescription(stripIndents `
+        .setDescription(stripIndents`
       :x: Invalid member given.
 
       Usage: ${p}balance (member)
       `);
       return msg.channel.send(embed);
     }
-  
+
     const cash = db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`) || 0;
     const bank = db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`) || 0;
     const nw = cash + bank;
@@ -50,6 +50,6 @@ module.exports = class BalanceCommand extends Command {
       .addField('Bank:', `${cs}${bank.toLocaleString()}`, true)
       .addField('Net Worth:', `${cs}${nw.toLocaleString()}`, true)
       .setTimestamp();
-    msg.channel.send(embed);
+    return msg.channel.send(embed);
   }
 };

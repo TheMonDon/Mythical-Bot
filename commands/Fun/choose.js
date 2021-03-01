@@ -1,16 +1,16 @@
 const Command = require('../../base/Command.js');
 
 class choose extends Command {
-  constructor(client) {
+  constructor (client) {
     super(client, {
       name: 'choose',
       description: 'Make the bot choose something.',
       usage: 'choose <thing 1, thing2, thing3>',
-      category: 'Fun',
+      category: 'Fun'
     });
   }
 
-  async run(msg, text) {
+  async run (msg, text) {
     const p = msg.settings.prefix;
     const join = text.join(' ');
     let args;
@@ -18,7 +18,7 @@ class choose extends Command {
     if (!text || text.length < 1) {
       return msg.channel.send(`Incorrect Usage: ${p}choose (1 1, 2 2, 3 3) or (one two three)`);
     }
-    
+
     if (/^(.+( ?\, ?.+[^,])+)$/i.test(join)) {
       args = join.split(',');
     } else {

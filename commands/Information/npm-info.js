@@ -5,7 +5,7 @@ const moment = require('moment');
 const { stripIndents } = require('common-tags');
 
 class npmInfo extends Command {
-  constructor(client) {
+  constructor (client) {
     super(client, {
       name: 'npm-info',
       description: 'Get information about a NPM package.',
@@ -15,8 +15,7 @@ class npmInfo extends Command {
     });
   }
 
-  async run(msg, args) {
-
+  async run (msg, args) {
     if (!args) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}npm-info <package>`);
 
     const results = await npm().text(args.join(' ')).size(5).search();

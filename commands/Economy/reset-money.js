@@ -11,7 +11,7 @@ module.exports = class ResetMoney extends Command {
       usage: 'Reset-Money <user>',
       aliases: ['resetmoney', 'rm'],
       guildOnly: true
-    });    
+    });
   }
 
   async run (msg, text) {
@@ -23,7 +23,7 @@ module.exports = class ResetMoney extends Command {
     if (!member.permissions.has('MANAGE_GUILD')) return msg.channel.send('You are missing **Manage Guild** permission.');
 
     const filter = (response) => {
-      return response.content.toLowerCase() === 'yes' || 'no' || 'y' || 'n' && response.author.id === msg.author.id;
+      return response.content.toLowerCase() === ('yes' || 'no' || 'y' || 'n') && response.author.id === msg.author.id;
     };
 
     const errEm = new DiscordJS.MessageEmbed()
@@ -58,9 +58,9 @@ module.exports = class ResetMoney extends Command {
         .includes(`${text.join(' ').toLowerCase()}`)) || server.members.cache.find(m => m.user.tag === `${text[0]}`);
 
       if (!mem) {
-        const f_id = text.join(' ').replace('<@', '').replace('>', '');
+        const fid = text.join(' ').replace('<@', '').replace('>', '');
         try {
-          mem = await this.client.users.fetch(f_id);
+          mem = await this.client.users.fetch(fid);
         } catch (err) {
           const embed = new DiscordJS.MessageEmbed()
             .setColor('#EC5454')
@@ -92,6 +92,5 @@ module.exports = class ResetMoney extends Command {
           return msg.channel.send(err);
         });
     }
-
   }
 };

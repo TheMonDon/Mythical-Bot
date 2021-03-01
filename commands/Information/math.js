@@ -3,16 +3,16 @@ const DiscordJS = require('discord.js');
 const math = require('mathjs');
 
 class Ping extends Command {
-  constructor(client) {
+  constructor (client) {
     super(client, {
       name: 'math',
       description: 'Solve some math equations',
       usage: 'math',
-      category: 'Information',
+      category: 'Information'
     });
   }
 
-  async run(msg, args) {
+  async run (msg, args) {
     const text = args.join(' ');
 
     if (!text || text.length < 1) {

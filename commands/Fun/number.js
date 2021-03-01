@@ -3,7 +3,7 @@ const fetch = require('node-superfetch');
 const DiscordJS = require('discord.js');
 
 class number extends Command {
-  constructor(client) {
+  constructor (client) {
     super(client, {
       name: 'number',
       description: 'Get a random fact about a number.',
@@ -13,19 +13,19 @@ class number extends Command {
     });
   }
 
-  async run(msg, args) {
-    if (!args || args.length < 1) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}Number <number>`)
+  async run (msg, args) {
+    if (!args || args.length < 1) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}Number <number>`);
 
     const { body } = await fetch
       .get(`http://numbersapi.com/${args.join(' ')}`)
       .catch(() => {
-        return msg.channel.send('I could not find any information about that number.')
+        return msg.channel.send('I could not find any information about that number.');
       });
     if (!body) return;
-    
+
     const em = new DiscordJS.MessageEmbed()
       .setTitle(body)
-      .setColor('RANDOM')
+      .setColor('RANDOM');
     return msg.channel.send(em);
   }
 }

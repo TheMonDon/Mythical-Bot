@@ -4,7 +4,7 @@ const DiscordJS = require('discord.js');
 const moment = require('moment');
 
 class warnings extends Command {
-  constructor(client) {
+  constructor (client) {
     super(client, {
       name: 'warnings',
       description: 'View all your warnings, mods+ can view others warnings.',
@@ -15,7 +15,7 @@ class warnings extends Command {
     });
   }
 
-  async run(msg, args, level) {
+  async run (msg, args, level) {
     const server = msg.guild;
     const warns = [];
     let mem;
@@ -53,13 +53,13 @@ class warnings extends Command {
 
       for (const i of otherWarns) {
         const data = db.get(`servers.${msg.guild.id}.warns.warnings.${i.warnID}`);
-        warns.push(`\`${i.warnID}\` - ${data.points} pts - ${cleanString(data.reason, 0, 24)} - `
-          + `${moment(Number(data.timestamp)).format('LLL')}`);
+        warns.push(`\`${i.warnID}\` - ${data.points} pts - ${cleanString(data.reason, 0, 24)} - ` +
+          `${moment(Number(data.timestamp)).format('LLL')}`);
       }
     }
     const warnName = mem.user ? mem.user.username : mem.username;
     const warnImage = mem.user ? mem.user.displayAvatarURL() : mem.displayAvatarURL();
-    
+
     const em = new DiscordJS.MessageEmbed()
       .setAuthor(warnName, warnImage)
       .setColor('ORANGE')
@@ -69,7 +69,7 @@ class warnings extends Command {
   }
 }
 
-function getWarns(userID, msg) {
+function getWarns (userID, msg) {
   const warns = db.get(`servers.${msg.guild.id}.warns.warnings`);
   const userCases = [];
   if (warns) {
@@ -83,7 +83,7 @@ function getWarns(userID, msg) {
   return userCases;
 }
 
-function getTotalPoints(userID, msg) {
+function getTotalPoints (userID, msg) {
   const warns = getWarns(userID, msg);
   let total = 0;
   if (warns) {
@@ -94,7 +94,7 @@ function getTotalPoints(userID, msg) {
   return total;
 }
 
-function cleanString(str, minLength = 0, maxLength = 1024) {
+function cleanString (str, minLength = 0, maxLength = 1024) {
   str = String(str);
   return str.slice(minLength, maxLength - 3) + (str.length > maxLength - 3 ? '...' : '');
 }

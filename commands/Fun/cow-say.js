@@ -2,7 +2,7 @@ const Command = require('../../base/Command.js');
 const cowsay = require('cowsay');
 
 class Cowsay extends Command {
-  constructor(client) {
+  constructor (client) {
     super(client, {
       name: 'cow-say',
       description: 'Say stuff as a cow.. moo.',
@@ -12,18 +12,18 @@ class Cowsay extends Command {
     });
   }
 
-  async run(msg, args) {
+  async run (msg, args) {
     const text = args.join(' ');
 
     if (!args || args.length < 1) return msg.channel.send('Please type a message for me to say as a cow.');
 
     const cmsg = cowsay.say({
       text: text.replace(/@/g, '')
-    })
+    });
 
     if (cmsg.length + 6 > 2048) return msg.channel.send('The total message length I have to send is over 2048, try lowering the content length!');
 
-    return msg.channel.send(cmsg, { code: '' })
+    return msg.channel.send(cmsg, { code: '' });
   }
 }
 module.exports = Cowsay;

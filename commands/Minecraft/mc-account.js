@@ -1,10 +1,11 @@
+/* eslint-disable prefer-regex-literals */
 const Command = require('../../base/Command.js');
 const DiscordJS = require('discord.js');
 const fetch = require('node-superfetch');
 const { JSONPath } = require('jsonpath-plus');
 
 class mcAccount extends Command {
-  constructor(client) {
+  constructor (client) {
     super(client, {
       name: 'mc-account',
       description: 'Find information about a Minecraft account.',
@@ -14,14 +15,14 @@ class mcAccount extends Command {
     });
   }
 
-  async run(msg, args) {
+  async run (msg, args) {
     const p = msg.settings.prefix;
 
     if (!args || args.length < 1) {
       const embed = new DiscordJS.MessageEmbed()
         .setTitle('Invalid Username')
         .setColor('FF0000')
-        .setDescription(`Invalid Usage: ${p}mc-account <username>`)
+        .setDescription(`Invalid Usage: ${p}mc-account <username>`);
       return msg.channel.send(embed);
     }
     const name = args.join(' ').trim();
@@ -53,11 +54,9 @@ class mcAccount extends Command {
           .addField('UUID', id, false)
           .addField('NameMC Link', `Click [here](https://es.namemc.com/profile/${id}) to go to their NameMC Profile`, false);
         return msg.channel.send(em);
-
       } catch (err) {
         return console.error(err);
       }
-
     } catch (err) {
       const em = new DiscordJS.MessageEmbed()
         .setTitle('Account Not Found')

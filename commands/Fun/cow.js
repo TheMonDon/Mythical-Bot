@@ -3,7 +3,7 @@ const cows = require('cows');
 const rn = require('random-number');
 
 class cow extends Command {
-  constructor(client) {
+  constructor (client) {
     super(client, {
       name: 'cow',
       description: 'Send a random ascii image of a cow.',
@@ -12,14 +12,14 @@ class cow extends Command {
     });
   }
 
-  async run(msg) {
+  async run (msg) {
     const options = {
-        min: 0,
-        max: cows().length - 1,
-        integer: true
-    }
+      min: 0,
+      max: cows().length - 1,
+      integer: true
+    };
     const random = rn(options);
-    return msg.channel.send(cows()[random], { code: ''})
+    return msg.channel.send(cows()[random], { code: '' });
   }
 }
 module.exports = cow;

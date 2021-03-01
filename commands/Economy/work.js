@@ -11,13 +11,13 @@ module.exports = class work extends Command {
       description: 'Get money by working',
       usage: 'work',
       guildOnly: true
-    });    
+    });
   }
 
   run (msg) {
     const member = msg.member;
 
-    const cooldown = db.get(`servers.${msg.guild.id}.economy.work.cooldown`) || 300; //get cooldown from database or set to 300 seconds
+    const cooldown = db.get(`servers.${msg.guild.id}.economy.work.cooldown`) || 300; // get cooldown from database or set to 300 seconds
     let userCooldown = db.get(`servers.${msg.guild.id}.users.${member.id}.economy.work.cooldown`) || {};
 
     if (userCooldown.active) {
@@ -28,7 +28,7 @@ module.exports = class work extends Command {
         db.set(`servers.${msg.guild.id}.users.${member.id}.economy.work.cooldown`, userCooldown);
       } else {
         const tLeft = moment.duration(timeleft)
-          .format('y[ years][,] M[ Months]d[ days][,] h[ hours][,] m[ minutes][, and] s[ seconds]'); //format to any format
+          .format('y[ years][,] M[ Months]d[ days][,] h[ hours][,] m[ minutes][, and] s[ seconds]'); // format to any format
         const embed = new DiscordJS.MessageEmbed()
           .setColor('#EC5454')
           .setAuthor(msg.author.tag, msg.author.displayAvatarURL())

@@ -19,14 +19,14 @@ class Queue extends Command {
     if (!queue || queue.tracks.length < 1) return msg.channel.send('There are no more songs in the queue.');
 
     let q = queue.tracks.map((tracks, i) => {
-      return `${i+1}- ${tracks.title} : ${tracks.author}`;
+      return `${i + 1}- ${tracks.title} : ${tracks.author}`;
     }).join('\n');
     q = q.slice(0, 1990) + '...';
     const em = new MessageEmbed()
       .setTitle('Queue List')
       .setDescription(`\`\`\`${q}\`\`\``)
       .addField('Queue Length:', queue.tracks.length, false);
-    msg.channel.send(em);
+    return msg.channel.send(em);
   }
 }
 

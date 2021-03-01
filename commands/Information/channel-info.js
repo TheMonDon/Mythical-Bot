@@ -4,7 +4,7 @@ const moment = require('moment');
 require('moment-duration-format');
 
 class Stats extends Command {
-  constructor(client) {
+  constructor (client) {
     super(client, {
       name: 'channel-info',
       description: 'Gives some useful channel information',
@@ -15,7 +15,7 @@ class Stats extends Command {
     });
   }
 
-  async run(msg, text) {
+  async run (msg, text) {
     const server = msg.guild;
     let infoChan;
 
@@ -43,7 +43,7 @@ class Stats extends Command {
       .addField('Type', infoChan.type, true)
       .addField('Position', infoChan.position, true);
     if (infoChan.guild != msg.guild) embed.addField('Server', infoChan.guild.name, true);
-    if (infoChan.type === 'text') embed.addField('NSFW', infoChan.nsfw ? true : false, true);
+    if (infoChan.type === 'text') embed.addField('NSFW', !!infoChan.nsfw, true);
     if (infoChan.type === 'voice') {
       embed.addField('User Limit', infoChan.userLimit, true);
       embed.addField('Bitrate', infoChan.bitrate, true);

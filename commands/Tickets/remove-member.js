@@ -3,28 +3,28 @@ const db = require('quick.db');
 const DiscordJS = require('discord.js');
 
 class Remove extends Command {
-  constructor(client) {
+  constructor (client) {
     super(client, {
-      name: 'remove',
+      name: 'remove-member',
       description: 'Remove a member from a ticket.',
-      usage: 'remove <user>',
+      usage: 'remove-member <user>',
       category: 'Tickets',
       guildOnly: true
     });
   }
 
-  async run(msg, args) {
+  async run (msg, args) {
     if (!db.get(`servers.${msg.guild.id}.tickets`)) return msg.channel.send('The ticket system has not been setup in this server.');
 
     if (!msg.channel.name.startsWith('ticket')) return msg.channel.send('You need to be inside the ticket you want to remove a user from.');
 
-    if (!args[0]) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}remove <user>`)
+    if (!args[0]) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}remove <user>`);
 
     const server = msg.guild;
     const mem = msg.mentions.members.first() || server.members.cache.find(m => m.id === `${args.join(' ')}`) || server.members.cache.find(m => m.displayName.toUpperCase() === `${args.join(' ').toUpperCase()}`) || server.members.cache.find(m => m.user.username.toUpperCase() === `${args.join(' ').toUpperCase()}`) || server.members.cache.find(m => m.user.username.toLowerCase()
-        .includes(`${args.join(' ').toLowerCase()}`));
+      .includes(`${args.join(' ').toLowerCase()}`));
     if (!mem) return msg.channel.send('That is not a valid user.');
-    if (mem.id === msg.author.id) return msg.channel.send(`Are you trying to close your ticket? Use \`${msg.settings.prefix}close\` instead`)
+    if (mem.id === msg.author.id) return msg.channel.send(`Are you trying to close your ticket? Use \`${msg.settings.prefix}close\` instead`);
 
     const { roleID } = db.get(`servers.${msg.guild.id}.tickets`);
     const role = msg.guild.roles.cache.get(roleID);
@@ -45,11 +45,11 @@ class Remove extends Command {
     // Logging info
     const d = new Date();
     const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-    const hour = String(d.getHours()).padStart(2, "0");
-    const min = String(d.getMinutes()).padStart(2, "0");
-    const timestamp = month + "/" + day + "/" + year + " " + hour + ":" + min;
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const hour = String(d.getHours()).padStart(2, '0');
+    const min = String(d.getMinutes()).padStart(2, '0');
+    const timestamp = month + '/' + day + '/' + year + ' ' + hour + ':' + min;
 
     const output = `${timestamp} - ${msg.author.tag} has removed a member: \n${mem.displayName}.`;
 

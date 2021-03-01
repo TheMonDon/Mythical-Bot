@@ -3,7 +3,7 @@ const fetch = require('node-superfetch');
 const DiscordJS = require('discord.js');
 
 class advice extends Command {
-  constructor(client) {
+  constructor (client) {
     super(client, {
       name: 'advice',
       description: 'Get a random piece of advice.',
@@ -13,12 +13,11 @@ class advice extends Command {
     });
   }
 
-  async run(msg) {
-
+  async run (msg) {
     let { body } = await fetch
-      .get(`https://api.adviceslip.com/advice`)
+      .get('https://api.adviceslip.com/advice')
       .catch(() => {
-        return msg.channel.send('Something went wrong, please try again in a few moments.')
+        return msg.channel.send('Something went wrong, please try again in a few moments.');
       });
     if (!body) return;
 
@@ -27,7 +26,7 @@ class advice extends Command {
     const em = new DiscordJS.MessageEmbed()
       .setTitle(body.slip.advice)
       .setColor('RANDOM')
-      .setFooter(`ID: ${body.slip.id}`)
+      .setFooter(`ID: ${body.slip.id}`);
     return msg.channel.send(em);
   }
 }

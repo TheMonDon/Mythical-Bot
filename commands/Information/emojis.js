@@ -2,7 +2,7 @@ const Command = require('../../base/Command.js');
 const DiscordJS = require('discord.js');
 
 class Emojis extends Command {
-  constructor(client) {
+  constructor (client) {
     super(client, {
       name: 'emojis',
       description: 'Shows all the custom emojis in the server.',
@@ -11,12 +11,12 @@ class Emojis extends Command {
     });
   }
 
-  async run(msg) {
+  async run (msg) {
     const result = [];
 
     msg.guild.emojis.cache.forEach((e) => {
       result.push(e);
-    })
+    });
 
     const embed = new DiscordJS.MessageEmbed()
       .setTitle('Custom Emojis')

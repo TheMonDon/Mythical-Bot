@@ -27,9 +27,9 @@ class UserInfo extends Command {
     }
 
     if (!infoMem) {
-      const f_id = text.join(' ').replace('<@', '').replace('>', '');
+      const fid = text.join(' ').replace('<@', '').replace('>', '');
       try {
-        infoMem = await this.client.users.fetch(f_id);
+        infoMem = await this.client.users.fetch(fid);
       } catch (err) {
         infoMem = msg.member;
       }
@@ -61,12 +61,12 @@ class UserInfo extends Command {
         .addField('User ID', infoMem.id, true)
         .addField('Status', infoMem.user.presence.status, true)
         .addField('Joined Server', `${ja} \n (${jaTime})`, true)
-        .addField('Account Created',  `${ca} \n (${caTime})`, true)
+        .addField('Account Created', `${ca} \n (${caTime})`, true)
         .addField('Join Position', `${Number(joinPosition).toLocaleString()}`, true)
         .addField('Roles', roles1, false);
       return msg.channel.send(embed);
     } else {
-      //not guild member
+      // not guild member
       const ts = moment(infoMem.createdAt);
       const ca = ts.format('MMM Do, YYYY');
       const embed = new DiscordJS.MessageEmbed()

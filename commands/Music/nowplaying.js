@@ -21,7 +21,7 @@ class nowPlaying extends Command {
     const song = await this.client.player.nowPlaying(msg);
 
     const queue = this.client.player.getQueue(msg);
-    const start = queue.voiceConnection && queue.voiceConnection.dispatcher && queue.voiceConnection.dispatcher.startTime || 0;
+    const start = queue?.voiceConnection?.dispatcher?.startTime || 0;
     const totalTime = queue.playing.durationMS;
     const timeLeft = moment.duration((start + totalTime) - Date.now()).format('d [days] h [hours] m [minutes] s [seconds]');
 

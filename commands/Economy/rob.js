@@ -12,11 +12,11 @@ module.exports = class BalanceCommand extends Command {
       usage: 'rob <user>',
       aliases: ['robbery'],
       guildOnly: true
-    });    
+    });
   }
 
   run (msg, text) {
-    const p =  msg.settings.prefix;
+    const p = msg.settings.prefix;
     let mem;
 
     const type = 'rob';
@@ -51,7 +51,7 @@ module.exports = class BalanceCommand extends Command {
       mem = msg.mentions.members.first() || msg.guild.members.cache.find(m => m.id === `${text.join(' ')}`) || msg.guild.members.cache.find(m => m.displayName.toUpperCase() === `${text.join(' ').toUpperCase()}`) || msg.guild.members.cache.find(m => m.user.username.toUpperCase() === `${text.join(' ').toUpperCase()}`) || msg.guild.members.cache.find(m => m.user.username.toLowerCase()
         .includes(`${text.join(' ').toLowerCase()}`)) || msg.guild.members.cache.find(m => m.user.tag === `${text[0]}`);
     }
-  
+
     if (!mem) {
       const embed = new DiscordJS.MessageEmbed()
         .setColor('#EC5454')

@@ -3,7 +3,7 @@ const DiscordJS = require('discord.js');
 const fetch = require('node-superfetch');
 
 class tih extends Command {
-  constructor(client) {
+  constructor (client) {
     super(client, {
       name: 'today-in-history',
       description: 'Get information about a date in history',
@@ -13,7 +13,7 @@ class tih extends Command {
     });
   }
 
-  async run(msg, text) {
+  async run (msg, text) {
     const p = msg.settings.prefix;
 
     let month;
@@ -27,11 +27,11 @@ class tih extends Command {
       day = parseInt(text[1]);
     }
 
-    if (isNaN(month) || month < 1 && month > 12) {
+    if (isNaN(month) || (month < 1 && month > 12)) {
       return msg.reply(`please enter a valid month (1-12) \n ${p}today-in-history <month> <day>`);
     }
 
-    if (isNaN(day) || day < 1 && day > 31) {
+    if (isNaN(day) || (day < 1 && day > 31)) {
       return msg.reply(`please enter a valid date (1-31) \n ${p}today-in-history <month> <day>`);
     }
 
@@ -54,7 +54,6 @@ class tih extends Command {
       if (err.status === 404 || err.status === 500) return msg.reply('Invalid date.');
       return msg.reply(`Oh no, an error occurred: \`${err.msg}\`. Try again later!`);
     }
-
   }
 }
 

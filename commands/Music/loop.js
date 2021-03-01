@@ -29,7 +29,6 @@ class Loop extends Command {
       const song = await this.client.player.nowPlaying(msg);
       return msg.channel.send(`Stopped Repeating: ${song.title}`);
     }
-
   }
 }
 

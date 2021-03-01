@@ -25,11 +25,11 @@ module.exports = class Leaderboard extends Command {
     if (isNaN(page)) return msg.channel.send('Please input a valid number.');
 
     const cs = db.get(`servers.${server.id}.economy.symbol`) || '$';
-    let real_page = page;
-    let max_pages = page;
+    let realPage = page;
+    let maxPages = page;
     const stuff = db.get(`servers.${server.id}.users`) || {};
     const lb = [];
-    for (var i in stuff) {
+    for (const i in stuff) {
       try {
         const u = await this.client.users.cache.get(i);
         if (u) {
@@ -46,15 +46,15 @@ module.exports = class Leaderboard extends Command {
       .map((c) => `**${lb.indexOf(c) + 1}.** ${c.user} - ${cs}${(c.money.toLocaleString().length > 156) ? `${c.money.toLocaleString().slice(0, 153) + '...'}` : `${c.money.toLocaleString()}`}`);
     let temp = abc123.slice(Math.floor((page - 1) * 10), Math.ceil(page * 10));
     if (temp.length > 0) {
-      real_page = page;
-      max_pages = Math.ceil((abc123.length + 1) / 10);
+      realPage = page;
+      maxPages = Math.ceil((abc123.length + 1) / 10);
       abc123 = abc123.slice(Math.floor((page - 1) * 10), Math.ceil(page * 10));
     } else {
-      for (i = 1; i <= page; i++) {
+      for (let i = 1; i <= page; i++) {
         temp = abc123.slice(Math.floor((i - 1) * 10), Math.ceil(i * 10));
         if (temp.length < 1) {
-          real_page = i - 1;
-          max_pages = Math.ceil(abc123.length / 10);
+          realPage = i - 1;
+          maxPages = Math.ceil(abc123.length / 10);
           abc123 = abc123.slice(Math.floor(((i - 1) - 1) * 10), Math.ceil((i - 1) * 10));
           break;
         }
@@ -65,7 +65,7 @@ module.exports = class Leaderboard extends Command {
       .setTitle(`${server.name}'s Leaderboard`)
       .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
       .setDescription(abc123.join('\n'))
-      .setFooter(`Page ${real_page} / ${max_pages}`)
+      .setFooter(`Page ${realPage} / ${maxPages}`)
       .setTimestamp();
     msg.channel.send(embed);
   }

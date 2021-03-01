@@ -2,10 +2,10 @@ const Command = require('../../base/Command.js');
 const db = require('quick.db');
 const DiscordJS = require('discord.js');
 const { stripIndents } = require('common-tags');
-const hastebin = require('hastebin')
+const hastebin = require('hastebin');
 
 class Close extends Command {
-  constructor(client) {
+  constructor (client) {
     super(client, {
       name: 'close',
       description: 'Close your ticket',
@@ -15,7 +15,7 @@ class Close extends Command {
     });
   }
 
-  async run(msg, args) {
+  async run (msg, args) {
     const reason = args.join(' ') || 'No reason specified';
 
     if (!db.get(`servers.${msg.guild.id}.tickets`)) return msg.channel.send('The ticket system has not been setup in this server.');
@@ -30,11 +30,11 @@ class Close extends Command {
     // Logging info
     const d = new Date();
     const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-    const hour = String(d.getHours()).padStart(2, "0");
-    const min = String(d.getMinutes()).padStart(2, "0");
-    const timestamp = month + "/" + day + "/" + year + " " + hour + ":" + min;
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const hour = String(d.getHours()).padStart(2, '0');
+    const min = String(d.getMinutes()).padStart(2, '0');
+    const timestamp = month + '/' + day + '/' + year + ' ' + hour + ':' + min;
 
     const output = `${timestamp} - ${msg.author.tag} has requested to close this ticket. \nTranscript will be sent in 5 minutes if no further activity occurs.`;
 
@@ -50,7 +50,7 @@ class Close extends Command {
       The ticket will close in 5 minutes if no further activity occurs.`);
     await msg.channel.send(em);
 
-    const filter = m => m.content.length > 0
+    const filter = m => m.content.length > 0;
 
     return msg.channel.awaitMessages(filter, {
       max: 1,
@@ -66,10 +66,10 @@ class Close extends Command {
         Closing of the ticket has been cancelled with the following reason:
         
         ${response}`)
-        .setColor('#E65DF4')
-        .setTimestamp();
+          .setColor('#E65DF4')
+          .setTimestamp();
 
-        const output = `Closing of the ticket has been cancelled with the following reason: \n${response}`
+        const output = `Closing of the ticket has been cancelled with the following reason: \n${response}`;
         db.push(`servers.${msg.guild.id}.tickets.${tName}.chatLogs`, output);
 
         return msg.channel.send(em);
@@ -85,7 +85,7 @@ class Close extends Command {
           .then(function (urlToPaste) {
             url = urlToPaste;
           })
-          .catch(function (requestError) { console.log(requestError) })
+          .catch(function (requestError) { console.log(requestError); });
 
         let recieved;
 
@@ -115,7 +115,7 @@ class Close extends Command {
 
         db.delete(`servers.${msg.guild.id}.tickets.${tName}`);
         return msg.channel.delete();
-      })
+      });
   }
 }
 

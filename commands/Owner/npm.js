@@ -10,7 +10,7 @@ module.exports = class NPM extends Command {
       memberName: 'npm',
       description: 'Installs an NPM package and saves it to the package.json',
       longDescription: stripIndents`(Owner Only) It will install an npm package, 
-				save the package to the package.json and all its dependencies.`,
+save the package to the package.json and all its dependencies.`,
       permLevel: 'Bot Owner'
     });
   }
@@ -18,7 +18,7 @@ module.exports = class NPM extends Command {
   async run (msg, args) {
     const moduleName = args.join(' ');
     const message = await msg.channel.send(`Attempting to install Node Module: ${moduleName}`);
-    
+
     try {
       require.resolve(moduleName);
       return message.edit(`The Node Module ${moduleName} is already installed.`);
@@ -30,7 +30,7 @@ module.exports = class NPM extends Command {
       } catch (error) {
         console.error(error);
         return message.edit(stripIndents`The Node Module ${moduleName} was not Installed. 
-				An error was encountered, the module probably doesn't exist in the registry!`);
+An error was encountered, the module probably doesn't exist in the registry!`);
       }
     }
     return message.edit(`The Node Module ${moduleName} was successfully installed!`);

@@ -5,7 +5,7 @@ const moment = require('moment');
 require('moment-duration-format');
 
 class Topic extends Command {
-  constructor(client) {
+  constructor (client) {
     super(client, {
       name: 'topic',
       description: 'Change the topic of your ticket',
@@ -15,14 +15,14 @@ class Topic extends Command {
     });
   }
 
-  async run(msg, args) {
+  async run (msg, args) {
     const server = msg.guild;
     if (!db.get(`servers.${msg.guild.id}.tickets`)) return msg.channel.send('The ticket system has not been setup in this server.');
 
     if (!msg.channel.name.startsWith('ticket')) return msg.channel.send('You need to be inside the ticket you want to change the topic of.');
 
-    const cooldown = 300 // 5 minutes 
-    let channelCooldown = db.get(`servers.${server.id}.tickets.${msg.channel.name}.tCooldown`) || {}
+    const cooldown = 300; // 5 minutes
+    let channelCooldown = db.get(`servers.${server.id}.tickets.${msg.channel.name}.tCooldown`) || {};
 
     if (channelCooldown.active) {
       const timeleft = channelCooldown.time - Date.now();
@@ -33,7 +33,7 @@ class Topic extends Command {
         db.set(`servers.${server.id}.tickets.${msg.channel.name}.tCooldown`, channelCooldown);
       } else {
         const tLeft = moment.duration(timeleft)
-          .format('y[ years][,] M[ Months]d[ days][,] h[ hours][,] m[ minutes][, and] s[ seconds]'); //format to any format
+          .format('y[ years][,] M[ Months]d[ days][,] h[ hours][,] m[ minutes][, and] s[ seconds]'); // format to any format
         const embed = new DiscordJS.MessageEmbed()
           .setColor('#EC5454')
           .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
@@ -43,12 +43,12 @@ class Topic extends Command {
     }
 
     if (!args) {
-      return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}topic <new topic>`)
+      return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}topic <new topic>`);
     }
     let topic = args.join(' ');
     topic = topic.slice(0, 1024);
-    if (topic.length === 0) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}topic <new topic>`)
-  
+    if (topic.length === 0) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}topic <new topic>`);
+
     const tName = msg.channel.name;
     const owner = db.get(`servers.${msg.guild.id}.tickets.${tName}.owner`);
     if (owner !== msg.author.id) return msg.channel.send('You need to be the owner of the ticket to change the topic.');
@@ -56,11 +56,11 @@ class Topic extends Command {
     // Logging info
     const d = new Date();
     const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-    const hour = String(d.getHours()).padStart(2, "0");
-    const min = String(d.getMinutes()).padStart(2, "0");
-    const timestamp = month + "/" + day + "/" + year + " " + hour + ":" + min;
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const hour = String(d.getHours()).padStart(2, '0');
+    const min = String(d.getMinutes()).padStart(2, '0');
+    const timestamp = month + '/' + day + '/' + year + ' ' + hour + ':' + min;
 
     const output = `${timestamp} - ${msg.author.tag} has changed the topic to: \n${topic}.`;
 
@@ -82,7 +82,6 @@ class Topic extends Command {
       channelCooldown.active = false;
       db.set(`servers.${server.id}.tickets.${msg.channel.name}.tCooldown`, channelCooldown);
     }, cooldown * 1000);
-
   }
 }
 

@@ -11,11 +11,11 @@ module.exports = class Withdraw extends Command {
       usage: 'withdraw <amount>',
       aliases: ['with'],
       guildOnly: true
-    });    
+    });
   }
 
   run (msg, text) {
-    const p =  msg.settings.prefix;
+    const p = msg.settings.prefix;
     let amount = text.join(' ');
 
     const usage = `${p}Withdraw <amount | all>`;
@@ -28,8 +28,8 @@ module.exports = class Withdraw extends Command {
     }
 
     const cs = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
-    const bank = db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`) || 0; //store bank info prior to checking args
-    const cash = db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`) || 0; //same thing but cash
+    const bank = db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`) || 0; // store bank info prior to checking args
+    const cash = db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`) || 0; // same thing but cash
 
     amount = amount.replace(/,/g, '');
     amount = amount.replace(cs, '');
@@ -48,7 +48,6 @@ module.exports = class Withdraw extends Command {
           .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
           .setDescription(`Withdrew ${cs}${bank.toLocaleString()} from your bank!`);
         return msg.channel.send(em);
-
       } else {
         const embed = new DiscordJS.MessageEmbed()
           .setColor('#EC5454')
@@ -66,8 +65,8 @@ module.exports = class Withdraw extends Command {
       return msg.channel.send('You have too much cash to be able to withdraw that much money.');
     }
 
-    db.subtract(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`, amount); //take money from bank
-    db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, amount); //set money to cash
+    db.subtract(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`, amount); // take money from bank
+    db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, amount); // set money to cash
 
     const embed = new DiscordJS.MessageEmbed()
       .setColor('#04ACF4')

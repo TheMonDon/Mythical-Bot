@@ -4,7 +4,7 @@ const DiscordJS = require('discord.js');
 const hastebin = require('hastebin');
 
 class forceClose extends Command {
-  constructor(client) {
+  constructor (client) {
     super(client, {
       name: 'force-close',
       description: 'Close your or another ticket',
@@ -15,7 +15,7 @@ class forceClose extends Command {
     });
   }
 
-  async run(msg, args) {
+  async run (msg, args) {
     if (!db.get(`servers.${msg.guild.id}.tickets`)) return msg.channel.send('The ticket system has not been setup in this server.');
 
     let tName;
@@ -34,7 +34,7 @@ class forceClose extends Command {
       }
     } else {
       if (!args[0]) {
-        return msg.channel.send(`Incorrect Usage: ${msg.settings.preifx}force-close [ticket-ID] [reason]`)
+        return msg.channel.send(`Incorrect Usage: ${msg.settings.preifx}force-close [ticket-ID] [reason]`);
       }
       tName = args[0];
       args.shift();
@@ -55,7 +55,6 @@ class forceClose extends Command {
       if (!tName && !msg.channel.name.startsWith('ticket')) return msg.channel.send('You need to supply the ticket ID.');
 
       if (!owner) return msg.channel.send('That is not a valid ticket. Please try again.');
-
     } else {
       // Do they have the support role or are owner?
       if (owner !== msg.author.id) {
@@ -71,11 +70,11 @@ class forceClose extends Command {
     // Logging info
     const d = new Date();
     const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-    const hour = String(d.getHours()).padStart(2, "0");
-    const min = String(d.getMinutes()).padStart(2, "0");
-    const timestamp = month + "/" + day + "/" + year + " " + hour + ":" + min;
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const hour = String(d.getHours()).padStart(2, '0');
+    const min = String(d.getMinutes()).padStart(2, '0');
+    const timestamp = month + '/' + day + '/' + year + ' ' + hour + ':' + min;
 
     const output = `${timestamp} - ${msg.author.tag} has requested to force-close this ticket. \nTranscript will be sent to ticket owner.`;
 
@@ -94,7 +93,7 @@ class forceClose extends Command {
       .then(function (urlToPaste) {
         url = urlToPaste;
       })
-      .catch(function (requestError) { console.log(requestError) })
+      .catch(function (requestError) { console.log(requestError); });
 
     let recieved;
 
@@ -128,7 +127,7 @@ class forceClose extends Command {
     await msg.guild.channels.cache.get(logID).send(logEmbed);
 
     db.delete(`servers.${msg.guild.id}.tickets.${tName}`);
-    return msg.channel.delete()
+    return msg.channel.delete();
   }
 }
 

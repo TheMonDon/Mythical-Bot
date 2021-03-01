@@ -13,11 +13,11 @@ module.exports = class setCurrency extends Command {
       usage: 'set-payout <work | crime> <min | max> <amount>',
       aliases: ['setpayout', 'sp'],
       guildOnly: true
-    });    
+    });
   }
 
   run (msg, text) {
-    const p =  msg.settings.prefix;
+    const p = msg.settings.prefix;
     const server = msg.guild;
     const member = msg.member;
 
@@ -26,7 +26,7 @@ module.exports = class setCurrency extends Command {
     if (!member.permissions.has('MANAGE_GUILD')) {
       return msg.channel.send('You are missing **Manage Guild** permission.');
     }
-    
+
     const cs = db.get(`servers.${server.id}.economy.symbol`) || '$';
     const usage = `${p}Set-Payout <work | crime> <min | max> <amount>`;
 
@@ -41,7 +41,7 @@ module.exports = class setCurrency extends Command {
       const embed = new DiscordJS.MessageEmbed()
         .setColor('#04ACF4')
         .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
-        .setDescription(stripIndents `
+        .setDescription(stripIndents`
         The current payout ranges are: 
         
         \`Work\` - min: ${cs}${work_min} | max: ${cs}${work_max}
@@ -50,7 +50,6 @@ module.exports = class setCurrency extends Command {
         Usage: ${usage}
         `);
       return msg.channel.send(embed);
-
     } else {
       const type = text[0] && text[0].toLowerCase();
       if (!types.includes(type)) {
@@ -78,7 +77,7 @@ module.exports = class setCurrency extends Command {
         const embed = new DiscordJS.MessageEmbed()
           .setColor('#EC5454')
           .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
-          .setDescription(stripIndents `
+          .setDescription(stripIndents`
             :x: Invalid payout. Please provide a valid number.
 
             Usage: ${usage}
@@ -107,7 +106,6 @@ module.exports = class setCurrency extends Command {
         }
 
         return msg.channel.send(embed);
-
       } else if (type === 'crime') {
         if (minMax === 'min') {
           db.set(`servers.${server.id}.economy.crime.min`, amount);

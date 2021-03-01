@@ -1,8 +1,8 @@
 const Command = require('../../base/Command.js');
-const DiscordJS = require('discord.js')
+const DiscordJS = require('discord.js');
 
 class quote extends Command {
-  constructor(client) {
+  constructor (client) {
     super(client, {
       name: 'quote',
       description: 'Get a random quote.',
@@ -12,24 +12,24 @@ class quote extends Command {
     });
   }
 
-  async run(msg) {
-    const fs = require('fs')
+  async run (msg) {
+    const fs = require('fs');
     const jsonQuotes = fs.readFileSync(
       './resources/messages/motivational_quotes.json',
       'utf8'
-    )
-    const quoteArray = JSON.parse(jsonQuotes)
+    );
+    const quoteArray = JSON.parse(jsonQuotes);
 
-    const quote = quoteArray[Math.floor(Math.random() * quoteArray.length)]
+    const quote = quoteArray[Math.floor(Math.random() * quoteArray.length)];
 
     const em = new DiscordJS.MessageEmbed()
       .setTitle('Random Quote')
       .setColor('RANDOM')
       .addField('Author', quote.author)
       .addField('Quote', quote.text)
-      .setAuthor(msg.author.username, msg.author.displayAvatarURL())
+      .setAuthor(msg.author.username, msg.author.displayAvatarURL());
 
-    return msg.channel.send(em)
+    return msg.channel.send(em);
   }
 }
 module.exports = quote;

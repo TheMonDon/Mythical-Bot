@@ -15,7 +15,7 @@ const mysql = require('mysql2');
 const config = require('./config.js');
 
 class bot extends Client {
-  constructor(options) {
+  constructor (options) {
     super(options);
 
     this.config = require('./config.js');
@@ -31,7 +31,7 @@ class bot extends Client {
   }
 
   // PERMISSION LEVEL FUNCTION
-  permlevel(message) {
+  permlevel (message) {
     let permlvl = 0;
 
     const permOrder = this.config.permLevels.slice(0).sort((p, c) => p.level < c.level ? 1 : -1);
@@ -47,15 +47,15 @@ class bot extends Client {
     return permlvl;
   }
 
-  /* 
+  /*
   COMMAND LOAD AND UNLOAD
-  
+
   To simplify the loading and unloading of commands from multiple locations
   including the index.js load loop, and the reload function, these 2 ensure
   that unloading happens in a consistent manner across the board.
   */
 
-  loadCommand(commandPath, commandName) {
+  loadCommand (commandPath, commandName) {
     try {
       const props = new (require(`${commandPath}${path.sep}${commandName}`))(this);
       props.conf.location = commandPath;
@@ -72,7 +72,7 @@ class bot extends Client {
     }
   }
 
-  async unloadCommand(commandPath, commandName) {
+  async unloadCommand (commandPath, commandName) {
     let command;
     if (this.commands.has(commandName)) {
       command = this.commands.get(commandName);
@@ -95,11 +95,9 @@ class bot extends Client {
   and stringifies objects!
   This is mostly only used by the Eval and Exec commands.
   */
-  async clean(text) {
-    if (text && text.constructor.name == 'Promise')
-      text = await text;
-    if (typeof text !== 'string')
-      text = require('util').inspect(text, { depth: 1 });
+  async clean (text) {
+    if (text && text.constructor.name == 'Promise') { text = await text; }
+    if (typeof text !== 'string') { text = require('util').inspect(text, { depth: 1 }); }
 
     text = text
       .replace(/`/g, '`' + String.fromCharCode(8203))
@@ -117,7 +115,7 @@ class bot extends Client {
 
   // getSettings merges the client defaults with the guild settings. guild settings in
   // enmap should only have *unique* overrides that are different from defaults.
-  getSettings(guild) {
+  getSettings (guild) {
     const defaults = this.settings.get('default') || {};
     const guildData = guild ? this.settings.get(guild.id) || {} : {};
     const returnObject = {};
@@ -129,10 +127,10 @@ class bot extends Client {
 
   // writeSettings overrides, or adds, any configuration item that is different
   // than the defaults. This ensures less storage wasted and to detect overrides.
-  writeSettings(id, newSettings) {
+  writeSettings (id, newSettings) {
     const defaults = this.settings.get('default');
     let settings = this.settings.get(id);
-    if (typeof settings != 'object') settings = {};
+    if (typeof settings !== 'object') settings = {};
     for (const key in newSettings) {
       if (defaults[key] !== newSettings[key]) {
         settings[key] = newSettings[key];
@@ -156,7 +154,7 @@ global.pool = mysql.createPool({
 
 // Load the music player stuff
 client.player = new Player(client, {
-  leaveOnEmpty: false,
+  leaveOnEmpty: false
 });
 
 client.player
@@ -198,7 +196,6 @@ client.player
   });
 
 const init = async () => {
-
   // Here we load **commands** into memory, as a collection, so they're accessible
   // here and everywhere else.
   klaw('./commands').on('data', (item) => {
@@ -268,7 +265,7 @@ client.on('raw', packet => {
 process.on('uncaughtException', (err) => {
   const errorMsg = err.stack.replace(new RegExp(`${__dirname}/`, 'g'), './');
   console.error('Uncaught Exception: ', errorMsg);
-  // Always best practice to let the code crash on uncaught exceptions. 
+  // Always best practice to let the code crash on uncaught exceptions.
   // Because you should be catching them anyway.
   process.exit(1);
 });

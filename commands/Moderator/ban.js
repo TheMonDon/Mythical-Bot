@@ -9,7 +9,7 @@ class Ban extends Command {
       description: 'Ban a naughty member',
       usage: 'ban <member> <reason>',
       category: 'Moderator',
-      guildOnly: true,
+      guildOnly: true
     });
   }
 
@@ -48,7 +48,7 @@ class Ban extends Command {
       .setFooter(`ID: ${ban_mem.id}`)
       .setTimestamp();
     ban_mem.ban({ reason: reason });
-    
+
     if (log_chan) msg.guild.channels.cache.get(log_chan).send(em);
     return msg.channel.send(em);
   }

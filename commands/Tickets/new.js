@@ -4,7 +4,7 @@ const DiscordJS = require('discord.js');
 const { stripIndents } = require('common-tags');
 
 class New extends Command {
-  constructor(client) {
+  constructor (client) {
     super(client, {
       name: 'new',
       description: 'Create a new ticket.',
@@ -15,7 +15,7 @@ class New extends Command {
     });
   }
 
-  async run(msg, args) {
+  async run (msg, args) {
     const p = msg.settings.prefix;
 
     if (!db.get(`servers.${msg.guild.id}.tickets`)) return msg.channel.send('The ticket system has not been setup in this server.');
@@ -52,13 +52,13 @@ class New extends Command {
 
     const count = db.get(`servers.${msg.guild.id}.tickets.count`) || 1;
     db.set(`servers.${msg.guild.id}.tickets.count`, count + 1);
-    
+
     let str = msg.member.displayName.toLowerCase();
     str = str.replace(/[^a-zA-Z\d:]/g, '');
     if (str.length === 0) {
       str = msg.member.user.username.replace(/[^a-zA-Z\d:]/g, '');
       if (str.length === 0) {
-        str = (Math.random().toString(36)+'00000000000000000').slice(2, 5)
+        str = (Math.random().toString(36) + '00000000000000000').slice(2, 5);
       }
     }
     const tName = `ticket-${str}-${count}`;
@@ -109,11 +109,11 @@ class New extends Command {
     // Logging info
     const d = new Date();
     const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-    const hour = String(d.getHours()).padStart(2, "0");
-    const min = String(d.getMinutes()).padStart(2, "0");
-    const timestamp = month + "/" + day + "/" + year + " " + hour + ":" + min;
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const hour = String(d.getHours()).padStart(2, '0');
+    const min = String(d.getMinutes()).padStart(2, '0');
+    const timestamp = month + '/' + day + '/' + year + ' ' + hour + ':' + min;
 
     const output = stripIndents`
     Ticket created at: ${timestamp}

@@ -1,11 +1,8 @@
-/* eslint-disable no-unused-vars */
 const Command = require('../../base/Command.js');
 const db = require('quick.db');
 const DiscordJS = require('discord.js');
 const ms = require('ms');
-const {
-  stripIndents
-} = require('common-tags');
+const { stripIndents } = require('common-tags');
 
 module.exports = class BalanceCommand extends Command {
   constructor (client) {
@@ -16,7 +13,7 @@ module.exports = class BalanceCommand extends Command {
       usage: 'Set-Cooldown <work | rob | crime> <cooldown>',
       aliases: ['scd', 'setcooldown'],
       guildOnly: true
-    });    
+    });
   }
 
   run (msg, args) {

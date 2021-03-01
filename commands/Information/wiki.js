@@ -3,7 +3,7 @@ const DiscordJS = require('discord.js');
 const fetch = require('node-superfetch');
 
 class wiki extends Command {
-  constructor(client) {
+  constructor (client) {
     super(client, {
       name: 'wikipedia',
       description: 'Retrieve an article from wikipedia',
@@ -13,12 +13,12 @@ class wiki extends Command {
     });
   }
 
-  async run(msg, text) {
+  async run (msg, text) {
     const p = msg.settings.prefix;
     const query = text.join(' ');
 
     if (!query || query.length < 1) return msg.channel.send(`Incorrect Usage: ${p}wiki <wikipedia search>`);
-    
+
     const { body } = await fetch
       .get('https://en.wikipedia.org/w/api.php')
       .query({

@@ -1,8 +1,9 @@
+/* eslint-disable no-undef */
 const Command = require('../../base/Command.js');
 const DiscordJS = require('discord.js');
 
 class baltop extends Command {
-  constructor(client) {
+  constructor (client) {
     super(client, {
       name: 'baltop',
       description: 'Get the top 10 balances from Survival server',
@@ -11,7 +12,7 @@ class baltop extends Command {
     });
   }
 
-  async run(msg, args) {
+  async run (msg, args) {
     const p = msg.settings.prefix;
 
     let page = 1;
@@ -26,16 +27,15 @@ class baltop extends Command {
       server = args[1].toLowerCase();
     }
 
-    if (isNaN(page) || page === Infinity) return msg.channel.send(`Incorrect Usage: ${p}baltop [page] [server]`)
+    if (isNaN(page) || page === Infinity) return msg.channel.send(`Incorrect Usage: ${p}baltop [page] [server]`);
 
     let min = 0;
     for (let i = 1; page > i; i++) min += 10;
 
     if (server === 'survival') {
-
       pool.query(`SELECT double_value,uuid FROM plan.plan_extension_user_values WHERE provider_id = 15 ORDER BY double_value DESC LIMIT ${min}, 10`, function (error, results) {
         if (error) return console.error(error);
-        if (!results || results.length < 1) return msg.channel.send(`That page does not exist.`)
+        if (!results || results.length < 1) return msg.channel.send('That page does not exist.');
         const arr = [];
 
         for (let i = 0; i < results.length; i++) {
@@ -50,14 +50,14 @@ class baltop extends Command {
               const em = new DiscordJS.MessageEmbed()
                 .setTitle('Survival Balance Leaderboard')
                 .setDescription(arr.join('\n'))
-                .setColor('RANDOM')
+                .setColor('RANDOM');
               return msg.channel.send(em);
             }
           });
         }
       });
     } else {
-      return msg.channel.send('I could not find a server with that name. \nCurrent Servers: \`Survival\`')
+      return msg.channel.send('I could not find a server with that name. \nCurrent Servers: \`Survival\`');
     }
   }
 }

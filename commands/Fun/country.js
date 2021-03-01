@@ -249,7 +249,7 @@ const countries = [
   { name: 'Western Sahara', alpha2: 'EH', alpha3: 'ESH' },
   { name: 'Yemen', alpha2: 'YE', alpha3: 'YEM' },
   { name: 'Zambia', alpha2: 'ZM', alpha3: 'ZMB' },
-  { name: 'Zimbabwe', alpha2: 'ZW', alpha3: 'ZWE' },
+  { name: 'Zimbabwe', alpha2: 'ZW', alpha3: 'ZWE' }
 ];
 
 class country extends Command {
@@ -258,7 +258,7 @@ class country extends Command {
       name: 'country',
       description: 'Get info about a country.',
       usage: 'country <country code>',
-      category: 'Fun',
+      category: 'Fun'
     });
   }
 
@@ -303,25 +303,24 @@ class country extends Command {
       const countryflag = `http://www.countryflags.io/${res.body.alpha2Code}/flat/64.png`;
 
       const em = new DiscordJS.MessageEmbed()
-      .setAuthor('Country Information - ' + countrycode, countryflag)
-      .setThumbnail(countryflag)
-      .setColor(0x337fd5)
-      .setTitle(countryname)
-      .addField('Population', countrypopulation.toLocaleString('en'), true)
-      .addField('Capital City', countrycapital, true)
-      .addField('Main Currency', countrycurrencyname + ' (' + countrycurrencysymbol + ')', true)
-      .addField('Located In', countryregion, true)
-      .addField('Demonym', countrydemonym, true)
-      .addField('Native Name', countrynativename, true)
-      .addField('Area', `${countryareakm.toLocaleString('en')}km (${countryaream}m)`, true)
-      .setFooter('Powered by: restcountries.eu')
-      .setTimestamp();
+        .setAuthor('Country Information - ' + countrycode, countryflag)
+        .setThumbnail(countryflag)
+        .setColor(0x337fd5)
+        .setTitle(countryname)
+        .addField('Population', countrypopulation.toLocaleString('en'), true)
+        .addField('Capital City', countrycapital, true)
+        .addField('Main Currency', countrycurrencyname + ' (' + countrycurrencysymbol + ')', true)
+        .addField('Located In', countryregion, true)
+        .addField('Demonym', countrydemonym, true)
+        .addField('Native Name', countrynativename, true)
+        .addField('Area', `${countryareakm.toLocaleString('en')}km (${countryaream}m)`, true)
+        .setFooter('Powered by: restcountries.eu')
+        .setTimestamp();
 
       return message.channel.send(em);
     } catch (err) {
       return message.channel.send(`Error! Unable to fetch country information. \n${err}`);
     }
-
   }
 }
 

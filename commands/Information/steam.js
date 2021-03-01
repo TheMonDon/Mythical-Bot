@@ -3,16 +3,16 @@ const DiscordJS = require('discord.js');
 const fetch = require('node-superfetch');
 
 class steam extends Command {
-  constructor(client) {
+  constructor (client) {
     super(client, {
       name: 'steam',
       description: 'Get some information about any steam game or application.',
       usage: 'steam <game/app>',
-      category: 'Information',
+      category: 'Information'
     });
   }
 
-  async run(msg, text) {
+  async run (msg, text) {
     const query = text.join(' ');
 
     if (!text || text.length < 1) {
@@ -34,7 +34,7 @@ class steam extends Command {
 
     if (!search.body.items.length) return msg.channel.send(`No results found for **${query}**!`);
 
-    const { id, tiny_image } = search.body.items[0];
+    const { id, tinyImage } = search.body.items[0];
 
     const { body } = await fetch
       .get('https://store.steampowered.com/api/appdetails')
@@ -49,7 +49,7 @@ class steam extends Command {
 
     let price;
     if (initial !== '$0') {
-      price = `~~${initial}~~ ${final} ${data.price_overview?.discount_percent || 0}% off`
+      price = `~~${initial}~~ ${final} ${data.price_overview?.discount_percent || 0}% off`;
     } else {
       price = final;
     }
@@ -64,7 +64,7 @@ class steam extends Command {
       .setAuthor('Steam', 'https://i.imgur.com/xxr2UBZ.png', 'http://store.steampowered.com/')
       .setTitle(data.name)
       .setURL(`http://store.steampowered.com/app/${data.steam_appid}`)
-      .setImage(tiny_image)
+      .setImage(tinyImage)
       .addField('❯\u2000Price', `•\u2000 ${price}`, true)
       .addField('❯\u2000Metascore', `•\u2000 ${data.metacritic ? data.metacritic.score : '???'}`, true)
       .addField('❯\u2000Recommendations', `•\u2000 ${data.recommendations ? data.recommendations.total : '???'}`, true)
