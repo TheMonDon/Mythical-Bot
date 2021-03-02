@@ -26,7 +26,7 @@ module.exports = class {
     embed.setFooter(`ID: ${emoji.id}`);
     embed.setTimestamp();
     emoji.guild.channels.cache.get(logChan).send(embed);
-    
+
     db.add(`servers.${emoji.guild.id}.logs.emoji-deleted`, 1);
     db.add(`servers.${emoji.guild.id}.logs.all`, 1);
   }

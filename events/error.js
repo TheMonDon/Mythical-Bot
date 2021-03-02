@@ -4,6 +4,6 @@ module.exports = class {
   }
 
   async run (error) {
-    this.client.logger.log(`An error event was sent by Discord.js: \n${JSON.stringify(error)}`, "error");
+    this.client.logger.log(`An error event was sent by Discord.js: \n${JSON.stringify(error)}`, 'error');
   }
 };

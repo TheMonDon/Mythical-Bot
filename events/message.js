@@ -1,11 +1,11 @@
 const db = require('quick.db');
 
 module.exports = class {
-  constructor(client) {
+  constructor (client) {
     this.client = client;
   }
 
-  async run(message) {
+  async run (message) {
     let bool = false;
     let tag;
 
@@ -43,16 +43,16 @@ module.exports = class {
 
         const d = new Date();
         const year = d.getFullYear();
-        const month = String(d.getMonth() + 1).padStart(2, "0");
-        const day = String(d.getDate()).padStart(2, "0");
-        const hour = String(d.getHours()).padStart(2, "0");
-        const min = String(d.getMinutes()).padStart(2, "0");
-        const timestamp = month + "/" + day + "/" + year + " " + hour + ":" + min;
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        const hour = String(d.getHours()).padStart(2, '0');
+        const min = String(d.getMinutes()).padStart(2, '0');
+        const timestamp = month + '/' + day + '/' + year + ' ' + hour + ':' + min;
 
-        const attachments = []
+        const attachments = [];
         if (message.attachments.array().length > 0) {
           for (let i = 0; i < message.attachments.array().length; i++) {
-            attachments.push(message.attachments.array()[i].url)
+            attachments.push(message.attachments.array()[i].url);
           }
         }
 
@@ -67,12 +67,11 @@ module.exports = class {
           content = message.content;
         }
 
-        const output = `${timestamp} - [${message.author.tag}]: \n${content}`
+        const output = `${timestamp} - [${message.author.tag}]: \n${content}`;
 
         db.push(`servers.${message.guild.id}.tickets.${tName}.chatLogs`, output);
         return;
       }
-
 
       // Use this for my chat money event since this is what I check for not existing in it.
       // Don't really know how else I would do it so this works fine for me.
@@ -86,7 +85,7 @@ module.exports = class {
       const max = db.get(`servers.${server.id}.economy.${type}.max`) || 100;
 
       const now = Date.now();
-      const cooldown = db.get(`servers.${server.id}.economy.${type}.cooldown`) || 60; //get cooldown from database or set to 60 seconds (1 minute)
+      const cooldown = db.get(`servers.${server.id}.economy.${type}.cooldown`) || 60; // get cooldown from database or set to 60 seconds (1 minute)
       let userCooldown = db.get(`servers.${server.id}.users.${member.id}.economy.${type}.cooldown`) || {};
 
       if (userCooldown.active) {
@@ -152,13 +151,11 @@ module.exports = class {
 
     // Some commands may not be useable in DMs. This check prevents those commands from running
     // and return a friendly error message.
-    if (!message.guild && cmd?.conf.guildOnly)
-      return message.channel.send('This command is unavailable via private message. Please run this command in a guild.');
+    if (!message.guild && cmd?.conf.guildOnly) { return message.channel.send('This command is unavailable via private message. Please run this command in a guild.'); }
 
     // Some commands are nsfw only. This check prevents those commands from running
     // and returns a friendly error message.
     if (cmd?.conf.nsfw && !message.channel.nsfw) return message.channel.send('This command can only be used in NSFW channels.');
-
 
     if (level < this.client.levelCache[cmd.conf.permLevel]) {
       if (settings.systemNotice === 'true') {

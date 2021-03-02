@@ -31,7 +31,7 @@ module.exports = class {
       .setFooter(`ID: ${channel.id}`)
       .setTimestamp();
     channel.guild.channels.cache.get(logChan).send(embed);
-    
+
     db.add(`servers.${channel.guild.id}.logs.channel-created`, 1);
     db.add(`servers.${channel.guild.id}.logs.all`, 1);
   }

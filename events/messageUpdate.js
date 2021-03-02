@@ -2,12 +2,12 @@ const db = require('quick.db');
 const DiscordJS = require('discord.js');
 
 module.exports = class {
-  constructor(client) {
+  constructor (client) {
     this.client = client;
   }
 
   // eslint-disable-next-line no-unused-vars
-  async run(oldmsg, newmsg) {
+  async run (oldmsg, newmsg) {
     if (oldmsg.author.bot) return;
 
     (async () => {
@@ -44,14 +44,13 @@ module.exports = class {
       db.add(`servers.${newmsg.guild.id}.logs.all`, 1);
     })();
 
-
     let bool;
     let tag;
     const re = new RegExp('http');
     if (re.test(newmsg)) {
-      return;
+
     } else if (oldmsg.content === newmsg.content || oldmsg === newmsg) {
-      return;
+
     } else {
       if (newmsg.guild && !newmsg.channel.permissionsFor(newmsg.guild.me).missing('SEND_MESSAGES')) return;
 
@@ -98,8 +97,7 @@ module.exports = class {
 
       // Some commands may not be useable in DMs. This check prevents those commands from running
       // and return a friendly error message.
-      if (cmd && !newmsg.guild && cmd.conf.guildOnly)
-        return newmsg.channel.send('This command is unavailable via private message. Please run this command in a guild.');
+      if (cmd && !newmsg.guild && cmd.conf.guildOnly) { return newmsg.channel.send('This command is unavailable via private message. Please run this command in a guild.'); }
 
       if (level < this.client.levelCache[cmd.conf.permLevel]) {
         if (settings.systemNotice === 'true') {
@@ -111,7 +109,7 @@ This command requires level ${this.client.levelCache[cmd.conf.permLevel]} (${cmd
         }
       }
       newmsg.author.permLevel = level;
-/*
+      /*
       newmsg.flags = [];
       while (args[0] && args[0][0] === '-') {
         newmsg.flags.push(args.shift().slice(1));

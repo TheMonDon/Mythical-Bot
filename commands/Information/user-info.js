@@ -80,6 +80,7 @@ class UserInfo extends Command {
         .addField('Account Created', ca);
       return msg.channel.send(embed);
     }
+
     async function getJoinPosition (id, guild) {
       if (!guild.member(id)) return;
 
@@ -92,7 +93,7 @@ class UserInfo extends Command {
         id: m.user.id
       }))
         .find((m) => m.id === id);
-      return (result && result.index) || null;
+      return result?.index;
     }
   }
 }

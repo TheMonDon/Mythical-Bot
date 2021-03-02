@@ -1,3 +1,6 @@
+/* eslint-disable new-cap */
+/* eslint-disable node/no-path-concat */
+/* eslint-disable no-extend-native */
 // This will check if the node version you are running is the required
 // Node version, if it isn't it will throw the following error to inform
 // you.
@@ -96,7 +99,7 @@ class bot extends Client {
   This is mostly only used by the Eval and Exec commands.
   */
   async clean (text) {
-    if (text && text.constructor.name == 'Promise') { text = await text; }
+    if (text?.constructor.name === 'Promise') { text = await text; }
     if (typeof text !== 'string') { text = require('util').inspect(text, { depth: 1 }); }
 
     text = text

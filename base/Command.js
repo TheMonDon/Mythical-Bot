@@ -1,5 +1,4 @@
 class Command {
-
   constructor (client, {
     name = null,
     description = 'No description provided.',
@@ -8,7 +7,7 @@ class Command {
     usage = 'No usage provided.',
     enabled = true,
     guildOnly = false,
-    aliases = new Array(),
+    aliases = [],
     permLevel = 'User',
     nsfw = false
   }) {

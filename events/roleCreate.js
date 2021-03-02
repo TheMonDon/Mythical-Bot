@@ -15,17 +15,17 @@ module.exports = class {
     const logChannel = role.guild.channels.cache.get(logChan);
     if (!logChannel.permissionsFor(this.client.user.id).has('SEND_MESSAGES')) return;
 
-    const embed = new DiscordJS.MessageEmbed();
-    embed.setTitle('Role Created');
-    embed.setColor('#20fc3a');
-    embed.addField('Name', role, true);
-    embed.addField('Managed', role.managed, true);
-    embed.addField('Position', role.position, true);
-    embed.setFooter(`ID: ${role.id}`);
-    embed.setTimestamp();
+    const embed = new DiscordJS.MessageEmbed()
+      .setTitle('Role Created')
+      .setColor('#20fc3a')
+      .addField('Name', role, true)
+      .addField('Managed', role.managed, true)
+      .addField('Position', role.position, true)
+      .setFooter(`ID: ${role.id}`)
+      .setTimestamp();
     role.guild.channels.cache.get(logChan).send(embed);
+
     db.add(`servers.${role.guild.id}.logs.role-created`, 1);
     db.add(`servers.${role.guild.id}.logs.all`, 1);
   }
 };
-

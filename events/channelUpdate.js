@@ -2,11 +2,11 @@ const db = require('quick.db');
 const DiscordJS = require('discord.js');
 
 module.exports = class {
-  constructor(client) {
+  constructor (client) {
     this.client = client;
   }
 
-  async run(channel, newChannel) {
+  async run (channel, newChannel) {
     const logChan = db.get(`servers.${channel.guild.id}.logs.channel`);
     if (!logChan) return;
 
@@ -39,8 +39,8 @@ module.exports = class {
       const embed = new DiscordJS.MessageEmbed()
         .setTitle(`Channl ${channel.name} Updated`)
         .setColor('#EE82EE')
-        .addField('Name', (channel.name == newChannel.name) ? 'Updated: ❌' : `Updated: ✅ \n New Name: ${newChannel.name}`, true)
-        .addField('Topic', (channel.topic == newChannel.topic) ? 'Updated: ❌' : `Updated: ✅ \n New Topic: ${newChannel.topic}`, true)
+        .addField('Name', (channel.name === newChannel.name) ? 'Updated: ❌' : `Updated: ✅ \n New Name: ${newChannel.name}`, true)
+        .addField('Topic', (channel.topic === newChannel.topic) ? 'Updated: ❌' : `Updated: ✅ \n New Topic: ${newChannel.topic}`, true)
         .addField('Is NSFW?', (newChannel.nsfw) ? '✅' : '❌', true)
         .addField('Category', catUp, true)
         .setFooter(`ID: ${newChannel.id}`)

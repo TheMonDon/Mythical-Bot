@@ -45,7 +45,7 @@ module.exports = class {
       }
     ];
 
-    const reason = `Ticket has been created from the reaction menu. Use \`topic\` to change it.`;
+    const reason = 'Ticket has been created from the reaction menu. Use `topic` to change it.';
     const count = db.get(`servers.${msg.guild.id}.tickets.count`) || 1;
     db.set(`servers.${msg.guild.id}.tickets.count`, count + 1);
 
@@ -54,7 +54,7 @@ module.exports = class {
     if (str.length === 0) {
       str = member.user.username.replace(/[^a-zA-Z\d:]/g, '');
       if (str.length === 0) {
-        str = (Math.random().toString(36)+'00000000000000000').slice(2, 5)
+        str = (Math.random().toString(36) + '00000000000000000').slice(2, 5);
       }
     }
     const tName = `ticket-${str}-${count}`;
@@ -93,11 +93,11 @@ module.exports = class {
     // Logging info
     const d = new Date();
     const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-    const hour = String(d.getHours()).padStart(2, "0");
-    const min = String(d.getMinutes()).padStart(2, "0");
-    const timestamp = month + "/" + day + "/" + year + " " + hour + ":" + min;
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const hour = String(d.getHours()).padStart(2, '0');
+    const min = String(d.getMinutes()).padStart(2, '0');
+    const timestamp = month + '/' + day + '/' + year + ' ' + hour + ':' + min;
 
     const output = stripIndents`
     Ticket created at: ${timestamp}

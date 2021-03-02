@@ -44,17 +44,17 @@ module.exports = class {
       .then(function (urlToPaste) {
         url = urlToPaste;
       })
-      .catch(function (requestError) { console.log(requestError) })
+      .catch(function (requestError) { console.log(requestError); });
 
-      const embed = new DiscordJS.MessageEmbed()
-        .setTitle('Bulk Messages Deleted')
-        .setColor('RED')
-        .addField('Deleted Messages', url, true)
-        .addField('Deleted Amount', messages.size, true)
-        .addField('Channel', chan, true);
-      logChannel.send(embed);
+    const embed = new DiscordJS.MessageEmbed()
+      .setTitle('Bulk Messages Deleted')
+      .setColor('RED')
+      .addField('Deleted Messages', url, true)
+      .addField('Deleted Amount', messages.size, true)
+      .addField('Channel', chan, true);
+    logChannel.send(embed);
 
-      db.add(`servers.${server.id}.logs.bulk-messages-deleted`, 1);
-      db.add(`servers.${server.id}.logs.all`, 1);
+    db.add(`servers.${server.id}.logs.bulk-messages-deleted`, 1);
+    db.add(`servers.${server.id}.logs.all`, 1);
   }
 };
