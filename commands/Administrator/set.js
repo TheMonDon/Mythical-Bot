@@ -23,13 +23,12 @@ class Set extends Command {
   }
 
   async run (message, [action, key, ...value], level) { // eslint-disable-line no-unused-vars
-
     // First we need to retrieve current guild settings
     const settings = message.settings;
     const defaults = this.client.settings.get('default');
     const overrides = this.client.settings.get(message.guild.id);
     if (!this.client.settings.has(message.guild.id)) this.client.settings.set(message.guild.id, {});
-  
+
     // Secondly, if a user does `-set edit <key> <new value>`, let's change it
     if (action === 'edit') {
       // User must specify a key.
@@ -49,7 +48,7 @@ class Set extends Command {
       this.client.settings.set(message.guild.id, joinedValue, key);
       message.reply(`${key} successfully edited to ${joinedValue}`);
     } else
-  
+
     // If a user does `-set del <key>`, let's ask the user if they're sure...
     if (action === 'del' || action === 'reset') {
       if (!key) return message.reply('Please specify a key to delete (reset).');
@@ -61,28 +60,26 @@ class Set extends Command {
 
       // If they respond with y or yes, continue.
       if (['y', 'yes'].includes(response)) {
-
         // We reset the `key` here.
         this.client.settings.delete(message.guild.id, key);
         message.reply(`${key} was successfully reset to default.`);
       } else
 
       // If they respond with n or no, we inform them that the action has been cancelled.
-      if (['n','no','cancel'].includes(response)) {
+      if (['n', 'no', 'cancel'].includes(response)) {
         message.reply(`Your setting for \`${key}\` remains at \`${settings[key]}\``);
       }
     } else
-  
+
     // Using `-set get <key>` we simply return the current value for the guild.
     if (action === 'get') {
       if (!key) return message.reply('Please specify a key to view');
       if (!settings[key]) return message.reply('This key does not exist in the settings');
       message.reply(`The value of ${key} is currently ${settings[key]}`);
-      
     } else {
       // Otherwise, the default action is to return the whole configuration;
       const array = Object.entries(settings).map(([key, value]) => `${key}${' '.repeat(20 - key.length)}::  ${value}`);
-      await message.channel.send(`= Current Guild Settings =\n${array.join('\n')}`, {code: 'asciidoc'});
+      await message.channel.send(`= Current Guild Settings =\n${array.join('\n')}`, { code: 'asciidoc' });
     }
   }
 }

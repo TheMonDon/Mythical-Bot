@@ -16,7 +16,7 @@ class prefix extends Command {
     const prefix = msg.settings.prefix;
     if (!args || args.length < 1) return msg.channel.send(`The current prefix is: \`${prefix}\``);
     const newprefix = args.join(' ');
-    
+
     if (newprefix.length > 15) return msg.channel.send('The length of the prefix must be less than 15 characters.');
 
     if (newprefix === prefix) return msg.channel.send(`The prefix is already set to ${prefix}`);

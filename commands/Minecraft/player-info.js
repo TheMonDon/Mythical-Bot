@@ -1,4 +1,3 @@
-/* eslint-disable camelcase */
 /* eslint-disable no-undef */
 /* eslint-disable prefer-regex-literals */
 const Command = require('../../base/Command.js');
@@ -39,7 +38,7 @@ class playerinfo extends Command {
 
     let member = !!server.members.cache.get(user);
 
-    const errMsg = 'I could not find that user. Did they sync their accounts using `!link`? \nAdd \"\" around mc username if their discord name is the same.';
+    const errMsg = 'I could not find that user. Did they sync their accounts using `!link`? \nAdd "" around mc username if their discord name is the same.';
 
     if (!member) {
       const nameRegex = new RegExp(/^\w{3,16}$/);

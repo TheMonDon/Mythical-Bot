@@ -1,11 +1,10 @@
-/* eslint-disable no-unused-vars */
 const Command = require('../../base/Command.js');
 const DiscordJS = require('discord.js');
 const db = require('quick.db');
-const { stripIndents } = require('common-tags')
+const { stripIndents } = require('common-tags');
 
 class setup extends Command {
-  constructor(client) {
+  constructor (client) {
     super(client, {
       name: 'setup',
       description: 'Setup the different systems of the bot.',
@@ -17,7 +16,7 @@ class setup extends Command {
     });
   }
 
-  async run(msg, args) {
+  async run (msg, args) {
     const type = args[0];
     const server = msg.guild;
 
@@ -33,35 +32,34 @@ class setup extends Command {
       if (db.get(`servers.${msg.guild.id}.tickets`)) {
         const { catID } = db.get(`servers.${msg.guild.id}.tickets`);
         if (catID) {
-            // Alert them of what happens
-            msg.channel.send(stripIndents`The ticket system has already been setup in this server, do you want to re-run the setup?
+          // Alert them of what happens
+          msg.channel.send(stripIndents`The ticket system has already been setup in this server, do you want to re-run the setup?
           
           Please note, this will override the old channel categories and log channels, you will have to delete the old ones manually.
   
           Type \`cancel\` to exit.
-          `)
-  
-            // This is for the first question
-            return msg.channel.awaitMessages(filter2, {
-              max: 1,
-              time: 60000,
-              errors: ['time']
-            })
-              .then(async (collected) => {
-                const response = collected.first().content;
-  
-                if (response.toLowerCase().includes('n', 'no')) return msg.channel.send('Got it! Nothing has been changed.')
-  
-                if (response.toLowerCase() === 'cancel') return msg.channel.send('Got it! The command has been cancelled.')
-  
-                if (response.toLowerCase().includes('y', 'yes')) {
-                  db.delete(`servers.${msg.guild.id}.tickets.catID`)
-                  return msg.channel.send('Alright I deleted the database for tickets, please re-run the setup command.')
-                }
-              });
+          `);
+
+          // This is for the first question
+          return msg.channel.awaitMessages(filter2, {
+            max: 1,
+            time: 60000,
+            errors: ['time']
+          })
+            .then(async (collected) => {
+              const response = collected.first().content;
+
+              if (response.toLowerCase().includes('n', 'no')) return msg.channel.send('Got it! Nothing has been changed.');
+
+              if (response.toLowerCase() === 'cancel') return msg.channel.send('Got it! The command has been cancelled.');
+
+              if (response.toLowerCase().includes('y', 'yes')) {
+                db.delete(`servers.${msg.guild.id}.tickets.catID`);
+                return msg.channel.send('Alright I deleted the database for tickets, please re-run the setup command.');
+              }
+            });
         }
       }
-
 
       msg.channel.send(stripIndents`What is the name of the role you want to use for support team?
       You have 60 seconds.
@@ -199,7 +197,6 @@ class setup extends Command {
               db.set(`servers.${server.id}.tickets.logID`, tixLog.id);
 
               return msg.channel.send('Awesome! Everything has been setup.');
-
             })
             .catch(_err => {
               return msg.channel.send('You did not reply in time.');
@@ -214,7 +211,7 @@ class setup extends Command {
     if (['logging', 'log', 'logs'].includes(type)) {
       const embed = new DiscordJS.MessageEmbed();
 
-      const log_system = {
+      const logSystem = {
         'channel-created': 'enabled',
         'channel-deleted': 'enabled',
         'channel-updated': 'enabled',
@@ -230,7 +227,7 @@ class setup extends Command {
         'emoji-created': 'enabled',
         'emoji-deleted': 'enabled',
         'bulk-messages-deleted': 'enabled',
-        'all': 'enabled'
+        all: 'enabled'
       };
 
       args.shift();
@@ -254,7 +251,7 @@ class setup extends Command {
         embed.setFooter('Logs System V3.0-BETA');
         msg.channel.send(embed);
       } else {
-        db.set(`servers.${msg.guild.id}.logs.log_system`, log_system);
+        db.set(`servers.${msg.guild.id}.logs.logSystem`, logSystem);
         embed.setTitle('Sucessfully Set');
         embed.setColor('GREEN');
         embed.setThumbnail('https://cdn.discordapp.com/emojis/482184108555108358.png');
@@ -286,7 +283,7 @@ class setup extends Command {
     `)
       .setDescription('These systems are not fully operational and may have bugs.')
       .setAuthor(msg.author.displayName, msg.author.displayAvatarURL());
-    return msg.channel.send(embed)
+    return msg.channel.send(embed);
   }
 }
 

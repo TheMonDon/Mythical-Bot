@@ -57,7 +57,7 @@ class baltop extends Command {
         }
       });
     } else {
-      return msg.channel.send('I could not find a server with that name. \nCurrent Servers: \`Survival\`');
+      return msg.channel.send('I could not find a server with that name. \nCurrent Servers: `Survival`');
     }
   }
 }
