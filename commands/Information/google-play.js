@@ -25,7 +25,6 @@ class gPlay extends Command {
         const res = result?.[0];
         if (!res) return msg.channel.send('I could not find any app with that name.');
 
-        console.log(res);
         const em = new DiscordJS.MessageEmbed()
           .setTitle(res.title)
           .setDescription(res.summary)
