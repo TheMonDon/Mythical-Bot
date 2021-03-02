@@ -42,7 +42,7 @@ class Stats extends Command {
       .addField('ID', infoChan.id, true)
       .addField('Type', infoChan.type, true)
       .addField('Position', infoChan.position, true);
-    if (infoChan.guild != msg.guild) embed.addField('Server', infoChan.guild.name, true);
+    if (infoChan.guild !== msg.guild) embed.addField('Server', infoChan.guild.name, true);
     if (infoChan.type === 'text') embed.addField('NSFW', !!infoChan.nsfw, true);
     if (infoChan.type === 'voice') {
       embed.addField('User Limit', infoChan.userLimit, true);
@@ -52,7 +52,7 @@ class Stats extends Command {
     embed.addField('Mention', `\`${infoChan}\``, true);
     embed.addField('Created At', `${ca} \n (${time})`, true);
     if (infoChan.parent) embed.addField('Parent', `${infoChan.parent.name} \n \`${infoChan.parentID}\``, true);
-    if (infoChan.type == 'text') embed.addField('Topic', `${(infoChan.topic) || 'None'}`, false);
+    if (infoChan.type === 'text') embed.addField('Topic', `${(infoChan.topic) || 'None'}`, false);
 
     msg.channel.send(embed);
   }
