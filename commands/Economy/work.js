@@ -48,7 +48,7 @@ module.exports = class work extends Command {
     const jobs = require('../../resources/messages/work_jobs.json');
 
     const num = Math.floor(Math.random() * (jobs.length - 1)) + 1;
-    const job = jobs[num].replace('${csamount}', csamount.toLocaleString());
+    const job = jobs[num].replace(`${csamount}`, csamount.toLocaleString());
 
     userCooldown.time = Date.now() + (cooldown * 1000);
     userCooldown.active = true;
