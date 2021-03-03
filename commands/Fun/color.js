@@ -1,4 +1,3 @@
-/* eslint-disable prefer-regex-literals */
 const Command = require('../../base/Command.js');
 const { MessageEmbed } = require('discord.js');
 const isImageURL = require('is-image-url');
@@ -25,11 +24,11 @@ class Stats extends Command {
     const embed = new MessageEmbed()
       .setAuthor(msg.author.username, msg.author.displayAvatarURL());
 
-    const rgbRegex = new RegExp(/^rgb[\s+]?\((:?\d+\.?\d?%?)(,|-|\/\|)\s?(:?\d+\.?\d?%?)(,|-|\/\|)\s?(:?\d+\.?\d?%?)\)/i);
-    const hexRegex = new RegExp('(^(#|0x)?([a-fA-F0-9]){6}$)|(^(#|0x)?([a-fA-F0-9]){3}$)');
-    const cssRegex = new RegExp('^[a-zA-Z]+$');
+    const rgbRegex = /^rgb[\s+]?\((:?\d+\.?\d?%?)(,|-|\/\|)\s?(:?\d+\.?\d?%?)(,|-|\/\|)\s?(:?\d+\.?\d?%?)\)/i;
+    const hexRegex = /(^(#|0x)?([a-fA-F0-9]){6}$)|(^(#|0x)?([a-fA-F0-9]){3}$)/;
+    const cssRegex = /^[a-zA-Z]+$/;
 
-    const extra_colors = {
+    const extraColors = {
       beige: '#F5F5DC',
       black: '#000000',
       blue: '#0000FF',
@@ -49,7 +48,7 @@ class Stats extends Command {
       othercolorname: '#HEXCODE'
     };
 
-    input = extra_colors[input.toString()] ? extra_colors[input.toString()] : input;
+    input = extraColors[input.toString()] ? extraColors[input.toString()] : input;
 
     if (msg.attachments.first()) {
       input = msg.attachments.first().url;
@@ -67,7 +66,7 @@ class Stats extends Command {
       input = input.trim()
         .replace('rgb(', '')
         .replace(')', '');
-      input = input.replace('/\s/g', '');
+      input = input.replace(/\s/g, '');
       input = input.split(',');
 
       try {
