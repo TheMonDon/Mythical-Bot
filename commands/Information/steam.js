@@ -47,12 +47,7 @@ class steam extends Command {
     const final = data.price_overview?.final_formatted || '$0';
     const initial = data.price_overview?.initial_formatted || '$0';
 
-    let price;
-    if (initial !== '$0') {
-      price = `~~${initial}~~ ${final} ${data.price_overview?.discount_percent || 0}% off`;
-    } else {
-      price = final;
-    }
+    const price = (initial !== '$0') ? `~~${initial}~~ ${final} ${data.price_overview?.discount_percent || 0}% off` : final;
 
     const platforms = [];
     if (data.platforms?.windows) platforms.push('Windows');

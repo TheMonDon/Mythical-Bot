@@ -35,13 +35,8 @@ class Emoji extends Command {
 
     if (type === 'create') {
       const name = args[1];
-      let image;
+      const image = msg.attachments.first()?.url || args[2];
 
-      if (msg.attachments.first()) {
-        image = msg.attachments.first().url;
-      } else {
-        image = args[2];
-      }
       const emoji = await msg.guild.emojis.create(image, name);
       return msg.channel.send(`${msg.member}, ${emoji} has been created.`);
     } else if (type === 'delete') {

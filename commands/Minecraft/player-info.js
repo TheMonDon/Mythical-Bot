@@ -63,10 +63,10 @@ class playerinfo extends Command {
       const id = uuid.substr(0, 8) + '-' + uuid.substr(8, 4) + '-' + uuid.substr(12, 4) + '-' + uuid.substr(16, 4) + '-' + uuid.substr(20);
 
       pool.query(`SELECT * FROM ranksync.player WHERE uuid = '${id}'`, function (error, results) {
-        const player_id = results?.[0]?.id;
-        if (error || !player_id) { member = false; }
+        const playerID = results?.[0]?.id;
+        if (error || !playerID) { member = false; }
 
-        pool.query(`SELECT * FROM ranksync.synced_players WHERE player_id = ${player_id}`, async function (error, results) {
+        pool.query(`SELECT * FROM ranksync.synced_players WHERE player_id = ${playerID}`, async function (error, results) {
           if (error) { member = false; }
           user = results?.[0]?.identifier;
           if (user && server.members.cache.get(user)) {
@@ -81,10 +81,10 @@ class playerinfo extends Command {
       });
     } else {
       pool.query(`SELECT player_id FROM ranksync.synced_players WHERE identifier = ${user}`, function (error, results) {
-        const player_id = results?.[0]?.player_id;
-        if (error || !player_id) return msg.channel.send(errMsg);
+        const playerID = results?.[0]?.player_id;
+        if (error || !playerID) return msg.channel.send(errMsg);
 
-        pool.query(`SELECT * FROM ranksync.player WHERE id = ${player_id}`, async function (error, results) {
+        pool.query(`SELECT * FROM ranksync.player WHERE id = ${playerID}`, async function (error, results) {
           if (error) return msg.channel.send(errMsg);
           const id = results[0]?.uuid;
 
@@ -108,20 +108,10 @@ const information = async function (id, pool, member, user1, msg) {
   const name = nc.slice(nc.lastIndexOf(',') + 1);
 
   pool.query(`SELECT * FROM chatreaction.survival_newreactionstats WHERE uuid = '${id}'`, function (error, results) {
-    let wins;
-    if (error) {
-      wins = false;
-    } else {
-      wins = results?.[0]?.wins || false;
-    }
+    const wins = error ? false.[0]?.wins || false;
 
     pool.query(`SELECT * FROM friends.fr_players WHERE player_uuid = '${id}'`, function (error, results) {
-      let last_online;
-      if (error) {
-        last_online = false;
-      } else {
-        last_online = results?.[0]?.last_online.toString() || false;
-      }
+      const lastOnline = error ? false : results?.[0]?.last_online.toString() || false;
 
       pool.query(`SELECT SUM(session_end - session_start) FROM plan.plan_sessions WHERE uuid = '${id}'`, async function (error, results) {
         let out;
@@ -133,12 +123,7 @@ const information = async function (id, pool, member, user1, msg) {
         }
 
         pool.query(`SELECT double_value FROM plan.plan_extension_user_values WHERE provider_id = 15 AND uuid = '${id}'`, function (error, results) {
-          let bal;
-          if (error) {
-            bal = 0;
-          } else {
-            bal = results?.[0]?.double_value || 0;
-          }
+          const bal = error ? 0 : results?.[0]?.double_value || 0;
 
           const em = new DiscordJS.MessageEmbed()
             .setTitle(`${name}'s Account Information`)
@@ -149,7 +134,7 @@ const information = async function (id, pool, member, user1, msg) {
             .addField('NameMC Link', `Click [here](https://es.namemc.com/profile/${id}) to go to their NameMC Profile`, false);
           if (member) em.addField('Discord', `${user1.user.tag} (${user1.id})`, false);
           if (wins) em.addField('Reaction Wins', wins, false);
-          if (last_online) em.addField('Last Online', last_online, false);
+          if (lastOnline) em.addField('Last Online', last_online, false);
           if (out !== '0s') em.addField('Play Time', out, false);
           if (bal) em.addField('Survival Balance', `$${bal.toLocaleString()}`, false);
 

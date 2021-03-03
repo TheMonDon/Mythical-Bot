@@ -73,8 +73,8 @@ module.exports = class {
     if (!bool) return;
     const args = newmsg.content.slice(tag.length).trim().split(/\s+/g);
     const command = args.shift().toLowerCase();
-    if (!command && tag === String(message.guild?.me)) {
-      if (!args || args.length < 1) return message.channel.send(`The current prefix is: ${message.settings.prefix}`);
+    if (!command && tag === String(newmsg.guild?.me)) {
+      if (!args || args.length < 1) return newmsg.channel.send(`The current prefix is: ${newmsg.settings.prefix}`);
     }
 
     // If the member on a guild is invisible or not cached, fetch them.
