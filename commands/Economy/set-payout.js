@@ -30,12 +30,12 @@ module.exports = class setCurrency extends Command {
     const cs = db.get(`servers.${server.id}.economy.symbol`) || '$';
     const usage = `${p}Set-Payout <work | crime> <min | max> <amount>`;
 
-    const work_min = db.get(`servers.${server.id}.economy.work.min`) || 50;
-    const work_max = db.get(`servers.${server.id}.economy.work.max`) || 500;
-    const slut_min = '';
-    const slut_max = '';
-    const crime_min = db.get(`servers.${server.id}.economy.crime.min`) || 500;
-    const crime_max = db.get(`servers.${server.id}.economy.crime.max`) || 2000;
+    const workMin = db.get(`servers.${server.id}.economy.work.min`) || 50;
+    const workMax = db.get(`servers.${server.id}.economy.work.max`) || 500;
+    // const slut_min = '';
+    // const slut_max = '';
+    const crimeMin = db.get(`servers.${server.id}.economy.crime.min`) || 500;
+    const crimeMax = db.get(`servers.${server.id}.economy.crime.max`) || 2000;
 
     if (!text || text.length < 1) {
       const embed = new DiscordJS.MessageEmbed()
@@ -44,14 +44,14 @@ module.exports = class setCurrency extends Command {
         .setDescription(stripIndents`
         The current payout ranges are: 
         
-        \`Work\` - min: ${cs}${work_min} | max: ${cs}${work_max}
-        \`Crime\` - min: ${cs}${crime_min} | max: ${cs}${crime_max}
+        \`Work\` - min: ${cs}${workMin} | max: ${cs}${workMax}
+        \`Crime\` - min: ${cs}${crimeMin} | max: ${cs}${crimeMax}
     
         Usage: ${usage}
         `);
       return msg.channel.send(embed);
     } else {
-      const type = text[0] && text[0].toLowerCase();
+      const type = text[0]?.toLowerCase();
       if (!types.includes(type)) {
         const embed = new DiscordJS.MessageEmbed()
           .setColor('#EC5454')
@@ -60,7 +60,7 @@ module.exports = class setCurrency extends Command {
         return msg.channel.send(embed);
       }
 
-      const minMax = text[1] && text[1].toLowerCase();
+      const minMax = text[1]?.toLowerCase();
       if (!['min', 'max'].includes(minMax)) {
         const embed = new DiscordJS.MessageEmbed()
           .setColor('#EC5454')

@@ -26,8 +26,8 @@ class rps extends Command {
     }
     const p1 = msg.author;
     const chan = msg.channel;
-    let auth_reply;
-    let mem_reply;
+    let authReply;
+    let memReply;
 
     if (!mem) return msg.channel.send(`Incorrect Usage: ${p}rps <user> (Please enter a valid user)`);
     if (mem.user.id === msg.author.id) return msg.channel.send('You can\'t play against yourself, silly.');
@@ -51,7 +51,7 @@ class rps extends Command {
           errors: ['time']
         })
           .then((collected) => {
-            auth_reply = collected.first()
+            authReply = collected.first()
               .content.toLowerCase();
             msg.channel.send(`Your response of \`${collected.first().content.toLowerCase()}\` has been saved.`);
           })
@@ -79,7 +79,7 @@ class rps extends Command {
           errors: ['time']
         })
           .then((collected) => {
-            mem_reply = collected.first()
+            memReply = collected.first()
               .content.toLowerCase();
             msg.channel.send(`Your response of \`${collected.first().content.toLowerCase()}\` has been saved. \nCheck ${chan} for the results!`);
             p1.send(`${mem} has replied, check ${chan} for the results.`);
@@ -96,50 +96,50 @@ class rps extends Command {
     embed.setTitle('Rock - Paper - Scissors');
     embed.setColor('RANDOM');
 
-    if (auth_reply === mem_reply) {
+    if (authReply === memReply) {
       embed.setDescription(stripIndents`
         No winner this time!
         ${mem} and ${p1} both chose the same thing.
         
-        The tied item was: ${auth_reply}
+        The tied item was: ${authReply}
         `);
-    } else if (auth_reply === 'rock') {
-      if (mem_reply === 'scissors') {
+    } else if (authReply === 'rock') {
+      if (memReply === 'scissors') {
         embed.setDescription(stripIndents`
             The winner was: ${p1}!
-            The winning item was: ${auth_reply}
+            The winning item was: ${authReply}
             `);
       } else {
         embed.setDescription(stripIndents`
             The winner was: ${mem}!
-            The winning item was: ${mem_reply}
+            The winning item was: ${memReply}
             `);
       }
-    } else if (auth_reply === 'paper') {
-      if (mem_reply === 'rock') {
+    } else if (authReply === 'paper') {
+      if (memReply === 'rock') {
         embed.setDescription(stripIndents`
             The winner was: ${p1}!
-            The winning item was: ${auth_reply}
+            The winning item was: ${authReply}
             `);
       } else {
-        if (mem_reply === 'scissors') {
+        if (memReply === 'scissors') {
           embed.setDescription(stripIndents`
                 The winner was: ${mem}!
-                The winning item was: ${mem_reply}
+                The winning item was: ${memReply}
                 `);
         }
       }
-    } else if (auth_reply === 'scissors') {
-      if (mem_reply === 'rock') {
+    } else if (authReply === 'scissors') {
+      if (memReply === 'rock') {
         embed.setDescription(stripIndents`
             The winner was: ${mem}!
-            The winning item was: ${mem_reply}
+            The winning item was: ${memReply}
             `);
       } else {
-        if (mem_reply === 'paper') {
+        if (memReply === 'paper') {
           embed.setDescription(stripIndents`
                 The winner was: ${p1}!
-                The winning item was: ${auth_reply}
+                The winning item was: ${authReply}
                 `);
         }
       }

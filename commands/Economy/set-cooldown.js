@@ -24,10 +24,10 @@ module.exports = class BalanceCommand extends Command {
     const types = ['rob', 'work', 'crime'];
 
     const usage = `${p}Set-Cooldown <work | rob | crime> <cooldown> \nExample: ${p}Set-Cooldown work 30 seconds`;
-    const rob_cooldown = db.get(`servers.${server.id}.economy.rob.cooldown`) || 600; // get cooldown from database or set to 600 seconds (10 minutes)
-    const work_cooldown = db.get(`servers.${server.id}.economy.work.cooldown`) || 300; // get cooldown from database or set to 300 seconds
-    const slut_cooldown = '';
-    const crime_cooldown = db.get(`servers.${server.id}.economy.crime.cooldown`) || 600;
+    const robCooldown = db.get(`servers.${server.id}.economy.rob.cooldown`) || 600; // get cooldown from database or set to 600 seconds (10 minutes)
+    const workCooldown = db.get(`servers.${server.id}.economy.work.cooldown`) || 300; // get cooldown from database or set to 300 seconds
+    // const slut_cooldown = '';
+    const crimeCooldown = db.get(`servers.${server.id}.economy.crime.cooldown`) || 600;
 
     if (!args || args.length < 1) {
       const embed = new DiscordJS.MessageEmbed()
@@ -36,9 +36,9 @@ module.exports = class BalanceCommand extends Command {
         .setDescription(stripIndents`
       The current cooldowns are set to: 
       
-      \`Work\` - ${work_cooldown} seconds
-      \`Rob\` - ${rob_cooldown} seconds
-      \`Crime\` - ${crime_cooldown} seconds
+      \`Work\` - ${workCooldown} seconds
+      \`Rob\` - ${robCooldown} seconds
+      \`Crime\` - ${crimeCooldown} seconds
 
       Manage Guild is required to change values.
       
