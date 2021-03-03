@@ -58,6 +58,7 @@
     "superagent": "^6.1.0",
     "trev": "^2.0.8",
     "twemoji": "^13.0.1",
+    "user-instagram": "^2.1.9",
     "weather-js": "^2.0.0"
   },
   "devDependencies": {
