@@ -121,11 +121,10 @@ module.exports = class {
     // command = say
     // args = ["Is", "this", "the", "real", "life?"]
     if (!bool) return;
-    const args = message.content.slice(tag.length).trim().split(/ +/g);
-    let command = args.shift().toLowerCase();
-    if (tag === String(message.guild && message.guild.me)) {
-      if (args.length < 1) return message.channel.send(`The current prefix is: ${message.settings.prefix}`);
-      command = args.shift().toLowerCase();
+    const args = message.content.slice(tag.length).trim().split(/\s+/g);
+    const command = args.shift().toLowerCase();
+    if (!command && tag === String(message.guild?.me)) {
+      if (!args || args.length < 1) return message.channel.send(`The current prefix is: ${message.settings.prefix}`);
     }
 
     // If the member on a guild is invisible or not cached, fetch them.

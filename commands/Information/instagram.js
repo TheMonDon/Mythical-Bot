@@ -26,8 +26,8 @@ class insta extends Command {
           .setURL(res.link)
           .setThumbnail(res.profilePicHD)
           .addField('Biography', res.biography, true)
-          .addField('Subscribers', res.subbscribersCount, true)
-          .addField('Subscriptions', res.subscriptions, true)
+          .addField('Subscribers', res.subscribersCount, true)
+          .addField('Subscriptions', res.subscribtions, true)
           .addField('Posts Count', res.postsCount, true)
           .addField('Is Private?', res.isPrivate, true)
           .addField('Is Verified?', res.isVerified, true);

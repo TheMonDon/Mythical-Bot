@@ -11,9 +11,16 @@ const config = {
   // Your Bot's Token. Available on https://discordapp.com/developers/applications/me
   "token": "mfa.VkO_2G4Qv3T--NO--lWetW_tjND--TOKEN--QFTm6YGtzq9PH--4U--tG0",
 
-  // Oxford Dictionary API 
-  'appId': 'app_id_here',
-  'appKey': 'app_key_here',
+  // MySQL Information for Crafters-Island Server info
+  mysqlUsername: '',
+  mysqlPassword: '',
+  mysqlHost: '',
+
+  // OwlBot API key
+  owlKey: '',
+
+  // Github api token
+  github: '',
 
   // Default per-server settings. These settings are entered in a database on first load, 
   // And are then completely ignored from this file. To modify default settings, use the `conf` command.

@@ -26,7 +26,7 @@ class Eval extends Command {
       .setFooter(msg.author.tag, msg.author.displayAvatarURL());
 
     const query = args.join(' ');
-    const code = (lang, code) => (`\`\`\`${lang}\n${String(code).slice(0, 1000) + (code.length >= 1000 ? '...' : '')}\n\`\`\``).replace(this.client.config.token, '*'.repeat(this.client.config.token.length));
+    const code = (lang, code) => (`\`\`\`${lang}\n${String(code).slice(0, 1000) + (code.length >= 1000 ? '...' : '')}\n\`\`\``).replace(this.client.config.token, '*'.repeat(this.client.config.token.length)).replace(this.client.config.github, '*'.repeat(this.client.config.github.length)).replace(this.client.config.owlKey, '*'.repeat(this.client.config.owlKey.length));
 
     if (!query) msg.channel.send('Please, write something so I can evaluate!');
     else {
