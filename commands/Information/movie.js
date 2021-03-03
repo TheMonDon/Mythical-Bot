@@ -17,7 +17,7 @@ class movie extends Command {
     const p = msg.settings.prefix;
     const query = text.join(' ');
 
-    if (!query || query.length < 1) return msg.channel.send(`Incorrect Usage: ${p}wiki <wikipedia search>`);
+    if (!query || query.length < 1) return msg.channel.send(`Incorrect Usage: ${p}movie <movie search>`);
 
     try {
       const search = await fetch
@@ -47,7 +47,7 @@ class movie extends Command {
         .addField('Genres', body.genres.length ? body.genres.map(genre => genre.name).join(', ') : '???')
         .addField('Production Companies',
           body.production_companies.length ? body.production_companies.map(c => c.name).join(', ') : '???');
-      return msg.embed(embed);
+      return msg.channel.send(embed);
     } catch (err) {
       return msg.reply(`Oh no, an error occurred: \`${err.message}\`. Try again later!`);
     }
