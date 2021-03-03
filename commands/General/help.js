@@ -7,7 +7,7 @@ class Help extends Command {
       name: 'help',
       description: 'Displays all the available commands for you.',
       category: 'General',
-      usage: 'help [command]',
+      usage: 'help <category | command>',
       aliases: ['h']
     });
   }
@@ -23,7 +23,7 @@ class Help extends Command {
 
     const errEm = new MessageEmbed()
       .setColor('ORANGE')
-      .setDescription(`Please select a category to see all available commands. \nUsage: \`${msg.settings.prefix}help <category\` \nUsage: \`${msg.settings.prefix}help <command>\``)
+      .setDescription(`Please select a category to see all available commands. \nUsage: \`${msg.settings.prefix}help <category>\` \nUsage: \`${msg.settings.prefix}help <command>\``)
       .addField('Current Categories:', level >= 8 ? allcats : cats, true)
       .addField('Quick Bits', '[Invite Link](https://discord.com/oauth2/authorize?client_id=742407958729588767&scope=bot&permissions=171306176)', true);
 
