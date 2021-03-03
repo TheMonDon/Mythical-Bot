@@ -1,5 +1,4 @@
-/* eslint-disable no-undef */
-/* eslint-disable prefer-regex-literals */
+/* global pool */
 const Command = require('../../base/Command.js');
 const DiscordJS = require('discord.js');
 const Nfetch = require('node-superfetch');
@@ -40,8 +39,13 @@ class playerinfo extends Command {
 
     const errMsg = 'I could not find that user. Did they sync their accounts using `!link`? \nAdd "" around mc username if their discord name is the same.';
 
+    const errorEmbed = new DiscordJS.MessageEmbed()
+      .setTitle('Account Not Found')
+      .setColor('FF0000')
+      .setDescription(`An account with the name \`${user || user1}\` was not found.`);
+
     if (!member) {
-      const nameRegex = new RegExp(/^\w{3,16}$/);
+      const nameRegex = /^\w{3,16}$/;
       // Make sure the username is a valid MC username
       if (!nameRegex.test(user)) {
         const em = new DiscordJS.MessageEmbed()
@@ -51,16 +55,14 @@ class playerinfo extends Command {
         return msg.channel.send(em);
       }
 
-      const body = await Nfetch.get(`https://api.mojang.com/users/profiles/minecraft/${user}`)
+      const body = await Nfetch
+        .get(`https://api.mojang.com/users/profiles/minecraft/${user}`)
         .catch(() => {
-          const em = new DiscordJS.MessageEmbed()
-            .setTitle('Account Not Found')
-            .setColor('FF0000')
-            .setDescription(`An account with the name \`${user}\` was not found.`);
-          return msg.channel.send(em);
+          return msg.channel.send(errorEmbed);
         });
       const uuid = body.body.id;
-      const id = uuid.substr(0, 8) + '-' + uuid.substr(8, 4) + '-' + uuid.substr(12, 4) + '-' + uuid.substr(16, 4) + '-' + uuid.substr(20);
+      if (!uuid) return msg.channel.send(errorEmbed);
+      const id = uuid?.substr(0, 8) + '-' + uuid.substr(8, 4) + '-' + uuid.substr(12, 4) + '-' + uuid.substr(16, 4) + '-' + uuid.substr(20);
 
       pool.query(`SELECT * FROM ranksync.player WHERE uuid = '${id}'`, function (error, results) {
         const playerID = results?.[0]?.id;
@@ -96,19 +98,20 @@ class playerinfo extends Command {
 }
 
 const information = async function (id, pool, member, user1, msg) {
-  const { body } = await Nfetch.get(`https://api.mojang.com/user/profiles/${id}/names`)
+  const { body } = await Nfetch
+    .get(`https://api.mojang.com/user/profiles/${id}/names`)
     .catch(() => {
       const em = new DiscordJS.MessageEmbed()
         .setTitle('Account Not Found')
         .setColor('FF0000')
-        .setDescription(`An account with the name \`${user}\` was not found.`);
+        .setDescription(`An account with the name \`${user1}\` was not found.`);
       return msg.channel.send(em);
     });
   const nc = JSONPath({ path: '*.name', json: body }).join(', ');
   const name = nc.slice(nc.lastIndexOf(',') + 1);
 
   pool.query(`SELECT * FROM chatreaction.survival_newreactionstats WHERE uuid = '${id}'`, function (error, results) {
-    const wins = error ? false.[0]?.wins || false;
+    const wins = error ? results?.[0]?.wins : false;
 
     pool.query(`SELECT * FROM friends.fr_players WHERE player_uuid = '${id}'`, function (error, results) {
       const lastOnline = error ? false : results?.[0]?.last_online.toString() || false;
@@ -134,7 +137,7 @@ const information = async function (id, pool, member, user1, msg) {
             .addField('NameMC Link', `Click [here](https://es.namemc.com/profile/${id}) to go to their NameMC Profile`, false);
           if (member) em.addField('Discord', `${user1.user.tag} (${user1.id})`, false);
           if (wins) em.addField('Reaction Wins', wins, false);
-          if (lastOnline) em.addField('Last Online', last_online, false);
+          if (lastOnline) em.addField('Last Online', lastOnline, false);
           if (out !== '0s') em.addField('Play Time', out, false);
           if (bal) em.addField('Survival Balance', `$${bal.toLocaleString()}`, false);
 
