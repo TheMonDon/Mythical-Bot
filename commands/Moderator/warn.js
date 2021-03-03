@@ -134,12 +134,7 @@ class warn extends Command {
       .addField('Other Cases', otherCases, true)
       .addField('Reason', reason, false);
     if (!um) logEmbed.setFooter(`Failed to message the user in question • User ID: ${mem.id}`);
-    let logMessage;
-    if (logChan) {
-      logMessage = await msg.guild.channels.cache.get(logChan).send(logEmbed);
-    } else {
-      logMessage = await msg.channel.send(logEmbed);
-    }
+    const logMessage = logChan ? await msg.guild.channels.cache.get(logChan).send(logEmbed) : await msg.channel.send(logEmbed);
 
     const opts = { messageURL: logMessage.url, mod: msg.author.id, points, reason, timestamp: Date.now(), user: mem.id, warnID };
     db.set(`servers.${msg.guild.id}.warns.warnings.${warnID}`, opts);

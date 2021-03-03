@@ -109,12 +109,7 @@ class setup extends Command {
               const response1 = collected2.first().content.toLowerCase();
 
               if (response1 === 'cancel') return msg.channel.send('Got it! The command has been cancelled.');
-
-              if (['yes', 'y'].includes(response1)) {
-                reaction = 'yes';
-              } else {
-                reaction = 'no';
-              }
+              ['yes', 'y'].includes(response1) ? reaction = 'yes' : reaction = 'no';
 
               const catPerms = [
                 {
