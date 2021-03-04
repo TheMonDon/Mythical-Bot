@@ -9,7 +9,7 @@ class github extends Command {
       name: 'github',
       description: 'View information about a repository on Github',
       usage: 'github',
-      category: 'Information',
+      category: 'Search',
       aliases: ['gh']
     });
   }

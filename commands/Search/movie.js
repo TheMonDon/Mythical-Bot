@@ -8,8 +8,7 @@ class movie extends Command {
       name: 'movie',
       description: 'View information on a movie from TMDb',
       usage: 'movie <movie>',
-      category: 'Information',
-      aliases: ['tmdb']
+      category: 'Search'
     });
   }
 

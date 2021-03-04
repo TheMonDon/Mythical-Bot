@@ -15,7 +15,8 @@ class Lyrics extends Command {
     let song;
     if (!args || args.length < 1) {
       if (!msg.guild) return msg.channel.send('I can\'t get the lyrics of nothing.');
-      song = msg.client.player.getQueue(msg) && msg.client.player.getQueue(msg).playing.title;
+      song = await this.client.player.nowPlaying(msg);
+      song = song.title;
       if (!song) return msg.channel.send('I can\'t get the lyrics of nothing.');
     } else {
       song = args.join(' ');

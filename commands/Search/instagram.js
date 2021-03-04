@@ -8,7 +8,7 @@ class insta extends Command {
       name: 'instagram',
       description: 'Get user info from instagram',
       usage: 'instagram',
-      category: 'Information',
+      category: 'Search',
       aliases: ['insta']
     });
   }

@@ -26,7 +26,7 @@ class Volume extends Command {
     if (!volume) return msg.channel.send('Please enter a valid number.');
     if (isNaN(args[0])) return msg.channel.send('Please enter a valid number.');
     if (volume < 1 || volume > 100) return msg.channel.send('The volume must be between 1 and 100.');
-    this.client.player.setVolume(msg.guild.id, volume);
+    this.client.player.setVolume(msg, volume);
     return msg.channel.send(`The volume has been set to: ${volume}`);
   }
 }

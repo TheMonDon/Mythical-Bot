@@ -157,7 +157,14 @@ global.pool = mysql.createPool({
 
 // Load the music player stuff
 client.player = new Player(client, {
-  leaveOnEmpty: false
+  leaveOnEnd: false,
+  leaveOnStop: true,
+  leaveOnEmpty: false,
+  leaveOnEmptyCooldown: 0,
+  autoSelfDeaf: true,
+  quality: 'high',
+  enableLive: true,
+  ytdlRequestOptions: {}
 });
 
 client.player

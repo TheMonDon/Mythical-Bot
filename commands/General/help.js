@@ -15,8 +15,8 @@ class Help extends Command {
   async run (msg, args, level) {
     const settings = msg.settings;
 
-    const cats = ['Administrator', 'Economy', 'Fun', 'Games', 'General', 'Information', 'Logging', 'Memes', 'Minecraft', 'Moderator', 'Music', 'NSFW'];
-    const allcats = ['Bot Admin', 'Administrator', 'Economy', 'Fun', 'Games', 'General', 'Information', 'Logging', 'Memes', 'Minecraft', 'Moderator', 'Music', 'NSFW', 'Owner', 'Tickets'];
+    const cats = ['Administrator', 'Economy', 'Fun', 'Games', 'General', 'Information', 'Logging', 'Memes', 'Minecraft', 'Moderator', 'Music', 'NSFW', 'Search', 'Tickets'];
+    const allcats = ['Bot Admin', 'Administrator', 'Economy', 'Fun', 'Games', 'General', 'Information', 'Logging', 'Memes', 'Minecraft', 'Moderator', 'Music', 'NSFW', 'Owner', 'Search', 'Tickets'];
     const text = args.join(' ').toProperCase();
     const em = new MessageEmbed()
       .setAuthor(msg.author.username, msg.author.displayAvatarURL());

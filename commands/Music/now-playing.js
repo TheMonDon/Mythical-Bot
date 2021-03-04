@@ -21,15 +21,15 @@ class nowPlaying extends Command {
     const song = await this.client.player.nowPlaying(msg);
 
     const queue = this.client.player.getQueue(msg);
-    const start = queue?.voiceConnection?.dispatcher?.startTime || 0;
-    const totalTime = queue.playing.durationMS;
-    const timeLeft = moment.duration((start + totalTime) - Date.now()).format('d [days] h [hours] m [minutes] s [seconds]');
+    const duration = moment.duration(`00:${song.duration}`).asSeconds() * 1000;
+    const totalTime = queue.currentStreamTime;
+    const timeLeft = moment.duration(duration - totalTime).format('d [days] h [hours] m [minutes] s [seconds]');
 
     const em = new MessageEmbed()
       .setDescription(stripIndents`
-    Now Playing ♪: [${song.title}](${song.url})
+    Now ${queue.paused ? 'Paused' : 'Playing'} ♪: [${song.title}](${song.url})
 
-    Duration: ${song.duration}
+    Duration: ${moment.duration(`00:${song.duration}`).format('d [days] h [hours] m [minutes] s [seconds]')}
     Time Remaining: ${timeLeft}
     ${this.client.player.createProgressBar(msg)}
 

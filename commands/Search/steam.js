@@ -8,7 +8,7 @@ class steam extends Command {
       name: 'steam',
       description: 'Get some information about any steam game or application.',
       usage: 'steam <game/app>',
-      category: 'Information'
+      category: 'Search'
     });
   }
 

@@ -8,7 +8,7 @@ class gPlay extends Command {
       name: 'google-play',
       description: 'Get some information about any google play application.',
       usage: 'google-play <app>',
-      category: 'Information',
+      category: 'Search',
       aliases: ['gplay', 'g-play', 'googleplay']
     });
   }
