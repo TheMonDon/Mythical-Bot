@@ -20,7 +20,6 @@ class rps extends Command {
     this.client.games.set(msg.channel.id, { name: this.help.name });
 
     const p = msg.settings.prefix;
-    const server = msg.guild;
     let mem;
 
     if (!text || text.length < 1) {
