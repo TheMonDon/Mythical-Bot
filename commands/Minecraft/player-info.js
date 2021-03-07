@@ -26,11 +26,7 @@ class playerinfo extends Command {
       user = user1.id;
     } else {
       user1 = getMember(msg, text.join(' '));
-      if (user1) {
-        user = user1.id;
-      } else {
-        user = text.join(' ').trim().replace(/'/g, '').replace(/"/g, '');
-      }
+      user1 ? user = user1.id : user = text.join(' ').trim().replace(/'/g, '').replace(/"/g, '');
     }
 
     let member = !!msg.guild.members.cache.get(user);

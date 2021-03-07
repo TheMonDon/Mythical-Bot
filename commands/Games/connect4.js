@@ -112,11 +112,7 @@ class connect4 extends Command {
         if (p2Color.size) {
           const choice = p2Color.first().content.toLowerCase();
           const hasCustom = choice.match(customEmojiRegex);
-          if (hasCustom && msg.guild) {
-            playerTwoEmoji = msg.guild.emojis.cache.get(hasCustom[2]).toString();
-          } else {
-            playerTwoEmoji = colors[choice] || choice;
-          }
+          hasCustom && msg.guild ? playerTwoEmoji = msg.guild.emojis.cache.get(hasCustom[2]).toString() : playerTwoEmoji = colors[choice] || choice;
         }
       }
       const AIEngine = new Connect4AI();

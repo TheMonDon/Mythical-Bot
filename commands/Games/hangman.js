@@ -50,7 +50,7 @@ class hangman extends Command {
       newWordString.push('_');
     }
 
-    const mention = getMember(msg, args.join(' '))
+    const mention = getMember(msg, args.join(' '));
     if (mention) {
       const mentionplayquestion = lang.hangman_mentionplayquestion.replace('%mention', mention)
         .replace('%author', msg.author);
@@ -172,11 +172,7 @@ class hangman extends Command {
                         firstEmbed.setDescription(embeddescriptionwithtried);
                         firstEmbed.setImage(hangmanPictures[15 - chances]);
 
-                        if (turn === 1) {
-                          turn = 2;
-                        } else {
-                          turn = 1;
-                        }
+                        turn === 1 ? turn = 2 : turn = 1;
 
                         hangmanEmbed.edit({
                           embed: firstEmbed
