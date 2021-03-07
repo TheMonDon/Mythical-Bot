@@ -1,4 +1,5 @@
 const Command = require('../../base/Command.js');
+const { getMember } = require('../../base/Util.js');
 const db = require('quick.db');
 const DiscordJS = require('discord.js');
 
@@ -16,7 +17,6 @@ module.exports = class ResetMoney extends Command {
 
   async run (msg, text) {
     const member = msg.member;
-    const server = msg.guild;
     const p = msg.settings.prefix;
     let mem;
 
@@ -41,8 +41,8 @@ module.exports = class ResetMoney extends Command {
         .then((collected) => {
           const word = collected.first().content.trim();
           if (word === 'yes' || word === 'y') {
-            db.set(`servers.${server.id}.users.${member.id}.economy.cash`, 0);
-            db.set(`servers.${server.id}.users.${member.id}.economy.bank`, 0);
+            db.set(`servers.${msg.guild.id}.users.${member.id}.economy.cash`, 0);
+            db.set(`servers.${msg.guild.id}.users.${member.id}.economy.bank`, 0);
             return msg.channel.send('Your money has been reset.');
           } else if (word === 'no' || word === 'n') {
             return msg.channel.send('Cancelled, your money will not be reset.');
@@ -54,8 +54,7 @@ module.exports = class ResetMoney extends Command {
           return msg.channel.send(err);
         });
     } else {
-      mem = msg.mentions.members.first() || server.members.cache.find(m => m.id === `${text.join(' ')}`) || server.members.cache.find(m => m.displayName.toUpperCase() === `${text.join(' ').toUpperCase()}`) || server.members.cache.find(m => m.user.username.toUpperCase() === `${text.join(' ').toUpperCase()}`) || server.members.cache.find(m => m.user.username.toLowerCase()
-        .includes(`${text.join(' ').toLowerCase()}`)) || server.members.cache.find(m => m.user.tag === `${text[0]}`);
+      mem = getMember(msg, text.join(' '));
 
       if (!mem) {
         const fid = text.join(' ').replace('<@', '').replace('>', '');

@@ -1,4 +1,5 @@
 const Command = require('../../base/Command.js');
+const { toProperCase } = require('../../base/Util.js');
 const DiscordJS = require('discord.js');
 const moment = require('moment');
 require('moment-duration-format');
@@ -49,7 +50,7 @@ class serverInfo extends Command {
       .addField('Name', server.name, true)
       .addField('ID', server.id, true)
       .addField('Owner', server.owner.user.tag, true)
-      .addField('Verification Level', cfl(server.verificationLevel), true)
+      .addField('Verification Level', toProperCase(server.verificationLevel), true)
       .addField('Channels', server.channels.cache.size.toLocaleString(), true)
       .addField('Created At', `${ca} \n (${time})`, true)
       .addField('Region', server.region, true)
@@ -57,10 +58,6 @@ class serverInfo extends Command {
       .addField('Members', server.members.cache.size.toLocaleString(), true)
       .addField(`Roles (${server.roles.cache.size.toLocaleString()})`, server === msg.guild ? roles1 : 'Can\'t display roles outside the server', true);
     return msg.channel.send(embed);
-
-    function cfl (string) {
-      return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
-    }
   }
 }
 

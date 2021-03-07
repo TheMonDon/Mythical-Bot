@@ -1,4 +1,5 @@
 const Command = require('../../base/Command.js');
+const { getMember } = require('../../base/Util.js');
 const db = require('quick.db');
 const DiscordJS = require('discord.js');
 
@@ -20,9 +21,7 @@ class Remove extends Command {
 
     if (!args[0]) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}remove <user>`);
 
-    const server = msg.guild;
-    const mem = msg.mentions.members.first() || server.members.cache.find(m => m.id === `${args.join(' ')}`) || server.members.cache.find(m => m.displayName.toUpperCase() === `${args.join(' ').toUpperCase()}`) || server.members.cache.find(m => m.user.username.toUpperCase() === `${args.join(' ').toUpperCase()}`) || server.members.cache.find(m => m.user.username.toLowerCase()
-      .includes(`${args.join(' ').toLowerCase()}`));
+    const mem = getMember(msg, args.join(' '));
     if (!mem) return msg.channel.send('That is not a valid user.');
     if (mem.id === msg.author.id) return msg.channel.send(`Are you trying to close your ticket? Use \`${msg.settings.prefix}close\` instead`);
 

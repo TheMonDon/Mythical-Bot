@@ -1,4 +1,5 @@
 const Command = require('../../base/Command.js');
+const { getChannel } = require('../../base/Util.js');
 const DiscordJS = require('discord.js');
 const moment = require('moment');
 require('moment-duration-format');
@@ -16,18 +17,12 @@ class Stats extends Command {
   }
 
   async run (msg, text) {
-    const server = msg.guild;
     let infoChan;
 
     if (!text || text.length < 1) {
       infoChan = msg.channel;
     } else {
-      infoChan = msg.mentions.channels.first() ||
-        server.channels.cache.find(c => c.id === `${text.join(' ')}`) ||
-        server.channels.cache.find(c => c.name.toLowerCase() === `${text.join(' ').toLowerCase()}`) ||
-        server.channels.cache.find(c => c.name.toLowerCase().includes(`${text.join(' ').toLowerCase()}`)) ||
-        this.client.channels.cache.find(c => c.id === `${text.join(' ')}`) ||
-        this.client.channels.cache.find(c => c.name.toLowerCase().includes(`${text.join(' ').toLowerCase()}`));
+      infoChan = getChannel(msg, text.join(' '));
     }
 
     const then = moment(infoChan.createdAt);
@@ -54,7 +49,7 @@ class Stats extends Command {
     if (infoChan.parent) embed.addField('Parent', `${infoChan.parent.name} \n \`${infoChan.parentID}\``, true);
     if (infoChan.type === 'text') embed.addField('Topic', `${(infoChan.topic) || 'None'}`, false);
 
-    msg.channel.send(embed);
+    return msg.channel.send(embed);
   }
 }
 

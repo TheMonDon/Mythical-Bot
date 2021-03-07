@@ -1,4 +1,5 @@
 const Command = require('../../base/Command.js');
+const { clean, cleanString } = require('../../base/Util.js');
 
 class clap extends Command {
   constructor (client) {
@@ -11,15 +12,10 @@ class clap extends Command {
   }
 
   async run (msg, args) {
-    const p = msg.settings.prefix;
-    const clapify = args.join(' ');
-
-    if (!args || args.length < 2) return msg.channel.send(`Incorrect Usage: ${p}Clap <text>`);
-
-    const clap = clapify.replace(/\s/g, ' 👏 ').replace(/@/g, '');
-
-    if (clap.length > 2000) return msg.channel.send(`Your message is too long. Please keep it under 2000 characters. (${clap.length}/2000)`);
+    if (!args || args.length < 2) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}Clap <text>`);
+    const clap = await clean(this.client, cleanString(args.join(' ').replace(/\s/g, ' 👏 ')));
     return msg.channel.send(clap);
   }
 }
+
 module.exports = clap;

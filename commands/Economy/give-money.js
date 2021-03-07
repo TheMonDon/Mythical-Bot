@@ -1,4 +1,5 @@
 const Command = require('../../base/Command.js');
+const { getMember } = require('../../base/Util.js');
 const db = require('quick.db');
 const DiscordJS = require('discord.js');
 
@@ -15,7 +16,6 @@ module.exports = class BalanceCommand extends Command {
   }
 
   run (msg, text) {
-    const server = msg.guild;
     const member = msg.member;
     const p = msg.settings.prefix;
     let mem;
@@ -29,8 +29,7 @@ module.exports = class BalanceCommand extends Command {
       errEmbed.setDescription(`Incorrect Usage: ${usage}`);
       return msg.channel.send(errEmbed);
     } else {
-      mem = msg.mentions.members.first() || server.members.cache.find(m => m.id === `${text[0]}`) || server.members.cache.find(m => m.displayName.toUpperCase() === `${text[0].toUpperCase()}`) || server.members.cache.find(m => m.user.username.toUpperCase() === `${text[0].toUpperCase()}`) || server.members.cache.find(m => m.user.username.toLowerCase()
-        .includes(`${text[0].toLowerCase()}`)) || server.members.cache.find(m => m.user.tag === `${text[0]}`);
+      mem = getMember(msg, text[0]);
     }
 
     if (!mem) {
@@ -41,8 +40,8 @@ module.exports = class BalanceCommand extends Command {
       return msg.channel.send(errEmbed);
     }
 
-    const cs = db.get(`servers.${server.id}.economy.symbol`) || '$';
-    const authCash = db.get(`servers.${server.id}.users.${member.id}.economy.cash`) || 0;
+    const cs = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
+    const authCash = db.get(`servers.${msg.guild.id}.users.${member.id}.economy.cash`) || 0;
 
     let amount = text[1];
     amount = amount.replace(/,/g, '');
@@ -62,8 +61,8 @@ module.exports = class BalanceCommand extends Command {
           return msg.channel.send(errEmbed);
         }
 
-        db.subtract(`servers.${server.id}.users.${member.id}.economy.cash`, amount);
-        db.add(`servers.${server.id}.users.${mem.id}.economy.cash`, amount);
+        db.subtract(`servers.${msg.guild.id}.users.${member.id}.economy.cash`, amount);
+        db.add(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, amount);
 
         const embed = new DiscordJS.MessageEmbed()
           .setColor('#04ACF4')
@@ -91,8 +90,8 @@ module.exports = class BalanceCommand extends Command {
       return msg.channel.send(errEmbed);
     }
 
-    db.subtract(`servers.${server.id}.users.${member.id}.economy.cash`, amount);
-    db.add(`servers.${server.id}.users.${mem.id}.economy.cash`, amount);
+    db.subtract(`servers.${msg.guild.id}.users.${member.id}.economy.cash`, amount);
+    db.add(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, amount);
 
     const embed = new DiscordJS.MessageEmbed()
       .setColor('#04ACF4')

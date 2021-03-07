@@ -1,4 +1,5 @@
 const Command = require('../../base/Command.js');
+const { getMember, getJoinPosition } = require('../../base/Util.js');
 const DiscordJS = require('discord.js');
 const moment = require('moment');
 require('moment-duration-format');
@@ -22,8 +23,7 @@ class UserInfo extends Command {
     if (!text || text.length < 1) {
       infoMem = msg.member;
     } else {
-      infoMem = msg.mentions.members.first() || server.members.cache.find(m => m.id === `${text.join(' ')}`) || server.members.cache.find(m => m.displayName.toUpperCase() === `${text.join(' ').toUpperCase()}`) || server.members.cache.find(m => m.user.username.toUpperCase() === `${text.join(' ').toUpperCase()}`) || server.members.cache.find(m => m.user.username.toLowerCase()
-        .includes(`${text.join(' ').toLowerCase()}`));
+      infoMem = getMember(msg, text.join(' '));
     }
 
     if (!infoMem) {
@@ -79,21 +79,6 @@ class UserInfo extends Command {
         .addField('Is Bot?', infoMem.bot)
         .addField('Account Created', ca);
       return msg.channel.send(embed);
-    }
-
-    async function getJoinPosition (id, guild) {
-      if (!guild.member(id)) return;
-
-      await guild.members.fetch();
-      const array = guild.members.cache.array();
-      array.sort((a, b) => a.joinedAt - b.joinedAt);
-
-      const result = array.map((m, i) => ({
-        index: i,
-        id: m.user.id
-      }))
-        .find((m) => m.id === id);
-      return result?.index;
     }
   }
 }

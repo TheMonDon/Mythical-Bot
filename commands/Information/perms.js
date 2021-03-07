@@ -1,4 +1,5 @@
 const Command = require('../../base/Command.js');
+const { getMember } = require('../../base/Util.js');
 const DiscordJS = require('discord.js');
 const { stripIndents } = require('common-tags');
 
@@ -15,15 +16,12 @@ class Perms extends Command {
   }
 
   async run (msg, args) {
-    const mem = args.join(' ');
-    const server = msg.guild;
     let infoMem;
 
-    if (!mem) {
+    if (!args || args.length < 1) {
       infoMem = msg.member;
     } else {
-      infoMem = msg.mentions.members.first() || server.members.cache.find(m => m.id === `${mem}`) || server.members.cache.find(m => m.displayName.toUpperCase() === `${mem.toUpperCase()}`) || server.members.cache.find(m => m.user.username.toUpperCase() === `${mem.toUpperCase()}`) || server.members.cache.find(m => m.user.username.toLowerCase()
-        .includes(`${mem.toLowerCase()}`));
+      infoMem = getMember(msg, args.join(' '));
     }
     if (!infoMem) {
       return msg.channel.send('That user was not found, please try again.');

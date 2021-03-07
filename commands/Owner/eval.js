@@ -19,6 +19,7 @@ class Eval extends Command {
   async run (msg, args, level) {
     const db = require('quick.db');
     const DiscordJS = require('discord.js');
+    const Util = require('../../base/Util.js');
     const server = msg.guild;
     const member = msg.member;
 

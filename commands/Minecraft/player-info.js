@@ -1,5 +1,6 @@
 /* global pool */
 const Command = require('../../base/Command.js');
+const { getMember } = require('../../base/Util.js');
 const DiscordJS = require('discord.js');
 const Nfetch = require('node-superfetch');
 const { JSONPath } = require('jsonpath-plus');
@@ -18,16 +19,13 @@ class playerinfo extends Command {
   }
 
   async run (msg, text) {
-    const server = msg.guild;
-
     let user;
     let user1;
     if (!text || text.length < 1) {
       user1 = msg.member;
       user = user1.id;
     } else {
-      user1 = msg.mentions.members.first() || server.members.cache.find(m => m.id === `${text.join(' ')}`) || server.members.cache.find(m => m.displayName.toUpperCase() === `${text.join(' ').toUpperCase()}`) || server.members.cache.find(m => m.user.username.toUpperCase() === `${text.join(' ').toUpperCase()}`) || server.members.cache.find(m => m.user.username.toLowerCase()
-        .includes(`${text.join(' ').toLowerCase()}`));
+      user1 = getMember(msg, text.join(' '));
       if (user1) {
         user = user1.id;
       } else {
@@ -35,7 +33,7 @@ class playerinfo extends Command {
       }
     }
 
-    let member = !!server.members.cache.get(user);
+    let member = !!msg.guild.members.cache.get(user);
 
     const errMsg = 'I could not find that user. Did they sync their accounts using `!link`? \nAdd "" around mc username if their discord name is the same.';
 
@@ -52,6 +50,7 @@ class playerinfo extends Command {
           .setTitle('Invalid Username')
           .setColor('FF0000')
           .setDescription(`\`${user}\` is not a valid username.`);
+        console.log(user);
         return msg.channel.send(em);
       }
 
@@ -60,6 +59,7 @@ class playerinfo extends Command {
         .catch(() => {
           return msg.channel.send(errorEmbed);
         });
+      if (!body) return msg.channel.send(errorEmbed);
       const uuid = body.body.id;
       if (!uuid) return msg.channel.send(errorEmbed);
       const id = uuid?.substr(0, 8) + '-' + uuid.substr(8, 4) + '-' + uuid.substr(12, 4) + '-' + uuid.substr(16, 4) + '-' + uuid.substr(20);
@@ -71,9 +71,9 @@ class playerinfo extends Command {
         pool.query(`SELECT * FROM ranksync.synced_players WHERE player_id = ${playerID}`, async function (error, results) {
           if (error) { member = false; }
           user = results?.[0]?.identifier;
-          if (user && server.members.cache.get(user)) {
+          if (user && msg.guild.members.cache.get(user)) {
             member = true;
-            user1 = server.members.cache.get(user);
+            user1 = msg.guild.members.cache.get(user);
           } else {
             member = false;
           }
@@ -98,15 +98,17 @@ class playerinfo extends Command {
 }
 
 const information = async function (id, pool, member, user1, msg) {
+  const em = new DiscordJS.MessageEmbed()
+    .setTitle('Account Not Found')
+    .setColor('FF0000')
+    .setDescription(`An account with the name \`${user1}\` was not found.`);
+
   const { body } = await Nfetch
     .get(`https://api.mojang.com/user/profiles/${id}/names`)
     .catch(() => {
-      const em = new DiscordJS.MessageEmbed()
-        .setTitle('Account Not Found')
-        .setColor('FF0000')
-        .setDescription(`An account with the name \`${user1}\` was not found.`);
       return msg.channel.send(em);
     });
+  if (!body) return msg.channel.send(em);
   const nc = JSONPath({ path: '*.name', json: body }).join(', ');
   const name = nc.slice(nc.lastIndexOf(',') + 1);
 

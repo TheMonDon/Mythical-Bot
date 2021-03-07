@@ -1,5 +1,5 @@
-/* eslint-disable no-useless-escape */
 const Command = require('../../base/Command.js');
+const { random } = require('../../base/Util.js');
 
 class choose extends Command {
   constructor (client) {
@@ -12,16 +12,15 @@ class choose extends Command {
   }
 
   async run (msg, text) {
-    const p = msg.settings.prefix;
-    const join = text.join(' ');
-
     if (!text || text.length < 1) {
-      return msg.channel.send(`Incorrect Usage: ${p}choose (1 1, 2 2, 3 3) or (one two three)`);
+      return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}choose (1 1, 2 2, 3 3) or (one two three)`);
     }
 
-    const args = /^(.+( ?\, ?.+[^,])+)$/i.test(join) ? join.split(',') : join.split(' ');
+    const join = text.join(' ');
 
-    return msg.channel.send(`I choose: \`${args[Math.floor(Math.random() * args.length)].trim()}\``);
+    const args = /^(.+( ?, ?.+[^,])+)$/i.test(join) ? join.split(',') : join.split(' ');
+
+    return msg.channel.send(`I choose: \`${random(args)}\``);
   }
 }
 module.exports = choose;

@@ -1,4 +1,5 @@
 const Command = require('../../base/Command.js');
+const { getMember } = require('../../base/Util.js');
 const DiscordJS = require('discord.js');
 
 class kill extends Command {
@@ -14,16 +15,12 @@ class kill extends Command {
 
   async run (msg, text) {
     const member = msg.member;
-    const p = msg.settings.prefix;
     let mem;
 
     if (!text || text.length < 1) {
-      return msg.channel.send(`Incorrect Usage: ${p}kill <user>`);
+      return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}kill <user>`);
     } else {
-      mem = msg.mentions.members.first() || msg.guild.members.cache.find(m => m.id === `${text.join(' ')}`) ||
-      msg.guild.members.cache.find(m => m.displayName.toUpperCase() === `${text.join(' ').toUpperCase()}`) ||
-      msg.guild.members.cache.find(m => m.user.username.toUpperCase() === `${text.join(' ').toUpperCase()}`) ||
-      msg.guild.members.cache.find(m => m.user.username.toLowerCase().includes(`${text.join(' ').toLowerCase()}`));
+      mem = getMember(msg, text.join(' '));
     }
 
     if (mem.id === msg.author.id) {

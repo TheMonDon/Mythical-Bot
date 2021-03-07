@@ -1,4 +1,5 @@
 const Command = require('../../base/Command.js');
+const { wait } = require('../../base/Util.js');
 const DiscordJS = require('discord.js');
 const https = require('https');
 const fntPath = './fonts/Moms_Typewriter.ttf';
@@ -6,7 +7,6 @@ const fs = require('fs');
 const { registerFont, createCanvas, loadImage } = require('canvas');
 const randomWords = require('random-words');
 const { stripIndents } = require('common-tags');
-const sleep = require('util').promisify(setTimeout);
 
 class typerCommand extends Command {
   constructor (client) {
@@ -20,6 +20,10 @@ class typerCommand extends Command {
   }
 
   async run (msg) {
+    const current = this.client.games.get(msg.channel.id);
+    if (current) return msg.reply(`Please wait until the current game of \`${current.name}\` is finished.`);
+    this.client.games.set(msg.channel.id, { name: this.help.name });
+
     const randWord = randomWords(1).toString();
 
     // Check if font file exists
@@ -73,11 +77,11 @@ class typerCommand extends Command {
 
             (async () => {
               getReady = await msg.channel.send('Are you ready? \n3');
-              await sleep(1000);
+              await wait(1000);
               getReady.edit('Are you ready? \n2');
-              await sleep(1000);
+              await wait(1000);
               getReady.edit('Are you ready? \n1');
-              await sleep(1000);
+              await wait(1000);
               getReady.edit('Go!');
               theImage = await msg.channel.send(attachment);
             })();
@@ -104,15 +108,18 @@ class typerCommand extends Command {
                   .setDescription(stripIndents`
                   ${winner} won! :tada:
                   Time: ${time}s`);
+                this.client.games.delete(msg.channel.id);
                 return msg.channel.send(em1);
               })
               .catch(() => {
                 getReady.delete();
+                this.client.games.delete(msg.channel.id);
                 return msg.channel.send('No one guessed the correct word in time.');
               });
           });
       })
       .catch(() => {
+        this.client.games.delete(msg.channel.id);
         return msg.channel.send('No one reacted in time');
       });
   }

@@ -1,4 +1,5 @@
 const Command = require('../../base/Command.js');
+const { getMember } = require('../../base/Util.js');
 
 class Nickname extends Command {
   constructor (client) {
@@ -21,8 +22,7 @@ class Nickname extends Command {
 
     if (!text[0]) return msg.channel.send(`Incorrect Usage: ${p}Nick <user> (nickname)`);
 
-    const infoMem = msg.mentions.members.first() || msg.guild.members.cache.find(m => m.id === `${text[0]}`) || msg.guild.members.cache.find(m => m.displayName.toUpperCase() === `${text[0].toUpperCase()}`) || msg.guild.members.cache.find(m => m.user.username.toUpperCase() === `${text[0].toUpperCase()}`) || msg.guild.members.cache.find(m => m.user.username.toLowerCase()
-      .includes(`${text[0].toLowerCase()}`));
+    const infoMem = getMember(msg, text[0]);
 
     if (!infoMem) return msg.channel.send('Please supply a proper member.');
     if (infoMem.id === msg.guild.owner.id) return msg.channel.send('Only the server owner of the server can change their nickname.');

@@ -1,4 +1,5 @@
 const Command = require('../../base/Command.js');
+const { getMember } = require('../../base/Util.js');
 const db = require('quick.db');
 const DiscordJS = require('discord.js');
 
@@ -16,18 +17,13 @@ class warn extends Command {
 
   async run (msg, args) {
     let mem;
-    let member;
+    let member = true;
     const p = msg.settings.prefix;
 
     if (!args || args.length < 3) {
       return msg.channel.send(`Incorrect Usage: ${p}warn <member> <points> <reason>`);
     } else {
-      mem = msg.mentions.members.first() ||
-        msg.guild.members.cache.find(m => m.id === args[0]) ||
-        msg.guild.members.cache.find(m => m.displayName.toLowerCase() === args[0].toLowerCase()) ||
-        msg.guild.members.cache.find(m => m.user.username.toLowerCase() === args[0].toLowerCase()) ||
-        msg.guild.members.cache.find(m => m.user.username.toLowerCase().includes(args[0].toLowerCase()));
-      member = true;
+      mem = getMember(msg, args[0]);
     }
 
     // Find the user by user ID

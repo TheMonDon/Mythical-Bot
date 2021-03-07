@@ -1,4 +1,5 @@
 const Command = require('../../base/Command.js');
+const { getRole } = require('../../base/Util.js');
 const DiscordJS = require('discord.js');
 const moment = require('moment');
 require('moment-duration-format');
@@ -16,15 +17,12 @@ class roleInfo extends Command {
   }
 
   async run (msg, text) {
-    let infoRole;
     const server = msg.guild;
     const p = msg.settings.prefix;
 
-    if (!text || text.length < 1) {
-      return msg.channel.send(`:x: Incorrect Usage: ${p}roleinfo <Role Name | Role ID | @role>`);
-    } else {
-      infoRole = msg.mentions.roles.first() || server.roles.cache.find(r => r.name === `${text.join(' ')}`) || server.roles.cache.find(r => r.id === `${text.join(' ')}`) || server.roles.cache.find(r => r.name.toLowerCase() === `${text.join(' ').toLowerCase()}`) || server.roles.cache.find(r => r.id === `${text.join(' ').replace('<@&', '').replace('>', '')}`);
-    }
+    if (!text || text.length < 1) return msg.channel.send(`:x: Incorrect Usage: ${p}roleinfo <Role Name | Role ID | @role>`);
+
+    const infoRole = getRole(msg, text.join(' '));
 
     if (!infoRole) return msg.channel.send(`:x: Incorrect Usage: ${p}roleinfo <Role Name | Role ID | @role>`);
 

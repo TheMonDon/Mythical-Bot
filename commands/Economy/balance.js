@@ -1,4 +1,5 @@
 const Command = require('../../base/Command.js');
+const { getMember } = require('../../base/Util.js');
 const db = require('quick.db');
 const DiscordJS = require('discord.js');
 const { stripIndents } = require('common-tags');
@@ -16,14 +17,12 @@ module.exports = class BalanceCommand extends Command {
 
   run (msg, args) {
     let mem;
-    const server = msg.guild;
     const p = msg.settings.prefix;
 
     if (!args || args.length < 1) {
       mem = msg.member;
     } else {
-      mem = msg.mentions.members.first() || server.members.cache.find(m => m.id === `${args.join(' ')}`) || server.members.cache.find(m => m.displayName.toUpperCase() === `${args.join(' ').toUpperCase()}`) || server.members.cache.find(m => m.user.username.toUpperCase() === `${args.join(' ').toUpperCase()}`) || server.members.cache.find(m => m.user.username.toLowerCase()
-        .includes(`${args.join(' ').toLowerCase()}`));
+      mem = getMember(msg, args.join(' '));
     }
     if (!mem) {
       const embed = new DiscordJS.MessageEmbed()

@@ -1,6 +1,5 @@
 /* eslint-disable new-cap */
 /* eslint-disable node/no-path-concat */
-/* eslint-disable no-extend-native */
 // This will check if the node version you are running is the required
 // Node version, if it isn't it will throw the following error to inform
 // you.
@@ -21,11 +20,12 @@ class bot extends Client {
   constructor (options) {
     super(options);
 
-    this.config = require('./config.js');
+    this.config = config;
     this.commands = new Collection();
     this.aliases = new Collection();
 
     this.settings = new Enmap({ name: 'settings', cloneLevel: 'deep', fetchAll: false, autoFetch: true });
+    this.games = new Enmap({ name: 'games', cloneLevel: 'deep', fetchAll: false, autoFetch: true });
 
     this.logger = require('./modules/Logger');
 
@@ -237,10 +237,6 @@ const init = async () => {
 };
 
 init();
-
-String.prototype.toProperCase = function () {
-  return this.replace(/([^\W_]+[^\s-]*) */g, function (txt) { return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase(); });
-};
 
 client.on('disconnect', () => client.logger.warn('Bot is disconnecting...'))
   .on('reconnecting', () => client.logger.log('Bot reconnecting...', 'log'))

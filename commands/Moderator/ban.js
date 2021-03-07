@@ -1,4 +1,5 @@
 const Command = require('../../base/Command.js');
+const { getMember } = require('../../base/Util.js');
 const db = require('quick.db');
 const DiscordJS = require('discord.js');
 
@@ -15,17 +16,11 @@ class Ban extends Command {
 
   async run (msg, text) {
     const me = msg.guild.me;
-    const server = msg.guild;
-    let banMem;
 
     const logChan = db.get(`servers.${msg.guild.id}.logging.channel`);
 
-    if (text[0]) {
-      banMem = msg.mentions.members.first() || server.members.cache.find(m => m.id === `${text[0]}`) || server.members.cache.find(m => m.displayName.toUpperCase() === `${text[0].toUpperCase()}`) || server.members.cache.find(m => m.user.username.toUpperCase() === `${text[0].toUpperCase()}`) || server.members.cache.find(m => m.user.username.toLowerCase()
-        .includes(`${text[0].toLowerCase()}`));
-    } else {
-      return msg.channel.send('Please provide a member and a reason.');
-    }
+    if (!text[0]) return msg.channel.send('Please provide a member and a reason.');
+    const banMem = getMember(msg, text[0]);
 
     if (!msg.guild.me.permissions.has('BAN_MEMBERS')) return msg.channel.send('The bot is missing the ban members permission.');
     if (!msg.member.permissions.has('BAN_MEMBERS')) return msg.channel.send('Why do you think you can use this?');

@@ -1,4 +1,5 @@
 const Command = require('../../base/Command.js');
+const { getMember } = require('../../base/Util.js');
 const db = require('quick.db');
 const DiscordJS = require('discord.js');
 
@@ -29,23 +30,14 @@ class blacklist extends Command {
         type = text[0].toLowerCase();
       }
     } else if (text[0]) {
-      mem = msg.mentions.members.first() || msg.guild.members.cache.find(m => m.id === `${text[0]}`) ||
-        msg.guild.members.cache.find(m => m.displayName.toUpperCase() === `${text[0].toUpperCase()}`) ||
-        msg.guild.members.cache.find(m => m.user.username.toUpperCase() === `${text[0].toUpperCase()}`) ||
-        msg.guild.members.cache.find(m => m.user.username.toLowerCase().includes(`${text[0].toLowerCase()}`)) ||
-        msg.guild.members.cache.find(m => m.user.tag === `${text[0]}`);
-
+      mem = getMember(msg, text[0]);
       type = 'check';
 
       if (!mem) return msg.channel.send(`Incorrect Usage: ${usage}`);
     }
 
     if (!mem && text[1]) {
-      mem = msg.mentions.members.first() || msg.guild.members.cache.find(m => m.id === `${text[1]}`) ||
-        msg.guild.members.cache.find(m => m.displayName.toUpperCase() === `${text[1].toUpperCase()}`) ||
-        msg.guild.members.cache.find(m => m.user.username.toUpperCase() === `${text[1].toUpperCase()}`) ||
-        msg.guild.members.cache.find(m => m.user.username.toLowerCase().includes(`${text[1].toLowerCase()}`)) ||
-        msg.guild.members.cache.find(m => m.user.tag === `${text[1]}`);
+      mem = getMember(msg, text[1]);
 
       if (!mem) return msg.channel.send(`Incorrect Usage: ${usage} \nPlease provide a valid server member.`);
     }

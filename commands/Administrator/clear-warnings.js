@@ -1,4 +1,5 @@
 const Command = require('../../base/Command.js');
+const { getMember, getWarns, getTotalPoints } = require('../../base/Util.js');
 const db = require('quick.db');
 const DiscordJS = require('discord.js');
 
@@ -20,13 +21,8 @@ class deletewarning extends Command {
     let mem;
 
     if (!args || args.length < 1) return msg.channel.send(`Incorrect Usage: ${p}clear-warnings <user>`);
-    const text = args.join(' ');
 
-    mem = msg.mentions.members.first() ||
-      msg.guild.members.cache.find(m => m.id === text) ||
-      msg.guild.members.cache.find(m => m.displayName.toUpperCase() === `${text.toUpperCase()}`) ||
-      msg.guild.members.cache.find(m => m.user.username.toUpperCase() === `${text.toUpperCase()}`) ||
-      msg.guild.members.cache.find(m => m.user.username.toLowerCase().includes(`${text.toLowerCase()}`));
+    mem = getMember(msg, args.join(' '));
 
     // Find the user by user ID
     if (!mem) {
@@ -62,31 +58,6 @@ class deletewarning extends Command {
     mem.send(em).catch(() => null);
     return msg.channel.send(em);
   }
-}
-
-function getWarns (userID, msg) {
-  const warns = db.get(`servers.${msg.guild.id}.warns.warnings`);
-  const userCases = [];
-  if (warns) {
-    Object.values(warns).forEach((val) => {
-      if (val.user === userID) {
-        userCases.push(val);
-      }
-    });
-  }
-  if (!userCases) return;
-  return userCases;
-}
-
-function getTotalPoints (userID, msg) {
-  const warns = getWarns(userID, msg);
-  let total = 0;
-  if (warns) {
-    Object.keys(warns).forEach(c => {
-      total += Number(warns[c].points);
-    });
-  }
-  return total;
 }
 
 module.exports = deletewarning;

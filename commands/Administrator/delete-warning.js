@@ -1,4 +1,5 @@
 const Command = require('../../base/Command.js');
+const { getTotalPoints } = require('../../base/Util.js');
 const db = require('quick.db');
 const DiscordJS = require('discord.js');
 
@@ -48,31 +49,6 @@ class deletewarning extends Command {
       .addField('Case Reason', warnReason, false);
     return msg.channel.send(em);
   }
-}
-
-function getWarns (userID, msg) {
-  const warns = db.get(`servers.${msg.guild.id}.warns.warnings`);
-  const userCases = [];
-  if (warns) {
-    Object.values(warns).forEach((val) => {
-      if (val.user === userID) {
-        userCases.push(val);
-      }
-    });
-  }
-  if (!userCases) return;
-  return userCases;
-}
-
-function getTotalPoints (userID, msg) {
-  const warns = getWarns(userID, msg);
-  let total = 0;
-  if (warns) {
-    Object.keys(warns).forEach(c => {
-      total += Number(warns[c].points);
-    });
-  }
-  return total;
 }
 
 module.exports = deletewarning;

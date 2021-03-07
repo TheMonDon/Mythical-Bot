@@ -1,4 +1,5 @@
 const Command = require('../../base/Command.js');
+const { getMember } = require('../../base/Util.js');
 const { stripIndents } = require('common-tags');
 const DiscordJS = require('discord.js');
 
@@ -14,6 +15,10 @@ class rps extends Command {
   }
 
   async run (msg, text) {
+    const current = this.client.games.get(msg.channel.id);
+    if (current) return msg.reply(`Please wait until the current game of \`${current.name}\` is finished.`);
+    this.client.games.set(msg.channel.id, { name: this.help.name });
+
     const p = msg.settings.prefix;
     const server = msg.guild;
     let mem;
@@ -21,8 +26,7 @@ class rps extends Command {
     if (!text || text.length < 1) {
       return msg.channel.send(`Incorrect Usage: ${p}rps <user>`);
     } else {
-      mem = msg.mentions.members.first() || server.members.cache.find(m => m.id === `${text.join(' ')}`) || server.members.cache.find(m => m.displayName.toUpperCase() === `${text.join(' ').toUpperCase()}`) || server.members.cache.find(m => m.user.username.toUpperCase() === `${text.join(' ').toUpperCase()}`) || server.members.cache.find(m => m.user.username.toLowerCase()
-        .includes(`${text.join(' ').toLowerCase()}`));
+      mem = getMember(msg, text.join(' '));
     }
     const p1 = msg.author;
     const chan = msg.channel;
@@ -51,14 +55,14 @@ class rps extends Command {
           errors: ['time']
         })
           .then((collected) => {
-            authReply = collected.first()
-              .content.toLowerCase();
+            authReply = collected.first().content.toLowerCase();
             msg.channel.send(`Your response of \`${collected.first().content.toLowerCase()}\` has been saved.`);
           })
           .catch(() => {
             msg.channel.send('Error: You did not reply in time.');
             mem.send(`${p1} did not reply in time, so they forfitted the game.`);
             reply.delete();
+            this.client.games.delete(msg.channel.id);
             return chan.send('The game starter did not reply in time, so the game was forfitted.');
           });
       });
@@ -79,8 +83,7 @@ class rps extends Command {
           errors: ['time']
         })
           .then((collected) => {
-            memReply = collected.first()
-              .content.toLowerCase();
+            memReply = collected.first().content.toLowerCase();
             msg.channel.send(`Your response of \`${collected.first().content.toLowerCase()}\` has been saved. \nCheck ${chan} for the results!`);
             p1.send(`${mem} has replied, check ${chan} for the results.`);
           })
@@ -145,6 +148,7 @@ class rps extends Command {
       }
     }
     reply.delete();
+    this.client.games.delete(msg.channel.id);
     chan.send(embed);
   }
 }
