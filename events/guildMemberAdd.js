@@ -33,6 +33,23 @@ module.exports = class {
       db.add(`servers.${member.guild.id}.logs.all`, 1);
     })();
 
+    (async () => {
+      const toggle = db.get(`servers.${member.guild.id}.proles.system`) || false;
+      if (!toggle) return;
+
+      if (!member.guild.me.permissions.has('MANAGE_ROLES')) return;
+
+      const roles = db.get(`servers.${member.guild.id}.proles.users.${member.id}`);
+      if (!roles) return;
+
+      for (let i = 0; i < roles.length; i++) {
+        member.roles.add(roles[i]).catch(console.error);
+        await require('util').promisify(setTimeout)(1000);
+      }
+
+      db.delete(`servers.${member.guild.id}.proles.users.${member.id}`);
+    })();
+
     // Load the guild's settings
     const settings = this.client.getSettings(member.guild);
 

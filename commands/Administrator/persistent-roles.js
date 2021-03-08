@@ -17,18 +17,15 @@ class persistentRoles extends Command {
   async run (msg) {
     if (!msg.guild.me.permissions.has('MANAGE_ROLES')) return msg.channel.send('The bot requires the Manage_Roles permission for this to work.');
 
-    const working = false;
-    if (!working) {
-      return msg.channel.send('This command does not work yet.');
-    }
-
     const toggle = db.get(`servers.${msg.guild.id}.proles.system`) || false;
 
     if (toggle === true) {
-      msg.channel.send('disabled');
-    } else {
-      msg.channel.send('enabled');
+      db.set(`servers.${msg.guild.id}.proles.system`, false);
+      return msg.channel.send('The persistent role system for this server has been disabled.');
     }
+
+    db.set(`servers.${msg.guild.id}.proles.system`, true);
+    return msg.channel.send('The persistent role system for this server has been enabled.');
   }
 }
 

@@ -26,7 +26,7 @@ module.exports = class startBalance extends Command {
     db.set(`servers.${msg.guild.id}.economy.startBalance`, amount);
 
     const em = new DiscordJS.MessageEmbed()
-      .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
+      .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
       .setDescription(amount > 0 ? `The starting balance for new members has been set to: ${cs + amount.toLocaleString()}` : 'The starting balance for new members has been disabled.');
     return msg.channel.send(em);
   }

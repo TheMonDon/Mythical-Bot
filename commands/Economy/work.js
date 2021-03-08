@@ -42,13 +42,13 @@ module.exports = class work extends Command {
 
     const amount = Math.floor(Math.random() * (max - min + 1) + min);
     const cs = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
-    const csamount = cs + amount;
+    const csamount = cs + amount.toLocaleString();
 
     delete require.cache[require.resolve('../../resources/messages/work_jobs.json')];
     const jobs = require('../../resources/messages/work_jobs.json');
 
     const num = Math.floor(Math.random() * (jobs.length - 1)) + 1;
-    const job = jobs[num].replace(`${csamount}`, csamount.toLocaleString());
+    const job = jobs[num].replace('csamount', csamount);
 
     userCooldown.time = Date.now() + (cooldown * 1000);
     userCooldown.active = true;

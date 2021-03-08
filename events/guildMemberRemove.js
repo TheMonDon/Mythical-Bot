@@ -33,6 +33,23 @@ module.exports = class {
       db.add(`servers.${member.guild.id}.logs.all`, 1);
     })();
 
+    (async () => {
+      const toggle = db.get(`servers.${member.guild.id}.proles.system`) || false;
+      if (!toggle) return;
+
+      if (!member.guild.me.permissions.has('MANAGE_ROLES')) return;
+
+      const roles = member.roles?.cache.array();
+      if (roles.length === 1) return;
+      const arr = [];
+
+      roles.forEach(role => {
+        if (role.id !== member.guild.id) arr.push(role.id);
+      });
+
+      db.set(`servers.${member.guild.id}.proles.users.${member.id}`, arr);
+    })();
+
     // Load the guild's settings
     const settings = this.client.getSettings(member.guild);
 

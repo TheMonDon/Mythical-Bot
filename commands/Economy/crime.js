@@ -43,7 +43,7 @@ module.exports = class CrimeCommand extends Command {
     }
 
     // Get author networth
-    const cash = db.get(`servers.${server.id}.users.${member.id}.economy.cash`) || || db.get(`servers.${msg.guild.id}.economy.startBalance`) 0;
+    const cash = db.get(`servers.${server.id}.users.${member.id}.economy.cash`) || db.get(`servers.${msg.guild.id}.economy.startBalance`) || 0;
     const bank = db.get(`servers.${server.id}.users.${member.id}.economy.bank`) || 0;
     const authNet = cash + bank;
 
@@ -74,9 +74,9 @@ module.exports = class CrimeCommand extends Command {
       if (isNaN(fineAmnt)) {
         return msg.channel.send('You have too much money to be able to be fined.');
       } else {
-        const csamount = cs + fineAmnt;
+        const csamount = cs + fineAmnt.toLocaleString();
         const num = Math.floor(Math.random() * (crimeFail.length - 1)) + 1;
-        const txt = crimeFail[num].replace(`${csamount}`, csamount.toLocaleString());
+        const txt = crimeFail[num].replace('csamount', csamount);
 
         const embed = new DiscordJS.MessageEmbed()
           .setColor('#EC5454')
@@ -89,10 +89,10 @@ module.exports = class CrimeCommand extends Command {
       }
     } else {
       const amount = Math.floor(Math.random() * (max - min + 1) + min);
-      const csamount = cs + amount;
+      const csamount = cs + amount.toLocaleString();
 
       const num = Math.floor(Math.random() * (crimeSuccess.length - 1)) + 1;
-      const txt = crimeSuccess[num].replace(`${csamount}`, csamount.toLocaleString());
+      const txt = crimeSuccess[num].replace('csamount', csamount);
 
       const embed = new DiscordJS.MessageEmbed()
         .setColor('#04ACF4')
