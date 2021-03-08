@@ -38,6 +38,7 @@ module.exports = class {
       if (!toggle) return;
 
       if (!member.guild.me.permissions.has('MANAGE_ROLES')) return;
+      if (member.user.bot) return;
 
       const roles = member.roles?.cache.array();
       if (roles.length === 1) return;
@@ -53,7 +54,7 @@ module.exports = class {
     // Load the guild's settings
     const settings = this.client.getSettings(member.guild);
 
-    // If welcome is off, don't proceed (don't welcome the user)
+    // If leave is off, don't proceed (don't welcome the user)
     if (settings.leaveEnabled !== 'true') return;
 
     // Return always because this isn't set up at all yet.

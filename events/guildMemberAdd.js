@@ -38,6 +38,7 @@ module.exports = class {
       if (!toggle) return;
 
       if (!member.guild.me.permissions.has('MANAGE_ROLES')) return;
+      if (member.user.bot) return;
 
       const roles = db.get(`servers.${member.guild.id}.proles.users.${member.id}`);
       if (!roles) return;
