@@ -36,7 +36,7 @@ module.exports = class BalanceCommand extends Command {
       return msg.channel.send(embed);
     }
 
-    const cash = db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`) || 0;
+    const cash = db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`) || db.get(`servers.${msg.guild.id}.economy.startBalance`) || 0;
     const bank = db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`) || 0;
     const nw = cash + bank;
 

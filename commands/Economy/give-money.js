@@ -41,7 +41,7 @@ module.exports = class BalanceCommand extends Command {
     }
 
     const cs = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
-    const authCash = db.get(`servers.${msg.guild.id}.users.${member.id}.economy.cash`) || 0;
+    const authCash = db.get(`servers.${msg.guild.id}.users.${member.id}.economy.cash`) || db.get(`servers.${msg.guild.id}.economy.startBalance`) || 0;
 
     let amount = text[1];
     amount = amount.replace(/,/g, '');

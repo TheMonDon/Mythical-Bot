@@ -23,8 +23,8 @@ module.exports = class deposit extends Command {
 
     const cs = db.get(`servers.${server.id}.economy.symbol`) || '$';
 
-    const cash = db.get(`servers.${server.id}.users.${member.id}.economy.cash`) || 0; // store cash prior to checking args
-    const bank = db.get(`servers.${server.id}.users.${member.id}.economy.bank`) || 0; // store bank. same thing
+    const cash = db.get(`servers.${server.id}.users.${member.id}.economy.cash`) || db.get(`servers.${msg.guild.id}.economy.startBalance`) || 0;
+    const bank = db.get(`servers.${server.id}.users.${member.id}.economy.bank`) || 0;
 
     amount = amount.replace(/,/g, '');
     amount = amount.replace(cs, '');

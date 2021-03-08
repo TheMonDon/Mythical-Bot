@@ -43,7 +43,7 @@ module.exports = class CrimeCommand extends Command {
     }
 
     // Get author networth
-    const cash = db.get(`servers.${server.id}.users.${member.id}.economy.cash`) || 0;
+    const cash = db.get(`servers.${server.id}.users.${member.id}.economy.cash`) || || db.get(`servers.${msg.guild.id}.economy.startBalance`) 0;
     const bank = db.get(`servers.${server.id}.users.${member.id}.economy.bank`) || 0;
     const authNet = cash + bank;
 

@@ -58,6 +58,7 @@
     "soundcloud-scraper": "^4.0.3",
     "speedtest-net": "^2.1.1",
     "superagent": "^6.1.0",
+    "tictactoe-minimax-ai": "^1.2.1",
     "trev": "^2.0.8",
     "twemoji": "^13.0.1",
     "user-instagram": "^2.1.9",

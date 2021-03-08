@@ -81,7 +81,7 @@ module.exports = class Blackjack extends Command {
     };
 
     const cs = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
-    const cash = db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`) || 0; // get the users cash amount
+    const cash = db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`) || db.get(`servers.${msg.guild.id}.economy.startBalance`) || 0;
 
     bet = bet.replace(/,/g, '');
     bet = bet.replace(cs, '');

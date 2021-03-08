@@ -2,7 +2,7 @@ const Command = require('../../base/Command.js');
 const { Connect4AI } = require('connect4-ai');
 const { stripIndents } = require('common-tags');
 const emojiRegex = require('emoji-regex/RGI_Emoji.js');
-const { list, verify } = require('../../base/Util.js');
+const { list, verify, getMember } = require('../../base/Util.js');
 const blankEmoji = '⚪';
 const nums = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣'];
 const customEmojiRegex = /^(?:<a?:([a-zA-Z0-9_]+):)?([0-9]+)>?$/;
@@ -13,14 +13,12 @@ class connect4 extends Command {
       name: 'connect4',
       description: 'Play a game of connect4.',
       usage: 'connect4 <member to play with>',
-      category: 'Games'
+      category: 'Games',
+      aliases: ['connectfour', 'connect-four']
     });
   }
 
   async run (msg, args) {
-    const a = true;
-    if (a) return msg.channel.send('This is not done.');
-
     const colors = {
       red: '🔴',
       yellow: '🟡',
@@ -47,47 +45,49 @@ class connect4 extends Command {
       coin: '🪙'
     };
 
-    const opponent = msg.mentions.members.first();
+    const p = msg.settings.prefix;
+    const usage = `Incorrect Usage: ${p}connect4 <opponet> <color>`;
+    if (!args || args.length < 1) return msg.channel.send(usage);
+    const opponent = getMember(msg, args[0]);
+    if (!opponent) return msg.channel.send(usage);
+
     args.shift();
-    const color = args[0];
+    if (!args || args.length < 1) return msg.channel.send(`That is not a valid color, either an emoji or one of ${list(Object.keys(colors), 'or')}.`);
 
-    args = [
-      {
-        key: 'color',
-        prompt: `What color do you want to be? Either an emoji or one of ${list(Object.keys(colors), 'or')}.`,
-        type: 'default-emoji|custom-emoji|string',
-        validate: (color, msg) => {
-          const hasEmoji = new RegExp(`^(?:${emojiRegex().source})$`).test(color);
-          const hasCustom = color.match(customEmojiRegex);
-          if (hasCustom && !msg.guild) return 'You can only use custom emoji in a server.';
-          if (hasCustom && msg.guild && !msg.guild.emojis.cache.has(hasCustom[2])) {
-            return 'You can only use custom emoji from this server.';
-          }
-          if (!hasCustom && !hasEmoji && !colors[color.toLowerCase()]) {
-            return `Please enter an emoji or one of the following: ${list(Object.keys(colors), 'or')}.`;
-          }
-          if (color === blankEmoji) return 'You cannot use this emoji.';
-          return true;
-        },
-        parse: (color, msg) => {
-          const hasCustom = color.match(customEmojiRegex);
-          if (hasCustom && msg.guild) return msg.guild.emojis.cache.get(hasCustom[2]).toString();
-          return colors[color.toLowerCase()] || color;
-        }
+    let color = args[0];
+    if (validate(color, msg) !== true) return;
+    color = parse(color, msg);
+
+    function validate (color, msg) {
+      const hasEmoji = new RegExp(`^(?:${emojiRegex().source})$`).test(color);
+      const hasCustom = color.match(customEmojiRegex);
+      if (hasCustom && !msg.guild) return msg.channel.send('You can only use custom emoji in a server.');
+      if (hasCustom && msg.guild && !msg.guild.emojis.cache.has(hasCustom[2])) {
+        return msg.channel.send('You can only use custom emoji from this server.');
       }
-    ];
-
-    if (opponent.id === msg.author.id) return msg.reply('You may not play against yourself.');
+      if (!hasCustom && !hasEmoji && !colors[color.toLowerCase()]) {
+        return msg.channel.send(`Please enter an emoji or one of the following: ${list(Object.keys(colors), 'or')}.`);
+      }
+      if (color === blankEmoji) return msg.channel.send('You cannot use this emoji.');
+      return true;
+    }
+    function parse (color, msg) {
+      const hasCustom = color.match(customEmojiRegex);
+      if (hasCustom && msg.guild) return msg.guild.emojis.cache.get(hasCustom[2]).toString();
+      return colors[color.toLowerCase()] || color;
+    }
 
     const current = this.client.games.get(msg.channel.id);
     if (current) return msg.reply(`Please wait until the current game of \`${current.name}\` is finished.`);
-    this.client.games.set(msg.channel.id, { name: this.name });
+    this.client.games.set(msg.channel.id, { name: this.help.name });
+
+    if (opponent.id === msg.author.id) return msg.reply('You may not play against yourself.');
 
     const playerOneEmoji = color;
     let playerTwoEmoji = color === colors.yellow ? colors.red : colors.yellow;
     try {
       const available = Object.keys(colors).filter(clr => color !== colors[clr]);
-      if (opponent.bot) {
+      if (opponent.user.bot) {
         playerTwoEmoji = colors[available[Math.floor(Math.random() * available.length)]];
       } else {
         await msg.channel.send(`${opponent}, do you accept this challenge?`);
@@ -121,19 +121,29 @@ class connect4 extends Command {
       let winner = null;
       const colLevels = [5, 5, 5, 5, 5, 5, 5];
       let lastMove = 'None';
+      let message = 0;
       while (!winner && board.some(row => row.includes(null))) {
         const user = userTurn ? msg.author : opponent;
         const sign = userTurn ? 'user' : 'oppo';
-        let i;
-        if (opponent.bot && !userTurn) {
+        let i = 0;
+        if (opponent.user.bot && !userTurn) {
           i = AIEngine.playAI('hard');
           lastMove = i + 1;
         } else {
           const emoji = userTurn ? playerOneEmoji : playerTwoEmoji;
-          await msg.channel.send(stripIndents`
+          if (message === 0) {
+            message = await msg.channel.send(stripIndents`
             ${emoji} ${user}, which column do you pick? Type \`end\` to forfeit.
             Can't think of a move? Use \`play for me\`.
-            ${opponent.bot ? `I placed mine in **${lastMove}**.` : `Previous Move: **${lastMove}**`}
+            ${opponent.user.bot ? `I placed mine in **${lastMove}**.` : `Previous Move: **${lastMove}**`}
+            ${this.displayBoard(board, playerOneEmoji, playerTwoEmoji)}
+            ${nums.join('')}
+          `);
+          }
+          await message.edit(stripIndents`
+            ${emoji} ${user}, which column do you pick? Type \`end\` to forfeit.
+            Can't think of a move? Use \`play for me\`.
+            ${opponent.user.bot ? `I placed mine in **${lastMove}**.` : `Previous Move: **${lastMove}**`}
             ${this.displayBoard(board, playerOneEmoji, playerTwoEmoji)}
             ${nums.join('')}
           `);
@@ -164,6 +174,7 @@ class connect4 extends Command {
             i = Number.parseInt(choice, 10) - 1;
             AIEngine.play(i);
             lastMove = i + 1;
+            if (msg.guild.me.permissions.has('MANAGE_MESSAGES')) turn.first().delete();
           }
         }
         board[colLevels[i]][i] = sign;
@@ -172,6 +183,7 @@ class connect4 extends Command {
         userTurn = !userTurn;
       }
       this.client.games.delete(msg.channel.id);
+      message.delete();
       if (winner === 'time') return msg.channel.send('Game ended due to inactivity.');
       return msg.channel.send(stripIndents`
         ${winner ? `Congrats, ${winner}!` : 'Looks like it\'s a draw...'}

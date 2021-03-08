@@ -28,7 +28,7 @@ module.exports = class work extends Command {
         db.set(`servers.${msg.guild.id}.users.${member.id}.economy.work.cooldown`, userCooldown);
       } else {
         const tLeft = moment.duration(timeleft)
-          .format('y[ years][,] M[ Months]d[ days][,] h[ hours][,] m[ minutes][, and] s[ seconds]'); // format to any format
+          .format('y[ years][,] M[ Months]d[ days][,] h[ hours][,] m[ minutes][, and] s[ seconds]');
         const embed = new DiscordJS.MessageEmbed()
           .setColor('#EC5454')
           .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
@@ -54,12 +54,15 @@ module.exports = class work extends Command {
     userCooldown.active = true;
     db.set(`servers.${msg.guild.id}.users.${member.id}.economy.work.cooldown`, userCooldown);
 
+    let newBalance = db.get(`servers.${msg.guild.id}.users.${member.id}.economy.cash`) || db.get(`servers.${msg.guild.id}.economy.startBalance`) || 0;
+    newBalance = newBalance + amount;
+
     const embed = new DiscordJS.MessageEmbed()
       .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
       .setColor('#64BC6C')
       .setDescription(job)
       .setFooter(`Reply #${num.toLocaleString()}`);
-    db.add(`servers.${msg.guild.id}.users.${member.id}.economy.cash`, amount);
+    db.set(`servers.${msg.guild.id}.users.${member.id}.economy.cash`, newBalance);
     msg.channel.send(embed);
 
     setTimeout(() => {

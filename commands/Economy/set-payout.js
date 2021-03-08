@@ -23,12 +23,10 @@ module.exports = class setCurrency extends Command {
 
     const types = ['work', 'crime'];
 
-    if (!member.permissions.has('MANAGE_GUILD')) {
-      return msg.channel.send('You are missing **Manage Guild** permission.');
-    }
+    if (!member.permissions.has('MANAGE_GUILD')) return msg.channel.send('You are missing **Manage Guild** permission.');
 
     const cs = db.get(`servers.${server.id}.economy.symbol`) || '$';
-    const usage = `${p}Set-Payout <work | crime> <min | max> <amount>`;
+    const usage = `${msg.settings.prefix}Set-Payout <work | crime> <min | max> <amount>`;
 
     const workMin = db.get(`servers.${server.id}.economy.work.min`) || 50;
     const workMax = db.get(`servers.${server.id}.economy.work.max`) || 500;
@@ -71,7 +69,7 @@ module.exports = class setCurrency extends Command {
 
       text.shift();
       text.shift();
-      const amount = parseInt(text.join(' ').replace(/,/g, '').replace(cs, '').replace(/-/g, ''));
+      const amount = parseInt(text.join('').replace(/,/g, '').replace(cs, '').replace(/-/g, ''));
 
       if (isNaN(amount)) {
         const embed = new DiscordJS.MessageEmbed()
@@ -87,9 +85,9 @@ module.exports = class setCurrency extends Command {
       }
 
       if (amount > 1000000000000) {
-        return msg.channel.send('The max amount for payout is 1 trillion.');
+        return msg.channel.send('The max amount for payout is one trillion.');
       } else if (amount < 1) {
-        return msg.channel.send('The min amount for payout is 1.');
+        return msg.channel.send('The min amount for payout is one.');
       }
 
       const embed = new DiscordJS.MessageEmbed()

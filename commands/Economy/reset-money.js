@@ -41,7 +41,8 @@ module.exports = class ResetMoney extends Command {
         .then((collected) => {
           const word = collected.first().content.trim();
           if (word === 'yes' || word === 'y') {
-            db.set(`servers.${msg.guild.id}.users.${member.id}.economy.cash`, 0);
+            const amount = db.get(`servers.${msg.guild.id}.economy.startBalance`) || 0;
+            db.set(`servers.${msg.guild.id}.users.${member.id}.economy.cash`, amount);
             db.set(`servers.${msg.guild.id}.users.${member.id}.economy.bank`, 0);
             return msg.channel.send('Your money has been reset.');
           } else if (word === 'no' || word === 'n') {
@@ -78,7 +79,8 @@ module.exports = class ResetMoney extends Command {
         .then((collected) => {
           const word = collected.first().content.trim();
           if (word === 'yes' || word === 'y') {
-            db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, 0);
+            const amount = db.get(`servers.${msg.guild.id}.economy.startBalance`) || 0;
+            db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, amount);
             db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`, 0);
             return msg.channel.send(`Successfully reset ${mem.user?.tag || mem.tag}'s money.`);
           } else if (word === 'no' || word === 'n') {

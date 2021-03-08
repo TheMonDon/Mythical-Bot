@@ -66,11 +66,11 @@ module.exports = class BalanceCommand extends Command {
       return msg.channel.send(embed);
     }
 
-    const authCash = db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`) || 0;
+    const authCash = db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`) || db.get(`servers.${msg.guild.id}.economy.startBalance`) || 0;
     const authBank = db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`) || 0;
     const authNet = authCash + authBank;
 
-    const memCash = db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`) || 0;
+    const memCash = db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`) || db.get(`servers.${msg.guild.id}.economy.startBalance`) || 0;
 
     if (memCash <= 0) {
       const embed = new DiscordJS.MessageEmbed()
