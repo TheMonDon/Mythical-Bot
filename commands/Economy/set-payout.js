@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 const Command = require('../../base/Command.js');
 const db = require('quick.db');
 const DiscordJS = require('discord.js');
@@ -17,13 +16,11 @@ module.exports = class setCurrency extends Command {
   }
 
   run (msg, text) {
-    const p = msg.settings.prefix;
     const server = msg.guild;
-    const member = msg.member;
 
     const types = ['work', 'crime'];
 
-    if (!member.permissions.has('MANAGE_GUILD')) return msg.channel.send('You are missing **Manage Guild** permission.');
+    if (!msg.member.permissions.has('MANAGE_GUILD')) return msg.channel.send('You are missing **Manage Guild** permission.');
 
     const cs = db.get(`servers.${server.id}.economy.symbol`) || '$';
     const usage = `${msg.settings.prefix}Set-Payout <work | crime> <min | max> <amount>`;

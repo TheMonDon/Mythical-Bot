@@ -9,15 +9,17 @@ module.exports = class removeMoney extends Command {
     super(client, {
       name: 'remove-money',
       category: 'Economy',
-      description: 'Remove money from a member\'s cash or bank balance.',
-      usage: 'remove-money <cash | bank> <member> <amount>',
+      description: 'Remove money from a member\'s cash or bank balance. \nIf the cash or bank argument isn\'t given, it will be added to the cash part.',
+      usage: 'remove-money [cash | bank] <member> <amount>',
       aliases: ['removemoney', 'removebal'],
       guildOnly: true
     });
   }
 
   run (msg, args) {
-    const usage = `Incorrect Usage: ${msg.settings.prefix}remove-money <cash | bank> <member> <amount>`;
+    const usage = `Incorrect Usage: ${msg.settings.prefix}remove-money [cash | bank] <member> <amount>`;
+
+    if (!msg.member.permissions.has('MANAGE_GUILD')) return msg.channel.send('You are missing **Manage Guild** permission.');
 
     let type = 'cash';
     let mem;

@@ -16,6 +16,8 @@ module.exports = class cleanLeaderboard extends Command {
   }
 
   async run (msg, args) {
+    if (!msg.member.permissions.has('MANAGE_GUILD')) return msg.channel.send('You are missing **Manage Guild** permission.');
+
     const users = db.get(`servers.${msg.guild.id}.users`) || {};
     const toRemove = [];
 

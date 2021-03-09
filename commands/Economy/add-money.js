@@ -9,7 +9,7 @@ module.exports = class addMoney extends Command {
     super(client, {
       name: 'add-money',
       category: 'Economy',
-      description: 'Add money to a member\'s cash or bank balance.',
+      description: 'Add money to a member\'s cash or bank balance. \nIf the cash or bank argument isn\'t given, it will be added to the cash part.',
       usage: 'add-money <cash | bank> <member> <amount>',
       aliases: ['addmoney', 'addbal'],
       guildOnly: true
@@ -18,6 +18,8 @@ module.exports = class addMoney extends Command {
 
   run (msg, args) {
     const usage = `Incorrect Usage: ${msg.settings.prefix}add-money <cash | bank> <member> <amount>`;
+
+    if (!msg.member.permissions.has('MANAGE_GUILD')) return msg.channel.send('You are missing **Manage Guild** permission.');
 
     let type = 'cash';
     let mem;
