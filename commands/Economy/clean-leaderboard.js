@@ -15,8 +15,15 @@ module.exports = class cleanLeaderboard extends Command {
     });
   }
 
-  async run (msg, args) {
-    if (!msg.member.permissions.has('MANAGE_GUILD')) return msg.channel.send('You are missing **Manage Guild** permission.');
+  async run (msg) {
+    const errEmbed = new DiscordJS.MessageEmbed()
+      .setColor('#EC5454')
+      .setAuthor(msg.author.tag, msg.author.displayAvatarURL());
+
+    if (!msg.member.permissions.has('MANAGE_GUILD')) {
+      errEmbed.setDescription('You are missing the **Manage Guild** permission.');
+      return msg.channel.send(errEmbed);
+    }
 
     const users = db.get(`servers.${msg.guild.id}.users`) || {};
     const toRemove = [];

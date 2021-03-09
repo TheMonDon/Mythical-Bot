@@ -19,14 +19,22 @@ module.exports = class addMoneyRole extends Command {
   run (msg, args) {
     const usage = `Incorrect Usage: ${msg.settings.prefix}remove-money-role <cash | bank> <role> <amount>`;
 
-    if (!msg.member.permissions.has('MANAGE_GUILD')) return msg.channel.send('You are missing **Manage Guild** permission.');
+    const errEmbed = new DiscordJS.MessageEmbed()
+      .setColor('#EC5454')
+      .setAuthor(msg.author.tag, msg.author.displayAvatarURL());
+
+    if (!msg.member.permissions.has('MANAGE_GUILD')) {
+      errEmbed.setDescription('You are missing the **Manage Guild** permission.');
+      return msg.channel.send(errEmbed);
+    }
 
     let type = 'cash';
     let role;
     let amount;
 
     if (!args || args.length < 2) {
-      return msg.channel.send(usage);
+      errEmbed.setDescription(usage);
+      return msg.channel.send(errEmbed);
     }
 
     if (args.length === 2) {
@@ -41,38 +49,39 @@ module.exports = class addMoneyRole extends Command {
       type = args[0].toLowerCase();
     }
 
-    if (isNaN(amount)) return msg.channel.send(usage);
+    if (isNaN(amount)) {
+      errEmbed.setDescription(usage);
+      return msg.channel.send(errEmbed);
+    }
 
     if (!role) {
-      const embed = new DiscordJS.MessageEmbed()
-        .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
-        .setColor('RED')
-        .setDescription(stripIndents`
+      errEmbed.setDescription(stripIndents`
       :x: Invalid role given.
 
       Usage: ${msg.settings.prefix}remove-money=role <cash | bank> <role> <amount>
       `);
-      return msg.channel.send(embed);
+      return msg.channel.send(errEmbed);
     }
 
     const members = role.members.array();
-
     const cs = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
 
     if (type === 'bank') {
       members.forEach(mem => {
-        db.subtract(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`, amount);
+        if (!mem.user.bot) db.subtract(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`, amount);
       });
     } else {
       members.forEach(mem => {
-        const cash = db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`) || db.get(`servers.${msg.guild.id}.economy.startBalance`) || 0;
-        const newAmount = cash - amount;
-        db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, newAmount);
+        if (!mem.user.bot) {
+          const cash = db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`) || db.get(`servers.${msg.guild.id}.economy.startBalance`) || 0;
+          const newAmount = cash - amount;
+          db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, newAmount);
+        }
       });
     }
 
     const embed = new DiscordJS.MessageEmbed()
-      .setAuthor(msg.author.username, msg.author.displayAvatarURL())
+      .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
       .setColor('#0099CC')
       .setDescription(`:white_check_mark: Removed **${cs}${amount.toLocaleString()}** to ${type} balance of ${members.length} ${members.length > 1 ? 'members' : 'member'} with the ${role}.`)
       .setTimestamp();

@@ -19,14 +19,22 @@ module.exports = class removeMoney extends Command {
   run (msg, args) {
     const usage = `Incorrect Usage: ${msg.settings.prefix}remove-money [cash | bank] <member> <amount>`;
 
-    if (!msg.member.permissions.has('MANAGE_GUILD')) return msg.channel.send('You are missing **Manage Guild** permission.');
+    const errEmbed = new DiscordJS.MessageEmbed()
+      .setColor('#EC5454')
+      .setAuthor(msg.author.tag, msg.author.displayAvatarURL());
+
+    if (!msg.member.permissions.has('MANAGE_GUILD')) {
+      errEmbed.setDescription('You are missing the **Manage Guild** permission.');
+      return msg.channel.send(errEmbed);
+    }
 
     let type = 'cash';
     let mem;
     let amount;
 
     if (!args || args.length < 2) {
-      return msg.channel.send(usage);
+      errEmbed.setDescription(usage);
+      return msg.channel.send(errEmbed);
     }
 
     if (args.length === 2) {
@@ -41,18 +49,23 @@ module.exports = class removeMoney extends Command {
       type = args[0].toLowerCase();
     }
 
-    if (isNaN(amount)) return msg.channel.send(usage);
+    if (isNaN(amount)) {
+      errEmbed.setDescription(usage);
+      return msg.channel.send(errEmbed);
+    }
 
     if (!mem) {
-      const embed = new DiscordJS.MessageEmbed()
-        .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
-        .setColor('RED')
-        .setDescription(stripIndents`
+      errEmbed.setDescription(stripIndents`
       :x: Invalid member given.
 
       Usage: ${msg.settings.prefix}remove-money <cash | bank> <member> <amount>
       `);
-      return msg.channel.send(embed);
+      return msg.channel.send(errEmbed);
+    }
+
+    if (mem.user.bot) {
+      errEmbed.setDescription('You can\'t add money to bots.');
+      return msg.channel.send(errEmbed);
     }
 
     const cs = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
@@ -66,7 +79,7 @@ module.exports = class removeMoney extends Command {
     }
 
     const embed = new DiscordJS.MessageEmbed()
-      .setAuthor(msg.author.username, msg.author.displayAvatarURL())
+      .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
       .setColor('#0099CC')
       .setDescription(`:white_check_mark: Removed **${cs}${amount.toLocaleString()}** to ${mem}'s ${type} balance.`)
       .setTimestamp();

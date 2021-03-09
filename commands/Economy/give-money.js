@@ -16,11 +16,9 @@ module.exports = class BalanceCommand extends Command {
   }
 
   run (msg, text) {
-    const member = msg.member;
-    const p = msg.settings.prefix;
     let mem;
 
-    const usage = `${p}Give-Money <user> <amount | all>`;
+    const usage = `${msg.settings.prefix}Give-Money <user> <amount | all>`;
     const errEmbed = new DiscordJS.MessageEmbed()
       .setColor('#EC5454')
       .setAuthor(msg.author.tag, msg.author.displayAvatarURL());
@@ -38,10 +36,13 @@ module.exports = class BalanceCommand extends Command {
     } else if (mem.id === msg.author.id) {
       errEmbed.setDescription('You cannot trade money with yourself. That would be pointless.');
       return msg.channel.send(errEmbed);
+    } else if (mem.user.bot) {
+      errEmbed.setDescription('You can\'t give bots money.');
+      return msg.channel.send(errEmbed);
     }
 
     const cs = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
-    const authCash = db.get(`servers.${msg.guild.id}.users.${member.id}.economy.cash`) || db.get(`servers.${msg.guild.id}.economy.startBalance`) || 0;
+    const authCash = db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`) || db.get(`servers.${msg.guild.id}.economy.startBalance`) || 0;
 
     let amount = text[1];
     amount = amount.replace(/,/g, '');
@@ -61,7 +62,7 @@ module.exports = class BalanceCommand extends Command {
           return msg.channel.send(errEmbed);
         }
 
-        db.subtract(`servers.${msg.guild.id}.users.${member.id}.economy.cash`, amount);
+        db.subtract(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, amount);
         db.add(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, amount);
 
         const embed = new DiscordJS.MessageEmbed()
@@ -90,11 +91,11 @@ module.exports = class BalanceCommand extends Command {
       return msg.channel.send(errEmbed);
     }
 
-    db.subtract(`servers.${msg.guild.id}.users.${member.id}.economy.cash`, amount);
+    db.subtract(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, amount);
     db.add(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, amount);
 
     const embed = new DiscordJS.MessageEmbed()
-      .setColor('#04ACF4')
+      .setColor('#0099CC')
       .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
       .setDescription(`${mem} has recieved your ${cs}${amount.toLocaleString()}.`);
     return msg.channel.send(embed);
