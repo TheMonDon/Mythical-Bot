@@ -17,10 +17,9 @@ module.exports = class Blackjack extends Command {
   async run (msg, args) {
     const { Blackjack } = require('blackjack-n-deck');
 
-    const p = msg.settings.prefix;
-
-    const usage = `${p}blackjack <bet>`;
+    const usage = `${msg.settings.prefix}blackjack <bet>`;
     if (!args || args.length < 1) return msg.channel.send(`Incorrect Usage: \n${usage}`);
+
     let bet = args.join(' ');
 
     // array of all my card emojis in my private server
@@ -83,9 +82,8 @@ module.exports = class Blackjack extends Command {
     const cs = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
     const cash = db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`) || db.get(`servers.${msg.guild.id}.economy.startBalance`) || 0;
 
-    bet = bet.replace(/,/g, '');
-    bet = bet.replace(cs, '');
-    bet = parseInt(bet);
+    bet = parseInt(bet.replace(/,/g, '').replace(cs, ''));
+
     if (isNaN(bet)) {
       return msg.channel.send('Please enter a number for the bet.');
     }
@@ -94,7 +92,7 @@ module.exports = class Blackjack extends Command {
 
     db.subtract(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bet); // Take the cash money bet
 
-    let color = '#03A9F4';
+    let color = '#0099CC';
 
     const bj = new Blackjack(bet, 1);
     // this function is called every time something happens

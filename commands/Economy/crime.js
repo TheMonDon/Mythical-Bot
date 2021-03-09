@@ -21,7 +21,7 @@ module.exports = class CrimeCommand extends Command {
 
     const type = 'crime';
 
-    const cooldown = db.get(`servers.${server.id}.economy.${type}.cooldown`) || 600; // get cooldown from database or set to 600 seconds (10 minutes)
+    const cooldown = db.get(`servers.${server.id}.economy.${type}.cooldown`) || 600;
     let userCooldown = db.get(`servers.${server.id}.users.${member.id}.economy.${type}.cooldown`) || {};
 
     if (userCooldown.active) {
@@ -42,24 +42,19 @@ module.exports = class CrimeCommand extends Command {
       }
     }
 
-    // Get author networth
     const cash = db.get(`servers.${server.id}.users.${member.id}.economy.cash`) || db.get(`servers.${msg.guild.id}.economy.startBalance`) || 0;
     const bank = db.get(`servers.${server.id}.users.${member.id}.economy.bank`) || 0;
     const authNet = cash + bank;
 
-    // get min and max payout
     const min = db.get(`servers.${server.id}.economy.${type}.min`) || 500;
     const max = db.get(`servers.${server.id}.economy.${type}.max`) || 2000;
 
-    // get min and max fine amount
     const minFine = db.get(`servers.${server.id}.economy.${type}.fine.min`) || 10;
     const maxFine = db.get(`servers.${server.id}.economy.${type}.fine.max`) || 30; // these are %s
 
-    // Generate the random fine amount from their networth
     const randomFine = parseInt(Math.min(Math.max(Math.floor(Math.random() * maxFine), minFine), maxFine));
     const fineAmnt = parseInt(authNet * (randomFine / 100));
 
-    // get the failrate
     const failRate = db.get(`servers.${server.id}.economy.${type}.failrate`) || 45;
     const ranNum = Math.random() * 100;
 

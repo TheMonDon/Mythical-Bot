@@ -9,15 +9,15 @@ module.exports = class BalanceCommand extends Command {
     super(client, {
       name: 'balance',
       category: 'Economy',
-      description: 'Gives you your balance',
-      aliases: ['bal'],
+      description: 'Gives you your or another member\'s balance',
+      usage: 'balance [member]',
+      aliases: ['bal', 'money'],
       guildOnly: true
     });
   }
 
   run (msg, args) {
     let mem;
-    const p = msg.settings.prefix;
 
     if (!args || args.length < 1) {
       mem = msg.member;
@@ -27,11 +27,11 @@ module.exports = class BalanceCommand extends Command {
     if (!mem) {
       const embed = new DiscordJS.MessageEmbed()
         .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
-        .setColor('RED')
+        .setColor('#EC5454')
         .setDescription(stripIndents`
       :x: Invalid member given.
 
-      Usage: ${p}balance (member)
+      Usage: ${msg.settings.prefix}balance [member]
       `);
       return msg.channel.send(embed);
     }
@@ -45,9 +45,9 @@ module.exports = class BalanceCommand extends Command {
     const embed = new DiscordJS.MessageEmbed()
       .setAuthor(mem.user.tag, mem.user.displayAvatarURL())
       .setColor('#03A9F4')
-      .addField('Cash:', `${cs}${cash.toLocaleString()}`, true)
-      .addField('Bank:', `${cs}${bank.toLocaleString()}`, true)
-      .addField('Net Worth:', `${cs}${nw.toLocaleString()}`, true)
+      .addField('Cash:', cs + cash.toLocaleString(), true)
+      .addField('Bank:', cs + bank.toLocaleString(), true)
+      .addField('Net Worth:', cs + nw.toLocaleString(), true)
       .setTimestamp();
     return msg.channel.send(embed);
   }
