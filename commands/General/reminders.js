@@ -39,7 +39,7 @@ class Reminders extends Command {
       if ((em.fields.length !== 0)) {
         em.setAuthor(reminders[0].username, reminders[0].avatarURL);
       } else {
-        em.setDescription(`${msg.member.displayName}, you don't have any reminders, use the **remindme** command to create a new one!`);
+        em.setDescription(`${msg.member.displayName}, you don't have any reminders, use the **remind** command to create a new one!`);
       }
       em.setColor('#0099CC');
     } else { // user provided a number
