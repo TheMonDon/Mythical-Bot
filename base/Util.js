@@ -182,4 +182,20 @@ module.exports = class Util {
       .find((m) => m.id === id);
     return result?.index;
   }
+
+  /**
+   *
+   * @param {Array} array
+   * @param {*} attr
+   * @param {*} value
+   */
+  // Allows me to find the index of an object in an array, by the value of the propert{y,ies} of an object. Example: findWithAttr(obj, 'channelID', '593574887642234914');
+  static findWithAttr (array, attr, value) {
+    for (let i = 0; i < array.length; i += 1) {
+      if (array[i][attr] === value) {
+        return i;
+      }
+    }
+    return -1;
+  }
 };
