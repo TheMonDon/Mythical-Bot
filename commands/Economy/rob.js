@@ -86,30 +86,42 @@ module.exports = class BalanceCommand extends Command {
     } else if ((memCash + authNet) === Number.MAX_VALUE || (memCash + authNet) === Infinity) {
       failRate = 101;
     } else {
-      failRate = authNet / (memCash + authNet);
+      failRate = (authNet / (memCash + authNet)) * 100;
     }
     const ranNum = Math.random() * 100;
-
-    if (ranNum < failRate) {
-      return msg.channel.send(`You were caught attempting to rob ${mem.displayName} and have been fined <amount coming soon>`);
-    } // This has been coming soon for a year...
-    if (failRate > 100) {
-      return msg.channel.send(`You were caught attempting to rob ${mem.displayName} and have been fined <amount coming soon>`);
-    } // This has been coming soon for a year...
-
-    const amnt = Math.floor(Math.random() * memCash) + 1;
+    const fineAmnt = Math.floor(Math.random() * authNet);
     const cs = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
 
-    db.subtract(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, amnt);
-    db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, amnt);
+    if (failRate > 100) {
+      const em = new DiscordJS.MessageEmbed()
+        .setColor('ORANGE')
+        .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
+        .setDescription('You have too much money to rob someone.');
+      return msg.channel.send(em);
+    }
+    if (ranNum < failRate) {
+      db.subtract(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, fineAmnt);
 
-    const embed = new DiscordJS.MessageEmbed()
-      .setColor('#04ACF4')
-      .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
-      .setDescription(`You succesfully robbed ${mem} of ${cs}${amnt.toLocaleString()}`)
-      .addField('Your New Balance', `${cs}${db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`).toLocaleString()}`, false)
-      .addField(`${mem.displayName}'s New Balance`, `${cs}${db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`).toLocaleString()}`, false);
-    msg.channel.send(embed);
+      const em = new DiscordJS.MessageEmbed()
+        .setColor('RED')
+        .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
+        .setDescription(`You were caught attempting to rob ${mem.displayName} and have been fined ${cs + fineAmnt.toLocaleString()}`);
+      msg.channel.send(em);
+    } else {
+      // Lucky then, give them the money!
+      const amnt = Math.floor(Math.random() * memCash) + 1;
+
+      db.subtract(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, amnt);
+      db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, amnt);
+
+      const embed = new DiscordJS.MessageEmbed()
+        .setColor('#0099CC')
+        .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
+        .setDescription(`You succesfully robbed ${mem} of ${cs}${amnt.toLocaleString()}`)
+        .addField('Your New Balance', `${cs}${db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`).toLocaleString()}`, false)
+        .addField(`${mem.displayName}'s New Balance`, `${cs}${db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`).toLocaleString()}`, false);
+      msg.channel.send(embed);
+    }
 
     userCooldown.time = Date.now() + (cooldown * 1000);
     userCooldown.active = true;

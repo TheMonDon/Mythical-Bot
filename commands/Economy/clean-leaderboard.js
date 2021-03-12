@@ -28,17 +28,25 @@ module.exports = class cleanLeaderboard extends Command {
     const users = db.get(`servers.${msg.guild.id}.users`) || {};
     const toRemove = [];
 
+    const em = new DiscordJS.MessageEmbed()
+      .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
+      .setColor('ORANGE')
+      .setDescription('Please wait, this may take a while for bigger servers.');
+    const message = await msg.channel.send(em);
+
     for (const i in users) {
       if (!msg.guild.members.cache.get(i)) toRemove.push(i);
     }
 
-    if (toRemove.length === 0) return msg.channel.send('There are no users to remove from the leaderboard.');
+    if (toRemove.length === 0) {
+      em.setColor('#0099CC');
+      em.setDescription('There are no users to remove from the leaderboard.');
+      return message.edit(em);
+    }
 
-    const em = new DiscordJS.MessageEmbed()
-      .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
-      .setColor('0099CC')
-      .setDescription(`This will reset the balance of and remove ${toRemove.length} members from the leaderboard. \nDo you wish to continue? (yes/no)`);
-    await msg.channel.send(em);
+    em.setColor('#0099CC');
+    em.setDescription(`This will reset the balance of and remove ${toRemove.length} members from the leaderboard. \nDo you wish to continue? (yes/no)`);
+    await message.edit(em);
     const verified = await verify(msg.channel, msg.author);
 
     if (verified) {

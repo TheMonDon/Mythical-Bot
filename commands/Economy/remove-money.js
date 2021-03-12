@@ -37,12 +37,14 @@ module.exports = class removeMoney extends Command {
       return msg.channel.send(errEmbed);
     }
 
+    const cs = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
+
     if (args.length === 2) {
       mem = getMember(msg, args[0]);
-      amount = parseInt(args[1]);
+      amount = parseInt(args[1].replace(cs, '').replace(',', ''));
     } else {
       mem = getMember(msg, args[1]);
-      amount = parseInt(args[2]);
+      amount = parseInt(args[2].replace(cs, '').replace(',', ''));
     }
 
     if (['cash', 'bank'].includes(args[0].toLowerCase())) {
@@ -67,8 +69,6 @@ module.exports = class removeMoney extends Command {
       errEmbed.setDescription('You can\'t add money to bots.');
       return msg.channel.send(errEmbed);
     }
-
-    const cs = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
 
     if (type === 'bank') {
       db.subtract(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`, amount);

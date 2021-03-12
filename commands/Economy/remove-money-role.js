@@ -37,12 +37,14 @@ module.exports = class addMoneyRole extends Command {
       return msg.channel.send(errEmbed);
     }
 
+    const cs = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
+
     if (args.length === 2) {
       role = getRole(msg, args[0]);
-      amount = parseInt(args[1]);
+      amount = parseInt(args[1].replace(cs, '').replace(',', ''));
     } else {
       role = getRole(msg, args[1]);
-      amount = parseInt(args[2]);
+      amount = parseInt(args[2].replace(cs, '').replace(',', ''));
     }
 
     if (['cash', 'bank'].includes(args[0].toLowerCase())) {
@@ -64,7 +66,6 @@ module.exports = class addMoneyRole extends Command {
     }
 
     const members = role.members.array();
-    const cs = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
 
     if (type === 'bank') {
       members.forEach(mem => {

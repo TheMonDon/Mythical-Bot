@@ -102,7 +102,7 @@ module.exports = class BalanceCommand extends Command {
       const embed = new DiscordJS.MessageEmbed()
         .setColor('#64BC6C')
         .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
-        .setDescription(`The cooldown of \`Work\` has been set to ${cd} seconds. \nThis will be displayed in a nice way later`);
+        .setDescription(`The cooldown of \`Work\` has been set to ${cd} seconds.`);
       return msg.channel.send(embed);
     } else if (type === 'rob') {
       const cd = cooldown / 1000;
@@ -111,7 +111,7 @@ module.exports = class BalanceCommand extends Command {
       const embed = new DiscordJS.MessageEmbed()
         .setColor('#64BC6C')
         .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
-        .setDescription(`The cooldown of \`Rob\` has been set to ${cd} seconds. \nThis will be displayed in a nice way later`);
+        .setDescription(`The cooldown of \`Rob\` has been set to ${cd} seconds.`);
       return msg.channel.send(embed);
     } else if (type === 'crime') {
       const cd = cooldown / 1000;
@@ -120,7 +120,7 @@ module.exports = class BalanceCommand extends Command {
       const embed = new DiscordJS.MessageEmbed()
         .setColor('#64BC6C')
         .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
-        .setDescription(`The cooldown of \`Crime\` has been set to ${cd} seconds. \nThis will be displayed in a nice way later `);
+        .setDescription(`The cooldown of \`Crime\` has been set to ${cd} seconds.`);
       return msg.channel.send(embed);
     }
   }

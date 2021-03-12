@@ -37,19 +37,21 @@ module.exports = class addMoney extends Command {
       return msg.channel.send(errEmbed);
     }
 
+    const cs = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
+
     if (args.length === 2) {
       mem = getMember(msg, args[0]);
-      amount = parseInt(args[1]);
+      amount = parseInt(args[1].replace(cs, '').replace(/,/g, ''));
     } else {
       mem = getMember(msg, args[1]);
-      amount = parseInt(args[2]);
+      amount = parseInt(args[2].replace(cs, '').replace(/,/g, ''));
     }
 
     if (['cash', 'bank'].includes(args[0].toLowerCase())) {
       type = args[0].toLowerCase();
     }
 
-    if (isNaN(amount)) {
+    if (isNaN(amount) || amount === Infinity) {
       errEmbed.setDescription(usage);
       return msg.channel.send(errEmbed);
     }
@@ -68,13 +70,15 @@ module.exports = class addMoney extends Command {
       return msg.channel.send(errEmbed);
     }
 
-    const cs = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
-
     if (type === 'bank') {
       db.add(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`, amount);
     } else {
       const cash = db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`) || db.get(`servers.${msg.guild.id}.economy.startBalance`) || 0;
       const newAmount = cash + amount;
+      if (isNaN(newAmount) || newAmount === Infinity) {
+        errEmbed.setDescription(`${mem}'s balance would be Infinity if you gave them that much!`);
+        return msg.channel.send(errEmbed);
+      }
       db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, newAmount);
     }
 

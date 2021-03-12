@@ -68,20 +68,19 @@ module.exports = class CrimeCommand extends Command {
     if (ranNum < failRate) {
       if (isNaN(fineAmnt)) {
         return msg.channel.send('You have too much money to be able to be fined.');
-      } else {
-        const csamount = cs + fineAmnt.toLocaleString();
-        const num = Math.floor(Math.random() * (crimeFail.length - 1)) + 1;
-        const txt = crimeFail[num].replace('csamount', csamount);
-
-        const embed = new DiscordJS.MessageEmbed()
-          .setColor('#EC5454')
-          .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
-          .setDescription(txt)
-          .setFooter(`Reply #${num.toLocaleString()}`);
-        msg.channel.send(embed);
-
-        db.subtract(`servers.${server.id}.users.${member.id}.economy.cash`, fineAmnt);
       }
+      const csamount = cs + fineAmnt.toLocaleString();
+      const num = Math.floor(Math.random() * (crimeFail.length - 1)) + 1;
+      const txt = crimeFail[num].replace('csamount', csamount);
+
+      const embed = new DiscordJS.MessageEmbed()
+        .setColor('#EC5454')
+        .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
+        .setDescription(txt)
+        .setFooter(`Reply #${num.toLocaleString()}`);
+      msg.channel.send(embed);
+
+      db.subtract(`servers.${server.id}.users.${member.id}.economy.cash`, fineAmnt);
     } else {
       const amount = Math.floor(Math.random() * (max - min + 1) + min);
       const csamount = cs + amount.toLocaleString();

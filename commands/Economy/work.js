@@ -57,12 +57,13 @@ module.exports = class work extends Command {
     let newBalance = db.get(`servers.${msg.guild.id}.users.${member.id}.economy.cash`) || db.get(`servers.${msg.guild.id}.economy.startBalance`) || 0;
     newBalance = newBalance + amount;
 
+    db.set(`servers.${msg.guild.id}.users.${member.id}.economy.cash`, newBalance);
+
     const embed = new DiscordJS.MessageEmbed()
       .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
       .setColor('#64BC6C')
       .setDescription(job)
       .setFooter(`Reply #${num.toLocaleString()}`);
-    db.set(`servers.${msg.guild.id}.users.${member.id}.economy.cash`, newBalance);
     msg.channel.send(embed);
 
     setTimeout(() => {
