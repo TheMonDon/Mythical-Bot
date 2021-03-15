@@ -53,6 +53,8 @@ class RemindMe extends Command {
     const timeString = moment(reminder.startDate.getTime()).fromNow(true);
 
     if (start <= now) return msg.channel.send('Please make sure your reminder is not part of back to the future.');
+    if (message.length > 200) return msg.channel.send('Please keep your reminder under 200 characters.');
+    if (isNaN(start) || isFinite(start)) return msg.channel.send('Please provide a valid starting time.');
 
     const rand = '000000'.replace(/0/g, function () {
       return (~~(Math.random() * 16)).toString(16);

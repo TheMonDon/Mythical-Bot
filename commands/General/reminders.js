@@ -24,10 +24,10 @@ class Reminders extends Command {
     const reminders = db.get('global.reminders') || [];
 
     if (!args[0]) {
-      let i = 0;
+      let i = 1;
       for (const { triggerOn, reminder, userID, remID } of Object.values(reminders)) {
         if (userID === msg.author.id) {
-          em.addField(`${numbers[i]} I'll remind you on ${moment(triggerOn).fromNow()} (ID: ${remID})`, reminder);
+          em.addField(`**${numbers[i] || i + '.'}** I'll remind you ${moment(triggerOn).fromNow()} (ID: ${remID})`, reminder.slice(0, 200));
           i += 1;
         }
       }
@@ -50,16 +50,15 @@ class Reminders extends Command {
     if (!ID) {
       em.setColor('ORANGE');
       em.setDescription(`${msg.author.username}, that isn't a valid reminder.`);
-    } else if (reminder.userID !== msg.author.id) {
+    } else if (!reminder || reminder.userID !== msg.author.id) {
       em.setColor('ORANGE');
       em.setDescription(`${msg.author.username}, that isn't a valid reminder.`);
+    } else {
+      db.delete(`global.reminders.${ID}`);
+
+      em.setColor('GREEN');
+      em.setDescription(`${msg.member.displayName}, you've successfully deleted your reminder.`);
     }
-
-    db.delete(`global.reminders.${ID}`);
-
-    em.setColor('GREEN');
-    em.setDescription(`${msg.member.displayName}, you've successfully deleted your reminder.`);
-
     return msg.channel.send(em);
   }
 }

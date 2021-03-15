@@ -89,7 +89,12 @@ module.exports = class BalanceCommand extends Command {
       failRate = (authNet / (memCash + authNet)) * 100;
     }
     const ranNum = Math.random() * 100;
-    const fineAmnt = Math.floor(Math.random() * authNet);
+
+    const minFine = 10;
+    const maxFine = 30;
+    const randomFine = parseInt(Math.floor(Math.random() * maxFine), minFine);
+    const fineAmnt = parseInt(authNet * (randomFine / 100));
+
     const cs = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
 
     if (failRate > 100) {

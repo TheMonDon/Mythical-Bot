@@ -52,6 +52,7 @@ module.exports = class CrimeCommand extends Command {
     const minFine = db.get(`servers.${server.id}.economy.${type}.fine.min`) || 10;
     const maxFine = db.get(`servers.${server.id}.economy.${type}.fine.max`) || 30; // these are %s
 
+    // I don't really understand how this works LMAO
     const randomFine = parseInt(Math.min(Math.max(Math.floor(Math.random() * maxFine), minFine), maxFine));
     const fineAmnt = parseInt(authNet * (randomFine / 100));
 
