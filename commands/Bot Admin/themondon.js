@@ -10,7 +10,7 @@ class themondon extends Command {
       usage: 'themondon <user>',
       aliases: ['tmd', 'mon', 'don'],
       guildOnly: true,
-      perms: 'Bot Admin'
+      permLevel: 'Bot Admin'
     });
   }
 

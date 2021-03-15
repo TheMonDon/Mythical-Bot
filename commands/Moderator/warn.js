@@ -1,5 +1,5 @@
 const Command = require('../../base/Command.js');
-const { getMember } = require('../../base/Util.js');
+const { getMember, randomString, getWarns, getTotalPoints } = require('../../base/Util.js');
 const db = require('quick.db');
 const DiscordJS = require('discord.js');
 
@@ -79,12 +79,10 @@ class warn extends Command {
 
     const ka = db.get(`servers.${msg.guild.id}.warns.kick`) || 8; // add an option to change this later, for now this is fine.
     const ba = db.get(`servers.${msg.guild.id}.warns.ban`) || 10;
-    const wids = db.get(`servers.${msg.guild.id}.warns.ids`) || [];
 
     // Make sure that the ID doesn't exist on that server
     let warnID = randomString(5);
-    while (wids.includes(warnID)) warnID = randomString(5);
-    db.push(`servers.${msg.guild.id}.warns.ids`, warnID);
+    while (db.get(`servers.${msg.guild.id}.warns.warnings.${warnID}`)) warnID = randomString(5);
 
     const otherWarns = getWarns(mem.id, msg);
 
@@ -144,37 +142,6 @@ class warn extends Command {
       if (member) member.kick(reason).catch(() => null); // Kick them if they are in the guild
     }
   }
-}
-
-function randomString (length) {
-  let str = '';
-  for (; str.length < length; str += Math.random().toString(36).substr(2));
-  return str.substr(0, length);
-}
-
-function getWarns (userID, msg) {
-  const warns = db.get(`servers.${msg.guild.id}.warns.warnings`);
-  const userCases = [];
-  if (warns) {
-    Object.values(warns).forEach((val) => {
-      if (val.user === userID) {
-        userCases.push(val);
-      }
-    });
-  }
-  if (!userCases) return;
-  return userCases;
-}
-
-function getTotalPoints (userID, msg) {
-  const warns = getWarns(userID, msg);
-  let total = 0;
-  if (warns) {
-    Object.keys(warns).forEach(c => {
-      total += Number(warns[c].points);
-    });
-  }
-  return total;
 }
 
 module.exports = warn;

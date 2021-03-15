@@ -1,5 +1,5 @@
 const Command = require('../../base/Command.js');
-const { findWithAttr } = require('../../base/Util.js');
+const { findWithAttr, randomString } = require('../../base/Util.js');
 const DiscordJS = require('discord.js');
 const moment = require('moment');
 require('moment-duration-format');
@@ -24,22 +24,20 @@ class Remind extends Command {
     const _this = this;
     if (!query || query.length < 1) return msg.channel.send(`Incorrect Usage: ${p}Remind <reminder> \nExample: ${p}Remind Ban GPM in 24 hours`);
 
-    let reminders = db.get(`users.${msg.member.id}.timers.remindme`) || [];
-    reminders = reminders.filter(a => !a.disabled);
-    reminders = reminders.filter(a => !a.completed);
+    let reminders = db.get(`users.${msg.author.id}.timers.remindme`) || [];
+    reminders = reminders.filter(a => !a.disabled).filter(a => !a.completed);
     const obj = {};
     const numReminders = reminders.length;
+
     let maxReminders = 2;
-    const usertype = db.get(`users.${msg.member.id}.usertype`) || 0;
+    const usertype = db.get(`users.${msg.author.id}.usertype`) || 0;
     if (usertype === 10) { // Developer.
       maxReminders = 20;
-    } else if (usertype === 2) { // Gladiator?
-      maxReminders = 5;
-    } else if (usertype === 1) { // VIP?
-      maxReminders = 3;
+    } else if (usertype === 1) { // Donators?
+      maxReminders = 4;
     }
 
-    if (numReminders >= maxReminders) return msg.channel.send(`Sorry ${msg.member.displayName}, but you already have ${numReminders} reminders active. Please wait for that to finish, or you can donate to raise your cap.`);
+    if (numReminders >= maxReminders) return msg.channel.send(`Sorry ${msg.author.username}, but you already have ${numReminders} reminders active. Please wait for that to finish, or you can donate to raise your cap.`);
 
     const reminder = sherlock.parse(query);
     if (!reminder.startDate) return msg.channel.send('Please provide a valid starting time.');
@@ -59,7 +57,7 @@ class Remind extends Command {
 
     const remindEmbed = new DiscordJS.MessageEmbed()
       .setColor(rand)
-      .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
+      .setAuthor(msg.author.username, msg.author.displayAvatarURL())
       .addField('I will remind you to:', `\`\`\`${mes}\`\`\``, true)
       .addField('in:', `\`\`\`${timeString}\`\`\``, true)
       .setFooter('Got it! I\'ll remind you on:')
@@ -69,20 +67,18 @@ class Remind extends Command {
     msg.channel.send(remindEmbed);
     obj.createdAtTimestamp = createdTime;
     obj.remindingTimestamp = start;
-    obj.timeInput = timeString;
     obj.message = mes;
     obj.serverID = msg.guild.id;
-    obj.serverName = msg.guild.name;
     obj.channelID = msg.channel.id;
     obj.id = msg.id;
-    obj.username = msg.member.displayName;
+    obj.username = msg.author.username;
     obj.avatarURL = msg.author.displayAvatarURL();
     obj.userID = msg.author.id;
     obj.color = rand;
     obj.disabled = false; // obj.disabled is to check if user cancelled that reminder. (Future feature).
     obj.completed = false; // maybe put this here idk if itll work
     reminders.push(obj);
-    db.set(`users.${msg.member.id}.timers.remindme`, reminders);
+    db.set(`users.${msg.author.id}.timers.remindme`, reminders);
 
     setTimeout(function () {
       const remindEmbed = new DiscordJS.MessageEmbed()
@@ -92,7 +88,7 @@ class Remind extends Command {
         .setFooter('You requested this reminder on')
         .setTimestamp(createdTime);
 
-      reminders = db.get(`users.${msg.member.id}.timers.remindme`) || []; // gets the current list.
+      reminders = db.get(`users.${msg.author.id}.timers.remindme`) || []; // gets the current list.
       const pos = findWithAttr(reminders, 'id', msg.id); // Finds the reminder to delete from the list since we successfully sent the reminder.
       const isDisabled = reminders[pos].disabled;
       const isCompleted = reminders[pos].completed;
@@ -102,18 +98,15 @@ class Remind extends Command {
         reminders = reminders.filter(Boolean); // removes deleted entries (null entries);
         delete reminders[pos]; // removes the reminder, and replaces it with < empty item >
         reminders = reminders.filter(Boolean); // removes deleted entries (null entries);
-        // c('reminders after the delete: '+j(reminders));
         db.set(`users.${msg.member.id}.timers.remindme`, reminders); // Sets the reminders list back.
       } else {
         const chan = _this.client.channels.cache.get(String(msg.channel.id));
         if (chan) { // ensures the channel hasn't been deleted.
           reminders = db.get(`users.${msg.member.id}.timers.remindme`) || []; // gets the current list.
           const pos = findWithAttr(reminders, 'id', msg.id); // Finds the reminder to delete from the list since we successfully sent the reminder.
-          // c('pos is: '+pos);
-          // c('reminders before the delete: '+j(reminders));
+
           delete reminders[pos]; // removes the reminder, and replaces it with < empty item >
           reminders = reminders.filter(Boolean); // removes deleted entries (null entries);
-          // c('reminders after the delete: '+j(reminders));
 
           db.set(`users.${msg.member.id}.timers.remindme`, reminders); // Sets the reminders list back.
 
@@ -122,13 +115,10 @@ class Remind extends Command {
           try { // check if user exists
             reminders = db.get(`users.${msg.member.id}.timers.remindme`) || []; // gets the current list.
             const pos = findWithAttr(reminders, 'id', msg.id); // Finds the reminder to delete from the list since we successfully sent the reminder.
-            // c('pos is: '+pos);
-            // c('reminders before the delete: '+j(reminders));
             delete reminders[pos]; // removes the reminder, and replaces it with < empty item >
             reminders = reminders.filter(Boolean); // removes deleted entries (null entries);
 
-            // c('reminders after the delete: '+j(reminders));
-            db.set(`users.${msg.member.id}.timers.remindme`, reminders); // Sets the reminders list back.
+            db.set(`users.${msg.author.id}.timers.remindme`, reminders); // Sets the reminders list back.
 
             return _this.client.users.cache.get(String(msg.member.id))
               .send(`${msg.member.displayName}, here's your reminder:`, remindEmbed)
@@ -138,8 +128,6 @@ class Remind extends Command {
           }
         }
       }
-
-      // delete obj[index].timers.remindme[nums];
     }, timeNum);
   }
 }

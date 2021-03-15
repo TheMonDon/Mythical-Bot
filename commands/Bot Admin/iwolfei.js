@@ -10,7 +10,7 @@ class wolfei extends Command {
       usage: 'iwolfei <user>',
       aliases: ['wolfei', 'iw'],
       guildOnly: true,
-      perms: 'Bot Admin'
+      permLevel: 'Bot Admin'
     });
   }
 

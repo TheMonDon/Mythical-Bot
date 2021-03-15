@@ -198,4 +198,14 @@ module.exports = class Util {
     }
     return -1;
   }
+
+  /**
+   *
+   * @param {Number} length
+   */
+  static randomString (length) {
+    let str = '';
+    for (; str.length < length;) str += Math.random().toString(36).substr(2);
+    return str.substr(0, length);
+  };
 };
