@@ -6,7 +6,7 @@ class gPlay extends Command {
   constructor (client) {
     super(client, {
       name: 'google-play',
-      description: 'Get some information about any google play application.',
+      description: 'Get some information about any Google Play application.',
       usage: 'google-play <app>',
       category: 'Search',
       aliases: ['gplay', 'g-play', 'googleplay']
@@ -31,12 +31,12 @@ class gPlay extends Command {
           .setURL(res.url)
           .setColor('#0099CC')
           .setThumbnail(res.icon)
-          .addField('Developer', res.developer, true)
-          .addField('Price', res.priceText, true)
-          .addField('Rating', res.scoreText, true)
-          .addField('Genre', res.genre, true)
-          .addField('Installs', res.maxInstalls.toLocaleString() + '+', true)
-          .addField('Released On', res.released, true);
+          .addField('Developer', res.developer || 'Unknown', true)
+          .addField('Price', res.priceText || 'Unknown', true)
+          .addField('Rating', res.scoreText || 'Unknown', true)
+          .addField('Genre', res.genre || 'Unknown', true)
+          .addField('Installs', res.maxInstalls ? res.masInstalls.toLocaleString() + '+' : 'Unknown', true)
+          .addField('Released On', res.released || 'Unknown', true);
         return msg.channel.send(em);
       })
       .catch(() => {
