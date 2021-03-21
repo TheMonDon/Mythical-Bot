@@ -1,4 +1,3 @@
-/* eslint-disable no-unreachable */
 const Command = require('../../base/Command.js');
 const db = require('quick.db');
 const DiscordJS = require('discord.js');
@@ -10,109 +9,83 @@ module.exports = class setFailRate extends Command {
       name: 'set-fail-rate',
       category: 'Economy',
       description: 'Sets the fail rate of economy commands',
-      usage: 'set-fail-rate <crime> <amount>',
+      usage: 'set-fail-rate <crime> <percentage>',
+      aliases: ['setfailrate', 'setfail'],
       guildOnly: true
     });
   }
 
   run (msg, text) {
-    return msg.channel.send('This is not done.');
-    const server = msg.guild;
-
-    const types = ['work', 'crime'];
+    const types = ['crime'];
 
     if (!msg.member.permissions.has('MANAGE_GUILD')) return msg.channel.send('You are missing **Manage Guild** permission.');
 
-    const cs = db.get(`servers.${server.id}.economy.symbol`) || '$';
-    const usage = `${msg.settings.prefix}Set-Payout <work | crime> <min | max> <amount>`;
+    const usage = `${msg.settings.prefix}set-fail-rate <crime> <percentage>`;
 
-    const workMin = db.get(`servers.${server.id}.economy.work.min`) || 50;
-    const workMax = db.get(`servers.${server.id}.economy.work.max`) || 500;
-    // const slut_min = '';
-    // const slut_max = '';
-    const crimeMin = db.get(`servers.${server.id}.economy.crime.min`) || 500;
-    const crimeMax = db.get(`servers.${server.id}.economy.crime.max`) || 2000;
+    // const slutFail = db.get(`servers.${server.id}.economy.slut.failrate`) || 35;
+    const crimeFail = db.get(`servers.${msg.guild.id}.economy.crime.failrate`) || 45;
 
     if (!text || text.length < 1) {
       const embed = new DiscordJS.MessageEmbed()
         .setColor('#04ACF4')
         .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
         .setDescription(stripIndents`
-        The current payout ranges are: 
+        The current fail rates are: 
         
-        \`Work\` - min: ${cs}${workMin} | max: ${cs}${workMax}
-        \`Crime\` - min: ${cs}${crimeMin} | max: ${cs}${crimeMax}
+        \`Crime\` - ${crimeFail}%
     
         Usage: ${usage}
         `);
       return msg.channel.send(embed);
-    } else {
-      const type = text[0]?.toLowerCase();
-      if (!types.includes(type)) {
-        const embed = new DiscordJS.MessageEmbed()
-          .setColor('#EC5454')
-          .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
-          .setDescription(`Incorrect Usage: ${usage}`);
-        return msg.channel.send(embed);
-      }
-
-      const minMax = text[1]?.toLowerCase();
-      if (!['min', 'max'].includes(minMax)) {
-        const embed = new DiscordJS.MessageEmbed()
-          .setColor('#EC5454')
-          .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
-          .setDescription(`Incorrect Usage: ${usage}`);
-        return msg.channel.send(embed);
-      }
-
-      text.shift();
-      text.shift();
-      const amount = parseInt(text.join('').replace(/,/g, '').replace(cs, '').replace(/-/g, ''));
-
-      if (isNaN(amount)) {
-        const embed = new DiscordJS.MessageEmbed()
-          .setColor('#EC5454')
-          .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
-          .setDescription(stripIndents`
-            :x: Invalid payout. Please provide a valid number.
-
-            Usage: ${usage}
-            `);
-
-        return msg.channel.send(embed);
-      }
-
-      if (amount > 1000000000000) {
-        return msg.channel.send('The max amount for payout is one trillion.');
-      } else if (amount < 1) {
-        return msg.channel.send('The min amount for payout is one.');
-      }
-
-      const embed = new DiscordJS.MessageEmbed()
-        .setColor('#64BC6C')
-        .setAuthor(msg.author.tag, msg.author.displayAvatarURL());
-
-      if (type === 'work') {
-        if (minMax === 'min') {
-          db.set(`servers.${server.id}.economy.work.min`, amount);
-          embed.setDescription(`The minimum amount for \`Work\` has been changed to ${cs}${amount}`);
-        } else {
-          db.set(`servers.${server.id}.economy.work.max`, amount);
-          embed.setDescription(`The maximum amount for \`Work\` has been changed to ${cs}${amount}`);
-        }
-
-        return msg.channel.send(embed);
-      } else if (type === 'crime') {
-        if (minMax === 'min') {
-          db.set(`servers.${server.id}.economy.crime.min`, amount);
-          embed.setDescription(`The minimum amount for \`Crime\` has been changed to ${cs}${amount}`);
-        } else {
-          db.set(`servers.${server.id}.economy.crime.max`, amount);
-          embed.setDescription(`The maximum amount for \`Crime\` has been changed to ${cs}${amount}`);
-        }
-
-        return msg.channel.send(embed);
-      }
     }
+
+    const errEmbed = new DiscordJS.MessageEmbed()
+      .setColor('#EC5454')
+      .setAuthor(msg.author.tag, msg.author.displayAvatarURL());
+
+    const type = text[0]?.toLowerCase();
+    if (!types.includes(type)) {
+      errEmbed.setDescription(`Incorrect Usage: ${usage}`);
+      return msg.channel.send(errEmbed);
+    }
+
+    text.shift();
+    const percentage = parseInt(text.join('').replace('%', '').replace(/-/g, ''));
+
+    if (isNaN(percentage)) {
+      const embed = new DiscordJS.MessageEmbed()
+        .setColor('#EC5454')
+        .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
+        .setDescription(stripIndents`
+          :x: Invalid fail rate. Please provide a valid number.
+
+          Usage: ${usage}
+        `);
+
+      return msg.channel.send(embed);
+    } else if (percentage > 100) {
+      errEmbed.setDescription(stripIndents`
+        :x: Invalid fail rate. Percenage can not be greater than 100%.
+
+        Usage: ${usage}
+      `);
+      return msg.channel.send(errEmbed);
+    }
+
+    const embed = new DiscordJS.MessageEmbed()
+      .setColor('#64BC6C')
+      .setAuthor(msg.author.tag, msg.author.displayAvatarURL());
+
+    if (type === 'crime') {
+      db.set(`servers.${msg.guild.id}.economy.crime.failrate`, percentage);
+      embed.setDescription(`The fail rate for \`Crime\` has been set to ${percentage}%.`);
+
+      return msg.channel.send(embed);
+    } else if (type === 'slut') { // Shoved this in for future proofing :D
+      db.set(`servers.${msg.guild.id}.economy.slut.failrate`, percentage);
+      embed.setDescription(`The fail rate for \`Slut\` has been set to ${percentage}%.`);
+    }
+
+    return msg.channel.send(embed);
   }
 };

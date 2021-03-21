@@ -2,7 +2,7 @@ const Command = require('../../base/Command.js');
 const DiscordJS = require('discord.js');
 const fetch = require('node-superfetch');
 
-class mcserver extends Command {
+module.exports = class mcserver extends Command {
   constructor (client) {
     super(client, {
       name: 'mc-server',
@@ -31,7 +31,7 @@ class mcserver extends Command {
 
     const { body } = await fetch
       .get(`https://api.mcsrvstat.us/2/${encodeURI(query)}`)
-      .catch('Sorry, either that is not a valid IP or that server is offline.');
+      .catch(e => { return msg.channel.send('Sorry, either that is not a valid IP or that server is offline.'); });
 
     if (!body.online) return msg.channel.send('Sorry, either that is not a valid IP or that server is offline.');
 
@@ -45,6 +45,4 @@ class mcserver extends Command {
       .addField('MOTD:', body.motd.clean, false);
     return msg.channel.send(em);
   }
-}
-
-module.exports = mcserver;
+};

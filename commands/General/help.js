@@ -14,10 +14,8 @@ class Help extends Command {
   }
 
   async run (msg, args, level) {
-    const settings = msg.settings;
-
     const cats = ['Administrator', 'Economy', 'Fun', 'Games', 'General', 'Information', 'Logging', 'Memes', 'Minecraft', 'Moderator', 'Music', 'NSFW', 'Search', 'Tickets'];
-    const allcats = ['Bot Admin', 'Administrator', 'Economy', 'Fun', 'Games', 'General', 'Information', 'Logging', 'Memes', 'Minecraft', 'Moderator', 'Music', 'NSFW', 'Owner', 'Search', 'Tickets'];
+    const allcats = ['Bot Admin', 'Administrator', 'Crafters Island', 'Economy', 'Fun', 'Games', 'General', 'Information', 'Logging', 'Memes', 'Minecraft', 'Moderator', 'Music', 'NSFW', 'Owner', 'Search', 'Tickets'];
 
     const em = new MessageEmbed()
       .setAuthor(msg.author.username, msg.author.displayAvatarURL());
@@ -25,8 +23,8 @@ class Help extends Command {
     const errEm = new MessageEmbed()
       .setColor('ORANGE')
       .setDescription(`Please select a category to see all available commands. \nUsage: \`${msg.settings.prefix}help <category>\` \nUsage: \`${msg.settings.prefix}help <command>\``)
-      .addField('Current Categories:', level >= 8 ? allcats : cats, true)
-      .addField('Quick Bits', '[Invite Link](https://discord.com/oauth2/authorize?client_id=742407958729588767&scope=bot&permissions=171306176)', true);
+      .addField('Current Categories:', level >= 8 ? allcats.join(', ') : cats.join(', '), true)
+      .addField('Quick Bits', '[Invite Link](https://cisn.xyz/mythical)', true);
 
     if (!args || args.length < 1) return msg.channel.send(errEm);
 
@@ -37,7 +35,7 @@ class Help extends Command {
     const sorted = myCommands.array().sort((p, c) => p.help.category > c.help.category ? 1 : p.help.name > c.help.name && p.help.category === c.help.category ? 1 : -1);
     sorted.forEach(c => {
       const cat = toProperCase(c.help.category);
-      if (category === cat) em.addField(`${settings.prefix}${toProperCase(c.help.name)}`, `${c.help.description}`, false);
+      if (category === cat) em.addField(`${msg.settings.prefix}${toProperCase(c.help.name)}`, `${c.help.description}`, false);
     });
     if (em.fields < 1) {
       let command = category.toLowerCase();

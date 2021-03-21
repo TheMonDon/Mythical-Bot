@@ -50,11 +50,14 @@ class RemindMe extends Command {
     const now = new Date();
     const start = reminder.startDate.getTime();
     const message = reminder.eventTitle;
-    const timeString = moment(reminder.startDate.getTime()).fromNow(true);
+
+    const startTime = moment(start);
+    const now1 = moment();
+    const timeString = moment.duration(startTime.diff(now1)).format();
 
     if (start <= now) return msg.channel.send('Please make sure your reminder is not part of back to the future.');
     if (message.length > 200) return msg.channel.send('Please keep your reminder under 200 characters.');
-    if (isNaN(start) || isFinite(start)) return msg.channel.send('Please provide a valid starting time.');
+    if (isNaN(start) || !isFinite(start)) return msg.channel.send('Please provide a valid starting time.');
 
     const rand = '000000'.replace(/0/g, function () {
       return (~~(Math.random() * 16)).toString(16);
@@ -65,7 +68,7 @@ class RemindMe extends Command {
       .setAuthor(msg.author.username, msg.author.displayAvatarURL())
       .addField('I will remind you to:', `\`\`\`${message}\`\`\``, true)
       .addField('in:', `\`\`\`${timeString}\`\`\``, true)
-      .setFooter('Got it! I\'ll remind you on:')
+      .setFooter(`ID: ${remID} | Got it! I'll remind you on:`)
       .setTimestamp(start);
     msg.channel.send(remindEmbed);
 
