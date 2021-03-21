@@ -31,7 +31,7 @@ module.exports = class mcserver extends Command {
 
     const { body } = await fetch
       .get(`https://api.mcsrvstat.us/2/${encodeURI(query)}`)
-      .catch(e => { return msg.channel.send('Sorry, either that is not a valid IP or that server is offline.'); });
+      .catch(() => { return msg.channel.send('Sorry, either that is not a valid IP or that server is offline.'); });
 
     if (!body.online) return msg.channel.send('Sorry, either that is not a valid IP or that server is offline.');
 

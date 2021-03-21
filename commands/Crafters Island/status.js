@@ -14,19 +14,19 @@ module.exports = class status extends Command {
 
   async run (msg) {
     const bungee = await mcUtil.status('192.168.2.29')
-      .catch(e => {});
+      .catch(() => {});
     const hub = await mcUtil.status('192.168.2.29', { port: 25556 })
-      .catch(e => {});
+      .catch(() => {});
     const creative = await mcUtil.status('192.168.2.29', { port: 25562 })
-      .catch(e => {});
+      .catch(() => {});
     const prisons = await mcUtil.status('192.168.2.29', { port: 25563 })
-      .catch(e => {});
+      .catch(() => {});
     const survival = await mcUtil.status('192.168.2.29', { port: 25567 })
-      .catch(e => {});
+      .catch(() => {});
     const skyblock = await mcUtil.status('192.168.2.29', { port: 25568 })
-      .catch(e => {});
+      .catch(() => {});
     const rcc = await mcUtil.status('192.168.2.29', { port: 25569 })
-      .catch(e => {});
+      .catch(() => {});
 
     const em = new MessageEmbed()
       .setColor('0099CC')
