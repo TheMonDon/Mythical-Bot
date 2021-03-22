@@ -11,7 +11,7 @@ class npmInfo extends Command {
       description: 'Get information about a NPM package.',
       usage: 'npm-info <package>',
       category: 'Search',
-      aliases: ['ni', 'npmi']
+      aliases: ['ni', 'npmi', 'npminfo']
     });
   }
 
