@@ -35,7 +35,7 @@ class gPlay extends Command {
           .addField('Price', res.priceText || 'Unknown', true)
           .addField('Rating', res.scoreText || 'Unknown', true)
           .addField('Genre', res.genre || 'Unknown', true)
-          .addField('Installs', res.maxInstalls ? res.masInstalls.toLocaleString() + '+' : 'Unknown', true)
+          .addField('Installs', res.maxInstalls ? res.maxInstalls.toLocaleString() + '+' : 'Unknown', true)
           .addField('Released On', res.released || 'Unknown', true);
         return msg.channel.send(em);
       })
