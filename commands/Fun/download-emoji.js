@@ -17,7 +17,7 @@ class dlEmoji extends Command {
     if (!args || args.length < 1) return msg.reply('You need to input at least one emoji.');
     const content = args.join(' ');
     const result = [];
-    let res = [];
+    const res = [];
 
     // Normal Emojis
     const normalEmojis = content.match(emojiRegex());
@@ -48,10 +48,10 @@ class dlEmoji extends Command {
         res.push(out.split('src="')[1].replace(/"\/>/g, ''));
       }
     });
-    res = res.splice(0, 10);
-    const text = res.length > 1 ? 'here are your emojis' : 'here is your emoji';
+    const emojis = res.splice(0, 10);
+    const text = emojis.length > 1 ? 'here are your emojis' : 'here is your emoji';
 
-    return msg.reply(text, { files: res });
+    return msg.reply(text, { files: emojis });
   }
 }
 module.exports = dlEmoji;
