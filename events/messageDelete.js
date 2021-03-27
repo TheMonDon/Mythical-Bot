@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-expressions */
 const db = require('quick.db');
 const DiscordJS = require('discord.js');
 
@@ -9,6 +8,7 @@ module.exports = class {
 
   async run (msg) {
     if (msg.author.bot) return;
+    if (!msg.guild) return;
 
     const logChan = db.get(`servers.${msg.guild.id}.logs.channel`);
     if (!logChan) return;

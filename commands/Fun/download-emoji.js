@@ -14,7 +14,7 @@ class dlEmoji extends Command {
   }
 
   async run (msg, args) {
-    if (!args || args.length < 1) return msg.channel.reply('You need to input at least one emoji.');
+    if (!args || args.length < 1) return msg.reply('You need to input at least one emoji.');
     const content = args.join(' ');
     const result = [];
     let res = [];
@@ -22,7 +22,6 @@ class dlEmoji extends Command {
     // Normal Emojis
     const normalEmojis = content.match(emojiRegex());
     if (normalEmojis) {
-      // for (const emoji of normalEmojis) {
       normalEmojis.forEach((emoji) => {
         result.push(emoji);
       });
@@ -39,7 +38,7 @@ class dlEmoji extends Command {
       });
     }
 
-    if (result.length < 1) return msg.channel.reply('You need to input at least one emoji.');
+    if (result.length < 1) return msg.reply('You need to input at least one emoji.');
 
     result.forEach((emoji) => {
       if ((emoji.replace(/[^\d]/g, '')).length > 1) {
@@ -50,9 +49,9 @@ class dlEmoji extends Command {
       }
     });
     res = res.splice(0, 10);
-    const text = res.length > 1 ? ', here are your emojis' : ', here is your emoji';
+    const text = res.length > 1 ? 'here are your emojis' : 'here is your emoji';
 
-    return msg.channel.reply(text, { files: res });
+    return msg.reply(text, { files: res });
   }
 }
 module.exports = dlEmoji;
