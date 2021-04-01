@@ -27,15 +27,15 @@ class nowPlaying extends Command {
 
     const em = new MessageEmbed()
       .setDescription(stripIndents`
-    Now ${queue.paused ? 'Paused' : 'Playing'} ♪: [${song.title}](${song.url})
+        Now ${queue.paused ? 'Paused' : 'Playing'} ♪: [${song.title}](${song.url})
 
-    Duration: ${moment.duration(`00:${song.duration}`).format('d [days] h [hours] m [minutes] s [seconds]')}
-    Time Remaining: ${timeLeft}
-    ${this.client.player.createProgressBar(msg)}
+        Duration: ${moment.duration(`00:${song.duration}`).format('d [days] h [hours] m [minutes] s [seconds]')}
+        Time Remaining: ${timeLeft}
+        ${this.client.player.createProgressBar(msg)}
 
-    Requested By: ${song.requestedBy}
+        Requested By: ${song.requestedBy}
     `)
-      .setColor('e2e2e2')
+      .setColor('0099CC')
       .setThumbnail(song.thumbnail)
       .setAuthor(msg.member.displayName, msg.author.displayAvatarURL());
     return msg.channel.send(em);

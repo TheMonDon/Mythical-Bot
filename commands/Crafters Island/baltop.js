@@ -1,14 +1,13 @@
-/* eslint-disable no-undef */
 const Command = require('../../base/Command.js');
 const DiscordJS = require('discord.js');
 
-class baltop extends Command {
+module.exports = class baltop extends Command {
   constructor (client) {
     super(client, {
       name: 'baltop',
       description: 'Get the top 10 balances from Survival server',
       usage: 'baltop',
-      category: 'Minecraft'
+      category: 'Crafters Island'
     });
   }
 
@@ -60,6 +59,4 @@ class baltop extends Command {
       return msg.channel.send('I could not find a server with that name. \nCurrent Servers: `Survival`');
     }
   }
-}
-
-module.exports = baltop;
+};

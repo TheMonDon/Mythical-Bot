@@ -1,5 +1,3 @@
-/* eslint-disable new-cap */
-/* eslint-disable node/no-path-concat */
 // This will check if the node version you are running is the required
 // Node version, if it isn't it will throw the following error to inform
 // you.
@@ -16,7 +14,7 @@ const { Player } = require('discord-player');
 const mysql = require('mysql2');
 const config = require('./config.js');
 
-class bot extends Client {
+class Bot extends Client {
   constructor (options) {
     super(options);
 
@@ -146,7 +144,7 @@ class bot extends Client {
 }
 
 // Enable intents for the bot
-const client = new bot({ ws: { intents: DiscordJS.Intents.ALL } });
+const client = new Bot({ ws: { intents: DiscordJS.Intents.ALL } });
 
 // Create MySQL Pool globally
 global.pool = mysql.createPool({
@@ -269,6 +267,7 @@ client.on('raw', packet => {
 });
 
 process.on('uncaughtException', (err) => {
+  // eslint-disable-next-line node/no-path-concat
   const errorMsg = err.stack.replace(new RegExp(`${__dirname}/`, 'g'), './');
   console.error('Uncaught Exception: ', errorMsg);
   // Always best practice to let the code crash on uncaught exceptions.

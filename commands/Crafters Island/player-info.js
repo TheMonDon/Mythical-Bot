@@ -1,4 +1,3 @@
-/* global pool */
 const Command = require('../../base/Command.js');
 const { getMember } = require('../../base/Util.js');
 const DiscordJS = require('discord.js');
@@ -13,7 +12,7 @@ class playerinfo extends Command {
       name: 'player-info',
       description: 'Get information about minecraft player from discord or minecraft username.',
       usage: 'player-info [member]',
-      category: 'Minecraft',
+      category: 'Crafters Island',
       aliases: ['mctodc', 'dctomc', 'playerinfo', 'pinfo']
     });
   }

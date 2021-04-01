@@ -12,5 +12,8 @@ module.exports = {
   },
   rules: {
     semi: ['error', 'always']
+  },
+  globals: {
+    pool: 'readonly'
   }
 };
