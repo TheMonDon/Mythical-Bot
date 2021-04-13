@@ -35,7 +35,7 @@
     "jsonpath-plus": "^5.0.7",
     "klaw": "^3.0.0",
     "lyrics-finder": "^21.7.0",
-    "mathjs": "^9.3.0",
+    "mathjs": "^9.3.2",
     "minecraft-server-util": "^3.4.4",
     "moment": "^2.29.1",
     "moment-duration-format": "^2.2.2",
