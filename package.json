@@ -58,7 +58,7 @@
     "search-npm-registry": "^2.0.3",
     "sherlockjs": "^1.4.0",
     "soundcloud-scraper": "^4.0.3",
-    "speedtest-net": "^2.1.1",
+    "speedtest-net": "^2.2.0",
     "superagent": "^6.1.0",
     "thesaurus-query": "^1.2.9",
     "tictactoe-minimax-ai": "^1.2.1",
