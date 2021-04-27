@@ -21,7 +21,7 @@
     "cows": "^2.1.1",
     "cowsay": "^1.4.0",
     "custom-translate": "^2.2.8",
-    "discord-player": "^3.4.0",
+    "discord-player": "^4.0.5",
     "discord.js": "^12.5.3",
     "emoji-regex": "^9.2.2",
     "enmap": "^5.8.4",
