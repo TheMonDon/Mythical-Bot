@@ -183,8 +183,8 @@ client.player
   .on('noResults', (message, query) => message.channel.send(`No results found on YouTube for ${query}!`))
 
   // Send a message when the music is stopped
-  .on('queueEnd', (message, queue) => message.channel.send('Music stopped as there is no more music in the queue!'))
-  .on('botDisconnect', (message, queue) => message.channel.send('Music stopped as I have been disconnected from the channel!'))
+  .on('queueEnd', (message) => message.channel.send('Music stopped as there is no more music in the queue!'))
+  .on('botDisconnect', (message) => message.channel.send('Music stopped as I have been disconnected from the channel!'))
 
   // Error handling
   .on('error', (error, message) => {
