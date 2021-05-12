@@ -57,7 +57,7 @@
     "rgb-hex": "^4.0.0",
     "search-npm-registry": "^2.0.3",
     "sherlockjs": "^1.4.0",
-    "soundcloud-scraper": "^4.0.3",
+    "soundcloud-scraper": "^5.0.0",
     "speedtest-net": "^2.2.0",
     "superagent": "^6.1.0",
     "thesaurus-query": "^1.2.9",
