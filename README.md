@@ -1,8 +1,15 @@
 # Mythical-Bot
+<div align="center">
+  <br />
+  <p>
+    <a href="https://cisn.xyz/discord"><img src="https://img.shields.io/discord/512780870378061845?color=7289da&logo=discord&logoColor=white" alt="Discord Server" /></a>
+    <img src="https://img.shields.io/github/package-json/v/TheMonDon/Mythical-Bot" alt="Bot Version" />
+  </p>
+</div>
 
 [![Fuck it Ship it](http://forthebadge.com/images/badges/fuck-it-ship-it.svg)](https://github.com/TheMonDon/Mythical-Bot) [![It Works. Why?](https://forthebadge.com/images/badges/it-works-why.svg)](https://github.com/TheMonDon/Mythical-Bot)
 
-# Index
+## Table of Contents
 
 - [Administrator](#Administrator)
 - [Bot Admin](#Bot-Admin)
