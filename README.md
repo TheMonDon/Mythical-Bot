@@ -2,15 +2,8 @@
 
 # Index
 
-- [General](#General)
-- [Info](#Info)
-- [Utility](#Utility)
-- [Fun](#Fun)
-- [Memes](#Memes)
-- [Music](#Music)
-- [Anime](#Anime)
-- [Action](#Action)
-- [NSFW](#NSFW)
+- [Administrator](#Administrator)
+- [Bot Admin](#Bot Admin)
 
 ## Legend
 Name | Description 
