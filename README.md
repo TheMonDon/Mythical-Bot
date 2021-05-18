@@ -149,7 +149,7 @@ Name | Description | Usage
 ###### [Back to Top](#index)
 
 ## NSFW
-[![Ages 18]http://forthebadge.com/images/badges/ages-18.svg)]
+[![Ages 18](http://forthebadge.com/images/badges/ages-18.svg)](https://github.com/TheMonDon/Mythical-Bot)
 Name | Description | Usage
 ----------------|--------------|-------
 `` |  | ``
