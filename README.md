@@ -3,7 +3,7 @@
 # Index
 
 - [Administrator](#Administrator)
-- [Bot Admin](#Bot Admin)
+- [Bot Admin](#Bot-Admin)
 
 ## Legend
 Name | Description 
