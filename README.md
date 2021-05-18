@@ -1,5 +1,7 @@
 # Mythical-Bot
 
+[![Fuck it Ship it](http://forthebadge.com/images/badges/fuck-it-ship-it.svg)](https://github.com/TheMonDon/Mythical-Bot) [![It Works. Why?](https://forthebadge.com/images/badges/it-works-why.svg)](https://github.com/TheMonDon/Mythical-Bot)
+
 # Index
 
 - [Administrator](#Administrator)
