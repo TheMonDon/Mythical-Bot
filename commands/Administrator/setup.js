@@ -201,7 +201,7 @@ class setup extends Command {
           return msg.channel.send('You did not reply in time.');
         });
     }
-    // End of ticket setup...what else do i need to use this for anyways?
+    // End of ticket setup.
 
     if (['logging', 'log', 'logs'].includes(type)) {
       const embed = new DiscordJS.MessageEmbed();

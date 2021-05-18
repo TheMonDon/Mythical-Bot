@@ -4,9 +4,9 @@ class prefix extends Command {
   constructor (client) {
     super(client, {
       name: 'prefix',
-      description: 'View or change the guild prefix',
+      description: 'View or change the guild prefix.',
       category: 'Administrator',
-      usage: 'prefix [different prefix]',
+      usage: 'prefix [New Prefix]',
       aliases: ['p'],
       permLevel: 'Administrator'
     });

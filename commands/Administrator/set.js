@@ -13,7 +13,7 @@ class Set extends Command {
   constructor (client) {
     super(client, {
       name: 'set',
-      description: 'View or change settings for your server.',
+      description: 'View or change the settings for your guild.',
       category: 'Administrator',
       usage: 'set <view/get/edit> <key> <value>',
       guildOnly: true,
