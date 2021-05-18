@@ -7,7 +7,7 @@ class deletewarning extends Command {
   constructor (client) {
     super(client, {
       name: 'clear-warnings',
-      description: 'Delete all the warnings of a specific user.',
+      description: 'Clear all the warnings of a specific user.',
       usage: 'clear-warnings <user>',
       category: 'Administrator',
       guildOnly: true,
