@@ -41,7 +41,7 @@
     "moment-duration-format": "^2.2.2",
     "mysql2": "^2.2.5",
     "node-fetch": "^2.6.1",
-    "node-html-parser": "^3.3.0",
+    "node-html-parser": "^3.3.3",
     "node-schedule": "^2.0.0",
     "node-superfetch": "^0.2.3",
     "npm": "^7.14.0",
