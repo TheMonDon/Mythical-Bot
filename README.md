@@ -16,7 +16,7 @@
 - [Crafters Island](#Crafters-Island)
 - [Economy](#Economy)
 - [Fun](#Fun)
-- [#Games](#Games)
+- [Games](#Games)
 - [General](#General)
 - [Information](#Information)
 - [Logging](#Logging)
