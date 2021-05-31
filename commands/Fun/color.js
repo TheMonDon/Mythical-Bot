@@ -6,6 +6,7 @@ const rgbHex = require('rgb-hex');
 const convert = require('color-convert');
 const { getColorFromURL } = require('color-thief-node');
 const { stripIndent } = require('common-tags');
+const colorNameList = require('color-name-list');
 
 class Stats extends Command {
   constructor (client) {
@@ -28,31 +29,11 @@ class Stats extends Command {
     const hexRegex = /(^(#|0x)?([a-fA-F0-9]){6}$)|(^(#|0x)?([a-fA-F0-9]){3}$)/;
     const cssRegex = /^[a-zA-Z]+$/;
 
-    const extraColors = {
-      beige: '#F5F5DC',
-      black: '#000000',
-      blue: '#0000FF',
-      brown: '#964B00',
-      cyan: '#00FFFF',
-      gold: '#A57C00',
-      gray: '#808080',
-      grey: '#808080',
-      green: '#00FF00',
-      magenta: '#FF00FF',
-      orange: '#FF7F00',
-      plum: '#8E4585',
-      purple: '#6A0DAD',
-      red: '#FF0000',
-      silver: '#C0C0C0',
-      yellow: '#FFFF00',
-      othercolorname: '#HEXCODE'
-    };
+    const extraColors = colorNameList.reduce((o, { name, hex }) => Object.assign(o, { [name.toLowerCase()]: hex }), {});
+    if (extraColors[input.toString().toLowerCase()]) input = extraColors[input.toString().toLowerCase()];
+    const nearestColor = require('nearest-color').from(extraColors);
 
-    input = extraColors[input.toString()] ? extraColors[input.toString()] : input;
-
-    if (msg.attachments.first()) {
-      input = msg.attachments.first().url;
-    }
+    if (msg.attachments.first()) input = msg.attachments.first().url;
 
     if (isURL(input)) {
       if (isImageURL(input)) {
@@ -71,7 +52,7 @@ class Stats extends Command {
 
       try {
         color = {
-          css: convert.rgb.keyword(input),
+          css: nearestColor(convert.rgb.hex(input)),
           hex: convert.rgb.hex(input),
           hsl: convert.rgb.hsl(input),
           cmyk: convert.rgb.cmyk(input),
@@ -85,7 +66,7 @@ class Stats extends Command {
         embed.setTitle('Invalid color, random one assigned:');
 
         color = {
-          css: convert.hex.keyword(rand),
+          css: nearestColor(rand).name,
           rgb: convert.hex.rgb(rand),
           hsl: convert.hex.hsl(rand),
           cmyk: convert.hex.cmyk(rand),
@@ -110,7 +91,7 @@ class Stats extends Command {
 
       try {
         color = {
-          css: convert.hex.keyword(input),
+          css: nearestColor(input).name,
           rgb: convert.hex.rgb(input),
           hsl: convert.hex.hsl(input),
           cmyk: convert.hex.cmyk(input),
@@ -124,7 +105,7 @@ class Stats extends Command {
         embed.setTitle('Invalid color, random one assigned:');
 
         color = {
-          css: convert.hex.keyword(rand),
+          css: nearestColor(rand).name,
           rgb: convert.hex.rgb(rand),
           hsl: convert.hex.hsl(rand),
           cmyk: convert.hex.cmyk(rand),
@@ -140,7 +121,7 @@ class Stats extends Command {
         embed.setTitle('Random Color');
 
         color = {
-          css: convert.hex.keyword(rand),
+          css: nearestColor(rand).name,
           rgb: convert.hex.rgb(rand),
           hsl: convert.hex.hsl(rand),
           cmyk: convert.hex.cmyk(rand),
@@ -159,10 +140,9 @@ class Stats extends Command {
             rgb: convert.keyword.rgb(input),
             hsl: convert.keyword.hsl(input),
             cmyk: convert.keyword.cmyk(input),
-            css: input
+            css: nearestColor(input).name
           };
         } catch (err) {
-          console.log(err);
           const rand = '000000'.replace(/0/g, function () {
             return (~~(Math.random() * 16))
               .toString(16);
@@ -170,7 +150,7 @@ class Stats extends Command {
           embed.setTitle('Invalid color, random one assigned:');
 
           color = {
-            css: convert.hex.keyword(rand),
+            css: nearestColor(rand).name,
             rgb: convert.hex.rgb(rand),
             hsl: convert.hex.hsl(rand),
             cmyk: convert.hex.cmyk(rand),
@@ -186,7 +166,7 @@ class Stats extends Command {
       embed.setTitle('Invalid color, random one assigned:');
 
       color = {
-        css: convert.hex.keyword(rand),
+        css: nearestColor(rand).name,
         rgb: convert.hex.rgb(rand),
         hsl: convert.hex.hsl(rand),
         cmyk: convert.hex.cmyk(rand),
