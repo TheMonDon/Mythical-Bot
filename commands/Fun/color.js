@@ -1,4 +1,5 @@
 const Command = require('../../base/Command.js');
+const { toProperCase } = require('../../base/Util.js');
 const { MessageEmbed } = require('discord.js');
 const isImageURL = require('is-image-url');
 const isURL = require('is-url');
@@ -214,7 +215,7 @@ class Stats extends Command {
     embed.setThumbnail(`https://dummyimage.com/100x100/${color.hex}.png&text=+`);
     embed.setColor(color.hex);
     embed.setDescription(stripIndent(`
-          **Name:** ${color.css}
+          **Name:** ${toProperCase(color.css)}
           **Hex:** #${color.hex}
           **Rgb:** rgb(${color.rgb})
           **Hsl:** hsl(${color.hsl})
