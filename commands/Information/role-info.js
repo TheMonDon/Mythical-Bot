@@ -33,7 +33,7 @@ class roleInfo extends Command {
 
     const embed = new DiscordJS.MessageEmbed()
       .setTitle(`${infoRole.name}'s Information`)
-      .setColor(infoRole.hexColo)
+      .setColor(infoRole.hexColor)
       .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
       .addField('Name', infoRole.name, true)
       .addField('ID', infoRole.id, true)
