@@ -25,7 +25,7 @@
     "discord-player": "^4.1.4",
     "discord.js": "^12.5.3",
     "emoji-regex": "^9.2.2",
-    "enmap": "^5.8.5",
+    "enmap": "^5.8.6",
     "fetch": "^1.1.0",
     "get-base-url": "^2.2.0",
     "google-play-scraper": "^8.0.2",
