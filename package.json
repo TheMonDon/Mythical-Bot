@@ -46,7 +46,7 @@
     "node-html-parser": "^3.3.6",
     "node-schedule": "^2.0.0",
     "node-superfetch": "^0.2.3",
-    "npm": "^7.18.1",
+    "npm": "^7.19.1",
     "owlbot-js": "^2.0.2",
     "oxford-dictionaries-api": "^0.1.2",
     "quick.db": "^7.1.3",
