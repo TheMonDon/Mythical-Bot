@@ -50,7 +50,7 @@ module.exports = class setFailRate extends Command {
     }
 
     text.shift();
-    const percentage = parseInt(text.join('').replace('%', '').replace(/-/g, ''));
+    const percentage = parseInt(text.join('').replace('%', '').replace(/-/g, ''), 10);
 
     if (isNaN(percentage)) {
       const embed = new DiscordJS.MessageEmbed()

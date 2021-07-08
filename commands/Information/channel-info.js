@@ -34,7 +34,7 @@ class Stats extends Command {
       .addField('Type', infoChan.type, true)
       .addField('Position', infoChan.position, true);
     if (infoChan.guild !== msg.guild) embed.addField('Server', infoChan.guild.name, true);
-    if (infoChan.type === 'text') embed.addField('NSFW', !!infoChan.nsfw, true);
+    if (infoChan.type === 'text') embed.addField('NSFW', infoChan.nsfw, true);
     if (infoChan.type === 'voice') {
       embed.addField('User Limit', infoChan.userLimit, true);
       embed.addField('Bitrate', infoChan.bitrate, true);

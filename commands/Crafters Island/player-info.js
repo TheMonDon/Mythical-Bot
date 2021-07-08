@@ -28,7 +28,7 @@ class playerinfo extends Command {
       user1 ? user = user1.id : user = text.join(' ').trim().replace(/'/g, '').replace(/"/g, '');
     }
 
-    let member = !!msg.guild.members.cache.get(user);
+    let member = Boolean(msg.guild.members.cache.get(user));
 
     const errMsg = 'I could not find that user. Did they sync their accounts using `!link`? \nAdd "" around mc username if their discord name is the same.';
 

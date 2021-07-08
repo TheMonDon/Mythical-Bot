@@ -45,7 +45,7 @@ class warn extends Command {
       }
     }
 
-    const points = parseInt(args[1]);
+    const points = parseInt(args[1], 10);
     if (isNaN(points)) return msg.channel.send(`Incorrect Usage: ${p}warn <member> <points> <reason>`);
     if (points < 0 || points > 1000) return msg.channel.send(`Incorrect Usage: ${p}warn <member> <0-1000 points> <reason>`);
 

@@ -17,7 +17,7 @@ module.exports = class Leaderboard extends Command {
   async run (msg, text) {
     const server = msg.guild;
     let page = text.join(' ');
-    page = parseInt(page);
+    page = parseInt(page, 10);
 
     // Leaderboard made possible by: CoolGuy#9889
 

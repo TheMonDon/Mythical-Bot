@@ -78,7 +78,7 @@ module.exports = class BalanceCommand extends Command {
         return msg.channel.send(embed);
       }
     }
-    amount = parseInt(amount);
+    amount = parseInt(amount, 10);
 
     if (amount > authCash) {
       errEmbed.setDescription(`You don't have that much money to give. You currently have ${cs}${authCash.toLocaleString()}`);

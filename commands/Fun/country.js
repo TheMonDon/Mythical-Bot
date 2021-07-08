@@ -296,7 +296,7 @@ class country extends Command {
       const countrycapital = res.body.capital;
       const countrydemonym = res.body.demonym;
       const countryareakm = res.body.area;
-      const countryaream = parseInt(countryareakm * 0.62137).toLocaleString('en');
+      const countryaream = parseInt(countryareakm * 0.62137, 10).toLocaleString('en');
       const countrynativename = res.body.nativeName;
       const countrycurrencyname = res.body.currencies[0].name;
       const countrycurrencysymbol = res.body.currencies[0].symbol;

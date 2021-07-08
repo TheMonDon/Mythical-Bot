@@ -23,8 +23,8 @@ class tih extends Command {
       month = date.getUTCMonth() + 1;
       day = date.getUTCDate();
     } else {
-      month = parseInt(text[0]);
-      day = parseInt(text[1]);
+      month = parseInt(text[0], 10);
+      day = parseInt(text[1], 10);
     }
 
     if (isNaN(month) || (month < 1 && month > 12)) {

@@ -41,10 +41,10 @@ module.exports = class removeMoney extends Command {
 
     if (args.length === 2) {
       mem = getMember(msg, args[0]);
-      amount = parseInt(args[1].replace(cs, '').replace(',', ''));
+      amount = parseInt(args[1].replace(cs, '').replace(',', ''), 10);
     } else {
       mem = getMember(msg, args[1]);
-      amount = parseInt(args[2].replace(cs, '').replace(',', ''));
+      amount = parseInt(args[2].replace(cs, '').replace(',', ''), 10);
     }
 
     if (['cash', 'bank'].includes(args[0].toLowerCase())) {

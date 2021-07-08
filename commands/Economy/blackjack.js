@@ -103,7 +103,7 @@ module.exports = class Blackjack extends Command {
     const cs = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
     const cash = db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`) || db.get(`servers.${msg.guild.id}.economy.startBalance`) || 0;
 
-    bet = parseInt(bet.replace(/,/g, '').replace(cs, ''));
+    bet = parseInt(bet.replace(/,/g, '').replace(cs, ''), 10);
 
     if (isNaN(bet)) {
       return msg.channel.send('Please enter a number for the bet.');
@@ -141,6 +141,8 @@ module.exports = class Blackjack extends Command {
         case 'blackjack':
           blackjack = true;
           color = 'GREEN';
+          break;
+        default:
           break;
       }
     };

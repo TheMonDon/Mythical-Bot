@@ -12,21 +12,19 @@ module.exports = class baltop extends Command {
   }
 
   async run (msg, args) {
-    const p = msg.settings.prefix;
-
     let page = 1;
     let server = 'survival';
     if (!args || args.length < 1) {
       server = 'survival';
       page = 1;
     } else if (args.length === 1) {
-      page = parseInt(args[0]);
+      page = parseInt(args[0], 10);
     } else {
-      page = parseInt(args[0]);
+      page = parseInt(args[0], 10);
       server = args[1].toLowerCase();
     }
 
-    if (isNaN(page) || page === Infinity) return msg.channel.send(`Incorrect Usage: ${p}baltop [page] [server]`);
+    if (isNaN(page) || page === Infinity) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}baltop [page] [server]`);
 
     let min = 0;
     for (let i = 1; page > i; i++) min += 10;

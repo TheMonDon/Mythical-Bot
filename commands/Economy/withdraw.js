@@ -56,7 +56,7 @@ module.exports = class Withdraw extends Command {
         return msg.channel.send(embed);
       }
     }
-    amount = parseInt(amount);
+    amount = parseInt(amount, 10);
 
     if (amount < 0) return msg.channel.send('You can\'t withdraw negative amounts of money.');
     if (amount > bank) return msg.channel.send(`You don't have that much money to withdraw. You currently have ${cs}${bank.toLocaleString()} in the bank.`);

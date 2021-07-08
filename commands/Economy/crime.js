@@ -53,8 +53,8 @@ module.exports = class CrimeCommand extends Command {
     const maxFine = db.get(`servers.${server.id}.economy.${type}.fine.max`) || 30; // these are %s
 
     // I don't really understand how this works LMAO
-    const randomFine = parseInt(Math.min(Math.max(Math.floor(Math.random() * maxFine), minFine), maxFine));
-    const fineAmnt = parseInt(authNet * (randomFine / 100));
+    const randomFine = parseInt(Math.min(Math.max(Math.floor(Math.random() * maxFine), minFine), maxFine), 10);
+    const fineAmnt = parseInt(authNet * (randomFine / 100), 10);
 
     const failRate = db.get(`servers.${server.id}.economy.${type}.failrate`) || 45;
     const ranNum = Math.random() * 100;

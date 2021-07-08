@@ -51,7 +51,7 @@ module.exports = class deposit extends Command {
         return msg.channel.send(embed);
       }
     }
-    amount = parseInt(amount);
+    amount = parseInt(amount, 10);
 
     if (amount < 0) return msg.channel.send('You can\'t deposit negative amounts of money.');
     if (amount > cash) return msg.channel.send(`You don't have that much money to deposit. You currently have ${cs}${cash.toLocaleString()} in cash.`);

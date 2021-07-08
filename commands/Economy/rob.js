@@ -93,7 +93,7 @@ module.exports = class BalanceCommand extends Command {
     const minFine = 10;
     const maxFine = 30;
     const randomFine = parseInt(Math.floor(Math.random() * maxFine), minFine);
-    const fineAmnt = parseInt(authNet * (randomFine / 100));
+    const fineAmnt = parseInt(authNet * (randomFine / 100), 10);
 
     const cs = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
 

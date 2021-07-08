@@ -21,7 +21,7 @@ class Volume extends Command {
     if (msg.guild.me.voice.channel && msg.member.voice.channel.id !== msg.guild.me.voice.channel.id) return msg.channel.send('You must be in the same voice channel as the bot.');
     if (!this.client.player.isPlaying(msg)) return msg.channel.send('There is nothing playing.');
 
-    const volume = parseInt(args.join(' '));
+    const volume = parseInt(args.join(' '), 10);
 
     if (!volume) return msg.channel.send('Please enter a valid number.');
     if (isNaN(args[0])) return msg.channel.send('Please enter a valid number.');

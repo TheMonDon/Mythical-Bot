@@ -18,7 +18,7 @@ class Remove extends Command {
 
     if (!args || args.length < 1) return msg.channel.send('Incorrect usage: remove <Queue Track Number>');
 
-    const num = parseInt(args.join(' ')) - 1;
+    const num = parseInt(args.join(' '), 10) - 1;
     if (isNaN(num)) return msg.channel.send('Please supply a valid number.');
 
     const ql = this.client.player.getQueue(msg).tracks.length;

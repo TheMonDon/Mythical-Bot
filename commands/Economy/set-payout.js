@@ -62,7 +62,7 @@ module.exports = class setCurrency extends Command {
 
     text.shift();
     text.shift();
-    const amount = parseInt(text.join('').replace(/,/g, '').replace(cs, '').replace(/-/g, ''));
+    const amount = parseInt(text.join('').replace(/,/g, '').replace(cs, '').replace(/-/g, ''), 10);
 
     if (isNaN(amount)) {
       errEmbed.setDescription(stripIndents`

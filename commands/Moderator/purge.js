@@ -20,7 +20,7 @@ class Ping extends Command {
 
     msg.delete();
 
-    const num = parseInt(args[0]);
+    const num = parseInt(args[0], 10);
     if (isNaN(num)) return msg.channel.send(`\`${num}\` is not a number, please input a valid number!`);
     if (num < 2 || num > 100) return msg.channel.send(`Incorrect Usage: ${prefix}purge <2-100> (member) (channel)`);
 

@@ -19,7 +19,7 @@ module.exports = class startBalance extends Command {
 
     const cs = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
 
-    const amount = parseInt(args.join('').replace(/,/g, '').replace(cs, '').replace(/-/g, ''));
+    const amount = parseInt(args.join('').replace(/,/g, '').replace(cs, '').replace(/-/g, ''), 10);
 
     if (amount > 1000000000000) return msg.channel.send('The max starting balance is one trillion.');
 
