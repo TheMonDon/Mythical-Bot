@@ -17,7 +17,7 @@ class gPlay extends Command {
     const term = text.join(' ');
 
     gplay.search({
-      term: term,
+      term,
       num: 1,
       fullDetail: true
     })

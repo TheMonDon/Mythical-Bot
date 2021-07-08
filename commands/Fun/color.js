@@ -204,11 +204,11 @@ class Stats extends Command {
 
     // Saving color again
     color = {
-      css: css,
-      hex: hex,
-      rgb: rgb,
-      cmyk: cmyk,
-      hsl: hsl
+      css,
+      hex,
+      rgb,
+      cmyk,
+      hsl
     };
 
     if (!embed.title) embed.setTitle('Color Information');

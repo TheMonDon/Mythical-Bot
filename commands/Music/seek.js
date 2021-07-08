@@ -17,7 +17,7 @@ class Seek extends Command {
     if (msg.guild.me.voice.channel && msg.member.voice.channel.id !== msg.guild.me.voice.channel.id) return msg.channel.send('You must be in the same voice channel as the bot.');
     if (!this.client.player.isPlaying(msg)) return msg.channel.send('There is nothing playing.');
 
-    const num = parseInt(args[0] * 1000);
+    const num = parseInt(args[0] * 1000, 10);
     if (isNaN(num)) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}seek <seconds>`);
 
     await this.client.player.seek(msg, num);

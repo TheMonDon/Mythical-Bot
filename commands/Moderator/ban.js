@@ -42,7 +42,7 @@ class Ban extends Command {
       .addField('Reason', reason, true)
       .setFooter(`ID: ${banMem.id}`)
       .setTimestamp();
-    banMem.ban({ reason: reason });
+    banMem.ban({ reason });
 
     if (logChan) msg.guild.channels.cache.get(logChan).send(em);
     return msg.channel.send(em);

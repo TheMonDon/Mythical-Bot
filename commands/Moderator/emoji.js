@@ -96,7 +96,7 @@ class Emoji extends Command {
         if (guildEmoji) result = guildEmoji;
       }
       if (!result) return msg.channel.send(`${msg.member}, that emoji was not found. Is it from this server?`);
-      result.edit({ name: name })
+      result.edit({ name })
         .then(() => {
           return msg.channel.send(`${msg.member}, ${result} has been renamed to \`${name}\``);
         })

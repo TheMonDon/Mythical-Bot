@@ -35,7 +35,7 @@ class blbCommand extends Command {
       const options = {
         url: 'https://belikebill.ga/billgen-API.php',
         qs: {
-          text: text
+          text
         },
         encoding: null
       };

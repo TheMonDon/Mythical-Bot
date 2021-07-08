@@ -13,7 +13,7 @@ class RemindMe extends Command {
       description: 'Gives you a reminder',
       usage: 'remindme <reminder>',
       category: 'General',
-      aliases: ['remind', 'remind-me', 'rememberforme'],
+      aliases: ['remind', 'remind-me', 'rememberforme']
     });
   }
 
