@@ -1,6 +1,7 @@
-* text=auto
+* text=auto eol=lf
 
-*.js text
-*.json text
-*.md text
-*.example text
+/.github export-ignore
+.editorconfig export-ignore
+.eslintrc.yml export-ignore
+.gitignore export-ignore
+package.json export-ignore
