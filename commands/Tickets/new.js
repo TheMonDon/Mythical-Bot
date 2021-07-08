@@ -28,6 +28,20 @@ class New extends Command {
     if (msg.channel.name.startsWith('ticket')) return msg.channel.send('You\'re already in a ticket, silly.');
     if (!args || args.length < 1) return msg.channel.send(`Please provide a reason. Usage: ${p}New <reason>`);
 
+    function getTickets (userID, msg) {
+      const tickets = db.get(`servers.${msg.guild.id}.tickets`);
+      const userTickets = [];
+      if (tickets) {
+        Object.values(tickets).forEach((val) => {
+          if (val.owner === userID) {
+            userTickets.push(val);
+          }
+        });
+      }
+      if (!userTickets) return;
+      return userTickets;
+    }
+
     const tix = getTickets(msg.author.id, msg);
     if (tix.length > 2) {
       return msg.channel.send(`Sorry ${msg.author}, you already have three or more tickets open, please close one before making a new one.`);
@@ -131,20 +145,6 @@ class New extends Command {
     `;
 
     db.push(`servers.${msg.guild.id}.tickets.${tName}.chatLogs`, output);
-
-    function getTickets (userID, msg) {
-      const tickets = db.get(`servers.${msg.guild.id}.tickets`);
-      const userTickets = [];
-      if (tickets) {
-        Object.values(tickets).forEach((val) => {
-          if (val.owner === userID) {
-            userTickets.push(val);
-          }
-        });
-      }
-      if (!userTickets) return;
-      return userTickets;
-    }
   }
 }
 

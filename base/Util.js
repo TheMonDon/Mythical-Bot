@@ -45,9 +45,10 @@ module.exports = class Util {
   }
 
   static stripInvites (str, { guild = true, bot = true, text = '[redacted invite]' } = {}) {
-    if (guild) str = str.replace(inviteRegex, text);
-    if (bot) str = str.replace(botInvRegex, text);
-    return str;
+    let string = str;
+    if (guild) string = str.replace(inviteRegex, text);
+    if (bot) string = str.replace(botInvRegex, text);
+    return string;
   }
 
   /**
@@ -135,8 +136,8 @@ module.exports = class Util {
    * @param {Number} maxLength
    */
   static cleanString (str, minLength = 0, maxLength = 2000) {
-    str = String(str);
-    return str.slice(minLength, maxLength - 3) + (str.length > maxLength - 3 ? '...' : '');
+    const string = String(str);
+    return string.slice(minLength, maxLength - 3) + (str.length > maxLength - 3 ? '...' : '');
   }
 
   /**
@@ -145,15 +146,16 @@ module.exports = class Util {
    * @param {string} text
    */
   static async clean (client, text) {
-    if (text && text.constructor.name === 'Promise') { text = await text; }
-    if (typeof text !== 'string') { text = require('util').inspect(text, { depth: 1 }); }
+    let newText;
+    if (text && text.constructor.name === 'Promise') { newText = await text; }
+    if (typeof text !== 'string') { newText = require('util').inspect(text, { depth: 1 }); }
 
-    text = text
+    newText = text
       .replace(/`/g, '`' + String.fromCharCode(8203))
       .replace(/@/g, '@' + String.fromCharCode(8203))
       .replace(client.token, 'mfa.VkO_2G4Qv3T--NO--lWetW_tjND--TOKEN--QFTm6YGtzq9PH--4U--tG0');
 
-    return text;
+    return newText;
   };
 
   /**

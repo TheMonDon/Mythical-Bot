@@ -79,6 +79,27 @@ module.exports = class Blackjack extends Command {
       '?': '<:cardBack:740317913948618793>'
     };
 
+    function getCards (t, bj) {
+      if (t === 'player') { // player cards
+        const obj = bj.player.cards;
+        const obj2 = [];
+        for (let i = 0; i < obj.length; i++) {
+          const card = obj[i].name.slice(0, 1) + obj[i].suitname.slice(0, 1);
+          obj2.push(cards[card]);
+        }
+        return obj2.toString().replace(/,/g, ' '); // return the string of emojis in string form
+      } else { // dealer cards
+        const obj = bj.dealer.cards;
+        const obj2 = [];
+        for (let i = 0; i < obj.length; i++) {
+          const card = obj[i].name.slice(0, 1) + obj[i].suitname.slice(0, 1);
+          obj2.push(cards[card]);
+        }
+        if (obj2.length < 2) obj2.push(cards['?']);
+        return obj2.toString().replace(/,/g, ' '); // return the string of emojis in string form
+      }
+    }
+
     const cs = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
     const cash = db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`) || db.get(`servers.${msg.guild.id}.economy.startBalance`) || 0;
 
@@ -659,26 +680,5 @@ module.exports = class Blackjack extends Command {
         return msg.channel.send('incorrect response'); // keep this until i figure out how to only use 'hit' or 'stand'
       }
     });
-
-    function getCards (t, bj) {
-      if (t === 'player') { // player cards
-        const obj = bj.player.cards;
-        const obj2 = [];
-        for (let i = 0; i < obj.length; i++) {
-          const card = obj[i].name.slice(0, 1) + obj[i].suitname.slice(0, 1);
-          obj2.push(cards[card]);
-        }
-        return obj2.toString().replace(/,/g, ' '); // return the string of emojis in string form
-      } else { // dealer cards
-        const obj = bj.dealer.cards;
-        const obj2 = [];
-        for (let i = 0; i < obj.length; i++) {
-          const card = obj[i].name.slice(0, 1) + obj[i].suitname.slice(0, 1);
-          obj2.push(cards[card]);
-        }
-        if (obj2.length < 2) obj2.push(cards['?']);
-        return obj2.toString().replace(/,/g, ' '); // return the string of emojis in string form
-      }
-    }
   }
 };

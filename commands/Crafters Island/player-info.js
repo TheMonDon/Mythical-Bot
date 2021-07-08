@@ -32,6 +32,59 @@ class playerinfo extends Command {
 
     const errMsg = 'I could not find that user. Did they sync their accounts using `!link`? \nAdd "" around mc username if their discord name is the same.';
 
+    const information = async function (id, pool, member, user1, msg) {
+      const em = new DiscordJS.MessageEmbed()
+        .setTitle('Account Not Found')
+        .setColor('FF0000')
+        .setDescription(`An account with the name \`${user1}\` was not found.`);
+
+      const { body } = await Nfetch
+        .get(`https://api.mojang.com/user/profiles/${id}/names`)
+        .catch(() => {
+          return msg.channel.send(em);
+        });
+      if (!body) return msg.channel.send(em);
+      const nc = JSONPath({ path: '*.name', json: body }).join(', ');
+      const name = nc.slice(nc.lastIndexOf(',') + 1);
+
+      pool.query(`SELECT * FROM chatreaction.survival_newreactionstats WHERE uuid = '${id}'`, function (error, results) {
+        const wins = error ? results?.[0]?.wins : false;
+
+        pool.query(`SELECT * FROM friends.fr_players WHERE player_uuid = '${id}'`, function (error, results) {
+          const lastOnline = error ? false : results?.[0]?.last_online.toString() || false;
+
+          pool.query(`SELECT SUM(session_end - session_start) FROM plan.plan_sessions WHERE uuid = '${id}'`, async function (error, results) {
+            let out;
+            if (error) {
+              out = '0s';
+            } else {
+              const sum = results?.[0]['SUM(session_end - session_start)'];
+              out = moment.duration(sum).format('hh[h] mm[m] s[s]');
+            }
+
+            pool.query(`SELECT double_value FROM plan.plan_extension_user_values WHERE provider_id = 15 AND uuid = '${id}'`, function (error, results) {
+              const bal = error ? 0 : results?.[0]?.double_value || 0;
+
+              const em = new DiscordJS.MessageEmbed()
+                .setTitle(`${name}'s Account Information`)
+                .setColor('00FF00')
+                .setImage(`https://mc-heads.net/body/${id}`)
+                .addField('Name Changes History', nc || 'Error fetching data...', false)
+                .addField('UUID', id, false)
+                .addField('NameMC Link', `Click [here](https://es.namemc.com/profile/${id}) to go to their NameMC Profile`, false);
+              if (member) em.addField('Discord', `${user1.user.tag} (${user1.id})`, false);
+              if (wins) em.addField('Reaction Wins', wins, false);
+              if (lastOnline) em.addField('Last Online', lastOnline, false);
+              if (out !== '0s') em.addField('Play Time', out, false);
+              if (bal) em.addField('Survival Balance', `$${bal.toLocaleString()}`, false);
+
+              return msg.channel.send(em);
+            });
+          });
+        });
+      });
+    };
+
     const errorEmbed = new DiscordJS.MessageEmbed()
       .setTitle('Account Not Found')
       .setColor('FF0000')
@@ -91,58 +144,5 @@ class playerinfo extends Command {
     }
   }
 }
-
-const information = async function (id, pool, member, user1, msg) {
-  const em = new DiscordJS.MessageEmbed()
-    .setTitle('Account Not Found')
-    .setColor('FF0000')
-    .setDescription(`An account with the name \`${user1}\` was not found.`);
-
-  const { body } = await Nfetch
-    .get(`https://api.mojang.com/user/profiles/${id}/names`)
-    .catch(() => {
-      return msg.channel.send(em);
-    });
-  if (!body) return msg.channel.send(em);
-  const nc = JSONPath({ path: '*.name', json: body }).join(', ');
-  const name = nc.slice(nc.lastIndexOf(',') + 1);
-
-  pool.query(`SELECT * FROM chatreaction.survival_newreactionstats WHERE uuid = '${id}'`, function (error, results) {
-    const wins = error ? results?.[0]?.wins : false;
-
-    pool.query(`SELECT * FROM friends.fr_players WHERE player_uuid = '${id}'`, function (error, results) {
-      const lastOnline = error ? false : results?.[0]?.last_online.toString() || false;
-
-      pool.query(`SELECT SUM(session_end - session_start) FROM plan.plan_sessions WHERE uuid = '${id}'`, async function (error, results) {
-        let out;
-        if (error) {
-          out = '0s';
-        } else {
-          const sum = results?.[0]['SUM(session_end - session_start)'];
-          out = moment.duration(sum).format('hh[h] mm[m] s[s]');
-        }
-
-        pool.query(`SELECT double_value FROM plan.plan_extension_user_values WHERE provider_id = 15 AND uuid = '${id}'`, function (error, results) {
-          const bal = error ? 0 : results?.[0]?.double_value || 0;
-
-          const em = new DiscordJS.MessageEmbed()
-            .setTitle(`${name}'s Account Information`)
-            .setColor('00FF00')
-            .setImage(`https://mc-heads.net/body/${id}`)
-            .addField('Name Changes History', nc || 'Error fetching data...', false)
-            .addField('UUID', id, false)
-            .addField('NameMC Link', `Click [here](https://es.namemc.com/profile/${id}) to go to their NameMC Profile`, false);
-          if (member) em.addField('Discord', `${user1.user.tag} (${user1.id})`, false);
-          if (wins) em.addField('Reaction Wins', wins, false);
-          if (lastOnline) em.addField('Last Online', lastOnline, false);
-          if (out !== '0s') em.addField('Play Time', out, false);
-          if (bal) em.addField('Survival Balance', `$${bal.toLocaleString()}`, false);
-
-          return msg.channel.send(em);
-        });
-      });
-    });
-  });
-};
 
 module.exports = playerinfo;
