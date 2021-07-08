@@ -9,9 +9,9 @@ class setup extends Command {
       name: 'setup',
       description: 'Setup the different systems of the bot.',
       usage: 'setup <system>',
-      category: 'Administator',
+      category: 'Administrator',
       guildOnly: true,
-      permLevel: 'Administator',
+      permLevel: 'Administrator',
       aliases: ['setlogchannel', 'setupticket', 'logsetup', 'ticketsetup']
     });
   }
@@ -163,7 +163,7 @@ class setup extends Command {
                 ];
 
                 await msg.channel.send(stripIndents`What do you want the reaction message to say?
-                Plesse note the reaction emoji is: 📰.
+                Please note the reaction emoji is: 📰.
                 You have 120 seconds.`);
 
                 // This is to ask what to put inside the embed description for reaction role
@@ -181,7 +181,7 @@ class setup extends Command {
 
                     db.set(`servers.${server.id}.tickets.reactionID`, embed1.id);
                   })
-                  .catch(_err => {
+                  .catch(() => {
                     return msg.channel.send('You did not reply in time.');
                   });
               }
@@ -193,11 +193,11 @@ class setup extends Command {
 
               return msg.channel.send('Awesome! Everything has been setup.');
             })
-            .catch(_err => {
+            .catch(() => {
               return msg.channel.send('You did not reply in time.');
             });
         })
-        .catch(_err => {
+        .catch(() => {
           return msg.channel.send('You did not reply in time.');
         });
     }
@@ -238,7 +238,7 @@ class setup extends Command {
       const currentChan = db.get(`servers.${msg.guild.id}.logs.channel`);
 
       if (currentChan) {
-        embed.setTitle('Sucessfully Changed');
+        embed.setTitle('Successfully Changed');
         embed.setColor('GREEN');
         embed.setThumbnail('https://cdn.discordapp.com/emojis/482184108555108358.png');
         embed.setDescription(`Everything related to logs will be posted in ${chan} from now on.`);
@@ -247,7 +247,7 @@ class setup extends Command {
         msg.channel.send(embed);
       } else {
         db.set(`servers.${msg.guild.id}.logs.logSystem`, logSystem);
-        embed.setTitle('Sucessfully Set');
+        embed.setTitle('Successfully Set');
         embed.setColor('GREEN');
         embed.setThumbnail('https://cdn.discordapp.com/emojis/482184108555108358.png');
         embed.setDescription(`Everything related to logs will be posted in ${chan}.`);
