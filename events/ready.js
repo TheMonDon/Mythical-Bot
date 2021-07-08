@@ -16,7 +16,7 @@ module.exports = class {
 
     // This loop ensures that client.appInfo always contains up to date data
     // about the app's status. This includes whether the bot is public or not,
-    // its description, owner, etc. Used for the dashboard amongs other things.
+    // its description, owner, etc. Used for the dashboard among other things.
     this.client.appInfo = await this.client.fetchApplication();
     setInterval(async () => {
       this.client.appInfo = await this.client.fetchApplication();
@@ -56,7 +56,9 @@ module.exports = class {
                 .setTimestamp(moment(createdAt));
               channel ? channel.send(`<@${userID}>, here's your reminder:`, em) : user.send(`${user.username}, here's your reminder:`, em);
               db.delete(`global.reminders.${remID}`);
-            } catch {}
+            } catch {
+              return;
+            }
           }
         }
       }

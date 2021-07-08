@@ -17,13 +17,10 @@ module.exports = class BalanceCommand extends Command {
   }
 
   run (msg, args) {
-    let mem;
+    let mem = msg.member;
 
-    if (!args || args.length < 1) {
-      mem = msg.member;
-    } else {
-      mem = getMember(msg, args.join(' '));
-    }
+    if (args && args.length > 0) mem = getMember(msg, args.join(' '));
+
     if (!mem) {
       const embed = new DiscordJS.MessageEmbed()
         .setAuthor(msg.author.tag, msg.author.displayAvatarURL())

@@ -16,16 +16,10 @@ class Perms extends Command {
   }
 
   async run (msg, args) {
-    let infoMem;
+    let infoMem = msg.member;
 
-    if (!args || args.length < 1) {
-      infoMem = msg.member;
-    } else {
-      infoMem = getMember(msg, args.join(' '));
-    }
-    if (!infoMem) {
-      return msg.channel.send('That user was not found, please try again.');
-    }
+    if (args && args.length > 0) infoMem = getMember(msg, args.join(' '));
+    if (!infoMem) return msg.channel.send('That user was not found, please try again.');
 
     const yes = '<:approved:622961998807826432>';
     const no = '<:denied:622961970093752320>';

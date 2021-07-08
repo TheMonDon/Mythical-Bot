@@ -12,7 +12,7 @@ class Exec extends Command {
     });
   }
 
-  async run (msg, args, level) {
+  async run (msg, args) {
     const code = args.join(' ');
     if (!code) return msg.channel.send('You must include a code to execute!');
 

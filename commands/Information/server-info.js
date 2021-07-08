@@ -17,6 +17,7 @@ class serverInfo extends Command {
 
   async run (msg, args) {
     let server;
+
     if (!args || args.length < 1) {
       if (!msg.guild) return msg.channel.send('Please provide a server to get information for.');
       server = msg.guild;
@@ -33,9 +34,7 @@ class serverInfo extends Command {
     const roles = server.roles.cache.sort((a, b) => b.position - a.position);
     let roles1 = roles.filter(r => r.id !== server.id).array().join(', ');
 
-    if (roles1 === undefined || roles1.length === 0) {
-      roles1 = 'No Roles';
-    }
+    if (roles1 === undefined || roles1.length === 0) roles1 = 'No Roles';
 
     if (roles1.length > 1020) {
       roles1 = roles1.substring(0, 1020).replace(/,[^,]+$/, '');

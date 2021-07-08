@@ -18,13 +18,9 @@ class UserInfo extends Command {
 
   async run (msg, text) {
     const server = msg.guild;
-    let infoMem;
+    let infoMem = msg.member;
 
-    if (!text || text.length < 1) {
-      infoMem = msg.member;
-    } else {
-      infoMem = getMember(msg, text.join(' '));
-    }
+    if (text && text.length > 0) infoMem = getMember(msg, text.join(' '));
 
     if (!infoMem) {
       const fid = text.join(' ').replace('<@', '').replace('>', '');

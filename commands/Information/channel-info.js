@@ -17,13 +17,9 @@ class Stats extends Command {
   }
 
   async run (msg, text) {
-    let infoChan;
+    let infoChan = msg.channel;
 
-    if (!text || text.length < 1) {
-      infoChan = msg.channel;
-    } else {
-      infoChan = getChannel(msg, text.join(' '));
-    }
+    if (text && text.length > 0) infoChan = getChannel(msg, text.join(' '));
 
     const then = moment(infoChan.createdAt);
     const time = then.from(moment());
