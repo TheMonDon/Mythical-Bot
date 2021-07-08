@@ -52,7 +52,6 @@
     "random-number": "0.0.9",
     "random-words": "^1.1.1",
     "readline-sync": "^1.4.9",
-    "request-promise-native": "^1.0.9",
     "rgb-hex": "^3.0.0",
     "search-npm-registry": "^2.0.3",
     "sherlockjs": "^1.4.0",

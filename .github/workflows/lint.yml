@@ -2,38 +2,32 @@ name: Lint
 
 on:
   - push
+  - pull_request
 
 jobs:
   lint:
     name: ESLint
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node:
-          - 14
-
     steps:
       - uses: actions/checkout@v1
 
-      - name: Setup Node ${{ matrix.node }}
+      - name: 'Setup Node'
         uses: actions/setup-node@v1
         with:
-          node-version: ${{ matrix.node }}
+          node-version: 14
 
-      - id: yarn-cache-dir-path
-        run: echo "::set-output name=dir::$(yarn cache dir)"
-
-      - name: Restore Yarn dependency cache
-        uses: actions/cache@v2
-        id: yarn-cache
+      - uses: actions/cache@v1
         with:
-          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          path: ~/.cache/yarn
+          key: ${{ runner.os }}-yarn-${{ hashFiles(format('{0}{1}', github.workspace, '/yarn.lock')) }}
           restore-keys: ${{ runner.os }}-yarn-
 
       - name: Install dependencies
-        run: yarn --frozen-lockfile
-
+        run: |
+          yarn -v
+          yarn --frozen-lockfile
       - name: Run ESLint
-        run: yarn lint
+        run: |
+          node -v
+          yarn lint
