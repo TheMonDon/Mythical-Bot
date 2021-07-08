@@ -21,7 +21,7 @@ class Lyrics extends Command {
     } else {
       song = args.join(' ').slice(0, 300);
     }
-    song = song.replace(/\(lyrics|lyric|official music video|audio|official|official video|official video hd|clip officiel|clip|extended|hq\)/g, '');
+    song = song.replace(/\(lyrics|lyric|official music video|audio|official|official video|official video hd|clip official|clip|extended|hq\)/g, '');
     const lyrics = await lf(song, '');
     if (!lyrics) return msg.channel.send(`No lyrics found for: ${song}`);
 
