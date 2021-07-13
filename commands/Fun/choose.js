@@ -20,7 +20,7 @@ class choose extends Command {
 
     const args = /^(.+( ?, ?.+[^,])+)$/i.test(join) ? join.split(',') : join.split(' ');
 
-    return msg.channel.send(`I choose: \`${random(args)}\``);
+    return msg.channel.send(`I choose: \`${random(args.trim())}\``);
   }
 }
 module.exports = choose;
