@@ -18,7 +18,7 @@ class BotInfo extends Command {
 
   async run (msg) {
     await this.client.guilds.cache.forEach((g) => g.available && g.members.fetch());
-    const botuptime = moment.duration(this.client.uptime).format('y[ years][,] M[ Months]d[ days][,] h[ hours][,] m[ minutes][, and] s[ seconds]');
+    const botuptime = moment.duration(this.client.uptime).format('y[ years][,] M[ months][,] d[ days][,] h[ hours][,] m[ minutes][, and] s[ seconds]');
 
     const embed = new DiscordJS.MessageEmbed()
       .setColor('#2ecc71')
