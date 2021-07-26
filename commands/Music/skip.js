@@ -8,7 +8,7 @@ class Skip extends Command {
       description: 'Skip the current song',
       category: 'Music',
       usage: 'skip',
-      aliases: 'next',
+      aliases: ['next'],
       guildOnly: true
     });
   }
