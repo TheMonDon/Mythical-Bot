@@ -172,8 +172,7 @@ client.player
     message.channel.send(`${track.title || track.tracks[track.tracks.length - 1].title} has been added to the queue!`);
   })
   .on('playlistAdd', (message, _queue, playlist) => {
-    console.log(playlist);
-    message.channel.send(`Playlist \`${playlist.title}\` has been added to the queue with ${playlist.videos.length} songs`);
+    message.channel.send(`Playlist \`${playlist.title}\` has been added to the queue with ${playlist.videos?.length || playlist.tracks?.length || 'N/A'} songs`);
   })
   .on('noResults', (message, query) => message.channel.send(`No results found on YouTube for ${query}!`))
   .on('queueEnd', (message) => message.channel.send('Music stopped as there is no more music in the queue!'))
