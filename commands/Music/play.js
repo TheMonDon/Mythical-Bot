@@ -20,7 +20,7 @@ class Play extends Command {
     const query = args.join(' ').slice(0, 300);
     if (!query) return msg.channel.send('Please enter something to search for.');
 
-    await this.client.player.play(msg, query);
+    await this.client.player.play(msg, query, true);
   }
 }
 
