@@ -9,11 +9,8 @@ module.exports = class {
     let bool = false;
     let tag;
 
-    // It's good practice to ignore other bots. This also makes your bot ignore itself
-    //  and not get into a spam loop (we call that "botception").
     if (message.author.bot) return;
 
-    // Cancel any attempt to execute commands if the bot cannot respond to the user.
     if (message.guild && !message.channel.permissionsFor(this.client.user.id).has('SEND_MESSAGES')) return;
     if (message.guild && !message.guild.me.permissions.has('SEND_MESSAGES')) return;
 
@@ -136,8 +133,6 @@ module.exports = class {
     // Check whether the command, or alias, exist in the collections defined
     // in app.js.
     const cmd = this.client.commands.get(command) || this.client.commands.get(this.client.aliases.get(command));
-    // using this const varName = thing OR otherthign; is a pretty efficient
-    // and clean way to grab one of 2 values!
     if (!cmd) return;
 
     // Check if the member is blacklisted from using commands in this guild.
@@ -148,12 +143,8 @@ module.exports = class {
       }
     }
 
-    // Some commands may not be useable in DMs. This check prevents those commands from running
-    // and return a friendly error message.
     if (!message.guild && cmd?.conf.guildOnly) { return message.channel.send('This command is unavailable via private message. Please run this command in a guild.'); }
 
-    // Some commands are nsfw only. This check prevents those commands from running
-    // and returns a friendly error message.
     if (cmd?.conf.nsfw && !message.channel.nsfw) return message.channel.send('This command can only be used in NSFW channels.');
 
     if (level < this.client.levelCache[cmd.conf.permLevel]) {
