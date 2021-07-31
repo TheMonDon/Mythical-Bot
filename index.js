@@ -172,7 +172,7 @@ client.player
     message.channel.send(`${track.title || track.tracks[track.tracks.length - 1].title} has been added to the queue!`);
   })
   .on('playlistAdd', (message, _queue, playlist) => {
-    message.channel.send(`Playlist \'${playlist.title}\' has been added to the queue with (${playlist.videos.length} songs)`);
+    message.channel.send(`Playlist \`${playlist.title}\` has been added to the queue with ${playlist.videos.length} songs`);
   })
   .on('noResults', (message, query) => message.channel.send(`No results found on YouTube for ${query}!`))
   .on('queueEnd', (message) => message.channel.send('Music stopped as there is no more music in the queue!'))
@@ -189,7 +189,6 @@ client.player
         message.channel.send('I am not able to join your voice channel, please check my permissions!');
         break;
       default:
-        console.log(error);
         message.channel.send(`Something went wrong... Error: ${error}`);
         break;
     }
