@@ -173,7 +173,11 @@ client.player
   .on('trackAdd', (message, track) => {
     message.channel.send(`${track.title || track.tracks[track.tracks.length - 1].title} has been added to the queue!`);
   })
-  .on('playlistAdd', (message, _queue, playlist) => message.channel.send(`${playlist.title} has been added to the queue (${playlist.items.length} songs)!`))
+  .on('playlistAdd', (message, queue, playlist) => {
+    console.log(playlist);
+    console.log(queue);
+    message.channel.send(`${playlist.title} has been added to the queue (${playlist.items.length} songs)!`);
+  })
   .on('noResults', (message, query) => message.channel.send(`No results found on YouTube for ${query}!`))
   .on('queueEnd', (message) => message.channel.send('Music stopped as there is no more music in the queue!'))
   .on('botDisconnect', (message) => message.channel.send('Music stopped as I have been disconnected from the channel!'))
