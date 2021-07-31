@@ -157,9 +157,7 @@ client.player = new Player(client, {
   leaveOnEmpty: false,
   leaveOnEmptyCooldown: 0,
   autoSelfDeaf: true,
-  quality: 'high',
   enableLive: true,
-  ytdlRequestOptions: {}
 });
 
 client.player
@@ -173,10 +171,8 @@ client.player
   .on('trackAdd', (message, track) => {
     message.channel.send(`${track.title || track.tracks[track.tracks.length - 1].title} has been added to the queue!`);
   })
-  .on('playlistAdd', (message, queue, playlist) => {
-    console.log(playlist);
-    console.log(queue);
-    message.channel.send(`${playlist.title} has been added to the queue (${playlist.items.length} songs)!`);
+  .on('playlistAdd', (message, _queue, playlist) => {
+    message.channel.send(`Playlist \'${playlist.title}\' has been added to the queue with (${playlist.videos.length} songs)`);
   })
   .on('noResults', (message, query) => message.channel.send(`No results found on YouTube for ${query}!`))
   .on('queueEnd', (message) => message.channel.send('Music stopped as there is no more music in the queue!'))
