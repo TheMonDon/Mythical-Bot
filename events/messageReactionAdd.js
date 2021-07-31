@@ -3,11 +3,11 @@ const DiscordJS = require('discord.js');
 const { stripIndents } = require('common-tags');
 
 module.exports = class {
-  constructor(client) {
+  constructor (client) {
     this.client = client;
   }
 
-  async run(messageReaction, user) {
+  async run (messageReaction, user) {
     if (user.bot) return;
     if (!messageReaction) return;
     const msg = messageReaction.message;

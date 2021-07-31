@@ -214,10 +214,10 @@ module.exports = class Util {
   };
 
   /**
-   * 
-   * @param {userID} userID 
-   * @param {Message} msg 
-   * @returns 
+   *
+   * @param {userID} userID
+   * @param {Message} msg
+   * @returns
    */
   static getTickets (userID, msg) {
     const tickets = db.get(`servers.${msg.guild.id}.tickets`);
