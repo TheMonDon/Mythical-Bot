@@ -163,7 +163,6 @@ client.player = new Player(client, {
 });
 
 client.player
-  // Send a message when a track starts
   .on('trackStart', (message, track) => {
     const em = new DiscordJS.MessageEmbed()
       .setTitle('Now Playing')
@@ -171,19 +170,13 @@ client.player
       .setColor('0099CC');
     message.channel.send(em);
   })
-
-  // Send a message when something is added to the queue
   .on('trackAdd', (message, track) => {
     message.channel.send(`${track.title || track.tracks[track.tracks.length - 1].title} has been added to the queue!`);
   })
-  .on('playlistAdd', (message, playlist) => message.channel.send(`${playlist.title} has been added to the queue (${playlist.items.length} songs)!`))
+  .on('playlistAdd', (message, _queue, playlist) => message.channel.send(`${playlist.title} has been added to the queue (${playlist.items.length} songs)!`))
   .on('noResults', (message, query) => message.channel.send(`No results found on YouTube for ${query}!`))
-
-  // Send a message when the music is stopped
   .on('queueEnd', (message) => message.channel.send('Music stopped as there is no more music in the queue!'))
   .on('botDisconnect', (message) => message.channel.send('Music stopped as I have been disconnected from the channel!'))
-
-  // Error handling
   .on('error', (error, message) => {
     switch (error) {
       case 'NotPlaying':
@@ -196,7 +189,9 @@ client.player
         message.channel.send('I am not able to join your voice channel, please check my permissions!');
         break;
       default:
+        console.log(error);
         message.channel.send(`Something went wrong... Error: ${error}`);
+        break;
     }
   });
 
