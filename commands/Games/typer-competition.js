@@ -65,7 +65,7 @@ class typerCommand extends Command {
       errors: ['time']
     })
       .then(() => {
-        loadImage('https://i.lensdump.com/i/Wc8DKQ.jpg')
+        loadImage('https://i1.lensdump.com/i/ZeaNJF.jpg')
           .then((image) => {
             ctx.drawImage(image, 0, 0, 290, 80);
             ctx.fillText(randWord, 90, 45);
