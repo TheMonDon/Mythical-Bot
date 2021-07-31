@@ -27,21 +27,21 @@ module.exports = class {
       messageReaction.users.remove(user.id);
 
       const perms = [{
-          id: msg.member.id,
-          allow: ['VIEW_CHANNEL']
-        },
-        {
-          id: msg.guild.me.id,
-          allow: ['VIEW_CHANNEL']
-        },
-        {
-          id: roleID,
-          allow: ['VIEW_CHANNEL']
-        },
-        {
-          id: msg.guild.id,
-          deny: ['VIEW_CHANNEL']
-        }
+        id: msg.member.id,
+        allow: ['VIEW_CHANNEL']
+      },
+      {
+        id: msg.guild.me.id,
+        allow: ['VIEW_CHANNEL']
+      },
+      {
+        id: roleID,
+        allow: ['VIEW_CHANNEL']
+      },
+      {
+        id: msg.guild.id,
+        deny: ['VIEW_CHANNEL']
+      }
       ];
 
       const reason = 'Ticket has been created from the reaction menu. Use `topic` to change it.';
@@ -80,6 +80,7 @@ module.exports = class {
         .setColor('#E65DF4')
         .setTimestamp();
       const role = msg.guild.roles.cache.get(roleID);
+
       if (!role.mentionable) {
         if (!tixChan.permissionsFor(this.client.user.id).has('MENTION_EVERYONE')) {
           role.setMentionable(true);
