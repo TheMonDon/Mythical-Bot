@@ -42,9 +42,8 @@ class Topic extends Command {
       }
     }
 
-    if (!args) {
-      return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}topic <new topic>`);
-    }
+    if (!args) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}topic <new topic>`);
+
     let topic = args.join(' ');
     topic = topic.slice(0, 1024);
     if (topic.length === 0) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}topic <new topic>`);
@@ -78,8 +77,9 @@ class Topic extends Command {
     db.set(`servers.${server.id}.tickets.${msg.channel.name}.tCooldown`, channelCooldown);
 
     setTimeout(() => {
-      channelCooldown = {};
-      channelCooldown.active = false;
+      channelCooldown = {
+        active: false
+      };
       db.set(`servers.${server.id}.tickets.${msg.channel.name}.tCooldown`, channelCooldown);
     }, cooldown * 1000);
   }

@@ -1,4 +1,5 @@
 const db = require('quick.db');
+const DiscordJS = require('discord.js');
 const yes = ['yes', 'y', 'ye', 'yeah', 'yup', 'yea', 'ya', 'hai', 'si', 'sí', 'oui', 'はい', 'correct'];
 const no = ['no', 'n', 'nah', 'nope', 'nop', 'iie', 'いいえ', 'non', 'fuck off'];
 const inviteRegex = /(https?:\/\/)?(www\.|canary\.|ptb\.)?discord(\.gg|(app)?\.com\/invite|\.me)\/([^ ]+)\/?/gi;
@@ -211,4 +212,24 @@ module.exports = class Util {
     for (; str.length < length;) str += Math.random().toString(36).substr(2);
     return str.substr(0, length);
   };
+
+  /**
+   * 
+   * @param {userID} userID 
+   * @param {Message} msg 
+   * @returns 
+   */
+  static getTickets (userID, msg) {
+    const tickets = db.get(`servers.${msg.guild.id}.tickets`);
+    const userTickets = [];
+    if (tickets) {
+      Object.values(tickets).forEach((val) => {
+        if (val.owner === userID) {
+          userTickets.push(val);
+        }
+      });
+    }
+    if (!userTickets) return;
+    return userTickets;
+  }
 };

@@ -3,13 +3,14 @@ const { getMember } = require('../../base/Util.js');
 const db = require('quick.db');
 const DiscordJS = require('discord.js');
 
-class Remove extends Command {
+class RemoveMember extends Command {
   constructor (client) {
     super(client, {
       name: 'remove-member',
       description: 'Remove a member from a ticket.',
       usage: 'remove-member <user>',
       category: 'Tickets',
+      aliases: ['removemember', 'remove'],
       guildOnly: true
     });
   }
@@ -62,4 +63,4 @@ class Remove extends Command {
   }
 }
 
-module.exports = Remove;
+module.exports = RemoveMember;

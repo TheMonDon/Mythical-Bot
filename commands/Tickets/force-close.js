@@ -95,7 +95,7 @@ class forceClose extends Command {
       })
       .catch(function (requestError) { console.log(requestError); });
 
-    let recieved;
+    let received;
 
     const tOwner = await msg.guild.members.cache.get(owner);
 
@@ -111,7 +111,7 @@ class forceClose extends Command {
       .setTimestamp();
     await tOwner.send(userEmbed)
       .catch(() => {
-        recieved = 'no';
+        received = 'no';
       });
 
     const logEmbed = new DiscordJS.MessageEmbed()
@@ -123,7 +123,7 @@ class forceClose extends Command {
       .addField('Reason', reason, false)
       .setColor('#E65DF4')
       .setTimestamp();
-    if (recieved === 'no') logEmbed.setFooter('Could not message author.');
+    if (received === 'no') logEmbed.setFooter('Could not message author.');
     await msg.guild.channels.cache.get(logID).send(logEmbed);
 
     db.delete(`servers.${msg.guild.id}.tickets.${tName}`);

@@ -1,4 +1,5 @@
 const Command = require('../../base/Command.js');
+const { getTickets } = require('../../base/Util.js')
 const db = require('quick.db');
 const DiscordJS = require('discord.js');
 const { stripIndents } = require('common-tags');
@@ -21,30 +22,16 @@ class New extends Command {
     if (!db.get(`servers.${msg.guild.id}.tickets`)) return msg.channel.send('The ticket system has not been setup in this server.');
     const { catID, logID, roleID } = db.get(`servers.${msg.guild.id}.tickets`);
 
-    if (!msg.guild.me.permissions.has('MANAGE_CHANNELS')) return msg.channel.send('The bot is missing manage channels perm.');
-    if (!msg.guild.me.permissions.has('MANAGE_ROLES')) return msg.channel.send('The bot is missing manage roles perm');
-    if (!msg.guild.me.permissions.has('MANAGE_MESSAGES')) return msg.channel.send('The bot is missing manage messages perm');
+    if (!msg.guild.me.permissions.has('MANAGE_CHANNELS')) return msg.channel.send('The bot is missing Manage Channels permission.');
+    if (!msg.guild.me.permissions.has('MANAGE_ROLES')) return msg.channel.send('The bot is missing Manage Roles permission');
+    if (!msg.guild.me.permissions.has('MANAGE_MESSAGES')) return msg.channel.send('The bot is missing Manage Messages permission');
 
     if (msg.channel.name.startsWith('ticket')) return msg.channel.send('You\'re already in a ticket, silly.');
     if (!args || args.length < 1) return msg.channel.send(`Please provide a reason. Usage: ${p}New <reason>`);
 
-    function getTickets (userID, msg) {
-      const tickets = db.get(`servers.${msg.guild.id}.tickets`);
-      const userTickets = [];
-      if (tickets) {
-        Object.values(tickets).forEach((val) => {
-          if (val.owner === userID) {
-            userTickets.push(val);
-          }
-        });
-      }
-      if (!userTickets) return;
-      return userTickets;
-    }
-
     const tix = getTickets(msg.author.id, msg);
     if (tix.length > 2) {
-      return msg.channel.send(`Sorry ${msg.author}, you already have three or more tickets open, please close one before making a new one.`);
+      return msg.channel.send(`Sorry ${msg.author}, you already have three or more tickets open. Please close one before making a new one.`);
     }
 
     const reason = args.join(' ');
@@ -69,10 +56,10 @@ class New extends Command {
       }
     ];
 
-    const count = db.get(`servers.${msg.guild.id}.tickets.count`) || 1;
+    const count = db.get(`servers.${msg.guild.id}.tickets.count`) || 0;
     db.set(`servers.${msg.guild.id}.tickets.count`, count + 1);
 
-    let str = msg.member.displayName.toLowerCase();
+    let str = msg.member.displayName;
     str = str.replace(/[^a-zA-Z\d:]/g, '');
     if (str.length === 0) {
       str = msg.member.user.username.replace(/[^a-zA-Z\d:]/g, '');
@@ -80,6 +67,8 @@ class New extends Command {
         str = (Math.random().toString(36) + '00000000000000000').slice(2, 5);
       }
     }
+
+    str = str.toLowerCase();
     const tName = `ticket-${str}-${count}`;
     const tixChan = await msg.guild.channels.create(tName, { type: 'text', parent: catID, permissionOverwrites: perms, topic: reason });
 

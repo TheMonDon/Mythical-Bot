@@ -87,7 +87,7 @@ class Close extends Command {
           })
           .catch(function (requestError) { console.log(requestError); });
 
-        let recieved;
+        let received;
 
         const userEmbed = new DiscordJS.MessageEmbed()
           .setTitle('Ticket Closed')
@@ -98,7 +98,7 @@ class Close extends Command {
           .setTimestamp();
         await msg.author.send(userEmbed)
           .catch(() => {
-            recieved = 'no';
+            received = 'no';
           });
 
         const logEmbed = new DiscordJS.MessageEmbed()
@@ -110,7 +110,7 @@ class Close extends Command {
           .addField('Reason', reason, false)
           .setColor('#E65DF4')
           .setTimestamp();
-        if (recieved === 'no') logEmbed.setFooter('Could not message author.');
+        if (received === 'no') logEmbed.setFooter('Could not message author.');
         await msg.guild.channels.cache.get(logID).send(logEmbed);
 
         db.delete(`servers.${msg.guild.id}.tickets.${tName}`);

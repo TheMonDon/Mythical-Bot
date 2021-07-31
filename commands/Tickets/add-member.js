@@ -3,13 +3,14 @@ const { getMember } = require('../../base/Util.js');
 const db = require('quick.db');
 const DiscordJS = require('discord.js');
 
-class Add extends Command {
+class AddMember extends Command {
   constructor (client) {
     super(client, {
-      name: 'add',
+      name: 'add-member',
       description: 'Adds a member to a ticket.',
-      usage: 'add <user>',
+      usage: 'add-member <user>',
       category: 'Tickets',
+      aliases: ['addmember', 'add'],
       guildOnly: true
     });
   }
@@ -61,4 +62,4 @@ class Add extends Command {
   }
 }
 
-module.exports = Add;
+module.exports = AddMember;
