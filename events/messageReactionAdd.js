@@ -1,9 +1,8 @@
-import { get, set, push } from 'quick.db';
-import { MessageEmbed } from 'discord.js';
-import { stripIndents } from 'common-tags';
-import { getTickets } from '../../base/Util.js';
+const db = require('quick.db');
+const DiscordJS = require('discord.js');
+const { stripIndents } = require('common-tags');
 
-export default class {
+module.exports = class {
   constructor(client) {
     this.client = client;
   }
@@ -13,24 +12,19 @@ export default class {
     if (!messageReaction) return;
     const msg = messageReaction.message;
 
-    if (get(`servers.${msg.guild.id}.tickets`)) {
-      const p = this.client.settings.get(msg.guild.id).prefix;
-      const { catID, logID, roleID, reactionID } = get(`servers.${msg.guild.id}.tickets`);
+    if (db.get(`servers.${msg.guild.id}.tickets`)) {
+      const { catID, logID, roleID, reactionID } = db.get(`servers.${msg.guild.id}.tickets`);
       if (!reactionID) return;
+
       if (reactionID !== msg.id) return;
 
-      if (!msg.guild.me.permissions.has('MANAGE_CHANNELS')) return msg.channel.send('The bot is missing Manage Channels permission.');
-      if (!msg.guild.me.permissions.has('MANAGE_ROLES')) return msg.channel.send('The bot is missing Manage Roles perm');
-      if (!msg.guild.me.permissions.has('MANAGE_MESSAGES')) return msg.channel.send('The bot is missing Manage Messages perm');
+      if (!msg.guild.me.permissions.has('MANAGE_CHANNELS')) return msg.channel.send('The bot is missing manage channels perm.');
+      if (!msg.guild.me.permissions.has('MANAGE_ROLES')) return msg.channel.send('The bot is missing manage roles perm');
+      if (!msg.guild.me.permissions.has('MANAGE_MESSAGES')) return msg.channel.send('The bot is missing manage messages perm');
 
       if (messageReaction._emoji.name !== '📰') return;
       const member = await msg.guild.members.fetch(user.id);
       messageReaction.users.remove(user.id);
-
-      const tix = getTickets(msg.author.id, msg);
-      if (tix.length > 2) {
-        return msg.author.send(`Sorry ${msg.author}, you already have three or more tickets open in ${msg.guild.name}. Please close one before making a new one.`);
-      }
 
       const perms = [{
           id: msg.member.id,
@@ -50,11 +44,11 @@ export default class {
         }
       ];
 
-      const reason = `Ticket has been created from the reaction menu. Use \`${p}topic\` to change it.`;
-      const count = get(`servers.${msg.guild.id}.tickets.count`) || 0;
-      set(`servers.${msg.guild.id}.tickets.count`, count + 1);
+      const reason = 'Ticket has been created from the reaction menu. Use `topic` to change it.';
+      const count = db.get(`servers.${msg.guild.id}.tickets.count`) || 1;
+      db.set(`servers.${msg.guild.id}.tickets.count`, count + 1);
 
-      let str = member.displayName;
+      let str = member.displayName.toLowerCase();
       str = str.replace(/[^a-zA-Z\d:]/g, '');
       if (str.length === 0) {
         str = member.user.username.replace(/[^a-zA-Z\d:]/g, '');
@@ -62,14 +56,12 @@ export default class {
           str = (Math.random().toString(36) + '00000000000000000').slice(2, 5);
         }
       }
-
-      str = str.toLowerCase();
       const tName = `ticket-${str}-${count}`;
       const tixChan = await msg.guild.channels.create(tName, { type: 'text', parent: catID, permissionOverwrites: perms, topic: reason });
 
-      set(`servers.${msg.guild.id}.tickets.${tName}.owner`, member.id);
+      db.set(`servers.${msg.guild.id}.tickets.${tName}.owner`, member.id);
 
-      const logEmbed = new MessageEmbed()
+      const logEmbed = new DiscordJS.MessageEmbed()
         .setAuthor(member.displayName, member.user.displayAvatarURL())
         .setTitle('New Ticket Created')
         .addField('Author', `${member} (${member.id})`, false)
@@ -80,7 +72,7 @@ export default class {
       const logChan = msg.guild.channels.cache.get(logID);
       await logChan.send(logEmbed);
 
-      const chanEmbed = new MessageEmbed()
+      const chanEmbed = new DiscordJS.MessageEmbed()
         .setAuthor(member.displayName, member.user.displayAvatarURL())
         .setTitle(`${member.displayName}'s Ticket`)
         .addField('Reason', reason, false)
@@ -88,7 +80,6 @@ export default class {
         .setColor('#E65DF4')
         .setTimestamp();
       const role = msg.guild.roles.cache.get(roleID);
-
       if (!role.mentionable) {
         if (!tixChan.permissionsFor(this.client.user.id).has('MENTION_EVERYONE')) {
           role.setMentionable(true);
@@ -115,7 +106,7 @@ export default class {
       Topic: ${reason}\n
       `;
 
-      push(`servers.${msg.guild.id}.tickets.${tName}.chatLogs`, output);
+      db.push(`servers.${msg.guild.id}.tickets.${tName}.chatLogs`, output);
     }
   }
 };
