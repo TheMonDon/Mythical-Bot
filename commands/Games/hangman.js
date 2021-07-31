@@ -51,7 +51,7 @@ class hangman extends Command {
     }
 
     const mention = getMember(msg, args.join(' '));
-    if (mention) {
+    if (mention && !mention.user.bot) {
       const mentionplayquestion = lang.hangman_mentionplayquestion.replace('%mention', mention)
         .replace('%author', msg.author);
       const questionMessage = await msg.channel.send(mentionplayquestion);

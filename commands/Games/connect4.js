@@ -49,7 +49,7 @@ class connect4 extends Command {
     const usage = `Incorrect Usage: ${p}connect4 <opponent> <color>`;
     if (!args || args.length < 1) return msg.channel.send(usage);
     const opponent = getMember(msg, args[0]);
-    if (!opponent) return msg.channel.send(usage);
+    if (!opponent || opponent.user.bot) return msg.channel.send(usage);
 
     args.shift();
     if (!args || args.length < 1) return msg.channel.send(`That is not a valid color, either an emoji or one of ${list(Object.keys(colors), 'or')}.`);
