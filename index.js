@@ -172,7 +172,8 @@ client.player
 
       const oldmsg = db.get(`servers.${message.guild.id}.music.lastTrack`);
       if (oldmsg) {
-        await message.guild.channels.cache.get(oldmsg.channelID).messages.cache.get(oldmsg.id).delete();
+        await message.guild.channels.cache.get(oldmsg.channelID).messages.cache.get(oldmsg.id).delete()
+          .catch(() => {});
       }
 
       db.set(`servers.${message.guild.id}.music.lastTrack`, msg);
