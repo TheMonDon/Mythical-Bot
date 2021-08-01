@@ -170,8 +170,8 @@ client.player
         .setColor('0099CC');
       const msg = await message.channel.send(em);
 
-      const oldmsg = db.get(`servers.${message.guild.id}.music.lastTrack`);
-      if (oldmsg) {
+      const oldmsg = db.get(`servers.${message.guild.id}.music.lastTrack`) || null;
+      if (oldmsg !== null) {
         await message.guild.channels.cache.get(oldmsg.channelID).messages.cache.get(oldmsg.id).delete()
           .catch(() => {});
       }
