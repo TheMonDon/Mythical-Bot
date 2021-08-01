@@ -166,11 +166,14 @@ client.player
     const em = new DiscordJS.MessageEmbed()
       .setTitle('Now Playing')
       .setDescription(`[${track.title}](${track.url})\n\n Requested By: ${track.requestedBy}`)
+      .setThumbnail(track.thumbnail)
       .setColor('0099CC');
     const msg = await message.channel.send(em);
+    console.log(msg);
+
     const oldmsg = db.get(`servers.${message.guild.id}.music.lastTrack`);
     if (oldmsg) {
-      message.guild.channels.cache.get(oldmsg.channel.id).messages.cache.get(oldmsg.id).delete();
+      await message.guild.channels.cache.get(oldmsg.channel.id).messages.cache.get(oldmsg.id).delete();
     }
     db.set(`servers.${message.guild.id}.music.lastTrack`, msg);
   })();
@@ -196,7 +199,6 @@ client.player
         message.channel.send('I am not able to join your voice channel, please check my permissions!');
         break;
       default:
-        console.log(error);
         message.channel.send(`Something went wrong... Error: ${error}`);
         break;
     }
