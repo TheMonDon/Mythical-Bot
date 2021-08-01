@@ -189,6 +189,7 @@ client.player
         message.channel.send('I am not able to join your voice channel, please check my permissions!');
         break;
       default:
+        console.log(error);
         message.channel.send(`Something went wrong... Error: ${error}`);
         break;
     }
