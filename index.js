@@ -157,26 +157,26 @@ client.player = new Player(client, {
   leaveOnEmpty: false,
   leaveOnEmptyCooldown: 0,
   autoSelfDeaf: true,
-  enableLive: true,
+  enableLive: true
 });
 
 client.player
   .on('trackStart', (message, track) => {
     (async () => {
-    const em = new DiscordJS.MessageEmbed()
-      .setTitle('Now Playing')
-      .setDescription(`[${track.title}](${track.url})\n\n Requested By: ${track.requestedBy}`)
-      .setThumbnail(track.thumbnail)
-      .setColor('0099CC');
-    const msg = await message.channel.send(em);
-    console.log(msg);
+      const em = new DiscordJS.MessageEmbed()
+        .setTitle('Now Playing')
+        .setDescription(`[${track.title}](${track.url})\n\n Requested By: ${track.requestedBy}`)
+        .setThumbnail(track.thumbnail)
+        .setColor('0099CC');
+      const msg = await message.channel.send(em);
 
-    const oldmsg = db.get(`servers.${message.guild.id}.music.lastTrack`);
-    if (oldmsg) {
-      await message.guild.channels.cache.get(oldmsg.channel.id).messages.cache.get(oldmsg.id).delete();
-    }
-    db.set(`servers.${message.guild.id}.music.lastTrack`, msg);
-  })();
+      const oldmsg = db.get(`servers.${message.guild.id}.music.lastTrack`);
+      if (oldmsg) {
+        await message.guild.channels.cache.get(oldmsg.channel.id).messages.cache.get(oldmsg.id).delete();
+      }
+
+      db.set(`servers.${message.guild.id}.music.lastTrack`, msg);
+    })();
   })
   .on('trackAdd', (message, track) => {
     message.channel.send(`${track.title || track.tracks[track.tracks.length - 1].title} has been added to the queue!`);
