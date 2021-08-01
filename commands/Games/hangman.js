@@ -2,7 +2,7 @@ const Command = require('../../base/Command.js');
 const { getMember } = require('../../base/Util.js');
 const randomWords = require('random-words');
 const Discord = require('discord.js');
-const lang = require('../../languages/en-US.js');
+const lang = require('../../languages/en-US.json');
 
 class hangman extends Command {
   constructor (client) {
