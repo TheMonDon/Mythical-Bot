@@ -1,23 +1,23 @@
 if (Number(process.version.slice(1).split('.')[0]) < 14) throw new Error('Node 14.0.0 or higher is required. Update Node on your system.');
 
-const { Client, Collection } = require('discord.js');
 const DiscordJS = require('discord.js');
 const { promisify } = require('util');
 const readdir = promisify(require('fs').readdir);
 const Enmap = require('enmap');
+const db = require('quick.db');
 const klaw = require('klaw');
 const path = require('path');
 const { Player } = require('discord-player');
 const mysql = require('mysql2');
 const config = require('./config.js');
 
-class Bot extends Client {
+class Bot extends DiscordJS.Client {
   constructor (options) {
     super(options);
 
     this.config = config;
-    this.commands = new Collection();
-    this.aliases = new Collection();
+    this.commands = new DiscordJS.Collection();
+    this.aliases = new DiscordJS.Collection();
 
     this.settings = new Enmap({ name: 'settings', cloneLevel: 'deep', fetchAll: false, autoFetch: true });
     this.games = new Enmap({ name: 'games', cloneLevel: 'deep', fetchAll: false, autoFetch: true });
@@ -162,11 +162,18 @@ client.player = new Player(client, {
 
 client.player
   .on('trackStart', (message, track) => {
+    (async () => {
     const em = new DiscordJS.MessageEmbed()
       .setTitle('Now Playing')
       .setDescription(`[${track.title}](${track.url})\n\n Requested By: ${track.requestedBy}`)
       .setColor('0099CC');
-    message.channel.send(em);
+    const msg = await message.channel.send(em);
+    const oldmsg = db.get(`servers.${message.guild.id}.music.lastTrack`);
+    if (oldmsg) {
+      message.guild.channels.cache.get(oldmsg.channel.id).messages.cache.get(oldmsg.id).delete();
+    }
+    db.set(`servers.${message.guild.id}.music.lastTrack`, msg);
+  })();
   })
   .on('trackAdd', (message, track) => {
     message.channel.send(`${track.title || track.tracks[track.tracks.length - 1].title} has been added to the queue!`);
