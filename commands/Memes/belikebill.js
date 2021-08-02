@@ -22,6 +22,9 @@ class blbCommand extends Command {
       msg1.delete();
       msg.channel.send({
         files: [response]
+      })
+      .catch(() => {
+        msg.channel.send('Sorry, something went wrong. Please try again later.');
       });
     } else {
       const msg1 = await msg.channel.send('Please wait generating your meme!');
@@ -33,6 +36,9 @@ class blbCommand extends Command {
 
       msg.channel.send({
         files: [response]
+      })
+      .catch(() => {
+        msg.channel.send('Sorry, something went wrong. Please try again later.');
       });
     }
   }
