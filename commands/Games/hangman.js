@@ -251,6 +251,10 @@ class hangman extends Command {
           msg.reply(lang.hangman_dontwanttoplay);
         }
       });
+
+      collector.on('end', collected => {
+        if (collected.size < 1) this.client.games.delete(msg.channel.id);
+      });
     } else {
       embedtitlechances = lang.hangman_embedtitlechances.replace('%chances', chances);
       const embeddescription = lang.hangman_embeddescription.replace('%word', `\`\`${newWordString.join(' ')}\`\``);

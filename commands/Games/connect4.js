@@ -12,7 +12,7 @@ class connect4 extends Command {
     super(client, {
       name: 'connect4',
       description: 'Play a game of connect4.',
-      usage: 'connect4 <member to play with>',
+      usage: 'connect4 <opponent> <color>',
       category: 'Games',
       aliases: ['connectfour', 'connect-four']
     });
@@ -30,7 +30,7 @@ class connect4 extends Command {
       black: '⚫',
       moon: '🌘',
       earth: '🌎',
-      donut: '🍙',
+      riceball: '🍙',
       cookie: '🍪',
       baseball: '⚾',
       softball: '🥎',
@@ -45,14 +45,13 @@ class connect4 extends Command {
       coin: '🪙'
     };
 
-    const p = msg.settings.prefix;
-    const usage = `Incorrect Usage: ${p}connect4 <opponent> <color>`;
+    const usage = `Incorrect Usage: ${msg.settings.prefix}connect4 <opponent> <color>`;
     if (!args || args.length < 1) return msg.channel.send(usage);
     const opponent = getMember(msg, args[0]);
-    if (!opponent || opponent.user.bot) return msg.channel.send(usage);
+    if (!opponent) return msg.channel.send(usage);
 
     args.shift();
-    if (!args || args.length < 1) return msg.channel.send(`That is not a valid color, either an emoji or one of ${list(Object.keys(colors), 'or')}.`);
+    if (!args || args.length < 1) return msg.channel.send(`${usage} \nThat is not a valid color, either an emoji or one of ${list(Object.keys(colors), 'or')}.`);
 
     function checkLine (a, b, c, d) {
       return (a !== null) && (a === b) && (a === c) && (a === d);
