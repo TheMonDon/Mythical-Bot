@@ -182,7 +182,7 @@ class rps extends Command {
         }
       }
     }
-    reply.delete();
+    if (reply) reply.delete();
     this.client.games.delete(msg.channel.id);
     return chan.send(embed);
   }
