@@ -22,6 +22,7 @@ class rps extends Command {
     let mem;
 
     if (!text || text.length < 1) {
+      this.client.gsmes.set(msg.channel.id, '');
       return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}rps <user>`);
     } else {
       mem = getMember(msg, text.join(' '));
@@ -34,7 +35,7 @@ class rps extends Command {
     if (!mem) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}rps <user> (Please enter a valid user)`);
     if (mem.user.id === msg.author.id) return msg.channel.send('You can\'t play against yourself, silly.');
 
-    await msg.channel.send(`${opponent}, do you accept this challenge?`);
+    await msg.channel.send(`${mem}, do you accept this challenge?`);
     const verification = await verify(msg.channel, opponent);
     if (!verification) {
       this.client.games.delete(msg.channel.id);
