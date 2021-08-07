@@ -102,7 +102,7 @@ class rps extends Command {
       const choices = ['rock', 'paper', 'scissors'];
       memReply = choices[Math.floor(Math.random() * choices.length)];
 
-      const orig = await msg.channel.send(stripIndents`
+      await msg.channel.send(stripIndents`
       Please type your response below.
 
       - Rock
@@ -120,7 +120,6 @@ class rps extends Command {
           })
             .then((collected) => {
               authReply = collected.first().content.toLowerCase();
-              msg.channel.send(`Your response of \`${collected.first().content.toLowerCase()}\` has been saved.`);
             })
             .catch(() => {
               msg.channel.send('Error: You did not reply in time.');
@@ -129,7 +128,6 @@ class rps extends Command {
               return chan.send('The game starter did not reply in time, so the game was forfitted.');
             });
         });
-      orig.delete();
     }
 
     const embed = new DiscordJS.MessageEmbed();
