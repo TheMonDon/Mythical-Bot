@@ -4,17 +4,17 @@ const { stripIndents } = require('common-tags');
 const DiscordJS = require('discord.js');
 
 class rps extends Command {
-  constructor(client) {
+  constructor (client) {
     super(client, {
       name: 'rps',
       description: 'Play a game of rock paper scissors.',
-      usage: 'rps',
+      usage: 'rps <opponet>',
       category: 'Games',
       aliases: ['rockpaperscissors', 'rock-paper-scissors']
     });
   }
 
-  async run(msg, text) {
+  async run (msg, text) {
     const current = this.client.games.get(msg.channel.id);
     if (current) return msg.reply(`Please wait until the current game of \`${current.name}\` is finished.`);
     this.client.games.set(msg.channel.id, { name: this.help.name });
@@ -23,7 +23,7 @@ class rps extends Command {
 
     if (!text || text.length < 1) {
       this.client.gsmes.set(msg.channel.id, '');
-      return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}rps <user>`);
+      return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}rps <opponet>`);
     } else {
       mem = getMember(msg, text.join(' '));
     }
@@ -32,18 +32,19 @@ class rps extends Command {
     let authReply;
     let memReply;
 
-    if (!mem) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}rps <user> (Please enter a valid user)`);
+    if (!mem) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}rps <opponent> (Please enter a valid user)`);
     if (mem.user.id === msg.author.id) return msg.channel.send('You can\'t play against yourself, silly.');
 
-    await msg.channel.send(`${mem}, do you accept this challenge?`);
-    const verification = await verify(msg.channel, mem);
-    if (!verification) {
-      this.client.games.delete(msg.channel.id);
-      return msg.channel.send('Looks like they declined...');
-    }
-
-    const reply = await msg.channel.send(`Alright, get ready ${msg.member} and ${mem}! ${msg.member.displayName} is up first. I'll send you both a DM.`);
-    await msg.author.send(stripIndents`
+    let reply;
+    if (!mem.user.bot) {
+      await msg.channel.send(`${mem}, do you accept this challenge?`);
+      const verification = await verify(msg.channel, mem);
+      if (!verification) {
+        this.client.games.delete(msg.channel.id);
+        return msg.channel.send('Looks like they declined...');
+      }
+      reply = await msg.channel.send(`Alright, get ready ${msg.member} and ${mem}! ${msg.member.displayName} is up first. I'll send you both a DM.`);
+      await msg.author.send(stripIndents`
       Please type your response below.
 
       - Rock
@@ -52,41 +53,40 @@ class rps extends Command {
 
       You have 1 minute!
     `)
-      .then(async (msg) => {
-        setTimeout(function() {}, 1000);
-        await msg.channel.awaitMessages(msg => msg.content.match(/^rock|paper|scissors$/i) && msg.author.id === p1.id, {
+        .then(async (msg) => {
+          setTimeout(function () {}, 1000);
+          await msg.channel.awaitMessages(msg => msg.content.match(/^rock|paper|scissors$/i) && msg.author.id === p1.id, {
             max: 1,
             time: 60000,
             errors: ['time']
           })
-          .then((collected) => {
-            authReply = collected.first().content.toLowerCase();
-            msg.channel.send(`Your response of \`${collected.first().content.toLowerCase()}\` has been saved.`);
-          })
-          .catch(() => {
-            msg.channel.send('Error: You did not reply in time.');
-            reply.delete();
-            this.client.games.delete(msg.channel.id);
-            return chan.send('The game starter did not reply in time, so the game was forfitted.');
-          });
-      });
-    if (!mem.user.bot) {
-      await mem.send(stripIndents`
-      Please type your response below.
-    
-      - Rock
-      - Paper
-      - Scissors
-    
-      You have 1 minute!
-    `)
-        .then(async (msg) => {
-          setTimeout(function() {}, 1000);
-          await msg.channel.awaitMessages(msg => msg.content.match(/^rock|paper|scissors$/i) && msg.author.id === mem.id, {
-              max: 1,
-              time: 60000,
-              errors: ['time']
+            .then((collected) => {
+              authReply = collected.first().content.toLowerCase();
+              msg.channel.send(`Your response of \`${collected.first().content.toLowerCase()}\` has been saved.`);
             })
+            .catch(() => {
+              msg.channel.send('Error: You did not reply in time.');
+              reply.delete();
+              this.client.games.delete(msg.channel.id);
+              return chan.send('The game starter did not reply in time, so the game was forfitted.');
+            });
+        });
+      await mem.send(stripIndents`
+        Please type your response below.
+      
+        - Rock
+        - Paper
+        - Scissors
+      
+        You have 1 minute!
+      `)
+        .then(async (msg) => {
+          setTimeout(function () {}, 1000);
+          await msg.channel.awaitMessages(msg => msg.content.match(/^rock|paper|scissors$/i) && msg.author.id === mem.id, {
+            max: 1,
+            time: 60000,
+            errors: ['time']
+          })
             .then((collected) => {
               memReply = collected.first().content.toLowerCase();
               msg.channel.send(`Your response of \`${collected.first().content.toLowerCase()}\` has been saved. \nCheck ${chan} for the results!`);
@@ -101,6 +101,35 @@ class rps extends Command {
     } else {
       const choices = ['rock', 'paper', 'scissors'];
       memReply = choices[Math.floor(Math.random() * choices.length)];
+
+      const orig = await msg.channel.send(stripIndents`
+      Please type your response below.
+
+      - Rock
+      - Paper
+      - Scissors
+
+      You have 1 minute!
+    `)
+        .then(async (msg) => {
+          setTimeout(function () {}, 1000);
+          await msg.channel.awaitMessages(msg => msg.content.match(/^rock|paper|scissors$/i) && msg.author.id === p1.id, {
+            max: 1,
+            time: 60000,
+            errors: ['time']
+          })
+            .then((collected) => {
+              authReply = collected.first().content.toLowerCase();
+              msg.channel.send(`Your response of \`${collected.first().content.toLowerCase()}\` has been saved.`);
+            })
+            .catch(() => {
+              msg.channel.send('Error: You did not reply in time.');
+              reply.delete();
+              this.client.games.delete(msg.channel.id);
+              return chan.send('The game starter did not reply in time, so the game was forfitted.');
+            });
+        });
+      orig.delete();
     }
 
     const embed = new DiscordJS.MessageEmbed();
