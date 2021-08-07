@@ -143,11 +143,11 @@ module.exports = class {
       }
     }
 
-    if (!message.guild && cmd?.conf.guildOnly) return message.channel.send('This command is unavailable via private message. Please run this command in a guild.');
+    if (!message.guild && cmd.conf.guildOnly) return message.channel.send('This command is unavailable via private message. Please run this command in a guild.');
 
-    if (cmd?.conf.nsfw && !message.channel.nsfw) return message.channel.send('This command can only be used in NSFW channels.');
+    if (cmd.conf.nsfw && !message.channel.nsfw) return message.channel.send('This command can only be used in NSFW channels.');
 
-    if (!cmd?.conf.enabled) return message.channel.send('This command is currently disabled.');
+    if (!cmd.conf.enabled) return message.channel.send('This command is currently disabled.');
 
     if (level < this.client.levelCache[cmd.conf.permLevel]) {
       if (settings.systemNotice === 'true') {

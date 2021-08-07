@@ -1,14 +1,13 @@
 const Command = require('../../base/Command.js');
 const DiscordJS = require('discord.js');
 
-class flood extends Command {
+class Flood extends Command {
   constructor (client) {
     super(client, {
       name: 'flood',
       description: 'Play a game of flood.',
       usage: 'flood',
-      category: 'Games',
-      enabled: false
+      category: 'Games'
     });
   }
 
@@ -17,13 +16,19 @@ class flood extends Command {
     const HEIGHT = 13;
     const SQUARES = { red_sqaure: '🟥', blue_sqaure: '🟦', orange_sqaure: '🟧', purple_sqaure: '🟪', green_sqaure: '🟩' };
     const gameBoard = [];
-    const turn = 1;
+    let turn = 1;
+    let game;
+    const up = (pos) => ({ x: pos.x, y: pos.y - 1 });
+    const down = (pos) => ({ x: pos.x, y: pos.y + 1 });
+    const left = (pos) => ({ x: pos.x - 1, y: pos.y });
+    const right = (pos) => ({ x: pos.x + 1, y: pos.y });
 
     for (let y = 0; y < HEIGHT; y++) {
       for (let x = 0; x < WIDTH; x++) {
         gameBoard[y * WIDTH + x] = Object.values(SQUARES)[Math.floor(Math.random() * Object.keys(SQUARES).length)];
       }
     }
+
     function gameBoardToString () {
       let str = '';
       for (let y = 0; y < HEIGHT; y++) {
@@ -62,23 +67,23 @@ class flood extends Command {
     }
 
     function update (selected) {
-      this.turn += 1;
-      const current = this.gameBoard[0];
+      turn += 1;
+      const current = gameBoard[0];
       const queue = [{ x: 0, y: 0 }];
       const visited = [];
       while (queue.length > 0) {
         const pos = queue.shift();
         if (!pos || visited.includes(pos)) { continue; }
         visited.push(pos);
-        if (this.gameBoard[pos.y * WIDTH + pos.x] === current) {
-          this.gameBoard[pos.y * WIDTH + pos.x] = selected;
-          const upPos = position_1.up(pos);
+        if (gameBoard[pos.y * WIDTH + pos.x] === current) {
+          gameBoard[pos.y * WIDTH + pos.x] = selected;
+          const upPos = up(pos);
           if (!visited.includes(upPos) && upPos.y >= 0) { queue.push(upPos); }
-          const downPos = position_1.down(pos);
+          const downPos = down(pos);
           if (!visited.includes(downPos) && downPos.y < HEIGHT) { queue.push(downPos); }
-          const leftPos = position_1.left(pos);
+          const leftPos = left(pos);
           if (!visited.includes(leftPos) && leftPos.x >= 0) { queue.push(leftPos); }
-          const rightPos = position_1.right(pos);
+          const rightPos = right(pos);
           if (!visited.includes(rightPos) && rightPos.x < WIDTH) { queue.push(rightPos); }
         }
       }
@@ -88,11 +93,23 @@ class flood extends Command {
           if (this.gameBoard[y * WIDTH + x] !== selected) gameOver = false;
         }
       }
-      if (gameOver) { this.gameOver({ result: game_result_1.ResultType.WINNER, score: (this.turn - 1).toString() }); } else { step(); }
+      if (gameOver) {
+        this.gameOver({ result: game_result_1.ResultType.WINNER, score: (this.turn - 1).toString() });
+      } else {
+        step();
+      }
     }
 
-    msg.channel.send(getContent());
+    function onInteraction (interaction) {
+      let _a;
+      if (!interaction.isButton()) { return; }
+      const selected = Object.entries(SQUARES).find(([k, v]) => k === interaction.customId);
+      if (selected) { update(selected[1]); }
+      if (this.isInGame()) { interaction.update(this.getContent()); } else { int; }
+    }
+
+    game = await msg.channel.send(getContent());
   }
 }
 
-module.exports = flood;
+module.exports = Flood;
