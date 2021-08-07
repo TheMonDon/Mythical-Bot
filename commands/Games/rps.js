@@ -36,7 +36,7 @@ class rps extends Command {
     if (mem.user.id === msg.author.id) return msg.channel.send('You can\'t play against yourself, silly.');
 
     await msg.channel.send(`${mem}, do you accept this challenge?`);
-    const verification = await verify(msg.channel, opponent);
+    const verification = await verify(msg.channel, mem);
     if (!verification) {
       this.client.games.delete(msg.channel.id);
       return msg.channel.send('Looks like they declined...');
