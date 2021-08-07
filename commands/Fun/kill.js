@@ -66,7 +66,9 @@ class kill extends Command {
       `${mem.displayName} was turned into a fly by ${member.displayName} and was swatted to their death.`,
       `${member.displayName} "accidentally" threw their sword at ${mem.displayName}.`,
       `${mem.displayName} tried juggling swords...idiot.`,
-      `${mem.displayName} was pecked to death by ${member.displayName}'s chicken :chicken:`
+      `${mem.displayName} was pecked to death by ${member.displayName}'s chicken :chicken:`,
+      `${mem.displayName} died from embarassment by ${member.displayName}`,
+      `${mem.displayName} tried recreating fast and furious with ${member.displayName}'s car and died.`
     ];
 
     const num = Math.round(Math.random() * (deaths.length - 1)) + 1;
