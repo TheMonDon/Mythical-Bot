@@ -165,7 +165,7 @@ client.player
     (async () => {
       const em = new DiscordJS.MessageEmbed()
         .setTitle('Now Playing')
-        .setDescription(`[${track.title}](${track.url})\n\n Requested By: ${track.requestedBy}`)
+        .setDescription(`[${track.title}](${track.url}) \n\nRequested By: ${track.requestedBy}`)
         .setThumbnail(track.thumbnail)
         .setColor('0099CC');
       const msg = await message.channel.send(em);
@@ -183,10 +183,27 @@ client.player
     })();
   })
   .on('trackAdd', (message, track) => {
-    message.channel.send(`${track.title || track.tracks[track.tracks.length - 1].title} has been added to the queue!`);
+      const title = track.title || track.tracks[track.tracks.length - 1].title;
+      const url = track.url || track.tracks[track.tracks.length - 1].url;
+      const requestedBy = track.requestedBy || track.tracks[track.tracks.length - 1].requestedBy;
+
+      const em = new DiscordJS.MessageEmbed()
+      .setTitle('Track Added to Queue')
+      .setThumbnail(track.thumbnail)
+      .setColor('0099CC')
+      .setDescription(`[${title}](${url}) \n\nRequested By: ${requestedBy}`);
+      message.channel.send(em);
   })
   .on('playlistAdd', (message, _queue, playlist) => {
-    message.channel.send(`Playlist \`${playlist.title}\` has been added to the queue with ${playlist.videos?.length || playlist.tracks?.length || 'N/A'} songs`);
+    const length = playlist.videos?.length || playlist.tracks?.length || 'N/A';
+
+    const em = new DiscordJS.MessageEmbed()
+    .setTitle('Playlist Added to Queue')
+    .setThumbnail(playlist.thumbnail)
+    .setColor('0099CC')
+    .setDescription(`[${playlist.title}](${playlist.url}) \n\nRequested By: ${playlist.requestedBy }`)
+    .addField('Playlist Length', length, true);
+    message.channel.send(em);
   })
   .on('noResults', (message, query) => message.channel.send(`No results found on YouTube for ${query}!`))
   .on('queueEnd', (message) => message.channel.send('Music stopped as there is no more music in the queue!'))
