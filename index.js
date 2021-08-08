@@ -160,8 +160,6 @@ client.player = new Player(client, {
   enableLive: true
 });
 
-db.delete(`servers.${message.guild.id}.music.lastTrack`);
-
 client.player
   .on('trackStart', (message, track) => {
     (async () => {
@@ -176,7 +174,9 @@ client.player
       if (oldmsg !== null) {
         try {
           await message.guild.channels.cache.get(oldmsg.channelID).messages.cache.get(oldmsg.id).delete();
-        } catch {}
+        } catch {
+          db.delete(`servers.${message.guild.id}.music.lastTrack`);
+        }
       }
 
       db.set(`servers.${message.guild.id}.music.lastTrack`, msg);
