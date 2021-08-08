@@ -1,4 +1,5 @@
 const Command = require('../../base/Command.js');
+const DiscordJS = require('discord.js');
 
 class Discrim extends Command {
   constructor (client) {
@@ -19,7 +20,12 @@ class Discrim extends Command {
 
     if (output.length < 1) return msg.channel.send(`No users found with the discriminator: ${discrim}`);
 
-    return msg.channel.send(output, { split: ',', code: '' });
+    const em = new DiscordJS.MessageEmbed()
+    .addField('Total Discriminators', output.length)
+    .setDescription(output.slice(0, 4000));
+    if (output.length > 4000) em.addField('Showing first 4000 characters.');
+
+    return msg.channel.send(em);
   }
 }
 

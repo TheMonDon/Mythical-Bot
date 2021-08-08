@@ -3,7 +3,7 @@ const { getMember } = require('../../base/Util.js');
 const db = require('quick.db');
 const DiscordJS = require('discord.js');
 
-class blacklist extends Command {
+class Blacklist extends Command {
   constructor (client) {
     super(client, {
       name: 'blacklist',
@@ -19,13 +19,13 @@ class blacklist extends Command {
   async run (msg, text) {
     let mem;
     let type;
-    const usage = `${msg.settings.prefix}blacklist <add | remove | check> <user> <reason>`;
+    const usage = `Incorrect Usage:${msg.settings.prefix}blacklist <add | remove | check> <user> <reason>`;
 
     if (!text || text.length < 1) {
-      return msg.channel.send(`Incorrect Usage: ${usage}`);
+      return msg.channel.send(usage);
     } else if (text[0] && text[1]) {
       if (!['add', 'remove', 'check'].includes(text[0].toLowerCase())) {
-        return msg.channel.send(`Incorrect Usage: ${usage}`);
+        return msg.channel.send(usage);
       } else {
         type = text[0].toLowerCase();
       }
@@ -33,13 +33,13 @@ class blacklist extends Command {
       mem = getMember(msg, text[0]);
       type = 'check';
 
-      if (!mem) return msg.channel.send(`Incorrect Usage: ${usage}`);
+      if (!mem) return msg.channel.send(usage);
     }
 
     if (!mem && text[1]) {
       mem = getMember(msg, text[1]);
 
-      if (!mem) return msg.channel.send(`Incorrect Usage: ${usage} \nPlease provide a valid server member.`);
+      if (!mem) return msg.channel.send(`${usage} \nPlease provide a valid server member.`);
     }
 
     text.shift();
@@ -51,7 +51,7 @@ class blacklist extends Command {
       if (blacklist) {
         return msg.channel.send('That user is already blacklisted.');
       }
-      if (!reason) return msg.channel.send(`Incorrect Usage: ${usage}`);
+      if (!reason) return msg.channel.send(`${usage} \nPlease provide a valid reason.`);
 
       db.set(`servers.${msg.guild.id}.users.${mem.id}.blacklist`, true);
       db.set(`servers.${msg.guild.id}.users.${mem.id}.blacklistReason`, reason);
@@ -67,7 +67,7 @@ class blacklist extends Command {
       mem.send(em);
     } else if (type === 'remove') { // remove member from blacklist
       if (!blacklist) return msg.channel.send('That user is not blacklisted');
-      if (!reason) return msg.channel.send(`Incorrect Usage: ${usage}`);
+      if (!reason) return msg.channel.send(`${usage} \nPlease provide a valid reason.`);
 
       db.set(`servers.${msg.guild.id}.users.${mem.id}.blacklist`, false);
       db.set(`servers.${msg.guild.id}.users.${mem.id}.blacklistReason`, reason);
@@ -102,4 +102,4 @@ class blacklist extends Command {
   }
 }
 
-module.exports = blacklist;
+module.exports = Blacklist;

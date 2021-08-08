@@ -213,6 +213,7 @@ class connect4 extends Command {
           } else if (choice.toLowerCase() === 'play for me') {
             i = AIEngine.playAI('hard');
             lastMove = i + 1;
+            if (msg.guild.me.permissions.has('MANAGE_MESSAGES')) turn.first().delete();
           } else {
             i = Number.parseInt(choice, 10) - 1;
             AIEngine.play(i);
