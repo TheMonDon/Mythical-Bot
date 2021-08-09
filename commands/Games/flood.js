@@ -56,23 +56,6 @@ class Flood extends Command {
         return embed;
       }
 
-      function gameOver (result) {
-        let _a, _b, _c;
-        if (!this.inGame) { return; }
-        this.result = result;
-        this.inGame = false;
-        if (result.result !== 'FORCE_END') {
-          this.onGameEnd(result);
-          if (this.usesReactions) {
-            (_a = message) === null || _a === undefined ? undefined : _a.edit(this.getGameOverContent(result));
-            (_b = message) === null || _b === undefined ? undefined : _b.reactions.removeAll();
-          }
-        } else {
-          (_c = message) === null || _c === void 0 ? void 0 : _c.edit(this.getGameOverContent(result));
-          if (this.gameTimeoutId) { clearTimeout(this.gameTimeoutId); }
-        }
-      }
-
       while (isOver === false) {
         turn += 1;
         const current = gameBoard[0];
@@ -81,7 +64,7 @@ class Flood extends Command {
         let selected;
 
         const filter = (reaction, user) => {
-          return reaction.emoji.namer === ('🟥' || '🟦' || '🟧' || '🟪' || '🟩') && user.id === msg.author.id;
+          return (reaction.emoji.name === '🟥' || '🟦' || '🟧' || '🟪' || '🟩') && user.id === msg.author.id;
         };
 
         if (!message) {
@@ -95,7 +78,7 @@ class Flood extends Command {
           message.edit(getContent());
         }
 
-        message.awaitReactions(filter, { max: 1, time: 60000, erors: ['time'] })
+        message.awaitReactions(filter, { time: 60000, erors: ['time'] })
           .then(collected => {
             selected = collected.first().reaction.emoji.name;
             const userReactions = message.reactions.cache.filter(reaction => reaction.users.cache.has(msg.author.id));
