@@ -88,7 +88,10 @@ class Flood extends Command {
               }
             } catch (err) { console.log(err); }
           })
-          .catch(() => { result = 'Error'; });
+          .catch((err) => {
+            console.log(err);
+            result = 'Error';
+          });
 
         while (queue.length > 0) {
           const pos = queue.shift();
