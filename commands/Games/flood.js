@@ -64,7 +64,7 @@ class Flood extends Command {
         let selected = null;
 
         const filter = (reaction, user) => {
-          return (reaction.emoji.name === '🟥' || '🟦' || '🟧' || '🟪' || '🟩') && user.id === msg.author.id;
+          return (reaction.emoji.name === '🟥' || reaction.emoji.name === '🟦' || reaction.emoji.name === '🟧' || reaction.emoji.name === '🟪' || reaction.emoji.name === '🟩') && user.id === msg.author.id;
         };
 
         if (!message) {
