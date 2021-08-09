@@ -16,7 +16,7 @@ class Flood extends Command {
     const HEIGHT = 13;
     const SQUARES = { red_sqaure: '🟥', blue_sqaure: '🟦', orange_sqaure: '🟧', purple_sqaure: '🟪', green_sqaure: '🟩' };
     const gameBoard = [];
-    let turn = 1;
+    let turn = 0;
     let message;
     let isOver = false;
     let result;
@@ -64,11 +64,11 @@ class Flood extends Command {
         if (result.result !== 'FORCE_END') {
           this.onGameEnd(result);
           if (this.usesReactions) {
-            (_a = this.gameMessage) === null || _a === undefined ? undefined : _a.edit(this.getGameOverContent(result));
-            (_b = this.gameMessage) === null || _b === undefined ? undefined : _b.reactions.removeAll();
+            (_a = message) === null || _a === undefined ? undefined : _a.edit(this.getGameOverContent(result));
+            (_b = message) === null || _b === undefined ? undefined : _b.reactions.removeAll();
           }
         } else {
-          (_c = this.gameMessage) === null || _c === void 0 ? void 0 : _c.edit(this.getGameOverContent(result));
+          (_c = message) === null || _c === void 0 ? void 0 : _c.edit(this.getGameOverContent(result));
           if (this.gameTimeoutId) { clearTimeout(this.gameTimeoutId); }
         }
       }
@@ -127,6 +127,7 @@ class Flood extends Command {
         for (let y = 0; y < HEIGHT; y++) {
           for (let x = 0; x < WIDTH; x++) {
             if (gameBoard[y * WIDTH + x] === selected) {
+              console.log(gameBoard[y * WIDTH + x] === selected);
               isOver = true;
               result = 'winner';
             }
@@ -134,9 +135,9 @@ class Flood extends Command {
         }
       }
 
-      if (isOver) {
+      if (isOver === true) {
         this.client.games.delete(msg.channel.id);
-        const turnResp = result === 'winner' ? `Game beat in ${turn - 1} turns!` : '';
+        const turnResp = result === 'winner' ? `Game beat in ${turn} turns!` : '';
 
         const embed = new DiscordJS.MessageEmbed()
           .setColor('#08b9bf')
@@ -144,11 +145,13 @@ class Flood extends Command {
           .setDescription(`Game Over! \n${turnResp}`)
           .setTimestamp();
         return msg.channel.send(embed);
+      } else {
+        msg.channel.send('Error: Something went wrong, isOver is false.');
       }
     } catch (err) {
       console.log(err);
       this.client.games.delete(msg.channel.id);
-      const turnResp = result === 'winner' ? `Game beat in ${turn - 1} turns!` : '';
+      const turnResp = result === 'winner' ? `Game beat in ${turn} turns!` : '';
 
       const embed = new DiscordJS.MessageEmbed()
         .setColor('#08b9bf')
