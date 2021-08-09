@@ -18,7 +18,7 @@ class Flood extends Command {
     const gameBoard = [];
     let turn = 0;
     let message;
-    let isOver = false;
+    let gameOver = false;
     let result;
 
     const up = (pos) => ({ x: pos.x, y: pos.y - 1 });
@@ -56,12 +56,12 @@ class Flood extends Command {
         return embed;
       }
 
-      while (isOver === false) {
+      while (gameOver === false) {
         turn += 1;
         const current = gameBoard[0];
         const queue = [{ x: 0, y: 0 }];
         const visited = [];
-        let selected;
+        let selected = null;
 
         const filter = (reaction, user) => {
           return (reaction.emoji.name === '🟥' || '🟦' || '🟧' || '🟪' || '🟩') && user.id === msg.author.id;
@@ -110,15 +110,14 @@ class Flood extends Command {
         for (let y = 0; y < HEIGHT; y++) {
           for (let x = 0; x < WIDTH; x++) {
             if (gameBoard[y * WIDTH + x] === selected) {
-              console.log(gameBoard[y * WIDTH + x] === selected);
-              isOver = true;
+              gameOver = true;
               result = 'winner';
             }
           }
         }
       }
 
-      if (isOver === true) {
+      if (gameOver === true) {
         this.client.games.delete(msg.channel.id);
         const turnResp = result === 'winner' ? `Game beat in ${turn} turns!` : '';
 
