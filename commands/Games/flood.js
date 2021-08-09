@@ -78,7 +78,7 @@ class Flood extends Command {
           message.edit(getContent());
         }
 
-        message.awaitReactions(filter, { time: 60000, erors: ['time'] })
+        await message.awaitReactions(filter, { time: 60000, erors: ['time'] })
           .then(collected => {
             selected = collected.first().reaction.emoji.name;
             const userReactions = message.reactions.cache.filter(reaction => reaction.users.cache.has(msg.author.id));
@@ -118,6 +118,7 @@ class Flood extends Command {
         for (let y = 0; y < HEIGHT; y++) {
           for (let x = 0; x < WIDTH; x++) {
             if (gameBoard[y * WIDTH + x] === selected) {
+              console.log(gameBoard);
               console.log(gameBoard[y * WIDTH + x]);
               console.log(selected);
               gameOver = true;
