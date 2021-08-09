@@ -183,26 +183,26 @@ client.player
     })();
   })
   .on('trackAdd', (message, track) => {
-      const title = track.title || track.tracks[track.tracks.length - 1].title;
-      const url = track.url || track.tracks[track.tracks.length - 1].url;
-      const requestedBy = track.requestedBy || track.tracks[track.tracks.length - 1].requestedBy;
+    const title = track.title || track.tracks[track.tracks.length - 1].title;
+    const url = track.url || track.tracks[track.tracks.length - 1].url;
+    const requestedBy = track.requestedBy || track.tracks[track.tracks.length - 1].requestedBy;
 
-      const em = new DiscordJS.MessageEmbed()
+    const em = new DiscordJS.MessageEmbed()
       .setTitle('Track Added to Queue')
       .setThumbnail(track.thumbnail)
       .setColor('0099CC')
       .setDescription(`[${title}](${url}) \n\nRequested By: ${requestedBy}`);
-      message.channel.send(em);
+    message.channel.send(em);
   })
   .on('playlistAdd', (message, _queue, playlist) => {
     const length = playlist.videos?.length || playlist.tracks?.length || 'N/A';
 
     const em = new DiscordJS.MessageEmbed()
-    .setTitle('Playlist Added to Queue')
-    .setThumbnail(playlist.thumbnail)
-    .setColor('0099CC')
-    .setDescription(`[${playlist.title}](${playlist.url}) \n\nRequested By: ${playlist.requestedBy }`)
-    .addField('Playlist Length', length, true);
+      .setTitle('Playlist Added to Queue')
+      .setThumbnail(playlist.thumbnail)
+      .setColor('0099CC')
+      .setDescription(`[${playlist.title}](${playlist.url}) \n\nRequested By: ${playlist.requestedBy}`)
+      .addField('Playlist Length', length, true);
     message.channel.send(em);
   })
   .on('noResults', (message, query) => message.channel.send(`No results found on YouTube for ${query}!`))

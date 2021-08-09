@@ -27,8 +27,8 @@ class Mute extends Command {
     if (!role) {
       role = await msg.guild.roles.create({
         data: {
-          name: "Muted",
-          color: "#000000",
+          name: 'Muted',
+          color: '#000000'
         },
         reason: 'Create mute system role'
       });
@@ -38,8 +38,8 @@ class Mute extends Command {
           id: role.id,
           deny: ['SEND_MESSAGES', 'ADD_REACTIONS']
 
-        })
-      })
+        });
+      });
     }
   }
 }

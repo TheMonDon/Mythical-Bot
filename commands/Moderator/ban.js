@@ -44,14 +44,14 @@ class Ban extends Command {
 
     if (logChan) {
       const em2 = new DiscordJS.MessageEmbed()
-      .setTitle('User Banned')
-      .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
-      .setDescription('Full info posted in the log channel.');
+        .setTitle('User Banned')
+        .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
+        .setDescription('Full info posted in the log channel.');
 
-      const reply = await msg.channel.send(em2)
+      const reply = await msg.channel.send(em2);
       msg.guild.channels.cache.get(logChan).send(em);
-      setTimeout(() => { 
-        reply.delete()
+      setTimeout(() => {
+        reply.delete();
       }, 30000);
     } else {
       return msg.channel.send(em);
