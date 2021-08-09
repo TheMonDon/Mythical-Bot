@@ -73,7 +73,7 @@ class Flood extends Command {
         }
       }
 
-      while (!isOver) {
+      while (isOver === false) {
         turn += 1;
         const current = gameBoard[0];
         const queue = [{ x: 0, y: 0 }];
@@ -94,6 +94,7 @@ class Flood extends Command {
         } else {
           message.edit(getContent());
         }
+
         message.awaitReactions(filter, { max: 1, time: 60000, erors: ['time'] })
           .then(collected => {
             selected = collected.first().reaction.emoji.name;
@@ -102,7 +103,7 @@ class Flood extends Command {
               for (const reaction of userReactions.values()) {
                 reaction.users.remove(msg.author.id);
               }
-            } catch {}
+            } catch (err) { console.log(err); }
           })
           .catch(() => { result = 'Error'; });
 
@@ -122,6 +123,7 @@ class Flood extends Command {
             if (!visited.includes(rightPos) && rightPos.x < WIDTH) { queue.push(rightPos); }
           }
         }
+
         for (let y = 0; y < HEIGHT; y++) {
           for (let x = 0; x < WIDTH; x++) {
             if (gameBoard[y * WIDTH + x] === selected) {
@@ -131,6 +133,7 @@ class Flood extends Command {
           }
         }
       }
+
       if (isOver) {
         this.client.games.delete(msg.channel.id);
         const turnResp = result === 'winner' ? `Game beat in ${turn - 1} turns!` : '';
@@ -143,6 +146,7 @@ class Flood extends Command {
         return msg.channel.send(embed);
       }
     } catch (err) {
+      console.log(err);
       this.client.games.delete(msg.channel.id);
       const turnResp = result === 'winner' ? `Game beat in ${turn - 1} turns!` : '';
 
