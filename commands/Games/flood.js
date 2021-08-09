@@ -97,19 +97,29 @@ class Flood extends Command {
           if (gameBoard[pos.y * WIDTH + pos.x] === current) {
             gameBoard[pos.y * WIDTH + pos.x] = selected;
             const upPos = up(pos);
-            if (!visited.includes(upPos) && upPos.y >= 0) { queue.push(upPos); }
+            if (!visited.includes(upPos) && upPos.y >= 0) {
+              queue.push(upPos);
+            }
             const downPos = down(pos);
-            if (!visited.includes(downPos) && downPos.y < HEIGHT) { queue.push(downPos); }
+            if (!visited.includes(downPos) && downPos.y < HEIGHT) {
+              queue.push(downPos);
+            }
             const leftPos = left(pos);
-            if (!visited.includes(leftPos) && leftPos.x >= 0) { queue.push(leftPos); }
+            if (!visited.includes(leftPos) && leftPos.x >= 0) {
+              queue.push(leftPos);
+            }
             const rightPos = right(pos);
-            if (!visited.includes(rightPos) && rightPos.x < WIDTH) { queue.push(rightPos); }
+            if (!visited.includes(rightPos) && rightPos.x < WIDTH) {
+              queue.push(rightPos);
+            }
           }
         }
 
         for (let y = 0; y < HEIGHT; y++) {
           for (let x = 0; x < WIDTH; x++) {
             if (gameBoard[y * WIDTH + x] === selected) {
+              console.log(gameBoard[y * WIDTH + x]);
+              console.log(selected);
               gameOver = true;
               result = 'winner';
             }
