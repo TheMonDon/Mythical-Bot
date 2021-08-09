@@ -56,8 +56,10 @@ class Flood extends Command {
         return embed;
       }
 
-      while (gameOver === false) {
+      let amount = 1;
+      while (gameOver === false && amount < 100) {
         turn += 1;
+        amount += 1;
         const current = gameBoard[0];
         const queue = [{ x: 0, y: 0 }];
         const visited = [];
@@ -87,48 +89,47 @@ class Flood extends Command {
                 reaction.users.remove(msg.author.id);
               }
             } catch (err) { console.log(err); }
-
-            while (queue.length > 0) {
-              const pos = queue.shift();
-              if (!pos || visited.includes(pos)) { continue; }
-              visited.push(pos);
-              if (gameBoard[pos.y * WIDTH + pos.x] === current) {
-                gameBoard[pos.y * WIDTH + pos.x] = selected;
-                const upPos = up(pos);
-                if (!visited.includes(upPos) && upPos.y >= 0) {
-                  queue.push(upPos);
-                }
-                const downPos = down(pos);
-                if (!visited.includes(downPos) && downPos.y < HEIGHT) {
-                  queue.push(downPos);
-                }
-                const leftPos = left(pos);
-                if (!visited.includes(leftPos) && leftPos.x >= 0) {
-                  queue.push(leftPos);
-                }
-                const rightPos = right(pos);
-                if (!visited.includes(rightPos) && rightPos.x < WIDTH) {
-                  queue.push(rightPos);
-                }
-              }
-            }
-
-            for (let y = 0; y < HEIGHT; y++) {
-              for (let x = 0; x < WIDTH; x++) {
-                if (gameBoard[y * WIDTH + x] === selected) {
-                  console.log(gameBoard);
-                  console.log(gameBoard[y * WIDTH + x]);
-                  console.log(selected);
-                  gameOver = true;
-                  result = 'winner';
-                }
-              }
-            }
           })
           .catch((err) => {
             console.log(err);
             result = 'Error';
           });
+
+        while (queue.length > 0) {
+          const pos = queue.shift();
+          if (!pos || visited.includes(pos)) { continue; }
+          visited.push(pos);
+          if (gameBoard[pos.y * WIDTH + pos.x] === current) {
+            gameBoard[pos.y * WIDTH + pos.x] = selected;
+            const upPos = up(pos);
+            if (!visited.includes(upPos) && upPos.y >= 0) {
+              queue.push(upPos);
+            }
+            const downPos = down(pos);
+            if (!visited.includes(downPos) && downPos.y < HEIGHT) {
+              queue.push(downPos);
+            }
+            const leftPos = left(pos);
+            if (!visited.includes(leftPos) && leftPos.x >= 0) {
+              queue.push(leftPos);
+            }
+            const rightPos = right(pos);
+            if (!visited.includes(rightPos) && rightPos.x < WIDTH) {
+              queue.push(rightPos);
+            }
+          }
+        }
+
+        for (let y = 0; y < HEIGHT; y++) {
+          for (let x = 0; x < WIDTH; x++) {
+            if (gameBoard[y * WIDTH + x] === selected) {
+              console.log(gameBoard[y * WIDTH + x]);
+              console.log(selected);
+              gameOver = true;
+              result = 'winner';
+            }
+          }
+        }
       }
 
       if (gameOver === true) {
