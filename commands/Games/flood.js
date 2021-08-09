@@ -19,6 +19,7 @@ class Flood extends Command {
     let turn = 1;
     let message;
     let isOver = false;
+    let result;
 
     const up = (pos) => ({ x: pos.x, y: pos.y - 1 });
     const down = (pos) => ({ x: pos.x, y: pos.y + 1 });
@@ -80,21 +81,30 @@ class Flood extends Command {
         let selected;
 
         const filter = (reaction, user) => {
-          return reaction.emoji.namer === (SQUARES.red_square || SQUARES.blue_sqaure || SQUARES.orange_sqaure || SQUARES.purple_sqaure || SQUARES.green_sqaure) && user.id === msg.author.id;
+          return reaction.emoji.namer === ('🟥' || '🟦' || '🟧' || '🟪' || '🟩') && user.id === msg.author.id;
         };
 
         if (!message) {
           message = await msg.channel.send(getContent());
-          await message.react(SQUARES.red_square);
-          await message.react(SQUARES.blue_square);
-          await message.react(SQUARES.orange_sqaure);
-          await message.react(SQUARES.purple_sqaure);
-          await message.react(SQUARES.green_sqaure);
+          await message.react('🟥');
+          await message.react('🟦');
+          await message.react('🟧');
+          await message.react('🟪');
+          await message.react('🟩');
         } else {
           message.edit(getContent());
         }
         message.awaitReactions(filter, { max: 1, time: 60000, erors: ['time'] })
-          .then(collected => { selected = collected.first().reaction.emoji.name; });
+          .then(collected => {
+            selected = collected.first().reaction.emoji.name;
+            const userReactions = message.reactions.cache.filter(reaction => reaction.users.cache.has(msg.author.id));
+            try {
+              for (const reaction of userReactions.values()) {
+                reaction.users.remove(msg.author.id);
+              }
+            } catch {}
+          })
+          .catch(() => { result = 'Error'; });
 
         while (queue.length > 0) {
           const pos = queue.shift();
@@ -114,21 +124,34 @@ class Flood extends Command {
         }
         for (let y = 0; y < HEIGHT; y++) {
           for (let x = 0; x < WIDTH; x++) {
-            if (gameBoard[y * WIDTH + x] === selected) isOver = true;
+            if (gameBoard[y * WIDTH + x] === selected) {
+              isOver = true;
+              result = 'winner';
+            }
           }
         }
       }
       if (isOver) {
+        this.client.games.delete(msg.channel.id);
+        const turnResp = result === 'winner' ? `Game beat in ${turn - 1} turns!` : '';
+
         const embed = new DiscordJS.MessageEmbed()
           .setColor('#08b9bf')
           .setTitle('Flood')
-          .setDescription(`Game Over! \nGame beat in ${turn - 1} rounds.`)
+          .setDescription(`Game Over! \n${turnResp}`)
           .setTimestamp();
-        msg.channel.send(embed);
+        return msg.channel.send(embed);
       }
     } catch (err) {
       this.client.games.delete(msg.channel.id);
-      throw err;
+      const turnResp = result === 'winner' ? `Game beat in ${turn - 1} turns!` : '';
+
+      const embed = new DiscordJS.MessageEmbed()
+        .setColor('#08b9bf')
+        .setTitle('Flood')
+        .setDescription(`Game Over! \n${turnResp}`)
+        .setTimestamp();
+      return msg.channel.send(embed);
     }
   }
 }
