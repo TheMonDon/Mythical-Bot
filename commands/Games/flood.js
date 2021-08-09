@@ -18,7 +18,7 @@ class Flood extends Command {
     const gameBoard = [];
     let turn = 1;
     let message;
-    let winner;
+    let isOver = false;
 
     const up = (pos) => ({ x: pos.x, y: pos.y - 1 });
     const down = (pos) => ({ x: pos.x, y: pos.y + 1 });
@@ -44,14 +44,6 @@ class Flood extends Command {
       }
 
       function getContent () {
-      /*
-      const row = new DiscordJS.MessageActionRow()
-        .addComponents(Object.entries(SQUARES).map(([k, v]) => new DiscordJS.MessageButton()
-          .setCustomId(k)
-          .setLabel(v)
-          .setStyle('SECONDARY')));
-          */
-
         const embed = new DiscordJS.MessageEmbed()
           .setColor('#08b9bf')
           .setTitle('Flood')
@@ -61,35 +53,6 @@ class Flood extends Command {
           .setTimestamp();
 
         return embed;
-      /*
-      return {
-        embeds: [embed],
-        componets: [row]
-      };
-      */
-      }
-
-      function onInteraction (interaction) {
-        let _a;
-        if (!interaction.isButton()) { return; }
-        const selected = Object.entries(SQUARES).find(([k, v]) => k === interaction.customId);
-        if (selected) { update(selected[1]); }
-        if (this.isInGame()) {
-          interaction.update(this.getContent());
-        } else {
-          interaction.update(this.getGameOverContent((_a = this.result) !== null && _a !== void 0 ? _a : { result: 'ERROR' }));
-        }
-      }
-
-      function step () {
-        let _a, _b;
-        if ((_a = message) === null || _a === undefined ? undefined : _a.deleted) {
-          this.gameOver({ result: 'DELETED' });
-          return;
-        }
-        if (this.usesReactions) {
-          (_b = message) === null || _b === undefined ? undefined : _b.edit(this.getContent());
-        }
       }
 
       function gameOver (result) {
@@ -101,7 +64,7 @@ class Flood extends Command {
           this.onGameEnd(result);
           if (this.usesReactions) {
             (_a = this.gameMessage) === null || _a === undefined ? undefined : _a.edit(this.getGameOverContent(result));
-            (_b = this.gameMessage) === null || _b =red_sqaure: '🟥', blue_sqaure: '🟦', orange_sqaure: '🟧', purple_sqaure: '🟪', green_sqaure: '🟩' == undefined ? undefined : _b.reactions.removeAll();
+            (_b = this.gameMessage) === null || _b === undefined ? undefined : _b.reactions.removeAll();
           }
         } else {
           (_c = this.gameMessage) === null || _c === void 0 ? void 0 : _c.edit(this.getGameOverContent(result));
@@ -109,7 +72,7 @@ class Flood extends Command {
         }
       }
 
-      while (!winner) {
+      while (!isOver) {
         turn += 1;
         const current = gameBoard[0];
         const queue = [{ x: 0, y: 0 }];
@@ -118,20 +81,20 @@ class Flood extends Command {
 
         const filter = (reaction, user) => {
           return reaction.emoji.namer === (SQUARES.red_square || SQUARES.blue_sqaure || SQUARES.orange_sqaure || SQUARES.purple_sqaure || SQUARES.green_sqaure) && user.id === msg.author.id;
-        }
+        };
 
         if (!message) {
           message = await msg.channel.send(getContent());
           await message.react(SQUARES.red_square);
           await message.react(SQUARES.blue_square);
-          await message.react(SQUARES.orange_sqaure)
+          await message.react(SQUARES.orange_sqaure);
           await message.react(SQUARES.purple_sqaure);
-          await message.react(SQUARES.green_sqaure)
+          await message.react(SQUARES.green_sqaure);
         } else {
           message.edit(getContent());
         }
-        message.awaitReactions(filter, { max: 1, time: 60000, erors: ['time']})
-        .then(collected => selected = collected.first().reaction.emoji.name);
+        message.awaitReactions(filter, { max: 1, time: 60000, erors: ['time'] })
+          .then(collected => { selected = collected.first().reaction.emoji.name; });
 
         while (queue.length > 0) {
           const pos = queue.shift();
@@ -149,15 +112,19 @@ class Flood extends Command {
             if (!visited.includes(rightPos) && rightPos.x < WIDTH) { queue.push(rightPos); }
           }
         }
-        let isOver = false;
         for (let y = 0; y < HEIGHT; y++) {
           for (let x = 0; x < WIDTH; x++) {
             if (gameBoard[y * WIDTH + x] === selected) isOver = true;
           }
         }
-        if (isOver) {
-          gameOver({ result: 'WINNER', score: (turn - 1).toString() });
-        }
+      }
+      if (isOver) {
+        const embed = new DiscordJS.MessageEmbed()
+          .setColor('#08b9bf')
+          .setTitle('Flood')
+          .setDescription(`Game Over! \nGame beat in ${turn - 1} rounds.`)
+          .setTimestamp();
+        msg.channel.send(embed);
       }
     } catch (err) {
       this.client.games.delete(msg.channel.id);
