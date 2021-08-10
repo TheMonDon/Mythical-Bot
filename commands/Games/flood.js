@@ -11,7 +11,7 @@ class Flood extends Command {
     });
   }
 
-  async run (msg, text) {
+  async run (msg) {
     const WIDTH = 13;
     const HEIGHT = 13;
     const SQUARES = { red_sqaure: '🟥', blue_sqaure: '🟦', orange_sqaure: '🟧', purple_sqaure: '🟪', green_sqaure: '🟩' };
@@ -20,6 +20,10 @@ class Flood extends Command {
     let message;
     let gameOver = false;
     let result;
+
+    const current = this.client.games.get(msg.channel.id);
+    if (current) return msg.reply(`Please wait until the current game of \`${current.name}\` is finished.`);
+    this.client.games.set(msg.channel.id, { name: this.help.name });
 
     const up = (pos) => ({ x: pos.x, y: pos.y - 1 });
     const down = (pos) => ({ x: pos.x, y: pos.y + 1 });
@@ -88,7 +92,8 @@ class Flood extends Command {
             await reaction.users.remove(msg.author.id);
           }
         } catch (error) {
-          console.error('Failed to remove reactions.');
+          this.client.games.delete(msg.channel.id);
+          msg.channel.send('An error occured removing reactions.');
         }
 
         while (queue.length > 0) {
@@ -122,6 +127,7 @@ class Flood extends Command {
             if (gameBoard[y * WIDTH + x] !== selected) {
               gameOver = false;
               result = 'winner';
+              message.reactions.removeAll();
             }
           }
         }
