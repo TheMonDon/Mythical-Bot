@@ -82,7 +82,7 @@ class Flood extends Command {
 
         const collected = await message.awaitReactions(filter, { max: 1, time: 60000, erors: ['time'] });
         selected = collected.first().emoji.name;
-        message.reactions.get(selected).remove(msg.author.id);
+        message.reactions.cache.get(selected).remove(msg.author.id);
 
         while (queue.length > 0) {
           const pos = queue.shift();
