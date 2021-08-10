@@ -14,7 +14,7 @@ class Flood extends Command {
   async run (msg) {
     const WIDTH = 13;
     const HEIGHT = 13;
-    const SQUARES = { red_sqaure: '🟥', blue_sqaure: '🟦', orange_sqaure: '🟧', purple_sqaure: '🟪', green_sqaure: '🟩' };
+    const SQUARES = { red_square: '🟥', blue_square: '🟦', orange_square: '🟧', purple_square: '🟪', green_square: '🟩' };
     const gameBoard = [];
     let turn = 0;
     let message;
@@ -75,25 +75,22 @@ class Flood extends Command {
 
         if (!message) {
           message = await msg.channel.send(getContent());
-          await message.react('🟥');
-          await message.react('🟦');
-          await message.react('🟧');
-          await message.react('🟪');
-          await message.react('🟩');
+          ['🟥', '🟦', '🟧', '🟪', '🟩'].forEach(s => message.react(s));
         } else {
           message.edit(getContent());
         }
 
-        const collected = await message.awaitReactions(filter, { max: 1, time: 60000, erors: ['time'] });
+        const collected = await message.awaitReactions(filter, { max: 1, time: 60000, errors: ['time'] });
         selected = collected.first().emoji.name;
         const userReactions = message.reactions.cache.filter(reaction => reaction.users.cache.has(msg.author.id));
+
         try {
           for (const reaction of userReactions.values()) {
             await reaction.users.remove(msg.author.id);
           }
         } catch (error) {
           this.client.games.delete(msg.channel.id);
-          msg.channel.send('An error occured removing reactions.');
+          msg.channel.send('An error occurred removing reactions.');
         }
 
         while (queue.length > 0) {
@@ -127,7 +124,6 @@ class Flood extends Command {
             if (gameBoard[y * WIDTH + x] !== selected) {
               gameOver = false;
               result = 'winner';
-              message.reactions.removeAll();
             }
           }
         }
@@ -142,6 +138,7 @@ class Flood extends Command {
           .setTitle('Flood')
           .setDescription(`Game Over! \n${turnResp}`)
           .setTimestamp();
+        message.reactions.removeAll();
         return message.edit(embed);
       } else {
         msg.channel.send('Error: Something went wrong, isOver is false.');
@@ -156,6 +153,7 @@ class Flood extends Command {
         .setTitle('Flood')
         .setDescription(`Game Over! \n${turnResp}`)
         .setTimestamp();
+      message.reactions.removeAll();
       return message.edit(embed);
     }
   }
