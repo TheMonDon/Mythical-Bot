@@ -84,7 +84,6 @@ class Flood extends Command {
         selected = collected.first().emoji.name;
 
         while (queue.length > 0) {
-          console.log(queue.length);
           const pos = queue.shift();
           if (!pos || visited.includes(pos)) { continue; }
           visited.push(pos);
@@ -109,12 +108,13 @@ class Flood extends Command {
           }
         }
 
-        console.log('outside queue)');
+        console.log('outside queue');
         for (let y = 0; y < HEIGHT; y++) {
           for (let x = 0; x < WIDTH; x++) {
             if (gameBoard[y * WIDTH + x] === selected) {
+              console.log(`y: ${y} | x: ${x}`);
               console.log(gameBoard[y * WIDTH + x] === selected);
-              console.log(selected);
+              console.log(selected.toString());
               message.reactions.removeAll();
               gameOver = true;
               result = 'winner';
