@@ -82,6 +82,7 @@ class Flood extends Command {
 
         const collected = await message.awaitReactions(filter, { max: 1, time: 60000, erors: ['time'] });
         selected = collected.first().emoji.name;
+        message.reactions.getContent(selected).remove(msg.author.id);
 
         while (queue.length > 0) {
           const pos = queue.shift();
@@ -113,6 +114,7 @@ class Flood extends Command {
           for (let x = 0; x < WIDTH; x++) {
             if (gameBoard[y * WIDTH + x] !== selected) {
               gameOver = false;
+              result = 'winner';
             }
           }
         }
