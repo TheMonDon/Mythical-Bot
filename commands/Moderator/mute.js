@@ -19,9 +19,12 @@ class Mute extends Command {
   async run (msg, args) {
     const logChan = db.get(`servers.${msg.guild.id}.logging.channel`);
     const roleName = db.get(`servers.${msg.guild.id}.mutes.role`) || 'Muted';
+    const usage = `Incorrect Usage: ${msg.settings.prefix}mute <user> <time> <reason>`;
 
-    if (!args[0]) return msg.channel.send('Please provide a user and a reason.');
+    if (!args || args.length < 1) return msg.channel.send(usage);
+
     const muteMem = getMember(msg, args[0]);
+    if (!muteMem) return msg.channel.send('Please specify a valid user.');
 
     let role = msg.guild.roles.cache.find(m => m.name === roleName);
     if (!role) {
@@ -37,7 +40,6 @@ class Mute extends Command {
         await channel.overwritePermissions({
           id: role.id,
           deny: ['SEND_MESSAGES', 'ADD_REACTIONS']
-
         });
       });
     }

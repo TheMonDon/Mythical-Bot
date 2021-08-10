@@ -66,7 +66,7 @@ class Flood extends Command {
         let selected = null;
 
         const filter = (reaction, user) => {
-          return (reaction.emoji.name === '🟥' || reaction.emoji.name === '🟦' || reaction.emoji.name === '🟧' || reaction.emoji.name === '🟪' || reaction.emoji.name === '🟩') && user.id === msg.author.id;
+          return ['🟥', '🟦', '🟧', '🟪', '🟩'].includes(reaction.emoji.name) && user.id === msg.author.id;
         };
 
         if (!message) {
@@ -82,13 +82,7 @@ class Flood extends Command {
 
         message.awaitReactions(filter, { max: 1, time: 60000, erors: ['time'] })
           .then(collected => {
-            selected = collected.first().reaction.emoji.name;
-            const userReactions = message.reactions.cache.filter(reaction => reaction.users.cache.has(msg.author.id));
-            try {
-              for (const reaction of userReactions.values()) {
-                reaction.users.remove(msg.author.id);
-              }
-            } catch (err) { console.log(err); }
+            selected = collected.first().emoji.name;
           })
           .catch((err) => {
             console.log(err);
@@ -141,7 +135,7 @@ class Flood extends Command {
           .setTitle('Flood')
           .setDescription(`Game Over! \n${turnResp}`)
           .setTimestamp();
-        return msg.channel.send(embed);
+        return message.edit(embed);
       } else {
         msg.channel.send('Error: Something went wrong, isOver is false.');
       }
@@ -155,7 +149,7 @@ class Flood extends Command {
         .setTitle('Flood')
         .setDescription(`Game Over! \n${turnResp}`)
         .setTimestamp();
-      return msg.channel.send(embed);
+      return message.edit(embed);
     }
   }
 }
