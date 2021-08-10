@@ -22,7 +22,7 @@ class typerCommand extends Command {
   async run (msg) {
     const current = this.client.games.get(msg.channel.id);
     if (current) return msg.reply(`Please wait until the current game of \`${current.name}\` is finished.`);
-    this.client.games.set(msg.channel.id, { name: this.help.name });
+    this.client.games.set(msg.channel.id, { name: this.help.name, user: msg.author.id, data: Date.now() });
 
     const randWord = randomWords(1).toString();
 

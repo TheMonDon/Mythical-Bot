@@ -23,7 +23,7 @@ class Flood extends Command {
 
     const current = this.client.games.get(msg.channel.id);
     if (current) return msg.reply(`Please wait until the current game of \`${current.name}\` is finished.`);
-    this.client.games.set(msg.channel.id, { name: this.help.name });
+    this.client.games.set(msg.channel.id, { name: this.help.name, user: msg.author.id });
 
     const up = (pos) => ({ x: pos.x, y: pos.y - 1 });
     const down = (pos) => ({ x: pos.x, y: pos.y + 1 });
@@ -53,7 +53,7 @@ class Flood extends Command {
           .setColor('#08b9bf')
           .setTitle('Flood')
           .setDescription(gameBoardToString())
-          .addField('Turn:', turn.toString())
+          .addField('Turn:', turn.toString(), true)
           .setFooter(`Currently Playing: ${msg.author.username}`)
           .setTimestamp();
 

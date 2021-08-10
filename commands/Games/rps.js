@@ -8,7 +8,7 @@ class rps extends Command {
     super(client, {
       name: 'rps',
       description: 'Play a game of rock paper scissors.',
-      usage: 'rps <opponet>',
+      usage: 'rps <opponent>',
       category: 'Games',
       aliases: ['rockpaperscissors', 'rock-paper-scissors']
     });
@@ -17,13 +17,13 @@ class rps extends Command {
   async run (msg, text) {
     const current = this.client.games.get(msg.channel.id);
     if (current) return msg.reply(`Please wait until the current game of \`${current.name}\` is finished.`);
-    this.client.games.set(msg.channel.id, { name: this.help.name });
+    this.client.games.set(msg.channel.id, { name: this.help.name, user: msg.author.id, date: Date.now() });
 
     let mem;
 
     if (!text || text.length < 1) {
-      this.client.gsmes.set(msg.channel.id, '');
-      return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}rps <opponet>`);
+      this.client.games.set(msg.channel.id, '');
+      return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}rps <opponent>`);
     } else {
       mem = getMember(msg, text.join(' '));
     }

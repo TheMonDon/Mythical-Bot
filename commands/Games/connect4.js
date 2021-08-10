@@ -45,6 +45,10 @@ class connect4 extends Command {
       coin: '🪙'
     };
 
+    const current = this.client.games.get(msg.channel.id);
+    if (current) return msg.reply(`Please wait until the current game of \`${current.name}\` is finished.`);
+    this.client.games.set(msg.channel.id, { name: this.help.name, user: msg.author.id, date: Date.now() });
+
     const usage = `Incorrect Usage: ${msg.settings.prefix}connect4 <opponent> <color>`;
     if (!args || args.length < 1) return msg.channel.send(usage);
     const opponent = getMember(msg, args[0]);
@@ -119,10 +123,6 @@ class connect4 extends Command {
       if (hasCustom && msg.guild) return msg.guild.emojis.cache.get(hasCustom[2]).toString();
       return colors[color.toLowerCase()] || color;
     }
-
-    const current = this.client.games.get(msg.channel.id);
-    if (current) return msg.reply(`Please wait until the current game of \`${current.name}\` is finished.`);
-    this.client.games.set(msg.channel.id, { name: this.help.name });
 
     if (opponent.id === msg.author.id) return msg.reply('You may not play against yourself.');
 
