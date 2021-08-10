@@ -80,14 +80,8 @@ class Flood extends Command {
           message.edit(getContent());
         }
 
-        message.awaitReactions(filter, { max: 1, time: 60000, erors: ['time'] })
-          .then(collected => {
-            selected = collected.first().emoji.name;
-          })
-          .catch((err) => {
-            console.log(err);
-            result = 'Error';
-          });
+        const collected = await message.awaitReactions(filter, { max: 1, time: 60000, erors: ['time'] });
+        selected = collected.first().emoji.name;
 
         while (queue.length > 0) {
           const pos = queue.shift();
@@ -119,6 +113,7 @@ class Flood extends Command {
             if (gameBoard[y * WIDTH + x] === selected) {
               console.log(gameBoard[y * WIDTH + x]);
               console.log(selected);
+              message.reactions.removeAll();
               gameOver = true;
               result = 'winner';
             }
