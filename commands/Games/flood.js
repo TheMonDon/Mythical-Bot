@@ -82,7 +82,14 @@ class Flood extends Command {
 
         const collected = await message.awaitReactions(filter, { max: 1, time: 60000, erors: ['time'] });
         selected = collected.first().emoji.name;
-        message.reactions.cache.get(selected).remove(msg.author.id);
+        const userReactions = message.reactions.cache.filter(reaction => reaction.users.cache.has(msg.author.id));
+        try {
+          for (const reaction of userReactions.values()) {
+            await reaction.users.remove(msg.author.id);
+          }
+        } catch (error) {
+          console.error('Failed to remove reactions.');
+        }
 
         while (queue.length > 0) {
           const pos = queue.shift();
