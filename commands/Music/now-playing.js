@@ -22,12 +22,17 @@ class nowPlaying extends Command {
 
     const queue = this.client.player.getQueue(msg);
 
-    const count = song.duration.match(/:/g) || [];
     let songTime;
-    count.length === 1 ? songTime = `00:${song.duration}` : songTime = song.duration;
-    const duration = moment.duration(songTime).asSeconds() * 1000;
+    let duration = moment.duration(songTime).asSeconds() * 1000;
     const totalTime = queue.currentStreamTime;
-    const timeLeft = moment.duration(duration - totalTime).format('d [days] h [hours] m [minutes] s [seconds]');
+    let timeLeft = moment.duration(duration - totalTime).format('d [days] h [hours] m [minutes] s [seconds]');
+    timeLeft.startsWith('-') ? songTime = `${song.duration}:00` : songTime = song.duration;
+
+    if (timeLeft.startsWith('-')) {
+      songTime = `${song.duration}:00`;
+      duration = moment.duration(songTime).asSeconds() * 1000;
+      timeLeft = moment.duration(duration - totalTime).format('d [days] h [hours] m [minutes] s [seconds]');
+    }
 
     const em = new MessageEmbed()
       .setDescription(stripIndents`
