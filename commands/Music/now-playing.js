@@ -21,7 +21,11 @@ class nowPlaying extends Command {
     const song = await this.client.player.nowPlaying(msg);
 
     const queue = this.client.player.getQueue(msg);
-    const duration = moment.duration(`00:${song.duration}`).asSeconds() * 1000;
+
+    const count = song?.time.match(/:/g) || [];
+    let somgTime;
+    count.length === 1 ? songTime = `00:${time}` : songTime = time;
+    const duration = moment.duration(songTime).asSeconds() * 1000;
     const totalTime = queue.currentStreamTime;
     const timeLeft = moment.duration(duration - totalTime).format('d [days] h [hours] m [minutes] s [seconds]');
 
@@ -29,7 +33,7 @@ class nowPlaying extends Command {
       .setDescription(stripIndents`
         Now ${queue.paused ? 'Paused' : 'Playing'} ♪: [${song.title}](${song.url})
 
-        Duration: ${moment.duration(`00:${song.duration}`).format('d [days] h [hours] m [minutes] s [seconds]')}
+        Duration: ${moment.duration(songTime).format('d [days] h [hours] m [minutes] s [seconds]')}
         Time Remaining: ${timeLeft}
         ${this.client.player.createProgressBar(msg)}
 
