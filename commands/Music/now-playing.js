@@ -24,7 +24,7 @@ class nowPlaying extends Command {
 
     const count = song.duration.match(/:/g) || [];
     let somgTime;
-    count.length === 1 ? songTime = `00:${time}` : songTime = time;
+    count.length === 1 ? songTime = `00:${song.duratiom}` : songTime = song.duration;
     const duration = moment.duration(songTime).asSeconds() * 1000;
     const totalTime = queue.currentStreamTime;
     const timeLeft = moment.duration(duration - totalTime).format('d [days] h [hours] m [minutes] s [seconds]');
