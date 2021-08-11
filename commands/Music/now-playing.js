@@ -23,7 +23,7 @@ class nowPlaying extends Command {
     const queue = this.client.player.getQueue(msg);
 
     const count = song.duration.match(/:/g) || [];
-    let somgTime;
+    let songTime;
     count.length === 1 ? songTime = `00:${song.duratiom}` : songTime = song.duration;
     const duration = moment.duration(songTime).asSeconds() * 1000;
     const totalTime = queue.currentStreamTime;
