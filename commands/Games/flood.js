@@ -59,6 +59,7 @@ class Flood extends Command {
           .setTimestamp();
       } else {
         embed = new DiscordJS.MessageEmbed()
+          .setAuthor(msg.member.displayName, msg.author.displayAvatarURL({ dynamic: true }))
           .setColor('#08b9bf')
           .setTitle('Flood')
           .setDescription(gameBoardToString())
