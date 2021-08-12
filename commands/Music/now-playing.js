@@ -27,7 +27,9 @@ class nowPlaying extends Command {
     const totalTime = queue.currentStreamTime;
     let timeLeft = moment.duration(duration - totalTime).format('d [days,] h [hours,] m [minutes,] s [seconds]');
 
-    while (timeLeft.startsWith('-')) {
+    let loop;
+    while (timeLeft.startsWith('-') && loop < 5) {
+      loop += 1;
       songTime = `${songTime}:00`;
       duration = moment.duration(songTime).asSeconds() * 1000;
       timeLeft = moment.duration(duration - totalTime).format('d [days,] h [hours,] m [minutes,] s [seconds]');

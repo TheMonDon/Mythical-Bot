@@ -15,12 +15,16 @@ class ass extends Command {
   }
 
   async run (msg) {
-    const ass = await trev.nsfw.ass();
+    const post = await trev.nsfw.ass();
+
+    let image;
+    if (post.isImgurUpload(post.media)) image = post.getRawImgur(post.media);
+    if (post.isGfyLink(post.media)) image = post.gfyIframe(post.media);
 
     const em = new DiscordJS.MessageEmbed()
-      .setTitle(ass.title)
-      .setURL(ass.permalink)
-      .setImage(ass.media)
+      .setTitle(post.title)
+      .setURL(post.permalink)
+      .setImage(image)
       .setFooter(msg.author.tag)
       .setTimestamp();
     return msg.channel.send(em);
