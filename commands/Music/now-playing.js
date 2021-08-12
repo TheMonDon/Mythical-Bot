@@ -22,14 +22,13 @@ class nowPlaying extends Command {
 
     const queue = this.client.player.getQueue(msg);
 
-    let songTime;
-    let duration = moment.duration(songTime).asSeconds() * 1000;
+    let songTime = song.duration;
+    let duration = moment.duration('00:' + songTime).asSeconds() * 1000;
     const totalTime = queue.currentStreamTime;
     let timeLeft = moment.duration(duration - totalTime).format('d [days,] h [hours,] m [minutes,] s [seconds]');
-    timeLeft.startsWith('-') ? songTime = `${song.duration}:00` : songTime = song.duration;
 
-    if (timeLeft.startsWith('-')) {
-      songTime = `${song.duration}:00`;
+    while (timeLeft.startsWith('-')) {
+      songTime = `${songTime}:00`;
       duration = moment.duration(songTime).asSeconds() * 1000;
       timeLeft = moment.duration(duration - totalTime).format('d [days,] h [hours,] m [minutes,] s [seconds]');
     }
