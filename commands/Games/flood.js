@@ -30,36 +30,47 @@ class Flood extends Command {
     const left = (pos) => ({ x: pos.x - 1, y: pos.y });
     const right = (pos) => ({ x: pos.x + 1, y: pos.y });
 
-    try {
+    for (let y = 0; y < HEIGHT; y++) {
+      for (let x = 0; x < WIDTH; x++) {
+        gameBoard[y * WIDTH + x] = Object.values(SQUARES)[Math.floor(Math.random() * Object.keys(SQUARES).length)];
+      }
+    }
+
+    function gameBoardToString () {
+      let str = '';
       for (let y = 0; y < HEIGHT; y++) {
         for (let x = 0; x < WIDTH; x++) {
-          gameBoard[y * WIDTH + x] = Object.values(SQUARES)[Math.floor(Math.random() * Object.keys(SQUARES).length)];
+          str += gameBoard[y * WIDTH + x];
         }
+        str += '\n';
       }
+      return str;
+    }
 
-      function gameBoardToString () {
-        let str = '';
-        for (let y = 0; y < HEIGHT; y++) {
-          for (let x = 0; x < WIDTH; x++) {
-            str += gameBoard[y * WIDTH + x];
-          }
-          str += '\n';
-        }
-        return str;
-      }
-
-      function getContent () {
-        const embed = new DiscordJS.MessageEmbed()
+    function getContent () {
+      let embed;
+      if (gameOver === true) {
+        const turnResp = result === 'winner' ? `Game beat in ${turn} turns!` : '';
+        embed = new DiscordJS.MessageEmbed()
+          .setAuthor(msg.member.displayName, msg.author.displayAvatarURL({ dynamic: true }))
+          .setColor('#08b9bf')
+          .setTitle('Flood')
+          .setDescription(`Game Over! \n${turnResp}`)
+          .setTimestamp();
+      } else {
+        embed = new DiscordJS.MessageEmbed()
           .setColor('#08b9bf')
           .setTitle('Flood')
           .setDescription(gameBoardToString())
           .addField('Turn:', turn.toString(), true)
           .setFooter(`Currently Playing: ${msg.author.username}`)
           .setTimestamp();
-
-        return embed;
       }
 
+      return embed;
+    }
+
+    try {
       let amount = 1;
       while (gameOver === false && amount < 100) {
         turn += 1;
@@ -131,30 +142,15 @@ class Flood extends Command {
 
       if (gameOver === true) {
         this.client.games.delete(msg.channel.id);
-        const turnResp = result === 'winner' ? `Game beat in ${turn} turns!` : '';
-
-        const embed = new DiscordJS.MessageEmbed()
-          .setColor('#08b9bf')
-          .setTitle('Flood')
-          .setDescription(`Game Over! \n${turnResp}`)
-          .setTimestamp();
         message.reactions.removeAll();
-        return message.edit(embed);
+        return message.edit(getContent());
       } else {
         msg.channel.send('Error: Something went wrong, isOver is false.');
       }
     } catch (err) {
       console.log(err);
-      this.client.games.delete(msg.channel.id);
-      const turnResp = result === 'winner' ? `Game beat in ${turn} turns!` : '';
-
-      const embed = new DiscordJS.MessageEmbed()
-        .setColor('#08b9bf')
-        .setTitle('Flood')
-        .setDescription(`Game Over! \n${turnResp}`)
-        .setTimestamp();
       message.reactions.removeAll();
-      return message.edit(embed);
+      return message.edit(getContent());
     }
   }
 }

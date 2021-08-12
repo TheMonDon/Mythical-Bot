@@ -174,6 +174,7 @@ class Stats extends Command {
         hex: rand
       };
     }
+
     // Formatting RGB
     let rgb = JSON.stringify(color.rgb)
       .slice(1, -1);
