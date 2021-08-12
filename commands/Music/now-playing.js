@@ -23,28 +23,23 @@ class nowPlaying extends Command {
     const queue = this.client.player.getQueue(msg);
 
     let songTime = `00:${song.duration}`;
-    if (song.duration.match(/(:)/g).length === 2) songTime = song.duration;
+    if (song.duration.match(/(:)/g)?.length === 2) songTime = song.duration;
     let duration = moment.duration(songTime).asSeconds() * 1000;
-    let timeLeft = moment.duration(duration - queue.currentStreamTime).format('w [weeks,] d [days,] h [hours,] m [minutes,] s [seconds]');
-    if (timeLeft.startsWith('-')) {
-      songTime = `${song.duration}:00`;
-      duration = moment.duration(songTime).asSeconds() * 1000;
-      timeLeft = moment.duration(duration - queue.currentStreamTime).format('w [weeks,] d [days,] h [hours,] m [minutes,] s [seconds]');
-    }
+    let timeLeft = moment.duration(duration - queue.currentStreamTime).format('d [days,] h [hours,] m [minutes,] s [seconds]');
 
     let loop;
-    while (timeLeft.startsWith('-') && loop < 5) {
+    while (timeLeft.startsWith('-') && loop < 3) {
       loop += 1;
-      songTime = `${songTime}:00`;
+      songTime = songTime.startsWith('00') ? `${song.duration}:00` : `${songTime}:00`;
       duration = moment.duration(songTime).asSeconds() * 1000;
-      timeLeft = moment.duration(duration - queue.currentStreamTime).format('w [weeks,] d [days,] h [hours,] m [minutes,] s [seconds]');
+      timeLeft = moment.duration(duration - queue.currentStreamTime).format('d [days,] h [hours,] m [minutes,] s [seconds]');
     }
 
     const em = new MessageEmbed()
       .setDescription(stripIndents`
         Now ${queue.paused ? 'Paused' : 'Playing'} ♪: [${song.title}](${song.url})
 
-        Duration: ${moment.duration(songTime).format('w [weeks,] d [days,] h [hours,] m [minutes,] s [seconds]')}
+        Duration: ${moment.duration(songTime).format('d [days,] h [hours,] m [minutes,] s [seconds]')}
         Time Remaining: ${timeLeft}
         ${this.client.player.createProgressBar(msg)}
 
