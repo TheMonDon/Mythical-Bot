@@ -7,6 +7,7 @@ const fs = require('fs');
 const { registerFont, createCanvas, loadImage } = require('canvas');
 const randomWords = require('random-words');
 const { stripIndents } = require('common-tags');
+const db = require('quick.db');
 
 class typerCommand extends Command {
   constructor (client) {
@@ -102,12 +103,23 @@ class typerCommand extends Command {
                 const winner = collected2.first().author;
                 const time = (t1 - t2) / 1000;
 
+                const HS = { score: time, user: winner.username };
+                const oldHS = db.get('global.highScores.typeCompetition') || HS;
+                let highScore = oldHS.score;
+                let highScoreUser = oldHS.user;
+                if (oldHS.score < HS.score) {
+                  db.set('global.highScores.typerCompetition', HS);
+                  highScore = HS.score;
+                  highScoreUser = 'You';
+                }
+
                 const em1 = new DiscordJS.MessageEmbed()
                   .setTitle('Winner!')
                   .setColor('#41f4eb')
                   .setDescription(stripIndents`
                   ${winner} won! :tada:
-                  Time: ${time}s`);
+                  Time: ${time}s`)
+                  .addField('High Score', `${highScore}s by ${highScoreUser}`);
                 this.client.games.delete(msg.channel.id);
                 return msg.channel.send(em1);
               })
