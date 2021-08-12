@@ -2,7 +2,7 @@ const Command = require('../../base/Command.js');
 const { wait } = require('../../base/Util.js');
 const DiscordJS = require('discord.js');
 const https = require('https');
-const fntPath = './fonts/Moms_Typewriter.ttf';
+const fntPath = './resources/fonts/Moms_Typewriter.ttf';
 const fs = require('fs');
 const { registerFont, createCanvas, loadImage } = require('canvas');
 const randomWords = require('random-words');
@@ -65,7 +65,7 @@ class typerCommand extends Command {
       errors: ['time']
     })
       .then(() => {
-        loadImage('https://i1.lensdump.com/i/ZeaNJF.jpg')
+        loadImage('./resources/captcha-background-image.jpg')
           .then((image) => {
             ctx.drawImage(image, 0, 0, 290, 80);
             ctx.fillText(randWord, 90, 45);
