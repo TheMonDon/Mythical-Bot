@@ -1,5 +1,6 @@
 const Command = require('../../base/Command.js');
 const DiscordJS = require('discord.js');
+const db = require('quick.db');
 
 class Flood extends Command {
   constructor (client) {
@@ -72,10 +73,8 @@ class Flood extends Command {
     }
 
     try {
-      let amount = 1;
-      while (gameOver === false && amount < 100) {
+      while (gameOver === false && turn < 100) {
         turn += 1;
-        amount += 1;
         const current = gameBoard[0];
         const queue = [{ x: 0, y: 0 }];
         const visited = [];
@@ -144,13 +143,33 @@ class Flood extends Command {
       if (gameOver === true) {
         this.client.games.delete(msg.channel.id);
         message.reactions.removeAll();
-        return message.edit(getContent());
+
+        const HS = { score: turn, user: msg.author.displayName };
+        const oldHS = db.get('global.highScores.flood') || HS;
+        let highScore = oldHS.score;
+        let highScoreUser = oldHS.user;
+        if (oldHS.score < HS.score) {
+          db.set('global.highScores.flood', HS);
+          highScore = HS.score;
+          highScoreUser = HS.user;
+        }
+
+        const turnResp = result === 'winner' ? `Game beat in ${turn} turns!` : '';
+        const embed = new DiscordJS.MessageEmbed()
+          .setAuthor(msg.member.displayName, msg.author.displayAvatarURL({ dynamic: true }))
+          .setColor('#08b9bf')
+          .setTitle('Flood')
+          .setDescription(`Game Over! \n${turnResp}`)
+          .addField('High Score', `${highScore} turns by ${highScoreUser}`)
+          .setTimestamp();
+        return message.edit(embed);
       } else {
         msg.channel.send('Error: Something went wrong, isOver is false.');
       }
     } catch (err) {
       console.log(err);
       message.reactions.removeAll();
+      gameOver = true;
       return message.edit(getContent());
     }
   }
