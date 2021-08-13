@@ -27,7 +27,7 @@ class ass extends Command {
       .setImage(image)
       .setFooter(msg.author.tag)
       .setTimestamp();
-    return msg.channel.send(em);
+    return msg.channel.send({embeds: [em]});
   }
 }
 

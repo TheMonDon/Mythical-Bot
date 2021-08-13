@@ -32,7 +32,7 @@ module.exports = class cleanLeaderboard extends Command {
       .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
       .setColor('ORANGE')
       .setDescription('Please wait, this may take a while for bigger servers.');
-    const message = await msg.channel.send(em);
+    const message = await msg.channel.send({embeds: [em]});
 
     for (const i in users) {
       if (!msg.guild.members.cache.get(i)) toRemove.push(i);

@@ -27,7 +27,7 @@ class advice extends Command {
       .setTitle(body.slip.advice)
       .setColor('RANDOM')
       .setFooter(`ID: ${body.slip.id}`);
-    return msg.channel.send(em);
+    return msg.channel.send({embeds: [em]});
   }
 }
 module.exports = advice;

@@ -33,7 +33,7 @@ class fml extends Command {
 
     if (article?.childNodes[0].text.length < 5) return msg.channel.send("Today, something went wrong, so you'll have to try again in a few moments. FML");
 
-    return msg.channel.send(embed);
+    return msg.channel.send({embeds: [embed]});
   }
 }
 

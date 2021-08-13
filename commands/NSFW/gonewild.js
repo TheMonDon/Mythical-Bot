@@ -22,7 +22,7 @@ class gonewild extends Command {
       .setImage(gonewild.media)
       .setFooter(msg.author.tag)
       .setTimestamp();
-    return msg.channel.send(em);
+    return msg.channel.send({embeds: [em]});
   }
 }
 

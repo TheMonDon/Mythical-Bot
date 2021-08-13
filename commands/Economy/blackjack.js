@@ -164,7 +164,7 @@ module.exports = class Blackjack extends Command {
 
       bet = bet + bet1;
       db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bet); // Add the winning money
-      return msg.channel.send(embed);
+      return msg.channel.send({embeds: [embed]});
     }
     const em = new DiscordJS.MessageEmbed()
       .setAuthor(msg.author.username, msg.author.displayAvatarURL())
@@ -172,7 +172,7 @@ module.exports = class Blackjack extends Command {
       .setColor(color)
       .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
       .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
-    const mEm = await msg.channel.send(em);
+    const mEm = await msg.channel.send({embeds: [em]});
 
     // main hit/stand (1st time)
     return msg.channel.awaitMessages(m => m.author.id === msg.author.id && ['hit', 'stand'].includes(m.content.toLowerCase()), { max: 1, time: 60000 }).then(collected => {

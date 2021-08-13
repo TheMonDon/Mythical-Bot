@@ -24,7 +24,7 @@ class Skip extends Command {
       .addField('Skipped Song', song.title, false)
       .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
       .setColor('GREEN');
-    return msg.channel.send(em);
+    return msg.channel.send({embeds: [em]});
   }
 }
 

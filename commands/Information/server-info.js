@@ -56,7 +56,7 @@ class serverInfo extends Command {
       .addField('AFK Channel', `${(server.afkChannel && server.afkChannel.name) || 'None Set'}`, true)
       .addField('Members', server.members.cache.size.toLocaleString(), true)
       .addField(`Roles (${server.roles.cache.size.toLocaleString()})`, server === msg.guild ? roles1 : 'Can\'t display roles outside the server', true);
-    return msg.channel.send(embed);
+    return msg.channel.send({embeds: [embed]});
   }
 }
 

@@ -222,7 +222,7 @@ class Stats extends Command {
           **Hsl:** hsl(${color.hsl})
           **Cmyk:** cmyk(${color.cmyk})
           `));
-    msg.channel.send(embed);
+    msg.channel.send({embeds: [embed]});
   }
 }
 

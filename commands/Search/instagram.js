@@ -31,7 +31,7 @@ class insta extends Command {
           .addField('Posts Count', res.postsCount, true)
           .addField('Is Private?', res.isPrivate, true)
           .addField('Is Verified?', res.isVerified, true);
-        return msg.channel.send(em);
+        return msg.channel.send({embeds: [em]});
       })
       .catch((err) => {
         return msg.channel.send(err.toString());

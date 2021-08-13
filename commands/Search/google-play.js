@@ -37,7 +37,7 @@ class gPlay extends Command {
           .addField('Genre', res.genre || 'Unknown', true)
           .addField('Installs', res.maxInstalls ? res.maxInstalls.toLocaleString() + '+' : 'Unknown', true)
           .addField('Released On', res.released || 'Unknown', true);
-        return msg.channel.send(em);
+        return msg.channel.send({embeds: [em]});
       })
       .catch(() => {
         return msg.channel.send('I could not find any app with that name.');

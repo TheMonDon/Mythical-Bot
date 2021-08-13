@@ -46,7 +46,7 @@ class tvShow extends Command {
         .addField('❯ Episodes', body.number_of_episodes ? body.number_of_episodes.toLocaleString() : '???', true)
         .addField('❯ Genres', body.genres.length ? body.genres.map(genre => genre.name).join(', ') : '???')
         .addField('❯ Production Companies', body.production_companies.length ? body.production_companies.map(c => c.name).join(', ') : '???');
-      return msg.channel.send(embed);
+      return msg.channel.send({embeds: [embed]});
     } catch (err) {
       return msg.reply(`Oh no, an error occurred: \`${err.message}\`. Try again later!`);
     }

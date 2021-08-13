@@ -49,7 +49,7 @@ class tih extends Command {
         .setDescription(`${event.year}: ${event.text}`)
         .addField('❯ See More', event.links.map(link => `[${link.title}](${link.link.replace(/\)/g, '%29')})`).join(', '));
 
-      return msg.channel.send(embed);
+      return msg.channel.send({embeds: [embed]});
     } catch (err) {
       if (err.status === 404 || err.status === 500) return msg.reply('Invalid date.');
       return msg.reply(`Oh no, an error occurred: \`${err.msg}\`. Try again later!`);

@@ -37,7 +37,7 @@ class warninfo extends Command {
       .addField('Warned on', moment(timestamp).format('LLL'), true)
       .addField('Message URL', messageURL, true)
       .addField('Reason', reason, false);
-    return msg.channel.send(em);
+    return msg.channel.send({embeds: [em]});
   }
 }
 

@@ -26,7 +26,7 @@ class number extends Command {
     const em = new DiscordJS.MessageEmbed()
       .setTitle(body)
       .setColor('RANDOM');
-    return msg.channel.send(em);
+    return msg.channel.send({embeds: [em]});
   }
 }
 module.exports = number;

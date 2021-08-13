@@ -41,7 +41,7 @@ class github extends Command {
         .addField('Language', body.language || '???', true)
         .addField('Creation Date', moment.utc(body.created_at).format('MM/DD/YYYY h:mm A'), true)
         .addField('Modification Date', moment.utc(body.updated_at).format('MM/DD/YYYY h:mm A'), true);
-      return msg.channel.send(embed);
+      return msg.channel.send({embeds: [embed]});
     } catch (err) {
       if (err.status === 404) return msg.channel.send('Could not find any results.');
       return msg.channel.send(`Oh no, an error occurred: \`${err.message}\`. Try again later!`);

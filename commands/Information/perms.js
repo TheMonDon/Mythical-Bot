@@ -86,7 +86,7 @@ class Perms extends Command {
     \`Administrator\`| ${infoMem.hasPermission('ADMINISTRATOR') ? yes : no}
     `, true);
 
-    return msg.channel.send(embed);
+    return msg.channel.send({embeds: [embed]});
   }
 }
 

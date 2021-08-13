@@ -86,6 +86,6 @@ module.exports = class addMoneyRole extends Command {
       .setColor('#0099CC')
       .setDescription(`:white_check_mark: Removed **${cs}${amount.toLocaleString()}** to ${type} balance of ${members.length} ${members.length > 1 ? 'members' : 'member'} with the ${role}.`)
       .setTimestamp();
-    return msg.channel.send(embed);
+    return msg.channel.send({embeds: [embed]});
   }
 };

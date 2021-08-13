@@ -24,7 +24,7 @@ module.exports = class Withdraw extends Command {
         .setColor('#EC5454')
         .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
         .setDescription(`Incorrect Usage: ${usage}`);
-      return msg.channel.send(embed);
+      return msg.channel.send({embeds: [embed]});
     }
 
     const cs = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
@@ -47,13 +47,13 @@ module.exports = class Withdraw extends Command {
           .setColor('#04ACF4')
           .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
           .setDescription(`Withdrew ${cs}${bank.toLocaleString()} from your bank!`);
-        return msg.channel.send(em);
+        return msg.channel.send({embeds: [em]});
       } else {
         const embed = new DiscordJS.MessageEmbed()
           .setColor('#EC5454')
           .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
           .setDescription(`Incorrect Usage: ${usage}`);
-        return msg.channel.send(embed);
+        return msg.channel.send({embeds: [embed]});
       }
     }
     amount = parseInt(amount, 10);
@@ -72,6 +72,6 @@ module.exports = class Withdraw extends Command {
       .setColor('#04ACF4')
       .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
       .setDescription(`Withdrew ${cs}${amount.toLocaleString()} from your bank!`);
-    return msg.channel.send(embed);
+    return msg.channel.send({embeds: [embed]});
   }
 };

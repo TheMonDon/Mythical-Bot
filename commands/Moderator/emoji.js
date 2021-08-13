@@ -79,7 +79,7 @@ class Emoji extends Command {
         .addField('Emoji ID', result.id, true)
         .addField('Emoji is Available?', result.available, true)
         .addField('Emoji Author', result.author || 'N/A', true);
-      return msg.channel.send(em);
+      return msg.channel.send({embeds: [em]});
     } else if (type === 'rename') {
       const emoji = args[1];
       const name = args[2];

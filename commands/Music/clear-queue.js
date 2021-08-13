@@ -22,7 +22,7 @@ class ClearQueue extends Command {
 
     const em = new MessageEmbed()
       .setDescription(':recycle: The music queue has been cleared!');
-    return msg.channel.send(em);
+    return msg.channel.send({embeds: [em]});
   }
 }
 

@@ -47,7 +47,7 @@ class deletewarning extends Command {
       .addField('From User', `${user} (${user.id})`, true)
       .addField('Deleted Case', `\`${caseID}\``, true)
       .addField('Case Reason', warnReason, false);
-    return msg.channel.send(em);
+    return msg.channel.send({embeds: [em]});
   }
 }
 

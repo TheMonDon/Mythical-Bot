@@ -244,7 +244,7 @@ class setup extends Command {
         embed.setDescription(`Everything related to logs will be posted in ${chan} from now on.`);
         embed.setTimestamp();
         embed.setFooter('Logs System V3.0-BETA');
-        msg.channel.send(embed);
+        msg.channel.send({embeds: [embed]});
       } else {
         db.set(`servers.${msg.guild.id}.logs.logSystem`, logSystem);
         embed.setTitle('Successfully Set');
@@ -253,7 +253,7 @@ class setup extends Command {
         embed.setDescription(`Everything related to logs will be posted in ${chan}.`);
         embed.setTimestamp();
         embed.setFooter('Logs System V3.0-BETA');
-        msg.channel.send(embed);
+        msg.channel.send({embeds: [embed]});
       }
       db.set(`servers.${msg.guild.id}.logs.channel`, chan.id);
       return;
@@ -278,7 +278,7 @@ class setup extends Command {
     `)
       .setDescription('These systems are not fully operational and may have bugs.')
       .setAuthor(msg.author.displayName, msg.author.displayAvatarURL());
-    return msg.channel.send(embed);
+    return msg.channel.send({embeds: [embed]});
   }
 }
 

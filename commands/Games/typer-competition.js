@@ -53,7 +53,7 @@ class typerCommand extends Command {
       Who is the fastest? I will send a word, the person who types it the quickest wins!
       To start, 2 or more people must react with 🏁`);
 
-    const embed1 = await msg.channel.send(em);
+    const embed1 = await msg.channel.send({embeds: [em]});
     await embed1.react('🏁');
 
     const filter = (reaction, user) => {

@@ -50,7 +50,7 @@ class Help extends Command {
         em.addField('NSFW', command.conf.nsfw, true);
         em.addField('Description', command.help.description, false);
         em.addField('Long Description', command.help.longDescription, false);
-        return msg.channel.send(em);
+        return msg.channel.send({embeds: [em]});
       } else return msg.channel.send(errEm);
     }
     return msg.channel.send({ embeds: [em]});

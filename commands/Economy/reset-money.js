@@ -66,7 +66,7 @@ module.exports = class ResetMoney extends Command {
             .setColor('#EC5454')
             .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
             .setDescription(`That user was not found. \nUsage: ${p}Reset-Money <user>`);
-          return msg.channel.send(embed);
+          return msg.channel.send({embeds: [embed]});
         }
       }
 

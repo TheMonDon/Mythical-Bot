@@ -42,7 +42,7 @@ module.exports = class setCurrency extends Command {
     
           Usage: ${usage}
         `);
-      return msg.channel.send(embed);
+      return msg.channel.send({embeds: [embed]});
     }
     const errEmbed = new DiscordJS.MessageEmbed()
       .setColor('#EC5454')
@@ -110,6 +110,6 @@ module.exports = class setCurrency extends Command {
       }
     }
 
-    return msg.channel.send(embed);
+    return msg.channel.send({embeds: [embed]});
   }
 };

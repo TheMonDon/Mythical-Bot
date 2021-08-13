@@ -33,7 +33,7 @@ module.exports = class work extends Command {
           .setColor('#EC5454')
           .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
           .setDescription(`You cannot work for ${tLeft}`);
-        return msg.channel.send(embed);
+        return msg.channel.send({embeds: [embed]});
       }
     }
 
@@ -64,7 +64,7 @@ module.exports = class work extends Command {
       .setColor('#64BC6C')
       .setDescription(job)
       .setFooter(`Reply #${num.toLocaleString()}`);
-    msg.channel.send(embed);
+    msg.channel.send({embeds: [embed]});
 
     setTimeout(() => {
       userCooldown = {};

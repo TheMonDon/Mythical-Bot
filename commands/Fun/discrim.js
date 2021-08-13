@@ -25,7 +25,7 @@ class Discrim extends Command {
       .setDescription(output.slice(0, 4000));
     if (output.length > 4000) em.addField('Showing first 4000 characters.');
 
-    return msg.channel.send(em);
+    return msg.channel.send({embeds: [em]});
   }
 }
 

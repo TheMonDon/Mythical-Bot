@@ -45,7 +45,7 @@ class roleInfo extends Command {
       .addField('Mentionable', infoRole.mentionable, true)
       .addField('Managed', infoRole.managed, true)
       .addField('Created At', `${ca} (${time})`, true);
-    return msg.channel.send(embed);
+    return msg.channel.send({embeds: [embed]});
   }
 }
 

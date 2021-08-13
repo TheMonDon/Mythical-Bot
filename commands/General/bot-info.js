@@ -36,7 +36,7 @@ class BotInfo extends Command {
       .addField('Bot Version', pjson.version, true)
       .addField('Bot Creator', pjson.owner, true)
       .addField('Invite', '[cisn.xyz/mythical](https://cisn.xyz/mythical)', true);
-    return msg.channel.send(embed);
+    return msg.channel.send({embeds: [embed]});
   }
 }
 

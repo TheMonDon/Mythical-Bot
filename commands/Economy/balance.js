@@ -30,7 +30,7 @@ module.exports = class BalanceCommand extends Command {
 
       Usage: ${msg.settings.prefix}balance [member]
       `);
-      return msg.channel.send(embed);
+      return msg.channel.send({embeds: [embed]});
     }
 
     const cash = db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`) || db.get(`servers.${msg.guild.id}.economy.startBalance`) || 0;
@@ -46,6 +46,6 @@ module.exports = class BalanceCommand extends Command {
       .addField('Bank:', cs + bank.toLocaleString(), true)
       .addField('Net Worth:', cs + nw.toLocaleString(), true)
       .setTimestamp();
-    return msg.channel.send(embed);
+    return msg.channel.send({embeds: [embed]});
   }
 };

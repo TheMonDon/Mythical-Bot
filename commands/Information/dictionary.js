@@ -38,7 +38,7 @@ class DictionaryCommand extends Command {
           .addField('Example', example || 'No example provided', true)
           .addField('Pronunciation', result.pronunciation || 'No pronunciation provided', true);
         if (result.definitions?.[0].image_url) em.setThumbnail(result.definitions[0].image_url);
-        return msg.channel.send(em);
+        return msg.channel.send({embeds: [em]});
       })
       .catch(() => {
         return msg.channel.send('No entry was found for that word.');

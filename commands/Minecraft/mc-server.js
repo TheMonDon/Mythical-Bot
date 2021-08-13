@@ -43,6 +43,6 @@ module.exports = class mcserver extends Command {
       .addField('Version:', body.version, false)
       .addField('Players:', `${body.players.online}/${body.players.max}`, false)
       .addField('MOTD:', body.motd.clean, false);
-    return msg.channel.send(em);
+    return msg.channel.send({embeds: [em]});
   }
 };

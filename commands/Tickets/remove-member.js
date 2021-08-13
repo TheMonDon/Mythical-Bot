@@ -59,7 +59,7 @@ class RemoveMember extends Command {
       .setTitle('Member Removed')
       .setColor('#E65DF4')
       .setDescription(`${msg.author} has removed a member: \n${mem} (${mem.displayName})`);
-    return msg.channel.send(em);
+    return msg.channel.send({embeds: [em]});
   }
 }
 

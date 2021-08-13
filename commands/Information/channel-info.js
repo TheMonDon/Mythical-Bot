@@ -45,7 +45,7 @@ class Stats extends Command {
     if (infoChan.parent) embed.addField('Parent', `${infoChan.parent.name} \n \`${infoChan.parentID}\``, true);
     if (infoChan.type === 'text') embed.addField('Topic', `${(infoChan.topic) || 'None'}`, false);
 
-    return msg.channel.send(embed);
+    return msg.channel.send({embeds: [embed]});
   }
 }
 

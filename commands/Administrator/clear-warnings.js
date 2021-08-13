@@ -56,7 +56,7 @@ class deletewarning extends Command {
       .addField('From User', `${mem} (${mem.id})`, true)
       .addField('Cleared Cases', otherCases, true);
     mem.send(em).catch(() => null);
-    return msg.channel.send(em);
+    return msg.channel.send({embeds: [em]});
   }
 }
 
