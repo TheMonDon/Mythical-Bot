@@ -30,8 +30,8 @@ class Perms extends Command {
     embed.setFooter(`Requested by: ${msg.member.displayName}`);
     embed.setTimestamp();
 
+    // \`View Channels\`| ${infoMem.hasPermission('VIEW_CHANNELS') ? yes : no}
     embed.addField('➢ __General Server Permissions:__', stripIndents`
-    \`View Channels\`| ${infoMem.hasPermission('VIEW_CHANNELS') ? yes : no}
     \`Manage Channels\`| ${infoMem.hasPermission('MANAGE_CHANNELS') ? yes : no}
     \`Manage Roles\`| ${infoMem.hasPermission('MANAGE_ROLES') ? yes : no}
     \`Manage Emojis and Stickers\`| ${infoMem.hasPermission('MANAGE_EMOJIS') ? yes : no}
