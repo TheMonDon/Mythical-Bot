@@ -14,14 +14,6 @@ module.exports = class {
     // for all of them to be loaded.
     await this.client.wait(1000);
 
-    // This loop ensures that client.appInfo always contains up to date data
-    // about the app's status. This includes whether the bot is public or not,
-    // its description, owner, etc. Used for the dashboard among other things.
-    this.client.appInfo = await this.client.fetchApplication();
-    setInterval(async () => {
-      this.client.appInfo = await this.client.fetchApplication();
-    }, 60000);
-
     // Check whether the "Default" guild settings are loaded in the enmap.
     // If they're not, write them in. This should only happen on first load.
     if (!this.client.settings.has('default')) {
