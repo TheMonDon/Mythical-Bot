@@ -99,7 +99,7 @@ Filling starts at the top left corner.`)
           .setTimestamp();
       }
 
-      return embed;
+      return [embed];
     }
 
     try {
@@ -115,10 +115,10 @@ Filling starts at the top left corner.`)
         };
 
         if (!message) {
-          message = await msg.channel.send(getContent());
+          message = await msg.channel.send({embeds: getContent()});
           ['🟥', '🟦', '🟧', '🟪', '🟩'].forEach(s => message.react(s));
         } else {
-          message.edit(getContent());
+          message.edit({embeds: getContent()});
         }
 
         const collected = await message.awaitReactions(filter, { max: 1, time: 60000, errors: ['time'] });
@@ -175,20 +175,20 @@ Filling starts at the top left corner.`)
       if (gameOver === true) {
         this.client.games.delete(msg.channel.id);
         message.reactions.removeAll();
-        return message.edit(getContent());
+        return message.edit({embeds: getContent()});
       }
 
       if (turn >= 25) {
         gameOver = true;
         result = 'maxTurns';
-        return message.edit(getContent());
+        return message.edit({embeds: getContent()});
       }
     } catch (err) {
       this.client.games.delete(msg.channel.id);
       message.reactions.removeAll();
       gameOver = true;
       result = 'error';
-      return message.edit(getContent());
+      return message.edit({embeds: getContent()});
     }
   }
 }
