@@ -73,7 +73,7 @@ class Flood extends Command {
     }
 
     try {
-      while (gameOver === false && turn < 100) {
+      while (gameOver === false && turn < 50) {
         turn += 1;
         const current = gameBoard[0];
         const queue = [{ x: 0, y: 0 }];
@@ -92,6 +92,7 @@ class Flood extends Command {
         }
 
         const collected = await message.awaitReactions(filter, { max: 1, time: 60000, errors: ['time'] });
+        if (!collected) gameOver = true;
         selected = collected.first().emoji.name;
         const userReactions = message.reactions.cache.filter(reaction => reaction.users.cache.has(msg.author.id));
 
