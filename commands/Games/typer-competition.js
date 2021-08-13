@@ -60,7 +60,8 @@ class typerCommand extends Command {
       return reaction.emoji.name === '🏁' && !user.bot;
     };
 
-    embed1.awaitReactions(filter, {
+    embed1.awaitReactions({
+      filter,
       max: 2,
       time: 60000,
       errors: ['time']

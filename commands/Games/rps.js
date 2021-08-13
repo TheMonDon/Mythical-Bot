@@ -55,7 +55,8 @@ class rps extends Command {
     `)
         .then(async (msg) => {
           setTimeout(function () {}, 1000);
-          await msg.channel.awaitMessages(msg => msg.content.match(/^rock|paper|scissors$/i) && msg.author.id === p1.id, {
+          await msg.channel.awaitMessages({
+            filter: msg => msg.content.match(/^rock|paper|scissors$/i) && msg.author.id === p1.id,
             max: 1,
             time: 60000,
             errors: ['time']

@@ -82,7 +82,7 @@ class Flood extends Command {
           .setColor('#08b9bf')
           .setTitle('Flood')
           .setDescription(`${gameBoardToString()} \nGame Over! \n${turnResp[result]}`)
-          .addField('High Score', `${highScore} turns by ${highScoreUser}`)
+          .addField('High Score', `${highScore.toString()} turns by ${highScoreUser}`)
           .setTimestamp();
       } else {
         embed = new DiscordJS.MessageEmbed()
@@ -121,7 +121,7 @@ Filling starts at the top left corner.`)
           message.edit({embeds: getContent()});
         }
 
-        const collected = await message.awaitReactions(filter, { max: 1, time: 60000, errors: ['time'] });
+        const collected = await message.awaitReactions({filter, max: 1, time: 60000, errors: ['time'] });
         if (!collected) gameOver = true; result = 'timeOut';
         selected = collected.first().emoji.name;
         const userReactions = message.reactions.cache.filter(reaction => reaction.users.cache.has(msg.author.id));
