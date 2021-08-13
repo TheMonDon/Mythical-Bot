@@ -49,7 +49,7 @@ class unban extends Command {
           embed.setTimestamp();
           if (logChan) msg.guild.channels.cache.get(logChan).send(embed);
 
-          return msg.channel.send({embeds: [embed]});
+          return msg.channel.send({ embeds: [embed] });
         });
     } catch (err) {
       console.error(err);

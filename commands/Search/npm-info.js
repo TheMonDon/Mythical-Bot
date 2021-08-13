@@ -39,7 +39,7 @@ class npmInfo extends Command {
     Keywords: ${result.keywords?.length > 0 ? result.keywords.map(k => `\`${k}\``).join(', ') : 'none'}
     Download: [${result.name}](${result.links.npm})
     `);
-    return msg.channel.send({embeds: [em]});
+    return msg.channel.send({ embeds: [em] });
   }
 }
 

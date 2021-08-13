@@ -22,7 +22,7 @@ class hair extends Command {
       .setImage(hair.media)
       .setFooter(msg.author.tag)
       .setTimestamp();
-    return msg.channel.send({embeds: [em]});
+    return msg.channel.send({ embeds: [em] });
   }
 }
 

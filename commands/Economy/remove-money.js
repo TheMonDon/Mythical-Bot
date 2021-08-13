@@ -83,6 +83,6 @@ module.exports = class removeMoney extends Command {
       .setColor('#0099CC')
       .setDescription(`:white_check_mark: Removed **${cs}${amount.toLocaleString()}** to ${mem}'s ${type} balance.`)
       .setTimestamp();
-    return msg.channel.send({embeds: [embed]});
+    return msg.channel.send({ embeds: [embed] });
   }
 };

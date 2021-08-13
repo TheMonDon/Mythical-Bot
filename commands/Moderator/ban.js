@@ -54,7 +54,7 @@ class Ban extends Command {
         reply.delete();
       }, 30000);
     } else {
-      return msg.channel.send({embeds: [em]});
+      return msg.channel.send({ embeds: [em] });
     }
   }
 }

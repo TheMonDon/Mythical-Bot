@@ -69,13 +69,13 @@ module.exports = class BalanceCommand extends Command {
           .setColor('#04ACF4')
           .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
           .setDescription(`${mem} has recieved your ${cs}${amount.toLocaleString()}.`);
-        return msg.channel.send({embeds: [embed]});
+        return msg.channel.send({ embeds: [embed] });
       } else {
         const embed = new DiscordJS.MessageEmbed()
           .setColor('#EC5454')
           .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
           .setDescription(`Incorrect Usage: ${usage}`);
-        return msg.channel.send({embeds: [embed]});
+        return msg.channel.send({ embeds: [embed] });
       }
     }
     amount = parseInt(amount, 10);
@@ -98,6 +98,6 @@ module.exports = class BalanceCommand extends Command {
       .setColor('#0099CC')
       .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
       .setDescription(`${mem} has recieved your ${cs}${amount.toLocaleString()}.`);
-    return msg.channel.send({embeds: [embed]});
+    return msg.channel.send({ embeds: [embed] });
   }
 };

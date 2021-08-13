@@ -29,7 +29,7 @@ class quote extends Command {
       .addField('Quote', quote.text)
       .setAuthor(msg.author.username, msg.author.displayAvatarURL());
 
-    return msg.channel.send({embeds: [em]});
+    return msg.channel.send({ embeds: [em] });
   }
 }
 module.exports = quote;

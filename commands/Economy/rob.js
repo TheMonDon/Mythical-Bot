@@ -38,7 +38,7 @@ module.exports = class BalanceCommand extends Command {
           .setColor('#EC5454')
           .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
           .setDescription(`You cannot rob for ${tLeft}`);
-        return msg.channel.send({embeds: [embed]});
+        return msg.channel.send({ embeds: [embed] });
       }
     }
 
@@ -47,7 +47,7 @@ module.exports = class BalanceCommand extends Command {
         .setColor('#EC5454')
         .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
         .setDescription(`Incorrect Usage: ${p}Rob <user>`);
-      return msg.channel.send({embeds: [embed]});
+      return msg.channel.send({ embeds: [embed] });
     } else {
       mem = getMember(msg, text.join(' '));
     }
@@ -57,13 +57,13 @@ module.exports = class BalanceCommand extends Command {
         .setColor('#EC5454')
         .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
         .setDescription(`That user was not found. \nUsage: ${p}Rob <user>`);
-      return msg.channel.send({embeds: [embed]});
+      return msg.channel.send({ embeds: [embed] });
     } else if (mem.id === msg.author.id) {
       const embed = new DiscordJS.RichEmebd()
         .setColor('#EC5454')
         .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
         .setDescription('You can\'t rob yoursself.');
-      return msg.channel.send({embeds: [embed]});
+      return msg.channel.send({ embeds: [embed] });
     }
 
     const authCash = db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`) || db.get(`servers.${msg.guild.id}.economy.startBalance`) || 0;
@@ -77,7 +77,7 @@ module.exports = class BalanceCommand extends Command {
         .setColor('#EC5454')
         .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
         .setDescription(`${mem} does not have anything to rob.`);
-      return msg.channel.send({embeds: [embed]});
+      return msg.channel.send({ embeds: [embed] });
     }
 
     let failRate;
@@ -102,7 +102,7 @@ module.exports = class BalanceCommand extends Command {
         .setColor('ORANGE')
         .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
         .setDescription('You have too much money to rob someone.');
-      return msg.channel.send({embeds: [em]});
+      return msg.channel.send({ embeds: [em] });
     }
     if (ranNum < failRate) {
       db.subtract(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, fineAmnt);
@@ -111,7 +111,7 @@ module.exports = class BalanceCommand extends Command {
         .setColor('RED')
         .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
         .setDescription(`You were caught attempting to rob ${mem.displayName} and have been fined ${cs + fineAmnt.toLocaleString()}`);
-      msg.channel.send({embeds: [em]});
+      msg.channel.send({ embeds: [em] });
     } else {
       // Lucky then, give them the money!
       const amnt = Math.floor(Math.random() * memCash) + 1;
@@ -125,7 +125,7 @@ module.exports = class BalanceCommand extends Command {
         .setDescription(`You succesfully robbed ${mem} of ${cs}${amnt.toLocaleString()}`)
         .addField('Your New Balance', `${cs}${db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`).toLocaleString()}`, false)
         .addField(`${mem.displayName}'s New Balance`, `${cs}${db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`).toLocaleString()}`, false);
-      msg.channel.send({embeds: [embed]});
+      msg.channel.send({ embeds: [embed] });
     }
 
     userCooldown.time = Date.now() + (cooldown * 1000);

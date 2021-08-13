@@ -58,7 +58,7 @@ class AddMember extends Command {
       .setTitle('Member Added')
       .setColor('#E65DF4')
       .setDescription(`${msg.author} has added another member: \n${mem} (${mem.displayName})`);
-    return msg.channel.send({embeds: [em]});
+    return msg.channel.send({ embeds: [em] });
   }
 }
 

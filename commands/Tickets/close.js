@@ -48,7 +48,7 @@ class Close extends Command {
       .setColor('#E65DF4')
       .setDescription(stripIndents`${msg.author} has requested to close this ticket.
       The ticket will close in 5 minutes if no further activity occurs.`);
-    await msg.channel.send({embeds: [em]});
+    await msg.channel.send({ embeds: [em] });
 
     const filter = m => m.content.length > 0;
 
@@ -72,7 +72,7 @@ class Close extends Command {
         const output = `Closing of the ticket has been cancelled with the following reason: \n${response}`;
         db.push(`servers.${msg.guild.id}.tickets.${tName}.chatLogs`, output);
 
-        return msg.channel.send({embeds: [em]});
+        return msg.channel.send({ embeds: [em] });
       })
       .catch(async () => {
         let url;

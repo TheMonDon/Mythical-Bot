@@ -38,7 +38,7 @@ module.exports = class CrimeCommand extends Command {
           .setColor('#EC5454')
           .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
           .setDescription(`You cannot commit a crime for ${tLeft}`);
-        return msg.channel.send({embeds: [embed]});
+        return msg.channel.send({ embeds: [embed] });
       }
     }
 
@@ -79,7 +79,7 @@ module.exports = class CrimeCommand extends Command {
         .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
         .setDescription(txt)
         .setFooter(`Reply #${num.toLocaleString()}`);
-      msg.channel.send({embeds: [embed]});
+      msg.channel.send({ embeds: [embed] });
 
       db.subtract(`servers.${server.id}.users.${member.id}.economy.cash`, fineAmnt);
     } else {
@@ -94,7 +94,7 @@ module.exports = class CrimeCommand extends Command {
         .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
         .setDescription(txt)
         .setFooter(`Reply #${num.toLocaleString()}`);
-      msg.channel.send({embeds: [embed]});
+      msg.channel.send({ embeds: [embed] });
 
       db.add(`servers.${server.id}.users.${member.id}.economy.cash`, amount);
     }

@@ -21,7 +21,7 @@ class steam extends Command {
         .setTitle('Please provide something to search for')
         .setDescription(`Incorrect Usage: ${msg.settings.prefix}steam <game/app>`)
         .setTimestamp();
-      return msg.channel.send({embeds: [em]});
+      return msg.channel.send({ embeds: [em] });
     }
 
     const search = await fetch
@@ -68,7 +68,7 @@ class steam extends Command {
       .addField('❯\u2000DLC Count', `•\u2000 ${data.dlc ? data.dlc.length : 0}`, true)
       .addField('❯\u2000Developers', `•\u2000 ${data.developers ? data.developers.join(', ') || '???' : '???'}`, true)
       .addField('❯\u2000Publishers', `•\u2000 ${data.publishers ? data.publishers.join(', ') || '???' : '???'}`, true);
-    return msg.channel.send({embeds: [embed]});
+    return msg.channel.send({ embeds: [embed] });
   }
 }
 module.exports = steam;

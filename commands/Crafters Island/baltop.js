@@ -48,7 +48,7 @@ module.exports = class baltop extends Command {
                 .setTitle('Survival Balance Leaderboard')
                 .setDescription(arr.join('\n'))
                 .setColor('RANDOM');
-              return msg.channel.send({embeds: [em]});
+              return msg.channel.send({ embeds: [em] });
             }
           });
         }

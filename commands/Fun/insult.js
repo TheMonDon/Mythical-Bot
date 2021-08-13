@@ -22,7 +22,7 @@ class insult extends Command {
       .setTitle(body.insult)
       .setColor('RANDOM')
       .setFooter(`ID: ${body.number}`);
-    return msg.channel.send({embeds: [em]});
+    return msg.channel.send({ embeds: [em] });
   }
 }
 module.exports = insult;

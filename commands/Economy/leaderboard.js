@@ -67,6 +67,6 @@ module.exports = class Leaderboard extends Command {
       .setDescription(abc123.join('\n'))
       .setFooter(`Page ${realPage} / ${maxPages}`)
       .setTimestamp();
-    return msg.channel.send({embeds: [embed]});
+    return msg.channel.send({ embeds: [embed] });
   }
 };

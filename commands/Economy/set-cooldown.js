@@ -44,7 +44,7 @@ module.exports = class BalanceCommand extends Command {
       
       Usage: ${usage}
       `);
-      return msg.channel.send({embeds: [embed]});
+      return msg.channel.send({ embeds: [embed] });
     } else {
       type = args[0].toLowerCase();
       if (!types.includes(type)) {
@@ -52,7 +52,7 @@ module.exports = class BalanceCommand extends Command {
           .setColor('#EC5454')
           .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
           .setDescription(`Incorrect Usage: ${usage}`);
-        return msg.channel.send({embeds: [embed]});
+        return msg.channel.send({ embeds: [embed] });
       }
     }
 
@@ -70,7 +70,7 @@ module.exports = class BalanceCommand extends Command {
             Usage: ${usage}
             `);
 
-      return msg.channel.send({embeds: [embed]});
+      return msg.channel.send({ embeds: [embed] });
     } else if (cooldown < 30000) {
       const embed = new DiscordJS.MessageEmbed()
         .setColor('#EC5454')
@@ -81,7 +81,7 @@ module.exports = class BalanceCommand extends Command {
             Usage: ${usage}
             `);
 
-      return msg.channel.send({embeds: [embed]});
+      return msg.channel.send({ embeds: [embed] });
     } else if (isNaN(cooldown)) {
       const embed = new DiscordJS.MessageEmbed()
         .setColor('#EC5454')
@@ -92,7 +92,7 @@ module.exports = class BalanceCommand extends Command {
             Usage: ${usage}
             `);
 
-      return msg.channel.send({embeds: [embed]});
+      return msg.channel.send({ embeds: [embed] });
     }
 
     if (type === 'work') {
@@ -103,7 +103,7 @@ module.exports = class BalanceCommand extends Command {
         .setColor('#64BC6C')
         .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
         .setDescription(`The cooldown of \`Work\` has been set to ${cd} seconds.`);
-      return msg.channel.send({embeds: [embed]});
+      return msg.channel.send({ embeds: [embed] });
     } else if (type === 'rob') {
       const cd = cooldown / 1000;
       db.set(`servers.${server.id}.economy.rob.cooldown`, cd);
@@ -112,7 +112,7 @@ module.exports = class BalanceCommand extends Command {
         .setColor('#64BC6C')
         .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
         .setDescription(`The cooldown of \`Rob\` has been set to ${cd} seconds.`);
-      return msg.channel.send({embeds: [embed]});
+      return msg.channel.send({ embeds: [embed] });
     } else if (type === 'crime') {
       const cd = cooldown / 1000;
       db.set(`servers.${server.id}.economy.crime.cooldown`, cd);
@@ -121,7 +121,7 @@ module.exports = class BalanceCommand extends Command {
         .setColor('#64BC6C')
         .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
         .setDescription(`The cooldown of \`Crime\` has been set to ${cd} seconds.`);
-      return msg.channel.send({embeds: [embed]});
+      return msg.channel.send({ embeds: [embed] });
     }
   }
 };

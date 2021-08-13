@@ -87,7 +87,7 @@ class UserInfo extends Command {
         .addField('Account Type', infoMem.user.bot ? ':robot: Bot' : ':person_standing: Human', true)
         .addField(`Badges [${userBadges?.length || 0}]`, badgesArray || 'No Badges', true)
         .addField('Roles', roles1, false);
-      return msg.channel.send({embeds: [embed]});
+      return msg.channel.send({ embeds: [embed] });
     }
 
     // not guild member
@@ -111,7 +111,7 @@ class UserInfo extends Command {
       .addField(`Badges [${userBadges?.length || 0}]`, badgesArray || 'No Badges', true)
       .addField('Account Type', infoMem.bot ? ':robot: Bot' : ':person_standing: Human', true)
       .addField('Account Created', ca, true);
-    return msg.channel.send({embeds: [embed]});
+    return msg.channel.send({ embeds: [embed] });
   }
 }
 

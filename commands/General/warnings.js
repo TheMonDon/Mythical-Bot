@@ -57,7 +57,7 @@ class warnings extends Command {
       .setColor('ORANGE')
       .setTitle(`Total Warning Points: ${totalPoints}`)
       .setDescription(warns.length ? warns.join('\n') : 'This user is squeaky clean.');
-    return msg.channel.send({embeds: [em]});
+    return msg.channel.send({ embeds: [em] });
   }
 }
 

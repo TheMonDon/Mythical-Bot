@@ -38,7 +38,7 @@ class Topic extends Command {
           .setColor('#EC5454')
           .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
           .setDescription(`You can't change the topic for another: ${tLeft}`);
-        return msg.channel.send({embeds: [embed]});
+        return msg.channel.send({ embeds: [embed] });
       }
     }
 
@@ -70,7 +70,7 @@ class Topic extends Command {
       .setTitle('Topic Changed')
       .setColor('#E65DF4')
       .setDescription(`${msg.author} has changed the topic to: \n${topic}`);
-    msg.channel.send({embeds: [em]});
+    msg.channel.send({ embeds: [em] });
 
     channelCooldown.time = Date.now() + (cooldown * 1000);
     channelCooldown.active = true;

@@ -26,7 +26,7 @@ class Queue extends Command {
       .setTitle('Queue List')
       .setDescription(`\`\`\`${q}\`\`\``)
       .addField('Queue Length:', queue.tracks.length, false);
-    return msg.channel.send({embeds: [em]});
+    return msg.channel.send({ embeds: [em] });
   }
 }
 

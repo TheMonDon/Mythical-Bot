@@ -115,13 +115,13 @@ Filling starts at the top left corner.`)
         };
 
         if (!message) {
-          message = await msg.channel.send({embeds: getContent()});
+          message = await msg.channel.send({ embeds: getContent() });
           ['🟥', '🟦', '🟧', '🟪', '🟩'].forEach(s => message.react(s));
         } else {
-          message.edit({embeds: getContent()});
+          message.edit({ embeds: getContent() });
         }
 
-        const collected = await message.awaitReactions({filter, max: 1, time: 60000, errors: ['time'] });
+        const collected = await message.awaitReactions({ filter, max: 1, time: 60000, errors: ['time'] });
         if (!collected) gameOver = true; result = 'timeOut';
         selected = collected.first().emoji.name;
         const userReactions = message.reactions.cache.filter(reaction => reaction.users.cache.has(msg.author.id));
@@ -175,20 +175,20 @@ Filling starts at the top left corner.`)
       if (gameOver === true) {
         this.client.games.delete(msg.channel.id);
         message.reactions.removeAll();
-        return message.edit({embeds: getContent()});
+        return message.edit({ embeds: getContent() });
       }
 
       if (turn >= 25) {
         gameOver = true;
         result = 'maxTurns';
-        return message.edit({embeds: getContent()});
+        return message.edit({ embeds: getContent() });
       }
     } catch (err) {
       this.client.games.delete(msg.channel.id);
       message.reactions.removeAll();
       gameOver = true;
       result = 'error';
-      return message.edit({embeds: getContent()});
+      return message.edit({ embeds: getContent() });
     }
   }
 }

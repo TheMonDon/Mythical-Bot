@@ -40,7 +40,7 @@ class wiki extends Command {
       .setTitle(body.query.pages[0].title)
       .setAuthor('Wikipedia', 'https://i.imgur.com/a4eeEhh.png')
       .setDescription((str.length > 2043) ? str.substr(0, 2040) + ' ...' : str);
-    return msg.channel.send({embeds: [embed]});
+    return msg.channel.send({ embeds: [embed] });
   }
 }
 module.exports = wiki;

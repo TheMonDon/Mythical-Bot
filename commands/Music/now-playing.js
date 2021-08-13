@@ -48,7 +48,7 @@ class nowPlaying extends Command {
       .setColor('0099CC')
       .setThumbnail(song.thumbnail)
       .setAuthor(msg.member.displayName, msg.author.displayAvatarURL());
-    return msg.channel.send({embeds: [em]});
+    return msg.channel.send({ embeds: [em] });
   }
 }
 

@@ -48,7 +48,7 @@ class Eval extends Command {
           .addField('Error', code('js', error))
           .setColor('RED');
       } finally {
-        msg.channel.send({embeds: [embed]}).catch(error => {
+        msg.channel.send({ embeds: [embed] }).catch(error => {
           msg.channel.send(`There was an error while displaying the eval result! ${error.message}`);
         });
       }
