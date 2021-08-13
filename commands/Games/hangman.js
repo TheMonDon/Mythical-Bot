@@ -76,7 +76,7 @@ class hangman extends Command {
             .setDescription(embeddescription);
 
           const hangmanEmbed = await msg.channel.send({
-            embed: firstEmbed
+            embeds: [firstEmbed]
           });
 
           let message;
@@ -128,7 +128,7 @@ class hangman extends Command {
                       firstEmbed.setDescription(embeddescriptionwithtried);
 
                       hangmanEmbed.edit({
-                        embed: firstEmbed
+                        embeds: [firstEmbed]
                       });
 
                       turn = turn === 1 ? 2 : 1;
@@ -164,7 +164,7 @@ class hangman extends Command {
                         turn = turn === 1 ? 2 : 1;
 
                         hangmanEmbed.edit({
-                          embed: firstEmbed
+                          embeds: [firstEmbed]
                         });
                       } else {
                         firstEmbed.setTitle(embedtitlewrong);
@@ -175,7 +175,7 @@ class hangman extends Command {
                         turn === 1 ? turn = 2 : turn = 1;
 
                         hangmanEmbed.edit({
-                          embed: firstEmbed
+                          embeds: [firstEmbed]
                         });
                         const mentionnowin = lang.hangman_mentionnowin.replace('%word', wordToGuess);
                         return msg.channel.send(mentionnowin);
@@ -194,7 +194,7 @@ class hangman extends Command {
                         firstEmbed.setDescription(embeddescriptionwithtried);
 
                         hangmanEmbed.edit({
-                          embed: firstEmbed
+                          embeds: [firstEmbed]
                         });
 
                         if (turn === 1) {
@@ -227,7 +227,7 @@ class hangman extends Command {
                       turn = turn === 1 ? 2 : 1;
 
                       hangmanEmbed.edit({
-                        embed: firstEmbed
+                        embeds: [firstEmbed]
                       });
                     } else {
                       const notwordcharacters = lang.hangman_notwordcharacters.replace('%letterscount', wordToGuess.length);
@@ -266,7 +266,7 @@ class hangman extends Command {
         .setDescription(embeddescription);
 
       const hangmanEmbed = await msg.channel.send({
-        embed: firstEmbed
+        embeds: [firstEmbed]
       });
 
       let message;
@@ -301,7 +301,7 @@ class hangman extends Command {
                   firstEmbed.setDescription(embeddescriptionwithtried);
 
                   hangmanEmbed.edit({
-                    embed: firstEmbed
+                    embeds: [firstEmbed]
                   });
 
                   const gamewon = lang.hangman_gamewon.replace('%word', wordToGuess);
@@ -322,7 +322,7 @@ class hangman extends Command {
                     firstEmbed.setImage(hangmanPictures[15 - chances]);
 
                     hangmanEmbed.edit({
-                      embed: firstEmbed
+                      embeds: [firstEmbed]
                     });
                   } else {
                     firstEmbed.setTitle(embedtitlewrongnomention);
@@ -331,7 +331,7 @@ class hangman extends Command {
                     firstEmbed.setImage(hangmanPictures[15 - chances]);
 
                     hangmanEmbed.edit({
-                      embed: firstEmbed
+                      embeds: [firstEmbed]
                     });
                     const gamelost = lang.hangman_gamelost.replace('%word', wordToGuess);
                     this.client.games.delete(msg.channel.id);
@@ -351,7 +351,7 @@ class hangman extends Command {
                     firstEmbed.setDescription(embeddescriptionwithtried);
 
                     hangmanEmbed.edit({
-                      embed: firstEmbed
+                      embeds: [firstEmbed]
                     });
                     const gamewon = lang.hangman_gamewon.replace('%word', wordToGuess);
                     this.client.games.delete(msg.channel.id);
@@ -368,7 +368,7 @@ class hangman extends Command {
                   firstEmbed.setImage(hangmanPictures[15 - chances]);
 
                   hangmanEmbed.edit({
-                    embed: firstEmbed
+                    embeds: [firstEmbed]
                   });
                 } else {
                   const notwordcharacters = lang.hangman_notwordcharacters.replace('%letterscount', wordToGuess.length);
