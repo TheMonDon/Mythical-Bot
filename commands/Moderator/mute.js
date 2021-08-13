@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 const Command = require('../../base/Command.js');
 const { getMember } = require('../../base/Util.js');
 const db = require('quick.db');
