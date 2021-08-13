@@ -57,7 +57,7 @@ class Perms extends Command {
     \`Attach Files\`| ${infoMem.hasPermission('ATTACH_FILES') ? yes : no}
     \`Add Reactions\`| ${infoMem.hasPermission('ADD_REACTIONS') ? yes : no}
     \`Use External Emojis\`| ${/* infoMem.hasPermission('USE_EXTERNAL_EMOJIS') ? yes : no */ 'N/A'}
-    \`Use External Stickers\`| N/A ${/* infoMem.hasPermission('USE_EXTERNAL_STICKERS') ? yes : no */ 'N/A'}
+    \`Use External Stickers\`| ${/* infoMem.hasPermission('USE_EXTERNAL_STICKERS') ? yes : no */ 'N/A'}
     \`Mention @everyone, @here, and All Roles\`| ${infoMem.hasPermission('MENTION_EVERYONE') ? yes : no}
     \`Manage Messages\`| ${infoMem.hasPermission('MANAGE_MESSAGES') ? yes : no}
     \`Manage Threads\`| ${/* infoMem.hasPermission('MANAGE_THREADS') ? yes : no */ 'N/A'}
