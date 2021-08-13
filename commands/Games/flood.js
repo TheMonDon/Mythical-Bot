@@ -144,11 +144,11 @@ class Flood extends Command {
         this.client.games.delete(msg.channel.id);
         message.reactions.removeAll();
 
-        const HS = { score: turn, user: msg.author.username };
+        const HS = { score: turn, user: msg.author.tag };
         const oldHS = db.get('global.highScores.flood') || HS;
         let highScore = oldHS.score;
         let highScoreUser = oldHS.user;
-        if (oldHS.score < HS.score) {
+        if (HS.score < oldHS.score) {
           db.set('global.highScores.flood', HS);
           highScore = HS.score;
           highScoreUser = 'You';
