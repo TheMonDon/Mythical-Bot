@@ -1,6 +1,6 @@
 if (Number(process.version.slice(1).split('.')[0]) < 14) throw new Error('Node 14.0.0 or higher is required. Update Node on your system.');
 
-const DiscordJS = require('discord.js');
+const DiscordJS, { Intents } = require('discord.js');
 const { promisify } = require('util');
 const readdir = promisify(require('fs').readdir);
 const Enmap = require('enmap');
@@ -141,7 +141,9 @@ class Bot extends DiscordJS.Client {
 }
 
 // Enable intents for the bot
-const client = new Bot({ ws: { intents: DiscordJS.Intents.ALL } });
+const myIntents = new Intents();
+myIntents.add(Intents.FLAGS.GUILDS, Intents.GUILD_BANS, Intents.FLAGS.GUILD_MEMBERS, Intents.FLAGS.GUILD_EMOJIS_AND_STICKERS, Intents.GUILD_INTEGRATIONS, Intents.GUILD_WEBHOOKS, Intents.GUILD_INVITES, Intents.GUILD_VOICE_STATES, Intents.GUILD_MESSAGES, Intents.GUILD_MESSAGE_REACTIONS, Intents.DIRECT_MESSAGES, Intents.FLAGS.DIRECT_MESSAGE_REACTIONS)
+const client = new Bot({ intents: [] });
 
 // Create MySQL Pool globally
 global.pool = mysql.createPool({
@@ -155,7 +157,6 @@ client.player = new Player(client, {
   leaveOnEnd: false,
   leaveOnStop: true,
   leaveOnEmpty: false,
-  leaveOnEmptyCooldown: 0,
   autoSelfDeaf: true,
   enableLive: true
 });
