@@ -1,6 +1,7 @@
 if (Number(process.version.slice(1).split('.')[0]) < 14) throw new Error('Node 14.0.0 or higher is required. Update Node on your system.');
 
-const DiscordJS, { Intents } = require('discord.js');
+const { Intents } = require('discord.js');
+const DiscordJS = require('discord.js')
 const { promisify } = require('util');
 const readdir = promisify(require('fs').readdir);
 const Enmap = require('enmap');
