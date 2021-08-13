@@ -25,7 +25,8 @@ class Flood extends Command {
       winner: `Game beat in ${turn} turns!`,
       timeOut: 'Game timed out due to inactivity.',
       error: 'Game ended with an error.',
-      maxTurns: 'Game ended because you reached the max turns.'
+      maxTurns: 'Game ended because you reached the max turns.',
+      playing: 'Game shouldn\'t have ended. :('
     };
 
     const current = this.client.games.get(msg.channel.id);
@@ -87,7 +88,11 @@ class Flood extends Command {
           .setAuthor(msg.member.displayName, msg.author.displayAvatarURL({ dynamic: true }))
           .setColor('#08b9bf')
           .setTitle('Flood')
-          .setDescription(`Fill the entire image with the same color in 25 or fewer flood tiles (turns). \n${gameBoardToString()} \nClick on the reactions below to fill the area above. \nFilling starts at the top left corner.`)
+          .setDescription(`${gameBoardToString()} 
+Fill the entire image with the same color in 25 or fewer flood tiles (turns).
+
+Click on the reactions below to fill the area above.
+Filling starts at the top left corner.`)
           .addField('Turn:', turn.toString(), true)
           .setFooter(`Currently Playing: ${msg.author.username}`)
           .setTimestamp();
@@ -155,11 +160,12 @@ class Flood extends Command {
         }
 
         gameOver = true;
+        result = 'winner';
         for (let y = 0; y < HEIGHT; y++) {
           for (let x = 0; x < WIDTH; x++) {
             if (gameBoard[y * WIDTH + x] !== selected) {
               gameOver = false;
-              result = 'winner';
+              result = 'playing';
             }
           }
         }
