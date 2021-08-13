@@ -21,13 +21,6 @@ class Flood extends Command {
     let message;
     let gameOver = false;
     let result;
-    const turnResp = {
-      winner: `Game beat in ${turn} turns!`,
-      timeOut: 'Game timed out due to inactivity.',
-      error: 'Game ended with an error.',
-      maxTurns: 'Game ended because you reached the max turns.',
-      playing: 'Game shouldn\'t have ended. :('
-    };
 
     const current = this.client.games.get(msg.channel.id);
     if (current) return msg.reply(`Please wait until the current game of \`${current.name}\` is finished.`);
@@ -58,6 +51,14 @@ class Flood extends Command {
     function getContent () {
       let embed;
       if (gameOver === true) {
+        const turnResp = {
+          winner: `Game beat in ${turn} turns!`,
+          timeOut: 'Game timed out due to inactivity.',
+          error: 'Game ended with an error.',
+          maxTurns: 'Game ended because you reached the max turns.',
+          playing: 'Game shouldn\'t have ended. :('
+        };
+
         let highScore;
         let highScoreUser;
         if (result === 'winner') {
