@@ -103,11 +103,11 @@ class typerCommand extends Command {
                 const winner = collected2.first().author;
                 const time = (t1 - t2) / 1000;
 
-                const HS = { score: time, user: winner.username };
+                const HS = { score: time, user: winner.tag };
                 const oldHS = db.get('global.highScores.typeCompetition') || HS;
                 let highScore = oldHS.score;
                 let highScoreUser = oldHS.user;
-                if (oldHS.score < HS.score) {
+                if (HS.score < oldHS.score) {
                   db.set('global.highScores.typerCompetition', HS);
                   highScore = HS.score;
                   highScoreUser = 'You';
