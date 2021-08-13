@@ -7,13 +7,14 @@ class MyLevel extends Command {
       description: 'Displays your permission level',
       usage: 'mylevel',
       category: 'Information',
-      guildOnly: true
+      guildOnly: true,
+      aliases: ['level', 'lvl', 'mylvl']
     });
   }
 
-  async run (message, args, level) {
+  async run (msg, _args, level) {
     const friendly = this.client.config.permLevels.find(l => l.level === level).name;
-    message.reply(`Your permission level is: ${level} - ${friendly}`);
+    msg.reply(`Your permission level is: ${level} - ${friendly}`);
   }
 }
 

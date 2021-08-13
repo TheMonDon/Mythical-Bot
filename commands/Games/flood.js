@@ -179,6 +179,7 @@ Filling starts at the top left corner.`)
       }
 
       if (turn >= 25) {
+        gameOver = true;
         result = 'maxTurns';
         return message.edit(getContent());
       }
