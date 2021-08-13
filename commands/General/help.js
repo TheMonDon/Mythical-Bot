@@ -26,7 +26,7 @@ class Help extends Command {
       .addField('Current Categories:', level >= 8 ? allcats.join(', ') : cats.join(', '), true)
       .addField('Quick Bits', '[Invite Link](https://cisn.xyz/mythical)', true);
 
-    if (!args || args.length < 1) return msg.channel.send(errEm);
+    if (!args || args.length < 1) return msg.channel.send({embeds: [errEm]});
 
     const category = toProperCase(args.join(' '));
     em.setTitle(`${category} Commands`);
@@ -53,7 +53,7 @@ class Help extends Command {
         return msg.channel.send(em);
       } else return msg.channel.send(errEm);
     }
-    return msg.channel.send(em);
+    return msg.channel.send({ embeds: [em]});
   }
 }
 
