@@ -21,6 +21,12 @@ class Flood extends Command {
     let message;
     let gameOver = false;
     let result;
+    const turnResp = {
+      winner: `Game beat in ${turn} turns!`,
+      timeOut: 'Game timed out due to inactivity.',
+      error: 'Game ended with an error.',
+      maxTurns: 'Game ended because you reached the max turns.'
+    };
 
     const current = this.client.games.get(msg.channel.id);
     if (current) return msg.reply(`Please wait until the current game of \`${current.name}\` is finished.`);
@@ -51,19 +57,37 @@ class Flood extends Command {
     function getContent () {
       let embed;
       if (gameOver === true) {
-        const turnResp = result === 'winner' ? `Game beat in ${turn} turns!` : '';
+        let highScore;
+        let highScoreUser;
+        if (result === 'winner') {
+          const HS = { score: turn, user: msg.author.tag };
+          const oldHS = db.get('global.highScores.flood') || HS;
+          highScore = oldHS.score;
+          highScoreUser = oldHS.user;
+          if (HS.score < oldHS.score) {
+            db.set('global.highScores.flood', HS);
+            highScore = HS.score;
+            highScoreUser = 'You';
+          }
+        } else {
+          const oldHS = db.get('global.highScores.flood');
+          highScore = oldHS.score;
+          highScoreUser = oldHS.user;
+        }
+
         embed = new DiscordJS.MessageEmbed()
           .setAuthor(msg.member.displayName, msg.author.displayAvatarURL({ dynamic: true }))
           .setColor('#08b9bf')
           .setTitle('Flood')
-          .setDescription(`Game Over! \n${turnResp}`)
+          .setDescription(`${gameBoardToString()} \nGame Over! \n${turnResp[result]}`)
+          .addField('High Score', `${highScore} turns by ${highScoreUser}`)
           .setTimestamp();
       } else {
         embed = new DiscordJS.MessageEmbed()
           .setAuthor(msg.member.displayName, msg.author.displayAvatarURL({ dynamic: true }))
           .setColor('#08b9bf')
           .setTitle('Flood')
-          .setDescription(gameBoardToString())
+          .setDescription(`Fill the entire image with the same color in 25 or fewer flood tiles (turns). \n${gameBoardToString()} \nClick on the reactions below to fill the area above. \nFilling starts at the top left corner.`)
           .addField('Turn:', turn.toString(), true)
           .setFooter(`Currently Playing: ${msg.author.username}`)
           .setTimestamp();
@@ -73,7 +97,7 @@ class Flood extends Command {
     }
 
     try {
-      while (gameOver === false && turn < 50) {
+      while (gameOver === false && turn < 25) {
         turn += 1;
         const current = gameBoard[0];
         const queue = [{ x: 0, y: 0 }];
@@ -92,7 +116,7 @@ class Flood extends Command {
         }
 
         const collected = await message.awaitReactions(filter, { max: 1, time: 60000, errors: ['time'] });
-        if (!collected) gameOver = true;
+        if (!collected) gameOver = true; result = 'timeOut';
         selected = collected.first().emoji.name;
         const userReactions = message.reactions.cache.filter(reaction => reaction.users.cache.has(msg.author.id));
 
@@ -144,33 +168,18 @@ class Flood extends Command {
       if (gameOver === true) {
         this.client.games.delete(msg.channel.id);
         message.reactions.removeAll();
+        return message.edit(getContent());
+      }
 
-        const HS = { score: turn, user: msg.author.tag };
-        const oldHS = db.get('global.highScores.flood') || HS;
-        let highScore = oldHS.score;
-        let highScoreUser = oldHS.user;
-        if (HS.score < oldHS.score) {
-          db.set('global.highScores.flood', HS);
-          highScore = HS.score;
-          highScoreUser = 'You';
-        }
-
-        const turnResp = result === 'winner' ? `Game beat in ${turn} turns!` : '';
-        const embed = new DiscordJS.MessageEmbed()
-          .setAuthor(msg.member.displayName, msg.author.displayAvatarURL({ dynamic: true }))
-          .setColor('#08b9bf')
-          .setTitle('Flood')
-          .setDescription(`Game Over! \n${turnResp}`)
-          .addField('High Score', `${highScore} turns by ${highScoreUser}`)
-          .setTimestamp();
-        return message.edit(embed);
-      } else {
-        msg.channel.send('Error: Something went wrong, isOver is false.');
+      if (turn >= 25) {
+        result = 'maxTurns';
+        return message.edit(getContent());
       }
     } catch (err) {
-      console.log(err);
+      this.client.games.delete(msg.channel.id);
       message.reactions.removeAll();
       gameOver = true;
+      result = 'error';
       return message.edit(getContent());
     }
   }
