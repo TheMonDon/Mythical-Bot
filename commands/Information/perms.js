@@ -31,8 +31,8 @@ class Perms extends Command {
     embed.setTimestamp();
 
     embed.addField('➢ __General Server Permissions:__', stripIndents`
-    \'View Channels\'| ${infoMem.hasPermission('VIEW_CHANNELS') ? yes : no}
-    \`Manage Channels\'| ${infoMem.hasPermission('MANAGE_CHANNELS') ? yes : no}
+    \`View Channels\`| ${infoMem.hasPermission('VIEW_CHANNELS') ? yes : no}
+    \`Manage Channels\`| ${infoMem.hasPermission('MANAGE_CHANNELS') ? yes : no}
     \`Manage Roles\`| ${infoMem.hasPermission('MANAGE_ROLES') ? yes : no}
     \`Manage Emojis and Stickers\`| ${infoMem.hasPermission('MANAGE_EMOJIS') ? yes : no}
     \`View Audit Log\`| ${infoMem.hasPermission('VIEW_AUDIT_LOG') ? yes : no}
@@ -51,8 +51,8 @@ class Perms extends Command {
 
     embed.addField('➢ __Text Channel Permissions:__', stripIndents`
     \`Send Messages\`| ${infoMem.hasPermission('SEND_MESSAGES') ? yes : no}
-    \'Public Thrads\'| ${infoMem.hasPermission('PUBLIC_THREADS') ? yes : no}
-    \'Public Thrads\'| ${infoMem.hasPermission('PUBLIC_THREADS') ? yes : no}
+    \`Public Thrads\`| ${infoMem.hasPermission('PUBLIC_THREADS') ? yes : no}
+    \`Public Thrads\`| ${infoMem.hasPermission('PUBLIC_THREADS') ? yes : no}
     \`Embed Links\`| ${infoMem.hasPermission('EMBED_LINKS') ? yes : no}
     \`Attach Files\`| ${infoMem.hasPermission('ATTACH_FILES') ? yes : no}
     \`Add Reactions\`| ${infoMem.hasPermission('ADD_REACTIONS') ? yes : no}
@@ -70,7 +70,7 @@ class Perms extends Command {
     embed.addField('➢ __Voice Permissions:__', stripIndents`
     \`Connect\`| ${(infoMem.hasPermission('CONNECT') ? yes : no)}
     \`Speak\`| ${(infoMem.hasPermission('SPEAK') ? yes : no)}
-    'Video'| ${infoMem.hasPermission('VIDEO') ? yes : no}
+    \`Video\`| ${infoMem.hasPermission('VIDEO') ? yes : no}
     \`Use Voice Activity\`| ${(infoMem.hasPermission('USE_VAD') ? yes : no)}
     \`Priority Speaker\`| ${(infoMem.hasPermission('PRIORITY_SPEAKER') ? yes : no)}
     \`Mute Members\`| ${(infoMem.hasPermission('MUTE_MEMBERS') ? yes : no)}
@@ -79,7 +79,7 @@ class Perms extends Command {
     `, true);
 
     embed.addField('➢ __Advanced Permissions:__', stripIndents`
-    'Request to Speak'| ${infoMem.hasPermission('REQUEST_TO_SPEAK') ? yes : no}
+    \`Request to Speak\`| ${infoMem.hasPermission('REQUEST_TO_SPEAK') ? yes : no}
     `, true);
 
     embed.addField('➢ __Advanced Permissions:__', stripIndents`
