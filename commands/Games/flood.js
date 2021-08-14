@@ -73,8 +73,8 @@ class Flood extends Command {
           }
         } else {
           const oldHS = db.get('global.highScores.flood');
-          highScore = oldHS.score;
-          highScoreUser = oldHS.user;
+          highScore = oldHS.score || 0;
+          highScoreUser = oldHS.user || 'N/A';
         }
 
         embed = new DiscordJS.MessageEmbed()
