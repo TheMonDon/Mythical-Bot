@@ -48,7 +48,7 @@ module.exports = class ResetMoney extends Command {
           } else if (word === 'no' || word === 'n') {
             return msg.channel.send('Cancelled, your money will not be reset.');
           } else {
-            return msg.channel.send(errEm);
+            return msg.channel.send({ embeds: [errEm] });
           }
         })
         .catch(err => {
@@ -86,7 +86,7 @@ module.exports = class ResetMoney extends Command {
           } else if (word === 'no' || word === 'n') {
             return msg.channel.send(`Cancelled, ${mem.user?.tag || mem.tag}'s money won't be reset.`);
           } else {
-            return msg.channel.send(errEm);
+            return msg.channel.send({ embeds: [errEm] });
           }
         })
         .catch(err => {
