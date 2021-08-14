@@ -231,6 +231,19 @@ module.exports = class Blackjack extends Command {
         .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
         .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
       return mEm.edit(embed);
+    } else if (push) {
+      pcards = getCards('player', bj);
+      dcards = getCards('dealer', bj);
+
+      const embed = new DiscordJS.MessageEmbed()
+        .setAuthor(msg.author.username, msg.author.displayAvatarURL())
+        .setDescription('Result: Push, money back')
+        .setColor(color)
+        .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
+        .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
+
+      db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bet); // Add their original money back
+      return mEm.edit(embed);
     } else {
         pcards = getCards('player', bj);
         dcards = getCards('dealer', bj);
