@@ -212,7 +212,7 @@ module.exports = class Blackjack extends Command {
 
         const embed = new DiscordJS.MessageEmbed()
           .setAuthor(msg.author.username, msg.author.displayAvatarURL())
-          .setDescription(`Result: You win ${cs}${bet1.toLocaleString()}`)
+          .setDescription(`Result: BlackJack, you win ${cs}${bet1.toLocaleString()}`)
           .setColor(color)
           .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
           .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
@@ -226,7 +226,7 @@ module.exports = class Blackjack extends Command {
 
         const embed = new DiscordJS.MessageEmbed()
           .setAuthor(msg.author.username, msg.author.displayAvatarURL())
-          .setDescription(`Result: You lose ${cs}${bet.toLocaleString()}`)
+          .setDescription(`Result: Bust, you lose ${cs}${bet.toLocaleString()}`)
           .setColor(color)
           .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
           .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
@@ -255,12 +255,6 @@ module.exports = class Blackjack extends Command {
         .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
         .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
       mEm.edit({embeds: [embed] });
-    }
-
-    if (gameOver === true) {
-      return msg.channel.send('gameOver');
-    } else {
-      return msg.channel.send('game broken lol');
     }
   }
 };
