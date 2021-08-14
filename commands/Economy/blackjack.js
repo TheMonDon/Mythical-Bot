@@ -185,7 +185,7 @@ module.exports = class Blackjack extends Command {
         max: 1,
         time: 60000
       });
-      if (!collected) gameOver = true;
+      if (!collected || !collected.first()) gameOver = true;
       const selected = collected.first().content.toLowerCase();
 
       if (selected === 'hit') bj.hit();
@@ -255,9 +255,12 @@ module.exports = class Blackjack extends Command {
         .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
         .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
       mEm.edit({embeds: [embed] });
-      }
-      if (gameOver === true) msg.channel.send('gameOver')
-      else msg.channel.send('game broken lol')
+    }
+
+    if (gameOver === true) {
+      return msg.channel.send('gameOver');
+    } else {
+      return msg.channel.send('game broken lol');
     }
   }
 };
