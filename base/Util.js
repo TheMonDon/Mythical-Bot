@@ -17,7 +17,8 @@ module.exports = class Util {
       const value = res.content.toLowerCase();
       return (user ? res.author.id === user.id : true) && (yes.includes(value) || no.includes(value) || extraYes.includes(value) || extraNo.includes(value));
     };
-    const verify = await channel.awaitMessages(filter, {
+    const verify = await channel.awaitMessages({
+      filter,
       max: 1,
       time
     });

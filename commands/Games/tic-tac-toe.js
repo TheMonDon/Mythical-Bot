@@ -26,6 +26,45 @@ class TicTacToe extends Command {
     if (current) return msg.reply(`Please wait until the current game of \`${current.name}\` is finished.`);
     this.client.games.set(msg.channel.id, { name: this.help.name, user: msg.author.id, date: Date.now() });
 
+    function verifyWin (sides, player1, player2) {
+      const evaluated = tictactoe.boardEvaluate(convertBoard(sides)).status;
+      if (evaluated === 'win') return player1;
+      if (evaluated === 'loss') return player2;
+      if (evaluated === 'tie') return 'tie';
+      return false;
+    }
+  
+    function convertBoard (board) {
+      const newBoard = [[], [], []];
+      let col = 0;
+      for (const piece of board) {
+        if (piece === 'X') {
+          newBoard[col].push('x');
+        } else if (piece === 'O') {
+          newBoard[col].push('o');
+        } else {
+          newBoard[col].push('_');
+        }
+        if (newBoard[col].length === 3) col++;
+      }
+      return newBoard;
+    }
+  
+    function displayBoard (board) {
+      let str = '';
+      for (let i = 0; i < board.length; i++) {
+        if (board[i] === 'X') {
+          str += '❌';
+        } else if (board[i] === 'O') {
+          str += '⭕';
+        } else {
+          str += nums[i];
+        }
+        if (i % 3 === 2) str += '\n';
+      }
+      return str;
+    }
+
     try {
       if (!opponent.user.bot) {
         await msg.channel.send(`${opponent}, do you accept this challenge?`);
@@ -46,17 +85,17 @@ class TicTacToe extends Command {
         const sign = userTurn ? 'X' : 'O';
         let choice;
         if (opponent.user.bot && !userTurn) {
-          choice = tictactoe.bestMove(this.convertBoard(sides), { computer: 'o', opponent: 'x' });
+          choice = tictactoe.bestMove(convertBoard(sides), { computer: 'o', opponent: 'x' });
         } else {
           if (message === 0) {
             message = await msg.channel.send(stripIndents`
             ${user}, which side do you pick? Type \`end\` to forfeit.
-            ${this.displayBoard(sides)}
+            ${displayBoard(sides)}
           `);
           }
           await message.edit(stripIndents`
             ${user}, which side do you pick? Type \`end\` to forfeit.
-            ${this.displayBoard(sides)}
+            ${displayBoard(sides)}
           `);
           const filter = res => {
             if (res.author.id !== user.id) return false;
@@ -64,7 +103,8 @@ class TicTacToe extends Command {
             if (pick.toLowerCase() === 'end') return true;
             return sides.includes(pick) && !taken.includes(pick);
           };
-          const turn = await msg.channel.awaitMessages(filter, {
+          const turn = await msg.channel.awaitMessages({
+            filter,
             max: 1,
             time: 30000
           });
@@ -88,7 +128,7 @@ class TicTacToe extends Command {
         }
         sides[opponent.user.bot && !userTurn ? choice : Number.parseInt(choice, 10) - 1] = sign;
         taken.push(choice);
-        const win = this.verifyWin(sides, msg.author, opponent);
+        const win = verifyWin(sides, msg.author, opponent);
         if (win) winner = win;
         if (lastTurnTimeout) lastTurnTimeout = false;
         userTurn = !userTurn;
@@ -97,51 +137,12 @@ class TicTacToe extends Command {
       if (winner === 'time') return msg.channel.send('Game ended due to inactivity.');
       return message.edit(stripIndents`
         ${winner === 'tie' ? 'Oh... The cat won.' : `Congrats, ${winner}!`}
-        ${this.displayBoard(sides)}
+        ${displayBoard(sides)}
       `);
     } catch (err) {
       this.client.games.delete(msg.channel.id);
-      throw err;
+      msg.channel.send('An error occured.');
     }
-  }
-
-  verifyWin (sides, player1, player2) {
-    const evaluated = tictactoe.boardEvaluate(this.convertBoard(sides)).status;
-    if (evaluated === 'win') return player1;
-    if (evaluated === 'loss') return player2;
-    if (evaluated === 'tie') return 'tie';
-    return false;
-  }
-
-  convertBoard (board) {
-    const newBoard = [[], [], []];
-    let col = 0;
-    for (const piece of board) {
-      if (piece === 'X') {
-        newBoard[col].push('x');
-      } else if (piece === 'O') {
-        newBoard[col].push('o');
-      } else {
-        newBoard[col].push('_');
-      }
-      if (newBoard[col].length === 3) col++;
-    }
-    return newBoard;
-  }
-
-  displayBoard (board) {
-    let str = '';
-    for (let i = 0; i < board.length; i++) {
-      if (board[i] === 'X') {
-        str += '❌';
-      } else if (board[i] === 'O') {
-        str += '⭕';
-      } else {
-        str += nums[i];
-      }
-      if (i % 3 === 2) str += '\n';
-    }
-    return str;
   }
 }
 module.exports = TicTacToe;

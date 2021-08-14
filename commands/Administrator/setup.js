@@ -3,7 +3,7 @@ const DiscordJS = require('discord.js');
 const db = require('quick.db');
 const { stripIndents } = require('common-tags');
 
-class setup extends Command {
+class Setup extends Command {
   constructor (client) {
     super(client, {
       name: 'setup',
@@ -41,7 +41,8 @@ class setup extends Command {
           `);
 
           // This is for the first question
-          return msg.channel.awaitMessages(filter2, {
+          return msg.channel.awaitMessages({
+            filter2,
             max: 1,
             time: 60000,
             errors: ['time']
@@ -68,7 +69,8 @@ class setup extends Command {
       let reaction;
 
       // This is for the first question
-      return msg.channel.awaitMessages(filter, {
+      return msg.channel.awaitMessages({
+        filter,
         max: 1,
         time: 60000,
         errors: ['time']
@@ -100,7 +102,8 @@ class setup extends Command {
           Type \`cancel\` to exit.`);
 
           // This is for second question
-          return msg.channel.awaitMessages(filter2, {
+          return msg.channel.awaitMessages({
+            filter2,
             max: 1,
             time: 60000,
             errors: ['time']
@@ -167,7 +170,8 @@ class setup extends Command {
                 You have 120 seconds.`);
 
                 // This is to ask what to put inside the embed description for reaction role
-                await msg.channel.awaitMessages(filter, {
+                await msg.channel.awaitMessages({
+                  filter,
                   max: 1,
                   time: 120000,
                   errors: ['time']
@@ -282,4 +286,4 @@ class setup extends Command {
   }
 }
 
-module.exports = setup;
+module.exports = Setup;

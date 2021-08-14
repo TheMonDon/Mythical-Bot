@@ -3,7 +3,7 @@ const { getMember, verify } = require('../../base/Util.js');
 const { stripIndents } = require('common-tags');
 const DiscordJS = require('discord.js');
 
-class rps extends Command {
+class RPS extends Command {
   constructor (client) {
     super(client, {
       name: 'rps',
@@ -83,7 +83,8 @@ class rps extends Command {
       `)
         .then(async (msg) => {
           setTimeout(function () {}, 1000);
-          await msg.channel.awaitMessages(msg => msg.content.match(/^rock|paper|scissors$/i) && msg.author.id === mem.id, {
+          await msg.channel.awaitMessages({
+            filter: msg => msg.content.match(/^rock|paper|scissors$/i) && msg.author.id === mem.id,
             max: 1,
             time: 60000,
             errors: ['time']
@@ -114,7 +115,8 @@ class rps extends Command {
     `)
         .then(async (msg) => {
           setTimeout(function () {}, 1000);
-          await msg.channel.awaitMessages(msg => msg.content.match(/^rock|paper|scissors$/i) && msg.author.id === p1.id, {
+          await msg.channel.awaitMessages({
+            filter: msg => msg.content.match(/^rock|paper|scissors$/i) && msg.author.id === p1.id,
             max: 1,
             time: 60000,
             errors: ['time']
@@ -145,41 +147,41 @@ class rps extends Command {
     } else if (authReply === 'rock') {
       if (memReply === 'scissors') {
         embed.setDescription(stripIndents`
-            The winner was: ${p1}!
-            The winning item was: ${authReply}
-            `);
+          The winner was: ${p1}!
+          The winning item was: ${authReply}
+          `);
       } else {
         embed.setDescription(stripIndents`
-            The winner was: ${mem}!
-            The winning item was: ${memReply}
-            `);
+          The winner was: ${mem}!
+          The winning item was: ${memReply}
+          `);
       }
     } else if (authReply === 'paper') {
       if (memReply === 'rock') {
         embed.setDescription(stripIndents`
-            The winner was: ${p1}!
-            The winning item was: ${authReply}
-            `);
+          The winner was: ${p1}!
+          The winning item was: ${authReply}
+          `);
       } else {
         if (memReply === 'scissors') {
           embed.setDescription(stripIndents`
-                The winner was: ${mem}!
-                The winning item was: ${memReply}
-                `);
+            The winner was: ${mem}!
+            The winning item was: ${memReply}
+            `);
         }
       }
     } else if (authReply === 'scissors') {
       if (memReply === 'rock') {
         embed.setDescription(stripIndents`
-            The winner was: ${mem}!
-            The winning item was: ${memReply}
-            `);
+          The winner was: ${mem}!
+          The winning item was: ${memReply}
+          `);
       } else {
         if (memReply === 'paper') {
           embed.setDescription(stripIndents`
-                The winner was: ${p1}!
-                The winning item was: ${authReply}
-                `);
+            The winner was: ${p1}!
+            The winning item was: ${authReply}
+            `);
         }
       }
     }
@@ -189,4 +191,4 @@ class rps extends Command {
   }
 }
 
-module.exports = rps;
+module.exports = RPS;

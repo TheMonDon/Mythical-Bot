@@ -3,7 +3,7 @@ const { getMember, getWarns, getTotalPoints } = require('../../base/Util.js');
 const db = require('quick.db');
 const DiscordJS = require('discord.js');
 
-class deletewarning extends Command {
+class DeleteWarning extends Command {
   constructor (client) {
     super(client, {
       name: 'clear-warnings',
@@ -17,10 +17,10 @@ class deletewarning extends Command {
   }
 
   async run (msg, args) {
-    const p = msg.settings.prefix;
     let mem;
+    const usage = `Incorrect Usage: ${msg.settings.prefix}clear-warnings <user>`
 
-    if (!args || args.length < 1) return msg.channel.send(`Incorrect Usage: ${p}clear-warnings <user>`);
+    if (!args || args.length < 1) return msg.channel.send(usage);
 
     mem = getMember(msg, args.join(' '));
 
@@ -30,7 +30,7 @@ class deletewarning extends Command {
       try {
         mem = await this.client.users.fetch(ID);
       } catch (err) {
-        return msg.channel.send(`Incorrect Usage: ${p}clear-warnings <user>`);
+        return msg.channel.send(usage);
       }
     }
 
@@ -60,4 +60,4 @@ class deletewarning extends Command {
   }
 }
 
-module.exports = deletewarning;
+module.exports = DeleteWarning;
