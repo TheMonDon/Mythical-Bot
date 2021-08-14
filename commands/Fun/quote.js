@@ -1,7 +1,7 @@
 const Command = require('../../base/Command.js');
 const DiscordJS = require('discord.js');
 
-class quote extends Command {
+class Quote extends Command {
   constructor (client) {
     super(client, {
       name: 'quote',
@@ -32,4 +32,4 @@ class quote extends Command {
     return msg.channel.send({ embeds: [em] });
   }
 }
-module.exports = quote;
+module.exports = Quote;

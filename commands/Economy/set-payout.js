@@ -3,7 +3,7 @@ const db = require('quick.db');
 const DiscordJS = require('discord.js');
 const { stripIndents } = require('common-tags');
 
-module.exports = class setCurrency extends Command {
+class SetPayout extends Command {
   constructor (client) {
     super(client, {
       name: 'set-payout',
@@ -112,4 +112,6 @@ module.exports = class setCurrency extends Command {
 
     return msg.channel.send({ embeds: [embed] });
   }
-};
+}
+
+module.exports = SetPayout;

@@ -2,7 +2,7 @@ const Command = require('../../base/Command.js');
 const { letterTrans } = require('custom-translate');
 const { clean, cleanString } = require('../../base/Util.js');
 
-class cursive extends Command {
+class Cursive extends Command {
   constructor (client) {
     super(client, {
       name: 'cursive',
@@ -84,4 +84,4 @@ class cursive extends Command {
     return msg.channel.send(await clean(this.client, cleanString(letterTrans(string, dictionary))));
   }
 }
-module.exports = cursive;
+module.exports = Cursive;

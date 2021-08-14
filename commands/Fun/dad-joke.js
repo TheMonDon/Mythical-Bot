@@ -2,7 +2,7 @@ const Command = require('../../base/Command.js');
 const fetch = require('node-fetch');
 const DiscordJS = require('discord.js');
 
-class dadJoke extends Command {
+class DadJoke extends Command {
   constructor (client) {
     super(client, {
       name: 'dad-joke',
@@ -28,4 +28,4 @@ class dadJoke extends Command {
       });
   }
 }
-module.exports = dadJoke;
+module.exports = DadJoke;

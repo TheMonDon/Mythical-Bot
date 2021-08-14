@@ -3,7 +3,7 @@ const DiscordJS = require('discord.js');
 const fetch = require('node-fetch');
 const HTMLParser = require('node-html-parser');
 
-class fml extends Command {
+class FuckMyLife extends Command {
   constructor (client) {
     super(client, {
       name: 'fuck-my-life',
@@ -37,4 +37,4 @@ class fml extends Command {
   }
 }
 
-module.exports = fml;
+module.exports = FuckMyLife;

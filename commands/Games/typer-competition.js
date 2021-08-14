@@ -9,7 +9,7 @@ const randomWords = require('random-words');
 const { stripIndents } = require('common-tags');
 const db = require('quick.db');
 
-class typerCommand extends Command {
+class TyperCompetition extends Command {
   constructor (client) {
     super(client, {
       name: 'typer-competition',
@@ -137,4 +137,4 @@ class typerCommand extends Command {
       });
   }
 }
-module.exports = typerCommand;
+module.exports = TyperCompetition;

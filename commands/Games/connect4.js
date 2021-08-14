@@ -7,7 +7,7 @@ const blankEmoji = '⚪';
 const nums = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣'];
 const customEmojiRegex = /^(?:<a?:([a-zA-Z0-9_]+):)?([0-9]+)>?$/;
 
-class connect4 extends Command {
+class Connect4 extends Command {
   constructor (client) {
     super(client, {
       name: 'connect4',
@@ -242,4 +242,4 @@ class connect4 extends Command {
   }
 }
 
-module.exports = connect4;
+module.exports = Connect4;

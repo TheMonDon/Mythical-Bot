@@ -3,7 +3,7 @@ const { verify } = require('../../base/Util.js');
 const db = require('quick.db');
 const DiscordJS = require('discord.js');
 
-module.exports = class cleanLeaderboard extends Command {
+class CleanLeaderboard extends Command {
   constructor (client) {
     super(client, {
       name: 'clean-leaderboard',
@@ -58,4 +58,6 @@ module.exports = class cleanLeaderboard extends Command {
       return msg.channel.send('Command Cancelled.');
     }
   }
-};
+}
+
+module.exports = CleanLeaderboard;

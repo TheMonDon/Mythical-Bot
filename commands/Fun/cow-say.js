@@ -2,7 +2,7 @@ const Command = require('../../base/Command.js');
 const { clean, cleanString } = require('../../base/Util.js');
 const cowsay = require('cowsay');
 
-class Cowsay extends Command {
+class CowSay extends Command {
   constructor (client) {
     super(client, {
       name: 'cow-say',
@@ -24,4 +24,4 @@ class Cowsay extends Command {
     return msg.channel.send(cmsg, { code: '' });
   }
 }
-module.exports = Cowsay;
+module.exports = CowSay;

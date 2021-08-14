@@ -3,7 +3,7 @@ const { getMember } = require('../../base/Util.js');
 const db = require('quick.db');
 const DiscordJS = require('discord.js');
 
-module.exports = class ResetMoney extends Command {
+class ResetMoney extends Command {
   constructor (client) {
     super(client, {
       name: 'reset-money',
@@ -94,4 +94,6 @@ module.exports = class ResetMoney extends Command {
         });
     }
   }
-};
+}
+
+module.exports = ResetMoney;

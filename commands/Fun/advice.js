@@ -2,7 +2,7 @@ const Command = require('../../base/Command.js');
 const fetch = require('node-superfetch');
 const DiscordJS = require('discord.js');
 
-class advice extends Command {
+class Advice extends Command {
   constructor (client) {
     super(client, {
       name: 'advice',
@@ -30,4 +30,4 @@ class advice extends Command {
     return msg.channel.send({ embeds: [em] });
   }
 }
-module.exports = advice;
+module.exports = Advice;

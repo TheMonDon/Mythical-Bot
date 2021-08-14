@@ -3,7 +3,7 @@ const { getMember } = require('../../base/Util.js');
 const db = require('quick.db');
 const DiscordJS = require('discord.js');
 
-module.exports = class BalanceCommand extends Command {
+class GiveMoney extends Command {
   constructor (client) {
     super(client, {
       name: 'give-money',
@@ -100,4 +100,6 @@ module.exports = class BalanceCommand extends Command {
       .setDescription(`${mem} has recieved your ${cs}${amount.toLocaleString()}.`);
     return msg.channel.send({ embeds: [embed] });
   }
-};
+}
+
+module.exports = GiveMoney;

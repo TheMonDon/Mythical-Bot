@@ -2,7 +2,7 @@ const Command = require('../../base/Command.js');
 const db = require('quick.db');
 const DiscordJS = require('discord.js');
 
-module.exports = class Blackjack extends Command {
+class BlackJack extends Command {
   constructor (client) {
     super(client, {
       name: 'blackjack',
@@ -254,7 +254,9 @@ module.exports = class Blackjack extends Command {
         .setColor(color)
         .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
         .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
-      mEm.edit({embeds: [embed] });
+      mEm.edit({ embeds: [embed] });
     }
   }
-};
+}
+
+module.exports = BlackJack;

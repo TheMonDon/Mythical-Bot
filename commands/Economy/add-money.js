@@ -4,7 +4,7 @@ const db = require('quick.db');
 const DiscordJS = require('discord.js');
 const { stripIndents } = require('common-tags');
 
-module.exports = class addMoney extends Command {
+class AddMoney extends Command {
   constructor (client) {
     super(client, {
       name: 'add-money',
@@ -89,4 +89,6 @@ module.exports = class addMoney extends Command {
       .setTimestamp();
     return msg.channel.send({ embeds: [embed] });
   }
-};
+}
+
+module.exports = AddMoney;

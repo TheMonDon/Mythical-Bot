@@ -1,7 +1,7 @@
 const Command = require('../../base/Command.js');
 const fetch = require('node-superfetch');
 
-class showerthoughts extends Command {
+class ShowerThoughts extends Command {
   constructor (client) {
     super(client, {
       name: 'shower-thoughts',
@@ -22,4 +22,4 @@ class showerthoughts extends Command {
   }
 }
 
-module.exports = showerthoughts;
+module.exports = ShowerThoughts;

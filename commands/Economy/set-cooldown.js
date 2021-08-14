@@ -4,7 +4,7 @@ const DiscordJS = require('discord.js');
 const ms = require('ms');
 const { stripIndents } = require('common-tags');
 
-module.exports = class BalanceCommand extends Command {
+class SetCooldown extends Command {
   constructor (client) {
     super(client, {
       name: 'set-cooldown',
@@ -124,4 +124,6 @@ module.exports = class BalanceCommand extends Command {
       return msg.channel.send({ embeds: [embed] });
     }
   }
-};
+}
+
+module.exports = SetCooldown;

@@ -2,7 +2,7 @@ const Command = require('../../base/Command.js');
 const DiscordJS = require('discord.js');
 const db = require('quick.db');
 
-module.exports = class Withdraw extends Command {
+class Withdraw extends Command {
   constructor (client) {
     super(client, {
       name: 'withdraw',
@@ -74,4 +74,6 @@ module.exports = class Withdraw extends Command {
       .setDescription(`Withdrew ${cs}${amount.toLocaleString()} from your bank!`);
     return msg.channel.send({ embeds: [embed] });
   }
-};
+}
+
+module.exports = Withdraw;

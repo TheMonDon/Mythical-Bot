@@ -2,7 +2,7 @@ const Command = require('../../base/Command.js');
 const { getMember } = require('../../base/Util.js');
 const DiscordJS = require('discord.js');
 
-class kill extends Command {
+class Kill extends Command {
   constructor (client) {
     super(client, {
       name: 'kill',
@@ -79,4 +79,4 @@ class kill extends Command {
   }
 }
 
-module.exports = kill;
+module.exports = Kill;

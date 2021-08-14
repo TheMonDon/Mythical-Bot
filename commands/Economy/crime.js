@@ -4,7 +4,7 @@ const moment = require('moment');
 require('moment-duration-format');
 const db = require('quick.db');
 
-module.exports = class CrimeCommand extends Command {
+class Crime extends Command {
   constructor (client) {
     super(client, {
       name: 'crime',
@@ -110,3 +110,5 @@ module.exports = class CrimeCommand extends Command {
     }, cooldown * 1000);
   }
 };
+
+module.exports = Crime;

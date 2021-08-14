@@ -4,7 +4,7 @@ const db = require('quick.db');
 const DiscordJS = require('discord.js');
 const moment = require('moment');
 
-module.exports = class BalanceCommand extends Command {
+class Rob extends Command {
   constructor (client) {
     super(client, {
       name: 'rob',
@@ -138,4 +138,6 @@ module.exports = class BalanceCommand extends Command {
       db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.${type}.cooldown`, userCooldown);
     }, cooldown * 1000);
   }
-};
+}
+
+module.exports = Rob;

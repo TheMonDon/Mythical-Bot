@@ -3,7 +3,7 @@ const db = require('quick.db');
 const DiscordJS = require('discord.js');
 const { stripIndents } = require('common-tags');
 
-module.exports = class setFailRate extends Command {
+class SetFailRate extends Command {
   constructor (client) {
     super(client, {
       name: 'set-fail-rate',
@@ -88,4 +88,6 @@ module.exports = class setFailRate extends Command {
 
     return msg.channel.send({ embeds: [embed] });
   }
-};
+}
+
+module.exports = SetFailRate;

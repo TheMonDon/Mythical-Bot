@@ -4,7 +4,7 @@ const db = require('quick.db');
 const DiscordJS = require('discord.js');
 const moment = require('moment');
 
-class warnings extends Command {
+class Warnings extends Command {
   constructor (client) {
     super(client, {
       name: 'warnings',
@@ -61,4 +61,4 @@ class warnings extends Command {
   }
 }
 
-module.exports = warnings;
+module.exports = Warnings;

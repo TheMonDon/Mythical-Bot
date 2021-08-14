@@ -2,7 +2,7 @@ const Command = require('../../base/Command.js');
 const db = require('quick.db');
 const DiscordJS = require('discord.js');
 
-module.exports = class Leaderboard extends Command {
+class Leaderboard extends Command {
   constructor (client) {
     super(client, {
       name: 'leaderboard',
@@ -69,4 +69,6 @@ module.exports = class Leaderboard extends Command {
       .setTimestamp();
     return msg.channel.send({ embeds: [embed] });
   }
-};
+}
+
+module.exports = Leaderboard;

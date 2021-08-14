@@ -3,7 +3,7 @@ const { getMember } = require('../../base/Util.js');
 const randomWords = require('random-words');
 const Discord = require('discord.js');
 
-class hangman extends Command {
+class Hangman extends Command {
   constructor (client) {
     super(client, {
       name: 'hangman',
@@ -390,4 +390,5 @@ class hangman extends Command {
     }
   }
 }
-module.exports = hangman;
+
+module.exports = Hangman;

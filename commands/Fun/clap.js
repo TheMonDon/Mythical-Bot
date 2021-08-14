@@ -1,7 +1,7 @@
 const Command = require('../../base/Command.js');
 const { clean, cleanString } = require('../../base/Util.js');
 
-class clap extends Command {
+class Clap extends Command {
   constructor (client) {
     super(client, {
       name: 'clap',
@@ -18,4 +18,4 @@ class clap extends Command {
   }
 }
 
-module.exports = clap;
+module.exports = Clap;
