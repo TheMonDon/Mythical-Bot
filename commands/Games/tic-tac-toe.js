@@ -33,7 +33,7 @@ class TicTacToe extends Command {
       if (evaluated === 'tie') return 'tie';
       return false;
     }
-  
+
     function convertBoard (board) {
       const newBoard = [[], [], []];
       let col = 0;
@@ -49,7 +49,7 @@ class TicTacToe extends Command {
       }
       return newBoard;
     }
-  
+
     function displayBoard (board) {
       let str = '';
       for (let i = 0; i < board.length; i++) {

@@ -183,7 +183,7 @@ module.exports = class Blackjack extends Command {
       const collected = await msg.channel.awaitMessages({
         filter: m => m.author.id === msg.author.id && ['hit', 'stand'].includes(m.content.toLowerCase()),
         max: 1,
-        time: 60000 
+        time: 60000
       });
       if (!collected) gameOver = true;
       const selected = collected.first().content.toLowerCase();
@@ -204,7 +204,7 @@ module.exports = class Blackjack extends Command {
 
         bet = bet * 2;
         db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bet); // Add the winning money
-        return mEm.edit({embeds: [embed] });
+        return mEm.edit({ embeds: [embed] });
       } else if (blackjack) {
         pcards = getCards('player', bj);
         dcards = getCards('dealer', bj);
@@ -220,34 +220,34 @@ module.exports = class Blackjack extends Command {
         bet = bet + bet1;
         db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bet); // Add the winning money
         return mEm.edit({ embeds: [embed] });
-    } else if (bust) {
-      pcards = getCards('player', bj);
-      dcards = getCards('dealer', bj);
-
-      const embed = new DiscordJS.MessageEmbed()
-        .setAuthor(msg.author.username, msg.author.displayAvatarURL())
-        .setDescription(`Result: You lose ${cs}${bet.toLocaleString()}`)
-        .setColor(color)
-        .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
-        .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
-      return mEm.edit(embed);
-    } else if (push) {
-      pcards = getCards('player', bj);
-      dcards = getCards('dealer', bj);
-
-      const embed = new DiscordJS.MessageEmbed()
-        .setAuthor(msg.author.username, msg.author.displayAvatarURL())
-        .setDescription('Result: Push, money back')
-        .setColor(color)
-        .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
-        .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
-
-      db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bet); // Add their original money back
-      return mEm.edit(embed);
-    } else {
+      } else if (bust) {
         pcards = getCards('player', bj);
         dcards = getCards('dealer', bj);
-    
+
+        const embed = new DiscordJS.MessageEmbed()
+          .setAuthor(msg.author.username, msg.author.displayAvatarURL())
+          .setDescription(`Result: You lose ${cs}${bet.toLocaleString()}`)
+          .setColor(color)
+          .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
+          .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
+        return mEm.edit(embed);
+      } else if (push) {
+        pcards = getCards('player', bj);
+        dcards = getCards('dealer', bj);
+
+        const embed = new DiscordJS.MessageEmbed()
+          .setAuthor(msg.author.username, msg.author.displayAvatarURL())
+          .setDescription('Result: Push, money back')
+          .setColor(color)
+          .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
+          .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
+
+        db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bet); // Add their original money back
+        return mEm.edit(embed);
+      } else {
+        pcards = getCards('player', bj);
+        dcards = getCards('dealer', bj);
+
         const embed = new DiscordJS.MessageEmbed()
           .setAuthor(msg.author.username, msg.author.displayAvatarURL())
           .setDescription('Type `hit` to draw another card or `stand` to pass.')
@@ -255,7 +255,7 @@ module.exports = class Blackjack extends Command {
           .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
           .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
         mEm.edit(embed);
-    }
+      }
     }
   }
 };

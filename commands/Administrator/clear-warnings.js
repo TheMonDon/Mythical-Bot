@@ -18,7 +18,7 @@ class DeleteWarning extends Command {
 
   async run (msg, args) {
     let mem;
-    const usage = `Incorrect Usage: ${msg.settings.prefix}clear-warnings <user>`
+    const usage = `Incorrect Usage: ${msg.settings.prefix}clear-warnings <user>`;
 
     if (!args || args.length < 1) return msg.channel.send(usage);
 

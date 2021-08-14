@@ -32,7 +32,7 @@ class Help extends Command {
     em.setTitle(`${category} Commands`);
     em.setColor('0099CC');
     const myCommands = this.client.commands.filter(cmd => this.client.levelCache[cmd.conf.permLevel] <= level);
-    const myC = [...myCommands.values()]
+    const myC = [...myCommands.values()];
     const sorted = myC.sort((p, c) => p.help.category > c.help.category ? 1 : p.help.name > c.help.name && p.help.category === c.help.category ? 1 : -1);
     sorted.forEach(c => {
       const cat = toProperCase(c.help.category);
@@ -52,7 +52,7 @@ class Help extends Command {
         em.addField('Description', command.help.description, false);
         em.addField('Long Description', command.help.longDescription, false);
         return msg.channel.send({ embeds: [em] });
-      } else return msg.channel.send({embeds: [errEm]});
+      } else return msg.channel.send({ embeds: [errEm] });
     }
     return msg.channel.send({ embeds: [em] });
   }
