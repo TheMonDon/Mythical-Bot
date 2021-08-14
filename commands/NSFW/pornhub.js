@@ -16,7 +16,7 @@ class pornhub extends Command {
   async run (msg, args) {
     const query = args.join(' ');
 
-    if (!query || query.length < 1) return msg.channel.send();
+    if (!query || query.length < 1) return msg.channel.send('Please enter something to search for.');
 
     const { text } = await fetch
       .get('https://www.pornhub.com/video/search')
