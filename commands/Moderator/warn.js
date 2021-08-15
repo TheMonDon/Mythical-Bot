@@ -3,7 +3,7 @@ const { getMember, randomString, getWarns, getTotalPoints } = require('../../bas
 const db = require('quick.db');
 const DiscordJS = require('discord.js');
 
-class warn extends Command {
+class Warn extends Command {
   constructor (client) {
     super(client, {
       name: 'warn',
@@ -53,27 +53,28 @@ class warn extends Command {
     args.shift();
     args.shift();
     let reason = args.join(' ');
-    if (['-ad', '-advertise', '-advertising', '-ads', '-promoting'].includes(reason)) {
+    const reasonTest = reason.toLowerCase();
+    if (['-ad', '-advertise', '-advertising', '-ads', '-promoting'].includes(reasonTest)) {
       reason = 'Please do not attempt to advertise in our server.';
-    } else if (['-botcommands', '-botcmds', '-botcmd', '-botchannel', '-botchan', '-botc'].includes(reason)) {
+    } else if (['-botcommands', '-botcmds', '-botcmd', '-botchannel', '-botchan', '-botc'].includes(reasonTest)) {
       reason = 'Please make sure that you use bot commands in the appropriate channels.';
-    } else if (['-dmad', '-dmads', '-dmadvertise', '-privatead', '-pmad', '-pmads'].includes(reason)) {
+    } else if (['-dmad', '-dmads', '-dmadvertise', '-privatead', '-pmad', '-pmads'].includes(reasonTest)) {
       reason = 'Do not use our server as a platform to advertise to users in their DMs.';
-    } else if (['-drama', '-trouble'].includes(reason)) {
+    } else if (['-drama', '-trouble'].includes(reasonTest)) {
       reason = 'We do not condone drama in our server, we want our server to be friendly for all users.';
-    } else if (['-massdm', '-massmessage', '-massmsg'].includes(reason)) {
+    } else if (['-massdm', '-massmessage', '-massmsg'].includes(reasonTest)) {
       reason = 'Please do not message many members in a short period of time.';
-    } else if (['-massping', '-massmention', '-masstags', '-mping', '-mmention', '-mtag'].includes(reason)) {
+    } else if (['-massping', '-massmention', '-masstags', '-mping', '-mmention', '-mtag'].includes(reasonTest)) {
       reason = 'Please do not mention users rapidly, or mention many users in a single message.';
-    } else if (['-moderatorhelp', '-moderatormention', '-moderatorsupport', '-modhelp', '-modmention', '-modsupport'].includes(reason)) {
+    } else if (['-moderatorhelp', '-moderatormention', '-moderatorsupport', '-modhelp', '-modmention', '-modsupport'].includes(reasonTest)) {
       reason = 'Please refrain from mentioning members of the Staff Team unless it is something pertaining to a rule being broken.';
-    } else if (['-raiding', '-raids', '-raid'].includes(reason)) {
+    } else if (['-raiding', '-raids', '-raid'].includes(reasonTest)) {
       reason = 'User partook in the raiding of the server';
-    } else if (['-spam', '-spamming', '-shitposting'].includes(reason)) {
-      reason = 'Please do not spam in our server, we like users to be able to talk appropiately within it.';
-    } else if (['-dms', '-unsoliciteddms', '-unsolicteddm', '-unsolicitedmsg', '-privatemessage', '-pm'].includes(reason)) {
+    } else if (['-spam', '-spamming', '-shitposting'].includes(reasonTest)) {
+      reason = 'Please do not spam in our server, we like users to be able to talk appropriately within it.';
+    } else if (['-dms', '-unsoliciteddms', '-unsolicteddm', '-unsolicitedmsg', '-privatemessage', '-pm'].includes(reasonTest)) {
       reason = 'Please do not private message users unless they have explicitly agreed to it.';
-    } else if (['-mention', '-tag', '-ping', '-mentions', '-tags', '-pings'].includes(reason)) {
+    } else if (['-mention', '-tag', '-ping', '-mentions', '-tags', '-pings'].includes(reasonTest)) {
       reason = 'Please do not mention users unless they have explicitly agreed to it.';
     }
 
@@ -82,7 +83,7 @@ class warn extends Command {
 
     // Make sure that the ID doesn't exist on that server
     let warnID = randomString(5);
-    while (db.get(`servers.${msg.guild.id}.warns.warnings.${warnID}`)) warnID = randomString(5);
+    while (db.has(`servers.${msg.guild.id}.warns.warnings.${warnID}`)) warnID = randomString(5);
 
     const otherWarns = getWarns(mem.id, msg);
 
@@ -115,7 +116,7 @@ class warn extends Command {
       .addField('Points', `${points} points (Total: ${warnAmount} points)`, true)
       .addField('Other Cases', otherCases, true)
       .addField('Reason', reason, false);
-    const um = await mem.send(userEm).catch(() => null);
+    const um = await mem.send({ embeds: [userEm] }).catch(() => null);
 
     const logEmbed = new DiscordJS.MessageEmbed()
       .setColor(color)
@@ -128,7 +129,7 @@ class warn extends Command {
       .addField('Other Cases', otherCases, true)
       .addField('Reason', reason, false);
     if (!um) logEmbed.setFooter(`Failed to message the user in question • User ID: ${mem.id}`);
-    const logMessage = logChan ? await msg.guild.channels.cache.get(logChan).send(logEmbed) : await msg.channel.send(logEmbed);
+    const logMessage = logChan ? await msg.guild.channels.cache.get(logChan).send({ embeds: [logEmbed] }) : await msg.channel.send(logEmbed);
 
     const opts = { messageURL: logMessage.url, mod: msg.author.id, points, reason, timestamp: Date.now(), user: mem.id, warnID };
     db.set(`servers.${msg.guild.id}.warns.warnings.${warnID}`, opts);
@@ -138,10 +139,10 @@ class warn extends Command {
       msg.guild.members.ban(mem.id, { reason }).catch(() => null); // Ban wether they are in the guild or not.
     } else if (warnAmount >= ka) {
       if (!msg.guild.me.permissions.has('KICK_MEMBERS')) return msg.channel.send('The bot does not have permission to kick members.');
-      const member = msg.guild.member(mem.id);
+      const member = msg.guild.members.cache.get(mem.id);
       if (member) member.kick(reason).catch(() => null); // Kick them if they are in the guild
     }
   }
 }
 
-module.exports = warn;
+module.exports = Warn;

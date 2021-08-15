@@ -21,11 +21,11 @@ class Queue extends Command {
     let q = queue.tracks.map((tracks, i) => {
       return `${i + 1}- ${tracks.title} : ${tracks.author}`;
     }).join('\n');
-    q = q.slice(0, 1990) + '...';
+    q = q.slice(3080) + '...';
     const em = new MessageEmbed()
       .setTitle('Queue List')
       .setDescription(`\`\`\`${q}\`\`\``)
-      .addField('Queue Length:', queue.tracks.length, false);
+      .setDescription(`Queue Length: ${queue.tracks.length}`);
     return msg.channel.send({ embeds: [em] });
   }
 }

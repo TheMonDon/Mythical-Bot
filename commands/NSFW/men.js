@@ -2,11 +2,11 @@ const Command = require('../../base/Command.js');
 const DiscordJS = require('discord.js');
 const trev = require('trev');
 
-class men extends Command {
+class Men extends Command {
   constructor (client) {
     super(client, {
       name: 'men',
-      description: 'Sends a random image of some men.',
+      description: 'Sends a random image of men.',
       usage: 'men',
       category: 'NSFW',
       aliases: ['man', 'guy', 'boy', 'guys'],
@@ -15,16 +15,21 @@ class men extends Command {
   }
 
   async run (msg) {
-    const men = await trev.nsfw.men();
+    const post = await trev.nsfw.men();
+
+    let image = post.media;
+    if (post.isImgurUpload(post.media)) image = post.getRawImgur(post.media);
+    if (post.isGfyLink(post.media)) image = post.gfyIframe(post.media);
 
     const em = new DiscordJS.MessageEmbed()
-      .setTitle(men.title)
-      .setURL(men.permalink)
-      .setImage(men.media)
-      .setFooter(msg.author.tag)
+      .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
+      .setTitle(post.title)
+      .setURL(post.permalink)
+      .setImage(image)
       .setTimestamp();
+
     return msg.channel.send({ embeds: [em] });
   }
 }
 
-module.exports = men;
+module.exports = Men;

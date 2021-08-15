@@ -2,7 +2,7 @@ const Command = require('../../base/Command.js');
 const DiscordJS = require('discord.js');
 const trev = require('trev');
 
-class cum extends Command {
+class Cum extends Command {
   constructor (client) {
     super(client, {
       name: 'cum',
@@ -14,16 +14,21 @@ class cum extends Command {
   }
 
   async run (msg) {
-    const cum = await trev.nsfw.cum();
+    const post = await trev.nsfw.cum();
+
+    let image = post.media;
+    if (post.isImgurUpload(post.media)) image = post.getRawImgur(post.media);
+    if (post.isGfyLink(post.media)) image = post.gfyIframe(post.media);
 
     const em = new DiscordJS.MessageEmbed()
-      .setTitle(cum.title)
-      .setURL(cum.permalink)
-      .setImage(cum.media)
-      .setFooter(msg.author.tag)
+      .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
+      .setTitle(post.title)
+      .setURL(post.permalink)
+      .setImage(image)
       .setTimestamp();
+
     return msg.channel.send({ embeds: [em] });
   }
 }
 
-module.exports = cum;
+module.exports = Cum;

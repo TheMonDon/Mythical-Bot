@@ -4,7 +4,7 @@ const npm = require('search-npm-registry');
 const moment = require('moment');
 const { stripIndents } = require('common-tags');
 
-class npmInfo extends Command {
+class NPMInfo extends Command {
   constructor (client) {
     super(client, {
       name: 'npm-info',
@@ -39,8 +39,9 @@ class npmInfo extends Command {
     Keywords: ${result.keywords?.length > 0 ? result.keywords.map(k => `\`${k}\``).join(', ') : 'none'}
     Download: [${result.name}](${result.links.npm})
     `);
+
     return msg.channel.send({ embeds: [em] });
   }
 }
 
-module.exports = npmInfo;
+module.exports = NPMInfo;

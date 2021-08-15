@@ -3,7 +3,7 @@ const DiscordJS = require('discord.js');
 const db = require('quick.db');
 const { stripIndents } = require('common-tags');
 
-class logtoggle extends Command {
+class LogToggle extends Command {
   constructor (client) {
     super(client, {
       name: 'logtoggle',
@@ -18,7 +18,6 @@ class logtoggle extends Command {
   async run (msg, args) {
     const query = args.join(' ').toLowerCase();
 
-    // define embeds
     const errorEmbed = new DiscordJS.MessageEmbed();
     if (!db.get(`servers.${msg.guild.id}.logs.channel`)) return msg.channel.send(`The log system is not set up! Use \`${msg.settings.prefix}setlogchannel <channel>\``);
 
@@ -82,7 +81,7 @@ class logtoggle extends Command {
         if (indx > -1) {
           chans.splice(indx, 1);
           db.set(`servers.${msg.guild.id}.logs.noLogChans`, chans);
-          return msg.channel.send(`Succesfully removed ${chan.id} (${chan.name}) from the channel blacklist.`);
+          return msg.channel.send(`Successfully removed ${chan.id} (${chan.name}) from the channel blacklist.`);
         } else {
           return msg.channel.send('I could not find a channel with that info in the blacklist.');
         }
@@ -105,7 +104,7 @@ class logtoggle extends Command {
           if (chans.includes(chan)) return msg.channel.send('That channel is already disabled.');
         }
         db.push(`servers.${msg.guild.id}.logs.noLogChans`, chan.id);
-        return msg.channel.send(`Succesfully added ${chan.id} (${chan.name}) to the channel blacklist.`);
+        return msg.channel.send(`Successfully added ${chan.id} (${chan.name}) to the channel blacklist.`);
       } else {
         return msg.channel.send(args[1]);
       }
@@ -230,9 +229,9 @@ class logtoggle extends Command {
         msg.channel.send('Bulk-Messages-Deleted logs has been enabled');
       }
     } else {
-      msg.channel.send(errorEmbed);
+      msg.channel.send({ embeds: [errorEmbed] });
     }
   }
 }
 
-module.exports = logtoggle;
+module.exports = LogToggle;

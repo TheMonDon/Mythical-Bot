@@ -2,11 +2,11 @@ const Command = require('../../base/Command.js');
 const { MessageEmbed } = require('discord.js');
 const fs = require('fs');
 
-class TemplateCMD extends Command {
+class Grab extends Command {
   constructor (client) {
     super(client, {
       name: 'grab',
-      description: 'Get source code from a command.',
+      description: 'Get the source code of a command.',
       category: 'Owner',
       usage: 'grab <commandName>',
       permLevel: 'Bot Owner'
@@ -15,7 +15,7 @@ class TemplateCMD extends Command {
 
   async run (msg, args) {
     const em = new MessageEmbed();
-    if (!args || args.length < 1) return em.setDescription('Must provide a command.').setColor('RED') && msg.reply(em);
+    if (!args || args.length < 1) return em.setDescription('Must provide a command.').setColor('RED') && msg.reply({ embeds: [em] });
     const name = args.join(' ');
 
     const commands = this.client.commands.get(name) || this.client.commands.get(this.client.aliases.get(name));
@@ -29,4 +29,4 @@ class TemplateCMD extends Command {
   }
 }
 
-module.exports = TemplateCMD;
+module.exports = Grab;

@@ -4,7 +4,7 @@ const DiscordJS = require('discord.js');
 const moment = require('moment');
 require('moment-duration-format');
 
-class roleInfo extends Command {
+class RoleInfo extends Command {
   constructor (client) {
     super(client, {
       name: 'role-info',
@@ -17,14 +17,12 @@ class roleInfo extends Command {
   }
 
   async run (msg, text) {
-    const server = msg.guild;
-    const p = msg.settings.prefix;
+    const usage = `Incorrect Usage: ${msg.settings.prefix}Role-Info <Role Name | Role Id | @role>`;
 
-    if (!text || text.length < 1) return msg.channel.send(`:x: Incorrect Usage: ${p}roleinfo <Role Name | Role ID | @role>`);
+    if (!text || text.length < 1) return msg.reply(usage);
 
     const infoRole = getRole(msg, text.join(' '));
-
-    if (!infoRole) return msg.channel.send(`:x: Incorrect Usage: ${p}roleinfo <Role Name | Role ID | @role>`);
+    if (!infoRole) return msg.reply(usage);
 
     // time
     const then = moment(infoRole.createdAt);
@@ -40,7 +38,7 @@ class roleInfo extends Command {
       .addField('Mention', `\`${infoRole}\``, true)
       .addField('Color', infoRole.hexColor, true)
       .addField('Members', infoRole.members.size.toLocaleString(), true)
-      .addField('Position', `${infoRole.position}/${server.roles.cache.size}`, true)
+      .addField('Position', `${infoRole.position}/${msg.guild.roles.cache.size}`, true)
       .addField('Hoisted', infoRole.hoist, true)
       .addField('Mentionable', infoRole.mentionable, true)
       .addField('Managed', infoRole.managed, true)
@@ -49,4 +47,4 @@ class roleInfo extends Command {
   }
 }
 
-module.exports = roleInfo;
+module.exports = RoleInfo;

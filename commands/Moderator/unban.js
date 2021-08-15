@@ -1,9 +1,8 @@
-/* eslint-disable prefer-regex-literals */
 const Command = require('../../base/Command.js');
 const db = require('quick.db');
 const DiscordJS = require('discord.js');
 
-class unban extends Command {
+class Unban extends Command {
   constructor (client) {
     super(client, {
       name: 'unban',
@@ -21,12 +20,12 @@ class unban extends Command {
     if (!args || args.length < 1) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}unban <userID> [reason]`);
     const logChan = db.get(`servers.${msg.guild.id}.logging.channel`);
 
-    const regex = new RegExp(/\d+/g);
+    const regex = /\d+/g;
     const userID = args[0];
     args.shift();
     const reason = args.join(' ');
 
-    if (!userID.matches(regex)) return msg.channel.send(`Errpr: Please enter a valid User ID. \nInput: ${userID}`);
+    if (!userID.matches(regex)) return msg.channel.send(`Error: Please enter a valid User ID. \nInput: ${userID}`);
 
     const embed = new DiscordJS.MessageEmbed();
     if (msg.guild.me.permissions.has('MANAGE_MESSAGES')) msg.delete();
@@ -52,9 +51,9 @@ class unban extends Command {
           return msg.channel.send({ embeds: [embed] });
         });
     } catch (err) {
-      console.error(err);
+      msg.channel.send(`An error occurred: ${err}`);
     }
   }
 }
 
-module.exports = unban;
+module.exports = Unban;

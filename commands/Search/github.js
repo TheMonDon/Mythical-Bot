@@ -3,7 +3,7 @@ const DiscordJS = require('discord.js');
 const fetch = require('node-superfetch');
 const moment = require('moment');
 
-class github extends Command {
+class Github extends Command {
   constructor (client) {
     super(client, {
       name: 'github',
@@ -15,11 +15,7 @@ class github extends Command {
   }
 
   async run (msg, args) {
-    const p = msg.settings.prefix;
-
-    if (!args || args < 2) {
-      return msg.channel.send(`Incorrect Usage: ${p}github <user> <repository>`);
-    }
+    if (!args || args < 2) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}github <user> <repository>`);
 
     const author = args[0];
     const repository = args[1];
@@ -28,6 +24,7 @@ class github extends Command {
       const { body } = await fetch
         .get(`https://api.github.com/repos/${author}/${repository}`)
         .set({ Authorization: `token ${this.client.config.github}` });
+
       const embed = new DiscordJS.MessageEmbed()
         .setColor('0099CC')
         .setAuthor('GitHub', 'https://i.imgur.com/e4HunUm.png', 'https://github.com/')
@@ -41,6 +38,7 @@ class github extends Command {
         .addField('Language', body.language || '???', true)
         .addField('Creation Date', moment.utc(body.created_at).format('MM/DD/YYYY h:mm A'), true)
         .addField('Modification Date', moment.utc(body.updated_at).format('MM/DD/YYYY h:mm A'), true);
+
       return msg.channel.send({ embeds: [embed] });
     } catch (err) {
       if (err.status === 404) return msg.channel.send('Could not find any results.');
@@ -48,4 +46,4 @@ class github extends Command {
     }
   }
 }
-module.exports = github;
+module.exports = Github;

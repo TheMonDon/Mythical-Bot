@@ -2,7 +2,7 @@ const Command = require('../../base/Command.js');
 const DiscordJS = require('discord.js');
 const trev = require('trev');
 
-class dildo extends Command {
+class Dildo extends Command {
   constructor (client) {
     super(client, {
       name: 'dildo',
@@ -15,16 +15,21 @@ class dildo extends Command {
   }
 
   async run (msg) {
-    const dildo = await trev.nsfw.dildo();
+    const post = await trev.nsfw.dildo();
+
+    let image = post.media;
+    if (post.isImgurUpload(post.media)) image = post.getRawImgur(post.media);
+    if (post.isGfyLink(post.media)) image = post.gfyIframe(post.media);
 
     const em = new DiscordJS.MessageEmbed()
-      .setTitle(dildo.title)
-      .setURL(dildo.permalink)
-      .setImage(dildo.media)
-      .setFooter(msg.author.tag)
+      .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
+      .setTitle(post.title)
+      .setURL(post.permalink)
+      .setImage(image)
       .setTimestamp();
+
     return msg.channel.send({ embeds: [em] });
   }
 }
 
-module.exports = dildo;
+module.exports = Dildo;

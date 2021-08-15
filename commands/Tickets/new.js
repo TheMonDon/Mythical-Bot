@@ -17,8 +17,6 @@ class New extends Command {
   }
 
   async run (msg, args) {
-    const p = msg.settings.prefix;
-
     if (!db.get(`servers.${msg.guild.id}.tickets`)) return msg.channel.send('The ticket system has not been setup in this server.');
     const { catID, logID, roleID } = db.get(`servers.${msg.guild.id}.tickets`);
 
@@ -27,7 +25,7 @@ class New extends Command {
     if (!msg.guild.me.permissions.has('MANAGE_MESSAGES')) return msg.channel.send('The bot is missing Manage Messages permission');
 
     if (msg.channel.name.startsWith('ticket')) return msg.channel.send('You\'re already in a ticket, silly.');
-    if (!args || args.length < 1) return msg.channel.send(`Please provide a reason. Usage: ${p}New <reason>`);
+    if (!args || args.length < 1) return msg.channel.send(`Please provide a reason. Usage: ${msg.settings.prefix}New <reason>`);
 
     const tix = getTickets(msg.author.id, msg);
     if (tix.length > 2) {

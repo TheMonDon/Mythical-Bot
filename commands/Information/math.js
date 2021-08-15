@@ -2,7 +2,7 @@ const Command = require('../../base/Command.js');
 const DiscordJS = require('discord.js');
 const math = require('mathjs');
 
-module.exports = class Math extends Command {
+class Math extends Command {
   constructor (client) {
     super(client, {
       name: 'math',
@@ -31,4 +31,6 @@ module.exports = class Math extends Command {
       return msg.channel.send(`Sorry, I couldn't solve that equation. \`${err}\``);
     }
   }
-};
+}
+
+module.exports = Math;

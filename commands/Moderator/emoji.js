@@ -20,13 +20,12 @@ class Emoji extends Command {
   }
 
   async run (msg, args) {
-    const p = msg.settings.prefix;
     const usage = stripIndents`
       Incorrect Usage:
-      \`${p}emoji create <name> <image>\`
-      \`${p}emoji delete <emoji>\`
-      \`${p}emoji info <emoji>\`
-      \`${p}emoji rename <emoji> <name>\`
+      \`${msg.settings.prefix}emoji create <name> <image>\`
+      \`${msg.settings.prefix}emoji delete <emoji>\`
+      \`${msg.settings.prefix}emoji info <emoji>\`
+      \`${msg.settings.prefix}emoji rename <emoji> <name>\`
     `;
     if (!args || args.length < 2) return msg.channel.send(usage);
 
@@ -37,7 +36,7 @@ class Emoji extends Command {
       const image = msg.attachments.first()?.url || args[2];
 
       const emoji = await msg.guild.emojis.create(image, name);
-      return msg.channel.send(`${msg.member}, ${emoji} has been created.`);
+      return msg.reply(`${emoji} has been created.`);
     } else if (type === 'delete') {
       const emoji = args[1];
       let result;
@@ -52,10 +51,10 @@ class Emoji extends Command {
         const guildEmoji = msg.guild.emojis.cache.find(e => e.name === emoji);
         if (guildEmoji) result = guildEmoji;
       }
-      if (!result) return msg.channel.send(`${msg.member}, that emoji was not found. Is it from this server?`);
-      if (!result.deletable) return msg.channel.send('That emoji is not deletable.');
+      if (!result) return msg.reply('That emoji was not found. Is it from this server?');
+      if (!result.deletable) return msg.reply('That emoji is not deletable.');
       result.delete();
-      return msg.channel.send(`${msg.member}, the emoji has been succesfully deleted.`);
+      return msg.reply('The emoji has been successfully deleted.');
     } else if (type === 'info') {
       const emoji = args[1];
       let result;
@@ -70,7 +69,7 @@ class Emoji extends Command {
         const guildEmoji = msg.guild.emojis.cache.find(e => e.name === emoji);
         if (guildEmoji) result = guildEmoji;
       }
-      if (!result) return msg.channel.send(`${msg.member}, that emoji was not found. Is it from this server?`);
+      if (!result) return msg.reply('That emoji was not found. Is it from this server?');
       const em = new DiscordJS.MessageEmbed()
         .setTitle('Emoji Information')
         .addField('Emoji', result, true)
@@ -95,17 +94,18 @@ class Emoji extends Command {
         const guildEmoji = msg.guild.emojis.cache.find(e => e.name === emoji);
         if (guildEmoji) result = guildEmoji;
       }
-      if (!result) return msg.channel.send(`${msg.member}, that emoji was not found. Is it from this server?`);
+      if (!result) return msg.reply('That emoji was not found. Is it from this server?');
       result.edit({ name })
         .then(() => {
-          return msg.channel.send(`${msg.member}, ${result} has been renamed to \`${name}\``);
+          return msg.reply(`${result} has been renamed to \`${name}\``);
         })
         .catch(e => {
-          return msg.channel.send(`An error occured: ${e}`);
+          return msg.channel.send(`An error occurred: ${e}`);
         });
     } else {
       return msg.channel.send(usage);
     }
   }
 }
+
 module.exports = Emoji;

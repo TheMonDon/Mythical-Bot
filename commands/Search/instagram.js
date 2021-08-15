@@ -2,7 +2,7 @@ const Command = require('../../base/Command.js');
 const DiscordJS = require('discord.js');
 const userInstagram = require('user-instagram');
 
-class insta extends Command {
+class Instagram extends Command {
   constructor (client) {
     super(client, {
       name: 'instagram',
@@ -14,10 +14,9 @@ class insta extends Command {
   }
 
   async run (msg, text) {
-    const p = msg.settings.prefix;
     const query = text.join(' ');
 
-    if (!query || query.length < 1) return msg.channel.send(`Incorrect Usage: ${p}instagram <instagram user>`);
+    if (!query || query.length < 1) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}instagram <instagram user>`);
 
     userInstagram(query)
       .then(res => {
@@ -38,4 +37,4 @@ class insta extends Command {
       });
   }
 }
-module.exports = insta;
+module.exports = Instagram;

@@ -2,7 +2,7 @@ const Command = require('../../base/Command.js');
 const DiscordJS = require('discord.js');
 const fetch = require('node-superfetch');
 
-class tvShow extends Command {
+class TVShow extends Command {
   constructor (client) {
     super(client, {
       name: 'tv-show',
@@ -27,12 +27,14 @@ class tvShow extends Command {
           include_adult: msg.channel.nsfw || false,
           query
         });
+
       if (!search.body.results.length) return msg.say('Could not find any results.');
       const find = search.body.results.find(m => m.name.toLowerCase() === query.toLowerCase()) || search.body.results[0];
 
       const { body } = await fetch
         .get(`https://api.themoviedb.org/3/tv/${find.id}`)
         .query({ api_key: this.client.config.TMDb });
+  
       const embed = new DiscordJS.MessageEmbed()
         .setColor('0099CC')
         .setTitle(body.name)
@@ -46,10 +48,11 @@ class tvShow extends Command {
         .addField('❯ Episodes', body.number_of_episodes ? body.number_of_episodes.toLocaleString() : '???', true)
         .addField('❯ Genres', body.genres.length ? body.genres.map(genre => genre.name).join(', ') : '???')
         .addField('❯ Production Companies', body.production_companies.length ? body.production_companies.map(c => c.name).join(', ') : '???');
+
       return msg.channel.send({ embeds: [embed] });
     } catch (err) {
       return msg.reply(`Oh no, an error occurred: \`${err.message}\`. Try again later!`);
     }
   }
 }
-module.exports = tvShow;
+module.exports = TVShow;

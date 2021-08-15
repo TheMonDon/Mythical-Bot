@@ -4,7 +4,7 @@ const DiscordJS = require('discord.js');
 const moment = require('moment');
 require('moment-duration-format');
 
-class serverInfo extends Command {
+class ServerInfo extends Command {
   constructor (client) {
     super(client, {
       name: 'server-info',
@@ -32,7 +32,8 @@ class serverInfo extends Command {
     const ca = then.format('MMM Do, YYYY');
 
     const roles = server.roles.cache.sort((a, b) => b.position - a.position);
-    let roles1 = roles.filter(r => r.id !== server.id).array().join(', ');
+    const fRoles = roles.filter(r => r.id !== server.id);
+    let roles1 = [...fRoles.values()].join(', ');
 
     if (roles1 === undefined || roles1.length === 0) roles1 = 'No Roles';
 
@@ -60,4 +61,4 @@ class serverInfo extends Command {
   }
 }
 
-module.exports = serverInfo;
+module.exports = ServerInfo;

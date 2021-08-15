@@ -17,7 +17,6 @@ class UserInfo extends Command {
   }
 
   async run (msg, text) {
-    const server = msg.guild;
     let infoMem = msg.member;
 
     if (text && text.length > 0) infoMem = getMember(msg, text.join(' '));
@@ -49,7 +48,7 @@ class UserInfo extends Command {
       VERIFIED_BOT: '<:verified_bot:862241973326839818>'
     };
 
-    if (server.member(infoMem)) {
+    if (msg.guild.members.cache.get(infoMem.id)) {
       // Guild Member
       // Time Stamps
       const joinPosition = await getJoinPosition(infoMem.id, msg.guild);
@@ -59,6 +58,7 @@ class UserInfo extends Command {
       const jaTime = ts2.from(moment());
       const ca = ts.format('MMM Do, YYYY');
       const ja = ts2.format('MMM Do, YYYY');
+
       // Role Stuff
       const roles = infoMem.roles.cache.sort((a, b) => b.position - a.position);
       let roles1 = roles.filter(r => r.id !== msg.guild.id)

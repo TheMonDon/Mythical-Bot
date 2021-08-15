@@ -3,7 +3,7 @@ const DiscordJS = require('discord.js');
 const config = require('../../config.js');
 const owlBot = require('owlbot-js');
 
-class DictionaryCommand extends Command {
+class Dictionary extends Command {
   constructor (client) {
     super(client, {
       name: 'dictionary',
@@ -46,4 +46,4 @@ class DictionaryCommand extends Command {
   }
 }
 
-module.exports = DictionaryCommand;
+module.exports = Dictionary;

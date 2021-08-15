@@ -51,19 +51,19 @@ class Perms extends Command {
 
     embed.addField('➢ __Text Channel Permissions:__', stripIndents`
     \`Send Messages\`| ${infoMem.hasPermission('SEND_MESSAGES') ? yes : no}
-    \`Public Thrads\`| ${/* infoMem.hasPermission('USE_PUBLIC_THREADS') ? yes : no */ 'N/A'}
-    \`Private Thrads\`| ${/* infoMem.hasPermission('USE_PRIVATE_THREADS') ? yes : no */ 'N/A'}
+    \`Public Threads\`| ${infoMem.hasPermission('USE_PUBLIC_THREADS') ? yes : no}
+    \`Private Threads\`| ${infoMem.hasPermission('USE_PRIVATE_THREADS') ? yes : no}
     \`Embed Links\`| ${infoMem.hasPermission('EMBED_LINKS') ? yes : no}
     \`Attach Files\`| ${infoMem.hasPermission('ATTACH_FILES') ? yes : no}
     \`Add Reactions\`| ${infoMem.hasPermission('ADD_REACTIONS') ? yes : no}
-    \`Use External Emojis\`| ${/* infoMem.hasPermission('USE_EXTERNAL_EMOJIS') ? yes : no */ 'N/A'}
-    \`Use External Stickers\`| ${/* infoMem.hasPermission('USE_EXTERNAL_STICKERS') ? yes : no */ 'N/A'}
+    \`Use External Emojis\`| ${infoMem.hasPermission('USE_EXTERNAL_EMOJIS') ? yes : no}
+    \`Use External Stickers\`| ${infoMem.hasPermission('USE_EXTERNAL_STICKERS') ? yes : no}
     \`Mention @everyone, @here, and All Roles\`| ${infoMem.hasPermission('MENTION_EVERYONE') ? yes : no}
     \`Manage Messages\`| ${infoMem.hasPermission('MANAGE_MESSAGES') ? yes : no}
-    \`Manage Threads\`| ${/* infoMem.hasPermission('MANAGE_THREADS') ? yes : no */ 'N/A'}
+    \`Manage Threads\`| ${infoMem.hasPermission('MANAGE_THREADS') ? yes : no}
     \`Read Message History\`| ${infoMem.hasPermission('READ_MESSAGE_HISTORY') ? yes : no}
     \`Send Text-to-Speech Messages\`| ${infoMem.hasPermission('SEND_TTS_MESSAGES') ? yes : no}
-    \`Use Application Commands\`| ${/* infoMem.hasPermission('USE_APPLICATION_COMMANDS') ? yes : no */ 'N/A'}
+    \`Use Application Commands\`| ${infoMem.hasPermission('USE_APPLICATION_COMMANDS') ? yes : no}
     `, true);
 
     // Voice Perms
@@ -79,7 +79,7 @@ class Perms extends Command {
     `, true);
 
     embed.addField('➢ __Stage Channel Permissions:__', stripIndents`
-    \`Request to Speak\`| ${/* infoMem.hasPermission('REQUEST_TO_SPEAK') ? yes : no */ 'N/A'}
+    \`Request to Speak\`| ${infoMem.hasPermission('REQUEST_TO_SPEAK') ? yes : no}
     `, true);
 
     embed.addField('➢ __Advanced Permissions:__', stripIndents`

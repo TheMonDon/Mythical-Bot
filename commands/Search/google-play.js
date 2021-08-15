@@ -2,7 +2,7 @@ const Command = require('../../base/Command.js');
 const DiscordJS = require('discord.js');
 const gplay = require('google-play-scraper');
 
-class gPlay extends Command {
+class GooglePlay extends Command {
   constructor (client) {
     super(client, {
       name: 'google-play',
@@ -44,4 +44,4 @@ class gPlay extends Command {
       });
   }
 }
-module.exports = gPlay;
+module.exports = GooglePlay;

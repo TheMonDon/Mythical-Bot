@@ -4,7 +4,7 @@ const DiscordJS = require('discord.js');
 const moment = require('moment');
 require('moment-duration-format');
 
-class Stats extends Command {
+class ChannelInfo extends Command {
   constructor (client) {
     super(client, {
       name: 'channel-info',
@@ -34,12 +34,12 @@ class Stats extends Command {
       .addField('Type', infoChan.type, true)
       .addField('Position', infoChan.position, true);
     if (infoChan.guild !== msg.guild) embed.addField('Server', infoChan.guild.name, true);
-    if (infoChan.type === 'text') embed.addField('NSFW', infoChan.nsfw, true);
-    if (infoChan.type === 'voice') {
+    if (infoChan.type === 'GUILD_TEXT') embed.addField('NSFW', infoChan.nsfw, true);
+    if (infoChan.type === 'GUILD_VOICE') {
       embed.addField('User Limit', infoChan.userLimit, true);
       embed.addField('Bitrate', infoChan.bitrate, true);
     }
-    if (infoChan.type === 'category') embed.addField('Children', infoChan.children.size, true);
+    if (infoChan.type === 'GUILD_CATEGORY') embed.addField('Children', infoChan.children.size, true);
     embed.addField('Mention', `\`${infoChan}\``, true);
     embed.addField('Created At', `${ca} \n (${time})`, true);
     if (infoChan.parent) embed.addField('Parent', `${infoChan.parent.name} \n \`${infoChan.parentID}\``, true);
@@ -49,4 +49,4 @@ class Stats extends Command {
   }
 }
 
-module.exports = Stats;
+module.exports = ChannelInfo;

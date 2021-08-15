@@ -2,7 +2,7 @@ const Command = require('../../base/Command.js');
 const DiscordJS = require('discord.js');
 const trev = require('trev');
 
-class gonewild extends Command {
+class GoneWild extends Command {
   constructor (client) {
     super(client, {
       name: 'gonewild',
@@ -14,16 +14,21 @@ class gonewild extends Command {
   }
 
   async run (msg) {
-    const gonewild = await trev.nsfw.gonewild();
+    const post = await trev.nsfw.gonewild();
+
+    let image = post.media;
+    if (post.isImgurUpload(post.media)) image = post.getRawImgur(post.media);
+    if (post.isGfyLink(post.media)) image = post.gfyIframe(post.media);
 
     const em = new DiscordJS.MessageEmbed()
-      .setTitle(gonewild.title)
-      .setURL(gonewild.permalink)
-      .setImage(gonewild.media)
-      .setFooter(msg.author.tag)
+      .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
+      .setTitle(post.title)
+      .setURL(post.permalink)
+      .setImage(image)
       .setTimestamp();
+
     return msg.channel.send({ embeds: [em] });
   }
 }
 
-module.exports = gonewild;
+module.exports = GoneWild;

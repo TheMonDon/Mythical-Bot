@@ -4,7 +4,7 @@ const { stripIndents } = require('common-tags');
 const moment = require('moment');
 require('moment-duration-format');
 
-class nowPlaying extends Command {
+class NowPlaying extends Command {
   constructor (client) {
     super(client, {
       name: 'now-playing',
@@ -52,4 +52,4 @@ class nowPlaying extends Command {
   }
 }
 
-module.exports = nowPlaying;
+module.exports = NowPlaying;

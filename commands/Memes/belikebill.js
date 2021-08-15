@@ -1,7 +1,7 @@
 const Command = require('../../base/Command.js');
 const fetch = require('node-fetch');
 
-class blbCommand extends Command {
+class BeLikeBill extends Command {
   constructor (client) {
     super(client, {
       name: 'belikebill',
@@ -20,11 +20,11 @@ class blbCommand extends Command {
 
       const response = await fetch(url + params);
       msg1.delete();
-      msg.channel.send({
+      return msg.channel.send({
         files: [response]
       })
         .catch(() => {
-          msg.channel.send('Sorry, something went wrong. Please try again later.');
+          return msg.channel.send('Sorry, something went wrong. Please try again later.');
         });
     } else {
       const msg1 = await msg.channel.send('Please wait generating your meme!');
@@ -34,14 +34,14 @@ class blbCommand extends Command {
       const response = await fetch(url + params);
       msg1.delete();
 
-      msg.channel.send({
+      return msg.channel.send({
         files: [response]
       })
         .catch(() => {
-          msg.channel.send('Sorry, something went wrong. Please try again later.');
+          return msg.channel.send('Sorry, something went wrong. Please try again later.');
         });
     }
   }
 }
 
-module.exports = blbCommand;
+module.exports = BeLikeBill;

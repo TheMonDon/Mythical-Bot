@@ -12,7 +12,7 @@ class Ping extends Command {
     });
   }
 
-  async run (msg) { // eslint-disable-line no-unused-vars
+  async run (msg) {
     const embed = new DiscordJS.MessageEmbed()
       .setTitle('Bot Ping')
       .setAuthor(msg.author.username, msg.author.displayAvatarURL())

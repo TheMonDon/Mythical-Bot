@@ -2,7 +2,7 @@ const Command = require('../../base/Command.js');
 const DiscordJS = require('discord.js');
 const fetch = require('node-superfetch');
 
-class steam extends Command {
+class Steam extends Command {
   constructor (client) {
     super(client, {
       name: 'steam',
@@ -68,7 +68,8 @@ class steam extends Command {
       .addField('❯\u2000DLC Count', `•\u2000 ${data.dlc ? data.dlc.length : 0}`, true)
       .addField('❯\u2000Developers', `•\u2000 ${data.developers ? data.developers.join(', ') || '???' : '???'}`, true)
       .addField('❯\u2000Publishers', `•\u2000 ${data.publishers ? data.publishers.join(', ') || '???' : '???'}`, true);
+
     return msg.channel.send({ embeds: [embed] });
   }
 }
-module.exports = steam;
+module.exports = Steam;

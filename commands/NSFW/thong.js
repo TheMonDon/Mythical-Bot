@@ -2,11 +2,11 @@ const Command = require('../../base/Command.js');
 const DiscordJS = require('discord.js');
 const trev = require('trev');
 
-class thong extends Command {
+class Thong extends Command {
   constructor (client) {
     super(client, {
       name: 'thong',
-      description: 'Sends a random image of some thong.',
+      description: 'Sends a random image of some thongs.',
       usage: 'thong',
       category: 'NSFW',
       nsfw: true
@@ -14,16 +14,21 @@ class thong extends Command {
   }
 
   async run (msg) {
-    const thong = await trev.nsfw.thong();
+    const post = await trev.nsfw.thong();
+
+    let image = post.media;
+    if (post.isImgurUpload(post.media)) image = post.getRawImgur(post.media);
+    if (post.isGfyLink(post.media)) image = post.gfyIframe(post.media);
 
     const em = new DiscordJS.MessageEmbed()
-      .setTitle(thong.title)
-      .setURL(thong.permalink)
-      .setImage(thong.media)
-      .setFooter(msg.author.tag)
+      .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
+      .setTitle(post.title)
+      .setURL(post.permalink)
+      .setImage(image)
       .setTimestamp();
+
     return msg.channel.send({ embeds: [em] });
   }
 }
 
-module.exports = thong;
+module.exports = Thong;

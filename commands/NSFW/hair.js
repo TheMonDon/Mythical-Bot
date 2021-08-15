@@ -2,7 +2,7 @@ const Command = require('../../base/Command.js');
 const DiscordJS = require('discord.js');
 const trev = require('trev');
 
-class hair extends Command {
+class Hair extends Command {
   constructor (client) {
     super(client, {
       name: 'hair',
@@ -14,16 +14,21 @@ class hair extends Command {
   }
 
   async run (msg) {
-    const hair = await trev.nsfw.hair();
+    const post = await trev.nsfw.hair();
+
+    let image = post.media;
+    if (post.isImgurUpload(post.media)) image = post.getRawImgur(post.media);
+    if (post.isGfyLink(post.media)) image = post.gfyIframe(post.media);
 
     const em = new DiscordJS.MessageEmbed()
-      .setTitle(hair.title)
-      .setURL(hair.permalink)
-      .setImage(hair.media)
-      .setFooter(msg.author.tag)
+      .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
+      .setTitle(post.title)
+      .setURL(post.permalink)
+      .setImage(image)
       .setTimestamp();
+
     return msg.channel.send({ embeds: [em] });
   }
 }
 
-module.exports = hair;
+module.exports = Hair;

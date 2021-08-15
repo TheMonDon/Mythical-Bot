@@ -1,7 +1,7 @@
 const Command = require('../../base/Command.js');
 const db = require('quick.db');
 
-class toggleall extends Command {
+class ToggleAll extends Command {
   constructor (client) {
     super(client, {
       name: 'toggleall',
@@ -62,8 +62,8 @@ class toggleall extends Command {
       return msg.channel.send('Everything has been enabled.');
     }
 
-    return msg.channel.send('An error occured, this is probably due to the log system not beign setup in this server.');
+    return msg.channel.send('An error occurred, this is probably due to the log system not being setup in this server.');
   }
 }
 
-module.exports = toggleall;
+module.exports = ToggleAll;

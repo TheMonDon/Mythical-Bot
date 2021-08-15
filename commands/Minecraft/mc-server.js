@@ -2,7 +2,7 @@ const Command = require('../../base/Command.js');
 const DiscordJS = require('discord.js');
 const fetch = require('node-superfetch');
 
-module.exports = class mcserver extends Command {
+class MinecraftServer extends Command {
   constructor (client) {
     super(client, {
       name: 'mc-server',
@@ -45,4 +45,6 @@ module.exports = class mcserver extends Command {
       .addField('MOTD:', body.motd.clean, false);
     return msg.channel.send({ embeds: [em] });
   }
-};
+}
+
+module.exports = MinecraftServer;
