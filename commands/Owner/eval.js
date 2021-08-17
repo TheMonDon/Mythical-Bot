@@ -22,12 +22,26 @@ class Eval extends Command {
     const Util = require('../../base/Util.js');
     const server = msg.guild;
     const member = msg.member;
+    const config = this.client.config;
 
     const embed = new MessageEmbed()
       .setFooter(msg.author.tag, msg.author.displayAvatarURL());
 
-    const query = args.join(' ');
-    const code = (lang, code) => (`\`\`\`${lang}\n${String(code).slice(0, 4000) + (code.length >= 4000 ? '...' : '')}\n\`\`\``).replace(this.client.config.token, '*'.repeat(this.client.config.token.length)).replace(this.client.config.github, '*'.repeat(this.client.config.github.length)).replace(this.client.config.owlKey, '*'.repeat(this.client.config.owlKey.length));
+    let query = args.join(' ');
+    const code = (lang, code) => (`\`\`\`${lang}\n${String(code).slice(0, 4000) + (code.length >= 4000 ? '...' : '')}\n\`\`\``);
+    const secrets = [
+      config.token,
+      config.github,
+      config.owlKey,
+      config.OxfordKey,
+      config.TMDb,
+      config.mysqlUsername,
+      config.mysqlPassword
+    ];
+
+    for (let i = 0; i < secrets.length; i++) {
+      query = replaceAll(query, secrets[i], '*'.repeat(secrets[i].length));
+    }
 
     if (!query) msg.channel.send('Please, write something so I can evaluate!');
     else {
@@ -54,6 +68,10 @@ class Eval extends Command {
       }
     }
   }
+}
+
+function replaceAll (haystack, needle, replacement) {
+  return haystack.split(needle).join(replacement);
 }
 
 module.exports = Eval;

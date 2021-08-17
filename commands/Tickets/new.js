@@ -81,7 +81,7 @@ class New extends Command {
       .setColor('#E65DF4')
       .setTimestamp();
     const reply = await msg.channel.send(userEmbed);
-    reply.delete({ timeout: 60000 });
+    setTimeout(() => reply.delete(), 60000);
     msg.delete();
 
     const logEmbed = new DiscordJS.MessageEmbed()
