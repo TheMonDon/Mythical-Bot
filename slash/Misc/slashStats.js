@@ -7,7 +7,7 @@ require('moment-duration-format');
 module.exports = class Stats extends slashCommand {
   constructor (client) {
     super(client, {
-      name: 'slashStats',
+      name: 'slashstats',
       description: "Show's the bots stats",
       options: [],
       guildOnly: false
