@@ -9,7 +9,7 @@ class MinecraftServer extends Command {
       description: 'Get information about a Minecraft server.',
       usage: 'mc-server <IP Address>',
       category: 'Minecraft',
-      aliases: ['mcs', 'mcserver', 'stats', 'mcstats', 'mcip']
+      aliases: ['mcs', 'mcserver', 'mcstats', 'mcip']
     });
   }
 
@@ -39,10 +39,10 @@ class MinecraftServer extends Command {
       .setTitle('Minecraft Server Stats')
       .setAuthor(msg.author.username, msg.author.displayAvatarURL())
       .setColor('#2ecc71')
-      .addField('IP Address:', `${body.hostname || body.ip + (body.port !== '25565' ? `:${body.port}` : '')} `, false)
-      .addField('Version:', body.version, false)
-      .addField('Players:', `${body.players.online}/${body.players.max}`, false)
-      .addField('MOTD:', body.motd.clean, false);
+      .addField('IP Address:', `${body.hostname.toString() || body.ip.toString() + (body.port !== '25565' ? `:${body.port.toString()}` : '')} ` || 'N/A', false)
+      .addField('Version:', body.version.toString() || 'N/A', false)
+      .addField('Players:', `${body.players.online.toString()}/${body.players.max.toString()}` || 'N/A', false)
+      .addField('MOTD:', body.motd.clean.toString() || 'N/A', false);
     return msg.channel.send({ embeds: [em] });
   }
 }
