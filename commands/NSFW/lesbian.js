@@ -2,20 +2,19 @@ const Command = require('../../base/Command.js');
 const DiscordJS = require('discord.js');
 const trev = require('trev');
 
-class Men extends Command {
+class Lesbian extends Command {
   constructor (client) {
     super(client, {
-      name: 'men',
-      description: 'Sends a random image of men.',
-      usage: 'men',
+      name: 'lesbian',
+      description: 'Sends a random image of some lesbians.',
+      usage: 'lesbian',
       category: 'NSFW',
-      aliases: ['man', 'guy', 'guys'],
       nsfw: true
     });
   }
 
   async run (msg) {
-    const post = await trev.nsfw.men();
+    const post = await trev.nsfw.lesbian();
 
     let image = post.media;
     if (trev.isImgurUpload(post.media)) image = trev.getRawImgur(post.media);
@@ -32,4 +31,4 @@ class Men extends Command {
   }
 }
 
-module.exports = Men;
+module.exports = Lesbian;
