@@ -2,7 +2,7 @@ const Command = require('../../base/Command.js');
 const DiscordJS = require('discord.js');
 const trev = require('trev');
 
-class hentai extends Command {
+class Hentai extends Command {
   constructor (client) {
     super(client, {
       name: 'hentai',
@@ -14,16 +14,21 @@ class hentai extends Command {
   }
 
   async run (msg) {
-    const hentai = await trev.nsfw.hentai();
+    const post = await trev.nsfw.hentai();
+
+    let image = post.media;
+    if (trev.isImgurUpload(post.media)) image = trev.getRawImgur(post.media);
+    if (trev.isGfyLink(post.media)) image = trev.gfyIframe(post.media);
 
     const em = new DiscordJS.MessageEmbed()
-      .setTitle(hentai.title)
-      .setURL(hentai.permalink)
-      .setImage(hentai.media)
-      .setFooter(msg.author.tag)
+      .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
+      .setTitle(post.title)
+      .setURL(post.permalink)
+      .setImage(image)
       .setTimestamp();
-    return msg.channel.send(em);
+
+    return msg.channel.send({ embeds: [em] });
   }
 }
 
-module.exports = hentai;
+module.exports = Hentai;
