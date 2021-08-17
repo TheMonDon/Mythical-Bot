@@ -55,11 +55,12 @@ class Bot extends Client {
 
   loadCommand (commandPath, commandName) {
     try {
-      const props = new (require(`${commandPath}${path.sep}${commandName}`))(this);
+      const props = new (require(commandPath))(this);
       props.conf.location = commandPath;
       if (props.init) {
         props.init(this);
       }
+
       this.commands.set(props.help.name, props);
       props.conf.aliases.forEach(alias => {
         this.aliases.set(alias, props.help.name);
@@ -82,7 +83,7 @@ class Bot extends Client {
     if (command.shutdown) {
       await command.shutdown(this);
     }
-    delete require.cache[require.resolve(`${commandPath}${path.sep}${commandName}.js`)];
+    delete require.cache[require.resolve(commandPath)];
     return false;
   }
 
