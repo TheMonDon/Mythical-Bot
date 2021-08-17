@@ -1,24 +1,23 @@
-if (Number(process.version.slice(1).split('.')[0]) < 14) throw new Error('Node 14.0.0 or higher is required. Update Node on your system.');
+if (Number(process.version.slice(1).split('.')[0]) < 16) throw new Error('Node 16.x or higher is required. Update Node on your system.');
 
-const { Intents } = require('discord.js');
-const DiscordJS = require('discord.js')
-const { promisify } = require('util');
-const readdir = promisify(require('fs').readdir);
+const { Intents, Collection, Client } = require('discord.js');
+const DiscordJS = require('discord.js');
+const { readdirSync, statSync } = require('fs');
 const Enmap = require('enmap');
 const db = require('quick.db');
-const klaw = require('klaw');
 const path = require('path');
 const { Player } = require('discord-player');
 const mysql = require('mysql2');
 const config = require('./config.js');
 
-class Bot extends DiscordJS.Client {
+class Bot extends Client {
   constructor (options) {
     super(options);
 
     this.config = config;
-    this.commands = new DiscordJS.Collection();
-    this.aliases = new DiscordJS.Collection();
+    this.commands = new Collection();
+    this.aliases = new Collection();
+    this.slashcmds = new Collection();
 
     this.settings = new Enmap({ name: 'settings', cloneLevel: 'deep', fetchAll: false, autoFetch: true });
     this.games = new Enmap({ name: 'games', cloneLevel: 'deep', fetchAll: false, autoFetch: true });
@@ -143,7 +142,7 @@ class Bot extends DiscordJS.Client {
 
 // Enable intents for the bot
 const myIntents = new Intents();
-myIntents.add(Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_BANS, Intents.FLAGS.GUILD_MEMBERS, Intents.FLAGS.GUILD_EMOJIS_AND_STICKERS, Intents.FLAGS.GUILD_INTEGRATIONS, Intents.FLAGS.GUILD_WEBHOOKS, Intents.FLAGS.GUILD_INVITES, Intents.FLAGS.GUILD_VOICE_STATES, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_MESSAGE_REACTIONS, Intents.FLAGS.DIRECT_MESSAGES, Intents.FLAGS.DIRECT_MESSAGE_REACTIONS)
+myIntents.add(Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_BANS, Intents.FLAGS.GUILD_MEMBERS, Intents.FLAGS.GUILD_EMOJIS_AND_STICKERS, Intents.FLAGS.GUILD_INTEGRATIONS, Intents.FLAGS.GUILD_WEBHOOKS, Intents.FLAGS.GUILD_INVITES, Intents.FLAGS.GUILD_VOICE_STATES, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_MESSAGE_REACTIONS, Intents.FLAGS.DIRECT_MESSAGES, Intents.FLAGS.DIRECT_MESSAGE_REACTIONS);
 const client = new Bot({ intents: myIntents });
 
 // Create MySQL Pool globally
@@ -228,26 +227,52 @@ client.player
   });
 
 const init = async () => {
+  // Let's load the slash commands, we're using a recursive method so you can have
+  // folders within folders, within folders, within folders, etc and so on.
+  function getSlashCommands (dir) {
+    const slashFiles = readdirSync(dir);
+    for (const file of slashFiles) {
+      const loc = path.resolve(dir, file);
+      const stats = statSync(loc);
+      if (stats.isDirectory()) {
+        getSlashCommands(path.resolve(dir, file));
+      } else {
+        const command = new (require(loc))(client);
+        client.slashcmds.set(command.commandData.name, command);
+      }
+    }
+  }
+
   // Here we load **commands** into memory, as a collection, so they're accessible
-  // here and everywhere else.
-  klaw('./commands').on('data', (item) => {
-    const cmdFile = path.parse(item.path);
-    if (!cmdFile.ext || cmdFile.ext !== '.js') return;
-    const response = client.loadCommand(cmdFile.dir, `${cmdFile.name}${cmdFile.ext}`);
-    if (response) client.logger.error(response);
-  });
+  // here and everywhere else, and like the slash commands, sub-folders for days!
+  function getCommands (dir) {
+    const cmdFile = readdirSync(dir);
+    for (const file of cmdFile) {
+      const loc = path.resolve(dir, file);
+      const stats = statSync(loc);
+      if (stats.isDirectory()) {
+        getCommands(path.resolve(dir, file));
+      } else {
+        const commandName = file.split('.')[0];
+        client.loadCommand(loc, commandName);
+      }
+    }
+  }
+
+  getCommands('./commands');
+  getSlashCommands('./slash');
 
   // Then we load events, which will include our message and ready event.
-  const evtFiles = await readdir('./events/');
-  client.logger.log(`Loading a total of ${evtFiles.length} events.`, 'log');
-  evtFiles.forEach(file => {
+  const eventFiles = readdirSync('./events/').filter(file => file.endsWith('.js'));
+  for (const file of eventFiles) {
     const eventName = file.split('.')[0];
-    client.logger.log(`Loading Event: ${eventName}`);
+    client.logger.log(`Loading Event: ${eventName}. 👌`, 'log');
     const event = new (require(`./events/${file}`))(client);
+
     // This line is awesome by the way. Just sayin'.
     client.on(eventName, (...args) => event.run(...args));
     delete require.cache[require.resolve(`./events/${file}`)];
-  });
+  }
 
   client.levelCache = {};
   for (let i = 0; i < client.config.permLevels.length; i++) {
