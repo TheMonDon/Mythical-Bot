@@ -34,7 +34,7 @@ class TVShow extends Command {
       const { body } = await fetch
         .get(`https://api.themoviedb.org/3/tv/${find.id}`)
         .query({ api_key: this.client.config.TMDb });
-  
+
       const embed = new DiscordJS.MessageEmbed()
         .setColor('0099CC')
         .setTitle(body.name)
