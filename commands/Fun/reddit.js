@@ -30,9 +30,9 @@ class Reddit extends Command {
       .setImage(image)
       .setTimestamp();
 
-    if (post.is_over18 && msg.channel.nsfw === true) {
+    if (post.over_18 && msg.channel.nsfw === true) {
       return msg.channel.send({ embeds: [em] });
-    } else if (post.is_over18 && msg.channel.nsfw === false) {
+    } else if (post.over_18 && msg.channel.nsfw === false) {
       return msg.channel.send('The post from that subreddit is NSFW and could not be sent in this channel.');
     }
 

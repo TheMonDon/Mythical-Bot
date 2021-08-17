@@ -5,7 +5,7 @@ const trev = require('trev');
 class Ginger extends Command {
   constructor (client) {
     super(client, {
-      name: 'gingers',
+      name: 'ginger',
       description: 'Sends a random image of some thongs.',
       usage: 'ginger',
       category: 'NSFW',
