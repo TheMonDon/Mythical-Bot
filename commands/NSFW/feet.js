@@ -18,8 +18,8 @@ class Feet extends Command {
     const post = await trev.nsfw.feet();
 
     let image = post.media;
-    if (post.isImgurUpload(post.media)) image = post.getRawImgur(post.media);
-    if (post.isGfyLink(post.media)) image = post.gfyIframe(post.media);
+    if (trev.isImgurUpload(post.media)) image = trev.getRawImgur(post.media);
+    if (trev.isGfyLink(post.media)) image = trev.gfyIframe(post.media);
 
     const em = new DiscordJS.MessageEmbed()
       .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
