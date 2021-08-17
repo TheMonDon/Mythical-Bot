@@ -77,7 +77,7 @@ class Bot extends Client {
     } else if (this.aliases.has(commandName)) {
       command = this.commands.get(this.aliases.get(commandName));
     }
-    if (!command) return `The command \`${commandName}\` doesn"t seem to exist, nor is it an alias. Try again!`;
+    if (!command) return `The command \`${commandName}\` doesn't seem to exist, nor is it an alias. Try again!`;
 
     if (command.shutdown) {
       await command.shutdown(this);
@@ -238,6 +238,8 @@ const init = async () => {
         getSlashCommands(path.resolve(dir, file));
       } else {
         const command = new (require(loc))(client);
+        const commandName = file.split('.')[0];
+        client.logger.log(`Loading Slash command: ${commandName}. 👌`, 'log');
         client.slashcmds.set(command.commandData.name, command);
       }
     }
@@ -254,11 +256,13 @@ const init = async () => {
         getCommands(path.resolve(dir, file));
       } else {
         const commandName = file.split('.')[0];
+        client.logger.log(`Loading command: ${commandName}. 👌`, 'log');
         client.loadCommand(loc, commandName);
       }
     }
   }
 
+  // Now let's call the functions to actually load up the commands!
   getCommands('./commands');
   getSlashCommands('./slash');
 
@@ -280,7 +284,10 @@ const init = async () => {
     client.levelCache[thisLevel.name] = thisLevel.level;
   }
 
+  // Here we login the client.
   client.login(client.config.token);
+
+  // End top-level async/await function.
 };
 
 init();
