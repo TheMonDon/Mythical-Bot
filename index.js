@@ -239,8 +239,6 @@ const init = async () => {
         getSlashCommands(path.resolve(dir, file));
       } else {
         const command = new (require(loc))(client);
-        const commandName = file.split('.')[0];
-        client.logger.log(`Loading Slash command: ${commandName}. 👌`, 'log');
         client.slashcmds.set(command.commandData.name, command);
       }
     }
@@ -257,7 +255,6 @@ const init = async () => {
         getCommands(path.resolve(dir, file));
       } else {
         const commandName = file.split('.')[0];
-        client.logger.log(`Loading command: ${commandName}. 👌`, 'log');
         client.loadCommand(loc, commandName);
       }
     }
