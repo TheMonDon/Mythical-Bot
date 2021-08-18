@@ -268,7 +268,6 @@ const init = async () => {
   const eventFiles = readdirSync('./events/').filter(file => file.endsWith('.js'));
   for (const file of eventFiles) {
     const eventName = file.split('.')[0];
-    client.logger.log(`Loading Event: ${eventName}. 👌`, 'log');
     const event = new (require(`./events/${file}`))(client);
 
     // This line is awesome by the way. Just sayin'.
