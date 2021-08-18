@@ -8,7 +8,7 @@ class Reddit extends Command {
       name: 'reddit',
       description: 'Sends a random image from a subreddit of your choice.',
       usage: 'reddit <subreddit>',
-      category: 'Fun'
+      category: 'Search'
     });
   }
 
