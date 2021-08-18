@@ -192,18 +192,15 @@ client.player
     queue.metadata.channel.send({ embeds: [em] });
   })
   .on('tracksAdd', (queue, tracks) => {
-    console.log(queue);
-    console.log(tracks);
-  })
-  .on('playlistAdd', (queue, playlist) => {
+    const playlist = tracks[0].playlist;
     const length = playlist.videos?.length || playlist.tracks?.length || 'N/A';
 
     const em = new DiscordJS.MessageEmbed()
       .setTitle('Playlist Added to Queue')
       .setThumbnail(playlist.thumbnail)
       .setColor('0099CC')
-      .setDescription(`[${playlist.title}](${playlist.url}) \n\nRequested By: ${playlist.requestedBy}`)
-      .addField('Playlist Length', length, true);
+      .setDescription(`[${playlist.title}](${playlist.url}) \n\nRequested By: ${tracks[0].requestedBy}`)
+      .addField('Playlist Length', length.toString(), true);
     queue.metadata.channel.send({ embeds: [em] });
   })
   .on('noResults', (queue, query) => queue.metadata.channel.send(`No results found on YouTube for ${query}!`))
