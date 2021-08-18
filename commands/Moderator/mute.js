@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 const Command = require('../../base/Command.js');
-const { getMember } = require('../../base/Util.js');
+const { getMember } = require('../../util/Util.js');
 const db = require('quick.db');
 const DiscordJS = require('discord.js');
 const moment = require('moment');

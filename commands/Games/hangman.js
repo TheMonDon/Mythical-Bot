@@ -1,5 +1,5 @@
 const Command = require('../../base/Command.js');
-const { getMember } = require('../../base/Util.js');
+const { getMember } = require('../../util/Util.js');
 const randomWords = require('random-words');
 const Discord = require('discord.js');
 

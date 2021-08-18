@@ -1,5 +1,5 @@
 const Command = require('../../base/Command.js');
-const { random } = require('../../base/Util.js');
+const { random } = require('../../util/Util.js');
 
 class Choose extends Command {
   constructor (client) {

@@ -1,5 +1,5 @@
 const Command = require('../../base/Command.js');
-const { verify } = require('../../base/Util.js');
+const { verify } = require('../../util/Util.js');
 const db = require('quick.db');
 const DiscordJS = require('discord.js');
 

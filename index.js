@@ -22,7 +22,7 @@ class Bot extends Client {
     this.settings = new Enmap({ name: 'settings', cloneLevel: 'deep', fetchAll: false, autoFetch: true });
     this.games = new Enmap({ name: 'games', cloneLevel: 'deep', fetchAll: false, autoFetch: true });
 
-    this.logger = require('./modules/Logger');
+    this.logger = require('./util/Logger');
 
     // Basically just an async shortcut to using a setTimeout. Nothing fancy!
     this.wait = require('util').promisify(setTimeout);

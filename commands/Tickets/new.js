@@ -1,5 +1,5 @@
 const Command = require('../../base/Command.js');
-const { getTickets } = require('../../base/Util.js');
+const { getTickets } = require('../../util/Util.js');
 const db = require('quick.db');
 const DiscordJS = require('discord.js');
 const { stripIndents } = require('common-tags');

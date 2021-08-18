@@ -1,5 +1,5 @@
 const Command = require('../../base/Command.js');
-const { getMember } = require('../../base/Util.js');
+const { getMember } = require('../../util/Util.js');
 const DiscordJS = require('discord.js');
 const Nfetch = require('node-superfetch');
 const { JSONPath } = require('jsonpath-plus');

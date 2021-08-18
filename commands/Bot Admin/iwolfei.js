@@ -1,5 +1,5 @@
 const Command = require('../../base/Command.js');
-const { getMember } = require('../../base/Util.js');
+const { getMember } = require('../../util/Util.js');
 
 class wolfei extends Command {
   constructor (client) {

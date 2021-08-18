@@ -1,5 +1,5 @@
 const Command = require('../../base/Command.js');
-const { getChannel } = require('../../base/Util.js');
+const { getChannel } = require('../../util/Util.js');
 const DiscordJS = require('discord.js');
 const moment = require('moment');
 require('moment-duration-format');

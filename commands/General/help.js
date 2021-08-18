@@ -1,5 +1,5 @@
 const Command = require('../../base/Command.js');
-const { toProperCase } = require('../../base/Util.js');
+const { toProperCase } = require('../../util/Util.js');
 const { MessageEmbed } = require('discord.js');
 
 class Help extends Command {

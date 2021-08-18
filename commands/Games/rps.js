@@ -1,5 +1,5 @@
 const Command = require('../../base/Command.js');
-const { getMember, verify } = require('../../base/Util.js');
+const { getMember, verify } = require('../../util/Util.js');
 const { stripIndents } = require('common-tags');
 const DiscordJS = require('discord.js');
 

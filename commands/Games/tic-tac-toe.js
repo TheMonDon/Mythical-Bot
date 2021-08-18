@@ -1,7 +1,7 @@
 const Command = require('../../base/Command.js');
 const tictactoe = require('tictactoe-minimax-ai');
 const { stripIndents } = require('common-tags');
-const { verify, getMember } = require('../../base/Util.js');
+const { verify, getMember } = require('../../util/Util.js');
 const nums = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣'];
 
 class TicTacToe extends Command {

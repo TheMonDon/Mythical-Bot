@@ -1,5 +1,5 @@
 const Command = require('../../base/Command.js');
-const { wait } = require('../../base/Util.js');
+const { wait } = require('../../util/Util.js');
 const DiscordJS = require('discord.js');
 const https = require('https');
 const fntPath = './resources/fonts/Moms_Typewriter.ttf';

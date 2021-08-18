@@ -1,5 +1,5 @@
 const Command = require('../../base/Command.js');
-const { clean, cleanString } = require('../../base/Util.js');
+const { clean, cleanString } = require('../../util/Util.js');
 
 class Clap extends Command {
   constructor (client) {

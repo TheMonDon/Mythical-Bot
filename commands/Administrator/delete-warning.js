@@ -1,5 +1,5 @@
 const Command = require('../../base/Command.js');
-const { getTotalPoints } = require('../../base/Util.js');
+const { getTotalPoints } = require('../../util/Util.js');
 const db = require('quick.db');
 const DiscordJS = require('discord.js');
 

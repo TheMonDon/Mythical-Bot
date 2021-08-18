@@ -1,6 +1,6 @@
 const Command = require('../../base/Command.js');
 const { letterTrans } = require('custom-translate');
-const { clean, cleanString } = require('../../base/Util.js');
+const { clean, cleanString } = require('../../util/Util.js');
 
 class Cursive extends Command {
   constructor (client) {
