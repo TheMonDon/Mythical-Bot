@@ -155,9 +155,6 @@ global.pool = mysql.createPool({
 
 // Load the music player stuff
 client.player = new Player(client, {
-  leaveOnEnd: false,
-  leaveOnStop: true,
-  leaveOnEmpty: false,
   autoSelfDeaf: true,
   enableLive: true
 });
@@ -193,6 +190,10 @@ client.player
       .setColor('0099CC')
       .setDescription(`[${title}](${url}) \n\nRequested By: ${requestedBy}`);
     queue.metadata.channel.send({ embeds: [em] });
+  })
+  .on('tracksAdd', (queue, tracks) => {
+    console.log(queue);
+    console.log(tracks);
   })
   .on('playlistAdd', (queue, playlist) => {
     const length = playlist.videos?.length || playlist.tracks?.length || 'N/A';
