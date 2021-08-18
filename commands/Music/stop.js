@@ -16,9 +16,13 @@ class Stop extends Command {
     if (msg.guild.me.voice.channel && msg.member.voice.channel.id !== msg.guild.me.voice.channel.id) return msg.channel.send('You must be in the same voice channel as the bot.');
     if (!this.client.player.isPlaying(msg)) return msg.channel.send('There is nothing playing.');
 
-    await this.client.player.stop(msg);
-
-    return msg.channel.send('Music has been stopped.');
+    const queue = this.client.player.getQueue(msg.guild.id);
+    if (queue) {
+      queue.destroy();
+      return msg.channel.send('Music has been stopped.');
+    } else {
+      return msg.channel.send('There was nothing playing.');
+    }
   }
 }
 

@@ -163,28 +163,27 @@ client.player = new Player(client, {
 });
 
 client.player
-  .on('trackStart', (message, track) => {
-    (async () => {
-      const em = new DiscordJS.MessageEmbed()
-        .setTitle('Now Playing')
-        .setDescription(`[${track.title}](${track.url}) \n\nRequested By: ${track.requestedBy}`)
-        .setThumbnail(track.thumbnail)
-        .setColor('0099CC');
-      const msg = await message.channel.send(em);
+  .on('trackStart', async (queue, track) => {
+    const message = queue.metadata;
+    const em = new DiscordJS.MessageEmbed()
+      .setTitle('Now Playing')
+      .setDescription(`[${track.title}](${track.url}) \n\nRequested By: ${track.requestedBy}`)
+      .setThumbnail(track.thumbnail)
+      .setColor('0099CC');
+    const msg = await message.channel.send(em);
 
-      const oldmsg = db.get(`servers.${message.guild.id}.music.lastTrack`) || null;
-      if (oldmsg !== null) {
-        try {
-          await message.guild.channels.cache.get(oldmsg.channelID).messages.cache.get(oldmsg.id).delete();
-        } catch {
-          db.delete(`servers.${message.guild.id}.music.lastTrack`);
-        }
+    const oldmsg = db.get(`servers.${message.guild.id}.music.lastTrack`) || null;
+    if (oldmsg !== null) {
+      try {
+        await message.guild.channels.cache.get(oldmsg.channelID).messages.cache.get(oldmsg.id).delete();
+      } catch {
+        db.delete(`servers.${message.guild.id}.music.lastTrack`);
       }
+    }
 
-      db.set(`servers.${message.guild.id}.music.lastTrack`, msg);
-    })();
+    db.set(`servers.${message.guild.id}.music.lastTrack`, msg);
   })
-  .on('trackAdd', (message, track) => {
+  .on('trackAdd', (queue, track) => {
     const title = track.title || track.tracks[track.tracks.length - 1].title;
     const url = track.url || track.tracks[track.tracks.length - 1].url;
     const requestedBy = track.requestedBy || track.tracks[track.tracks.length - 1].requestedBy;
@@ -194,9 +193,9 @@ client.player
       .setThumbnail(track.thumbnail)
       .setColor('0099CC')
       .setDescription(`[${title}](${url}) \n\nRequested By: ${requestedBy}`);
-    message.channel.send(em);
+    queue.metadata.channel.send(em);
   })
-  .on('playlistAdd', (message, _queue, playlist) => {
+  .on('playlistAdd', (queue, playlist) => {
     const length = playlist.videos?.length || playlist.tracks?.length || 'N/A';
 
     const em = new DiscordJS.MessageEmbed()
@@ -205,24 +204,24 @@ client.player
       .setColor('0099CC')
       .setDescription(`[${playlist.title}](${playlist.url}) \n\nRequested By: ${playlist.requestedBy}`)
       .addField('Playlist Length', length, true);
-    message.channel.send(em);
+    queue.metadata.channel.send(em);
   })
-  .on('noResults', (message, query) => message.channel.send(`No results found on YouTube for ${query}!`))
-  .on('queueEnd', (message) => message.channel.send('Music stopped as there is no more music in the queue!'))
-  .on('botDisconnect', (message) => message.channel.send('Music stopped as I have been disconnected from the channel!'))
-  .on('error', (error, message) => {
+  .on('noResults', (queue, query) => queue.metadata.channel.send(`No results found on YouTube for ${query}!`))
+  .on('queueEnd', (queue) => queue.metadata.channel.send('Music stopped as there is no more music in the queue!'))
+  .on('botDisconnect', (queue) => queue.metadata.channel.send('Music stopped as I have been disconnected from the channel!'))
+  .on('error', (queue, error) => {
     switch (error) {
       case 'NotPlaying':
-        message.channel.send('There is no music being played on this server!');
+        queue.metadata.channel.send('There is no music being played on this server!');
         break;
       case 'NotConnected':
-        message.channel.send('You are not connected in any voice channel!');
+        queue.metadata.channel.send('You are not connected in any voice channel!');
         break;
       case 'UnableToJoin':
-        message.channel.send('I am not able to join your voice channel, please check my permissions!');
+        queue.metadata.channel.send('I am not able to join your voice channel, please check my permissions!');
         break;
       default:
-        message.channel.send(`Something went wrong... Error: ${error}`);
+        queue.metadata.channel.send(`Something went wrong... Error: ${error}`);
         break;
     }
   });
