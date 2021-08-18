@@ -27,7 +27,7 @@ class Lyrics extends Command {
     if (!lyrics) return msg.channel.send(`No lyrics found for: ${song}`);
 
     let emLyrics = lyrics;
-    if (emLyrics.length > 3090) emLyrics = lyrics.slice(3090) + '...';
+    if (emLyrics.length > 3090) emLyrics = lyrics.slice(0, 3090) + '...';
 
     const em = new DiscordJS.MessageEmbed()
       .setColor('#0099CC')
