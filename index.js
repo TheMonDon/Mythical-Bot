@@ -164,24 +164,23 @@ client.player = new Player(client, {
 
 client.player
   .on('trackStart', async (queue, track) => {
-    const message = queue.metadata;
     const em = new DiscordJS.MessageEmbed()
       .setTitle('Now Playing')
       .setDescription(`[${track.title}](${track.url}) \n\nRequested By: ${track.requestedBy}`)
       .setThumbnail(track.thumbnail)
       .setColor('0099CC');
-    const msg = await message.channel.send(em);
+    const msg = await queue.metadata.channel.send({ embeds: [em] });
 
-    const oldmsg = db.get(`servers.${message.guild.id}.music.lastTrack`) || null;
+    const oldmsg = db.get(`servers.${queue.metadata.guild.id}.music.lastTrack`) || null;
     if (oldmsg !== null) {
       try {
-        await message.guild.channels.cache.get(oldmsg.channelID).messages.cache.get(oldmsg.id).delete();
+        await queue.metadata.guild.channels.cache.get(oldmsg.channelID).messages.cache.get(oldmsg.id).delete();
       } catch {
-        db.delete(`servers.${message.guild.id}.music.lastTrack`);
+        db.delete(`servers.${queue.metadata.guild.id}.music.lastTrack`);
       }
     }
 
-    db.set(`servers.${message.guild.id}.music.lastTrack`, msg);
+    db.set(`servers.${queue.metadata.guild.id}.music.lastTrack`, msg);
   })
   .on('trackAdd', (queue, track) => {
     const title = track.title || track.tracks[track.tracks.length - 1].title;
@@ -193,7 +192,7 @@ client.player
       .setThumbnail(track.thumbnail)
       .setColor('0099CC')
       .setDescription(`[${title}](${url}) \n\nRequested By: ${requestedBy}`);
-    queue.metadata.channel.send(em);
+    queue.metadata.channel.send({ embeds: [em] });
   })
   .on('playlistAdd', (queue, playlist) => {
     const length = playlist.videos?.length || playlist.tracks?.length || 'N/A';
@@ -204,7 +203,7 @@ client.player
       .setColor('0099CC')
       .setDescription(`[${playlist.title}](${playlist.url}) \n\nRequested By: ${playlist.requestedBy}`)
       .addField('Playlist Length', length, true);
-    queue.metadata.channel.send(em);
+    queue.metadata.channel.send({ embeds: [em] });
   })
   .on('noResults', (queue, query) => queue.metadata.channel.send(`No results found on YouTube for ${query}!`))
   .on('queueEnd', (queue) => queue.metadata.channel.send('Music stopped as there is no more music in the queue!'))
