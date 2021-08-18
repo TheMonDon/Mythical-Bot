@@ -47,8 +47,8 @@ class Help extends Command {
         em.setColor('0099CC');
         em.addField('Usage', command.help.usage, false);
         em.addField('Aliases', command.conf.aliases.join(', ') || 'none', false);
-        em.addField('Guild Only', command.conf.guildOnly, true);
-        em.addField('NSFW', command.conf.nsfw, true);
+        em.addField('Guild Only', command.conf.guildOnly.toString(), true);
+        em.addField('NSFW', command.conf.nsfw.toString(), true);
         em.addField('Description', command.help.description, false);
         em.addField('Long Description', command.help.longDescription, false);
         return msg.channel.send({ embeds: [em] });
