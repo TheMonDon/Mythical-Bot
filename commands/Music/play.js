@@ -29,7 +29,11 @@ class Play extends Command {
       msg.reply('Could not join your voice channel.');
     }
 
-    queue.addTrack(song.tracks[0]);
+    if (song.tracks.length > 1) {
+      queue.addTracks(song.tracks);
+    } else {
+      queue.addTrack(song.tracks[0]);
+    }
     queue.play();
   }
 }
