@@ -9,7 +9,7 @@ class Balance extends Command {
     super(client, {
       name: 'balance',
       category: 'Economy',
-      description: 'Gives you your or another member\'s balance',
+      description: 'Get yours or another members balance',
       usage: 'balance [member]',
       aliases: ['bal', 'money'],
       guildOnly: true

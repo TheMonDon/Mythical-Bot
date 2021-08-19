@@ -39,9 +39,9 @@ class MinecraftServer extends Command {
       .setTitle('Minecraft Server Stats')
       .setAuthor(msg.author.username, msg.author.displayAvatarURL())
       .setColor('#2ecc71')
-      .addField('IP Address:', `${body.hostname.toString() || body.ip.toString() + (body.port !== '25565' ? `:${body.port.toString()}` : '')} ` || 'N/A', false)
+      .addField('IP Address:', `${body.hostname.toString() || body.ip.toString() + (body.port !== '25565' ? `:${body.port}` : '')}` || 'N/A', false)
       .addField('Version:', body.version.toString() || 'N/A', false)
-      .addField('Players:', `${body.players.online.toString()}/${body.players.max.toString()}` || 'N/A', false)
+      .addField('Players:', `${body.players.online}/${body.players.max}` || 'N/A', false)
       .addField('MOTD:', body.motd.clean.toString() || 'N/A', false);
     return msg.channel.send({ embeds: [em] });
   }

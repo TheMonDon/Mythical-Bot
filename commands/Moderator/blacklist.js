@@ -64,7 +64,7 @@ class Blacklist extends Command {
         .addField('Server:', `${msg.guild.name} \n(${msg.guild.id})`, true)
         .setTimestamp();
       msg.channel.send({ embeds: [em] });
-      mem.send(em);
+      mem.send({ embeds: [em] });
     } else if (type === 'remove') { // remove member from blacklist
       if (!blacklist) return msg.channel.send('That user is not blacklisted');
       if (!reason) return msg.channel.send(`${usage} \nPlease provide a valid reason.`);
@@ -80,11 +80,9 @@ class Blacklist extends Command {
         .addField('Server:', `${msg.guild.name} \n(${msg.guild.id})`, true)
         .setTimestamp();
       msg.channel.send({ embeds: [em] });
-      mem.send(em);
+      mem.send({ embeds: [em] });
     } else if (type === 'check') { // check if member is blacklisted
       const reason = db.get(`servers.${msg.guild.id}.users.${mem.id}.blacklistReason`) || false;
-      /* let bl;
-      if (!blacklist) { bl = 'is not'; } else { bl = 'is'; } */
 
       const bl = blacklist ? 'is' : 'is not';
       const em = new DiscordJS.MessageEmbed()
@@ -96,8 +94,6 @@ class Blacklist extends Command {
       if (reason) em.addField('reason', reason, true);
 
       return msg.channel.send({ embeds: [em] });
-    } else { // send error
-      return msg.channel.send('Sorry something went wrong, please try again later.');
     }
   }
 }

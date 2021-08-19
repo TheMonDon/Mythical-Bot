@@ -28,7 +28,7 @@ module.exports = class {
       embed.addField('Member Count', member.guild.members.cache.size, true);
       embed.setFooter(`ID: ${member.user.id}`);
       embed.setTimestamp();
-      member.guild.channels.cache.get(logChan).send(embed);
+      member.guild.channels.cache.get(logChan).send({ embeds: [embed] });
       db.add(`servers.${member.guild.id}.logs.member-leave`, 1);
       db.add(`servers.${member.guild.id}.logs.all`, 1);
     })();

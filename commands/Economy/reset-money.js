@@ -11,16 +11,13 @@ class ResetMoney extends Command {
       category: 'Economy',
       usage: 'Reset-Money <user>',
       aliases: ['resetmoney', 'rm'],
+      permLevel: 'Moderator',
       guildOnly: true
     });
   }
 
   async run (msg, text) {
-    const member = msg.member;
-    const p = msg.settings.prefix;
     let mem;
-
-    if (!member.permissions.has('MANAGE_GUILD')) return msg.channel.send('You are missing **Manage Guild** permission.');
 
     const filter = (response) => {
       return response.content.toLowerCase() === ('yes' || 'no' || 'y' || 'n') && response.author.id === msg.author.id;
@@ -29,11 +26,12 @@ class ResetMoney extends Command {
     const errEm = new DiscordJS.MessageEmbed()
       .setColor('#EC5454')
       .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
-      .setDescription(`Incorrect Usage: ${p}Reset-Money <user>`);
+      .setDescription(`Incorrect Usage: ${msg.settings.prefix}Reset-Money <user>`);
 
     if (!text || text.length < 1) {
       await msg.channel.send('Are you sure you want to reset your money? (yes/no)');
-      msg.channel.awaitMessages(filter, {
+      msg.channel.awaitMessages({
+        filter,
         max: 1,
         time: 30000,
         errors: ['time']
@@ -42,8 +40,8 @@ class ResetMoney extends Command {
           const word = collected.first().content.trim();
           if (word === 'yes' || word === 'y') {
             const amount = db.get(`servers.${msg.guild.id}.economy.startBalance`) || 0;
-            db.set(`servers.${msg.guild.id}.users.${member.id}.economy.cash`, amount);
-            db.set(`servers.${msg.guild.id}.users.${member.id}.economy.bank`, 0);
+            db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, amount);
+            db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`, 0);
             return msg.channel.send('Your money has been reset.');
           } else if (word === 'no' || word === 'n') {
             return msg.channel.send('Cancelled, your money will not be reset.');
@@ -65,7 +63,7 @@ class ResetMoney extends Command {
           const embed = new DiscordJS.MessageEmbed()
             .setColor('#EC5454')
             .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
-            .setDescription(`That user was not found. \nUsage: ${p}Reset-Money <user>`);
+            .setDescription(`That user was not found. \nUsage: ${msg.settings.prefix}Reset-Money <user>`);
           return msg.channel.send({ embeds: [embed] });
         }
       }

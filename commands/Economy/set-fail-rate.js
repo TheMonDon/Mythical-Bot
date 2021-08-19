@@ -11,6 +11,7 @@ class SetFailRate extends Command {
       description: 'Sets the fail rate of economy commands',
       usage: 'set-fail-rate <crime> <percentage>',
       aliases: ['setfailrate', 'setfail'],
+      permLevel: 'Moderator',
       guildOnly: true
     });
   }
@@ -18,11 +19,9 @@ class SetFailRate extends Command {
   run (msg, text) {
     const types = ['crime'];
 
-    if (!msg.member.permissions.has('MANAGE_GUILD')) return msg.channel.send('You are missing **Manage Guild** permission.');
-
     const usage = `${msg.settings.prefix}set-fail-rate <crime> <percentage>`;
 
-    // const slutFail = db.get(`servers.${server.id}.economy.slut.failrate`) || 35;
+    // const slutFail = db.get(`servers.${msg.guild.id}.economy.slut.failrate`) || 35;
     const crimeFail = db.get(`servers.${msg.guild.id}.economy.crime.failrate`) || 45;
 
     if (!text || text.length < 1) {
@@ -46,7 +45,7 @@ class SetFailRate extends Command {
     const type = text[0]?.toLowerCase();
     if (!types.includes(type)) {
       errEmbed.setDescription(`Incorrect Usage: ${usage}`);
-      return msg.channel.send(errEmbed);
+      return msg.channel.send({ embeds: [errEmbed] });
     }
 
     text.shift();
@@ -69,7 +68,7 @@ class SetFailRate extends Command {
 
         Usage: ${usage}
       `);
-      return msg.channel.send(errEmbed);
+      return msg.channel.send({ embeds: [errEmbed] });
     }
 
     const embed = new DiscordJS.MessageEmbed()

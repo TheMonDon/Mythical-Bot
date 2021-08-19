@@ -25,7 +25,7 @@ class AddMoney extends Command {
 
     if (!msg.member.permissions.has('MANAGE_GUILD')) {
       errEmbed.setDescription('You are missing the **Manage Guild** permission.');
-      return msg.channel.send(errEmbed);
+      return msg.channel.send({ embeds: [errEmbed] });
     }
 
     let type = 'cash';
@@ -34,7 +34,7 @@ class AddMoney extends Command {
 
     if (!args || args.length < 2) {
       errEmbed.setDescription(usage);
-      return msg.channel.send(errEmbed);
+      return msg.channel.send({ embeds: [errEmbed] });
     }
 
     const cs = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
@@ -53,7 +53,7 @@ class AddMoney extends Command {
 
     if (isNaN(amount) || amount === Infinity) {
       errEmbed.setDescription(usage);
-      return msg.channel.send(errEmbed);
+      return msg.channel.send({ embeds: [errEmbed] });
     }
 
     if (!mem) {
@@ -62,12 +62,12 @@ class AddMoney extends Command {
 
       Usage: ${msg.settings.prefix}add-money <cash | bank> <member> <amount>
       `);
-      return msg.channel.send(errEmbed);
+      return msg.channel.send({ embeds: [errEmbed] });
     }
 
     if (mem.user.bot) {
       errEmbed.setDescription('You can\'t add money to a bot.');
-      return msg.channel.send(errEmbed);
+      return msg.channel.send({ embeds: [errEmbed] });
     }
 
     if (type === 'bank') {
@@ -77,7 +77,7 @@ class AddMoney extends Command {
       const newAmount = cash + amount;
       if (isNaN(newAmount) || newAmount === Infinity) {
         errEmbed.setDescription(`${mem}'s balance would be Infinity if you gave them that much!`);
-        return msg.channel.send(errEmbed);
+        return msg.channel.send({ embeds: [errEmbed] });
       }
       db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, newAmount);
     }

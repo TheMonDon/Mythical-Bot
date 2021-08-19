@@ -18,10 +18,9 @@ class Warn extends Command {
   async run (msg, args) {
     let mem;
     let member = true;
-    const p = msg.settings.prefix;
 
     if (!args || args.length < 3) {
-      return msg.channel.send(`Incorrect Usage: ${p}warn <member> <points> <reason>`);
+      return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}warn <member> <points> <reason>`);
     } else {
       mem = getMember(msg, args[0]);
     }
@@ -33,7 +32,7 @@ class Warn extends Command {
         mem = await this.client.users.fetch(ID);
         member = false;
       } catch (err) {
-        return msg.channel.send(`Incorrect Usage: ${p}warn <member> <points> <reason>`);
+        return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}warn <member> <points> <reason>`);
       }
     }
 
@@ -46,8 +45,8 @@ class Warn extends Command {
     }
 
     const points = parseInt(args[1], 10);
-    if (isNaN(points)) return msg.channel.send(`Incorrect Usage: ${p}warn <member> <points> <reason>`);
-    if (points < 0 || points > 1000) return msg.channel.send(`Incorrect Usage: ${p}warn <member> <0-1000 points> <reason>`);
+    if (isNaN(points)) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}warn <member> <points> <reason>`);
+    if (points < 0 || points > 1000) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}warn <member> <0-1000 points> <reason>`);
 
     // Convert shorthand to fullhand for reason
     args.shift();

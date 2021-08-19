@@ -30,20 +30,20 @@ class ChannelInfo extends Command {
       .setColor('RANDOM')
       .setAuthor(msg.author.username, msg.author.displayAvatarURL())
       .addField('Name', infoChan.name, true)
-      .addField('ID', infoChan.id, true)
+      .addField('ID', infoChan.id.toString(), true)
       .addField('Type', infoChan.type, true)
-      .addField('Position', infoChan.position, true);
+      .addField('Position', infoChan.position.toString(), true);
     if (infoChan.guild !== msg.guild) embed.addField('Server', infoChan.guild.name, true);
     if (infoChan.type === 'GUILD_TEXT') embed.addField('NSFW', infoChan.nsfw, true);
     if (infoChan.type === 'GUILD_VOICE') {
-      embed.addField('User Limit', infoChan.userLimit, true);
-      embed.addField('Bitrate', infoChan.bitrate, true);
+      embed.addField('User Limit', infoChan.userLimit.toString(), true);
+      embed.addField('Bitrate', infoChan.bitrate.toString(), true);
     }
-    if (infoChan.type === 'GUILD_CATEGORY') embed.addField('Children', infoChan.children.size, true);
+    if (infoChan.type === 'GUILD_CATEGORY') embed.addField('Children', infoChan.children.size.toString(), true);
     embed.addField('Mention', `\`${infoChan}\``, true);
-    embed.addField('Created At', `${ca} \n (${time})`, true);
-    if (infoChan.parent) embed.addField('Parent', `${infoChan.parent.name} \n \`${infoChan.parentID}\``, true);
-    if (infoChan.type === 'text') embed.addField('Topic', `${(infoChan.topic) || 'None'}`, false);
+    embed.addField('Created At', `${ca} \n(${time})`, true);
+    if (infoChan.parent) embed.addField('Parent', `${infoChan.parent.name} \n\`${infoChan.parentID}\``, true);
+    if (infoChan.type === 'GUILD_TEXT') embed.addField('Topic', infoChan.topic || 'None', false);
 
     return msg.channel.send({ embeds: [embed] });
   }

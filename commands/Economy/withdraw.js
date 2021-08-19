@@ -15,10 +15,9 @@ class Withdraw extends Command {
   }
 
   run (msg, text) {
-    const p = msg.settings.prefix;
     let amount = text.join(' ');
 
-    const usage = `${p}Withdraw <amount | all>`;
+    const usage = `${msg.settings.prefix}Withdraw <amount | all>`;
     if (!amount || amount.length < 1) {
       const embed = new DiscordJS.MessageEmbed()
         .setColor('#EC5454')
@@ -31,8 +30,7 @@ class Withdraw extends Command {
     const bank = db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`) || 0; // store bank info prior to checking args
     const cash = db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`) || 0; // same thing but cash
 
-    amount = amount.replace(/,/g, '');
-    amount = amount.replace(cs, '');
+    amount = amount.replace(/,/g, '').replace(cs, '');
     if (isNaN(amount)) {
       if (amount.toLowerCase() === 'all') {
         if (bank <= 0) return msg.channel.send('You don\'t have any money to withdraw.');

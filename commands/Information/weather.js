@@ -36,10 +36,10 @@ class Weather extends Command {
           .setColor('RANDOM')
           .setTitle(`Weather in: ${result[0].location.name}`)
           .setThumbnail(result[0].current.imageUrl)
-          .addField('Temperature: ', `${result[0].current.temperature}°F \n ${dc}°C`, true)
-          .addField('Feels Like: ', `${result[0].current.feelslike}°F \n ${dc2}°C`, true)
+          .addField('Temperature: ', `${result[0].current.temperature}°F \n${dc}°C`, true)
+          .addField('Feels Like: ', `${result[0].current.feelslike}°F \n${dc2}°C`, true)
           .addField('Humidity: ', `${result[0].current.humidity}%`, true)
-          .setDescription(`**Sky weather:** ${result[0].current.skytext} \n\n **Wind info:** ${result[0].current.winddisplay} (${a4})`);
+          .setDescription(`**Sky weather:** ${result[0].current.skytext} \n\n**Wind info:** ${result[0].current.winddisplay} (${a4})`);
         return msg.channel.send({ embeds: [embed] });
       }
     });

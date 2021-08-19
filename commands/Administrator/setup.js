@@ -94,7 +94,7 @@ class Setup extends Command {
               }
             });
           }
-          db.set(`servers.${server.id}.tickets.roleID`, role.id);
+          db.set(`servers.${msg.guild.id}.tickets.roleID`, role.id);
 
           msg.channel.send(stripIndents`Do you want to create a new ticket reaction menu?
           You have 60 seconds.
@@ -145,7 +145,7 @@ class Setup extends Command {
               ];
 
               const category = await msg.guild.channels.create('Tickets', { type: 'category', reason: 'Setting up tickets system', permissionOverwrites: catPerms });
-              db.set(`servers.${server.id}.tickets.catID`, category.id);
+              db.set(`servers.${msg.guild.id}.tickets.catID`, category.id);
 
               const embed = new DiscordJS.MessageEmbed();
               // Create the reaction message stuff
@@ -180,10 +180,10 @@ class Setup extends Command {
                     const response2 = collected3.first().content;
                     embed.setDescription(response2);
                     const rchan = await msg.guild.channels.create('new-ticket', { type: 'text', parent: category.id, permissionOverwrites: reactPerms });
-                    const embed1 = await rchan.send(embed);
+                    const embed1 = await rchan.send({ embeds: [embed] });
                     await embed1.react('📰');
 
-                    db.set(`servers.${server.id}.tickets.reactionID`, embed1.id);
+                    db.set(`servers.${msg.guild.id}.tickets.reactionID`, embed1.id);
                   })
                   .catch(() => {
                     return msg.channel.send('You did not reply in time.');
@@ -193,7 +193,7 @@ class Setup extends Command {
               // Do the rest of the stuff here after creating embed
               const tixLog = await msg.guild.channels.create('ticket-logs', { type: 'text', parent: category.id, permissionOverwrites: logPerms });
 
-              db.set(`servers.${server.id}.tickets.logID`, tixLog.id);
+              db.set(`servers.${msg.guild.id}.tickets.logID`, tixLog.id);
 
               return msg.channel.send('Awesome! Everything has been setup.');
             })

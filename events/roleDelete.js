@@ -23,7 +23,7 @@ module.exports = class {
     embed.addField('Position', role.position, true);
     embed.setFooter(`ID: ${role.id}`);
     embed.setTimestamp();
-    role.guild.channels.cache.get(logChan).send(embed);
+    role.guild.channels.cache.get(logChan).send({ embeds: [embed] });
 
     db.add(`servers.${role.guild.id}.logs.role-deleted`, 1);
     db.add(`servers.${role.guild.id}.logs.all`, 1);

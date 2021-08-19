@@ -16,11 +16,10 @@ class Dictionary extends Command {
 
   async run (msg, input) {
     const owl = owlBot(config.owlKey);
-    const p = msg.settings.prefix;
 
     input = input.join(' ').toLowerCase();
 
-    if (!input || input.length < 1) return msg.channel.send(`Incorrect Usage: ${p}Dictionary <word>`);
+    if (!input || input.length < 1) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}Dictionary <word>`);
 
     owl.define(input)
       .then(function (result) {

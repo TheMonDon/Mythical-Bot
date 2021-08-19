@@ -44,7 +44,7 @@ module.exports = class {
     (msg.mentions.users.size === 0) ? embed.addField('Mentioned Users', 'None', true) : embed.addField('Mentioned Users', `Mentioned Member Count: ${msg.mentions.users.array().length} \n Mentioned Users List: \n ${msg.mentions.users.array()}`, true);
     embed.setTimestamp();
     embed.setFooter(`Message ID: ${msg.id}`);
-    logChannel.send(embed);
+    logChannel.send({ embeds: [embed] });
 
     db.add(`servers.${msg.guild.id}.logs.message-deleted`, 1);
     db.add(`servers.${msg.guild.id}.logs.all`, 1);

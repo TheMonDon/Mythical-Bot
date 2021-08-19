@@ -106,7 +106,7 @@ class UserInfo extends Command {
       .setThumbnail(infoMem.displayAvatarURL({ format: 'png', dynamic: true }))
       .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
       .addField('User Tag', infoMem.tag, true)
-      .addField('User ID', infoMem.id, true)
+      .addField('User ID', infoMem.id.toString(), true)
       .addField('Status', presence[infoMem.presence.status], true)
       .addField(`Badges [${userBadges?.length || 0}]`, badgesArray || 'No Badges', true)
       .addField('Account Type', infoMem.bot ? ':robot: Bot' : ':person_standing: Human', true)

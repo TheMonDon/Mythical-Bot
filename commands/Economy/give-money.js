@@ -25,20 +25,20 @@ class GiveMoney extends Command {
 
     if (!text || text.length < 1) {
       errEmbed.setDescription(`Incorrect Usage: ${usage}`);
-      return msg.channel.send(errEmbed);
+      return msg.channel.send({ embeds: [errEmbed] });
     } else {
       mem = getMember(msg, text[0]);
     }
 
     if (!mem) {
       errEmbed.setDescription(`That user was not found. \nUsage: ${usage}`);
-      return msg.channel.send(errEmbed);
+      return msg.channel.send({ embeds: [errEmbed] });
     } else if (mem.id === msg.author.id) {
       errEmbed.setDescription('You cannot trade money with yourself. That would be pointless.');
-      return msg.channel.send(errEmbed);
+      return msg.channel.send({ embeds: [errEmbed] });
     } else if (mem.user.bot) {
       errEmbed.setDescription('You can\'t give bots money.');
-      return msg.channel.send(errEmbed);
+      return msg.channel.send({ embeds: [errEmbed] });
     }
 
     const cs = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
@@ -53,13 +53,13 @@ class GiveMoney extends Command {
 
         if (amount > authCash) {
           errEmbed.setDescription(`You don't have that much money to give. You currently have ${cs}${authCash}`);
-          return msg.channel.send(errEmbed);
+          return msg.channel.send({ embeds: [errEmbed] });
         } else if (amount < 0) {
           errEmbed.setDescription('You can\'t give negative amounts of money.');
-          return msg.channel.send(errEmbed);
+          return msg.channel.send({ embeds: [errEmbed] });
         } else if (amount === 0) {
           errEmbed.setDescription('You can\'t give someone nothing.');
-          return msg.channel.send(errEmbed);
+          return msg.channel.send({ embeds: [errEmbed] });
         }
 
         db.subtract(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, amount);
@@ -68,7 +68,7 @@ class GiveMoney extends Command {
         const embed = new DiscordJS.MessageEmbed()
           .setColor('#04ACF4')
           .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
-          .setDescription(`${mem} has recieved your ${cs}${amount.toLocaleString()}.`);
+          .setDescription(`${mem} has received your ${cs}${amount.toLocaleString()}.`);
         return msg.channel.send({ embeds: [embed] });
       } else {
         const embed = new DiscordJS.MessageEmbed()
@@ -82,13 +82,13 @@ class GiveMoney extends Command {
 
     if (amount > authCash) {
       errEmbed.setDescription(`You don't have that much money to give. You currently have ${cs}${authCash.toLocaleString()}`);
-      return msg.channel.send(errEmbed);
+      return msg.channel.send({ embeds: [errEmbed] });
     } else if (amount < 0) {
       errEmbed.setDescription('You can\'t give negative amounts of money.');
-      return msg.channel.send(errEmbed);
+      return msg.channel.send({ embeds: [errEmbed] });
     } else if (amount === 0) {
       errEmbed.setDescription('You can\'t give someone nothing.');
-      return msg.channel.send(errEmbed);
+      return msg.channel.send({ embeds: [errEmbed] });
     }
 
     db.subtract(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, amount);
@@ -97,7 +97,7 @@ class GiveMoney extends Command {
     const embed = new DiscordJS.MessageEmbed()
       .setColor('#0099CC')
       .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
-      .setDescription(`${mem} has recieved your ${cs}${amount.toLocaleString()}.`);
+      .setDescription(`${mem} has received your ${cs}${amount.toLocaleString()}.`);
     return msg.channel.send({ embeds: [embed] });
   }
 }

@@ -32,7 +32,7 @@ class WarnInfo extends Command {
       .setColor('#0099CC')
       .addField('Case ID', caseID, true)
       .addField('User', victim, true)
-      .addField('Points', points, true)
+      .addField('Points', points.toString(), true)
       .addField('Moderator', moderator, true)
       .addField('Warned on', moment(timestamp).format('LLL'), true)
       .addField('Message URL', messageURL, true)

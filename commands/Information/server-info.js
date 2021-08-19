@@ -48,7 +48,7 @@ class ServerInfo extends Command {
       .setThumbnail(msg.guild.iconURL())
       .setAuthor(msg.author.username, msg.author.displayAvatarURL())
       .addField('Name', server.name, true)
-      .addField('ID', server.id, true)
+      .addField('ID', server.id.toString(), true)
       .addField('Owner', server.owner.user.tag, true)
       .addField('Verification Level', toProperCase(server.verificationLevel), true)
       .addField('Channels', server.channels.cache.size.toLocaleString(), true)

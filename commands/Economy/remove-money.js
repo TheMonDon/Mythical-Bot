@@ -12,6 +12,7 @@ class RemoveMoney extends Command {
       description: 'Remove money from a member\'s cash or bank balance. \nIf the cash or bank argument isn\'t given, it will be added to the cash part.',
       usage: 'remove-money [cash | bank] <member> <amount>',
       aliases: ['removemoney', 'removebal'],
+      permLevel: 'Moderator',
       guildOnly: true
     });
   }
@@ -25,7 +26,7 @@ class RemoveMoney extends Command {
 
     if (!msg.member.permissions.has('MANAGE_GUILD')) {
       errEmbed.setDescription('You are missing the **Manage Guild** permission.');
-      return msg.channel.send(errEmbed);
+      return msg.channel.send({ embeds: [errEmbed] });
     }
 
     let type = 'cash';
@@ -34,7 +35,7 @@ class RemoveMoney extends Command {
 
     if (!args || args.length < 2) {
       errEmbed.setDescription(usage);
-      return msg.channel.send(errEmbed);
+      return msg.channel.send({ embeds: [errEmbed] });
     }
 
     const cs = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
@@ -53,7 +54,7 @@ class RemoveMoney extends Command {
 
     if (isNaN(amount)) {
       errEmbed.setDescription(usage);
-      return msg.channel.send(errEmbed);
+      return msg.channel.send({ embeds: [errEmbed] });
     }
 
     if (!mem) {
@@ -62,12 +63,12 @@ class RemoveMoney extends Command {
 
       Usage: ${msg.settings.prefix}remove-money <cash | bank> <member> <amount>
       `);
-      return msg.channel.send(errEmbed);
+      return msg.channel.send({ embeds: [errEmbed] });
     }
 
     if (mem.user.bot) {
       errEmbed.setDescription('You can\'t add money to bots.');
-      return msg.channel.send(errEmbed);
+      return msg.channel.send({ embeds: [errEmbed] });
     }
 
     if (type === 'bank') {

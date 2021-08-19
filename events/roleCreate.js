@@ -23,7 +23,7 @@ module.exports = class {
       .addField('Position', role.position, true)
       .setFooter(`ID: ${role.id}`)
       .setTimestamp();
-    role.guild.channels.cache.get(logChan).send(embed);
+    role.guild.channels.cache.get(logChan).send({ embeds: [embed] });
 
     db.add(`servers.${role.guild.id}.logs.role-created`, 1);
     db.add(`servers.${role.guild.id}.logs.all`, 1);

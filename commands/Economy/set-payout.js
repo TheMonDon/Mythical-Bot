@@ -51,13 +51,13 @@ class SetPayout extends Command {
     const type = text[0]?.toLowerCase();
     if (!types.includes(type)) {
       errEmbed.setDescription(`Incorrect Usage: ${usage}`);
-      return msg.channel.send(errEmbed);
+      return msg.channel.send({ embeds: [errEmbed] });
     }
 
     const minMax = text[1]?.toLowerCase();
     if (!['min', 'max'].includes(minMax)) {
       errEmbed.setDescription(`Incorrect Usage: ${usage}`);
-      return msg.channel.send(errEmbed);
+      return msg.channel.send({ embeds: [errEmbed] });
     }
 
     text.shift();
@@ -71,7 +71,7 @@ class SetPayout extends Command {
         Usage: ${usage}
       `);
 
-      return msg.channel.send(errEmbed);
+      return msg.channel.send({ embeds: [errEmbed] });
     }
 
     if (amount > 1000000000000) {

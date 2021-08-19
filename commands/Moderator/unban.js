@@ -46,7 +46,7 @@ class Unban extends Command {
           embed.addField('Reason', reason, true);
           embed.setFooter(`ID: ${unbanP.id}`);
           embed.setTimestamp();
-          if (logChan) msg.guild.channels.cache.get(logChan).send(embed);
+          if (logChan) msg.guild.channels.cache.get(logChan).send({ embeds: [embed] });
 
           return msg.channel.send({ embeds: [embed] });
         });

@@ -10,6 +10,7 @@ class SetStartBalance extends Command {
       description: 'Set the starting balance for the server',
       usage: 'set-start-balance <amount>',
       aliases: ['setstartbalance', 'ssb'],
+      permLevel: 'Moderator',
       guildOnly: true
     });
   }

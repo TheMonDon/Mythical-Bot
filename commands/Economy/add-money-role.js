@@ -12,6 +12,7 @@ class AddMoneyRole extends Command {
       description: 'Add money to a role\'s members cash or bank balance. \nIf the cash or bank argument isn\'t given, it will be added to the cash part.',
       usage: 'add-money-role <cash | bank> <role> <amount>',
       aliases: ['addmoneyrole', 'addbalrole'],
+      permLevel: 'Moderator',
       guildOnly: true
     });
   }
@@ -25,7 +26,7 @@ class AddMoneyRole extends Command {
 
     if (!msg.member.permissions.has('MANAGE_GUILD')) {
       errEmbed.setDescription('You are missing the **Manage Guild** permission.');
-      return msg.channel.send(errEmbed);
+      return msg.channel.send({ embeds: [errEmbed] });
     }
 
     let type = 'cash';
@@ -34,7 +35,7 @@ class AddMoneyRole extends Command {
 
     if (!args || args.length < 2) {
       errEmbed.setDescription(usage);
-      return msg.channel.send(errEmbed);
+      return msg.channel.send({ embeds: [errEmbed] });
     }
 
     const cs = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
@@ -53,7 +54,7 @@ class AddMoneyRole extends Command {
 
     if (isNaN(amount) || amount === Infinity) {
       errEmbed.setDescription(usage);
-      return msg.channel.send(errEmbed);
+      return msg.channel.send({ embeds: [errEmbed] });
     }
 
     if (!role) {
@@ -62,7 +63,7 @@ class AddMoneyRole extends Command {
 
       Usage: ${msg.settings.prefix}add-money-role <cash | bank> <role> <amount>
       `);
-      return msg.channel.send(errEmbed);
+      return msg.channel.send({ embeds: [errEmbed] });
     }
 
     const members = role.members.array();

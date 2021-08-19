@@ -17,7 +17,6 @@ class Rob extends Command {
   }
 
   run (msg, text) {
-    const p = msg.settings.prefix;
     let mem;
 
     const type = 'rob';
@@ -46,7 +45,7 @@ class Rob extends Command {
       const embed = new DiscordJS.MessageEmbed()
         .setColor('#EC5454')
         .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
-        .setDescription(`Incorrect Usage: ${p}Rob <user>`);
+        .setDescription(`Incorrect Usage: ${msg.settings.prefix}Rob <user>`);
       return msg.channel.send({ embeds: [embed] });
     } else {
       mem = getMember(msg, text.join(' '));
@@ -56,13 +55,13 @@ class Rob extends Command {
       const embed = new DiscordJS.MessageEmbed()
         .setColor('#EC5454')
         .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
-        .setDescription(`That user was not found. \nUsage: ${p}Rob <user>`);
+        .setDescription(`That user was not found. \nUsage: ${msg.settings.prefix}Rob <user>`);
       return msg.channel.send({ embeds: [embed] });
     } else if (mem.id === msg.author.id) {
-      const embed = new DiscordJS.RichEmebd()
+      const embed = new DiscordJS.MessageEmbed()
         .setColor('#EC5454')
         .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
-        .setDescription('You can\'t rob yoursself.');
+        .setDescription('You can\'t rob yourself.');
       return msg.channel.send({ embeds: [embed] });
     }
 
@@ -122,7 +121,7 @@ class Rob extends Command {
       const embed = new DiscordJS.MessageEmbed()
         .setColor('#0099CC')
         .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
-        .setDescription(`You succesfully robbed ${mem} of ${cs}${amnt.toLocaleString()}`)
+        .setDescription(`You successfully robbed ${mem} of ${cs}${amnt.toLocaleString()}`)
         .addField('Your New Balance', `${cs}${db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`).toLocaleString()}`, false)
         .addField(`${mem.displayName}'s New Balance`, `${cs}${db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`).toLocaleString()}`, false);
       msg.channel.send({ embeds: [embed] });

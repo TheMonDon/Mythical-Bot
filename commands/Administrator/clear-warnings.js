@@ -3,7 +3,7 @@ const { getMember, getWarns, getTotalPoints } = require('../../util/Util.js');
 const db = require('quick.db');
 const DiscordJS = require('discord.js');
 
-class DeleteWarning extends Command {
+class ClearWarnings extends Command {
   constructor (client) {
     super(client, {
       name: 'clear-warnings',
@@ -53,11 +53,11 @@ class DeleteWarning extends Command {
     const em = new DiscordJS.MessageEmbed()
       .setDescription(`${msg.author.tag} has cleared all the warnings from a user.`)
       .setColor('ORANGE')
-      .addField('From User', `${mem} (${mem.id})`, true)
+      .addField('User', `${mem} (${mem.id})`, true)
       .addField('Cleared Cases', otherCases, true);
-    mem.send(em).catch(() => null);
+    mem.send({ embeds: [em] }).catch(() => null);
     return msg.channel.send({ embeds: [em] });
   }
 }
 
-module.exports = DeleteWarning;
+module.exports = ClearWarnings;

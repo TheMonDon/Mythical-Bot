@@ -49,7 +49,7 @@ class MinecraftAccount extends Command {
           .setColor('00FF00')
           .setImage(`https://mc-heads.net/body/${id}`)
           .addField('Name Changes History', nc || 'Error fetching data...', false)
-          .addField('UUID', id, false)
+          .addField('UUID', id.toString(), false)
           .addField('NameMC Link', `Click [here](https://es.namemc.com/profile/${id}) to go to their NameMC Profile`, false);
         return msg.channel.send({ embeds: [em] });
       } catch (err) {

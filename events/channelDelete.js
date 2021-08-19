@@ -27,7 +27,7 @@ module.exports = class {
       .addField('Category', channel.parent?.name || 'None', true)
       .setFooter(`ID: ${channel.id}`)
       .setTimestamp();
-    channel.guild.channels.cache.get(logChan).send(embed);
+    channel.guild.channels.cache.get(logChan).send({ embeds: [embed] });
 
     db.add(`servers.${channel.guild.id}.logs.channel-deleted`, 1);
     db.add(`servers.${channel.guild.id}.logs.all`, 1);

@@ -17,17 +17,15 @@ class SetCooldown extends Command {
   }
 
   run (msg, args) {
-    const server = msg.guild;
-    const p = msg.settings.prefix;
     let type;
 
     const types = ['rob', 'work', 'crime'];
 
-    const usage = `${p}Set-Cooldown <work | rob | crime> <cooldown> \nExample: ${p}Set-Cooldown work 30 seconds`;
-    const robCooldown = db.get(`servers.${server.id}.economy.rob.cooldown`) || 600; // get cooldown from database or set to 600 seconds (10 minutes)
-    const workCooldown = db.get(`servers.${server.id}.economy.work.cooldown`) || 300; // get cooldown from database or set to 300 seconds
+    const usage = `${msg.settings.prefix}Set-Cooldown <work | rob | crime> <cooldown> \nExample: ${msg.settings.prefix}Set-Cooldown work 30 seconds`;
+    const robCooldown = db.get(`servers.${msg.guild.id}.economy.rob.cooldown`) || 600; // get cooldown from database or set to 600 seconds (10 minutes)
+    const workCooldown = db.get(`servers.${msg.guild.id}.economy.work.cooldown`) || 300; // get cooldown from database or set to 300 seconds
     // const slut_cooldown = '';
-    const crimeCooldown = db.get(`servers.${server.id}.economy.crime.cooldown`) || 600;
+    const crimeCooldown = db.get(`servers.${msg.guild.id}.economy.crime.cooldown`) || 600;
 
     if (!args || args.length < 1) {
       const embed = new DiscordJS.MessageEmbed()
@@ -97,7 +95,7 @@ class SetCooldown extends Command {
 
     if (type === 'work') {
       const cd = cooldown / 1000;
-      db.set(`servers.${server.id}.economy.work.cooldown`, cd);
+      db.set(`servers.${msg.guild.id}.economy.work.cooldown`, cd);
 
       const embed = new DiscordJS.MessageEmbed()
         .setColor('#64BC6C')
@@ -106,7 +104,7 @@ class SetCooldown extends Command {
       return msg.channel.send({ embeds: [embed] });
     } else if (type === 'rob') {
       const cd = cooldown / 1000;
-      db.set(`servers.${server.id}.economy.rob.cooldown`, cd);
+      db.set(`servers.${msg.guild.id}.economy.rob.cooldown`, cd);
 
       const embed = new DiscordJS.MessageEmbed()
         .setColor('#64BC6C')
@@ -115,7 +113,7 @@ class SetCooldown extends Command {
       return msg.channel.send({ embeds: [embed] });
     } else if (type === 'crime') {
       const cd = cooldown / 1000;
-      db.set(`servers.${server.id}.economy.crime.cooldown`, cd);
+      db.set(`servers.${msg.guild.id}.economy.crime.cooldown`, cd);
 
       const embed = new DiscordJS.MessageEmbed()
         .setColor('#64BC6C')

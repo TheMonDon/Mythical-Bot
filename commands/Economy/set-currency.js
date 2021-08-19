@@ -9,15 +9,13 @@ class SetCurrency extends Command {
       description: 'Sets the currency symbol',
       usage: 'set-currency $',
       aliases: ['setcurrency', 'sc'],
+      permLevel: 'Moderator',
       guildOnly: true
     });
   }
 
   run (msg, args) {
     let symbol = args.join(' ');
-
-    if (!msg.member.permissions.has('MANAGE_GUILD')) return msg.channel.send('Sorry this command requires you to have **Manage Guild** permissions.');
-
     const oldSymbol = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
 
     if (!symbol) return msg.channel.send(`The currency symbol for this server is: ${oldSymbol} \nUsage: ${msg.settings.prefix}set-currency <symbol>`);

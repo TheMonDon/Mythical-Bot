@@ -49,7 +49,7 @@ class Ban extends Command {
         .setDescription('Full info posted in the log channel.');
 
       const reply = await msg.channel.send(em2);
-      msg.guild.channels.cache.get(logChan).send(em);
+      msg.guild.channels.cache.get(logChan).send({ embeds: [em] });
       setTimeout(() => {
         reply.delete();
       }, 30000);
