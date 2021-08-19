@@ -28,6 +28,7 @@ class Remove extends Command {
     if (num > ql) return msg.channel.send('You can\'t remove something that is not in the queue.');
 
     const song = queue.tracks[num];
+    if (!song) return msg.channel.send('That is not a valid song.');
     queue.remove(song);
     return msg.channel.send(`\`${song.title}\` has been removed from the queue.`);
   }
