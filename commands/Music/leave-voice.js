@@ -16,7 +16,7 @@ class LeaveVoice extends Command {
     if (!msg.member.voice.channel) return msg.channel.send('You must be in a voice channel to make the bot leave.');
     if (msg.guild.me.voice.channel && msg.member.voice.channel.id !== msg.guild.me.voice.channel.id) return msg.channel.send('You must be in the same voice channel as the bot.');
 
-    return msg.guild.me.voice.channel.leave();
+    return msg.guild.me.voice.disconnect();
   }
 }
 

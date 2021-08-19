@@ -14,18 +14,18 @@ class Queue extends Command {
   }
 
   async run (msg) {
-    const client = this.client;
-    const queue = client.player.getQueue(msg);
+    const queue = this.client.player.getQueue(msg);
     if (!queue || queue.tracks.length < 1) return msg.channel.send('There are no more songs in the queue.');
 
     let q = queue.tracks.map((tracks, i) => {
       return `${i + 1}- ${tracks.title} : ${tracks.author}`;
     }).join('\n');
     q = q.slice(0, 3080) + '...';
+
     const em = new MessageEmbed()
       .setTitle('Queue List')
-      .setDescription(`\`\`\`${q}\`\`\``)
-      .setDescription(`Queue Length: ${queue.tracks.length}`);
+      .addField('Queue Length:', queue.tracks.length, false)
+      .setDescription(`\`\`\`${q}\`\`\``);
     return msg.channel.send({ embeds: [em] });
   }
 }

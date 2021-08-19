@@ -32,11 +32,11 @@ class Play extends Command {
     try {
       if (!queue.connection) await queue.connect(msg.member.voice.channel);
     } catch {
-      msg.reply('Could not join your voice channel.');
+      return msg.reply('Could not join your voice channel.');
     }
 
     track.playlist ? queue.addTracks(track.tracks) : queue.addTrack(track.tracks[0]);
-    if (!queue.playing) queue.play();
+    if (!queue.playing) await queue.play();
   }
 }
 
