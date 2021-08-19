@@ -203,9 +203,8 @@ client.player
       .addField('Playlist Length', length.toString(), true);
     queue.metadata.channel.send({ embeds: [em] });
   })
-  .on('noResults', (queue, query) => queue.metadata.channel.send(`No results found on YouTube for ${query}!`))
-  .on('queueEnd', (queue) => queue.metadata.channel.send('Music stopped as there is no more music in the queue!'))
-  .on('botDisconnect', (queue) => queue.metadata.channel.send('Music stopped as I have been disconnected from the channel!'))
+  .on('noResults', (queue, query) => queue.metadata.channel.send(`No results were found for ${query}.`))
+  .on('queueEnd', (queue) => queue.metadata.channel.send('Music stopped as there is no more music in the queue.'))
   .on('error', (queue, error) => {
     switch (error) {
       case 'NotPlaying':
@@ -218,7 +217,7 @@ client.player
         queue.metadata.channel.send('I am not able to join your voice channel, please check my permissions!');
         break;
       default:
-        queue.metadata.channel.send(`Something went wrong... Error: ${error}`);
+        queue.metadata.channel.send(`Something went wrong... ${error}`);
         break;
     }
   });
