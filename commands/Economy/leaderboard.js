@@ -1,6 +1,6 @@
 const Command = require('../../base/Command.js');
 const db = require('quick.db');
-const DiscordJS = require('discord.js');
+const { MessageEmbed } = require('discord.js');
 
 class Leaderboard extends Command {
   constructor (client) {
@@ -15,7 +15,6 @@ class Leaderboard extends Command {
   }
 
   async run (msg, text) {
-    const server = msg.guild;
     let page = text.join(' ');
     page = parseInt(page, 10);
 
@@ -24,11 +23,12 @@ class Leaderboard extends Command {
     if (!page) page = 1;
     if (isNaN(page)) return msg.channel.send('Please input a valid number.');
 
-    const cs = db.get(`servers.${server.id}.economy.symbol`) || '$';
+    const cs = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
     let realPage = page;
     let maxPages = page;
-    const stuff = db.get(`servers.${server.id}.users`) || {};
+    const stuff = db.get(`servers.${msg.guild.id}.users`) || {};
     const lb = [];
+
     for (const i in stuff) {
       try {
         const u = await this.client.users.cache.get(i);
@@ -42,9 +42,11 @@ class Leaderboard extends Command {
         console.error(err);
       }
     }
+
     let abc123 = lb.sort((a, b) => b.money - a.money)
       .map((c) => `**${lb.indexOf(c) + 1}.** ${c.user} - ${cs}${(c.money.toLocaleString().length > 156) ? `${c.money.toLocaleString().slice(0, 153) + '...'}` : `${c.money.toLocaleString()}`}`);
     let temp = abc123.slice(Math.floor((page - 1) * 10), Math.ceil(page * 10));
+
     if (temp.length > 0) {
       realPage = page;
       maxPages = Math.ceil((abc123.length + 1) / 10);
@@ -60,9 +62,9 @@ class Leaderboard extends Command {
         }
       }
     }
-    const embed = new DiscordJS.MessageEmbed()
+    const embed = new MessageEmbed()
       .setColor('RANDOM')
-      .setTitle(`${server.name}'s Leaderboard`)
+      .setTitle(`${msg.guild.name}'s Leaderboard`)
       .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
       .setDescription(abc123.join('\n'))
       .setFooter(`Page ${realPage} / ${maxPages}`)

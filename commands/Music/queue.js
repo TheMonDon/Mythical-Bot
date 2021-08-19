@@ -7,26 +7,50 @@ class Queue extends Command {
       name: 'queue',
       description: 'Shows what is in the queue',
       category: 'Music',
-      usage: 'queue',
+      usage: 'queue [page number]',
       aliases: ['q'],
       guildOnly: true
     });
   }
 
-  async run (msg) {
-    const queue = this.client.player.getQueue(msg);
+  async run (msg, args) {
+    let page = args.join(' ');
+    page = parseInt(page, 10);
+    const queue = this.client.player.getQueue(msg.guild);
+
     if (!queue || queue.tracks.length < 1) return msg.channel.send('There are no more songs in the queue.');
+    if (!page) page = 1;
+    if (isNaN(page)) return msg.channel.send('Please input a valid number.');
 
-    let q = queue.tracks.map((tracks, i) => {
-      return `${i + 1}- ${tracks.title} : ${tracks.author}`;
-    }).join('\n');
-    q = q.slice(0, 3080) + '...';
+    let realPage = page;
+    let maxPages = page;
+    let q = queue.tracks.map((track, i) => { return `${i + 1}. ${track.title} : ${track.author}`; });
+    let temp = q.slice(Math.floor((page - 1) * 25), Math.ceil(page * 25));
 
-    const em = new MessageEmbed()
-      .setTitle('Queue List')
-      .addField('Queue Length:', queue.tracks.length, false)
-      .setDescription(`\`\`\`${q}\`\`\``);
-    return msg.channel.send({ embeds: [em] });
+    if (temp.length > 0) {
+      realPage = page;
+      maxPages = Math.ceil((q.length + 1) / 25);
+      q = temp;
+    } else {
+      for (let i = 1; i <= page; i++) {
+        temp = q.slice(Math.floor((i - 1) * 25), Math.ceil(i * 25));
+        if (temp.length < 1) {
+          realPage = i - 1;
+          maxPages = Math.ceil(q.length / 25);
+          q = q.slice(Math.floor(((i - 1) - 1) * 25), Math.ceil((i - 1) * 25));
+          break;
+        }
+      }
+    }
+
+    const embed = new MessageEmbed()
+      .setColor('RANDOM')
+      .setTitle(`${msg.guild.name}'s Queue`)
+      .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
+      .setDescription(q.join('\n'))
+      .setFooter(`Page ${realPage} / ${maxPages}`)
+      .setTimestamp();
+    return msg.channel.send({ embeds: [embed] });
   }
 }
 
