@@ -16,15 +16,14 @@ class TicTacToe extends Command {
   }
 
   async run (msg, args) {
-    if (!args || args.length < 1) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}tic-tac-toe <member>`);
-
-    const opponent = getMember(msg, args.join(' '));
-
-    if (opponent.id === msg.author.id) return msg.reply('You may not play against yourself.');
-
     const current = this.client.games.get(msg.channel.id);
     if (current) return msg.reply(`Please wait until the current game of \`${current.name}\` is finished.`);
     this.client.games.set(msg.channel.id, { name: this.help.name, user: msg.author.id, date: Date.now() });
+
+    if (!args || args.length < 1) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}tic-tac-toe <member>`);
+
+    const opponent = getMember(msg, args.join(' '));
+    if (opponent.id === msg.author.id) return msg.reply('You may not play against yourself.');
 
     function verifyWin (sides, player1, player2) {
       const evaluated = tictactoe.boardEvaluate(convertBoard(sides)).status;
@@ -141,7 +140,7 @@ class TicTacToe extends Command {
       `);
     } catch (err) {
       this.client.games.delete(msg.channel.id);
-      msg.channel.send('An error occured.');
+      msg.channel.send(`An error has occured: ${err}`);
     }
   }
 }

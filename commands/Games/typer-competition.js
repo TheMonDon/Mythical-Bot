@@ -91,7 +91,8 @@ class TyperCompetition extends Command {
             const filter2 = (message) => {
               return message.content.toLowerCase() === randWord.toLowerCase();
             };
-            msg.channel.awaitMessages(filter2, {
+            msg.channel.awaitMessages({
+              filter2,
               max: 1,
               time: 30000,
               errors: ['time']

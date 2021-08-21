@@ -56,7 +56,8 @@ class Flood extends Command {
           timeOut: 'Game timed out due to inactivity.',
           error: 'Game ended with an error.',
           maxTurns: 'Game ended because you reached the max turns.',
-          playing: 'Game shouldn\'t have ended. :('
+          playing: 'Game shouldn\'t have ended. :(',
+          earlyEnd: 'Game player decided to quit.'
         };
 
         let highScore;
@@ -111,12 +112,12 @@ Filling starts at the top left corner.`)
         let selected = null;
 
         const filter = (reaction, user) => {
-          return ['🟥', '🟦', '🟧', '🟪', '🟩'].includes(reaction.emoji.name) && user.id === msg.author.id;
+          return ['🟥', '🟦', '🟧', '🟪', '🟩', '🛑'].includes(reaction.emoji.name) && user.id === msg.author.id;
         };
 
         if (!message) {
           message = await msg.channel.send({ embeds: getContent() });
-          ['🟥', '🟦', '🟧', '🟪', '🟩'].forEach(s => message.react(s));
+          ['🟥', '🟦', '🟧', '🟪', '🟩', '🛑'].forEach(s => message.react(s));
         } else {
           message.edit({ embeds: getContent() });
         }
@@ -125,6 +126,7 @@ Filling starts at the top left corner.`)
         if (!collected) gameOver = true; result = 'timeOut';
         selected = collected.first().emoji.name;
         const userReactions = message.reactions.cache.filter(reaction => reaction.users.cache.has(msg.author.id));
+        if (selected === '🛑') gameOver = true; result = 'earlyEnd';
 
         try {
           for (const reaction of userReactions.values()) {
@@ -179,6 +181,8 @@ Filling starts at the top left corner.`)
       }
 
       if (turn >= 25) {
+        this.client.games.delete(msg.channel.id);
+        message.reactions.removeAll();
         gameOver = true;
         result = 'maxTurns';
         return message.edit({ embeds: getContent() });
