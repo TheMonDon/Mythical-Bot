@@ -133,11 +133,15 @@ class Hangman extends Command {
                       if (!newWordString.includes('_') && turn === 1) {
                         const mentiongamewon = lang.hangman_mentiongamewon.replace('%author', msg.author)
                           .replace('%word', wordToGuess);
+                        await message.delete();
+                        if (msg.guild.me.permissions.has('MANAGE_MESSAGES')) await response.first().delete();
                         return msg.channel.send(mentiongamewon);
                       }
                       if (!newWordString.includes('_') && turn === 2) {
                         const mentiongamewon = lang.hangman_mentiongamewon.replace('%author', mention)
                           .replace('%word', wordToGuess);
+                        await message.delete();
+                        if (msg.guild.me.permissions.has('MANAGE_MESSAGES')) await response.first().delete();
                         return msg.channel.send(mentiongamewon);
                       }
                     } else {
@@ -171,6 +175,7 @@ class Hangman extends Command {
 
                         hangmanEmbed.edit({ embeds: [firstEmbed] });
                         const mentionnowin = lang.hangman_mentionnowin.replace('%word', wordToGuess);
+                        this.client.games.delete(msg.channel.id);
                         return msg.channel.send(mentionnowin);
                       }
                     }
@@ -189,16 +194,18 @@ class Hangman extends Command {
                         hangmanEmbed.edit({ embeds: [firstEmbed] });
 
                         if (turn === 1) {
-                          turn = 2;
                           const mentiongamewon = lang.hangman_mentiongamewon.replace('%author', msg.author)
                             .replace('%word', response.first().content.toLowerCase());
                           this.client.games.delete(msg.channel.id);
+                          await message.delete();
+                          if (msg.guild.me.permissions.has('MANAGE_MESSAGES')) await response.first().delete();
                           return msg.channel.send(mentiongamewon);
                         }
-                        turn = 1;
                         const mentiongamewon = lang.hangman_mentiongamewon.replace('%author', mention)
                           .replace('%word', response.first().content.toLowerCase());
                         this.client.games.delete(msg.channel.id);
+                        await message.delete();
+                        if (msg.guild.me.permissions.has('MANAGE_MESSAGES')) await response.first().delete();
                         return msg.channel.send(mentiongamewon);
                       }
 
@@ -235,6 +242,10 @@ class Hangman extends Command {
             }
           }
         } else if (r.emoji.name === '👎') {
+          if (msg.guild.me.permissions.has('MANAGE_MESSAGES')) await questionMessage.delete();
+          this.client.games.delete(msg.channel.id);
+          msg.reply(lang.hangman_dontwanttoplay);
+        } else {
           if (msg.guild.me.permissions.has('MANAGE_MESSAGES')) await questionMessage.delete();
           this.client.games.delete(msg.channel.id);
           msg.reply(lang.hangman_dontwanttoplay);
