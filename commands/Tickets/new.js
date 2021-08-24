@@ -80,7 +80,7 @@ class New extends Command {
       .setFooter('Self destructing in 2 minutes.')
       .setColor('#E65DF4')
       .setTimestamp();
-    const reply = await msg.channel.send(userEmbed);
+    const reply = await msg.channel.send({ embeds: [userEmbed] });
     setTimeout(() => reply.delete(), 60000);
     msg.delete();
 
@@ -93,7 +93,7 @@ class New extends Command {
       .setColor('#E65DF4')
       .setTimestamp();
     const logChan = msg.guild.channels.cache.get(logID);
-    await logChan.send(logEmbed);
+    await logChan.send({ embeds: [logEmbed] });
 
     const chanEmbed = new DiscordJS.MessageEmbed()
       .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
@@ -102,16 +102,17 @@ class New extends Command {
       .setDescription('Please wait patiently and our support team will be with you shortly.')
       .setColor('#E65DF4')
       .setTimestamp();
+
     const role = msg.guild.roles.cache.get(roleID);
     if (!role.mentionable) {
       if (!tixChan.permissionsFor(this.client.user.id).has('MENTION_EVERYONE')) {
         role.setMentionable(true);
-        tixChan.send(role, chanEmbed);
+        tixChan.send({ content: role, embeds: [chanEmbed] });
       } else {
-        tixChan.send(role, chanEmbed);
+        tixChan.send({ content: role, embeds: [chanEmbed] });
       }
     } else {
-      tixChan.send(role, chanEmbed);
+      tixChan.send({ content: role, embeds: [chanEmbed] });
     }
 
     // Logging info

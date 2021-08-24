@@ -70,7 +70,7 @@ module.exports = class {
         .setColor('#E65DF4')
         .setTimestamp();
       const logChan = msg.guild.channels.cache.get(logID);
-      await logChan.send(logEmbed);
+      await logChan.send({ embeds: [logEmbed] });
 
       const chanEmbed = new DiscordJS.MessageEmbed()
         .setAuthor(member.displayName, member.user.displayAvatarURL())

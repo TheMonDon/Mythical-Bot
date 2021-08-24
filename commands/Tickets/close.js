@@ -96,7 +96,7 @@ class Close extends Command {
           .addField('Reason', reason, false)
           .setFooter('Transcripts expire 30 days after last view date.')
           .setTimestamp();
-        await msg.author.send(userEmbed)
+        await msg.author.send({ embeds: [userEmbed] })
           .catch(() => {
             received = 'no';
           });
@@ -111,7 +111,7 @@ class Close extends Command {
           .setColor('#E65DF4')
           .setTimestamp();
         if (received === 'no') logEmbed.setFooter('Could not message author.');
-        await msg.guild.channels.cache.get(logID).send(logEmbed);
+        await msg.guild.channels.cache.get(logID).send({ embeds: [logEmbed] });
 
         db.delete(`servers.${msg.guild.id}.tickets.${tName}`);
         return msg.channel.delete();

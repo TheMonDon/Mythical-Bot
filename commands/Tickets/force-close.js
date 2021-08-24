@@ -33,9 +33,7 @@ class forceClose extends Command {
         reason = args?.join(' ') || 'No reason specified';
       }
     } else {
-      if (!args[0]) {
-        return msg.channel.send(`Incorrect Usage: ${msg.settings.preifx}force-close [ticket-ID] [reason]`);
-      }
+      if (!args[0]) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}force-close [ticket-ID] [reason]`);
       tName = args[0];
       args.shift();
       reason = args?.join(' ') || 'No reason specified';
@@ -109,7 +107,7 @@ class forceClose extends Command {
       .addField('Closed By', `${msg.author} (${msg.author.id})`, false)
       .setFooter('Transcripts expire 30 days after last view date.')
       .setTimestamp();
-    await tOwner.send(userEmbed)
+    await tOwner.send({ embeds: [userEmbed] })
       .catch(() => {
         received = 'no';
       });
@@ -124,7 +122,7 @@ class forceClose extends Command {
       .setColor('#E65DF4')
       .setTimestamp();
     if (received === 'no') logEmbed.setFooter('Could not message author.');
-    await msg.guild.channels.cache.get(logID).send(logEmbed);
+    await msg.guild.channels.cache.get(logID).send({ embeds: [logEmbed] });
 
     db.delete(`servers.${msg.guild.id}.tickets.${tName}`);
     return msg.channel.delete();
