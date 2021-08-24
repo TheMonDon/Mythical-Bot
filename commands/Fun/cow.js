@@ -19,7 +19,7 @@ class Cow extends Command {
       integer: true
     };
     const random = rn(options);
-    return msg.channel.send(cows()[random], { code: '' });
+    return msg.channel.send(`\`\`\`${cows()[random]}\`\`\``);
   }
 }
 module.exports = Cow;

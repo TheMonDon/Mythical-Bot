@@ -9,7 +9,7 @@ class RoleInfo extends Command {
     super(client, {
       name: 'role-info',
       description: 'Gives some useful role information',
-      usage: 'role-info <Role Name | Role ID | @role>',
+      usage: 'Role-Info <Role Name | Role ID | @role>',
       category: 'Information',
       aliases: ['ri', 'roleinfo'],
       guildOnly: true
@@ -39,9 +39,9 @@ class RoleInfo extends Command {
       .addField('Color', infoRole.hexColor.toString(), true)
       .addField('Members', infoRole.members.size.toLocaleString(), true)
       .addField('Position', `${infoRole.position}/${msg.guild.roles.cache.size}`, true)
-      .addField('Hoisted', infoRole.hoist, true)
-      .addField('Mentionable', infoRole.mentionable, true)
-      .addField('Managed', infoRole.managed, true)
+      .addField('Hoisted', infoRole.hoist.toString(), true)
+      .addField('Mentionable', infoRole.mentionable.toString(), true)
+      .addField('Managed', infoRole.managed.toString(), true)
       .addField('Created At', `${ca} (${time})`, true);
     return msg.channel.send({ embeds: [embed] });
   }

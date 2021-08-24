@@ -57,7 +57,7 @@ class ServerInfo extends Command {
       .addField('Created At', `${ca} \n (${time})`, true)
       .addField('AFK Channel', `${(server.afkChannel && server.afkChannel.name) || 'None Set'}`, true)
       .addField('Members', server.members.cache.size.toLocaleString(), true)
-      .addField(`Roles (${server.roles.cache.size.toLocaleString()})`, server === msg.guild ? roles1 : 'Can\'t display roles outside the server', true);
+      .addField(`Roles (${server.roles.cache.size.toLocaleString()})`, server === msg.guild ? roles1 : 'Can\'t display roles outside the server', false);
     return msg.channel.send({ embeds: [embed] });
   }
 }

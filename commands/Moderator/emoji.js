@@ -74,9 +74,9 @@ class Emoji extends Command {
         .setTitle('Emoji Information')
         .addField('Emoji', result, true)
         .addField('Emoji Name', result.name, true)
-        .addField('Is Animated?', result.animated, true)
-        .addField('Emoji ID', result.id, true)
-        .addField('Emoji is Available?', result.available, true)
+        .addField('Is Animated?', result.animated.toString(), true)
+        .addField('Emoji ID', result.id.toString(), true)
+        .addField('Emoji is Available?', result.available.toString(), true)
         .addField('Emoji Author', result.author || 'N/A', true);
       return msg.channel.send({ embeds: [em] });
     } else if (type === 'rename') {

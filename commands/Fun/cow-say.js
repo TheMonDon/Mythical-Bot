@@ -21,7 +21,7 @@ class CowSay extends Command {
       text: await clean(this.client, cleanString(text))
     });
 
-    return msg.channel.send(cmsg, { code: '' });
+    return msg.channel.send(`\`\`\`${cmsg}\`\`\``);
   }
 }
 module.exports = CowSay;

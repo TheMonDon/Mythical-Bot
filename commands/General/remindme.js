@@ -9,19 +9,18 @@ const sherlock = require('sherlockjs');
 class RemindMe extends Command {
   constructor (client) {
     super(client, {
-      name: 'remindme',
+      name: 'Remind-Me',
       description: 'Gives you a reminder',
-      usage: 'remindme <reminder>',
+      usage: 'Remind-Me <reminder>',
       category: 'General',
-      aliases: ['remind', 'remind-me', 'rememberforme']
+      aliases: ['remind', 'remindme', 'rememberforme']
     });
   }
 
   async run (msg, args) {
-    const p = msg.settings.prefix;
     const query = args.join(' ');
 
-    if (!query || query.length < 1) return msg.channel.send(`Incorrect Usage: ${p}Remindme <reminder> \nExample: ${p}Remindme Ban Zeph in 1 year`);
+    if (!query || query.length < 1) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}Remindme <reminder> \nExample: ${msg.settings.prefix}Remindme Ban Zeph in 1 year`);
 
     const reminders = db.get('global.reminders') || [];
     let remID = randomString(5);
@@ -63,14 +62,14 @@ class RemindMe extends Command {
       return (~~(Math.random() * 16)).toString(16);
     });
 
-    const remindEmbed = new DiscordJS.MessageEmbed()
+    const embed = new DiscordJS.MessageEmbed()
       .setColor(rand)
       .setAuthor(msg.author.username, msg.author.displayAvatarURL())
       .addField('I will remind you to:', `\`\`\`${message}\`\`\``, true)
       .addField('in:', `\`\`\`${timeString}\`\`\``, true)
       .setFooter(`ID: ${remID} | Got it! I'll remind you on:`)
       .setTimestamp(start);
-    msg.channel.send(remindEmbed);
+    msg.channel.send({ embeds: [embed] });
 
     const obj = {
       createdAt: now.getTime(),
