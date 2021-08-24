@@ -1,6 +1,8 @@
 const Command = require('../../base/Command.js');
 const DiscordJS = require('discord.js');
 const db = require('quick.db');
+const moment = require('moment');
+require('moment-duration-format');
 
 class Flood extends Command {
   constructor (client) {
@@ -21,6 +23,8 @@ class Flood extends Command {
     let message;
     let gameOver = false;
     let result;
+    const gameStart = msg.createdAt;
+    let gameEnd;
 
     const current = this.client.games.get(msg.channel.id);
     if (current) return msg.reply(`Please wait until the current game of \`${current.name}\` is finished.`);
@@ -51,8 +55,10 @@ class Flood extends Command {
     function getContent () {
       let embed;
       if (gameOver === true) {
+        const gameTime = moment.duration(gameEnd - gameStart).format('m[ minutes][, and] s[ seconds]');
+        const gameTimeSeconds = (gameEnd - gameStart) / 1000;
         const turnResp = {
-          winner: `Game beat in ${turn} turns!`,
+          winner: `Game beat in ${turn} turns! \nGame Time: ${gameTime}`,
           timeOut: 'Game timed out due to inactivity.',
           error: 'Game ended with an error.',
           maxTurns: 'Game ended because you reached the max turns.',
@@ -62,28 +68,40 @@ class Flood extends Command {
 
         let highScore;
         let highScoreUser;
+        let highScoreTime;
         if (result === 'winner') {
-          const HS = { score: turn, user: msg.author.tag };
-          const oldHS = db.get('global.highScores.flood') || HS;
-          highScore = oldHS.score;
-          highScoreUser = oldHS.user;
-          if (HS.score < oldHS.score) {
+          const HS = { score: turn, user: msg.author.tag, time: gameTimeSeconds };
+          const oldHS = db.get('global.highScores.flood');
+          highScore = oldHS?.score || 26;
+          highScoreUser = oldHS?.user | 'N/A';
+          highScoreTime = oldHS?.time | 480;
+          if (HS.score < highScore) {
             db.set('global.highScores.flood', HS);
             highScore = HS.score;
             highScoreUser = 'You';
+            highScoreTime = gameTimeSeconds;
+          } else if (HS.score === highScore) {
+            if (HS.time <= highScoreTime) {
+              db.set('global.highScores.flood', HS);
+              highScore = HS.score;
+              highScoreUser = 'You';
+              highScoreTime = gameTimeSeconds;
+            }
           }
         } else {
           const oldHS = db.get('global.highScores.flood');
-          highScore = oldHS.score || 0;
-          highScoreUser = oldHS.user || 'N/A';
+          highScore = oldHS?.score || 'N/A';
+          highScoreUser = oldHS?.user || 'N/A';
+          highScoreTime = oldHS?.time || 'N/A';
         }
 
+        if (!isNaN(highScoreTime)) highScoreTime = moment.duration(highScoreTime).format('m[ minutes][, and] s[ seconds]');
         embed = new DiscordJS.MessageEmbed()
           .setAuthor(msg.member.displayName, msg.author.displayAvatarURL({ dynamic: true }))
           .setColor('#08b9bf')
           .setTitle('Flood')
           .setDescription(`${gameBoardToString()} \nGame Over! \n${turnResp[result]}`)
-          .addField('High Score', `${highScore.toString()} turns by ${highScoreUser}`)
+          .addField('High Score', `${highScore.toString()} turns by ${highScoreUser} in ${highScoreTime}`)
           .setTimestamp();
       } else {
         embed = new DiscordJS.MessageEmbed()
@@ -123,18 +141,22 @@ Filling starts at the top left corner.`)
         }
 
         const collected = await message.awaitReactions({ filter, max: 1, time: 60000, errors: ['time'] });
-        if (!collected) gameOver = true; result = 'timeOut';
-        selected = collected.first().emoji.name;
-        const userReactions = message.reactions.cache.filter(reaction => reaction.users.cache.has(msg.author.id));
-        if (selected === '🛑') gameOver = true; result = 'earlyEnd';
-
-        try {
-          for (const reaction of userReactions.values()) {
-            await reaction.users.remove(msg.author.id);
-          }
-        } catch (error) {
+        if (!collected) {
+          gameOver = true;
+          result = 'timeOut';
           this.client.games.delete(msg.channel.id);
-          msg.channel.send('An error occurred removing reactions.');
+          message.reactions.removeAll();
+          return message.edit({ embeds: getContent() });
+        }
+
+        collected.first().users.remove(msg.author.id);
+        selected = collected.first().emoji.name;
+        if (selected === '🛑') {
+          gameOver = true;
+          result = 'earlyEnd';
+          this.client.games.delete(msg.channel.id);
+          message.reactions.removeAll();
+          return message.edit({ embeds: getContent() });
         }
 
         while (queue.length > 0) {
@@ -164,6 +186,7 @@ Filling starts at the top left corner.`)
 
         gameOver = true;
         result = 'winner';
+        gameEnd = Date.now();
         for (let y = 0; y < HEIGHT; y++) {
           for (let x = 0; x < WIDTH; x++) {
             if (gameBoard[y * WIDTH + x] !== selected) {
@@ -187,8 +210,12 @@ Filling starts at the top left corner.`)
         result = 'maxTurns';
         return message.edit({ embeds: getContent() });
       }
+
+      this.client.games.delete(msg.channel.id);
+      return msg.channel.send('Something went wrong, please try again later.');
     } catch (err) {
       this.client.games.delete(msg.channel.id);
+      console.error(err);
       message.reactions.removeAll();
       gameOver = true;
       result = 'error';
