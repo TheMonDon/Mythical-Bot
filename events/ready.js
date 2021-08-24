@@ -46,7 +46,7 @@ module.exports = class {
                 .addField('Reminder', `\`\`\`${reminder}\`\`\``)
                 .setFooter('You created this reminder @')
                 .setTimestamp(moment(createdAt));
-              channel ? channel.send(`<@${userID}>, here's your reminder:`, em) : user.send(`${user.username}, here's your reminder:`, em);
+              channel ? channel.send({ embeds: [em], content: `<@${userID}>, here's your reminder:` }) : user.send({ embeds: [em], content: `${user.username}, here's your reminder:` });
               db.delete(`global.reminders.${remID}`);
             } catch {
               return;
