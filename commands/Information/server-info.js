@@ -49,7 +49,7 @@ class ServerInfo extends Command {
       .setAuthor(msg.author.username, msg.author.displayAvatarURL())
       .addField('Name', server.name, true)
       .addField('ID', server.id.toString(), true)
-      .addField('Owner', server.owner.user.tag, true)
+      .addField('Owner', server.members.cache.get(server.ownerId).user.tag, true)
       .addField('Verification Level', toProperCase(server.verificationLevel), true)
       .addField('Channels', server.channels.cache.size.toLocaleString(), true)
       .addField('Created At', `${ca} \n (${time})`, true)
