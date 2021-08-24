@@ -51,7 +51,7 @@ class DownloadEmoji extends Command {
     const emojis = res.splice(0, 10);
     const text = emojis.length > 1 ? 'here are your emojis' : 'here is your emoji';
 
-    return msg.reply(text, { files: emojis });
+    return msg.reply({ content: text, files: [emojis] });
   }
 }
 
