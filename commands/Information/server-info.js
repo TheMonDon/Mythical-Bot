@@ -26,6 +26,8 @@ class ServerInfo extends Command {
     }
     if (!server) return msg.channel.send('I could not find a server with that ID.');
 
+    if (!server.available) return msg.channel.send('That server is currently unavailable');
+
     await server.members.fetch();
     const then = moment(server.createdAt);
     const time = then.from(moment());
@@ -53,7 +55,7 @@ class ServerInfo extends Command {
       .addField('Verification Level', toProperCase(server.verificationLevel), true)
       .addField('Channels', server.channels.cache.size.toLocaleString(), true)
       .addField('Created At', `${ca} \n (${time})`, true)
-      .addField('Region', server.region, true)
+      .addField('Voice Region', server.voice.region, true)
       .addField('AFK Channel', `${(server.afkChannel && server.afkChannel.name) || 'None Set'}`, true)
       .addField('Members', server.members.cache.size.toLocaleString(), true)
       .addField(`Roles (${server.roles.cache.size.toLocaleString()})`, server === msg.guild ? roles1 : 'Can\'t display roles outside the server', true);
