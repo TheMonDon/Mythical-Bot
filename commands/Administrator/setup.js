@@ -87,12 +87,7 @@ class Setup extends Command {
             msg.channel.send(`I found the following role: ${role.name}`);
           } else {
             msg.channel.send(`I will create a role named ${response}`);
-            role = await msg.guild.roles.create({
-              data: {
-                name: response,
-                color: 'BLUE'
-              }
-            });
+            role = await msg.guild.roles.create({ name: response, color: 'BLUE', reason: 'Ticket System' });
           }
           db.set(`servers.${msg.guild.id}.tickets.roleID`, role.id);
 

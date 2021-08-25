@@ -38,18 +38,25 @@ class UserInfo extends Command {
       streaming: '<:status_streaming:862228796206874645> Streaming'
     };
 
-    const badges = {
+    // User Flags / Badges
+    const flags = {
+      DISCORD_EMPLOYEE: '',
+      PARTNERED_SERVER_OWNER: '',
+      HYPESQUAD_EVENTS: '',
+      BUGHUNTER_LEVEL_1: '',
+      BUGHUNTER_LEVEL_2: '',
+      TEAM_USER: '',
       HOUSE_BRILLIANCE: '<:house_brilliance:862241973271003156>',
       HOUSE_BALANCE: '<:house_balance:862242872362139648>',
       HOUSE_BRAVERY: '<:house_bravery:862241972765196309>',
       EARLY_SUPPORTER: '<:early_supporter_badge:862241973388836884>',
-      EARLY_VERIFIED_DEVELOPER: '<:verified_developer_badge:862241973146353674>',
-      VERIFIED_DEVELOPER: '',
-      VERIFIED_BOT: '<:verified_bot:862241973326839818>'
+      EARLY_VERIFIED_BOT_DEVELOPER: '<:verified_developer_badge:862241973146353674>',
+      VERIFIED_BOT: '<:verified_bot:862241973326839818>',
+      DISCORD_CERTIFIED_MODERATOR: ''
     };
 
+    // Guild Member
     if (msg.guild.members.cache.get(infoMem.id)) {
-      // Guild Member
       // Time Stamps
       const joinPosition = await getJoinPosition(infoMem.id, msg.guild);
       const ts = moment(infoMem.user.createdAt);
@@ -69,7 +76,7 @@ class UserInfo extends Command {
       const userBadges = infoMem.user.flags?.toArray() || '';
       let badgesArray = '';
       for (let i = 0; i < userBadges.length; i++) {
-        badgesArray += badges[userBadges[i]];
+        badgesArray += flags[userBadges[i]];
       }
 
       const embed = new DiscordJS.MessageEmbed()
@@ -97,7 +104,7 @@ class UserInfo extends Command {
     const userBadges = infoMem.flags?.toArray() || '';
     let badgesArray = '';
     for (let i = 0; i < userBadges.length; i++) {
-      badgesArray += badges[userBadges[i]];
+      badgesArray += flags[userBadges[i]];
     }
 
     const embed = new DiscordJS.MessageEmbed()

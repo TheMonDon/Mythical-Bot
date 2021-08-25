@@ -40,7 +40,6 @@ module.exports = class {
         .addField('Edited Message', (msg2.content.length <= 1024) ? msg2.content : `${msg2.content.substring(0, 1020)}...`, true)
         .addField('Channel', msg1.channel, true)
         .addField('Message Author', `${msg1.author} (${msg1.author.tag})`, true)
-        .addField('Number of Edits', msg2.edits.length, true)
         .setTimestamp();
       (msg2.mentions.users.size === 0)
         ? embed.addField('Mentioned Users', 'None', true)

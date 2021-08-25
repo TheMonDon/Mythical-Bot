@@ -173,9 +173,8 @@ module.exports = class Util {
    * @param {guild} guild
    */
   static async getJoinPosition (id, guild) {
-    if (!guild.member(id)) return;
-
     await guild.members.fetch();
+    if (!guild.members.cache.get(id)) return;
     const array = guild.members.cache.array();
     array.sort((a, b) => a.joinedAt - b.joinedAt);
 
