@@ -40,11 +40,11 @@ class UserInfo extends Command {
 
     // User Flags / Badges
     const flags = {
-      DISCORD_EMPLOYEE: '',
-      PARTNERED_SERVER_OWNER: '',
-      HYPESQUAD_EVENTS: '',
-      BUGHUNTER_LEVEL_1: '',
-      BUGHUNTER_LEVEL_2: '',
+      DISCORD_EMPLOYEE: '<:DiscordEmployee:879966587816386591>',
+      PARTNERED_SERVER_OWNER: '<:partnered_server_owner:879967015119519756>',
+      HYPESQUAD_EVENTS: '<:hypesquad_events:879966257355587654>',
+      BUGHUNTER_LEVEL_1: '<:BugHunter:879966295829913601>',
+      BUGHUNTER_LEVEL_2: '<:BugHunterLvl2:879966322434388009>',
       TEAM_USER: '',
       HOUSE_BRILLIANCE: '<:house_brilliance:862241973271003156>',
       HOUSE_BALANCE: '<:house_balance:862242872362139648>',
@@ -52,7 +52,7 @@ class UserInfo extends Command {
       EARLY_SUPPORTER: '<:early_supporter_badge:862241973388836884>',
       EARLY_VERIFIED_BOT_DEVELOPER: '<:verified_developer_badge:862241973146353674>',
       VERIFIED_BOT: '<:verified_bot:862241973326839818>',
-      DISCORD_CERTIFIED_MODERATOR: ''
+      DISCORD_CERTIFIED_MODERATOR: '<:certifiedModerator:879967930534740008>'
     };
 
     // Guild Member
