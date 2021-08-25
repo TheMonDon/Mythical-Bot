@@ -24,12 +24,12 @@ class Instagram extends Command {
           .setTitle(res.fullName)
           .setURL(res.link)
           .setThumbnail(res.profilePicHD)
-          .addField('Biography', res.biography, true)
-          .addField('Subscribers', res.subscribersCount, true)
-          .addField('Subscriptions', res.subscribtions, true)
-          .addField('Posts Count', res.postsCount, true)
-          .addField('Is Private?', res.isPrivate, true)
-          .addField('Is Verified?', res.isVerified, true);
+          .addField('Biography', res.biography || 'N/A', true)
+          .addField('Subscribers', res.subscribersCount || 'N/A', true)
+          .addField('Subscriptions', res.subscriptions || 'N/A', true)
+          .addField('Posts Count', res.postsCount || 'N/A', true)
+          .addField('Is Private?', res.isPrivate || 'N/A', true)
+          .addField('Is Verified?', res.isVerified || 'N/A', true);
         return msg.channel.send({ embeds: [em] });
       })
       .catch((err) => {
