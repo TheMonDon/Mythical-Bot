@@ -276,7 +276,7 @@ class Setup extends Command {
     This system should be fully operational.
     `)
       .setDescription('These systems are not fully operational and may have bugs.')
-      .setAuthor(msg.author.displayName, msg.author.displayAvatarURL());
+      .setAuthor(msg.member.displayName, msg.author.displayAvatarURL());
     return msg.channel.send({ embeds: [embed] });
   }
 }
