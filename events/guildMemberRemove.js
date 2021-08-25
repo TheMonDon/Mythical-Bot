@@ -58,6 +58,7 @@ module.exports = class {
     const leaveMessage = settings.leaveMessage.replace('{{user}}', member.user.tag).replace('{{guild}}', member.guild.name);
 
     const em = new DiscordJS.MessageEmbed()
+      .setColor('RANDOM')
       .setTitle('Goodbye')
       .setAuthor(member.user.tag, member.user.displayAvatarURL())
       .setDescription(leaveMessage)
