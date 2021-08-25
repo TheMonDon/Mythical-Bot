@@ -171,7 +171,7 @@ class BlackJack extends Command {
     }
     const em = new DiscordJS.MessageEmbed()
       .setAuthor(msg.author.username, msg.author.displayAvatarURL())
-      .setDescription('Type `hit` to draw another card or `stand` to pass.')
+      .setDescription('Type `hit` to draw another card, `stand` to pass, or `doubledown` to double down.')
       .setColor(color)
       .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
       .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
@@ -191,7 +191,7 @@ class BlackJack extends Command {
 
       if (selected === 'hit') bj.hit();
       if (selected === 'stand') bj.stand();
-      if (selected === 'doubledown') bj.doubledown();
+      if (selected === 'doubledown') bj.doubleDown();
 
       if (win) {
         pcards = getCards('player', bj);
