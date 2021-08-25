@@ -20,9 +20,10 @@ class Nickname extends Command {
     if (!text[0]) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}Nick <user> (nickname)`);
 
     const infoMem = getMember(msg, text[0]);
+    const owner = msg.guild.fetchOwner();
 
     if (!infoMem) return msg.channel.send('Please supply a proper member.');
-    if (infoMem.id === msg.guild.owner.id) return msg.channel.send('Only the server owner of the server can change their nickname.');
+    if (infoMem.id === owner.user.id) return msg.channel.send('Only the server owner of the server can change their nickname.');
     if (infoMem.roles.highest.position > msg.guild.me.roles.highest.position - 1) return msg.channel.send('I need my role higher to change that users nickname.');
 
     text.shift();
