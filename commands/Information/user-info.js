@@ -30,14 +30,6 @@ class UserInfo extends Command {
       }
     }
 
-    const presence = {
-      online: '<:status_online:862228776234123294> Online',
-      idle: '<:status_idle:862228796366258186>: Idle',
-      dnd: '<:status_dnd:862228796367044608> Do Not Disturb',
-      offline: '<:status_offline:862228796391948318> Offline',
-      streaming: '<:status_streaming:862228796206874645> Streaming'
-    };
-
     // User Flags / Badges
     const flags = {
       DISCORD_EMPLOYEE: '<:DiscordEmployee:879966587816386591>',
@@ -86,7 +78,6 @@ class UserInfo extends Command {
         .addField('User Tag', infoMem.user.tag, true)
         .addField('Nickname', infoMem.displayName, true)
         .addField('User ID', infoMem.id, true)
-        .addField('Status', presence[infoMem.user.presence.status], true)
         .addField('Joined Server', `${ja} \n (${jaTime})`, true)
         .addField('Account Created', `${ca} \n (${caTime})`, true)
         .addField('Join Position', `${Number(joinPosition).toLocaleString()}/${msg.guild.memberCount.toLocaleString()}`, true)
@@ -113,7 +104,6 @@ class UserInfo extends Command {
       .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
       .addField('User Tag', infoMem.tag, true)
       .addField('User ID', infoMem.id.toString(), true)
-      .addField('Status', presence[infoMem.presence.status], true)
       .addField(`Badges [${userBadges?.length || 0}]`, badgesArray || 'No Badges', true)
       .addField('Account Type', infoMem.bot ? ':robot: Bot' : ':person_standing: Human', true)
       .addField('Account Created', ca, true);
