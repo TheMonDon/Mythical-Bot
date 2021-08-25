@@ -107,12 +107,12 @@ class New extends Command {
     if (!role.mentionable) {
       if (!tixChan.permissionsFor(this.client.user.id).has('MENTION_EVERYONE')) {
         role.setMentionable(true);
-        tixChan.send({ content: role, embeds: [chanEmbed] });
+        tixChan.send({ content: role.toString(), embeds: [chanEmbed] });
       } else {
-        tixChan.send({ content: role, embeds: [chanEmbed] });
+        tixChan.send({ content: role.toString(), embeds: [chanEmbed] });
       }
     } else {
-      tixChan.send({ content: role, embeds: [chanEmbed] });
+      tixChan.send({ content: role.toString(), embeds: [chanEmbed] });
     }
 
     // Logging info

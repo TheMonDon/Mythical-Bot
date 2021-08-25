@@ -39,7 +39,7 @@ class AddMember extends Command {
 
     if (msg.channel.permissionOverwrites.get(mem.id) !== undefined) return msg.channel.send('That person has already been added to this ticket.');
 
-    msg.channel.updateOverwrite(mem.id, { VIEW_CHANNEL: true });
+    await msg.channel.updateOverwrite(mem.id, { VIEW_CHANNEL: true });
 
     // Logging info
     const d = new Date();
