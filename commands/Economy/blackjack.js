@@ -20,8 +20,6 @@ class BlackJack extends Command {
     const usage = `${msg.settings.prefix}blackjack <bet>`;
     if (!args || args.length < 1) return msg.channel.send(`Incorrect Usage: \n${usage}`);
 
-    let bet = args.join(' ');
-
     // array of all my card emojis in my private server
     const cards = {
       AH: '<:aH:740317914833616976>',
@@ -103,7 +101,7 @@ class BlackJack extends Command {
     const cs = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
     const cash = db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`) || db.get(`servers.${msg.guild.id}.economy.startBalance`) || 0;
 
-    bet = parseInt(bet.replace(/,/g, '').replace(cs, ''), 10);
+    const bet = parseInt(args.join(' ').replace(/,/g, '').replace(cs, ''), 10);
 
     if (isNaN(bet)) {
       return msg.channel.send('Please enter a number for the bet.');
@@ -156,17 +154,14 @@ class BlackJack extends Command {
     let pcards = getCards('player', bj);
     let dcards = getCards('dealer', bj);
     if (blackjack) {
-      bet1 = bet * 1.5;
-
       const embed = new DiscordJS.MessageEmbed()
         .setAuthor(msg.author.username, msg.author.displayAvatarURL())
-        .setDescription(`Result: You win ${cs}${bet1.toLocaleString()}`)
+        .setDescription(`Result: You win ${cs}${bj.bet.toLocaleString()}`)
         .setColor(color)
         .addField('**Your Hand**', `${pcards} \n\nScore: Blackjack`, true)
         .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
 
-      bet = bet + bet1;
-      db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bet); // Add the winning money
+      db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bj.bet); // Add the winning money
       return msg.channel.send({ embeds: [embed] });
     }
     const em = new DiscordJS.MessageEmbed()
@@ -199,7 +194,7 @@ class BlackJack extends Command {
 
         const embed = new DiscordJS.MessageEmbed()
           .setAuthor(msg.author.username, msg.author.displayAvatarURL())
-          .setDescription(`Result: You win ${cs}${bet.toLocaleString()}`)
+          .setDescription(`Result: You win ${cs}${bj.bet.toLocaleString()}`)
           .setColor(color)
           .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
           .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
@@ -212,7 +207,7 @@ class BlackJack extends Command {
 
         const embed = new DiscordJS.MessageEmbed()
           .setAuthor(msg.author.username, msg.author.displayAvatarURL())
-          .setDescription(`Result: BlackJack, you win ${cs}${bet1.toLocaleString()}`)
+          .setDescription(`Result: BlackJack, you win ${cs}${bj.bet.toLocaleString()}`)
           .setColor(color)
           .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
           .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
@@ -225,7 +220,7 @@ class BlackJack extends Command {
 
         const embed = new DiscordJS.MessageEmbed()
           .setAuthor(msg.author.username, msg.author.displayAvatarURL())
-          .setDescription(`Result: Bust, you lose ${cs}${bet.toLocaleString()}`)
+          .setDescription(`Result: Bust, you lose ${cs}${bj.bet.toLocaleString()}`)
           .setColor(color)
           .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
           .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
