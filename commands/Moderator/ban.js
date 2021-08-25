@@ -35,8 +35,8 @@ class Ban extends Command {
       .setTitle('User Banned')
       .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
       .setColor('RED')
-      .addField('User', banMem, true)
-      .addField('Banned By', msg.member.displayName, true)
+      .addField('User', banMem.toString(), true)
+      .addField('Banned By', msg.member.displayName.toString(), true)
       .addField('Reason', reason, true)
       .setFooter(`User ID: ${banMem.id}`)
       .setTimestamp();
@@ -45,6 +45,7 @@ class Ban extends Command {
     if (logChan) {
       const em2 = new DiscordJS.MessageEmbed()
         .setTitle('User Banned')
+        .setColor('RED')
         .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
         .setDescription('Full info posted in the log channel.');
 

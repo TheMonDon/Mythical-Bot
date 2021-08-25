@@ -20,12 +20,12 @@ class Emoji extends Command {
   }
 
   async run (msg, args) {
-    const usage = stripIndents`
-      Incorrect Usage:
-      \`${msg.settings.prefix}emoji create <name> <image>\`
-      \`${msg.settings.prefix}emoji delete <emoji>\`
-      \`${msg.settings.prefix}emoji info <emoji>\`
-      \`${msg.settings.prefix}emoji rename <emoji> <name>\`
+    const usage = `
+Incorrect Usage:
+\`${msg.settings.prefix}emoji create <name> <image | attachment>\`
+\`${msg.settings.prefix}emoji delete <emoji>\`
+\`${msg.settings.prefix}emoji info <emoji>\`
+\`${msg.settings.prefix}emoji rename <emoji> <name>\`
     `;
     if (!args || args.length < 2) return msg.reply(usage);
 
@@ -34,6 +34,7 @@ class Emoji extends Command {
     if (type === 'create') {
       const name = args[1];
       const image = msg.attachments.first()?.url || args[2];
+      if (!image) return msg.reply('Please provide a valid image');
 
       const emoji = await msg.guild.emojis.create(image, name);
       return msg.reply(`${emoji} has been created.`);
@@ -77,7 +78,7 @@ class Emoji extends Command {
         .addField('Is Animated?', result.animated.toString(), true)
         .addField('Emoji ID', result.id.toString(), true)
         .addField('Emoji is Available?', result.available.toString(), true)
-        .addField('Emoji Author', result.author || 'N/A', true);
+        .addField('Emoji Author', result.author.toString() || 'N/A', true);
       return msg.channel.send({ embeds: [em] });
     } else if (type === 'rename') {
       const emoji = args[1];
@@ -100,7 +101,7 @@ class Emoji extends Command {
           return msg.reply(`${result} has been renamed to \`${name}\``);
         })
         .catch(e => {
-          return msg.channel.send(`An error occurred: ${e}`);
+          return msg.reply(`An error occurred: ${e}`);
         });
     } else {
       return msg.reply(usage);

@@ -73,6 +73,7 @@ module.exports = class Util {
    * @param {string} str
    */
   static getRole (msg, str) {
+    if (!msg.guild) return false;
     return msg.mentions.roles.first() ||
     msg.guild.roles.cache.find(r => r.name === str) ||
     msg.guild.roles.cache.find(r => r.id === str) ||
@@ -86,6 +87,7 @@ module.exports = class Util {
    * @param {string} str
    */
   static getChannel (msg, str) {
+    if (!msg.guild) return false;
     return msg.mentions.channels.first() ||
     msg.guild.channels.cache.find(c => c.id === str) ||
     msg.guild.channels.cache.find(c => c.name.toLowerCase() === str.toLowerCase()) ||
@@ -102,7 +104,7 @@ module.exports = class Util {
     const userCases = [];
     if (warns) {
       Object.values(warns).forEach((val) => {
-        if (val.user === userID) {
+        if (val?.user === userID) {
           userCases.push(val);
         }
       });
@@ -220,7 +222,7 @@ module.exports = class Util {
     const userTickets = [];
     if (tickets) {
       Object.values(tickets).forEach((val) => {
-        if (val.owner === userID) {
+        if (val?.owner === userID) {
           userTickets.push(val);
         }
       });

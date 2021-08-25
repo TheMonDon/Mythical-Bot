@@ -39,7 +39,8 @@ class Warn extends Command {
     if (member ? mem.user.bot : mem.bot) return msg.channel.send('You can\'t warn a bot.');
 
     if (member) {
-      if ((mem.roles.highest.position > msg.member.roles.highest.position - 1) && !msg.author.id === msg.guild.owner.user.id) {
+      const owner = await msg.guild.fetchOwner();
+      if ((mem.roles.highest.position > msg.member.roles.highest.position - 1) && !msg.author.id === owner.user.id) {
         return msg.channel.send('You can\'t warn someone who has a higher role than you.');
       }
     }
