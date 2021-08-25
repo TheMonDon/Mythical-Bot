@@ -78,6 +78,7 @@ class Close extends Command {
         .setColor('#E65DF4')
         .addField('Transcript URL', url, false)
         .addField('Reason', reason, false)
+        .addField('Server', msg.guild.name, false)
         .setFooter('Transcripts expire 30 days after last view date.')
         .setTimestamp();
       await msg.author.send({ embeds: [userEmbed] })

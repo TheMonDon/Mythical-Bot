@@ -104,13 +104,12 @@ class forceClose extends Command {
       .addField('Ticket Name', `${tName}`, false)
       .addField('Transcript URL', url, false)
       .addField('Reason', reason, false)
+      .addField('Server', msg.guild.name, false)
       .addField('Closed By', `${msg.author} (${msg.author.id})`, false)
       .setFooter('Transcripts expire 30 days after last view date.')
       .setTimestamp();
     await tOwner.send({ embeds: [userEmbed] })
-      .catch(() => {
-        received = 'no';
-      });
+      .catch(() => { received = 'no'; });
 
     const logEmbed = new DiscordJS.MessageEmbed()
       .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
