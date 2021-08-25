@@ -84,10 +84,12 @@ module.exports = class {
       if (!role.mentionable) {
         if (!tixChan.permissionsFor(this.client.user.id).has('MENTION_EVERYONE')) {
           role.setMentionable(true);
-          tixChan.send({ embeds: [chanEmbed], content: role.toString() });
+          tixChan.send({ content: role.toString(), embeds: [chanEmbed] });
+        } else {
+          tixChan.send({ content: role.toString(), embeds: [chanEmbed] });
         }
       } else {
-        tixChan.send({ embeds: [chanEmbed], content: role.toString() });
+        tixChan.send({ content: role.toString(), embeds: [chanEmbed] });
       }
 
       // Logging info
