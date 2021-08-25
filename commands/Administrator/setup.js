@@ -33,7 +33,7 @@ class Setup extends Command {
         const { catID } = db.get(`servers.${msg.guild.id}.tickets`);
         if (catID) {
           // Alert them of what happens
-          msg.channel.send(stripIndents`The ticket system has already been setup in this server, do you want to re-run the setup?
+          await msg.channel.send(stripIndents`The ticket system has already been setup in this server, do you want to re-run the setup?
           
           Please note, this will override the old channel categories and log channels, you will have to delete the old ones manually.
   
