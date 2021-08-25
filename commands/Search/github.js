@@ -8,17 +8,32 @@ class Github extends Command {
     super(client, {
       name: 'github',
       description: 'View information about a repository on Github',
-      usage: 'github',
+      usage: 'Github <user> <repository> OR Github <user/repository>',
       category: 'Search',
       aliases: ['gh']
     });
   }
 
   async run (msg, args) {
-    if (!args || args < 2) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}github <user> <repository>`);
+    let author;
+    let repository;
+    if (!args || args.length < 2) {
+      if (args.length === 1) {
+        args = args.join('');
+        args = args.split('/');
+        if (args.length === 2) {
+          author = args[0];
+          repository = args[1];
+        } else {
+          return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}Github <user> <repository>`);
+        }
+      } else {
+        return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}Github <user> <repository>`);
+      }
+    }
 
-    const author = args[0];
-    const repository = args[1];
+    author = args[0];
+    repository = args[1];
 
     try {
       const { body } = await fetch
