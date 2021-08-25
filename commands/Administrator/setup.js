@@ -77,7 +77,7 @@ class Setup extends Command {
       if (response.toLowerCase() === 'cancel') return collected.first().reply('Got it! The command has been cancelled.');
 
       if (role) {
-        collected.first().reply(`I found the following role: ${role.name}`);
+        collected.first().reply(`I found the following role to use: ${role.name} (${role.id})`);
       } else {
         collected.first().reply(`I will create a role named ${response}`);
         role = await msg.guild.roles.create({ name: response, color: 'BLUE', reason: 'Ticket System' });
