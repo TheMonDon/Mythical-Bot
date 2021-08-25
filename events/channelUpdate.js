@@ -37,7 +37,7 @@ module.exports = class {
       }
 
       const embed = new DiscordJS.MessageEmbed()
-        .setTitle(`Channl ${channel.name} Updated`)
+        .setTitle(`Channel ${channel.name} Updated`)
         .setColor('#EE82EE')
         .addField('Name', (channel.name === newChannel.name) ? 'Updated: ❌' : `Updated: ✅ \n New Name: ${newChannel.name}`, true)
         .addField('Topic', (channel.topic === newChannel.topic) ? 'Updated: ❌' : `Updated: ✅ \n New Topic: ${newChannel.topic}`, true)
