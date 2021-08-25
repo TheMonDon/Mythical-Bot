@@ -14,7 +14,7 @@ class Reddit extends Command {
 
   async run (msg, args) {
     const usage = `Incorrect Usage: ${msg.settings.prefix}reddit <subreddit>`;
-    if (!args || args.length < 1) return msg.channel.send(usage);
+    if (!args || args.length < 1) return msg.reply(usage);
     const subreddit = args.join('');
 
     const post = await trev.getCustomSubreddit(subreddit);

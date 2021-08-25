@@ -22,10 +22,10 @@ class Blacklist extends Command {
     const usage = `Incorrect Usage:${msg.settings.prefix}blacklist <add | remove | check> <user> <reason>`;
 
     if (!text || text.length < 1) {
-      return msg.channel.send(usage);
+      return msg.reply(usage);
     } else if (text[0] && text[1]) {
       if (!['add', 'remove', 'check'].includes(text[0].toLowerCase())) {
-        return msg.channel.send(usage);
+        return msg.reply(usage);
       } else {
         type = text[0].toLowerCase();
       }
@@ -33,13 +33,13 @@ class Blacklist extends Command {
       mem = getMember(msg, text[0]);
       type = 'check';
 
-      if (!mem) return msg.channel.send(usage);
+      if (!mem) return msg.reply(usage);
     }
 
     if (!mem && text[1]) {
       mem = getMember(msg, text[1]);
 
-      if (!mem) return msg.channel.send(`${usage} \nPlease provide a valid server member.`);
+      if (!mem) return msg.reply(`${usage} \nPlease provide a valid server member.`);
     }
 
     text.shift();

@@ -15,13 +15,13 @@ class Seek extends Command {
     const queue = this.client.player.getQueue(msg.guild);
     const usage = `Incorrect Usage: ${msg.settings.prefix}seek <seconds>`;
 
-    if (!args || args.length < 1) return msg.channel.send(usage);
+    if (!args || args.length < 1) return msg.reply(usage);
     if (!msg.member.voice.channel) return msg.channel.send('You must be in a voice channel to seek the music.');
     if (msg.guild.me.voice.channel && msg.member.voice.channel.id !== msg.guild.me.voice.channel.id) return msg.channel.send('You must be in the same voice channel as the bot.');
     if (!queue.nowPlaying()) return msg.channel.send('There is nothing playing.');
 
     const num = parseInt(args[0] * 1000, 10);
-    if (isNaN(num)) return msg.channel.send(usage);
+    if (isNaN(num)) return msg.reply(usage);
 
     await queue.seek(num);
     const song = queue.nowPlaying();

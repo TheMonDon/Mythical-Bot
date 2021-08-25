@@ -22,7 +22,7 @@ class Mute extends Command {
     const roleName = db.get(`servers.${msg.guild.id}.mutes.role`) || 'Muted';
     const usage = `Incorrect Usage: ${msg.settings.prefix}mute <user> <time> <reason>`;
 
-    if (!args || args.length < 1) return msg.channel.send(usage);
+    if (!args || args.length < 1) return msg.reply(usage);
 
     const muteMem = getMember(msg, args[0]);
     if (!muteMem) return msg.channel.send('Please specify a valid user.');

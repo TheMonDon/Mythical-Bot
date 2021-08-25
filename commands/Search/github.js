@@ -25,10 +25,10 @@ class Github extends Command {
           author = args[0];
           repository = args[1];
         } else {
-          return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}Github <user> <repository>`);
+          return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}Github <user> <repository> OR Github <user/repository>`);
         }
       } else {
-        return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}Github <user> <repository>`);
+        return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}Github <user> <repository> OR Github <user/repository>`);
       }
     }
 

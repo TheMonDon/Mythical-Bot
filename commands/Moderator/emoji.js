@@ -27,7 +27,7 @@ class Emoji extends Command {
       \`${msg.settings.prefix}emoji info <emoji>\`
       \`${msg.settings.prefix}emoji rename <emoji> <name>\`
     `;
-    if (!args || args.length < 2) return msg.channel.send(usage);
+    if (!args || args.length < 2) return msg.reply(usage);
 
     const type = args[0].toLowerCase();
 
@@ -103,7 +103,7 @@ class Emoji extends Command {
           return msg.channel.send(`An error occurred: ${e}`);
         });
     } else {
-      return msg.channel.send(usage);
+      return msg.reply(usage);
     }
   }
 }

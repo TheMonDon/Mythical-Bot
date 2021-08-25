@@ -16,13 +16,13 @@ class Purge extends Command {
   async run (msg, args) {
     const usage = `Incorrect Usage: ${msg.settings.prefix}purge <2-100> (@member) (@channel)`;
     if (!msg.guild.me.permissions.has('MANAGE_MESSAGES')) return msg.channel.send('The bot needs `Manage_Messages` permission to use this.');
-    if (!args || args.length < 1) return msg.channel.send(usage);
+    if (!args || args.length < 1) return msg.reply(usage);
 
     msg.delete();
 
     const num = parseInt(args[0], 10);
     if (isNaN(num)) return msg.channel.send(`\`${num}\` is not a valid number, please input another number.`);
-    if (num < 2 || num > 100) return msg.channel.send(usage);
+    if (num < 2 || num > 100) return msg.reply(usage);
 
     try {
       if (msg.mentions.channels.first() && msg.mentions.members.first()) {

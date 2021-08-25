@@ -20,7 +20,7 @@ class ClearWarnings extends Command {
     let mem;
     const usage = `Incorrect Usage: ${msg.settings.prefix}clear-warnings <user>`;
 
-    if (!args || args.length < 1) return msg.channel.send(usage);
+    if (!args || args.length < 1) return msg.reply(usage);
 
     mem = getMember(msg, args.join(' '));
 
@@ -30,7 +30,7 @@ class ClearWarnings extends Command {
       try {
         mem = await this.client.users.fetch(ID);
       } catch (err) {
-        return msg.channel.send(usage);
+        return msg.reply(usage);
       }
     }
 

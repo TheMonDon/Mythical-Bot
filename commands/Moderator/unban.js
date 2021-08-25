@@ -41,8 +41,8 @@ class Unban extends Command {
           embed.setTitle('Member Unbanned');
           embed.setAuthor(msg.member.displayName, msg.author.displayAvatarURL());
           embed.setColor('GREEN');
-          embed.addField('User', unbanP, true);
-          embed.addField('Unbanned By', msg.member, true);
+          embed.addField('User', unbanP.toString(), true);
+          embed.addField('Unbanned By', msg.member.toString(), true);
           embed.addField('Reason', reason, true);
           embed.setFooter(`ID: ${unbanP.id}`);
           embed.setTimestamp();
@@ -51,7 +51,7 @@ class Unban extends Command {
           return msg.channel.send({ embeds: [embed] });
         });
     } catch (err) {
-      msg.channel.send(`An error occurred: ${err}`);
+      return msg.channel.send(`An error occurred: ${err}`);
     }
   }
 }

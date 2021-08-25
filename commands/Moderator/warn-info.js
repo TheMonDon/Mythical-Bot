@@ -30,10 +30,10 @@ class WarnInfo extends Command {
     const em = new DiscordJS.MessageEmbed()
       .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
       .setColor('#0099CC')
-      .addField('Case ID', caseID, true)
-      .addField('User', victim, true)
+      .addField('Case ID', caseID.toString(), true)
+      .addField('User', victim.toString(), true)
       .addField('Points', points.toString(), true)
-      .addField('Moderator', moderator, true)
+      .addField('Moderator', moderator.toString(), true)
       .addField('Warned on', moment(timestamp).format('LLL'), true)
       .addField('Message URL', messageURL, true)
       .addField('Reason', reason, false);
