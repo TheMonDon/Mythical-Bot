@@ -149,7 +149,7 @@ class BlackJack extends Command {
     };
 
     bj.init();
-    let bet1;
+    db.subtract(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bj.bet);
 
     let pcards = getCards('player', bj);
     let dcards = getCards('dealer', bj);
@@ -180,7 +180,6 @@ class BlackJack extends Command {
       });
       if (!collected || !collected.first()) {
         gameOver = true;
-        db.subtract(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bet);
       }
       const selected = collected.first().content.toLowerCase();
 
@@ -237,6 +236,8 @@ class BlackJack extends Command {
           .setColor(color)
           .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
           .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
+
+        db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bj.bet);
         return mEm.edit({ embeds: [embed] });
       }
       pcards = getCards('player', bj);
