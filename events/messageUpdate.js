@@ -43,7 +43,7 @@ module.exports = class {
         .setTimestamp();
       (msg2.mentions.users.size === 0)
         ? embed.addField('Mentioned Users', 'None', true)
-        : embed.addField('Mentioned Users', `Mentioned Member Count: ${msg2.mentions.users.array().length} \nMentioned Users List: \n${msg2.mentions.users.array()}`, true);
+        : embed.addField('Mentioned Users', `Mentioned Member Count: ${[...msg2.mentions.users.values()].length} \nMentioned Users List: \n${[...msg2.mentions.users.values()]}`, true);
       newmsg.guild.channels.cache.get(logChan).send({ embeds: [embed] });
       db.add(`servers.${newmsg.guild.id}.logs.message-edited`, 1);
       db.add(`servers.${newmsg.guild.id}.logs.all`, 1);

@@ -40,7 +40,7 @@ module.exports = class {
       if (!member.guild.me.permissions.has('MANAGE_ROLES')) return;
       if (member.user.bot) return;
 
-      const roles = member.roles?.cache.array();
+      const roles = [...member.roles?.cache.values()];
       if (roles.length === 1) return;
       const arr = [];
 

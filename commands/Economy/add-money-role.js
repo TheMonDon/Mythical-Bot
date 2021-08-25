@@ -66,7 +66,7 @@ class AddMoneyRole extends Command {
       return msg.channel.send({ embeds: [errEmbed] });
     }
 
-    const members = role.members.array();
+    const members = [...role.members.values()];
 
     if (type === 'bank') {
       members.forEach(mem => {

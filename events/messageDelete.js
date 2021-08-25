@@ -41,7 +41,7 @@ module.exports = class {
     embed.addField('Channel', msg.channel, true);
     embed.addField('Message Author', `${msg.author} (${msg.author.tag})`, true);
     if (delby && (msg.author !== delby)) embed.addField('Deleted By', delby, true);
-    (msg.mentions.users.size === 0) ? embed.addField('Mentioned Users', 'None', true) : embed.addField('Mentioned Users', `Mentioned Member Count: ${msg.mentions.users.array().length} \n Mentioned Users List: \n ${msg.mentions.users.array()}`, true);
+    (msg.mentions.users.size === 0) ? embed.addField('Mentioned Users', 'None', true) : embed.addField('Mentioned Users', `Mentioned Member Count: ${[...msg.mentions.users.values()].length} \n Mentioned Users List: \n ${[...msg.mentions.users.values()]}`, true);
     embed.setTimestamp();
     embed.setFooter(`Message ID: ${msg.id}`);
     logChannel.send({ embeds: [embed] });

@@ -68,10 +68,9 @@ class UserInfo extends Command {
 
       // Role Stuff
       const roles = infoMem.roles.cache.sort((a, b) => b.position - a.position);
-      let roles1 = roles.filter(r => r.id !== msg.guild.id)
-        .array()
-        .join(', ');
+      let roles1 = [...roles.filter(r => r.id !== msg.guild.id).values()].join(', ');
       if (roles1 === undefined || roles1.length === 0) roles1 = 'No Roles';
+
       // Badge Things
       const userBadges = infoMem.user.flags?.toArray() || '';
       let badgesArray = '';

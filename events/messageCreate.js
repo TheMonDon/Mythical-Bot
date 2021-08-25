@@ -42,9 +42,10 @@ module.exports = class {
         const timestamp = month + '/' + day + '/' + year + ' ' + hour + ':' + min;
 
         const attachments = [];
-        if (message.attachments.array().length > 0) {
-          for (let i = 0; i < message.attachments.array().length; i++) {
-            attachments.push(message.attachments.array()[i].url);
+        const mArray = [...message.attachments?.values()];
+        if (mArray.length > 0) {
+          for (let i = 0; i < mArray.length; i++) {
+            attachments.push(mArray[i].url);
           }
         }
 
