@@ -18,7 +18,7 @@ class Setup extends Command {
   }
 
   async run (msg, args) {
-    const type = args[0].toLowerCase();
+    const type = args[0]?.toLowerCase();
 
     if (['ticket', 'tix', 'tickets'].includes(type)) {
       const filter = m => m.author.id === msg.author.id;
