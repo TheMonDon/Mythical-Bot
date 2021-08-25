@@ -55,7 +55,7 @@ class ServerInfo extends Command {
       .addField('Verification Level', toProperCase(server.verificationLevel), true)
       .addField('Channels', server.channels.cache.size.toLocaleString(), true)
       .addField('Created At', `${ca} \n (${time})`, true)
-      .addField('AFK Channel', `${(server.afkChannel && server.afkChannel.name) || 'None Set'}`, true)
+      .addField('AFK Channel', server.afkChannel?.name || 'No AFK Channel', true)
       .addField('Members', server.members.cache.size.toLocaleString(), true)
       .addField(`Roles (${server.roles.cache.size.toLocaleString()})`, server === msg.guild ? roles1 : 'Can\'t display roles outside the server', false);
     return msg.channel.send({ embeds: [embed] });

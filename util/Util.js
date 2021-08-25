@@ -89,10 +89,7 @@ module.exports = class Util {
     return msg.mentions.channels.first() ||
     msg.guild.channels.cache.find(c => c.id === str) ||
     msg.guild.channels.cache.find(c => c.name.toLowerCase() === str.toLowerCase()) ||
-    msg.guild.channels.cache.find(c => c.name.toLowerCase().includes(str.toLowerCase())) ||
-    this.client.channels.cache.find(c => c.id === str) ||
-    this.client.channels.cache.find(c => c.name.toLowerCase().includes(str.toLowerCase())) ||
-    msg.channel;
+    msg.guild.channels.cache.find(c => c.name.toLowerCase().includes(str.toLowerCase()));
   }
 
   /**
