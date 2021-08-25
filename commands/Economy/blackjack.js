@@ -149,7 +149,6 @@ class BlackJack extends Command {
     };
 
     bj.init();
-    db.subtract(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bj.bet);
 
     let pcards = getCards('player', bj);
     let dcards = getCards('dealer', bj);
@@ -237,7 +236,6 @@ class BlackJack extends Command {
           .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
           .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
 
-        db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bj.bet);
         return mEm.edit({ embeds: [embed] });
       }
       pcards = getCards('player', bj);
