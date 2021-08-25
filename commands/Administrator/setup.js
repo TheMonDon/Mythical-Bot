@@ -52,10 +52,7 @@ class Setup extends Command {
 
           if (response.toLowerCase().includes('n', 'no')) return collected.first().reply('Got it! Nothing has been changed.');
           if (response.toLowerCase() === 'cancel') return collected.first().reply('Got it! The command has been cancelled.');
-          if (response.toLowerCase().includes('y', 'yes')) {
-            db.delete(`servers.${msg.guild.id}.tickets.catID`);
-            return collected.first().reply('Alright I deleted the database for tickets, please re-run the setup command.');
-          }
+          if (response.toLowerCase().includes('y', 'yes')) db.delete(`servers.${msg.guild.id}.tickets`);
         }
       }
 
