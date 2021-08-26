@@ -27,15 +27,13 @@ class BotInfo extends Command {
       .addField('Uptime', botuptime, true)
       .addField('Ping', Math.floor(this.client.ws.ping).toLocaleString(), true)
       .addField('Guilds', this.client.guilds.cache.size.toLocaleString(), true)
-      .addField('Channels', this.client.channels.cache.size.toLocaleString(), true)
-      .addField('Users', this.client.users.cache.size.toLocaleString(), true)
       .addField('Commands Used', db.get('global.commands').toLocaleString(), true)
       .addField('Discord.js', DiscordJS.version, true)
       .addField('Node', process.version, true)
       .addField('RAM Usage', `${Math.floor((process.memoryUsage().heapUsed / 1024) / 1024).toLocaleString()} MB`, true)
       .addField('Bot Version', pjson.version, true)
       .addField('Bot Creator', pjson.owner, true)
-      .addField('Invite', '[cisn.xyz/mythical](https://cisn.xyz/mythical)', true);
+      .addField('Invite', '[https://cisn.xyz/mythical](https://cisn.xyz/mythical)', true);
     return msg.channel.send({ embeds: [embed] });
   }
 }
