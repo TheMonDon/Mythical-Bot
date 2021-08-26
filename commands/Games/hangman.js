@@ -308,7 +308,7 @@ class Hangman extends Command {
                     await message.delete();
                     if (msg.guild.me.permissions.has('MANAGE_MESSAGES')) await response.first().delete();
                     this.client.games.delete(msg.channel.id);
-                    msg.reply(gamewon);
+                    return msg.reply(gamewon);
                   }
                 } else {
                   if (!triedLetters.includes(response.first().content.toLowerCase())) {

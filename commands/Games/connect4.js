@@ -47,7 +47,6 @@ class Connect4 extends Command {
 
     const current = this.client.games.get(msg.channel.id);
     if (current) return msg.reply(`Please wait until the current game of \`${current.name}\` is finished.`);
-    this.client.games.set(msg.channel.id, { name: this.help.name, user: msg.author.id, date: Date.now() });
 
     const usage = `Incorrect Usage: ${msg.settings.prefix}connect4 <opponent> <color>`;
     if (!args || args.length < 2) return msg.reply(usage);
@@ -57,6 +56,8 @@ class Connect4 extends Command {
 
     args.shift();
     if (!args || args.length < 1) return msg.channel.send(`${usage} \nThat is not a valid color, either an emoji or one of ${list(Object.keys(colors), 'or')}.`);
+
+    this.client.games.set(msg.channel.id, { name: this.help.name, user: msg.author.id, date: Date.now() });
 
     function checkLine (a, b, c, d) {
       return (a !== null) && (a === b) && (a === c) && (a === d);

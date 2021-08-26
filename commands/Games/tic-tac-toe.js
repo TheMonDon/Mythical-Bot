@@ -18,12 +18,13 @@ class TicTacToe extends Command {
   async run (msg, args) {
     const current = this.client.games.get(msg.channel.id);
     if (current) return msg.reply(`Please wait until the current game of \`${current.name}\` is finished.`);
-    this.client.games.set(msg.channel.id, { name: this.help.name, user: msg.author.id, date: Date.now() });
 
     if (!args || args.length < 1) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}tic-tac-toe <member>`);
 
     const opponent = getMember(msg, args.join(' '));
     if (opponent.id === msg.author.id) return msg.reply('You may not play against yourself.');
+
+    this.client.games.set(msg.channel.id, { name: this.help.name, user: msg.author.id, date: Date.now() });
 
     function verifyWin (sides, player1, player2) {
       const evaluated = tictactoe.boardEvaluate(convertBoard(sides)).status;
