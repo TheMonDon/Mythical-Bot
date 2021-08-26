@@ -80,13 +80,11 @@ class Flood extends Command {
             highScore = HS.score;
             highScoreUser = 'You';
             highScoreTime = gameTimeSeconds;
-          } else if (HS.score === highScore) {
-            if (HS.time <= highScoreTime) {
-              db.set('global.highScores.flood', HS);
-              highScore = HS.score;
-              highScoreUser = 'You';
-              highScoreTime = gameTimeSeconds;
-            }
+          } else if (HS.score === highScore && HS.time <= highScoreTime) {
+            db.set('global.highScores.flood', HS);
+            highScore = HS.score;
+            highScoreUser = 'You';
+            highScoreTime = gameTimeSeconds;
           }
         } else {
           const oldHS = db.get('global.highScores.flood');
@@ -101,7 +99,7 @@ class Flood extends Command {
           .setColor('#08b9bf')
           .setTitle('Flood')
           .setDescription(`${gameBoardToString()} \nGame Over! \n${turnResp[result]}`)
-          .addField('High Score', `${highScore.toString()} turns by ${highScoreUser} in ${highScoreTime}`)
+          .addField('High Score', `${highScore} turns by ${highScoreUser || 'N/A'} in ${highScoreTime || 'N/A'}`)
           .setTimestamp();
       } else {
         embed = new DiscordJS.MessageEmbed()
