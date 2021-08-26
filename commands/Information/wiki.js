@@ -2,7 +2,7 @@ const Command = require('../../base/Command.js');
 const DiscordJS = require('discord.js');
 const fetch = require('node-superfetch');
 
-class wiki extends Command {
+class Wikipedia extends Command {
   constructor (client) {
     super(client, {
       name: 'wikipedia',
@@ -14,10 +14,8 @@ class wiki extends Command {
   }
 
   async run (msg, text) {
-    const p = msg.settings.prefix;
     const query = text.join(' ');
-
-    if (!query || query.length < 1) return msg.channel.send(`Incorrect Usage: ${p}wiki <wikipedia search>`);
+    if (!query || query.length < 1) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}wiki <wikipedia search>`);
 
     const { body } = await fetch
       .get('https://en.wikipedia.org/w/api.php')
@@ -31,16 +29,16 @@ class wiki extends Command {
         redirects: '',
         formatversion: 2
       });
-    if (body.query.pages[0].missing) return msg.channel.send('No Results.');
+    if (body.query.pages[0].missing) return msg.channel.send('No results were found.');
 
     const str = body.query.pages[0].extract.replace(/[\n]/g, '\n\n');
 
     const embed = new DiscordJS.MessageEmbed()
-      .setColor(0x00A2E8)
+      .setColor('#00A2E8')
       .setTitle(body.query.pages[0].title)
       .setAuthor('Wikipedia', 'https://i.imgur.com/a4eeEhh.png')
-      .setDescription((str.length > 2043) ? str.substr(0, 2040) + ' ...' : str);
-    return msg.channel.send(embed);
+      .setDescription(str.length > 3095 ? str.substr(0, 3090) + ' ...' : str);
+    return msg.channel.send({ embeds: [embed] });
   }
 }
-module.exports = wiki;
+module.exports = Wikipedia;

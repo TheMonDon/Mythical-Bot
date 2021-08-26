@@ -2,7 +2,7 @@ const Command = require('../../base/Command.js');
 const cows = require('cows');
 const rn = require('random-number');
 
-class cow extends Command {
+class Cow extends Command {
   constructor (client) {
     super(client, {
       name: 'cow',
@@ -19,7 +19,7 @@ class cow extends Command {
       integer: true
     };
     const random = rn(options);
-    return msg.channel.send(cows()[random], { code: '' });
+    return msg.channel.send(`\`\`\`${cows()[random]}\`\`\``);
   }
 }
-module.exports = cow;
+module.exports = Cow;

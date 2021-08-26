@@ -41,7 +41,7 @@ class Reminders extends Command {
       }
       em.setColor('#0099CC');
 
-      return msg.channel.send(em);
+      return msg.channel.send({ embeds: [em] });
     }
 
     const ID = args[0];
@@ -59,7 +59,7 @@ class Reminders extends Command {
       em.setColor('GREEN');
       em.setDescription(`${msg.member.displayName}, you've successfully deleted your reminder.`);
     }
-    return msg.channel.send(em);
+    return msg.channel.send({ embeds: [em] });
   }
 }
 

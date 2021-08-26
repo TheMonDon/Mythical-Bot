@@ -1,8 +1,8 @@
 const Command = require('../../base/Command.js');
-const { getMember } = require('../../base/Util.js');
+const { getMember } = require('../../util/Util.js');
 const DiscordJS = require('discord.js');
 
-class kill extends Command {
+class Kill extends Command {
   constructor (client) {
     super(client, {
       name: 'kill',
@@ -75,8 +75,8 @@ class kill extends Command {
     const embed = new DiscordJS.MessageEmbed()
       .setTitle(deaths[num])
       .setFooter(`Reply #${num}`);
-    return msg.channel.send(embed);
+    return msg.channel.send({ embeds: [embed] });
   }
 }
 
-module.exports = kill;
+module.exports = Kill;

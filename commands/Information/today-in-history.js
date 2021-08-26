@@ -2,7 +2,7 @@ const Command = require('../../base/Command.js');
 const DiscordJS = require('discord.js');
 const fetch = require('node-superfetch');
 
-class tih extends Command {
+class TodayInHistory extends Command {
   constructor (client) {
     super(client, {
       name: 'today-in-history',
@@ -14,8 +14,6 @@ class tih extends Command {
   }
 
   async run (msg, text) {
-    const p = msg.settings.prefix;
-
     let month;
     let day;
     if (!text || text.length < 1) {
@@ -28,11 +26,11 @@ class tih extends Command {
     }
 
     if (isNaN(month) || (month < 1 && month > 12)) {
-      return msg.reply(`please enter a valid month (1-12) \n ${p}today-in-history <month> <day>`);
+      return msg.reply(`Please enter a valid month (1-12) \n ${msg.settings.prefix}today-in-history <month> <day>`);
     }
 
     if (isNaN(day) || (day < 1 && day > 31)) {
-      return msg.reply(`please enter a valid date (1-31) \n ${p}today-in-history <month> <day>`);
+      return msg.reply(`Please enter a valid date (1-31) \n ${msg.settings.prefix}today-in-history <month> <day>`);
     }
 
     const date = month && day ? `/${month}/${day}` : '';
@@ -49,7 +47,7 @@ class tih extends Command {
         .setDescription(`${event.year}: ${event.text}`)
         .addField('❯ See More', event.links.map(link => `[${link.title}](${link.link.replace(/\)/g, '%29')})`).join(', '));
 
-      return msg.channel.send(embed);
+      return msg.channel.send({ embeds: [embed] });
     } catch (err) {
       if (err.status === 404 || err.status === 500) return msg.reply('Invalid date.');
       return msg.reply(`Oh no, an error occurred: \`${err.msg}\`. Try again later!`);
@@ -57,4 +55,4 @@ class tih extends Command {
   }
 }
 
-module.exports = tih;
+module.exports = TodayInHistory;

@@ -38,6 +38,6 @@ module.exports = class status extends Command {
       .addField('Prisons', prisons ? `Players: ${prisons.onlinePlayers + '/' + prisons.maxPlayers}` : 'Offline', true)
       .addField('Skyblock', skyblock ? `Players: ${skyblock.onlinePlayers + '/' + skyblock.maxPlayers}` : 'Offline', true)
       .addField('RCC', rcc ? `Players: ${rcc.onlinePlayers + '/' + rcc.maxPlayers}` : 'Offline', true);
-    return msg.channel.send(em);
+    return msg.channel.send({ embeds: [em] });
   }
 };

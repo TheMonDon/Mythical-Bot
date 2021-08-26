@@ -1,15 +1,15 @@
 const Command = require('../../base/Command.js');
-const { getRole } = require('../../base/Util.js');
+const { getRole } = require('../../util/Util.js');
 const DiscordJS = require('discord.js');
 const moment = require('moment');
 require('moment-duration-format');
 
-class roleInfo extends Command {
+class RoleInfo extends Command {
   constructor (client) {
     super(client, {
       name: 'role-info',
       description: 'Gives some useful role information',
-      usage: 'role-info <Role Name | Role ID | @role>',
+      usage: 'Role-Info <Role Name | Role ID | @role>',
       category: 'Information',
       aliases: ['ri', 'roleinfo'],
       guildOnly: true
@@ -17,14 +17,12 @@ class roleInfo extends Command {
   }
 
   async run (msg, text) {
-    const server = msg.guild;
-    const p = msg.settings.prefix;
+    const usage = `Incorrect Usage: ${msg.settings.prefix}Role-Info <Role Name | Role Id | @role>`;
 
-    if (!text || text.length < 1) return msg.channel.send(`:x: Incorrect Usage: ${p}roleinfo <Role Name | Role ID | @role>`);
+    if (!text || text.length < 1) return msg.reply(usage);
 
     const infoRole = getRole(msg, text.join(' '));
-
-    if (!infoRole) return msg.channel.send(`:x: Incorrect Usage: ${p}roleinfo <Role Name | Role ID | @role>`);
+    if (!infoRole) return msg.reply(usage);
 
     // time
     const then = moment(infoRole.createdAt);
@@ -36,17 +34,17 @@ class roleInfo extends Command {
       .setColor(infoRole.hexColor)
       .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
       .addField('Name', infoRole.name, true)
-      .addField('ID', infoRole.id, true)
+      .addField('ID', infoRole.id.toString(), true)
       .addField('Mention', `\`${infoRole}\``, true)
-      .addField('Color', infoRole.hexColor, true)
+      .addField('Color', infoRole.hexColor.toString(), true)
       .addField('Members', infoRole.members.size.toLocaleString(), true)
-      .addField('Position', `${infoRole.position}/${server.roles.cache.size}`, true)
-      .addField('Hoisted', infoRole.hoist, true)
-      .addField('Mentionable', infoRole.mentionable, true)
-      .addField('Managed', infoRole.managed, true)
+      .addField('Position', `${infoRole.position}/${msg.guild.roles.cache.size}`, true)
+      .addField('Hoisted', infoRole.hoist.toString(), true)
+      .addField('Mentionable', infoRole.mentionable.toString(), true)
+      .addField('Managed', infoRole.managed.toString(), true)
       .addField('Created At', `${ca} (${time})`, true);
-    return msg.channel.send(embed);
+    return msg.channel.send({ embeds: [embed] });
   }
 }
 
-module.exports = roleInfo;
+module.exports = RoleInfo;

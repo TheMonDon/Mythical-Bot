@@ -3,7 +3,7 @@ const db = require('quick.db');
 const DiscordJS = require('discord.js');
 const { stripIndents } = require('common-tags');
 
-module.exports = class setCurrency extends Command {
+class SetPayout extends Command {
   constructor (client) {
     super(client, {
       name: 'set-payout',
@@ -42,7 +42,7 @@ module.exports = class setCurrency extends Command {
     
           Usage: ${usage}
         `);
-      return msg.channel.send(embed);
+      return msg.channel.send({ embeds: [embed] });
     }
     const errEmbed = new DiscordJS.MessageEmbed()
       .setColor('#EC5454')
@@ -51,13 +51,13 @@ module.exports = class setCurrency extends Command {
     const type = text[0]?.toLowerCase();
     if (!types.includes(type)) {
       errEmbed.setDescription(`Incorrect Usage: ${usage}`);
-      return msg.channel.send(errEmbed);
+      return msg.channel.send({ embeds: [errEmbed] });
     }
 
     const minMax = text[1]?.toLowerCase();
     if (!['min', 'max'].includes(minMax)) {
       errEmbed.setDescription(`Incorrect Usage: ${usage}`);
-      return msg.channel.send(errEmbed);
+      return msg.channel.send({ embeds: [errEmbed] });
     }
 
     text.shift();
@@ -71,7 +71,7 @@ module.exports = class setCurrency extends Command {
         Usage: ${usage}
       `);
 
-      return msg.channel.send(errEmbed);
+      return msg.channel.send({ embeds: [errEmbed] });
     }
 
     if (amount > 1000000000000) {
@@ -110,6 +110,8 @@ module.exports = class setCurrency extends Command {
       }
     }
 
-    return msg.channel.send(embed);
+    return msg.channel.send({ embeds: [embed] });
   }
-};
+}
+
+module.exports = SetPayout;

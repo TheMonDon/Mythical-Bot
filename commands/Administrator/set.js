@@ -79,7 +79,7 @@ class Set extends Command {
     } else {
       // Otherwise, the default action is to return the whole configuration;
       const array = Object.entries(settings).map(([key, value]) => `${key}${' '.repeat(20 - key.length)}::  ${value}`);
-      await message.channel.send(`= Current Guild Settings =\n${array.join('\n')}`, { code: 'asciidoc' });
+      await message.channel.send(`\`\`\`asciidoc\n= Current Guild Settings =\n${array.join('\n')}\`\`\``);
     }
   }
 }

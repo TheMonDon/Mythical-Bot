@@ -24,7 +24,7 @@ module.exports = class {
       .addField('Color', (rolebefore.hexColor === roleafter.hexColor) ? 'Updated: :x:' : `Updated: ✅ \n New Color: ${roleafter.hexColor}`, true)
       .setFooter(`ID: ${roleafter.id}`)
       .setTimestamp();
-    roleafter.guild.channels.cache.get(logChan).send(embed);
+    roleafter.guild.channels.cache.get(logChan).send({ embeds: [embed] });
 
     db.add(`servers.${roleafter.guild.id}.logs.role-updated`, 1);
     db.add(`servers.${roleafter.guild.id}.logs.all`, 1);

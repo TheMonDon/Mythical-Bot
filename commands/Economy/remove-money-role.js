@@ -1,17 +1,18 @@
 const Command = require('../../base/Command.js');
-const { getRole } = require('../../base/Util.js');
+const { getRole } = require('../../util/Util.js');
 const db = require('quick.db');
 const DiscordJS = require('discord.js');
 const { stripIndents } = require('common-tags');
 
-module.exports = class addMoneyRole extends Command {
+class RemoveMoneyRole extends Command {
   constructor (client) {
     super(client, {
       name: 'remove-money-role',
       category: 'Economy',
-      description: 'Remove money to a role\'s members cash or bank balance. \nIf the cash or bank argument isn\'t given, it will be added to the cash part.',
+      description: 'Remove money from a roles members cash or bank balance. \nIf the cash or bank argument isn\'t given, it will be removed from the cash part.',
       usage: 'remove-money-role <cash | bank> <role> <amount>',
       aliases: ['removemoneyrole', 'removebalrole'],
+      permLevel: 'Moderator',
       guildOnly: true
     });
   }
@@ -23,18 +24,13 @@ module.exports = class addMoneyRole extends Command {
       .setColor('#EC5454')
       .setAuthor(msg.author.tag, msg.author.displayAvatarURL());
 
-    if (!msg.member.permissions.has('MANAGE_GUILD')) {
-      errEmbed.setDescription('You are missing the **Manage Guild** permission.');
-      return msg.channel.send(errEmbed);
-    }
-
     let type = 'cash';
     let role;
     let amount;
 
     if (!args || args.length < 2) {
       errEmbed.setDescription(usage);
-      return msg.channel.send(errEmbed);
+      return msg.channel.send({ embeds: [errEmbed] });
     }
 
     const cs = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
@@ -53,7 +49,7 @@ module.exports = class addMoneyRole extends Command {
 
     if (isNaN(amount)) {
       errEmbed.setDescription(usage);
-      return msg.channel.send(errEmbed);
+      return msg.channel.send({ embeds: [errEmbed] });
     }
 
     if (!role) {
@@ -62,10 +58,10 @@ module.exports = class addMoneyRole extends Command {
 
       Usage: ${msg.settings.prefix}remove-money=role <cash | bank> <role> <amount>
       `);
-      return msg.channel.send(errEmbed);
+      return msg.channel.send({ embeds: [errEmbed] });
     }
 
-    const members = role.members.array();
+    const members = [...role.members.values()];
 
     if (type === 'bank') {
       members.forEach(mem => {
@@ -86,6 +82,8 @@ module.exports = class addMoneyRole extends Command {
       .setColor('#0099CC')
       .setDescription(`:white_check_mark: Removed **${cs}${amount.toLocaleString()}** to ${type} balance of ${members.length} ${members.length > 1 ? 'members' : 'member'} with the ${role}.`)
       .setTimestamp();
-    return msg.channel.send(embed);
+    return msg.channel.send({ embeds: [embed] });
   }
-};
+}
+
+module.exports = RemoveMoneyRole;

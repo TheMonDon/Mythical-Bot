@@ -1,10 +1,10 @@
 const Command = require('../../base/Command.js');
-const { getMember, getWarns, getTotalPoints, cleanString } = require('../../base/Util.js');
+const { getMember, getWarns, getTotalPoints, cleanString } = require('../../util/Util.js');
 const db = require('quick.db');
 const DiscordJS = require('discord.js');
 const moment = require('moment');
 
-class warnings extends Command {
+class Warnings extends Command {
   constructor (client) {
     super(client, {
       name: 'warnings',
@@ -52,13 +52,14 @@ class warnings extends Command {
       }
     }
 
+    mem = mem.user ? mem.user : mem;
     const em = new DiscordJS.MessageEmbed()
-      .setAuthor(mem.user ? mem.user.username : mem.usernam, mem.user ? mem.user.displayAvatarURL() : mem.displayAvatarURL())
+      .setAuthor(mem.username, mem.displayAvatarURL())
       .setColor('ORANGE')
       .setTitle(`Total Warning Points: ${totalPoints}`)
       .setDescription(warns.length ? warns.join('\n') : 'This user is squeaky clean.');
-    return msg.channel.send(em);
+    return msg.channel.send({ embeds: [em] });
   }
 }
 
-module.exports = warnings;
+module.exports = Warnings;

@@ -5,7 +5,7 @@ class Logger {
   static log (content, type = 'log') {
     const timestamp = `[${moment().format('YYYY-MM-DD HH:mm:ss')}]:`;
     switch (type) {
-      case 'log': return;
+      case 'log': return console.log(`${timestamp} ${chalk.bgBlue(type.toUpperCase())} ${content} `);
       case 'warn': return console.log(`${timestamp} ${chalk.black.bgYellow(type.toUpperCase())} ${content} `);
       case 'error': return console.log(`${timestamp} ${chalk.bgRed(type.toUpperCase())} ${content} `);
       case 'debug': return console.log(`${timestamp} ${chalk.green(type.toUpperCase())} ${content} `);

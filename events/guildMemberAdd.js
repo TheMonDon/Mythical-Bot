@@ -28,7 +28,7 @@ module.exports = class {
       embed.addField('Member Count', member.guild.members.cache.size, true);
       embed.setFooter(`ID: ${member.user.id}`);
       embed.setTimestamp();
-      member.guild.channels.cache.get(logChan).send(embed);
+      member.guild.channels.cache.get(logChan).send({ embeds: [embed] });
       db.add(`servers.${member.guild.id}.logs.member-join`, 1);
       db.add(`servers.${member.guild.id}.logs.all`, 1);
     })();
@@ -58,10 +58,15 @@ module.exports = class {
     if (settings.welcomeEnabled !== 'true') return;
 
     // Replace the placeholders in the welcome message with actual data
-    const welcomeMessage = settings.welcomeMessage.replace('{{user}}', member.user.tag);
+    const welcomeMessage = settings.welcomeMessage.replace('{{user}}', member.user.tag).replace('{{guild}}', member.guild.name);
 
-    // Send the welcome message to the welcome channel
-    // There's a place for more configs here.
-    member.guild.channels.cache.find(c => c.name === settings.welcomeChannel).send(welcomeMessage).catch(console.error);
+    const em = new DiscordJS.MessageEmbed()
+      .setColor('RANDOM')
+      .setTitle(`Welcome to ${member.guild.name}`)
+      .setAuthor(member.user.tag, member.user.displayAvatarURL())
+      .setDescription(welcomeMessage)
+      .setTimestamp();
+
+    member.guild.channels.cache.find(c => c.name === settings.welcomeChannel).send({ embeds: [em] });
   }
 };

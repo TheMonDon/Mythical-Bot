@@ -1,10 +1,10 @@
 const Command = require('../../base/Command.js');
-const { getMember } = require('../../base/Util.js');
+const { getMember } = require('../../util/Util.js');
 const db = require('quick.db');
 const DiscordJS = require('discord.js');
 const moment = require('moment');
 
-module.exports = class BalanceCommand extends Command {
+class Rob extends Command {
   constructor (client) {
     super(client, {
       name: 'rob',
@@ -17,7 +17,6 @@ module.exports = class BalanceCommand extends Command {
   }
 
   run (msg, text) {
-    const p = msg.settings.prefix;
     let mem;
 
     const type = 'rob';
@@ -38,7 +37,7 @@ module.exports = class BalanceCommand extends Command {
           .setColor('#EC5454')
           .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
           .setDescription(`You cannot rob for ${tLeft}`);
-        return msg.channel.send(embed);
+        return msg.channel.send({ embeds: [embed] });
       }
     }
 
@@ -46,8 +45,8 @@ module.exports = class BalanceCommand extends Command {
       const embed = new DiscordJS.MessageEmbed()
         .setColor('#EC5454')
         .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
-        .setDescription(`Incorrect Usage: ${p}Rob <user>`);
-      return msg.channel.send(embed);
+        .setDescription(`Incorrect Usage: ${msg.settings.prefix}Rob <user>`);
+      return msg.channel.send({ embeds: [embed] });
     } else {
       mem = getMember(msg, text.join(' '));
     }
@@ -56,14 +55,14 @@ module.exports = class BalanceCommand extends Command {
       const embed = new DiscordJS.MessageEmbed()
         .setColor('#EC5454')
         .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
-        .setDescription(`That user was not found. \nUsage: ${p}Rob <user>`);
-      return msg.channel.send(embed);
+        .setDescription(`That user was not found. \nUsage: ${msg.settings.prefix}Rob <user>`);
+      return msg.channel.send({ embeds: [embed] });
     } else if (mem.id === msg.author.id) {
-      const embed = new DiscordJS.RichEmebd()
+      const embed = new DiscordJS.MessageEmbed()
         .setColor('#EC5454')
         .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
-        .setDescription('You can\'t rob yoursself.');
-      return msg.channel.send(embed);
+        .setDescription('You can\'t rob yourself.');
+      return msg.channel.send({ embeds: [embed] });
     }
 
     const authCash = db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`) || db.get(`servers.${msg.guild.id}.economy.startBalance`) || 0;
@@ -77,7 +76,7 @@ module.exports = class BalanceCommand extends Command {
         .setColor('#EC5454')
         .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
         .setDescription(`${mem} does not have anything to rob.`);
-      return msg.channel.send(embed);
+      return msg.channel.send({ embeds: [embed] });
     }
 
     let failRate;
@@ -102,7 +101,7 @@ module.exports = class BalanceCommand extends Command {
         .setColor('ORANGE')
         .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
         .setDescription('You have too much money to rob someone.');
-      return msg.channel.send(em);
+      return msg.channel.send({ embeds: [em] });
     }
     if (ranNum < failRate) {
       db.subtract(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, fineAmnt);
@@ -111,7 +110,7 @@ module.exports = class BalanceCommand extends Command {
         .setColor('RED')
         .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
         .setDescription(`You were caught attempting to rob ${mem.displayName} and have been fined ${cs + fineAmnt.toLocaleString()}`);
-      msg.channel.send(em);
+      msg.channel.send({ embeds: [em] });
     } else {
       // Lucky then, give them the money!
       const amnt = Math.floor(Math.random() * memCash) + 1;
@@ -122,10 +121,10 @@ module.exports = class BalanceCommand extends Command {
       const embed = new DiscordJS.MessageEmbed()
         .setColor('#0099CC')
         .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
-        .setDescription(`You succesfully robbed ${mem} of ${cs}${amnt.toLocaleString()}`)
+        .setDescription(`You successfully robbed ${mem} of ${cs}${amnt.toLocaleString()}`)
         .addField('Your New Balance', `${cs}${db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`).toLocaleString()}`, false)
         .addField(`${mem.displayName}'s New Balance`, `${cs}${db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`).toLocaleString()}`, false);
-      msg.channel.send(embed);
+      msg.channel.send({ embeds: [embed] });
     }
 
     userCooldown.time = Date.now() + (cooldown * 1000);
@@ -138,4 +137,6 @@ module.exports = class BalanceCommand extends Command {
       db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.${type}.cooldown`, userCooldown);
     }, cooldown * 1000);
   }
-};
+}
+
+module.exports = Rob;

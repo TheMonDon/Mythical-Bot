@@ -1,10 +1,10 @@
 const Command = require('../../base/Command.js');
-const { getMember } = require('../../base/Util.js');
+const { getMember } = require('../../util/Util.js');
 const db = require('quick.db');
 const DiscordJS = require('discord.js');
 const { stripIndents } = require('common-tags');
 
-module.exports = class removeMoney extends Command {
+class RemoveMoney extends Command {
   constructor (client) {
     super(client, {
       name: 'remove-money',
@@ -12,6 +12,7 @@ module.exports = class removeMoney extends Command {
       description: 'Remove money from a member\'s cash or bank balance. \nIf the cash or bank argument isn\'t given, it will be added to the cash part.',
       usage: 'remove-money [cash | bank] <member> <amount>',
       aliases: ['removemoney', 'removebal'],
+      permLevel: 'Moderator',
       guildOnly: true
     });
   }
@@ -25,7 +26,7 @@ module.exports = class removeMoney extends Command {
 
     if (!msg.member.permissions.has('MANAGE_GUILD')) {
       errEmbed.setDescription('You are missing the **Manage Guild** permission.');
-      return msg.channel.send(errEmbed);
+      return msg.channel.send({ embeds: [errEmbed] });
     }
 
     let type = 'cash';
@@ -34,7 +35,7 @@ module.exports = class removeMoney extends Command {
 
     if (!args || args.length < 2) {
       errEmbed.setDescription(usage);
-      return msg.channel.send(errEmbed);
+      return msg.channel.send({ embeds: [errEmbed] });
     }
 
     const cs = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
@@ -53,7 +54,7 @@ module.exports = class removeMoney extends Command {
 
     if (isNaN(amount)) {
       errEmbed.setDescription(usage);
-      return msg.channel.send(errEmbed);
+      return msg.channel.send({ embeds: [errEmbed] });
     }
 
     if (!mem) {
@@ -62,12 +63,12 @@ module.exports = class removeMoney extends Command {
 
       Usage: ${msg.settings.prefix}remove-money <cash | bank> <member> <amount>
       `);
-      return msg.channel.send(errEmbed);
+      return msg.channel.send({ embeds: [errEmbed] });
     }
 
     if (mem.user.bot) {
       errEmbed.setDescription('You can\'t add money to bots.');
-      return msg.channel.send(errEmbed);
+      return msg.channel.send({ embeds: [errEmbed] });
     }
 
     if (type === 'bank') {
@@ -83,6 +84,8 @@ module.exports = class removeMoney extends Command {
       .setColor('#0099CC')
       .setDescription(`:white_check_mark: Removed **${cs}${amount.toLocaleString()}** to ${mem}'s ${type} balance.`)
       .setTimestamp();
-    return msg.channel.send(embed);
+    return msg.channel.send({ embeds: [embed] });
   }
-};
+}
+
+module.exports = RemoveMoney;

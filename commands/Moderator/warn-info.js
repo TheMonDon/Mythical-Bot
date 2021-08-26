@@ -3,7 +3,7 @@ const db = require('quick.db');
 const DiscordJS = require('discord.js');
 const moment = require('moment');
 
-class warninfo extends Command {
+class WarnInfo extends Command {
   constructor (client) {
     super(client, {
       name: 'warn-info',
@@ -17,7 +17,7 @@ class warninfo extends Command {
   }
 
   async run (msg, args) {
-    if (!args || args.length < 1) return msg.channel.send('incorrect usage please supply caseid');
+    if (!args || args.length < 1) return msg.channel.send('Incorrect Usage: Please supply a caseID');
     const caseID = args.join(' ');
     const warn = db.get(`servers.${msg.guild.id}.warns.warnings.${caseID}`);
 
@@ -29,16 +29,16 @@ class warninfo extends Command {
 
     const em = new DiscordJS.MessageEmbed()
       .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
-      .setColor('BLUE')
-      .addField('Case ID', caseID, true)
-      .addField('User', victim, true)
-      .addField('Points', points, true)
-      .addField('Moderator', moderator, true)
+      .setColor('#0099CC')
+      .addField('Case ID', caseID.toString(), true)
+      .addField('User', victim.toString(), true)
+      .addField('Points', points.toString(), true)
+      .addField('Moderator', moderator.toString(), true)
       .addField('Warned on', moment(timestamp).format('LLL'), true)
       .addField('Message URL', messageURL, true)
       .addField('Reason', reason, false);
-    return msg.channel.send(em);
+    return msg.channel.send({ embeds: [em] });
   }
 }
 
-module.exports = warninfo;
+module.exports = WarnInfo;

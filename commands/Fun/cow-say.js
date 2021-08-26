@@ -1,8 +1,8 @@
 const Command = require('../../base/Command.js');
-const { clean, cleanString } = require('../../base/Util.js');
+const { clean, cleanString } = require('../../util/Util.js');
 const cowsay = require('cowsay');
 
-class Cowsay extends Command {
+class CowSay extends Command {
   constructor (client) {
     super(client, {
       name: 'cow-say',
@@ -21,7 +21,7 @@ class Cowsay extends Command {
       text: await clean(this.client, cleanString(text))
     });
 
-    return msg.channel.send(cmsg, { code: '' });
+    return msg.channel.send(`\`\`\`${cmsg}\`\`\``);
   }
 }
-module.exports = Cowsay;
+module.exports = CowSay;

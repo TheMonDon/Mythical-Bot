@@ -1,7 +1,7 @@
 const Command = require('../../base/Command.js');
-const { random } = require('../../base/Util.js');
+const { random } = require('../../util/Util.js');
 
-class choose extends Command {
+class Choose extends Command {
   constructor (client) {
     super(client, {
       name: 'choose',
@@ -12,9 +12,7 @@ class choose extends Command {
   }
 
   async run (msg, text) {
-    if (!text || text.length < 1) {
-      return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}choose (1 1, 2 2, 3 3) or (one two three)`);
-    }
+    if (!text || text.length < 1) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}choose (1 1, 2 2, 3 3) or (one two three)`);
 
     const join = text.join(' ');
 
@@ -23,4 +21,4 @@ class choose extends Command {
     return msg.channel.send(`I choose: \`${random(args).trim()}\``);
   }
 }
-module.exports = choose;
+module.exports = Choose;

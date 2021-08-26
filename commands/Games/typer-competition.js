@@ -1,5 +1,5 @@
 const Command = require('../../base/Command.js');
-const { wait } = require('../../base/Util.js');
+const { wait } = require('../../util/Util.js');
 const DiscordJS = require('discord.js');
 const https = require('https');
 const fntPath = './resources/fonts/Moms_Typewriter.ttf';
@@ -9,7 +9,7 @@ const randomWords = require('random-words');
 const { stripIndents } = require('common-tags');
 const db = require('quick.db');
 
-class typerCommand extends Command {
+class TyperCompetition extends Command {
   constructor (client) {
     super(client, {
       name: 'typer-competition',
@@ -53,14 +53,15 @@ class typerCommand extends Command {
       Who is the fastest? I will send a word, the person who types it the quickest wins!
       To start, 2 or more people must react with 🏁`);
 
-    const embed1 = await msg.channel.send(em);
+    const embed1 = await msg.channel.send({ embeds: [em] });
     await embed1.react('🏁');
 
     const filter = (reaction, user) => {
       return reaction.emoji.name === '🏁' && !user.bot;
     };
 
-    embed1.awaitReactions(filter, {
+    embed1.awaitReactions({
+      filter,
       max: 2,
       time: 60000,
       errors: ['time']
@@ -90,7 +91,8 @@ class typerCommand extends Command {
             const filter2 = (message) => {
               return message.content.toLowerCase() === randWord.toLowerCase();
             };
-            msg.channel.awaitMessages(filter2, {
+            msg.channel.awaitMessages({
+              filter2,
               max: 1,
               time: 30000,
               errors: ['time']
@@ -136,4 +138,4 @@ class typerCommand extends Command {
       });
   }
 }
-module.exports = typerCommand;
+module.exports = TyperCompetition;

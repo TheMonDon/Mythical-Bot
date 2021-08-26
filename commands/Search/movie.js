@@ -2,7 +2,7 @@ const Command = require('../../base/Command.js');
 const DiscordJS = require('discord.js');
 const fetch = require('node-superfetch');
 
-class movie extends Command {
+class Movie extends Command {
   constructor (client) {
     super(client, {
       name: 'movie',
@@ -45,12 +45,12 @@ class movie extends Command {
         .addField('Runtime', body.runtime ? `${body.runtime} mins.` : '???', true)
         .addField('Release Date', body.release_date || '???', true)
         .addField('Genres', body.genres.length ? body.genres.map(genre => genre.name).join(', ') : '???')
-        .addField('Production Companies',
-          body.production_companies.length ? body.production_companies.map(c => c.name).join(', ') : '???');
-      return msg.channel.send(embed);
+        .addField('Production Companies', body.production_companies.length ? body.production_companies.map(c => c.name).join(', ') : '???');
+
+      return msg.channel.send({ embeds: [embed] });
     } catch (err) {
       return msg.reply(`Oh no, an error occurred: \`${err.message}\`. Try again later!`);
     }
   }
 }
-module.exports = movie;
+module.exports = Movie;

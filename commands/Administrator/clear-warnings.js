@@ -1,9 +1,9 @@
 const Command = require('../../base/Command.js');
-const { getMember, getWarns, getTotalPoints } = require('../../base/Util.js');
+const { getMember, getWarns, getTotalPoints } = require('../../util/Util.js');
 const db = require('quick.db');
 const DiscordJS = require('discord.js');
 
-class deletewarning extends Command {
+class ClearWarnings extends Command {
   constructor (client) {
     super(client, {
       name: 'clear-warnings',
@@ -17,10 +17,10 @@ class deletewarning extends Command {
   }
 
   async run (msg, args) {
-    const p = msg.settings.prefix;
     let mem;
+    const usage = `Incorrect Usage: ${msg.settings.prefix}clear-warnings <user>`;
 
-    if (!args || args.length < 1) return msg.channel.send(`Incorrect Usage: ${p}clear-warnings <user>`);
+    if (!args || args.length < 1) return msg.reply(usage);
 
     mem = getMember(msg, args.join(' '));
 
@@ -30,7 +30,7 @@ class deletewarning extends Command {
       try {
         mem = await this.client.users.fetch(ID);
       } catch (err) {
-        return msg.channel.send(`Incorrect Usage: ${p}clear-warnings <user>`);
+        return msg.reply(usage);
       }
     }
 
@@ -53,11 +53,11 @@ class deletewarning extends Command {
     const em = new DiscordJS.MessageEmbed()
       .setDescription(`${msg.author.tag} has cleared all the warnings from a user.`)
       .setColor('ORANGE')
-      .addField('From User', `${mem} (${mem.id})`, true)
+      .addField('User', `${mem} (${mem.id})`, true)
       .addField('Cleared Cases', otherCases, true);
-    mem.send(em).catch(() => null);
-    return msg.channel.send(em);
+    mem.send({ embeds: [em] }).catch(() => null);
+    return msg.channel.send({ embeds: [em] });
   }
 }
 
-module.exports = deletewarning;
+module.exports = ClearWarnings;

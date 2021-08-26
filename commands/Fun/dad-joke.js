@@ -2,7 +2,7 @@ const Command = require('../../base/Command.js');
 const fetch = require('node-fetch');
 const DiscordJS = require('discord.js');
 
-class dadJoke extends Command {
+class DadJoke extends Command {
   constructor (client) {
     super(client, {
       name: 'dad-joke',
@@ -24,8 +24,8 @@ class dadJoke extends Command {
           .setColor('RANDOM')
           .setDescription(body)
           .setFooter('Powered by: https://icanhazdadjoke.com/');
-        return msg.channel.send(embed);
+        return msg.channel.send({ embeds: [embed] });
       });
   }
 }
-module.exports = dadJoke;
+module.exports = DadJoke;

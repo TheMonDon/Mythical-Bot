@@ -3,7 +3,7 @@ const db = require('quick.db');
 const DiscordJS = require('discord.js');
 const { stripIndents } = require('common-tags');
 
-module.exports = class setFailRate extends Command {
+class SetFailRate extends Command {
   constructor (client) {
     super(client, {
       name: 'set-fail-rate',
@@ -11,6 +11,7 @@ module.exports = class setFailRate extends Command {
       description: 'Sets the fail rate of economy commands',
       usage: 'set-fail-rate <crime> <percentage>',
       aliases: ['setfailrate', 'setfail'],
+      permLevel: 'Moderator',
       guildOnly: true
     });
   }
@@ -18,11 +19,9 @@ module.exports = class setFailRate extends Command {
   run (msg, text) {
     const types = ['crime'];
 
-    if (!msg.member.permissions.has('MANAGE_GUILD')) return msg.channel.send('You are missing **Manage Guild** permission.');
-
     const usage = `${msg.settings.prefix}set-fail-rate <crime> <percentage>`;
 
-    // const slutFail = db.get(`servers.${server.id}.economy.slut.failrate`) || 35;
+    // const slutFail = db.get(`servers.${msg.guild.id}.economy.slut.failrate`) || 35;
     const crimeFail = db.get(`servers.${msg.guild.id}.economy.crime.failrate`) || 45;
 
     if (!text || text.length < 1) {
@@ -36,7 +35,7 @@ module.exports = class setFailRate extends Command {
     
         Usage: ${usage}
         `);
-      return msg.channel.send(embed);
+      return msg.channel.send({ embeds: [embed] });
     }
 
     const errEmbed = new DiscordJS.MessageEmbed()
@@ -46,7 +45,7 @@ module.exports = class setFailRate extends Command {
     const type = text[0]?.toLowerCase();
     if (!types.includes(type)) {
       errEmbed.setDescription(`Incorrect Usage: ${usage}`);
-      return msg.channel.send(errEmbed);
+      return msg.channel.send({ embeds: [errEmbed] });
     }
 
     text.shift();
@@ -62,14 +61,14 @@ module.exports = class setFailRate extends Command {
           Usage: ${usage}
         `);
 
-      return msg.channel.send(embed);
+      return msg.channel.send({ embeds: [embed] });
     } else if (percentage > 100) {
       errEmbed.setDescription(stripIndents`
         :x: Invalid fail rate. Percenage can not be greater than 100%.
 
         Usage: ${usage}
       `);
-      return msg.channel.send(errEmbed);
+      return msg.channel.send({ embeds: [errEmbed] });
     }
 
     const embed = new DiscordJS.MessageEmbed()
@@ -80,12 +79,14 @@ module.exports = class setFailRate extends Command {
       db.set(`servers.${msg.guild.id}.economy.crime.failrate`, percentage);
       embed.setDescription(`The fail rate for \`Crime\` has been set to ${percentage}%.`);
 
-      return msg.channel.send(embed);
+      return msg.channel.send({ embeds: [embed] });
     } else if (type === 'slut') { // Shoved this in for future proofing :D
       db.set(`servers.${msg.guild.id}.economy.slut.failrate`, percentage);
       embed.setDescription(`The fail rate for \`Slut\` has been set to ${percentage}%.`);
     }
 
-    return msg.channel.send(embed);
+    return msg.channel.send({ embeds: [embed] });
   }
-};
+}
+
+module.exports = SetFailRate;

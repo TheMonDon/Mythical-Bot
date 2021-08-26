@@ -2,7 +2,7 @@ const Command = require('../../base/Command.js');
 const db = require('quick.db');
 const DiscordJS = require('discord.js');
 
-module.exports = class Blackjack extends Command {
+class BlackJack extends Command {
   constructor (client) {
     super(client, {
       name: 'blackjack',
@@ -19,8 +19,6 @@ module.exports = class Blackjack extends Command {
 
     const usage = `${msg.settings.prefix}blackjack <bet>`;
     if (!args || args.length < 1) return msg.channel.send(`Incorrect Usage: \n${usage}`);
-
-    let bet = args.join(' ');
 
     // array of all my card emojis in my private server
     const cards = {
@@ -103,15 +101,13 @@ module.exports = class Blackjack extends Command {
     const cs = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
     const cash = db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`) || db.get(`servers.${msg.guild.id}.economy.startBalance`) || 0;
 
-    bet = parseInt(bet.replace(/,/g, '').replace(cs, ''), 10);
+    const bet = parseInt(args.join(' ').replace(/,/g, '').replace(cs, ''), 10);
 
     if (isNaN(bet)) {
       return msg.channel.send('Please enter a number for the bet.');
     }
     if (bet < 1) return msg.channel.send(`You can't bet less than ${cs}1.`);
     if (bet > cash) return msg.channel.send('You can\'t bet more cash than you have.');
-
-    db.subtract(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bet); // Take the cash money bet
 
     let color = '#0099CC';
 
@@ -122,6 +118,7 @@ module.exports = class Blackjack extends Command {
     let bust = false;
     let push = false;
     let blackjack = false;
+    let gameOver = false;
     bj.event = event => {
       switch (event) {
         case 'hit':
@@ -129,17 +126,21 @@ module.exports = class Blackjack extends Command {
           break;
         case 'win':
           win = true;
+          gameOver = true;
           color = 'GREEN';
           break;
         case 'bust':
           bust = true;
+          gameOver = true;
           color = 'RED';
           break;
         case 'push':
           push = true;
+          gameOver = true;
           break;
         case 'blackjack':
           blackjack = true;
+          gameOver = true;
           color = 'GREEN';
           break;
         default:
@@ -148,539 +149,107 @@ module.exports = class Blackjack extends Command {
     };
 
     bj.init();
-    let bet1;
 
     let pcards = getCards('player', bj);
     let dcards = getCards('dealer', bj);
     if (blackjack) {
-      bet1 = bet * 1.5;
-
       const embed = new DiscordJS.MessageEmbed()
         .setAuthor(msg.author.username, msg.author.displayAvatarURL())
-        .setDescription(`Result: You win ${cs}${bet1.toLocaleString()}`)
+        .setDescription(`Result: You win ${cs}${bj.bet.toLocaleString()}`)
         .setColor(color)
         .addField('**Your Hand**', `${pcards} \n\nScore: Blackjack`, true)
         .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
 
-      bet = bet + bet1;
-      db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bet); // Add the winning money
-      return msg.channel.send(embed);
+      db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bj.bet); // Add the winning money
+      return msg.channel.send({ embeds: [embed] });
     }
     const em = new DiscordJS.MessageEmbed()
       .setAuthor(msg.author.username, msg.author.displayAvatarURL())
-      .setDescription('Type `hit` to draw another card or `stand` to pass.')
+      .setDescription('Type `hit` to draw another card, `stand` to pass, or `doubledown` to double down.')
       .setColor(color)
       .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
       .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
-    const mEm = await msg.channel.send(em);
+    const mEm = await msg.channel.send({ embeds: [em] });
 
-    // main hit/stand (1st time)
-    return msg.channel.awaitMessages(m => m.author.id === msg.author.id && ['hit', 'stand'].includes(m.content.toLowerCase()), { max: 1, time: 60000 }).then(collected => {
-      if (collected.first().content.toLowerCase() === 'hit') { // 1st time hit
-        bj.hit();
-
-        if (win) {
-          pcards = getCards('player', bj);
-          dcards = getCards('dealer', bj);
-
-          const embed = new DiscordJS.MessageEmbed()
-            .setAuthor(msg.author.username, msg.author.displayAvatarURL())
-            .setDescription(`Result: You win ${cs}${bet.toLocaleString()}`)
-            .setColor(color)
-            .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
-            .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
-          mEm.edit(embed);
-
-          bet = bet * 2;
-          db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bet); // Add the winning money
-        } else if (blackjack) {
-          pcards = getCards('player', bj);
-          dcards = getCards('dealer', bj);
-          bet1 = bet * 1.5;
-
-          const embed = new DiscordJS.MessageEmbed()
-            .setAuthor(msg.author.username, msg.author.displayAvatarURL())
-            .setDescription(`Result: You win ${cs}${bet1.toLocaleString()}`)
-            .setColor(color)
-            .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
-            .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
-          mEm.edit(embed);
-
-          bet = bet + bet1;
-          db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bet); // Add the winning money
-        } else if (push) {
-          pcards = getCards('player', bj);
-          dcards = getCards('dealer', bj);
-
-          const embed = new DiscordJS.MessageEmbed()
-            .setAuthor(msg.author.username, msg.author.displayAvatarURL())
-            .setDescription('Result: Push, money back')
-            .setColor(color)
-            .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
-            .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
-          mEm.edit(embed);
-
-          db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bet); // Add their original money back
-        } else if (bust) {
-          pcards = getCards('player', bj);
-          dcards = getCards('dealer', bj);
-
-          const embed = new DiscordJS.MessageEmbed()
-            .setAuthor(msg.author.username, msg.author.displayAvatarURL())
-            .setDescription('Bust: you lose')
-            .setDescription(`Result: You lose ${cs}${bet.toLocaleString()}`)
-            .setColor(color)
-            .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
-            .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
-          mEm.edit(embed);
-        } else {
-        // Continue playing (2nd round)
-          pcards = getCards('player', bj);
-          dcards = getCards('dealer', bj);
-
-          const embed = new DiscordJS.MessageEmbed()
-            .setAuthor(msg.author.username, msg.author.displayAvatarURL())
-            .setDescription('Type `hit` to draw another card or `stand` to pass.')
-            .setColor(color)
-            .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
-            .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
-          mEm.edit(embed);
-          return msg.channel.awaitMessages(m => m.author.id === msg.author.id && ['hit', 'stand'].includes(m.content.toLowerCase()), { max: 1, time: 60000 }).then(collected => {
-            if (collected.first().content.toLowerCase() === 'hit') { // 2nd time hit
-              bj.hit();
-              if (win) {
-                pcards = getCards('player', bj);
-                dcards = getCards('dealer', bj);
-
-                const embed = new DiscordJS.MessageEmbed()
-                  .setAuthor(msg.author.username, msg.author.displayAvatarURL())
-                  .setDescription(`Result: You win ${cs}${bet.toLocaleString()}`)
-                  .setColor(color)
-                  .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
-                  .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
-                mEm.edit(embed);
-
-                bet = bet * 2;
-                db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bet); // Add the winning money
-              } else if (blackjack) {
-                pcards = getCards('player', bj);
-                dcards = getCards('dealer', bj);
-                bet1 = bet * 1.5;
-
-                const embed = new DiscordJS.MessageEmbed()
-                  .setAuthor(msg.author.username, msg.author.displayAvatarURL())
-                  .setDescription(`Result: You win ${cs}${bet1.toLocaleString()}`)
-                  .setColor(color)
-                  .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
-                  .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
-                mEm.edit(embed);
-
-                bet = bet + bet1;
-                db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bet); // Add the winning money
-              } else if (push) {
-                pcards = getCards('player', bj);
-                dcards = getCards('dealer', bj);
-
-                const embed = new DiscordJS.MessageEmbed()
-                  .setAuthor(msg.author.username, msg.author.displayAvatarURL())
-                  .setDescription('Result: Push, money back')
-                  .setColor(color)
-                  .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
-                  .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
-                mEm.edit(embed);
-
-                db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bet); // Add their original money back
-              } else if (bust) {
-                pcards = getCards('player', bj);
-                dcards = getCards('dealer', bj);
-
-                const embed = new DiscordJS.MessageEmbed()
-                  .setAuthor(msg.author.username, msg.author.displayAvatarURL())
-                  .setDescription('Bust: you lose')
-                  .setDescription(`Result: You lose ${cs}${bet.toLocaleString()}`)
-                  .setColor(color)
-                  .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
-                  .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
-                mEm.edit(embed);
-              } else {
-              // continue playing (3rd round)
-                pcards = getCards('player', bj);
-                dcards = getCards('dealer', bj);
-
-                const embed = new DiscordJS.MessageEmbed()
-                  .setAuthor(msg.author.username, msg.author.displayAvatarURL())
-                  .setDescription('Type `hit` to draw another card or `stand` to pass.')
-                  .setColor(color)
-                  .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
-                  .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
-                mEm.edit(embed);
-                return msg.channel.awaitMessages(m => m.author.id === msg.author.id && ['hit', 'stand'].includes(m.content.toLowerCase()), { max: 1, time: 60000 }).then(collected => {
-                  if (collected.first().content.toLowerCase() === 'hit') { // 3rd time hit
-                    bj.hit();
-                    if (win) {
-                      pcards = getCards('player', bj);
-                      dcards = getCards('dealer', bj);
-
-                      const embed = new DiscordJS.MessageEmbed()
-                        .setAuthor(msg.author.username, msg.author.displayAvatarURL())
-                        .setDescription(`Result: You win ${cs}${bet.toLocaleString()}`)
-                        .setColor(color)
-                        .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
-                        .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
-                      mEm.edit(embed);
-
-                      bet = bet * 2;
-                      db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bet); // Add the winning money
-                    } else if (blackjack) {
-                      pcards = getCards('player', bj);
-                      dcards = getCards('dealer', bj);
-                      bet1 = bet * 1.5;
-
-                      const embed = new DiscordJS.MessageEmbed()
-                        .setAuthor(msg.author.username, msg.author.displayAvatarURL())
-                        .setDescription(`Result: You win ${cs}${bet1.toLocaleString()}`)
-                        .setColor(color)
-                        .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
-                        .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
-                      mEm.edit(embed);
-
-                      bet = bet + bet1;
-                      db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bet); // Add the winning money
-                    } else if (push) {
-                      pcards = getCards('player', bj);
-                      dcards = getCards('dealer', bj);
-
-                      const embed = new DiscordJS.MessageEmbed()
-                        .setAuthor(msg.author.username, msg.author.displayAvatarURL())
-                        .setDescription('Result: Push, money back')
-                        .setColor(color)
-                        .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
-                        .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
-                      mEm.edit(embed);
-
-                      db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bet); // Add their original money back
-                    } else if (bust) {
-                      pcards = getCards('player', bj);
-                      dcards = getCards('dealer', bj);
-
-                      const embed = new DiscordJS.MessageEmbed()
-                        .setAuthor(msg.author.username, msg.author.displayAvatarURL())
-                        .setDescription('Bust: you lose')
-                        .setDescription(`Result: You lose ${cs}${bet.toLocaleString()}`)
-                        .setColor(color)
-                        .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
-                        .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
-                      mEm.edit(embed);
-                    } // if 4th round needed it goes here for hit
-                  } else if (collected.first().content.toLowerCase() === 'stand') { // 1st time hit, 1st time stand (2nd round)
-                    bj.stand();
-                    if (win) {
-                      pcards = getCards('player', bj);
-                      dcards = getCards('dealer', bj);
-
-                      const embed = new DiscordJS.MessageEmbed()
-                        .setAuthor(msg.author.username, msg.author.displayAvatarURL())
-                        .setDescription(`Result: You win ${cs}${bet.toLocaleString()}`)
-                        .setColor(color)
-                        .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
-                        .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
-                      mEm.edit(embed);
-
-                      bet = bet * 2;
-                      db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bet); // Add the winning money
-                    } else if (blackjack) {
-                      pcards = getCards('player', bj);
-                      dcards = getCards('dealer', bj);
-                      bet1 = bet * 1.5;
-
-                      const embed = new DiscordJS.MessageEmbed()
-                        .setAuthor(msg.author.username, msg.author.displayAvatarURL())
-                        .setDescription(`Result: You win ${cs}${bet1.toLocaleString()}`)
-                        .setColor(color)
-                        .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
-                        .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
-                      mEm.edit(embed);
-
-                      bet = bet + bet1;
-                      db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bet); // Add the winning money
-                    } else if (push) {
-                      pcards = getCards('player', bj);
-                      dcards = getCards('dealer', bj);
-
-                      const embed = new DiscordJS.MessageEmbed()
-                        .setAuthor(msg.author.username, msg.author.displayAvatarURL())
-                        .setDescription('Result: Push, money back')
-                        .setColor(color)
-                        .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
-                        .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
-                      mEm.edit(embed);
-
-                      db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bet); // Add their original money back
-                    } else if (bust) {
-                      pcards = getCards('player', bj);
-                      dcards = getCards('dealer', bj);
-
-                      const embed = new DiscordJS.MessageEmbed()
-                        .setAuthor(msg.author.username, msg.author.displayAvatarURL())
-                        .setDescription('Bust: you lose')
-                        .setDescription(`Result: You lose ${cs}${bet.toLocaleString()}`)
-                        .setColor(color)
-                        .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
-                        .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
-                      mEm.edit(embed);
-                    }
-                  }
-                });
-              }
-            } else if (collected.first().content.toLowerCase() === 'stand') { // (2nd round) 1st time hit 1st time stand)
-              bj.stand();
-              if (win) {
-                pcards = getCards('player', bj);
-                dcards = getCards('dealer', bj);
-
-                const embed = new DiscordJS.MessageEmbed()
-                  .setAuthor(msg.author.username, msg.author.displayAvatarURL())
-                  .setDescription(`Result: You win ${cs}${bet.toLocaleString()}`)
-                  .setColor(color)
-                  .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
-                  .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
-                mEm.edit(embed);
-
-                bet = bet * 2;
-                db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bet); // Add the winning money
-              } else if (blackjack) {
-                pcards = getCards('player', bj);
-                dcards = getCards('dealer', bj);
-                bet1 = bet * 1.5;
-
-                const embed = new DiscordJS.MessageEmbed()
-                  .setAuthor(msg.author.username, msg.author.displayAvatarURL())
-                  .setDescription(`Result: You win ${cs}${bet1.toLocaleString()}`)
-                  .setColor(color)
-                  .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
-                  .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
-                mEm.edit(embed);
-
-                bet = bet + bet1;
-                db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bet); // Add the winning money
-              } else if (push) {
-                pcards = getCards('player', bj);
-                dcards = getCards('dealer', bj);
-
-                const embed = new DiscordJS.MessageEmbed()
-                  .setAuthor(msg.author.username, msg.author.displayAvatarURL())
-                  .setDescription('Result: Push, money back')
-                  .setColor(color)
-                  .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
-                  .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
-                mEm.edit(embed);
-
-                db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bet); // Add their original money back
-              } else if (bust) {
-                pcards = getCards('player', bj);
-                dcards = getCards('dealer', bj);
-
-                const embed = new DiscordJS.MessageEmbed()
-                  .setAuthor(msg.author.username, msg.author.displayAvatarURL())
-                  .setDescription('Bust: you lose')
-                  .setDescription(`Result: You lose ${cs}${bet.toLocaleString()}`)
-                  .setColor(color)
-                  .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
-                  .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
-                mEm.edit(embed);
-              } else {
-                pcards = getCards('player', bj);
-                dcards = getCards('dealer', bj);
-
-                const embed = new DiscordJS.MessageEmbed()
-                  .setAuthor(msg.author.username, msg.author.displayAvatarURL())
-                  .setDescription('Type `hit` to draw another card or `stand` to pass.')
-                  .setColor(color)
-                  .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
-                  .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
-                mEm.edit(embed);
-                return msg.channel.awaitMessages(m => m.author.id === msg.author.id, { max: 1, time: 30000 }).then(collected => {
-                  if (collected.first().content.toLowerCase() === 'hit') { // 2nd time hit
-                    bj.hit();
-                    if (win) {
-                      pcards = getCards('player', bj);
-                      dcards = getCards('dealer', bj);
-
-                      const embed = new DiscordJS.MessageEmbed()
-                        .setAuthor(msg.author.username, msg.author.displayAvatarURL())
-                        .setDescription(`Result: You win ${cs}${bet.toLocaleString()}`)
-                        .setColor(color)
-                        .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
-                        .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
-                      mEm.edit(embed);
-
-                      bet = bet * 2;
-                      db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bet); // Add the winning money
-                    } else if (blackjack) {
-                      pcards = getCards('player', bj);
-                      dcards = getCards('dealer', bj);
-                      bet1 = bet * 1.5;
-
-                      const embed = new DiscordJS.MessageEmbed()
-                        .setAuthor(msg.author.username, msg.author.displayAvatarURL())
-                        .setDescription(`Result: You win ${cs}${bet1.toLocaleString()}`)
-                        .setColor(color)
-                        .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
-                        .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
-                      mEm.edit(embed);
-
-                      bet = bet + bet1;
-                      db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bet); // Add the winning money
-                    } else if (push) {
-                      pcards = getCards('player', bj);
-                      dcards = getCards('dealer', bj);
-
-                      const embed = new DiscordJS.MessageEmbed()
-                        .setAuthor(msg.author.username, msg.author.displayAvatarURL())
-                        .setDescription('Result: Push, money back')
-                        .setColor(color)
-                        .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
-                        .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
-                      mEm.edit(embed);
-
-                      db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bet); // Add their original money back
-                    } else if (bust) {
-                      pcards = getCards('player', bj);
-                      dcards = getCards('dealer', bj);
-
-                      const embed = new DiscordJS.MessageEmbed()
-                        .setAuthor(msg.author.username, msg.author.displayAvatarURL())
-                        .setDescription('Bust: you lose')
-                        .setDescription(`Result: You lose ${cs}${bet.toLocaleString()}`)
-                        .setColor(color)
-                        .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
-                        .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
-                      mEm.edit(embed);
-                    }
-                  } else if (collected.first().content.toLowerCase() === 'stand') { // 2nd time stand
-                    bj.hit();
-                    if (win) {
-                      pcards = getCards('player', bj);
-                      dcards = getCards('dealer', bj);
-
-                      const embed = new DiscordJS.MessageEmbed()
-                        .setAuthor(msg.author.username, msg.author.displayAvatarURL())
-                        .setDescription(`Result: You win ${cs}${bet.toLocaleString()}`)
-                        .setColor(color)
-                        .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
-                        .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
-                      mEm.edit(embed);
-
-                      bet = bet * 2;
-                      db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bet); // Add the winning money
-                    } else if (blackjack) {
-                      pcards = getCards('player', bj);
-                      dcards = getCards('dealer', bj);
-                      bet1 = bet * 1.5;
-
-                      const embed = new DiscordJS.MessageEmbed()
-                        .setAuthor(msg.author.username, msg.author.displayAvatarURL())
-                        .setDescription(`Result: You win ${cs}${bet1.toLocaleString()}`)
-                        .setColor(color)
-                        .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
-                        .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
-                      mEm.edit(embed);
-
-                      bet = bet + bet1;
-                      db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bet); // Add the winning money
-                    } else if (push) {
-                      pcards = getCards('player', bj);
-                      dcards = getCards('dealer', bj);
-
-                      const embed = new DiscordJS.MessageEmbed()
-                        .setAuthor(msg.author.username, msg.author.displayAvatarURL())
-                        .setDescription('Result: Push, money back')
-                        .setColor(color)
-                        .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
-                        .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
-                      mEm.edit(embed);
-
-                      db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bet); // Add their original money back
-                    } else if (bust) {
-                      pcards = getCards('player', bj);
-                      dcards = getCards('dealer', bj);
-
-                      const embed = new DiscordJS.MessageEmbed()
-                        .setAuthor(msg.author.username, msg.author.displayAvatarURL())
-                        .setDescription('Bust: you lose')
-                        .setDescription(`Result: You lose ${cs}${bet.toLocaleString()}`)
-                        .setColor(color)
-                        .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
-                        .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
-                      mEm.edit(embed);
-                    }
-                  }
-                });
-              }
-            }
-          });
-        }
-      } else if (collected.first().content.toLowerCase() === 'stand') { // 1st time stand
-        bj.stand();
-
-        if (win) {
-          pcards = getCards('player', bj);
-          dcards = getCards('dealer', bj);
-
-          const embed = new DiscordJS.MessageEmbed()
-            .setAuthor(msg.author.username, msg.author.displayAvatarURL())
-            .setDescription(`Result: You win ${cs}${bet.toLocaleString()}`)
-            .setColor(color)
-            .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
-            .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
-          mEm.edit(embed);
-
-          bet = bet * 2;
-          db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bet); // Add the winning money
-        } else if (blackjack) {
-          pcards = getCards('player', bj);
-          dcards = getCards('dealer', bj);
-          bet1 = bet * 1.5;
-
-          const embed = new DiscordJS.MessageEmbed()
-            .setAuthor(msg.author.username, msg.author.displayAvatarURL())
-            .setDescription(`Result: You win ${cs}${bet1.toLocaleString()}`)
-            .setColor(color)
-            .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
-            .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
-          mEm.edit(embed);
-
-          bet = bet + bet1;
-          db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bet); // Add the winning money
-        } else if (push) {
-          pcards = getCards('player', bj);
-          dcards = getCards('dealer', bj);
-
-          const embed = new DiscordJS.MessageEmbed()
-            .setAuthor(msg.author.username, msg.author.displayAvatarURL())
-            .setDescription('Result: Push, money back')
-            .setColor(color)
-            .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
-            .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
-          mEm.edit(embed);
-
-          db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bet); // Add their original money back
-        } else if (bust) {
-          pcards = getCards('player', bj);
-          dcards = getCards('dealer', bj);
-
-          const embed = new DiscordJS.MessageEmbed()
-            .setAuthor(msg.author.username, msg.author.displayAvatarURL())
-            .setDescription('Bust: you lose')
-            .setDescription(`Result: You lose ${cs}${bet.toLocaleString()}`)
-            .setColor(color)
-            .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
-            .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
-          mEm.edit(embed);
-        }
-      } else {
-        return msg.channel.send('incorrect response'); // keep this until i figure out how to only use 'hit' or 'stand'
+    while (gameOver === false) {
+      const collected = await msg.channel.awaitMessages({
+        filter: m => m.author.id === msg.author.id && ['hit', 'stand', 'doubledown'].includes(m.content.toLowerCase()),
+        max: 1,
+        time: 60000
+      });
+      if (!collected || !collected.first()) {
+        gameOver = true;
       }
-    });
+      const selected = collected.first().content.toLowerCase();
+
+      if (selected === 'hit') bj.hit();
+      if (selected === 'stand') bj.stand();
+      if (selected === 'doubledown') bj.doubleDown();
+
+      if (win) {
+        pcards = getCards('player', bj);
+        dcards = getCards('dealer', bj);
+
+        const embed = new DiscordJS.MessageEmbed()
+          .setAuthor(msg.author.username, msg.author.displayAvatarURL())
+          .setDescription(`Result: You win ${cs}${bj.bet.toLocaleString()}`)
+          .setColor(color)
+          .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
+          .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
+
+        db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bj.bet); // Add the winning money
+        return mEm.edit({ embeds: [embed] });
+      } else if (blackjack) {
+        pcards = getCards('player', bj);
+        dcards = getCards('dealer', bj);
+
+        const embed = new DiscordJS.MessageEmbed()
+          .setAuthor(msg.author.username, msg.author.displayAvatarURL())
+          .setDescription(`Result: BlackJack, you win ${cs}${bj.bet.toLocaleString()}`)
+          .setColor(color)
+          .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
+          .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
+
+        db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bj.bet); // Add the winning money
+        return mEm.edit({ embeds: [embed] });
+      } else if (bust) {
+        pcards = getCards('player', bj);
+        dcards = getCards('dealer', bj);
+
+        const embed = new DiscordJS.MessageEmbed()
+          .setAuthor(msg.author.username, msg.author.displayAvatarURL())
+          .setDescription(`Result: Bust, you lose ${cs}${bj.bet.toLocaleString()}`)
+          .setColor(color)
+          .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
+          .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
+
+        db.subtract(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bj.bet);
+        return mEm.edit({ embeds: [embed] });
+      } else if (push) {
+        pcards = getCards('player', bj);
+        dcards = getCards('dealer', bj);
+
+        const embed = new DiscordJS.MessageEmbed()
+          .setAuthor(msg.author.username, msg.author.displayAvatarURL())
+          .setDescription('Result: Push, money back')
+          .setColor(color)
+          .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
+          .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
+
+        return mEm.edit({ embeds: [embed] });
+      }
+      pcards = getCards('player', bj);
+      dcards = getCards('dealer', bj);
+
+      const embed = new DiscordJS.MessageEmbed()
+        .setAuthor(msg.author.username, msg.author.displayAvatarURL())
+        .setDescription('Type `hit` to draw another card, `stand` to pass, or `doubledown` to double down.')
+        .setColor(color)
+        .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
+        .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
+      mEm.edit({ embeds: [embed] });
+    }
   }
-};
+}
+
+module.exports = BlackJack;

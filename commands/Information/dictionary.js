@@ -3,7 +3,7 @@ const DiscordJS = require('discord.js');
 const config = require('../../config.js');
 const owlBot = require('owlbot-js');
 
-class DictionaryCommand extends Command {
+class Dictionary extends Command {
   constructor (client) {
     super(client, {
       name: 'dictionary',
@@ -16,11 +16,10 @@ class DictionaryCommand extends Command {
 
   async run (msg, input) {
     const owl = owlBot(config.owlKey);
-    const p = msg.settings.prefix;
 
     input = input.join(' ').toLowerCase();
 
-    if (!input || input.length < 1) return msg.channel.send(`Incorrect Usage: ${p}Dictionary <word>`);
+    if (!input || input.length < 1) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}Dictionary <word>`);
 
     owl.define(input)
       .then(function (result) {
@@ -38,7 +37,7 @@ class DictionaryCommand extends Command {
           .addField('Example', example || 'No example provided', true)
           .addField('Pronunciation', result.pronunciation || 'No pronunciation provided', true);
         if (result.definitions?.[0].image_url) em.setThumbnail(result.definitions[0].image_url);
-        return msg.channel.send(em);
+        return msg.channel.send({ embeds: [em] });
       })
       .catch(() => {
         return msg.channel.send('No entry was found for that word.');
@@ -46,4 +45,4 @@ class DictionaryCommand extends Command {
   }
 }
 
-module.exports = DictionaryCommand;
+module.exports = Dictionary;

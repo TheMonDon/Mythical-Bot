@@ -17,7 +17,8 @@ module.exports = class Util {
       const value = res.content.toLowerCase();
       return (user ? res.author.id === user.id : true) && (yes.includes(value) || no.includes(value) || extraYes.includes(value) || extraNo.includes(value));
     };
-    const verify = await channel.awaitMessages(filter, {
+    const verify = await channel.awaitMessages({
+      filter,
       max: 1,
       time
     });
@@ -72,6 +73,7 @@ module.exports = class Util {
    * @param {string} str
    */
   static getRole (msg, str) {
+    if (!msg.guild) return false;
     return msg.mentions.roles.first() ||
     msg.guild.roles.cache.find(r => r.name === str) ||
     msg.guild.roles.cache.find(r => r.id === str) ||
@@ -85,13 +87,11 @@ module.exports = class Util {
    * @param {string} str
    */
   static getChannel (msg, str) {
+    if (!msg.guild) return false;
     return msg.mentions.channels.first() ||
     msg.guild.channels.cache.find(c => c.id === str) ||
     msg.guild.channels.cache.find(c => c.name.toLowerCase() === str.toLowerCase()) ||
-    msg.guild.channels.cache.find(c => c.name.toLowerCase().includes(str.toLowerCase())) ||
-    this.client.channels.cache.find(c => c.id === str) ||
-    this.client.channels.cache.find(c => c.name.toLowerCase().includes(str.toLowerCase())) ||
-    msg.channel;
+    msg.guild.channels.cache.find(c => c.name.toLowerCase().includes(str.toLowerCase()));
   }
 
   /**
@@ -104,7 +104,7 @@ module.exports = class Util {
     const userCases = [];
     if (warns) {
       Object.values(warns).forEach((val) => {
-        if (val.user === userID) {
+        if (val?.user === userID) {
           userCases.push(val);
         }
       });
@@ -172,10 +172,9 @@ module.exports = class Util {
    * @param {guild} guild
    */
   static async getJoinPosition (id, guild) {
-    if (!guild.member(id)) return;
-
     await guild.members.fetch();
-    const array = guild.members.cache.array();
+    if (!guild.members.cache.get(id)) return;
+    const array = [...guild.members.cache.values()];
     array.sort((a, b) => a.joinedAt - b.joinedAt);
 
     const result = array.map((m, i) => ({
@@ -223,7 +222,7 @@ module.exports = class Util {
     const userTickets = [];
     if (tickets) {
       Object.values(tickets).forEach((val) => {
-        if (val.owner === userID) {
+        if (val?.owner === userID) {
           userTickets.push(val);
         }
       });

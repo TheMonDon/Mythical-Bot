@@ -2,7 +2,7 @@ const Command = require('../../base/Command.js');
 const emojiRegex = require('emoji-regex');
 const twemoji = require('twemoji');
 
-class dlEmoji extends Command {
+class DownloadEmoji extends Command {
   constructor (client) {
     super(client, {
       name: 'download-emoji',
@@ -51,8 +51,9 @@ class dlEmoji extends Command {
     const emojis = res.splice(0, 10);
     const text = emojis.length > 1 ? 'here are your emojis' : 'here is your emoji';
 
-    return msg.reply(text, { files: emojis });
+    return msg.reply({ content: text, files: emojis });
   }
 }
-module.exports = dlEmoji;
+
+module.exports = DownloadEmoji;
 // Special credits to CoolGuy#9889 and Redi Panda_#0247

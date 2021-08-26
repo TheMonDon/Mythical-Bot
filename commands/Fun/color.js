@@ -1,5 +1,5 @@
 const Command = require('../../base/Command.js');
-const { toProperCase } = require('../../base/Util.js');
+const { toProperCase } = require('../../util/Util.js');
 const { MessageEmbed } = require('discord.js');
 const isImageURL = require('is-image-url');
 const isURL = require('is-url');
@@ -9,7 +9,7 @@ const { getColorFromURL } = require('color-thief-node');
 const { stripIndent } = require('common-tags');
 const colorNameList = require('color-name-list');
 
-class Stats extends Command {
+class Color extends Command {
   constructor (client) {
     super(client, {
       name: 'color',
@@ -222,8 +222,8 @@ class Stats extends Command {
           **Hsl:** hsl(${color.hsl})
           **Cmyk:** cmyk(${color.cmyk})
           `));
-    msg.channel.send(embed);
+    msg.channel.send({ embeds: [embed] });
   }
 }
 
-module.exports = Stats;
+module.exports = Color;

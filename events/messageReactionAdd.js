@@ -44,7 +44,7 @@ module.exports = class {
       }
       ];
 
-      const reason = 'Ticket has been created from the reaction menu. Use `topic` to change it.';
+      const reason = 'Ticket has been created from the reaction menu. Use `topic` command to change it.';
       const count = db.get(`servers.${msg.guild.id}.tickets.count`) || 1;
       db.set(`servers.${msg.guild.id}.tickets.count`, count + 1);
 
@@ -70,7 +70,7 @@ module.exports = class {
         .setColor('#E65DF4')
         .setTimestamp();
       const logChan = msg.guild.channels.cache.get(logID);
-      await logChan.send(logEmbed);
+      await logChan.send({ embeds: [logEmbed] });
 
       const chanEmbed = new DiscordJS.MessageEmbed()
         .setAuthor(member.displayName, member.user.displayAvatarURL())
@@ -84,10 +84,12 @@ module.exports = class {
       if (!role.mentionable) {
         if (!tixChan.permissionsFor(this.client.user.id).has('MENTION_EVERYONE')) {
           role.setMentionable(true);
-          tixChan.send(role, chanEmbed);
+          tixChan.send({ content: role.toString(), embeds: [chanEmbed] });
+        } else {
+          tixChan.send({ content: role.toString(), embeds: [chanEmbed] });
         }
       } else {
-        tixChan.send(role, chanEmbed);
+        tixChan.send({ content: role.toString(), embeds: [chanEmbed] });
       }
 
       // Logging info

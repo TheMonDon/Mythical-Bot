@@ -2,7 +2,7 @@ const Command = require('../../base/Command.js');
 const db = require('quick.db');
 const DiscordJS = require('discord.js');
 
-module.exports = class startBalance extends Command {
+class SetStartBalance extends Command {
   constructor (client) {
     super(client, {
       name: 'set-start-balance',
@@ -10,6 +10,7 @@ module.exports = class startBalance extends Command {
       description: 'Set the starting balance for the server',
       usage: 'set-start-balance <amount>',
       aliases: ['setstartbalance', 'ssb'],
+      permLevel: 'Moderator',
       guildOnly: true
     });
   }
@@ -28,6 +29,8 @@ module.exports = class startBalance extends Command {
     const em = new DiscordJS.MessageEmbed()
       .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
       .setDescription(amount > 0 ? `The starting balance for new members has been set to: ${cs + amount.toLocaleString()}` : 'The starting balance for new members has been disabled.');
-    return msg.channel.send(em);
+    return msg.channel.send({ embeds: [em] });
   }
-};
+}
+
+module.exports = SetStartBalance;

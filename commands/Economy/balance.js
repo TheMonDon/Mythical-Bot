@@ -1,15 +1,15 @@
 const Command = require('../../base/Command.js');
-const { getMember } = require('../../base/Util.js');
+const { getMember } = require('../../util/Util.js');
 const db = require('quick.db');
 const DiscordJS = require('discord.js');
 const { stripIndents } = require('common-tags');
 
-module.exports = class BalanceCommand extends Command {
+class Balance extends Command {
   constructor (client) {
     super(client, {
       name: 'balance',
       category: 'Economy',
-      description: 'Gives you your or another member\'s balance',
+      description: 'Get yours or another members balance',
       usage: 'balance [member]',
       aliases: ['bal', 'money'],
       guildOnly: true
@@ -30,7 +30,7 @@ module.exports = class BalanceCommand extends Command {
 
       Usage: ${msg.settings.prefix}balance [member]
       `);
-      return msg.channel.send(embed);
+      return msg.channel.send({ embeds: [embed] });
     }
 
     const cash = db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`) || db.get(`servers.${msg.guild.id}.economy.startBalance`) || 0;
@@ -46,6 +46,8 @@ module.exports = class BalanceCommand extends Command {
       .addField('Bank:', cs + bank.toLocaleString(), true)
       .addField('Net Worth:', cs + nw.toLocaleString(), true)
       .setTimestamp();
-    return msg.channel.send(embed);
+    return msg.channel.send({ embeds: [embed] });
   }
-};
+}
+
+module.exports = Balance;

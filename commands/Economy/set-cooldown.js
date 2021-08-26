@@ -4,7 +4,7 @@ const DiscordJS = require('discord.js');
 const ms = require('ms');
 const { stripIndents } = require('common-tags');
 
-module.exports = class BalanceCommand extends Command {
+class SetCooldown extends Command {
   constructor (client) {
     super(client, {
       name: 'set-cooldown',
@@ -17,17 +17,15 @@ module.exports = class BalanceCommand extends Command {
   }
 
   run (msg, args) {
-    const server = msg.guild;
-    const p = msg.settings.prefix;
     let type;
 
     const types = ['rob', 'work', 'crime'];
 
-    const usage = `${p}Set-Cooldown <work | rob | crime> <cooldown> \nExample: ${p}Set-Cooldown work 30 seconds`;
-    const robCooldown = db.get(`servers.${server.id}.economy.rob.cooldown`) || 600; // get cooldown from database or set to 600 seconds (10 minutes)
-    const workCooldown = db.get(`servers.${server.id}.economy.work.cooldown`) || 300; // get cooldown from database or set to 300 seconds
+    const usage = `${msg.settings.prefix}Set-Cooldown <work | rob | crime> <cooldown> \nExample: ${msg.settings.prefix}Set-Cooldown work 30 seconds`;
+    const robCooldown = db.get(`servers.${msg.guild.id}.economy.rob.cooldown`) || 600; // get cooldown from database or set to 600 seconds (10 minutes)
+    const workCooldown = db.get(`servers.${msg.guild.id}.economy.work.cooldown`) || 300; // get cooldown from database or set to 300 seconds
     // const slut_cooldown = '';
-    const crimeCooldown = db.get(`servers.${server.id}.economy.crime.cooldown`) || 600;
+    const crimeCooldown = db.get(`servers.${msg.guild.id}.economy.crime.cooldown`) || 600;
 
     if (!args || args.length < 1) {
       const embed = new DiscordJS.MessageEmbed()
@@ -44,7 +42,7 @@ module.exports = class BalanceCommand extends Command {
       
       Usage: ${usage}
       `);
-      return msg.channel.send(embed);
+      return msg.channel.send({ embeds: [embed] });
     } else {
       type = args[0].toLowerCase();
       if (!types.includes(type)) {
@@ -52,7 +50,7 @@ module.exports = class BalanceCommand extends Command {
           .setColor('#EC5454')
           .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
           .setDescription(`Incorrect Usage: ${usage}`);
-        return msg.channel.send(embed);
+        return msg.channel.send({ embeds: [embed] });
       }
     }
 
@@ -70,7 +68,7 @@ module.exports = class BalanceCommand extends Command {
             Usage: ${usage}
             `);
 
-      return msg.channel.send(embed);
+      return msg.channel.send({ embeds: [embed] });
     } else if (cooldown < 30000) {
       const embed = new DiscordJS.MessageEmbed()
         .setColor('#EC5454')
@@ -81,7 +79,7 @@ module.exports = class BalanceCommand extends Command {
             Usage: ${usage}
             `);
 
-      return msg.channel.send(embed);
+      return msg.channel.send({ embeds: [embed] });
     } else if (isNaN(cooldown)) {
       const embed = new DiscordJS.MessageEmbed()
         .setColor('#EC5454')
@@ -92,36 +90,38 @@ module.exports = class BalanceCommand extends Command {
             Usage: ${usage}
             `);
 
-      return msg.channel.send(embed);
+      return msg.channel.send({ embeds: [embed] });
     }
 
     if (type === 'work') {
       const cd = cooldown / 1000;
-      db.set(`servers.${server.id}.economy.work.cooldown`, cd);
+      db.set(`servers.${msg.guild.id}.economy.work.cooldown`, cd);
 
       const embed = new DiscordJS.MessageEmbed()
         .setColor('#64BC6C')
         .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
         .setDescription(`The cooldown of \`Work\` has been set to ${cd} seconds.`);
-      return msg.channel.send(embed);
+      return msg.channel.send({ embeds: [embed] });
     } else if (type === 'rob') {
       const cd = cooldown / 1000;
-      db.set(`servers.${server.id}.economy.rob.cooldown`, cd);
+      db.set(`servers.${msg.guild.id}.economy.rob.cooldown`, cd);
 
       const embed = new DiscordJS.MessageEmbed()
         .setColor('#64BC6C')
         .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
         .setDescription(`The cooldown of \`Rob\` has been set to ${cd} seconds.`);
-      return msg.channel.send(embed);
+      return msg.channel.send({ embeds: [embed] });
     } else if (type === 'crime') {
       const cd = cooldown / 1000;
-      db.set(`servers.${server.id}.economy.crime.cooldown`, cd);
+      db.set(`servers.${msg.guild.id}.economy.crime.cooldown`, cd);
 
       const embed = new DiscordJS.MessageEmbed()
         .setColor('#64BC6C')
         .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
         .setDescription(`The cooldown of \`Crime\` has been set to ${cd} seconds.`);
-      return msg.channel.send(embed);
+      return msg.channel.send({ embeds: [embed] });
     }
   }
-};
+}
+
+module.exports = SetCooldown;

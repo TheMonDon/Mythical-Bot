@@ -20,7 +20,23 @@ class Play extends Command {
     const query = args.join(' ').slice(0, 300);
     if (!query) return msg.channel.send('Please enter something to search for.');
 
-    await this.client.player.play(msg, query, true);
+    const queue = await this.client.player.createQueue(msg.guild, {
+      metadata: msg,
+      leaveOnEmpty: false,
+      leaveOnEnd: false,
+      leaveOnStop: true,
+      autoSelfDeaf: true
+    });
+    const track = await this.client.player.search(query, { requestedBy: msg.author });
+
+    try {
+      if (!queue.connection) await queue.connect(msg.member.voice.channel);
+    } catch {
+      return msg.reply('Could not join your voice channel.');
+    }
+
+    track.playlist ? queue.addTracks(track.tracks) : queue.addTrack(track.tracks[0]);
+    if (!queue.playing) await queue.play();
   }
 }
 

@@ -14,12 +14,7 @@ module.exports = class {
     if (message.guild && !message.channel.permissionsFor(this.client.user.id).has('SEND_MESSAGES')) return;
     if (message.guild && !message.guild.me.permissions.has('SEND_MESSAGES')) return;
 
-    // Grab the settings for this server from the Enmap
-    // If there is no guild, get default conf (DMs)
     const settings = this.client.getSettings(message.guild);
-
-    // For ease of use in commands and functions, we'll attach the settings
-    // to the message object, so `message.settings` is accessible.
     message.settings = settings;
 
     // Checks if the bot was mentioned, with no message after it, returns the prefix.
@@ -47,9 +42,10 @@ module.exports = class {
         const timestamp = month + '/' + day + '/' + year + ' ' + hour + ':' + min;
 
         const attachments = [];
-        if (message.attachments.array().length > 0) {
-          for (let i = 0; i < message.attachments.array().length; i++) {
-            attachments.push(message.attachments.array()[i].url);
+        const mArray = [...message.attachments?.values()];
+        if (mArray.length > 0) {
+          for (let i = 0; i < mArray.length; i++) {
+            attachments.push(mArray[i].url);
           }
         }
 
@@ -70,8 +66,7 @@ module.exports = class {
         return;
       }
 
-      // Use this for my chat money event since this is what I check for not existing in it.
-      // Don't really know how else I would do it so this works fine for me.
+      // Economy chat money event
       if (message.channel.type === 'dm') return;
       const msg = message;
       const server = msg.guild;

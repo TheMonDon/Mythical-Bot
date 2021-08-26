@@ -2,7 +2,7 @@ const Command = require('../../base/Command.js');
 const fetch = require('node-superfetch');
 const DiscordJS = require('discord.js');
 
-class advice extends Command {
+class Advice extends Command {
   constructor (client) {
     super(client, {
       name: 'advice',
@@ -27,7 +27,7 @@ class advice extends Command {
       .setTitle(body.slip.advice)
       .setColor('RANDOM')
       .setFooter(`ID: ${body.slip.id}`);
-    return msg.channel.send(em);
+    return msg.channel.send({ embeds: [em] });
   }
 }
-module.exports = advice;
+module.exports = Advice;

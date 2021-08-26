@@ -1,5 +1,5 @@
 const Command = require('../../base/Command.js');
-const { getMember } = require('../../base/Util.js');
+const { getMember } = require('../../util/Util.js');
 const DiscordJS = require('discord.js');
 const Nfetch = require('node-superfetch');
 const { JSONPath } = require('jsonpath-plus');
@@ -41,9 +41,9 @@ class playerinfo extends Command {
       const { body } = await Nfetch
         .get(`https://api.mojang.com/user/profiles/${id}/names`)
         .catch(() => {
-          return msg.channel.send(em);
+          return msg.channel.send({ embeds: [em] });
         });
-      if (!body) return msg.channel.send(em);
+      if (!body) return msg.channel.send({ embeds: [em] });
       const nc = JSONPath({ path: '*.name', json: body }).join(', ');
       const name = nc.slice(nc.lastIndexOf(',') + 1);
 
@@ -78,7 +78,7 @@ class playerinfo extends Command {
               if (out !== '0s') em.addField('Play Time', out, false);
               if (bal) em.addField('Survival Balance', `$${bal.toLocaleString()}`, false);
 
-              return msg.channel.send(em);
+              return msg.channel.send({ embeds: [em] });
             });
           });
         });
@@ -99,7 +99,7 @@ class playerinfo extends Command {
           .setColor('FF0000')
           .setDescription(`\`${user}\` is not a valid username.`);
         console.log(user);
-        return msg.channel.send(em);
+        return msg.channel.send({ embeds: [em] });
       }
 
       const body = await Nfetch

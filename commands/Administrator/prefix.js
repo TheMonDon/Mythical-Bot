@@ -1,6 +1,6 @@
 const Command = require('../../base/Command.js');
 
-class prefix extends Command {
+class Prefix extends Command {
   constructor (client) {
     super(client, {
       name: 'prefix',
@@ -13,17 +13,16 @@ class prefix extends Command {
   }
 
   async run (msg, args) {
-    const prefix = msg.settings.prefix;
-    if (!args || args.length < 1) return msg.channel.send(`The current prefix is: \`${prefix}\``);
+    if (!args || args.length < 1) return msg.channel.send(`The current prefix is: \`${msg.settings.prefix}\``);
     const newprefix = args.join(' ');
 
     if (newprefix.length > 15) return msg.channel.send('The length of the prefix must be less than 15 characters.');
 
-    if (newprefix === prefix) return msg.channel.send(`The prefix is already set to ${prefix}`);
+    if (newprefix === msg.settings.prefix) return msg.channel.send(`The prefix is already set to ${msg.settings.prefix}`);
 
     this.client.settings.set(msg.guild.id, newprefix, 'prefix');
-    msg.channel.send(`The prefix has been changed to: ${newprefix}`);
+    return msg.channel.send(`The prefix has been changed to: ${newprefix}`);
   }
 }
 
-module.exports = prefix;
+module.exports = Prefix;

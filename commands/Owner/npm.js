@@ -2,15 +2,14 @@ const Command = require('../../base/Command.js');
 const child = require('child_process');
 const { stripIndents } = require('common-tags');
 
-module.exports = class NPM extends Command {
+class NPM extends Command {
   constructor (client) {
     super(client, {
       name: 'npm',
       category: 'Owner',
       memberName: 'npm',
       description: 'Installs an NPM package and saves it to the package.json',
-      longDescription: stripIndents`(Owner Only) It will install an npm package, 
-save the package to the package.json and all its dependencies.`,
+      longDescription: '(Owner Only) It will install an npm package, save the package to the package.json and all its dependencies.',
       permLevel: 'Bot Owner'
     });
   }
@@ -36,3 +35,5 @@ An error was encountered, the module probably doesn't exist in the registry!`);
     return message.edit(`The Node Module ${moduleName} was successfully installed!`);
   }
 };
+
+module.exports = NPM;

@@ -2,14 +2,15 @@ const Command = require('../../base/Command.js');
 const cheerio = require('cheerio');
 const fetch = require('node-superfetch');
 
-class pornhub extends Command {
+class PornHub extends Command {
   constructor (client) {
     super(client, {
       name: 'pornhub',
       description: 'Sends the video result from pornhub',
       usage: 'pornhub <search>',
       category: 'NSFW',
-      nsfw: true
+      nsfw: true,
+      aliases: ['ph', 'ch', 'cornhub']
     });
   }
 
@@ -33,4 +34,4 @@ class pornhub extends Command {
   }
 }
 
-module.exports = pornhub;
+module.exports = PornHub;

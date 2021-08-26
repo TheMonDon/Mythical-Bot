@@ -1,5 +1,5 @@
 const Command = require('../../base/Command.js');
-const { getMember } = require('../../base/Util.js');
+const { getMember } = require('../../util/Util.js');
 const db = require('quick.db');
 const DiscordJS = require('discord.js');
 
@@ -39,7 +39,7 @@ class AddMember extends Command {
 
     if (msg.channel.permissionOverwrites.get(mem.id) !== undefined) return msg.channel.send('That person has already been added to this ticket.');
 
-    msg.channel.updateOverwrite(mem.id, { VIEW_CHANNEL: true });
+    await msg.channel.updateOverwrite(mem.id, { VIEW_CHANNEL: true });
 
     // Logging info
     const d = new Date();
@@ -58,7 +58,7 @@ class AddMember extends Command {
       .setTitle('Member Added')
       .setColor('#E65DF4')
       .setDescription(`${msg.author} has added another member: \n${mem} (${mem.displayName})`);
-    return msg.channel.send(em);
+    return msg.channel.send({ embeds: [em] });
   }
 }
 

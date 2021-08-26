@@ -30,28 +30,29 @@ module.exports = class {
       const msg2 = newmsg;
       if (msg1.content === msg2.content) return;
 
-      const embed = new DiscordJS.MessageEmbed();
-      embed.setTitle('Message Edited');
-      embed.setURL(msg2.url);
-      embed.setAuthor(msg1.author.tag, msg1.author.displayAvatarURL());
-      embed.setColor('#EE82EE');
-      embed.setThumbnail(msg1.author.displayAvatarURL());
-      embed.addField('Original Message', (msg1.content.length <= 1024) ? msg1.content : `${msg1.content.substring(0, 1020)}...`, true);
-      embed.addField('Edited Message', (msg2.content.length <= 1024) ? msg2.content : `${msg2.content.substring(0, 1020)}...`, true);
-      embed.addField('Channel', msg1.channel, true);
-      embed.addField('Message Author', `${msg1.author} (${msg1.author.tag})`, true);
-      embed.addField('Number of Edits', msg2.edits.length, true);
-      (msg2.mentions.users.size === 0) ? embed.addField('Mentioned Users', 'None', true) : embed.addField('Mentioned Users', `Mentioned Member Count: ${msg2.mentions.users.array().length} \n Mentioned Users List: \n ${msg2.mentions.users.array()}`, true);
-      embed.setTimestamp();
-      newmsg.guild.channels.cache.get(logChan).send(embed);
+      const embed = new DiscordJS.MessageEmbed()
+        .setTitle('Message Edited')
+        .setURL(msg2.url)
+        .setAuthor(msg1.author.tag, msg1.author.displayAvatarURL())
+        .setColor('#EE82EE')
+        .setThumbnail(msg1.author.displayAvatarURL())
+        .addField('Original Message', (msg1.content.length <= 1024) ? msg1.content : `${msg1.content.substring(0, 1020)}...`, true)
+        .addField('Edited Message', (msg2.content.length <= 1024) ? msg2.content : `${msg2.content.substring(0, 1020)}...`, true)
+        .addField('Channel', msg1.channel, true)
+        .addField('Message Author', `${msg1.author} (${msg1.author.tag})`, true)
+        .setTimestamp();
+      (msg2.mentions.users.size === 0)
+        ? embed.addField('Mentioned Users', 'None', true)
+        : embed.addField('Mentioned Users', `Mentioned Member Count: ${[...msg2.mentions.users.values()].length} \nMentioned Users List: \n${[...msg2.mentions.users.values()]}`, true);
+      newmsg.guild.channels.cache.get(logChan).send({ embeds: [embed] });
       db.add(`servers.${newmsg.guild.id}.logs.message-edited`, 1);
       db.add(`servers.${newmsg.guild.id}.logs.all`, 1);
     })();
 
     let bool;
     let tag;
-    const re = new RegExp('http');
-    if (re.test(newmsg)) return;
+    const re = /'http'/;
+    if (re.test(newmsg.content)) return;
     if (oldmsg.content === newmsg.content || oldmsg === newmsg) return;
     if (newmsg.guild && !newmsg.channel.permissionsFor(newmsg.guild.me).missing('SEND_MESSAGES')) return;
 
@@ -82,11 +83,7 @@ module.exports = class {
     // Get the user or member's permission level from the elevation
     const level = this.client.permlevel(newmsg);
 
-    // Check whether the command, or alias, exist in the collections defined
-    // in app.js.
     const cmd = this.client.commands.get(command) || this.client.commands.get(this.client.aliases.get(command));
-    // using this const varName = thing OR otherthign; is a pretty efficient
-    // and clean way to grab one of 2 values!
     if (!cmd) return;
 
     // Check if the member is blacklisted from using commands in this guild.

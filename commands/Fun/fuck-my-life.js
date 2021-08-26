@@ -3,7 +3,7 @@ const DiscordJS = require('discord.js');
 const fetch = require('node-fetch');
 const HTMLParser = require('node-html-parser');
 
-class fml extends Command {
+class FuckMyLife extends Command {
   constructor (client) {
     super(client, {
       name: 'fuck-my-life',
@@ -33,8 +33,8 @@ class fml extends Command {
 
     if (article?.childNodes[0].text.length < 5) return msg.channel.send("Today, something went wrong, so you'll have to try again in a few moments. FML");
 
-    return msg.channel.send(embed);
+    return msg.channel.send({ embeds: [embed] });
   }
 }
 
-module.exports = fml;
+module.exports = FuckMyLife;

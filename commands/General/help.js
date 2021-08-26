@@ -1,5 +1,5 @@
 const Command = require('../../base/Command.js');
-const { toProperCase } = require('../../base/Util.js');
+const { toProperCase } = require('../../util/Util.js');
 const { MessageEmbed } = require('discord.js');
 
 class Help extends Command {
@@ -26,13 +26,14 @@ class Help extends Command {
       .addField('Current Categories:', level >= 8 ? allcats.join(', ') : cats.join(', '), true)
       .addField('Quick Bits', '[Invite Link](https://cisn.xyz/mythical)', true);
 
-    if (!args || args.length < 1) return msg.channel.send(errEm);
+    if (!args || args.length < 1) return msg.channel.send({ embeds: [errEm] });
 
     const category = toProperCase(args.join(' '));
     em.setTitle(`${category} Commands`);
     em.setColor('0099CC');
     const myCommands = this.client.commands.filter(cmd => this.client.levelCache[cmd.conf.permLevel] <= level);
-    const sorted = myCommands.array().sort((p, c) => p.help.category > c.help.category ? 1 : p.help.name > c.help.name && p.help.category === c.help.category ? 1 : -1);
+    const myC = [...myCommands.values()];
+    const sorted = myC.sort((p, c) => p.help.category > c.help.category ? 1 : p.help.name > c.help.name && p.help.category === c.help.category ? 1 : -1);
     sorted.forEach(c => {
       const cat = toProperCase(c.help.category);
       if (category === cat) em.addField(`${msg.settings.prefix}${toProperCase(c.help.name)}`, `${c.help.description}`, false);
@@ -46,14 +47,14 @@ class Help extends Command {
         em.setColor('0099CC');
         em.addField('Usage', command.help.usage, false);
         em.addField('Aliases', command.conf.aliases.join(', ') || 'none', false);
-        em.addField('Guild Only', command.conf.guildOnly, true);
-        em.addField('NSFW', command.conf.nsfw, true);
+        em.addField('Guild Only', command.conf.guildOnly.toString(), true);
+        em.addField('NSFW', command.conf.nsfw.toString(), true);
         em.addField('Description', command.help.description, false);
         em.addField('Long Description', command.help.longDescription, false);
-        return msg.channel.send(em);
-      } else return msg.channel.send(errEm);
+        return msg.channel.send({ embeds: [em] });
+      } else return msg.channel.send({ embeds: [errEm] });
     }
-    return msg.channel.send(em);
+    return msg.channel.send({ embeds: [em] });
   }
 }
 

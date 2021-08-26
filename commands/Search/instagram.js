@@ -2,7 +2,7 @@ const Command = require('../../base/Command.js');
 const DiscordJS = require('discord.js');
 const userInstagram = require('user-instagram');
 
-class insta extends Command {
+class Instagram extends Command {
   constructor (client) {
     super(client, {
       name: 'instagram',
@@ -14,10 +14,9 @@ class insta extends Command {
   }
 
   async run (msg, text) {
-    const p = msg.settings.prefix;
     const query = text.join(' ');
 
-    if (!query || query.length < 1) return msg.channel.send(`Incorrect Usage: ${p}instagram <instagram user>`);
+    if (!query || query.length < 1) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}instagram <instagram user>`);
 
     userInstagram(query)
       .then(res => {
@@ -25,17 +24,17 @@ class insta extends Command {
           .setTitle(res.fullName)
           .setURL(res.link)
           .setThumbnail(res.profilePicHD)
-          .addField('Biography', res.biography, true)
-          .addField('Subscribers', res.subscribersCount, true)
-          .addField('Subscriptions', res.subscribtions, true)
-          .addField('Posts Count', res.postsCount, true)
-          .addField('Is Private?', res.isPrivate, true)
-          .addField('Is Verified?', res.isVerified, true);
-        return msg.channel.send(em);
+          .addField('Biography', res.biography || 'N/A', true)
+          .addField('Subscribers', res.subscribersCount || 'N/A', true)
+          .addField('Subscriptions', res.subscriptions || 'N/A', true)
+          .addField('Posts Count', res.postsCount || 'N/A', true)
+          .addField('Is Private?', res.isPrivate || 'N/A', true)
+          .addField('Is Verified?', res.isVerified || 'N/A', true);
+        return msg.channel.send({ embeds: [em] });
       })
       .catch((err) => {
         return msg.channel.send(err.toString());
       });
   }
 }
-module.exports = insta;
+module.exports = Instagram;

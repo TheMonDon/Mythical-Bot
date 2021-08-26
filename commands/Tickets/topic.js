@@ -38,7 +38,7 @@ class Topic extends Command {
           .setColor('#EC5454')
           .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
           .setDescription(`You can't change the topic for another: ${tLeft}`);
-        return msg.channel.send(embed);
+        return msg.channel.send({ embeds: [embed] });
       }
     }
 
@@ -64,22 +64,20 @@ class Topic extends Command {
     const output = `${timestamp} - ${msg.author.tag} has changed the topic to: \n${topic}.`;
 
     db.push(`servers.${msg.guild.id}.tickets.${tName}.chatLogs`, output);
-    msg.channel.setTopic(topic);
+    await msg.channel.setTopic(topic);
 
     const em = new DiscordJS.MessageEmbed()
       .setTitle('Topic Changed')
       .setColor('#E65DF4')
       .setDescription(`${msg.author} has changed the topic to: \n${topic}`);
-    msg.channel.send(em);
+    await msg.channel.send({ embeds: [em] });
 
     channelCooldown.time = Date.now() + (cooldown * 1000);
     channelCooldown.active = true;
     db.set(`servers.${server.id}.tickets.${msg.channel.name}.tCooldown`, channelCooldown);
 
     setTimeout(() => {
-      channelCooldown = {
-        active: false
-      };
+      channelCooldown = { active: false };
       db.set(`servers.${server.id}.tickets.${msg.channel.name}.tCooldown`, channelCooldown);
     }, cooldown * 1000);
   }

@@ -1,9 +1,9 @@
 const Command = require('../../base/Command.js');
-const { getTotalPoints } = require('../../base/Util.js');
+const { getTotalPoints } = require('../../util/Util.js');
 const db = require('quick.db');
 const DiscordJS = require('discord.js');
 
-class deletewarning extends Command {
+class DeleteWarning extends Command {
   constructor (client) {
     super(client, {
       name: 'delete-warning',
@@ -12,7 +12,7 @@ class deletewarning extends Command {
       category: 'Administrator',
       guildOnly: true,
       permLevel: 'Administrator',
-      aliases: ['delwarn', 'clearwarn', 'deletecase', 'deletewarn', 'delcase', 'clearcase', 'deletewarning', 'delwarning']
+      aliases: ['delwarn', 'deletecase', 'deletewarn', 'delcase', 'clearcase', 'deletewarning', 'delwarning']
     });
   }
 
@@ -30,25 +30,28 @@ class deletewarning extends Command {
     const user = await this.client.users.fetch(userID);
     const warnReason = warning.reason || '???';
 
-    const previousPoints = await getTotalPoints(userID, msg);
+    const previousPoints = getTotalPoints(userID, msg);
     db.delete(`servers.${msg.guild.id}.warns.warnings.${caseID}`);
-    const newerPoints = await getTotalPoints(userID, msg);
+    const newerPoints = getTotalPoints(userID, msg);
     if (previousPoints >= 10 && newerPoints < 10) {
-      if (!msg.guild.me.permissions.has('BAN_MEMBERS')) msg.channel.send('The bot does not have Ban_Members permission to unban the user.');
-      await msg.guild.members.unban(userID).catch(() => null);
-      title = 'User Unbanned';
-      color = 'GREEN';
+      if (!msg.guild.me.permissions.has('BAN_MEMBERS')) {
+        msg.channel.send('The bot does not have Ban Members permission to unban the user.');
+      } else {
+        await msg.guild.members.unban(userID).catch(() => null);
+        title = 'User Unbanned';
+        color = 'GREEN';
+      }
     }
 
     const em = new DiscordJS.MessageEmbed()
       .setColor(color)
       .setTitle(title)
       .setDescription(`${msg.author} has cleared a case from a user.`)
-      .addField('From User', `${user} (${user.id})`, true)
+      .addField('User', `${user} (${user.id})`, true)
       .addField('Deleted Case', `\`${caseID}\``, true)
       .addField('Case Reason', warnReason, false);
-    return msg.channel.send(em);
+    return msg.channel.send({ embeds: [em] });
   }
 }
 
-module.exports = deletewarning;
+module.exports = DeleteWarning;

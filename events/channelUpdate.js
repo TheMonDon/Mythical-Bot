@@ -37,7 +37,7 @@ module.exports = class {
       }
 
       const embed = new DiscordJS.MessageEmbed()
-        .setTitle(`Channl ${channel.name} Updated`)
+        .setTitle(`Channel ${channel.name} Updated`)
         .setColor('#EE82EE')
         .addField('Name', (channel.name === newChannel.name) ? 'Updated: ❌' : `Updated: ✅ \n New Name: ${newChannel.name}`, true)
         .addField('Topic', (channel.topic === newChannel.topic) ? 'Updated: ❌' : `Updated: ✅ \n New Topic: ${newChannel.topic}`, true)
@@ -46,7 +46,7 @@ module.exports = class {
         .setFooter(`ID: ${newChannel.id}`)
         .setTimestamp();
 
-      channel.guild.channels.cache.get(logChan).send(embed);
+      channel.guild.channels.cache.get(logChan).send({ embeds: [embed] });
       db.add(`servers.${channel.guild.id}.logs.channel-updated`, 1);
       db.add(`servers.${channel.guild.id}.logs.all`, 1);
     }

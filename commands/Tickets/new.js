@@ -1,5 +1,5 @@
 const Command = require('../../base/Command.js');
-const { getTickets } = require('../../base/Util.js');
+const { getTickets } = require('../../util/Util.js');
 const db = require('quick.db');
 const DiscordJS = require('discord.js');
 const { stripIndents } = require('common-tags');
@@ -17,8 +17,6 @@ class New extends Command {
   }
 
   async run (msg, args) {
-    const p = msg.settings.prefix;
-
     if (!db.get(`servers.${msg.guild.id}.tickets`)) return msg.channel.send('The ticket system has not been setup in this server.');
     const { catID, logID, roleID } = db.get(`servers.${msg.guild.id}.tickets`);
 
@@ -27,7 +25,7 @@ class New extends Command {
     if (!msg.guild.me.permissions.has('MANAGE_MESSAGES')) return msg.channel.send('The bot is missing Manage Messages permission');
 
     if (msg.channel.name.startsWith('ticket')) return msg.channel.send('You\'re already in a ticket, silly.');
-    if (!args || args.length < 1) return msg.channel.send(`Please provide a reason. Usage: ${p}New <reason>`);
+    if (!args || args.length < 1) return msg.channel.send(`Please provide a reason. Usage: ${msg.settings.prefix}New <reason>`);
 
     const tix = getTickets(msg.author.id, msg);
     if (tix.length > 2) {
@@ -82,8 +80,8 @@ class New extends Command {
       .setFooter('Self destructing in 2 minutes.')
       .setColor('#E65DF4')
       .setTimestamp();
-    const reply = await msg.channel.send(userEmbed);
-    reply.delete({ timeout: 60000 });
+    const reply = await msg.channel.send({ embeds: [userEmbed] });
+    setTimeout(() => reply.delete(), 60000);
     msg.delete();
 
     const logEmbed = new DiscordJS.MessageEmbed()
@@ -95,7 +93,7 @@ class New extends Command {
       .setColor('#E65DF4')
       .setTimestamp();
     const logChan = msg.guild.channels.cache.get(logID);
-    await logChan.send(logEmbed);
+    await logChan.send({ embeds: [logEmbed] });
 
     const chanEmbed = new DiscordJS.MessageEmbed()
       .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
@@ -104,16 +102,17 @@ class New extends Command {
       .setDescription('Please wait patiently and our support team will be with you shortly.')
       .setColor('#E65DF4')
       .setTimestamp();
+
     const role = msg.guild.roles.cache.get(roleID);
     if (!role.mentionable) {
       if (!tixChan.permissionsFor(this.client.user.id).has('MENTION_EVERYONE')) {
         role.setMentionable(true);
-        tixChan.send(role, chanEmbed);
+        tixChan.send({ content: role.toString(), embeds: [chanEmbed] });
       } else {
-        tixChan.send(role, chanEmbed);
+        tixChan.send({ content: role.toString(), embeds: [chanEmbed] });
       }
     } else {
-      tixChan.send(role, chanEmbed);
+      tixChan.send({ content: role.toString(), embeds: [chanEmbed] });
     }
 
     // Logging info

@@ -52,7 +52,7 @@ module.exports = class {
       .addField('Deleted Messages', url, true)
       .addField('Deleted Amount', messages.size, true)
       .addField('Channel', chan, true);
-    logChannel.send(embed);
+    logChannel.send({ embeds: [embed] });
 
     db.add(`servers.${server.id}.logs.bulk-messages-deleted`, 1);
     db.add(`servers.${server.id}.logs.all`, 1);

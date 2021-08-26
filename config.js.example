@@ -8,7 +8,7 @@ const config = {
   // Bot Support, level 8 by default. Array of user ID strings
   "support": [],
 
-  // Your Bot's Token. Available on https://discordapp.com/developers/applications/me
+  // Your Bots Token. Available on https://discordapp.com/developers/applications/me
   "token": "mfa.VkO_2G4Qv3T--NO--lWetW_tjND--TOKEN--QFTm6YGtzq9PH--4U--tG0",
 
   // MySQL Information for Crafters-Island Server info
@@ -19,8 +19,11 @@ const config = {
   // OwlBot API key
   owlKey: '',
 
-  // Github api token
+  // Github API Token
   github: '',
+
+  // TMDb API Token
+  TMDb: '',
 
   // Default per-server settings. These settings are entered in a database on first load, 
   // And are then completely ignored from this file. To modify default settings, use the `conf` command.
@@ -33,14 +36,17 @@ const config = {
     "adminRole": "Administrator",
     "systemNotice": "true",
     "welcomeEnabled": "false",
-    "welcomeChannel": "welcome",
-    "welcomeMessage": "Say hello to {{user}}, everyone! We all need a warm welcome sometimes :D",
+    "welcomeChannel": "welcome-leave",
+    "welcomeMessage": "Hello {{user}}, welcome to **{{guild}}**. We hope you have a great time here!",
+    "leaveChannel": "welcome-leave",
+    "leaveMessage": "Goodbye {{user}} :( Sorry to see you go.",
+    "leaveEnabled": "false"
   },
 
   // PERMISSION LEVEL DEFINITIONS.
 
   permLevels: [
-    // This is the lowest permisison level, this is for non-roled users.
+    // This is the lowest permission level, this is for non-roled users.
     { level: 0,
       name: "User", 
       // Don't bother checking, just return true which allows them to execute any command their
@@ -59,7 +65,9 @@ const config = {
       check: (message) => {
         try {
           const modRole = message.guild.roles.cache.find(r => r.name.toLowerCase() === message.settings.modRole.toLowerCase());
-          if (modRole && message.member.roles.cache.has(modRole.id)) return true;
+          if (!modRole) return false;
+          if (message.member.roles.cache.has(modRole.id)) return true;
+          if (message.member.roles.highest.position > modRole.position) return true;
         } catch (e) {
           return false;
         }
@@ -71,7 +79,9 @@ const config = {
       check: (message) => {
         try {
           const adminRole = message.guild.roles.cache.find(r => r.name.toLowerCase() === message.settings.adminRole.toLowerCase());
-          return (adminRole && message.member.roles.cache.has(adminRole.id));
+          if (!adminRole) return false;
+          if (message.member.roles.cache.has(adminRole.id)) return true;
+          if (message.member.roles.highest.position > adminRole.position) return true;
         } catch (e) {
           return false;
         }
@@ -82,10 +92,10 @@ const config = {
       name: "Server Owner", 
       // Simple check, if the guild owner id matches the message author's ID, then it will return true.
       // Otherwise it will return false.
-      check: (message) => message.channel.type === "text" ? (message.guild.owner.user.id === message.author.id ? true : false) : false
+      check: (message) => message.channel.type === "text" ? (message.guild.ownerID === message.author.id ? true : false) : false
     },
 
-    // Bot Support is a special inbetween level that has the equivalent of server owner access
+    // Bot Support is a special in between level that has the equivalent of server owner access
     // to any server they joins, in order to help troubleshoot the bot on behalf of owners.
     { level: 8,
       name: "Bot Support",

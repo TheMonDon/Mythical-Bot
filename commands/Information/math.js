@@ -2,7 +2,7 @@ const Command = require('../../base/Command.js');
 const DiscordJS = require('discord.js');
 const math = require('mathjs');
 
-module.exports = class Math extends Command {
+class Math extends Command {
   constructor (client) {
     super(client, {
       name: 'math',
@@ -26,9 +26,11 @@ module.exports = class Math extends Command {
         .setColor('#767CC1')
         .addField('**📥 Expression**', `\`\`\`${text.length > 1000 ? text.slice(0, 1000) + '...' : text}\`\`\``, false)
         .addField('**📤 Result**', `\`\`\`${solution}\`\`\``, false);
-      return msg.channel.send(embed);
+      return msg.channel.send({ embeds: [embed] });
     } catch (err) {
       return msg.channel.send(`Sorry, I couldn't solve that equation. \`${err}\``);
     }
   }
-};
+}
+
+module.exports = Math;

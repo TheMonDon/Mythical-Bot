@@ -26,7 +26,7 @@ class BotInfo extends Command {
       .setThumbnail(this.client.user.displayAvatarURL())
       .addField('Uptime', botuptime, true)
       .addField('Ping', Math.floor(this.client.ws.ping).toLocaleString(), true)
-      .addField('Guilds', this.client.guilds.cache.array().length.toLocaleString(), true)
+      .addField('Guilds', this.client.guilds.cache.size.toLocaleString(), true)
       .addField('Channels', this.client.channels.cache.size.toLocaleString(), true)
       .addField('Users', this.client.users.cache.size.toLocaleString(), true)
       .addField('Commands Used', db.get('global.commands').toLocaleString(), true)
@@ -36,7 +36,7 @@ class BotInfo extends Command {
       .addField('Bot Version', pjson.version, true)
       .addField('Bot Creator', pjson.owner, true)
       .addField('Invite', '[cisn.xyz/mythical](https://cisn.xyz/mythical)', true);
-    return msg.channel.send(embed);
+    return msg.channel.send({ embeds: [embed] });
   }
 }
 

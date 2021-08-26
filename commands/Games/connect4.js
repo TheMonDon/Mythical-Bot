@@ -2,12 +2,12 @@ const Command = require('../../base/Command.js');
 const { Connect4AI } = require('connect4-ai');
 const { stripIndents } = require('common-tags');
 const emojiRegex = require('emoji-regex/RGI_Emoji.js');
-const { list, verify, getMember } = require('../../base/Util.js');
+const { list, verify, getMember } = require('../../util/Util.js');
 const blankEmoji = '⚪';
 const nums = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣'];
 const customEmojiRegex = /^(?:<a?:([a-zA-Z0-9_]+):)?([0-9]+)>?$/;
 
-class connect4 extends Command {
+class Connect4 extends Command {
   constructor (client) {
     super(client, {
       name: 'connect4',
@@ -47,15 +47,17 @@ class connect4 extends Command {
 
     const current = this.client.games.get(msg.channel.id);
     if (current) return msg.reply(`Please wait until the current game of \`${current.name}\` is finished.`);
-    this.client.games.set(msg.channel.id, { name: this.help.name, user: msg.author.id, date: Date.now() });
 
     const usage = `Incorrect Usage: ${msg.settings.prefix}connect4 <opponent> <color>`;
-    if (!args || args.length < 1) return msg.channel.send(usage);
-    const opponent = getMember(msg, args[0]);
-    if (!opponent) return msg.channel.send(usage);
+    if (!args || args.length < 2) return msg.reply(usage);
+    let opponent = getMember(msg, args[0]);
+    if (!opponent) opponent = msg.guild.me;
+    if (opponent.id === msg.author.id) return msg.reply('You may not play against yourself.');
 
     args.shift();
     if (!args || args.length < 1) return msg.channel.send(`${usage} \nThat is not a valid color, either an emoji or one of ${list(Object.keys(colors), 'or')}.`);
+
+    this.client.games.set(msg.channel.id, { name: this.help.name, user: msg.author.id, date: Date.now() });
 
     function checkLine (a, b, c, d) {
       return (a !== null) && (a === b) && (a === c) && (a === d);
@@ -101,10 +103,6 @@ class connect4 extends Command {
       }).join('')).join('\n');
     }
 
-    let color = args[0];
-    if (validate(color, msg) !== true) return;
-    color = parse(color, msg);
-
     function validate (color, msg) {
       const hasEmoji = new RegExp(`^(?:${emojiRegex().source})$`).test(color);
       const hasCustom = color.match(customEmojiRegex);
@@ -118,13 +116,16 @@ class connect4 extends Command {
       if (color === blankEmoji) return msg.channel.send('You cannot use this emoji.');
       return true;
     }
+
     function parse (color, msg) {
       const hasCustom = color.match(customEmojiRegex);
       if (hasCustom && msg.guild) return msg.guild.emojis.cache.get(hasCustom[2]).toString();
       return colors[color.toLowerCase()] || color;
     }
 
-    if (opponent.id === msg.author.id) return msg.reply('You may not play against yourself.');
+    let color = args[0];
+    if (validate(color, msg) !== true) return;
+    color = parse(color, msg);
 
     const playerOneEmoji = color;
     let playerTwoEmoji = color === colors.yellow ? colors.red : colors.yellow;
@@ -148,7 +149,8 @@ class connect4 extends Command {
           if (hasCustom && msg.guild && !msg.guild.emojis.cache.has(hasCustom[2])) return false;
           return (hasCustom && msg.guild) || hasEmoji || available.includes(res.content.toLowerCase());
         };
-        const p2Color = await msg.channel.awaitMessages(filter, {
+        const p2Color = await msg.channel.awaitMessages({
+          filter,
           max: 1,
           time: 30000
         });
@@ -158,6 +160,7 @@ class connect4 extends Command {
           hasCustom && msg.guild ? playerTwoEmoji = msg.guild.emojis.cache.get(hasCustom[2]).toString() : playerTwoEmoji = colors[choice] || choice;
         }
       }
+
       const AIEngine = new Connect4AI();
       const board = generateBoard();
       let userTurn = true;
@@ -165,6 +168,7 @@ class connect4 extends Command {
       const colLevels = [5, 5, 5, 5, 5, 5, 5];
       let lastMove = 'None';
       let message = 0;
+
       while (!winner && board.some(row => row.includes(null))) {
         const user = userTurn ? msg.author : opponent;
         const sign = userTurn ? 'user' : 'oppo';
@@ -198,7 +202,8 @@ class connect4 extends Command {
             const j = Number.parseInt(choice, 10) - 1;
             return board[colLevels[j]] && board[colLevels[j]][j] !== undefined;
           };
-          const turn = await msg.channel.awaitMessages(pickFilter, {
+          const turn = await msg.channel.awaitMessages({
+            pickFilter,
             max: 1,
             time: 60000
           });
@@ -228,6 +233,7 @@ class connect4 extends Command {
       }
       this.client.games.delete(msg.channel.id);
       message.delete();
+
       if (winner === 'time') return msg.channel.send('Game ended due to inactivity.');
       return msg.channel.send(stripIndents`
         ${winner ? `Congrats, ${winner}!` : 'Looks like it\'s a draw...'}
@@ -237,9 +243,9 @@ class connect4 extends Command {
       `);
     } catch (err) {
       this.client.games.delete(msg.channel.id);
-      throw err;
+      msg.channel.send(err);
     }
   }
 }
 
-module.exports = connect4;
+module.exports = Connect4;

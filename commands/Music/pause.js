@@ -12,16 +12,17 @@ class Pause extends Command {
   }
 
   async run (msg) {
+    const queue = this.client.player.getQueue(msg.guild);
+
     if (!msg.member.voice.channel) return msg.channel.send('You must be in a voice channel to pause music.');
     if (msg.guild.me.voice.channel && msg.member.voice.channel.id !== msg.guild.me.voice.channel.id) return msg.channel.send('You must be in the same voice channel as the bot.');
-    if (!this.client.player.isPlaying(msg)) return msg.channel.send('There is nothing playing.');
-    const paused = await this.client.player.getQueue(msg).paused;
+    if (!queue.playing) return msg.channel.send('There is nothing playing.');
 
-    if (!paused) {
-      await this.client.player.pause(msg);
+    if (queue.playing) {
+      queue.setPaused(true);
       return msg.channel.send('Music has been paused.');
     } else {
-      await this.client.player.resume(msg);
+      queue.setPaused(false);
       return msg.channel.send('Music has been resumed');
     }
   }

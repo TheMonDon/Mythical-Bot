@@ -48,74 +48,74 @@ class Close extends Command {
       .setColor('#E65DF4')
       .setDescription(stripIndents`${msg.author} has requested to close this ticket.
       The ticket will close in 5 minutes if no further activity occurs.`);
-    await msg.channel.send(em);
+    await msg.channel.send({ embeds: [em] });
 
     const filter = m => m.content.length > 0;
 
-    return msg.channel.awaitMessages(filter, {
+    const collected = await msg.channel.awaitMessages({
+      filter,
       max: 1,
       time: 300000,
       errors: ['time']
-    })
-      .then(async (collected) => {
-        const response = collected.first().content;
+    });
+    if (!collected) {
+      let url;
 
-        const em = new DiscordJS.MessageEmbed()
-          .setTitle('Ticket Re-Opened')
-          .setDescription(stripIndents`
-        Closing of the ticket has been cancelled with the following reason:
-        
-        ${response}`)
-          .setColor('#E65DF4')
-          .setTimestamp();
-
-        const output = `Closing of the ticket has been cancelled with the following reason: \n${response}`;
-        db.push(`servers.${msg.guild.id}.tickets.${tName}.chatLogs`, output);
-
-        return msg.channel.send(em);
+      await hastebin.createPaste(chatLogs, {
+        raw: true,
+        contentType: 'text/plain',
+        server: 'https://haste.crafters-island.com'
       })
-      .catch(async () => {
-        let url;
-
-        await hastebin.createPaste(chatLogs, {
-          raw: true,
-          contentType: 'text/plain',
-          server: 'https://haste.crafters-island.com'
+        .then(function (urlToPaste) {
+          url = urlToPaste;
         })
-          .then(function (urlToPaste) {
-            url = urlToPaste;
-          })
-          .catch(function (requestError) { console.log(requestError); });
+        .catch(function (requestError) { console.log(requestError); });
 
-        let received;
+      let received;
 
-        const userEmbed = new DiscordJS.MessageEmbed()
-          .setTitle('Ticket Closed')
-          .setColor('#E65DF4')
-          .addField('Transcript URL', url, false)
-          .addField('Reason', reason, false)
-          .setFooter('Transcripts expire 30 days after last view date.')
-          .setTimestamp();
-        await msg.author.send(userEmbed)
-          .catch(() => {
-            received = 'no';
-          });
+      const userEmbed = new DiscordJS.MessageEmbed()
+        .setTitle('Ticket Closed')
+        .setColor('#E65DF4')
+        .addField('Transcript URL', url, false)
+        .addField('Reason', reason, false)
+        .addField('Server', msg.guild.name, false)
+        .setFooter('Transcripts expire 30 days after last view date.')
+        .setTimestamp();
+      await msg.author.send({ embeds: [userEmbed] })
+        .catch(() => {
+          received = 'no';
+        });
 
-        const logEmbed = new DiscordJS.MessageEmbed()
-          .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
-          .setTitle('Ticket Closed')
-          .addField('Author', `${msg.author} (${msg.author.id})`, false)
-          .addField('Channel', `${tName}: ${msg.channel.id}`, false)
-          .addField('Transcript URL', url, false)
-          .addField('Reason', reason, false)
-          .setColor('#E65DF4')
-          .setTimestamp();
-        if (received === 'no') logEmbed.setFooter('Could not message author.');
-        await msg.guild.channels.cache.get(logID).send(logEmbed);
+      const logEmbed = new DiscordJS.MessageEmbed()
+        .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
+        .setTitle('Ticket Closed')
+        .addField('Author', `${msg.author} (${msg.author.id})`, false)
+        .addField('Channel', `${tName}: ${msg.channel.id}`, false)
+        .addField('Transcript URL', url, false)
+        .addField('Reason', reason, false)
+        .setColor('#E65DF4')
+        .setTimestamp();
+      if (received === 'no') logEmbed.setFooter('Could not message author.');
+      await msg.guild.channels.cache.get(logID).send({ embeds: [logEmbed] });
 
-        db.delete(`servers.${msg.guild.id}.tickets.${tName}`);
-        return msg.channel.delete();
-      });
+      db.delete(`servers.${msg.guild.id}.tickets.${tName}`);
+      return msg.channel.delete();
+    }
+
+    const response = collected.first().content;
+    const embed = new DiscordJS.MessageEmbed()
+      .setTitle('Ticket Re-Opened')
+      .setDescription(stripIndents`
+        Closing of the ticket has been cancelled with the following reason:
+    
+        ${response}`)
+      .setColor('#E65DF4')
+      .setTimestamp();
+
+    const output2 = `Closing of the ticket has been cancelled with the following reason: \n${response}`;
+    db.push(`servers.${msg.guild.id}.tickets.${tName}.chatLogs`, output2);
+
+    return msg.channel.send({ embeds: [embed] });
   }
 }
 

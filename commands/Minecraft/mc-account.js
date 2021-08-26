@@ -4,7 +4,7 @@ const DiscordJS = require('discord.js');
 const fetch = require('node-superfetch');
 const { JSONPath } = require('jsonpath-plus');
 
-class mcAccount extends Command {
+class MinecraftAccount extends Command {
   constructor (client) {
     super(client, {
       name: 'mc-account',
@@ -16,14 +16,12 @@ class mcAccount extends Command {
   }
 
   async run (msg, args) {
-    const p = msg.settings.prefix;
-
     if (!args || args.length < 1) {
       const embed = new DiscordJS.MessageEmbed()
         .setTitle('Invalid Username')
         .setColor('FF0000')
-        .setDescription(`Invalid Usage: ${p}mc-account <username>`);
-      return msg.channel.send(embed);
+        .setDescription(`Invalid Usage: ${msg.settings.prefix}mc-account <username>`);
+      return msg.channel.send({ embeds: [embed] });
     }
     const name = args.join(' ').trim();
 
@@ -34,7 +32,7 @@ class mcAccount extends Command {
         .setTitle('Invalid Username')
         .setColor('FF0000')
         .setDescription(`\`${name}\` is not a valid minecraft username.`);
-      return msg.channel.send(em);
+      return msg.channel.send({ embeds: [em] });
     }
 
     try {
@@ -50,10 +48,10 @@ class mcAccount extends Command {
           .setTitle(`${rn}'s Account Information`)
           .setColor('00FF00')
           .setImage(`https://mc-heads.net/body/${id}`)
-          .addField('Name Chanmges History', nc || 'Error fetching data...', false)
-          .addField('UUID', id, false)
+          .addField('Name Changes History', nc || 'Error fetching data...', false)
+          .addField('UUID', id.toString(), false)
           .addField('NameMC Link', `Click [here](https://es.namemc.com/profile/${id}) to go to their NameMC Profile`, false);
-        return msg.channel.send(em);
+        return msg.channel.send({ embeds: [em] });
       } catch (err) {
         return console.error(err);
       }
@@ -62,9 +60,9 @@ class mcAccount extends Command {
         .setTitle('Account Not Found')
         .setColor('FF0000')
         .setDescription(`An account with the name \`${name}\` was not found.`);
-      return msg.channel.send(em);
+      return msg.channel.send({ embeds: [em] });
     }
   }
 }
 
-module.exports = mcAccount;
+module.exports = MinecraftAccount;

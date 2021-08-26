@@ -1,5 +1,5 @@
 const Command = require('../../base/Command.js');
-const { getMember } = require('../../base/Util.js');
+const { getMember } = require('../../util/Util.js');
 const DiscordJS = require('discord.js');
 const { stripIndents } = require('common-tags');
 
@@ -31,62 +31,62 @@ class Perms extends Command {
     embed.setTimestamp();
 
     embed.addField('➢ __General Server Permissions:__', stripIndents`
-    \`View Channels\`| ${infoMem.hasPermission('VIEW_CHANNEL') ? yes : no}
-    \`Manage Channels\`| ${infoMem.hasPermission('MANAGE_CHANNELS') ? yes : no}
-    \`Manage Roles\`| ${infoMem.hasPermission('MANAGE_ROLES') ? yes : no}
-    \`Manage Emojis and Stickers\`| ${infoMem.hasPermission('MANAGE_EMOJIS') ? yes : no}
-    \`View Audit Log\`| ${infoMem.hasPermission('VIEW_AUDIT_LOG') ? yes : no}
-    \`View Server Insights\`| ${infoMem.hasPermission('VIEW_GUILD_INSIGHTS') ? yes : no}
-    \`Manage Webhooks\`| ${infoMem.hasPermission('MANAGE_WEBHOOKS') ? yes : no}
-    \`Manage Server\`| ${infoMem.hasPermission('MANAGE_GUILD') ? yes : no}
+    \`View Channels\`| ${infoMem.permissions.has('VIEW_CHANNEL') ? yes : no}
+    \`Manage Channels\`| ${infoMem.permissions.has('MANAGE_CHANNELS') ? yes : no}
+    \`Manage Roles\`| ${infoMem.permissions.has('MANAGE_ROLES') ? yes : no}
+    \`Manage Emojis and Stickers\`| ${infoMem.permissions.has('MANAGE_EMOJIS_AND_STICKERS') ? yes : no}
+    \`View Audit Log\`| ${infoMem.permissions.has('VIEW_AUDIT_LOG') ? yes : no}
+    \`View Server Insights\`| ${infoMem.permissions.has('VIEW_GUILD_INSIGHTS') ? yes : no}
+    \`Manage Webhooks\`| ${infoMem.permissions.has('MANAGE_WEBHOOKS') ? yes : no}
+    \`Manage Server\`| ${infoMem.permissions.has('MANAGE_GUILD') ? yes : no}
     `, true);
 
     embed.addField('➢ __Membership Permissions:__', stripIndents`
-    \`Create Invite\`| ${infoMem.hasPermission('CREATE_INSTANT_INVITE') ? yes : no}
-    \`Change Nickname\`| ${infoMem.hasPermission('CHANGE_NICKNAME') ? yes : no}
-    \`Manage Nicknames\`| ${infoMem.hasPermission('MANAGE_NICKNAMES') ? yes : no}
-    \`Kick Members\`| ${infoMem.hasPermission('KICK_MEMBERS') ? yes : no}
-    \`Ban Members\`| ${infoMem.hasPermission('BAN_MEMBERS') ? yes : no}
+    \`Create Invite\`| ${infoMem.permissions.has('CREATE_INSTANT_INVITE') ? yes : no}
+    \`Change Nickname\`| ${infoMem.permissions.has('CHANGE_NICKNAME') ? yes : no}
+    \`Manage Nicknames\`| ${infoMem.permissions.has('MANAGE_NICKNAMES') ? yes : no}
+    \`Kick Members\`| ${infoMem.permissions.has('KICK_MEMBERS') ? yes : no}
+    \`Ban Members\`| ${infoMem.permissions.has('BAN_MEMBERS') ? yes : no}
     `, true);
 
     embed.addField('➢ __Text Channel Permissions:__', stripIndents`
-    \`Send Messages\`| ${infoMem.hasPermission('SEND_MESSAGES') ? yes : no}
-    \`Public Thrads\`| ${/* infoMem.hasPermission('USE_PUBLIC_THREADS') ? yes : no */ 'N/A'}
-    \`Private Thrads\`| ${/* infoMem.hasPermission('USE_PRIVATE_THREADS') ? yes : no */ 'N/A'}
-    \`Embed Links\`| ${infoMem.hasPermission('EMBED_LINKS') ? yes : no}
-    \`Attach Files\`| ${infoMem.hasPermission('ATTACH_FILES') ? yes : no}
-    \`Add Reactions\`| ${infoMem.hasPermission('ADD_REACTIONS') ? yes : no}
-    \`Use External Emojis\`| ${/* infoMem.hasPermission('USE_EXTERNAL_EMOJIS') ? yes : no */ 'N/A'}
-    \`Use External Stickers\`| ${/* infoMem.hasPermission('USE_EXTERNAL_STICKERS') ? yes : no */ 'N/A'}
-    \`Mention @everyone, @here, and All Roles\`| ${infoMem.hasPermission('MENTION_EVERYONE') ? yes : no}
-    \`Manage Messages\`| ${infoMem.hasPermission('MANAGE_MESSAGES') ? yes : no}
-    \`Manage Threads\`| ${/* infoMem.hasPermission('MANAGE_THREADS') ? yes : no */ 'N/A'}
-    \`Read Message History\`| ${infoMem.hasPermission('READ_MESSAGE_HISTORY') ? yes : no}
-    \`Send Text-to-Speech Messages\`| ${infoMem.hasPermission('SEND_TTS_MESSAGES') ? yes : no}
-    \`Use Application Commands\`| ${/* infoMem.hasPermission('USE_APPLICATION_COMMANDS') ? yes : no */ 'N/A'}
+    \`Send Messages\`| ${infoMem.permissions.has('SEND_MESSAGES') ? yes : no}
+    \`Public Threads\`| ${infoMem.permissions.has('USE_PUBLIC_THREADS') ? yes : no}
+    \`Private Threads\`| ${infoMem.permissions.has('USE_PRIVATE_THREADS') ? yes : no}
+    \`Embed Links\`| ${infoMem.permissions.has('EMBED_LINKS') ? yes : no}
+    \`Attach Files\`| ${infoMem.permissions.has('ATTACH_FILES') ? yes : no}
+    \`Add Reactions\`| ${infoMem.permissions.has('ADD_REACTIONS') ? yes : no}
+    \`Use External Emojis\`| ${infoMem.permissions.has('USE_EXTERNAL_EMOJIS') ? yes : no}
+    \`Use External Stickers\`| ${infoMem.permissions.has('USE_EXTERNAL_STICKERS') ? yes : no}
+    \`Mention @everyone, @here, and All Roles\`| ${infoMem.permissions.has('MENTION_EVERYONE') ? yes : no}
+    \`Manage Messages\`| ${infoMem.permissions.has('MANAGE_MESSAGES') ? yes : no}
+    \`Manage Threads\`| ${infoMem.permissions.has('MANAGE_THREADS') ? yes : no}
+    \`Read Message History\`| ${infoMem.permissions.has('READ_MESSAGE_HISTORY') ? yes : no}
+    \`Send Text-to-Speech Messages\`| ${infoMem.permissions.has('SEND_TTS_MESSAGES') ? yes : no}
+    \`Use Application Commands\`| ${infoMem.permissions.has('USE_APPLICATION_COMMANDS') ? yes : no}
     `, true);
 
     // Voice Perms
     embed.addField('➢ __Voice Permissions:__', stripIndents`
-    \`Connect\`| ${(infoMem.hasPermission('CONNECT') ? yes : no)}
-    \`Speak\`| ${(infoMem.hasPermission('SPEAK') ? yes : no)}
-    \`Stream\`| ${infoMem.hasPermission('STREAM') ? yes : no}
-    \`Use Voice Activity\`| ${(infoMem.hasPermission('USE_VAD') ? yes : no)}
-    \`Priority Speaker\`| ${(infoMem.hasPermission('PRIORITY_SPEAKER') ? yes : no)}
-    \`Mute Members\`| ${(infoMem.hasPermission('MUTE_MEMBERS') ? yes : no)}
-    \`Deafen Members\`| ${(infoMem.hasPermission('DEAFEN_MEMBERS') ? yes : no)}
-    \`Move Members\`| ${(infoMem.hasPermission('MOVE_MEMBERS') ? yes : no)}
+    \`Connect\`| ${(infoMem.permissions.has('CONNECT') ? yes : no)}
+    \`Speak\`| ${(infoMem.permissions.has('SPEAK') ? yes : no)}
+    \`Stream\`| ${infoMem.permissions.has('STREAM') ? yes : no}
+    \`Use Voice Activity\`| ${(infoMem.permissions.has('USE_VAD') ? yes : no)}
+    \`Priority Speaker\`| ${(infoMem.permissions.has('PRIORITY_SPEAKER') ? yes : no)}
+    \`Mute Members\`| ${(infoMem.permissions.has('MUTE_MEMBERS') ? yes : no)}
+    \`Deafen Members\`| ${(infoMem.permissions.has('DEAFEN_MEMBERS') ? yes : no)}
+    \`Move Members\`| ${(infoMem.permissions.has('MOVE_MEMBERS') ? yes : no)}
     `, true);
 
     embed.addField('➢ __Stage Channel Permissions:__', stripIndents`
-    \`Request to Speak\`| ${/* infoMem.hasPermission('REQUEST_TO_SPEAK') ? yes : no */ 'N/A'}
+    \`Request to Speak\`| ${infoMem.permissions.has('REQUEST_TO_SPEAK') ? yes : no}
     `, true);
 
     embed.addField('➢ __Advanced Permissions:__', stripIndents`
-    \`Administrator\`| ${infoMem.hasPermission('ADMINISTRATOR') ? yes : no}
+    \`Administrator\`| ${infoMem.permissions.has('ADMINISTRATOR') ? yes : no}
     `, true);
 
-    return msg.channel.send(embed);
+    return msg.channel.send({ embeds: [embed] });
   }
 }
 

@@ -252,7 +252,7 @@ const countries = [
   { name: 'Zimbabwe', alpha2: 'ZW', alpha3: 'ZWE' }
 ];
 
-class country extends Command {
+class Country extends Command {
   constructor (client) {
     super(client, {
       name: 'country',
@@ -317,11 +317,11 @@ class country extends Command {
         .setFooter('Powered by: restcountries.eu')
         .setTimestamp();
 
-      return message.channel.send(em);
+      return message.channel.send({ embeds: [em] });
     } catch (err) {
       return message.channel.send(`Error! Unable to fetch country information. \n${err}`);
     }
   }
 }
 
-module.exports = country;
+module.exports = Country;
