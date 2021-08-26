@@ -8,7 +8,7 @@ const config = {
   // Bot Support, level 8 by default. Array of user ID strings
   "support": [],
 
-  // Your Bot's Token. Available on https://discordapp.com/developers/applications/me
+  // Your Bots Token. Available on https://discordapp.com/developers/applications/me
   "token": "mfa.VkO_2G4Qv3T--NO--lWetW_tjND--TOKEN--QFTm6YGtzq9PH--4U--tG0",
 
   // MySQL Information for Crafters-Island Server info
@@ -40,7 +40,7 @@ const config = {
   // PERMISSION LEVEL DEFINITIONS.
 
   permLevels: [
-    // This is the lowest permisison level, this is for non-roled users.
+    // This is the lowest permission level, this is for non-roled users.
     { level: 0,
       name: "User", 
       // Don't bother checking, just return true which allows them to execute any command their
@@ -85,7 +85,7 @@ const config = {
       check: (message) => message.channel.type === "text" ? (message.guild.owner.user.id === message.author.id ? true : false) : false
     },
 
-    // Bot Support is a special inbetween level that has the equivalent of server owner access
+    // Bot Support is a special in between level that has the equivalent of server owner access
     // to any server they joins, in order to help troubleshoot the bot on behalf of owners.
     { level: 8,
       name: "Bot Support",
