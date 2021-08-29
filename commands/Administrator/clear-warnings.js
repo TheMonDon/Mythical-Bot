@@ -17,12 +17,11 @@ class ClearWarnings extends Command {
   }
 
   async run (msg, args) {
-    let mem;
     const usage = `Incorrect Usage: ${msg.settings.prefix}clear-warnings <user>`;
 
     if (!args || args.length < 1) return msg.reply(usage);
 
-    mem = getMember(msg, args.join(' '));
+    let mem = getMember(msg, args.join(' '));
 
     // Find the user by user ID
     if (!mem) {
@@ -55,7 +54,14 @@ class ClearWarnings extends Command {
       .setColor('ORANGE')
       .addField('User', `${mem} (${mem.id})`, true)
       .addField('Cleared Cases', otherCases, true);
-    mem.send({ embeds: [em] }).catch(() => null);
+
+    const memEmbed = new DiscordJS.MessageEmbed()
+      .setDescription(`${msg.author.tag} has cleared all your warnings.`)
+      .setColor('ORANGE')
+      .addField('Cleared Cases', otherCases, true)
+      .addField('Issued In', m)
+
+    mem.send({ embeds: [memEmbed] }).catch(() => null);
     return msg.channel.send({ embeds: [em] });
   }
 }

@@ -110,12 +110,12 @@ class Warn extends Command {
     const userEm = new DiscordJS.MessageEmbed()
       .setColor(color)
       .setAuthor(msg.author.username, msg.author.displayAvatarURL())
-      .setFooter(`Issued in ${msg.guild.name}`)
       .setTitle(`You have been ${status}`)
       .addField('Case ID', `\`${warnID}\``, true)
       .addField('Points', `${points} points (Total: ${warnAmount} points)`, true)
       .addField('Other Cases', otherCases, true)
-      .addField('Reason', reason, false);
+      .addField('Reason', reason, false)
+      .setFooter(`Issued in ${msg.guild.name}`);
     const um = await mem.send({ embeds: [userEm] }).catch(() => null);
 
     const logEmbed = new DiscordJS.MessageEmbed()
