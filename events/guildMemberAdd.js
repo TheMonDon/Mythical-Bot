@@ -24,8 +24,8 @@ module.exports = class {
       embed.setColor('#3dd0f4');
       embed.setAuthor(member.user.tag, member.user.displayAvatarURL());
       embed.setThumbnail(member.user.displayAvatarURL());
-      embed.addField('User', member, true);
-      embed.addField('Member Count', member.guild.members.cache.size, true);
+      embed.addField('User', member.toString(), true);
+      embed.addField('Member Count', member.guild.members.cache.size.toLocaleString(), true);
       embed.setFooter(`ID: ${member.user.id}`);
       embed.setTimestamp();
       member.guild.channels.cache.get(logChan).send({ embeds: [embed] });

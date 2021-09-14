@@ -23,8 +23,8 @@ module.exports = class {
         .setColor('#3dd0f4')
         .setAuthor(member.user.tag, member.user.displayAvatarURL())
         .setThumbnail(member.user.displayAvatarURL())
-        .addField('User', member, true)
-        .addField('Member Count', member.guild.members.cache.size, true)
+        .addField('User', member.toString(), true)
+        .addField('Member Count', member.guild.members.cache.size.toLocaleString(), true)
         .setFooter(`ID: ${member.user.id}`)
         .setTimestamp();
       member.guild.channels.cache.get(logChan).send({ embeds: [embed] });
