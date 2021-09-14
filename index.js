@@ -216,6 +216,8 @@ client.player
       case 'UnableToJoin':
         queue.metadata.channel.send('I am not able to join your voice channel, please check my permissions!');
         break;
+      case 'DestroyedQueue':
+        break;
       default:
         queue.metadata.channel.send(`Something went wrong... ${error}`);
         break;
