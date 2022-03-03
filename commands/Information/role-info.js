@@ -28,6 +28,7 @@ class RoleInfo extends Command {
     const then = moment(infoRole.createdAt);
     const time = then.from(moment());
     const ca = then.format('MMM Do, YYYY');
+    msg.guils.members.fetch();
 
     const embed = new DiscordJS.MessageEmbed()
       .setTitle(`${infoRole.name}'s Information`)
