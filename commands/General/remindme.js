@@ -64,7 +64,7 @@ class RemindMe extends Command {
 
     const embed = new DiscordJS.MessageEmbed()
       .setColor(rand)
-      .setAuthor(msg.author.username, msg.author.displayAvatarURL())
+      .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
       .addField('I will remind you to:', `\`\`\`${message}\`\`\``, true)
       .addField('in:', `\`\`\`${timeString}\`\`\``, true)
       .setFooter(`ID: ${remID} | Got it! I'll remind you on:`)

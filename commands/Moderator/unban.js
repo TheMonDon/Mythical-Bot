@@ -39,7 +39,7 @@ class Unban extends Command {
       msg.guild.unban(userID, reason)
         .then(unbanP => {
           embed.setTitle('Member Unbanned');
-          embed.setAuthor(msg.member.displayName, msg.author.displayAvatarURL());
+          embed.setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() });
           embed.setColor('GREEN');
           embed.addField('User', unbanP.toString(), true);
           embed.addField('Unbanned By', msg.member.toString(), true);

@@ -29,7 +29,7 @@ class Work extends Command {
           .format('y[ years][,] M[ Months]d[ days][,] h[ hours][,] m[ minutes][, and] s[ seconds]');
         const embed = new DiscordJS.MessageEmbed()
           .setColor('#EC5454')
-          .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
+          .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
           .setDescription(`You cannot work for ${tLeft}`);
         return msg.channel.send({ embeds: [embed] });
       }
@@ -58,7 +58,7 @@ class Work extends Command {
     db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newBalance);
 
     const embed = new DiscordJS.MessageEmbed()
-      .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
+      .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
       .setColor('#64BC6C')
       .setDescription(job)
       .setFooter(`Reply #${num.toLocaleString()}`);

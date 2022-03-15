@@ -25,7 +25,7 @@ class ResetMoney extends Command {
 
     const errEm = new DiscordJS.MessageEmbed()
       .setColor('#EC5454')
-      .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
+      .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
       .setDescription(`Incorrect Usage: ${msg.settings.prefix}Reset-Money <user>`);
 
     if (!text || text.length < 1) {
@@ -62,7 +62,7 @@ class ResetMoney extends Command {
         } catch (err) {
           const embed = new DiscordJS.MessageEmbed()
             .setColor('#EC5454')
-            .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
+            .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
             .setDescription(`That user was not found. \nUsage: ${msg.settings.prefix}Reset-Money <user>`);
           return msg.channel.send({ embeds: [embed] });
         }

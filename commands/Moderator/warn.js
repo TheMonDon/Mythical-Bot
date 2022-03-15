@@ -109,7 +109,7 @@ class Warn extends Command {
     // Send the embed to the users DMS
     const userEm = new DiscordJS.MessageEmbed()
       .setColor(color)
-      .setAuthor(msg.author.username, msg.author.displayAvatarURL())
+      .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
       .setTitle(`You have been ${status}`)
       .addField('Case ID', `\`${warnID}\``, true)
       .addField('Points', `${points} points (Total: ${warnAmount} points)`, true)

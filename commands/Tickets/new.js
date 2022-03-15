@@ -73,7 +73,7 @@ class New extends Command {
     db.set(`servers.${msg.guild.id}.tickets.${tName}.owner`, msg.author.id);
 
     const userEmbed = new DiscordJS.MessageEmbed()
-      .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
+      .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
       .setTitle(`${msg.member.displayName}'s Ticket`)
       .addField('Reason', reason, true)
       .addField('Channel', tixChan, true)
@@ -85,7 +85,7 @@ class New extends Command {
     msg.delete();
 
     const logEmbed = new DiscordJS.MessageEmbed()
-      .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
+      .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
       .setTitle('New Ticket Created')
       .addField('Author', `${msg.author} (${msg.author.id})`, false)
       .addField('Channel', `${tixChan} \n(${tName}: ${tixChan.id})`, false)
@@ -96,7 +96,7 @@ class New extends Command {
     await logChan.send({ embeds: [logEmbed] });
 
     const chanEmbed = new DiscordJS.MessageEmbed()
-      .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
+      .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
       .setTitle(`${msg.member.displayName}'s Ticket`)
       .addField('Reason', reason, false)
       .setDescription('Please wait patiently and our support team will be with you shortly.')

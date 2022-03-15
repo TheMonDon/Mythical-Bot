@@ -25,7 +25,7 @@ class Back extends Command {
 
     const em = new MessageEmbed()
       .setColor('GREEN')
-      .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
+      .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
       .addField('Now Playing', song.title, false);
 
     return msg.channel.send({ embeds: [em] });

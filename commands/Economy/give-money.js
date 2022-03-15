@@ -21,7 +21,7 @@ class GiveMoney extends Command {
     const usage = `${msg.settings.prefix}Give-Money <user> <amount | all>`;
     const errEmbed = new DiscordJS.MessageEmbed()
       .setColor('#EC5454')
-      .setAuthor(msg.author.tag, msg.author.displayAvatarURL());
+      .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() });
 
     if (!text || text.length < 1) {
       errEmbed.setDescription(`Incorrect Usage: ${usage}`);
@@ -67,13 +67,13 @@ class GiveMoney extends Command {
 
         const embed = new DiscordJS.MessageEmbed()
           .setColor('#04ACF4')
-          .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
+          .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
           .setDescription(`${mem} has received your ${cs}${amount.toLocaleString()}.`);
         return msg.channel.send({ embeds: [embed] });
       } else {
         const embed = new DiscordJS.MessageEmbed()
           .setColor('#EC5454')
-          .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
+          .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
           .setDescription(`Incorrect Usage: ${usage}`);
         return msg.channel.send({ embeds: [embed] });
       }
@@ -96,7 +96,7 @@ class GiveMoney extends Command {
 
     const embed = new DiscordJS.MessageEmbed()
       .setColor('#0099CC')
-      .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
+      .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
       .setDescription(`${mem} has received your ${cs}${amount.toLocaleString()}.`);
     return msg.channel.send({ embeds: [embed] });
   }

@@ -21,7 +21,7 @@ class Withdraw extends Command {
     if (!amount || amount.length < 1) {
       const embed = new DiscordJS.MessageEmbed()
         .setColor('#EC5454')
-        .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
+        .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
         .setDescription(`Incorrect Usage: ${usage}`);
       return msg.channel.send({ embeds: [embed] });
     }
@@ -43,13 +43,13 @@ class Withdraw extends Command {
 
         const em = new DiscordJS.MessageEmbed()
           .setColor('#04ACF4')
-          .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
+          .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
           .setDescription(`Withdrew ${cs}${bank.toLocaleString()} from your bank!`);
         return msg.channel.send({ embeds: [em] });
       } else {
         const embed = new DiscordJS.MessageEmbed()
           .setColor('#EC5454')
-          .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
+          .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
           .setDescription(`Incorrect Usage: ${usage}`);
         return msg.channel.send({ embeds: [embed] });
       }
@@ -68,7 +68,7 @@ class Withdraw extends Command {
 
     const embed = new DiscordJS.MessageEmbed()
       .setColor('#04ACF4')
-      .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
+      .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
       .setDescription(`Withdrew ${cs}${amount.toLocaleString()} from your bank!`);
     return msg.channel.send({ embeds: [embed] });
   }

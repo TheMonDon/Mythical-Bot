@@ -33,7 +33,7 @@ class Ban extends Command {
 
     const em = new DiscordJS.MessageEmbed()
       .setTitle('User Banned')
-      .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
+      .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
       .setColor('RED')
       .addField('User', banMem.toString(), true)
       .addField('Banned By', msg.member.displayName.toString(), true)
@@ -46,7 +46,7 @@ class Ban extends Command {
       const em2 = new DiscordJS.MessageEmbed()
         .setTitle('User Banned')
         .setColor('RED')
-        .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
+        .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
         .setDescription('Full info posted in the log channel.');
 
       const reply = await msg.channel.send(em2);

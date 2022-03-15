@@ -33,7 +33,7 @@ module.exports = class {
       const embed = new DiscordJS.MessageEmbed()
         .setTitle('Message Edited')
         .setURL(msg2.url)
-        .setAuthor(msg1.author.tag, msg1.author.displayAvatarURL())
+        .setAuthor({ name: msg1.author.tag, iconURL: msg1.author.displayAvatarURL() })
         .setColor('#EE82EE')
         .setThumbnail(msg1.author.displayAvatarURL())
         .addField('Original Message', (msg1.content.length <= 1024) ? msg1.content : `${msg1.content.substring(0, 1020)}...`, true)

@@ -37,7 +37,7 @@ class MinecraftServer extends Command {
 
     const em = new DiscordJS.MessageEmbed()
       .setTitle('Minecraft Server Stats')
-      .setAuthor(msg.author.username, msg.author.displayAvatarURL())
+      .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
       .setColor('#2ecc71')
       .addField('IP Address:', `${body.hostname.toString() || body.ip.toString() + (body.port !== '25565' ? `:${body.port}` : '')}` || 'N/A', false)
       .addField('Version:', body.version.toString() || 'N/A', false)

@@ -22,7 +22,7 @@ class AddMoneyRole extends Command {
 
     const errEmbed = new DiscordJS.MessageEmbed()
       .setColor('#EC5454')
-      .setAuthor(msg.author.tag, msg.author.displayAvatarURL());
+      .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() });
 
     if (!msg.member.permissions.has('MANAGE_GUILD')) {
       errEmbed.setDescription('You are missing the **Manage Guild** permission.');
@@ -85,7 +85,7 @@ class AddMoneyRole extends Command {
       });
     }
     const embed = new DiscordJS.MessageEmbed()
-      .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
+      .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
       .setColor('#0099CC')
       .setDescription(`:white_check_mark: Added **${cs}${amount.toLocaleString()}** to ${type} balance of ${members.length} ${members.length > 1 ? 'members' : 'member'} with the ${role}.`)
       .setTimestamp();

@@ -154,7 +154,7 @@ class BlackJack extends Command {
     let dcards = getCards('dealer', bj);
     if (blackjack) {
       const embed = new DiscordJS.MessageEmbed()
-        .setAuthor(msg.author.username, msg.author.displayAvatarURL())
+        .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
         .setDescription(`Result: You win ${cs}${bj.bet.toLocaleString()}`)
         .setColor(color)
         .addField('**Your Hand**', `${pcards} \n\nScore: Blackjack`, true)
@@ -164,7 +164,7 @@ class BlackJack extends Command {
       return msg.channel.send({ embeds: [embed] });
     }
     const em = new DiscordJS.MessageEmbed()
-      .setAuthor(msg.author.username, msg.author.displayAvatarURL())
+      .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
       .setDescription('Type `hit` to draw another card, `stand` to pass, or `doubledown` to double down.')
       .setColor(color)
       .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
@@ -191,7 +191,7 @@ class BlackJack extends Command {
         dcards = getCards('dealer', bj);
 
         const embed = new DiscordJS.MessageEmbed()
-          .setAuthor(msg.author.username, msg.author.displayAvatarURL())
+          .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
           .setDescription(`Result: You win ${cs}${bj.bet.toLocaleString()}`)
           .setColor(color)
           .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
@@ -204,7 +204,7 @@ class BlackJack extends Command {
         dcards = getCards('dealer', bj);
 
         const embed = new DiscordJS.MessageEmbed()
-          .setAuthor(msg.author.username, msg.author.displayAvatarURL())
+          .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
           .setDescription(`Result: BlackJack, you win ${cs}${bj.bet.toLocaleString()}`)
           .setColor(color)
           .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
@@ -217,7 +217,7 @@ class BlackJack extends Command {
         dcards = getCards('dealer', bj);
 
         const embed = new DiscordJS.MessageEmbed()
-          .setAuthor(msg.author.username, msg.author.displayAvatarURL())
+          .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
           .setDescription(`Result: Bust, you lose ${cs}${bj.bet.toLocaleString()}`)
           .setColor(color)
           .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
@@ -230,7 +230,7 @@ class BlackJack extends Command {
         dcards = getCards('dealer', bj);
 
         const embed = new DiscordJS.MessageEmbed()
-          .setAuthor(msg.author.username, msg.author.displayAvatarURL())
+          .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
           .setDescription('Result: Push, money back')
           .setColor(color)
           .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
@@ -242,7 +242,7 @@ class BlackJack extends Command {
       dcards = getCards('dealer', bj);
 
       const embed = new DiscordJS.MessageEmbed()
-        .setAuthor(msg.author.username, msg.author.displayAvatarURL())
+        .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
         .setDescription('Type `hit` to draw another card, `stand` to pass, or `doubledown` to double down.')
         .setColor(color)
         .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)

@@ -21,7 +21,7 @@ class Emojis extends Command {
 
     const embed = new DiscordJS.MessageEmbed()
       .setTitle('Custom Emojis')
-      .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
+      .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
       .setDescription(`\`Here is the server's emoji list:\` \n\n${result.join(' ')}`)
       .setTimestamp();
     return msg.channel.send({ embeds: [embed] });

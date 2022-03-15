@@ -22,7 +22,7 @@ class RemoveMoneyRole extends Command {
 
     const errEmbed = new DiscordJS.MessageEmbed()
       .setColor('#EC5454')
-      .setAuthor(msg.author.tag, msg.author.displayAvatarURL());
+      .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() });
 
     let type = 'cash';
     let role;
@@ -78,7 +78,7 @@ class RemoveMoneyRole extends Command {
     }
 
     const embed = new DiscordJS.MessageEmbed()
-      .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
+      .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
       .setColor('#0099CC')
       .setDescription(`:white_check_mark: Removed **${cs}${amount.toLocaleString()}** to ${type} balance of ${members.length} ${members.length > 1 ? 'members' : 'member'} with the ${role}.`)
       .setTimestamp();

@@ -24,7 +24,7 @@ class Color extends Command {
     let color;
 
     const embed = new MessageEmbed()
-      .setAuthor(msg.author.username, msg.author.displayAvatarURL());
+      .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() });
 
     const rgbRegex = /^rgb[\s+]?\((:?\d+\.?\d?%?)(,|-|\/\|)\s?(:?\d+\.?\d?%?)(,|-|\/\|)\s?(:?\d+\.?\d?%?)\)/i;
     const hexRegex = /(^(#|0x)?([a-fA-F0-9]){6}$)|(^(#|0x)?([a-fA-F0-9]){3}$)/;

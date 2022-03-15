@@ -34,7 +34,7 @@ class Lyrics extends Command {
 
     const em = new DiscordJS.MessageEmbed()
       .setColor('#0099CC')
-      .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
+      .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
       .setDescription(`\`\`\`${emLyrics}\`\`\``);
     return msg.channel.send({ embeds: [em] });
   }

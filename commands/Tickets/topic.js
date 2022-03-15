@@ -36,7 +36,7 @@ class Topic extends Command {
           .format('y[ years][,] M[ Months]d[ days][,] h[ hours][,] m[ minutes][, and] s[ seconds]'); // format to any format
         const embed = new DiscordJS.MessageEmbed()
           .setColor('#EC5454')
-          .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
+          .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
           .setDescription(`You can't change the topic for another: ${tLeft}`);
         return msg.channel.send({ embeds: [embed] });
       }

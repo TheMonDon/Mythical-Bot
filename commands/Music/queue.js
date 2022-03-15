@@ -46,7 +46,7 @@ class Queue extends Command {
     const embed = new MessageEmbed()
       .setColor('RANDOM')
       .setTitle(`${msg.guild.name}'s Queue`)
-      .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
+      .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
       .setDescription(q.join('\n'))
       .setFooter(`Page ${realPage} / ${maxPages}`)
       .setTimestamp();

@@ -33,7 +33,7 @@ class Crime extends Command {
           .format('y[ years][,] M[ Months]d[ days][,] h[ hours][,] m[ minutes][, and] s[ seconds]'); // format to any format
         const embed = new DiscordJS.MessageEmbed()
           .setColor('#EC5454')
-          .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
+          .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
           .setDescription(`You cannot commit a crime for ${tLeft}`);
         return msg.channel.send({ embeds: [embed] });
       }
@@ -73,7 +73,7 @@ class Crime extends Command {
 
       const embed = new DiscordJS.MessageEmbed()
         .setColor('#EC5454')
-        .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
+        .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
         .setDescription(txt)
         .setFooter(`Reply #${num.toLocaleString()}`);
       msg.channel.send({ embeds: [embed] });
@@ -88,7 +88,7 @@ class Crime extends Command {
 
       const embed = new DiscordJS.MessageEmbed()
         .setColor('#04ACF4')
-        .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
+        .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
         .setDescription(txt)
         .setFooter(`Reply #${num.toLocaleString()}`);
       msg.channel.send({ embeds: [embed] });

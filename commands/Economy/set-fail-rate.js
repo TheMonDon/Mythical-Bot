@@ -27,7 +27,7 @@ class SetFailRate extends Command {
     if (!text || text.length < 1) {
       const embed = new DiscordJS.MessageEmbed()
         .setColor('#04ACF4')
-        .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
+        .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
         .setDescription(stripIndents`
         The current fail rates are: 
         
@@ -40,7 +40,7 @@ class SetFailRate extends Command {
 
     const errEmbed = new DiscordJS.MessageEmbed()
       .setColor('#EC5454')
-      .setAuthor(msg.author.tag, msg.author.displayAvatarURL());
+      .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() });
 
     const type = text[0]?.toLowerCase();
     if (!types.includes(type)) {
@@ -54,7 +54,7 @@ class SetFailRate extends Command {
     if (isNaN(percentage)) {
       const embed = new DiscordJS.MessageEmbed()
         .setColor('#EC5454')
-        .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
+        .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
         .setDescription(stripIndents`
           :x: Invalid fail rate. Please provide a valid number.
 
@@ -73,7 +73,7 @@ class SetFailRate extends Command {
 
     const embed = new DiscordJS.MessageEmbed()
       .setColor('#64BC6C')
-      .setAuthor(msg.author.tag, msg.author.displayAvatarURL());
+      .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() });
 
     if (type === 'crime') {
       db.set(`servers.${msg.guild.id}.economy.crime.failrate`, percentage);

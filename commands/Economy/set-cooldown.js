@@ -30,7 +30,7 @@ class SetCooldown extends Command {
     if (!args || args.length < 1) {
       const embed = new DiscordJS.MessageEmbed()
         .setColor('#04ACF4')
-        .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
+        .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
         .setDescription(stripIndents`
       The current cooldowns are set to: 
       
@@ -48,7 +48,7 @@ class SetCooldown extends Command {
       if (!types.includes(type)) {
         const embed = new DiscordJS.MessageEmbed()
           .setColor('#EC5454')
-          .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
+          .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
           .setDescription(`Incorrect Usage: ${usage}`);
         return msg.channel.send({ embeds: [embed] });
       }
@@ -61,7 +61,7 @@ class SetCooldown extends Command {
     if (cooldown > 1209600000) {
       const embed = new DiscordJS.MessageEmbed()
         .setColor('#EC5454')
-        .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
+        .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
         .setDescription(stripIndents`
             :x: Invalid cooldown. Cooldowns can not be longer than 2 weeks.
     
@@ -72,7 +72,7 @@ class SetCooldown extends Command {
     } else if (cooldown < 30000) {
       const embed = new DiscordJS.MessageEmbed()
         .setColor('#EC5454')
-        .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
+        .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
         .setDescription(stripIndents`
             :x: Invalid cooldown. Cooldowns can not be shorter than 30 seconds.
 
@@ -83,7 +83,7 @@ class SetCooldown extends Command {
     } else if (isNaN(cooldown)) {
       const embed = new DiscordJS.MessageEmbed()
         .setColor('#EC5454')
-        .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
+        .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
         .setDescription(stripIndents`
             :x: Invalid cooldown. Please provide a valid cooldown time.
 
@@ -99,7 +99,7 @@ class SetCooldown extends Command {
 
       const embed = new DiscordJS.MessageEmbed()
         .setColor('#64BC6C')
-        .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
+        .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
         .setDescription(`The cooldown of \`Work\` has been set to ${cd} seconds.`);
       return msg.channel.send({ embeds: [embed] });
     } else if (type === 'rob') {
@@ -108,7 +108,7 @@ class SetCooldown extends Command {
 
       const embed = new DiscordJS.MessageEmbed()
         .setColor('#64BC6C')
-        .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
+        .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
         .setDescription(`The cooldown of \`Rob\` has been set to ${cd} seconds.`);
       return msg.channel.send({ embeds: [embed] });
     } else if (type === 'crime') {
@@ -117,7 +117,7 @@ class SetCooldown extends Command {
 
       const embed = new DiscordJS.MessageEmbed()
         .setColor('#64BC6C')
-        .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
+        .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
         .setDescription(`The cooldown of \`Crime\` has been set to ${cd} seconds.`);
       return msg.channel.send({ embeds: [embed] });
     }

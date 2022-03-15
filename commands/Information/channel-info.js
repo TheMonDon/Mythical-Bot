@@ -30,7 +30,7 @@ class ChannelInfo extends Command {
     const embed = new DiscordJS.MessageEmbed()
       .setTitle('Channel Information')
       .setColor('RANDOM')
-      .setAuthor(msg.author.username, msg.author.displayAvatarURL())
+      .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
       .addField('Name', infoChan.name, true)
       .addField('ID', infoChan.id.toString(), true)
       .addField('Type', toProperCase(infoChan.type), true)

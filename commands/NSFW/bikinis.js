@@ -21,7 +21,7 @@ class Bikinis extends Command {
     if (trev.isGfyLink(post.media)) image = trev.gfyIframe(post.media);
 
     const em = new DiscordJS.MessageEmbed()
-      .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
+      .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
       .setTitle(post.title)
       .setURL(post.permalink)
       .setImage(image)

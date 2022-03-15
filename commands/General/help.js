@@ -18,7 +18,7 @@ class Help extends Command {
     const allcats = ['Bot Admin', 'Administrator', 'Crafters Island', 'Economy', 'Fun', 'Games', 'General', 'Information', 'Logging', 'Memes', 'Minecraft', 'Moderator', 'Music', 'NSFW', 'Owner', 'Search', 'Tickets'];
 
     const em = new MessageEmbed()
-      .setAuthor(msg.author.username, msg.author.displayAvatarURL());
+      .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() });
 
     const errEm = new MessageEmbed()
       .setColor('ORANGE')

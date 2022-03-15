@@ -21,7 +21,7 @@ class CleanLeaderboard extends Command {
     const toRemove = [];
 
     const em = new DiscordJS.MessageEmbed()
-      .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
+      .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
       .setColor('ORANGE')
       .setDescription('Please wait, this may take a while for bigger servers.');
     const message = await msg.channel.send({ embeds: [em] });

@@ -35,7 +35,7 @@ class Rob extends Command {
           .format('y[ years][,] M[ Months]d[ days][,] h[ hours][,] m[ minutes][, and] s[ seconds]'); // format to any format
         const embed = new DiscordJS.MessageEmbed()
           .setColor('#EC5454')
-          .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
+          .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
           .setDescription(`You cannot rob for ${tLeft}`);
         return msg.channel.send({ embeds: [embed] });
       }
@@ -44,7 +44,7 @@ class Rob extends Command {
     if (!text || text.length < 1) {
       const embed = new DiscordJS.MessageEmbed()
         .setColor('#EC5454')
-        .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
+        .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
         .setDescription(`Incorrect Usage: ${msg.settings.prefix}Rob <user>`);
       return msg.channel.send({ embeds: [embed] });
     } else {
@@ -54,13 +54,13 @@ class Rob extends Command {
     if (!mem) {
       const embed = new DiscordJS.MessageEmbed()
         .setColor('#EC5454')
-        .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
+        .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
         .setDescription(`That user was not found. \nUsage: ${msg.settings.prefix}Rob <user>`);
       return msg.channel.send({ embeds: [embed] });
     } else if (mem.id === msg.author.id) {
       const embed = new DiscordJS.MessageEmbed()
         .setColor('#EC5454')
-        .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
+        .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
         .setDescription('You can\'t rob yourself.');
       return msg.channel.send({ embeds: [embed] });
     }
@@ -74,7 +74,7 @@ class Rob extends Command {
     if (memCash <= 0) {
       const embed = new DiscordJS.MessageEmbed()
         .setColor('#EC5454')
-        .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
+        .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
         .setDescription(`${mem} does not have anything to rob.`);
       return msg.channel.send({ embeds: [embed] });
     }
@@ -99,7 +99,7 @@ class Rob extends Command {
     if (failRate > 100) {
       const em = new DiscordJS.MessageEmbed()
         .setColor('ORANGE')
-        .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
+        .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
         .setDescription('You have too much money to rob someone.');
       return msg.channel.send({ embeds: [em] });
     }
@@ -108,7 +108,7 @@ class Rob extends Command {
 
       const em = new DiscordJS.MessageEmbed()
         .setColor('RED')
-        .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
+        .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
         .setDescription(`You were caught attempting to rob ${mem.displayName} and have been fined ${cs + fineAmnt.toLocaleString()}`);
       msg.channel.send({ embeds: [em] });
     } else {
@@ -120,7 +120,7 @@ class Rob extends Command {
 
       const embed = new DiscordJS.MessageEmbed()
         .setColor('#0099CC')
-        .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
+        .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
         .setDescription(`You successfully robbed ${mem} of ${cs}${amnt.toLocaleString()}`)
         .addField('Your New Balance', `${cs}${db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`).toLocaleString()}`, false)
         .addField(`${mem.displayName}'s New Balance`, `${cs}${db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`).toLocaleString()}`, false);

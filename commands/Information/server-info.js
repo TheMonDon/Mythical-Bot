@@ -48,7 +48,7 @@ class ServerInfo extends Command {
       .setTitle(`${server.name}'s Information`)
       .setColor('#EE82EE')
       .setThumbnail(msg.guild.iconURL())
-      .setAuthor(msg.author.username, msg.author.displayAvatarURL())
+      .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
       .addField('Name', server.name, true)
       .addField('ID', server.id.toString(), true)
       .addField('Owner', server.members.cache.get(server.ownerId).user.tag, true)

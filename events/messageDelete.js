@@ -35,7 +35,7 @@ module.exports = class {
     const embed = new DiscordJS.MessageEmbed();
     embed.setTitle('Message Deleted');
     embed.setColor('RED');
-    embed.setAuthor(msg.author.tag, msg.author.displayAvatarURL());
+    embed.setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() });
     embed.setThumbnail(msg.author.displayAvatarURL());
     embed.addField('Deleted Text', (msg.content.length <= 1024) ? msg.content : `${msg.content.substring(0, 1020)}...`, true);
     embed.addField('Channel', msg.channel, true);

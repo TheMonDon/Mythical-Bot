@@ -27,7 +27,7 @@ class Quote extends Command {
       .setColor('RANDOM')
       .addField('Author', quote.author)
       .addField('Quote', quote.text)
-      .setAuthor(msg.author.username, msg.author.displayAvatarURL());
+      .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() });
 
     return msg.channel.send({ embeds: [em] });
   }

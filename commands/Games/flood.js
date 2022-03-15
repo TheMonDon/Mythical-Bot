@@ -95,7 +95,7 @@ class Flood extends Command {
 
         if (!isNaN(highScoreTime)) highScoreTime = moment.duration(highScoreTime).format('m[ minutes][, and] s[ seconds]');
         embed = new DiscordJS.MessageEmbed()
-          .setAuthor(msg.member.displayName, msg.author.displayAvatarURL({ dynamic: true }))
+          .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL({ dynamic: true }) })
           .setColor('#08b9bf')
           .setTitle('Flood')
           .setDescription(`${gameBoardToString()} \nGame Over! \n${turnResp[result]}`)
@@ -103,7 +103,7 @@ class Flood extends Command {
           .setTimestamp();
       } else {
         embed = new DiscordJS.MessageEmbed()
-          .setAuthor(msg.member.displayName, msg.author.displayAvatarURL({ dynamic: true }))
+          .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL({ dynamic: true }) })
           .setColor('#08b9bf')
           .setTitle('Flood')
           .setDescription(`${gameBoardToString()} 

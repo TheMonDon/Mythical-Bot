@@ -23,7 +23,7 @@ class Balance extends Command {
 
     if (!mem) {
       const embed = new DiscordJS.MessageEmbed()
-        .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
+        .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
         .setColor('#EC5454')
         .setDescription(stripIndents`
       :x: Invalid member given.
@@ -40,7 +40,7 @@ class Balance extends Command {
     const cs = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
 
     const embed = new DiscordJS.MessageEmbed()
-      .setAuthor(mem.user.tag, mem.user.displayAvatarURL())
+      .setAuthor({ name: mem.user.tag, iconURL: mem.user.displayAvatarURL() })
       .setColor('#03A9F4')
       .addField('Cash:', cs + cash.toLocaleString(), true)
       .addField('Bank:', cs + bank.toLocaleString(), true)

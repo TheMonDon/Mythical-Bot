@@ -22,7 +22,7 @@ class Math extends Command {
     try {
       const solution = math.evaluate(text);
       const embed = new DiscordJS.MessageEmbed()
-        .setAuthor(msg.author.username, msg.author.displayAvatarURL())
+        .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
         .setColor('#767CC1')
         .addField('**📥 Expression**', `\`\`\`${text.length > 1000 ? text.slice(0, 1000) + '...' : text}\`\`\``, false)
         .addField('**📤 Result**', `\`\`\`${solution}\`\`\``, false);

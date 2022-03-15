@@ -35,7 +35,7 @@ class Reminders extends Command {
       em.setTitle(`To delete a reminder, use **\`${msg.settings.prefix}reminders <ID>\`**`);
 
       if ((em.fields.length !== 0)) {
-        em.setAuthor(msg.author.username, msg.author.displayAvatarURL());
+        em.setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() });
       } else {
         em.setDescription(`${msg.author.username}, you don't have any reminders, use the **remindme** command to create a new one!`);
       }

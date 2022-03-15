@@ -33,7 +33,7 @@ class SetPayout extends Command {
     if (!text || text.length < 1) {
       const embed = new DiscordJS.MessageEmbed()
         .setColor('#04ACF4')
-        .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
+        .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
         .setDescription(stripIndents`
           The current payout ranges are: 
         
@@ -46,7 +46,7 @@ class SetPayout extends Command {
     }
     const errEmbed = new DiscordJS.MessageEmbed()
       .setColor('#EC5454')
-      .setAuthor(msg.author.tag, msg.author.displayAvatarURL());
+      .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() });
 
     const type = text[0]?.toLowerCase();
     if (!types.includes(type)) {
@@ -82,7 +82,7 @@ class SetPayout extends Command {
 
     const embed = new DiscordJS.MessageEmbed()
       .setColor('#64BC6C')
-      .setAuthor(msg.author.tag, msg.author.displayAvatarURL());
+      .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() });
 
     if (type === 'work') {
       if (minMax === 'min') {

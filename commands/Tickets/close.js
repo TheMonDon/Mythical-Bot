@@ -87,7 +87,7 @@ class Close extends Command {
         });
 
       const logEmbed = new DiscordJS.MessageEmbed()
-        .setAuthor(msg.member.displayName, msg.author.displayAvatarURL())
+        .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
         .setTitle('Ticket Closed')
         .addField('Author', `${msg.author} (${msg.author.id})`, false)
         .addField('Channel', `${tName}: ${msg.channel.id}`, false)

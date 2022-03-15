@@ -17,7 +17,7 @@ class Steam extends Command {
 
     if (!text || text.length < 1) {
       const em = new DiscordJS.MessageEmbed()
-        .setAuthor(msg.author.username, msg.author.displayAvatarURL())
+        .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
         .setTitle('Please provide something to search for')
         .setDescription(`Incorrect Usage: ${msg.settings.prefix}steam <game/app>`)
         .setTimestamp();

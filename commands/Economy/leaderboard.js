@@ -65,7 +65,7 @@ class Leaderboard extends Command {
     const embed = new MessageEmbed()
       .setColor('RANDOM')
       .setTitle(`${msg.guild.name}'s Leaderboard`)
-      .setAuthor(msg.author.tag, msg.author.displayAvatarURL())
+      .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
       .setDescription(abc123.join('\n'))
       .setFooter(`Page ${realPage} / ${maxPages}`)
       .setTimestamp();

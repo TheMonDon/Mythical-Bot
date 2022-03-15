@@ -32,7 +32,7 @@ class Dictionary extends Command {
         const em = new DiscordJS.MessageEmbed()
           .setTitle('Dictionary Information')
           .setColor('RANDOM')
-          .setAuthor(msg.author.username, msg.author.displayAvatarURL())
+          .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
           .addField('Definition', definition, true)
           .addField('Example', example || 'No example provided', true)
           .addField('Pronunciation', result.pronunciation || 'No pronunciation provided', true);

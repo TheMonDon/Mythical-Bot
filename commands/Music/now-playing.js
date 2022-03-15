@@ -29,7 +29,7 @@ class NowPlaying extends Command {
       `)
       .setColor('0099CC')
       .setThumbnail(song.thumbnail)
-      .setAuthor(msg.member.displayName, msg.author.displayAvatarURL());
+      .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() });
     return msg.channel.send({ embeds: [em] });
   }
 }
