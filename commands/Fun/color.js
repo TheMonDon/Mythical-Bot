@@ -9,7 +9,7 @@ const { getColorFromURL } = require('color-thief-node');
 const { stripIndent } = require('common-tags');
 const colorNameList = require('color-name-list');
 
-class Color123 extends Command {
+class Color extends Command {
   constructor (client) {
     super(client, {
       name: 'color',
@@ -226,4 +226,4 @@ class Color123 extends Command {
   }
 }
 
-module.exports = Color123;
+module.exports = Color;
