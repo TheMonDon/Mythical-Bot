@@ -14,8 +14,8 @@ module.exports = class Color extends Command {
     super(client, {
       name: 'color',
       description: 'Get information about some colors.',
-      category: 'Fun',
-      usage: 'color <hex, rgb, name, imageURL, attachment>'
+      usage: 'color <hex, rgb, name, imageURL, attachment>',
+      category: 'Fun'
     });
   }
 
