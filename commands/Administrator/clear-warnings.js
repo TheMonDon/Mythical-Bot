@@ -59,7 +59,7 @@ class ClearWarnings extends Command {
       .setDescription(`${msg.author.tag} has cleared all your warnings.`)
       .setColor('ORANGE')
       .addField('Cleared Cases', otherCases, true)
-      .addField('Issued In', m)
+      .addField('Issued In', msg.guild.name);
 
     mem.send({ embeds: [memEmbed] }).catch(() => null);
     return msg.channel.send({ embeds: [em] });
