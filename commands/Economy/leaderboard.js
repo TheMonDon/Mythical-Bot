@@ -67,7 +67,7 @@ class Leaderboard extends Command {
       .setTitle(`${msg.guild.name}'s Leaderboard`)
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
       .setDescription(abc123.join('\n'))
-      .setFooter(`Page ${realPage} / ${maxPages}`)
+      .setFooter({ text: `Page ${realPage} / ${maxPages}` })
       .setTimestamp();
     return msg.channel.send({ embeds: [embed] });
   }

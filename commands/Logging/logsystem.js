@@ -54,7 +54,7 @@ class LogSystem extends Command {
 **Bulk Messages Deleted:** ${db.get(`servers.${msg.guild.id}.logs.bulk-messages-deleted`) || '0'}
 **Total:** ${db.get(`servers.${msg.guild.id}.logs.all`) || '0'}
 `, true)
-      .setFooter('Logs System V3.0-BETA');
+      .setFooter({ text: 'Logs System V3.0-BETA' });
 
     if (msg.guild.me.permissions.has('MANAGE_MESSAGES')) msg.delete();
     return msg.channel.send({ embeds: [embed] });

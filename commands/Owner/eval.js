@@ -25,7 +25,7 @@ class Eval extends Command {
     const config = this.client.config;
 
     const embed = new MessageEmbed()
-      .setFooter(msg.author.tag, msg.author.displayAvatarURL());
+      .setFooter({ text: msg.author.tag, iconURL: msg.author.displayAvatarURL() });
 
     let query = args.join(' ');
     const code = (lang, code) => (`\`\`\`${lang}\n${String(code).slice(0, 4000) + (code.length >= 4000 ? '...' : '')}\n\`\`\``);

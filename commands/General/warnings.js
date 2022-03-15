@@ -54,7 +54,7 @@ class Warnings extends Command {
 
     mem = mem.user ? mem.user : mem;
     const em = new DiscordJS.MessageEmbed()
-      .setAuthor(mem.username, mem.displayAvatarURL())
+      .setAuthor({ name: mem.username, iconURL: mem.displayAvatarURL() })
       .setColor('ORANGE')
       .setTitle(`Total Warning Points: ${totalPoints}`)
       .setDescription(warns.length ? warns.join('\n') : 'This user is squeaky clean.');

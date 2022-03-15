@@ -21,7 +21,7 @@ module.exports = class {
       .addField('Name', role, true)
       .addField('Managed', role.managed, true)
       .addField('Position', role.position, true)
-      .setFooter(`ID: ${role.id}`)
+      .setFooter({ text: `ID: ${role.id}` })
       .setTimestamp();
     role.guild.channels.cache.get(logChan).send({ embeds: [embed] });
 

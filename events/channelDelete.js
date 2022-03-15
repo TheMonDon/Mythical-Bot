@@ -25,7 +25,7 @@ module.exports = class {
       .setColor('RED')
       .addField('Name', channel.name, true)
       .addField('Category', channel.parent?.name || 'None', true)
-      .setFooter(`ID: ${channel.id}`)
+      .setFooter({ text: `ID: ${channel.id}` })
       .setTimestamp();
     channel.guild.channels.cache.get(logChan).send({ embeds: [embed] });
 

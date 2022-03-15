@@ -21,7 +21,7 @@ class Insult extends Command {
     const em = new DiscordJS.MessageEmbed()
       .setTitle(body.insult)
       .setColor('RANDOM')
-      .setFooter(`ID: ${body.number}`);
+      .setFooter({ text: `ID: ${body.number}` });
     return msg.channel.send({ embeds: [em] });
   }
 }

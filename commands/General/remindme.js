@@ -67,7 +67,7 @@ class RemindMe extends Command {
       .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
       .addField('I will remind you to:', `\`\`\`${message}\`\`\``, true)
       .addField('in:', `\`\`\`${timeString}\`\`\``, true)
-      .setFooter(`ID: ${remID} | Got it! I'll remind you on:`)
+      .setFooter({ text: `ID: ${remID} | Got it! I'll remind you on:` })
       .setTimestamp(start);
     msg.channel.send({ embeds: [embed] });
 

@@ -48,7 +48,7 @@ class Queue extends Command {
       .setTitle(`${msg.guild.name}'s Queue`)
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
       .setDescription(q.join('\n'))
-      .setFooter(`Page ${realPage} / ${maxPages}`)
+      .setFooter({ text: `Page ${realPage} / ${maxPages}` })
       .setTimestamp();
     return msg.channel.send({ embeds: [embed] });
   }

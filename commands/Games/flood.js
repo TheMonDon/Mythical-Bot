@@ -112,7 +112,7 @@ Fill the entire image with the same color in 25 or fewer flood tiles (turns).
 Click on the reactions below to fill the area above.
 Filling starts at the top left corner.`)
           .addField('Turn:', turn.toString(), true)
-          .setFooter(`Currently Playing: ${msg.author.username}`)
+          .setFooter({ text: `Currently Playing: ${msg.author.username}` })
           .setTimestamp();
       }
 

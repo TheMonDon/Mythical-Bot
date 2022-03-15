@@ -43,7 +43,7 @@ module.exports = class {
     if (delby && (msg.author !== delby)) embed.addField('Deleted By', delby, true);
     (msg.mentions.users.size === 0) ? embed.addField('Mentioned Users', 'None', true) : embed.addField('Mentioned Users', `Mentioned Member Count: ${[...msg.mentions.users.values()].length} \n Mentioned Users List: \n ${[...msg.mentions.users.values()]}`, true);
     embed.setTimestamp();
-    embed.setFooter(`Message ID: ${msg.id}`);
+    embed.setFooter({ text: `Message ID: ${msg.id}` });
     logChannel.send({ embeds: [embed] });
 
     db.add(`servers.${msg.guild.id}.logs.message-deleted`, 1);

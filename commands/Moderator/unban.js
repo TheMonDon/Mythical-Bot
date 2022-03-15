@@ -44,7 +44,7 @@ class Unban extends Command {
           embed.addField('User', unbanP.toString(), true);
           embed.addField('Unbanned By', msg.member.toString(), true);
           embed.addField('Reason', reason, true);
-          embed.setFooter(`ID: ${unbanP.id}`);
+          embed.setFooter({ text: `ID: ${unbanP.id}` });
           embed.setTimestamp();
           if (logChan) msg.guild.channels.cache.get(logChan).send({ embeds: [embed] });
 

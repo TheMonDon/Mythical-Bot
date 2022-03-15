@@ -36,7 +36,7 @@ class Wikipedia extends Command {
     const embed = new DiscordJS.MessageEmbed()
       .setColor('#00A2E8')
       .setTitle(body.query.pages[0].title)
-      .setAuthor('Wikipedia', 'https://i.imgur.com/a4eeEhh.png')
+      .setAuthor({ name: 'Wikipedia', iconURL: 'https://i.imgur.com/a4eeEhh.png' })
       .setDescription(str.length > 3095 ? str.substr(0, 3090) + ' ...' : str);
     return msg.channel.send({ embeds: [embed] });
   }

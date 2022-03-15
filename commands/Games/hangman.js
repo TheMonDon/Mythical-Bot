@@ -71,7 +71,7 @@ class Hangman extends Command {
           const firstEmbed = new Discord.MessageEmbed()
             .setColor('BLUE')
             .setTitle(lang.hangman_embedtitlestart)
-            .setFooter(embedtitlechances)
+            .setFooter({ text: embedtitlechances })
             .setImage(hangmanPictures[15 - chances])
             .setDescription(embeddescription);
 
@@ -158,7 +158,7 @@ class Hangman extends Command {
                       embedtitlechances = lang.hangman_embedtitlechances.replace('%chances', chances);
                       if (chances > 0) {
                         firstEmbed.setTitle(embedtitlewrong);
-                        firstEmbed.setFooter(embedtitlechances);
+                        firstEmbed.setFooter({ text: embedtitlechances });
                         firstEmbed.setDescription(embeddescriptionwithtried);
                         firstEmbed.setImage(hangmanPictures[15 - chances]);
 
@@ -167,7 +167,7 @@ class Hangman extends Command {
                         hangmanEmbed.edit({ embeds: [firstEmbed] });
                       } else {
                         firstEmbed.setTitle(embedtitlewrong);
-                        firstEmbed.setFooter(embedtitlechances);
+                        firstEmbed.setFooter({ text: embedtitlechances });
                         firstEmbed.setDescription(embeddescriptionwithtried);
                         firstEmbed.setImage(hangmanPictures[15 - chances]);
 
@@ -190,7 +190,7 @@ class Hangman extends Command {
                         const embedtitlecorrect = lang.hangman_embedtitlecorrectword.replace('%author', turn === 1 ? msg.author.tag : mention.tag)
                           .replace('%word', response.first().content.toLowerCase());
                         firstEmbed.setTitle(embedtitlecorrect);
-                        firstEmbed.setFooter(embedtitlechances);
+                        firstEmbed.setFooter({ text: embedtitlechances });
                         firstEmbed.setDescription(embeddescriptionwithtried);
 
                         hangmanEmbed.edit({ embeds: [firstEmbed] });
@@ -220,7 +220,7 @@ class Hangman extends Command {
                       embedtitlechances = lang.hangman_embedtitlechances.replace('%chances', chances);
                       const embeddescriptionwithtried = lang.hangman_embeddescriptionwithtried.replace('%triedletters', triedLetters.join(', '))
                         .replace('%word', `\`\`${newWordString.join(' ')}\`\``);
-                      firstEmbed.setFooter(embedtitlechances);
+                      firstEmbed.setFooter({ text: embedtitlechances });
                       firstEmbed.setDescription(embeddescriptionwithtried);
                       firstEmbed.setImage(hangmanPictures[15 - chances]);
 
@@ -263,7 +263,7 @@ class Hangman extends Command {
       const firstEmbed = new Discord.MessageEmbed()
         .setColor('BLUE')
         .setTitle(lang.hangman_embedtitlestart)
-        .setFooter(embedtitlechances)
+        .setFooter({ text: embedtitlechances })
         .setImage(hangmanPictures[15 - chances])
         .setDescription(embeddescription);
 
@@ -321,14 +321,14 @@ class Hangman extends Command {
                   embedtitlechances = lang.hangman_embedtitlechances.replace('%chances', chances);
                   if (chances > 0) {
                     firstEmbed.setTitle(embedtitlewrongnomention);
-                    firstEmbed.setFooter(embedtitlechances);
+                    firstEmbed.setFooter({ text: embedtitlechances });
                     firstEmbed.setDescription(embeddescriptionwithtried);
                     firstEmbed.setImage(hangmanPictures[15 - chances]);
 
                     hangmanEmbed.edit({ embeds: [firstEmbed] });
                   } else {
                     firstEmbed.setTitle(embedtitlewrongnomention);
-                    firstEmbed.setFooter(embedtitlechances);
+                    firstEmbed.setFooter({ text: embedtitlechances });
                     firstEmbed.setDescription(embeddescriptionwithtried);
                     firstEmbed.setImage(hangmanPictures[15 - chances]);
 
@@ -349,7 +349,7 @@ class Hangman extends Command {
                   embedtitlechances = lang.hangman_embedtitlechances.replace('%chances', chances);
                   if (wordToGuess === response.first().content.toLowerCase()) {
                     firstEmbed.setTitle(embedtitlecorrectnomention);
-                    firstEmbed.setFooter(embedtitlechances);
+                    firstEmbed.setFooter({ text: embedtitlechances });
                     firstEmbed.setDescription(embeddescriptionwithtried);
 
                     hangmanEmbed.edit({ embeds: [firstEmbed] });
@@ -365,7 +365,7 @@ class Hangman extends Command {
                   const embedtitlewrongnomentionword = lang.hangman_embedtitlewrongnomentionword.replace('%word', response.first()
                     .content.toLowerCase());
                   firstEmbed.setTitle(embedtitlewrongnomentionword);
-                  firstEmbed.setFooter(embedtitlechances);
+                  firstEmbed.setFooter({ text: embedtitlechances });
                   firstEmbed.setDescription(embeddescriptionwithtried);
                   firstEmbed.setImage(hangmanPictures[15 - chances]);
 

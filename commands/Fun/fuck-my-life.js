@@ -26,7 +26,7 @@ class FuckMyLife extends Command {
       .setTitle('Fuck my Life, Random Edition!')
       .setColor(165868)
       .setThumbnail('http://i.imgur.com/5cMj0fw.png')
-      .setFooter(`Requested by: ${msg.author.username} | Powered By fmylife.com`)
+      .setFooter({ text: `Requested by: ${msg.author.username} | Powered By fmylife.com` })
       .setDescription(`_${article?.childNodes[0].text.replace(/&#039;/g, '\'').replace(/&quot;/g, '"')}\n\n_`)
       .addField('I agree, your life sucks', updoot?.childNodes[0].text, true)
       .addField('You deserved it:', downdoot?.childNodes[0].text, true);

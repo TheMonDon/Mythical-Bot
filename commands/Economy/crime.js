@@ -75,7 +75,7 @@ class Crime extends Command {
         .setColor('#EC5454')
         .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
         .setDescription(txt)
-        .setFooter(`Reply #${num.toLocaleString()}`);
+        .setFooter({ text: `Reply #${num.toLocaleString()}` });
       msg.channel.send({ embeds: [embed] });
 
       db.subtract(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, fineAmnt);
@@ -90,7 +90,7 @@ class Crime extends Command {
         .setColor('#04ACF4')
         .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
         .setDescription(txt)
-        .setFooter(`Reply #${num.toLocaleString()}`);
+        .setFooter({ text: `Reply #${num.toLocaleString()}` });
       msg.channel.send({ embeds: [embed] });
 
       db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, amount);

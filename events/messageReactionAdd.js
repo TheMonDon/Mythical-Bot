@@ -62,7 +62,7 @@ module.exports = class {
       db.set(`servers.${msg.guild.id}.tickets.${tName}.owner`, member.id);
 
       const logEmbed = new DiscordJS.MessageEmbed()
-        .setAuthor(member.displayName, member.user.displayAvatarURL())
+        .setAuthor({ name: member.displayName, iconURL: member.user.displayAvatarURL() })
         .setTitle('New Ticket Created')
         .addField('Author', `${member} (${member.id})`, false)
         .addField('Channel', `${tixChan} \n(${tName}: ${tixChan.id})`, false)
@@ -73,7 +73,7 @@ module.exports = class {
       await logChan.send({ embeds: [logEmbed] });
 
       const chanEmbed = new DiscordJS.MessageEmbed()
-        .setAuthor(member.displayName, member.user.displayAvatarURL())
+        .setAuthor({ name: member.displayName, iconURL: member.user.displayAvatarURL() })
         .setTitle(`${member.displayName}'s Ticket`)
         .addField('Reason', reason, false)
         .setDescription('Please wait patiently and our support team will be with you shortly.')

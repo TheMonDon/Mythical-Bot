@@ -18,16 +18,16 @@ module.exports = class {
       const logChannel = member.guild.channels.cache.get(logChan);
       if (!logChannel.permissionsFor(this.client.user.id).has('SEND_MESSAGES')) return;
 
-      const embed = new DiscordJS.MessageEmbed();
       await member.guild.members.fetch();
-      embed.setTitle('Member Joined');
-      embed.setColor('#3dd0f4');
-      embed.setAuthor(member.user.tag, member.user.displayAvatarURL());
-      embed.setThumbnail(member.user.displayAvatarURL());
-      embed.addField('User', member.toString(), true);
-      embed.addField('Member Count', member.guild.members.cache.size.toLocaleString(), true);
-      embed.setFooter(`ID: ${member.user.id}`);
-      embed.setTimestamp();
+      const embed = new DiscordJS.MessageEmbed()
+        .setTitle('Member Joined')
+        .setColor('#3dd0f4')
+        .setAuthor({ name: member.user.tag, iconURL: member.user.displayAvatarURL() })
+        .setThumbnail(member.user.displayAvatarURL())
+        .addField('User', member.toString(), true)
+        .addField('Member Count', member.guild.members.cache.size.toLocaleString(), true)
+        .setFooter({ text: `ID: ${member.user.id}` })
+        .setTimestamp();
       member.guild.channels.cache.get(logChan).send({ embeds: [embed] });
       db.add(`servers.${member.guild.id}.logs.member-join`, 1);
       db.add(`servers.${member.guild.id}.logs.all`, 1);
@@ -63,7 +63,7 @@ module.exports = class {
     const em = new DiscordJS.MessageEmbed()
       .setColor('RANDOM')
       .setTitle(`Welcome to ${member.guild.name}`)
-      .setAuthor(member.user.tag, member.user.displayAvatarURL())
+      .setAuthor({ name: member.user.tag, iconURL: member.user.displayAvatarURL() })
       .setDescription(welcomeMessage)
       .setTimestamp();
 

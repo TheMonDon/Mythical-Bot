@@ -43,7 +43,7 @@ module.exports = class {
         .addField('Topic', (channel.topic === newChannel.topic) ? 'Updated: ❌' : `Updated: ✅ \n New Topic: ${newChannel.topic}`, true)
         .addField('Is NSFW?', (newChannel.nsfw) ? '✅' : '❌', true)
         .addField('Category', catUp, true)
-        .setFooter(`ID: ${newChannel.id}`)
+        .setFooter({ text: `ID: ${newChannel.id}` })
         .setTimestamp();
 
       channel.guild.channels.cache.get(logChan).send({ embeds: [embed] });

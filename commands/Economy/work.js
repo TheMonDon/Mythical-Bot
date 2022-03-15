@@ -61,7 +61,7 @@ class Work extends Command {
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
       .setColor('#64BC6C')
       .setDescription(job)
-      .setFooter(`Reply #${num.toLocaleString()}`);
+      .setFooter({ text: `Reply #${num.toLocaleString()}` });
     msg.channel.send({ embeds: [embed] });
 
     setTimeout(() => {

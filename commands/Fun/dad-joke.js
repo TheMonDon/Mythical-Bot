@@ -23,7 +23,7 @@ class DadJoke extends Command {
           .setTitle('Dad Joke')
           .setColor('RANDOM')
           .setDescription(body)
-          .setFooter('Powered by: https://icanhazdadjoke.com/');
+          .setFooter({ text: 'Powered by: https://icanhazdadjoke.com/' });
         return msg.channel.send({ embeds: [embed] });
       });
   }

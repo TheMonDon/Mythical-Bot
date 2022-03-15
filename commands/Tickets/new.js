@@ -77,7 +77,7 @@ class New extends Command {
       .setTitle(`${msg.member.displayName}'s Ticket`)
       .addField('Reason', reason, true)
       .addField('Channel', tixChan, true)
-      .setFooter('Self destructing in 2 minutes.')
+      .setFooter({ text: 'Self destructing in 2 minutes.' })
       .setColor('#E65DF4')
       .setTimestamp();
     const reply = await msg.channel.send({ embeds: [userEmbed] });

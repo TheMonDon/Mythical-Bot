@@ -22,7 +22,7 @@ class BotInfo extends Command {
 
     const embed = new DiscordJS.MessageEmbed()
       .setColor('#2ecc71')
-      .setAuthor(this.client.user.username, this.client.user.displayAvatarURL())
+      .setAuthor({ name: this.client.user.username, iconURL: this.client.user.displayAvatarURL() })
       .setThumbnail(this.client.user.displayAvatarURL())
       .addField('Uptime', botuptime, true)
       .addField('Ping', Math.floor(this.client.ws.ping).toLocaleString(), true)

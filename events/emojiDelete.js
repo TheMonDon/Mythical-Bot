@@ -23,7 +23,7 @@ module.exports = class {
     embed.addField('Name', emoji.name, true);
     embed.addField('Identifier', emoji.identifier, true);
     embed.addField('Was Animated?', emoji.animated, true);
-    embed.setFooter(`ID: ${emoji.id}`);
+    embed.setFooter({ text: `ID: ${emoji.id}` });
     embed.setTimestamp();
     emoji.guild.channels.cache.get(logChan).send({ embeds: [embed] });
 

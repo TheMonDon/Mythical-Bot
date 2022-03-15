@@ -42,7 +42,7 @@ class Github extends Command {
 
       const embed = new DiscordJS.MessageEmbed()
         .setColor('0099CC')
-        .setAuthor('GitHub', 'https://i.imgur.com/e4HunUm.png', 'https://github.com/')
+        .setAuthor({ name: 'GitHub', iconURL: 'https://i.imgur.com/e4HunUm.png', url: 'https://github.com/' })
         .setTitle(body.full_name)
         .setURL(body.html_url)
         .setDescription(body.description ? body.description.slice(0, 2000) : 'No description.')

@@ -115,12 +115,12 @@ class Warn extends Command {
       .addField('Points', `${points} points (Total: ${warnAmount} points)`, true)
       .addField('Other Cases', otherCases, true)
       .addField('Reason', reason, false)
-      .setFooter(`Issued in ${msg.guild.name}`);
+      .setFooter({ text: `Issued in ${msg.guild.name}` });
     const um = await mem.send({ embeds: [userEm] }).catch(() => null);
 
     const logEmbed = new DiscordJS.MessageEmbed()
       .setColor(color)
-      .setFooter(`${msg.author.tag} • User ID: ${mem.id}`)
+      .setFooter({ text: `${msg.author.tag} • User ID: ${mem.id}` })
       .setTitle(`User has been ${status}`)
       .addField('User', `${mem} (${mem.id})`, true)
       .addField('Moderator', `${msg.author.tag} (${msg.author.id})`, true)
@@ -128,7 +128,7 @@ class Warn extends Command {
       .addField('Points', `${points} points (Total: ${warnAmount} points)`, true)
       .addField('Other Cases', otherCases, true)
       .addField('Reason', reason, false);
-    if (!um) logEmbed.setFooter(`Failed to message the user in question • User ID: ${mem.id}`);
+    if (!um) logEmbed.setFooter({ text: `Failed to message the user in question • User ID: ${mem.id}` });
     const logMessage = logChan ? await msg.guild.channels.cache.get(logChan).send({ embeds: [logEmbed] }) : await msg.channel.send({ embeds: [logEmbed] });
 
     const opts = { messageURL: logMessage.url, mod: msg.author.id, points, reason, timestamp: Date.now(), user: mem.id, warnID };

@@ -28,7 +28,7 @@ class NPMInfo extends Command {
     }
 
     const em = new DiscordJS.MessageEmbed()
-      .setAuthor(result.name, 'https://i.imgur.com/24yrZxG.png', 'https://www.npmjs.com/')
+      .setAuthor({ name: result.name, iconURL: 'https://i.imgur.com/24yrZxG.png', url: 'https://www.npmjs.com/' })
       .setColor('ORANGE')
       .setDescription(stripIndents`
     ${result.description ? result.description : null}

@@ -39,7 +39,7 @@ class Movie extends Command {
         .setColor('0099CC')
         .setTitle(body.title)
         .setURL(`https://www.themoviedb.org/movie/${body.id}`)
-        .setAuthor('TMDb', 'https://i.imgur.com/3K3QMv9.png', 'https://www.themoviedb.org/')
+        .setAuthor({ name: 'TMDb', iconURL: 'https://i.imgur.com/3K3QMv9.png', url: 'https://www.themoviedb.org/' })
         .setDescription(body.overview ? body.overview.slice(0, 2048) : 'No description available.')
         .setThumbnail(body.poster_path ? `https://image.tmdb.org/t/p/w500${body.poster_path}` : null)
         .addField('Runtime', body.runtime ? `${body.runtime} mins.` : '???', true)

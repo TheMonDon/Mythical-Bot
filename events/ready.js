@@ -41,10 +41,10 @@ module.exports = class {
               const user = this.client.users.cache.get(userID);
 
               const em = new DiscordJS.MessageEmbed()
-                .setAuthor(user.username, user.displayAvatarURL())
+                .setAuthor({ name: user.username, iconURL: user.displayAvatarURL() })
                 .setColor(color)
                 .addField('Reminder', `\`\`\`${reminder}\`\`\``)
-                .setFooter('You created this reminder @')
+                .setFooter({ text: 'You created this reminder @' })
                 .setTimestamp(moment(createdAt));
               channel ? channel.send({ embeds: [em], content: `<@${userID}>, here's your reminder:` }) : user.send({ embeds: [em], content: `${user.username}, here's your reminder:` });
               db.delete(`global.reminders.${remID}`);

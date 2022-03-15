@@ -303,7 +303,7 @@ class Country extends Command {
       const countryflag = `http://www.countryflags.io/${res.body.alpha2Code}/flat/64.png`;
 
       const em = new DiscordJS.MessageEmbed()
-        .setAuthor('Country Information - ' + countrycode, countryflag)
+        .setAuthor({ name: `'Country Information' -  ${countrycode}`, iconURL: countryflag })
         .setThumbnail(countryflag)
         .setColor(0x337fd5)
         .setTitle(countryname)
@@ -314,7 +314,7 @@ class Country extends Command {
         .addField('Demonym', countrydemonym, true)
         .addField('Native Name', countrynativename, true)
         .addField('Area', `${countryareakm.toLocaleString('en')}km (${countryaream}m)`, true)
-        .setFooter('Powered by: restcountries.eu')
+        .setFooter({ text: 'Powered by: restcountries.eu' })
         .setTimestamp();
 
       return message.channel.send({ embeds: [em] });

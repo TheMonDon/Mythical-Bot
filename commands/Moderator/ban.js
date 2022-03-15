@@ -38,7 +38,7 @@ class Ban extends Command {
       .addField('User', banMem.toString(), true)
       .addField('Banned By', msg.member.displayName.toString(), true)
       .addField('Reason', reason, true)
-      .setFooter(`User ID: ${banMem.id}`)
+      .setFooter({ text: `User ID: ${banMem.id}` })
       .setTimestamp();
     banMem.ban({ reason });
 

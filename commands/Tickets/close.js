@@ -79,7 +79,7 @@ class Close extends Command {
         .addField('Transcript URL', url, false)
         .addField('Reason', reason, false)
         .addField('Server', msg.guild.name, false)
-        .setFooter('Transcripts expire 30 days after last view date.')
+        .setFooter({ text: 'Transcripts expire 30 days after last view date.' })
         .setTimestamp();
       await msg.author.send({ embeds: [userEmbed] })
         .catch(() => {
@@ -95,7 +95,7 @@ class Close extends Command {
         .addField('Reason', reason, false)
         .setColor('#E65DF4')
         .setTimestamp();
-      if (received === 'no') logEmbed.setFooter('Could not message author.');
+      if (received === 'no') logEmbed.setFooter({ text: 'Could not message author.' });
       await msg.guild.channels.cache.get(logID).send({ embeds: [logEmbed] });
 
       db.delete(`servers.${msg.guild.id}.tickets.${tName}`);

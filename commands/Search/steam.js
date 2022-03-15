@@ -56,7 +56,7 @@ class Steam extends Command {
 
     const embed = new DiscordJS.MessageEmbed()
       .setColor(0x101D2F)
-      .setAuthor('Steam', 'https://i.imgur.com/xxr2UBZ.png', 'http://store.steampowered.com/')
+      .setAuthor({ name: 'Steam', iconURL: 'https://i.imgur.com/xxr2UBZ.png', url: 'http://store.steampowered.com/' })
       .setTitle(data.name)
       .setURL(`http://store.steampowered.com/app/${data.steam_appid}`)
       .setImage(tinyImage)

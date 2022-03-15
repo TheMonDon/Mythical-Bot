@@ -26,8 +26,8 @@ class Perms extends Command {
 
     const embed = new DiscordJS.MessageEmbed();
     embed.setColor('#2BFED5');
-    embed.setAuthor(infoMem.displayName, infoMem.user.displayAvatarURL({ dynamic: true }));
-    embed.setFooter(`Requested by: ${msg.member.displayName}`);
+    embed.setAuthor({ name: infoMem.displayName, iconURL: infoMem.user.displayAvatarURL({ dynamic: true }) });
+    embed.setFooter({ text: `Requested by: ${msg.member.displayName}` });
     embed.setTimestamp();
 
     embed.addField('➢ __General Server Permissions:__', stripIndents`

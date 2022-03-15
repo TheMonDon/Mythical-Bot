@@ -106,7 +106,7 @@ class forceClose extends Command {
       .addField('Reason', reason, false)
       .addField('Server', msg.guild.name, false)
       .addField('Closed By', `${msg.author} (${msg.author.id})`, false)
-      .setFooter('Transcripts expire 30 days after last view date.')
+      .setFooter({ text: 'Transcripts expire 30 days after last view date.' })
       .setTimestamp();
     await tOwner.send({ embeds: [userEmbed] })
       .catch(() => { received = 'no'; });
@@ -120,7 +120,7 @@ class forceClose extends Command {
       .addField('Reason', reason, false)
       .setColor('#E65DF4')
       .setTimestamp();
-    if (received === 'no') logEmbed.setFooter('Could not message author.');
+    if (received === 'no') logEmbed.setFooter({ text: 'Could not message author.' });
     await msg.guild.channels.cache.get(logID).send({ embeds: [logEmbed] });
 
     db.delete(`servers.${msg.guild.id}.tickets.${tName}`);
