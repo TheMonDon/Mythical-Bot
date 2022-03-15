@@ -67,7 +67,7 @@ class Bot extends Client {
       });
       return false;
     } catch (e) {
-      return `Unable to load command ${commandName}: ${e}`;
+      return console.log(`Unable to load command ${commandName}: ${e}`);
     }
   }
 
@@ -78,7 +78,7 @@ class Bot extends Client {
     } else if (this.aliases.has(commandName)) {
       command = this.commands.get(this.aliases.get(commandName));
     }
-    if (!command) return `The command \`${commandName}\` doesn't seem to exist, nor is it an alias. Try again!`;
+    if (!command) return console.log(`The command \`${commandName}\` doesn't seem to exist, nor is it an alias. Try again!`);
 
     if (command.shutdown) {
       await command.shutdown(this);
