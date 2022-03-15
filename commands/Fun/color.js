@@ -9,7 +9,7 @@ const { getColorFromURL } = require('color-thief-node');
 const { stripIndent } = require('common-tags');
 const colorNameList = require('color-name-list');
 
-class Color extends Command {
+module.exports = class Color extends Command {
   constructor (client) {
     super(client, {
       name: 'color',
@@ -224,6 +224,4 @@ class Color extends Command {
           `));
     msg.channel.send({ embeds: [embed] });
   }
-}
-
-module.exports = Color;
+};
