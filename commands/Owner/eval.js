@@ -28,7 +28,7 @@ class Eval extends Command {
     const embed = new MessageEmbed()
       .setFooter({ text: msg.author.tag, iconURL: msg.author.displayAvatarURL() });
 
-    const query = clean(this.client, args.join(' '));
+    const query = args.join(' ');
     const code = (lang, code) => (`\`\`\`${lang}\n${String(code).slice(0, 4000) + (code.length >= 4000 ? '...' : '')}\n\`\`\``);
 
     if (!query) msg.channel.send('Please, write something so I can evaluate!');
@@ -36,8 +36,9 @@ class Eval extends Command {
       try {
         const evald = eval(query);
         const res = typeof evald === 'string' ? evald : inspect(evald, { depth: 0 });
+        const res2 = await clean(this.client, res);
 
-        embed.setDescription(`Result \n ${code('js', res)}`);
+        embed.setDescription(`Result \n ${code('js', res2)}`);
 
         if (!res || (!evald && evald !== 0)) embed.setColor('RED');
         else {
