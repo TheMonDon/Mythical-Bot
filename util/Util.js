@@ -185,8 +185,10 @@ module.exports = class Util {
       config.token,
       config.github,
       config.owlKey,
+      config.OxfordID,
       config.OxfordKey,
       config.TMDb,
+      config.mysqlHost,
       config.mysqlUsername,
       config.mysqlPassword
     ];
