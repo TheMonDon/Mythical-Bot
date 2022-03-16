@@ -5,6 +5,11 @@ const inviteRegex = /(https?:\/\/)?(www\.|canary\.|ptb\.)?discord(\.gg|(app)?\.c
 const botInvRegex = /(https?:\/\/)?(www\.|canary\.|ptb\.)?discord(app)?\.com\/(api\/)?oauth2\/authorize\?([^ ]+)\/?/gi;
 
 module.exports = class Util {
+  /**
+   * Turns an array into a list with defineable ending conjunction
+   * @param {Array} arr The array to turn to a list
+   * @param {} conj Conjunction to end with, default 'and'
+   */
   static list (arr, conj = 'and') {
     const len = arr.length;
     if (len === 0) return '';
@@ -12,6 +17,11 @@ module.exports = class Util {
     return `${arr.slice(0, -1).join(', ')}${len > 1 ? `${len > 2 ? ',' : ''} ${conj} ` : ''}${arr.slice(-1)}`;
   }
 
+  /**
+   * Verify yes/no answer in chat...not done with info
+   * @param {} channel
+   * @param
+   */
   static async verify (channel, user, { time = 30000, extraYes = [], extraNo = [] } = {}) {
     const filter = res => {
       const value = res.content.toLowerCase();
@@ -30,21 +40,26 @@ module.exports = class Util {
   }
 
   /**
-   *
-   * @param {string} text
+   * Convert text to the proper case.
+   * @param {string} text Text to convert.
    */
   static toProperCase (text) {
     return text.replace(/([^\W_]+[^\s-]*) */g, (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase());
   }
 
   /**
-   *
-   * @param {Number} ms
+   * Time to pause script
+   * @param {Number} ms Time to pause
    */
   static wait (ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 
+  /**
+   * Strip invites from messages.
+   * @param {String} str String to find invites in
+   * @param {Boolean} guild Boolean whether to check for this invite.
+   */
   static stripInvites (str, { guild = true, bot = true, text = '[redacted invite]' } = {}) {
     let string = str;
     if (guild) string = str.replace(inviteRegex, text);
@@ -53,9 +68,9 @@ module.exports = class Util {
   }
 
   /**
-   *
-   * @param {Message} msg
-   * @param {string} str
+   * Find guild member through various means.
+   * @param {Message} msg Message object for guild.
+   * @param {string} str String to use to find member.
    */
   static getMember (msg, str) {
     if (!msg.guild) return false;
@@ -156,9 +171,14 @@ module.exports = class Util {
    * @param {String} text Text to clean
    */
   static async clean (client, text) {
-    let newText;
+    let newText = text;
     if (text && text.constructor.name === 'Promise') { newText = await text; }
     if (typeof text !== 'string') { newText = require('util').inspect(text, { depth: 1 }); }
+
+    newText = newText
+      .replace(/`/g, '`' + String.fromCharCode(8203))
+      .replace(/@/g, '@' + String.fromCharCode(8203))
+      .replace(client.token, 'mfa.VkO_2G4Qv3T--NO--lWetW_tjND--TOKEN--QFTm6YGtzq9PH--4U--tG0');
 
     const config = client.config;
     const secrets = [
@@ -173,11 +193,6 @@ module.exports = class Util {
     for (let i = 0; i < secrets.length; i++) {
       newText = Util.replaceAll(newText, secrets[i], '*'.repeat(secrets[i].length));
     }
-
-    newText = newText
-      .replace(/`/g, '`' + String.fromCharCode(8203))
-      .replace(/@/g, '@' + String.fromCharCode(8203))
-      .replace(client.token, 'mfa.VkO_2G4Qv3T--NO--lWetW_tjND--TOKEN--QFTm6YGtzq9PH--4U--tG0');
 
     return newText;
   };
