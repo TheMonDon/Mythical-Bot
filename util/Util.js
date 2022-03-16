@@ -171,7 +171,7 @@ module.exports = class Util {
       config.mysqlPassword
     ];
     for (let i = 0; i < secrets.length; i++) {
-      newText = this.replaceAll(newText, secrets[i], '*'.repeat(secrets[i].length));
+      newText = Util.replaceAll(newText, secrets[i], '*'.repeat(secrets[i].length));
     }
 
     newText = newText
