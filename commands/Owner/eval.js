@@ -3,7 +3,7 @@
 const { MessageEmbed } = require('discord.js');
 const { inspect } = require('util');
 const Command = require('../../base/Command.js');
-const { clean } = require('../../Util/util.js');
+const { clean } = require('../../util/Util.js');
 
 class Eval extends Command {
   constructor (client) {
