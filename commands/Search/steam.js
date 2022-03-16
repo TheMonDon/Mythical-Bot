@@ -14,7 +14,7 @@ class Steam extends Command {
   }
 
   async run (msg, text) {
-    const query = clean(this.client, text.join(' '));
+    const query = await clean(this.client, text.join(' '));
 
     if (!text || text.length < 1) {
       const em = new DiscordJS.MessageEmbed()
