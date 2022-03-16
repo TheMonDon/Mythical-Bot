@@ -28,21 +28,8 @@ class Eval extends Command {
     const embed = new MessageEmbed()
       .setFooter({ text: msg.author.tag, iconURL: msg.author.displayAvatarURL() });
 
-    let query = clean(this.client, args.join(' '));
+    const query = clean(this.client, args.join(' '));
     const code = (lang, code) => (`\`\`\`${lang}\n${String(code).slice(0, 4000) + (code.length >= 4000 ? '...' : '')}\n\`\`\``);
-    const secrets = [
-      config.token,
-      config.github,
-      config.owlKey,
-      config.OxfordKey,
-      config.TMDb,
-      config.mysqlUsername,
-      config.mysqlPassword
-    ];
-
-    for (let i = 0; i < secrets.length; i++) {
-      query = replaceAll(query, secrets[i], '*'.repeat(secrets[i].length));
-    }
 
     if (!query) msg.channel.send('Please, write something so I can evaluate!');
     else {
@@ -69,10 +56,6 @@ class Eval extends Command {
       }
     }
   }
-}
-
-function replaceAll (haystack, needle, replacement) {
-  return haystack.split(needle).join(replacement);
 }
 
 module.exports = Eval;
