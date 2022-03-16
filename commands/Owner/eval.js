@@ -3,6 +3,7 @@
 const { MessageEmbed } = require('discord.js');
 const { inspect } = require('util');
 const Command = require('../../base/Command.js');
+const { clean } = require('../../Util/util.js');
 
 class Eval extends Command {
   constructor (client) {
@@ -27,7 +28,7 @@ class Eval extends Command {
     const embed = new MessageEmbed()
       .setFooter({ text: msg.author.tag, iconURL: msg.author.displayAvatarURL() });
 
-    let query = args.join(' ');
+    let query = clean(this.client, args.join(' '));
     const code = (lang, code) => (`\`\`\`${lang}\n${String(code).slice(0, 4000) + (code.length >= 4000 ? '...' : '')}\n\`\`\``);
     const secrets = [
       config.token,

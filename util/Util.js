@@ -142,15 +142,39 @@ module.exports = class Util {
 
   /**
    *
-   * @param {Client} client
-   * @param {string} text
+   * @param {String} haystack Original text
+   * @param {String} needle Text to find in haystack
+   * @param {String} replacement What to replace needle with
+   */
+  static replaceAll (haystack, needle, replacement) {
+    return haystack.split(needle).join(replacement);
+  }
+
+  /**
+   * Transform to string then removes secrets and pings from text.
+   * @param {Client} client Bot Client
+   * @param {String} text Text to clean
    */
   static async clean (client, text) {
     let newText;
     if (text && text.constructor.name === 'Promise') { newText = await text; }
     if (typeof text !== 'string') { newText = require('util').inspect(text, { depth: 1 }); }
 
-    newText = text
+    const config = client.config;
+    const secrets = [
+      config.token,
+      config.github,
+      config.owlKey,
+      config.OxfordKey,
+      config.TMDb,
+      config.mysqlUsername,
+      config.mysqlPassword
+    ];
+    for (let i = 0; i < secrets.length; i++) {
+      newText = this.replaceAll(newText, secrets[i], '*'.repeat(secrets[i].length));
+    }
+
+    newText = newText
       .replace(/`/g, '`' + String.fromCharCode(8203))
       .replace(/@/g, '@' + String.fromCharCode(8203))
       .replace(client.token, 'mfa.VkO_2G4Qv3T--NO--lWetW_tjND--TOKEN--QFTm6YGtzq9PH--4U--tG0');
@@ -159,17 +183,17 @@ module.exports = class Util {
   };
 
   /**
-   *
-   * @param {Array} arr
+   * Random object from array
+   * @param {Array} arr The array to use
    */
   static random (arr) {
     return arr[Math.floor(Math.random() * arr.length)];
   }
 
   /**
-   *
-   * @param {Number} id
-   * @param {guild} guild
+   * Get the join position if a member
+   * @param {Number} id Member ID
+   * @param {guild} guild Guild Object
    */
   static async getJoinPosition (id, guild) {
     await guild.members.fetch();

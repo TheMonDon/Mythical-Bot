@@ -1,6 +1,7 @@
 const Command = require('../../base/Command.js');
 const DiscordJS = require('discord.js');
 const fetch = require('node-superfetch');
+const { clean } = require('../../util/Util.js');
 
 class Steam extends Command {
   constructor (client) {
@@ -13,7 +14,7 @@ class Steam extends Command {
   }
 
   async run (msg, text) {
-    const query = text.join(' ');
+    const query = clean(this.client, text.join(' '));
 
     if (!text || text.length < 1) {
       const em = new DiscordJS.MessageEmbed()
