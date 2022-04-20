@@ -1,7 +1,6 @@
 const Command = require('../../base/Command.js');
 const DiscordJS = require('discord.js');
 const db = require('quick.db');
-const { stripIndents } = require('common-tags');
 
 class LogToggle extends Command {
   constructor (client) {
