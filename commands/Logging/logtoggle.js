@@ -25,6 +25,8 @@ class LogToggle extends Command {
     const cc = /^(channel[-]?created)/gi;
     const cd = /^(channel[-]?deleted)/gi;
     const cu = /^(channel[-]?updated)/gi;
+    const tc = /^(thread[-]?created)/gi;
+    const td = /^(thread[-]?deleted)/gi;
     const vcc = /^((voice|v)[-]?channel[-]?created)/gi;
     const vcd = /^((voice|v)[-]?channel[-]?created)/gi;
     const mj = /^(member[-]?join(ed)?)/gi;
@@ -39,23 +41,24 @@ class LogToggle extends Command {
     const bmd = /^(bulk[-]?messages[-]?deleted)/gi;
 
     errorEmbed.setTitle(':x: Invalid parameter.');
-    errorEmbed.addField('Valid Parameters', stripIndents(`
-        channel-created
-        channel-deleted
-        channel-updated
-        v-channel-created
-        v-channel-deleted
-        member-join
-        member-leave
-        message-edited
-        message-deleted
-        role-created
-        role-deleted
-        role-updated
-        emoji-created
-        emoji-deleted
-        bulk-messages-deleted
-        `), true);
+    errorEmbed.addField('Valid Parameters', `
+channel-created
+channel-deleted
+channel-updated
+thread-created
+thread-deleted
+v-channel-created
+v-channel-deleted
+member-join
+member-leave
+message-edited
+message-deleted
+role-created
+role-deleted
+role-updated
+emoji-created
+emoji-deleted
+bulk-messages-deleted`, true);
     errorEmbed.addField('Other Usage:', 'logtoggle <enable/disable> <channel> to enable/disable a channel from being logged.', false);
     if (['enable', 'disable'].includes(args?.[0].toLowerCase())) {
       if (args?.[0].toLowerCase() === 'enable') {
@@ -227,6 +230,22 @@ class LogToggle extends Command {
       } else {
         db.set(`servers.${msg.guild.id}.logs.log_system.bulk-messages-deleted`, 'enabled');
         msg.channel.send('Bulk-Messages-Deleted logs has been enabled');
+      }
+    } else if (tc.test(query)) {
+      if (db.get(`servers.${msg.guild.id}.logs.log_system.thread-created`) === 'enabled') {
+        db.set(`servers.${msg.guild.id}.logs.log_system.thread-created`, 'disabled');
+        msg.channel.send('Thread-Created logs has been disabled');
+      } else {
+        db.set(`servers.${msg.guild.id}.logs.log_system.thread-created`, 'enabled');
+        msg.channel.send('Thread-Created logs have been enabled');
+      }
+    } else if (td.test(query)) {
+      if (db.get(`servers.${msg.guild.id}.logs.log_system.thread-deleted`) === 'enabled') {
+        db.set(`servers.${msg.guild.id}.logs.log_system.thread-deleted`, 'disabled');
+        msg.channel.send('Thread-Deleted logs has been disabled');
+      } else {
+        db.set(`servers.${msg.guild.id}.logs.log_system.thread-deleted`, 'enabled');
+        msg.channel.send('Thread-Deleted logs have been enabled');
       }
     } else {
       msg.channel.send({ embeds: [errorEmbed] });

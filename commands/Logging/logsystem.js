@@ -23,6 +23,8 @@ class LogSystem extends Command {
 **Channel Created:** ${db.get(`servers.${msg.guild.id}.logs.log_system.channel-created`) || ':x:'}
 **Channel Deleted:** ${db.get(`servers.${msg.guild.id}.logs.log_system.channel-deleted`) || ':x:'}
 **Channel Updated:** ${db.get(`servers.${msg.guild.id}.logs.log_system.channel-updated`) || ':x:'}
+**Thread Channel Created:** ${db.get(`servers.${msg.guild.id}.logs.log_system.thread-created`) || ':x:'}
+**Thread Channel Deleted:** ${db.get(`servers.${msg.guild.id}.logs.log_system.thread-deleted`) || ':x:'}
 **Voice Channel Created:** ${db.get(`servers.${msg.guild.id}.logs.log_system.v-channel-created`) || ':x:'}
 **Voice Channel Deleted:** ${db.get(`servers.${msg.guild.id}.logs.log_system.v-channel-deleted`) || ':x:'}
 **Member Joined:** ${db.get(`servers.${msg.guild.id}.logs.log_system.member-join`) || ':x:'}
@@ -40,6 +42,8 @@ class LogSystem extends Command {
 **Channels Created:** ${db.get(`servers.${msg.guild.id}.logs.channel-created`) || '0'}
 **Channels Deleted:** ${db.get(`servers.${msg.guild.id}.logs.channel-deleted`) || '0'}
 **Channels Updated:** ${db.get(`servers.${msg.guild.id}.logs.channel-updated`) || '0'}
+**Thread Channels Created:** ${db.get(`servers.${msg.guild.id}.logs.thread-deleted`) || '0'}
+**Thread Channels Deleted:** ${db.get(`servers.${msg.guild.id}.logs.thread-deleted`) || '0'}
 **Voice Channels Created:** ${db.get(`servers.${msg.guild.id}.logs.v_channel-created`) || '0'}
 **Voice Channels Deleted:** ${db.get(`servers.${msg.guild.id}.logs.v_channel-deleted`) || '0'}
 **Members Joined:** ${db.get(`servers.${msg.guild.id}.logs.member-joined`) || '0'}

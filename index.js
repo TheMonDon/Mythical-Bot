@@ -228,7 +228,8 @@ client.player
 const init = async () => {
   // Let's load the slash commands, we're using a recursive method so you can have
   // folders within folders, within folders, within folders, etc and so on.
-  function getSlashCommands (dir) {
+
+  /* function getSlashCommands (dir) {
     const slashFiles = readdirSync(dir);
     for (const file of slashFiles) {
       const loc = path.resolve(dir, file);
@@ -237,10 +238,11 @@ const init = async () => {
         getSlashCommands(path.resolve(dir, file));
       } else {
         const command = new (require(loc))(client);
+        console.log(`Loading slash command ${command.commandData.name}`);
         client.slashcmds.set(command.commandData.name, command);
       }
     }
-  }
+  } */
 
   // Here we load **commands** into memory, as a collection, so they're accessible
   // here and everywhere else, and like the slash commands, sub-folders for days!
@@ -260,7 +262,7 @@ const init = async () => {
 
   // Now let's call the functions to actually load up the commands!
   getCommands('./commands');
-  getSlashCommands('./slash');
+  // getSlashCommands('./slash'); Not using slash commands right now.
 
   // Then we load events, which will include our message and ready event.
   const eventFiles = readdirSync('./events/').filter(file => file.endsWith('.js'));
