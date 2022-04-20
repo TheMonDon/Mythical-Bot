@@ -51,7 +51,7 @@ module.exports = class {
       .setColor('RED')
       .addField('Deleted Messages', url, true)
       .addField('Deleted Amount', messages.size, true)
-      .addField('Channel', chan, true);
+      .addField('Channel', `<#${chan.id}>`, true);
     logChannel.send({ embeds: [embed] });
 
     db.add(`servers.${server.id}.logs.bulk-messages-deleted`, 1);

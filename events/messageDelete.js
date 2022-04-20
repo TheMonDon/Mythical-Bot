@@ -38,7 +38,7 @@ module.exports = class {
     embed.setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() });
     embed.setThumbnail(msg.author.displayAvatarURL());
     embed.addField('Deleted Text', (msg.content.length <= 1024) ? msg.content : `${msg.content.substring(0, 1020)}...`, true);
-    embed.addField('Channel', msg.channel ?? 'Unknown', true);
+    embed.addField('Channel', `<#${msg.channel.id}>`, true);
     embed.addField('Message Author', `${msg.author} (${msg.author.tag})`, true);
     if (delby && (msg.author !== delby)) embed.addField('Deleted By', delby, true);
     (msg.mentions.users.size === 0) ? embed.addField('Mentioned Users', 'None', true) : embed.addField('Mentioned Users', `Mentioned Member Count: ${[...msg.mentions.users.values()].length} \n Mentioned Users List: \n ${[...msg.mentions.users.values()]}`, true);

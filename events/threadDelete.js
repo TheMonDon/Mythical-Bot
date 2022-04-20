@@ -25,7 +25,6 @@ module.exports = class {
       .setColor('RED')
       .addField('Name', thread.name, true)
       .addField('Category', thread.parent?.name || 'None', true)
-      .addField('Private', thread.private, true)
       .setFooter({ text: `ID: ${thread.id}` })
       .setTimestamp();
     thread.guild.channels.cache.get(logChan).send({ embeds: [embed] });
