@@ -4,11 +4,11 @@ const { codeBlock } = require('@discordjs/builders');
 const moment = require('moment');
 require('moment-duration-format');
 
-module.exports = class Stats extends slashCommand {
+module.exports = class BotInfo extends slashCommand {
   constructor (client) {
     super(client, {
-      name: 'stats',
-      description: "Show's the bots stats",
+      name: 'bot-info',
+      description: 'Gives some useful bot information',
       options: [],
       guildOnly: false
     });
