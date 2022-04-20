@@ -9,6 +9,7 @@ const path = require('path');
 const { Player } = require('discord-player');
 const mysql = require('mysql2');
 const config = require('./config.js');
+const { intents, partials, permLevels, mysqlUsername, mysqlHost, mysqlPassword, token } = require('./config.js');
 
 class Bot extends Client {
   constructor (options) {
@@ -32,7 +33,7 @@ class Bot extends Client {
   permlevel (message) {
     let permlvl = 0;
 
-    const permOrder = this.config.permLevels.slice(0).sort((p, c) => p.level < c.level ? 1 : -1);
+    const permOrder = permLevels.slice(0).sort((p, c) => p.level < c.level ? 1 : -1);
 
     while (permOrder.length) {
       const currentLevel = permOrder.shift();
@@ -144,13 +145,13 @@ class Bot extends Client {
 // Enable intents for the bot
 const myIntents = new Intents();
 myIntents.add(Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_BANS, Intents.FLAGS.GUILD_MEMBERS, Intents.FLAGS.GUILD_EMOJIS_AND_STICKERS, Intents.FLAGS.GUILD_INTEGRATIONS, Intents.FLAGS.GUILD_WEBHOOKS, Intents.FLAGS.GUILD_INVITES, Intents.FLAGS.GUILD_VOICE_STATES, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_MESSAGE_REACTIONS, Intents.FLAGS.DIRECT_MESSAGES, Intents.FLAGS.DIRECT_MESSAGE_REACTIONS);
-const client = new Bot({ intents: myIntents });
+const client = new Bot({ intents, partials });
 
 // Create MySQL Pool globally
 global.pool = mysql.createPool({
-  host: config.mysqlHost,
-  user: config.mysqlUsername,
-  password: config.mysqlPassword
+  host: mysqlHost,
+  user: mysqlUsername,
+  password: mysqlPassword
 });
 
 // Load the music player stuff
@@ -273,13 +274,13 @@ const init = async () => {
   }
 
   client.levelCache = {};
-  for (let i = 0; i < client.config.permLevels.length; i++) {
-    const thisLevel = client.config.permLevels[i];
+  for (let i = 0; i < permLevels.length; i++) {
+    const thisLevel = permLevels[i];
     client.levelCache[thisLevel.name] = thisLevel.level;
   }
 
   // Here we login the client.
-  client.login(client.config.token);
+  client.login(token);
 
   // End top-level async/await function.
 };

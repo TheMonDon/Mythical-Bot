@@ -1,7 +1,4 @@
 const config = {
-  // Bot Owner, level 10 by default. You do not need to supply the owner ID, as the bot
-  // will pull this information directly from its application page.
-
   // Bot Admins, level 9 by default. Array of user ID strings.
   "admins": [],
 
@@ -9,9 +6,11 @@ const config = {
   "support": [],
 
   // Your Bots Token. Available on https://discordapp.com/developers/applications/me
-  "token": "mfa.VkO_2G4Qv3T--NO--lWetW_tjND--TOKEN--QFTm6YGtzq9PH--4U--tG0",
+  "token": " ",
 
-  // MySQL Information for Crafters-Island Server info
+  language: 'en-us',
+
+  // MySQL Information for Crafters-Island Server info (You can remove this)
   mysqlUsername: '',
   mysqlPassword: '',
   mysqlHost: '',
