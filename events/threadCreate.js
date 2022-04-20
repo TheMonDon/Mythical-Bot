@@ -7,8 +7,6 @@ module.exports = class {
   }
 
   async run (thread) {
-    if (!thread) return;
-
     const logChan = db.get(`servers.${thread.guild.id}.logs.thread`);
     if (!logChan) return;
 
@@ -27,7 +25,6 @@ module.exports = class {
       .setColor('#20fc3a')
       .addField('Name', thread.name, true)
       .addField('Category', thread.parent?.name || 'None', true)
-      .addField('Private', thread.private, true)
       .setFooter({ text: `ID: ${thread.id}` })
       .setTimestamp();
     thread.guild.channels.cache.get(logChan).send({ embeds: [embed] });
