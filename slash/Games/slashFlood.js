@@ -1,10 +1,10 @@
-const Command = require('../../base/Command.js');
+const slashCommand = require('../../base/slashCommand.js');
 const DiscordJS = require('discord.js');
 const db = require('quick.db');
 const moment = require('moment');
 require('moment-duration-format');
 
-class Flood extends Command {
+class Flood extends slashCommand {
   constructor (client) {
     super(client, {
       name: 'flood',
@@ -23,12 +23,12 @@ class Flood extends Command {
     let message;
     let gameOver = false;
     let result;
-    const gameStart = msg.createdAt;
+    const gameStart = interaction.createdAt;
     let gameEnd;
 
-    const current = this.client.games.get(msg.channel.id);
-    if (current) return msg.reply(`Please wait until the current game of \`${current.name}\` is finished.`);
-    this.client.games.set(msg.channel.id, { name: this.help.name, user: msg.author.id });
+    const current = this.client.games.get(interaction.channel.id);
+    if (current) return interaction.reply(`Please wait until the current game of \`${current.name}\` is finished.`);
+    this.client.games.set(interaction.channel.id, { name: this.help.name, user: interaction.author.id });
 
     const up = (pos) => ({ x: pos.x, y: pos.y - 1 });
     const down = (pos) => ({ x: pos.x, y: pos.y + 1 });
@@ -70,7 +70,7 @@ class Flood extends Command {
         let highScoreUser;
         let highScoreTime;
         if (result === 'winner') {
-          const HS = { score: turn, user: msg.author.tag, time: gameTimeSeconds };
+          const HS = { score: turn, user: interaction.author.tag, time: gameTimeSeconds };
           const oldHS = db.get('global.highScores.flood');
           highScore = oldHS?.score || 26;
           highScoreUser = oldHS?.user | 'N/A';
@@ -95,7 +95,7 @@ class Flood extends Command {
 
         if (!isNaN(highScoreTime)) highScoreTime = moment.duration(highScoreTime).format('m[ minutes][, and] s[ seconds]');
         embed = new DiscordJS.MessageEmbed()
-          .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL({ dynamic: true }) })
+          .setAuthor({ name: interaction.member.displayName, iconURL: interaction.author.displayAvatarURL({ dynamic: true }) })
           .setColor('#08b9bf')
           .setTitle('Flood')
           .setDescription(`${gameBoardToString()} \nGame Over! \n${turnResp[result]}`)
@@ -103,7 +103,7 @@ class Flood extends Command {
           .setTimestamp();
       } else {
         embed = new DiscordJS.MessageEmbed()
-          .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL({ dynamic: true }) })
+          .setAuthor({ name: interaction.member.displayName, iconURL: interaction.author.displayAvatarURL({ dynamic: true }) })
           .setColor('#08b9bf')
           .setTitle('Flood')
           .setDescription(`${gameBoardToString()} 
@@ -112,7 +112,7 @@ Fill the entire image with the same color in 25 or fewer flood tiles (turns).
 Click on the reactions below to fill the area above.
 Filling starts at the top left corner.`)
           .addField('Turn:', turn.toString(), true)
-          .setFooter({ text: `Currently Playing: ${msg.author.username}` })
+          .setFooter({ text: `Currently Playing: ${interaction.author.username}` })
           .setTimestamp();
       }
 
@@ -128,11 +128,11 @@ Filling starts at the top left corner.`)
         let selected = null;
 
         const filter = (reaction, user) => {
-          return ['🟥', '🟦', '🟧', '🟪', '🟩', '🛑'].includes(reaction.emoji.name) && user.id === msg.author.id;
+          return ['🟥', '🟦', '🟧', '🟪', '🟩', '🛑'].includes(reaction.emoji.name) && user.id === interaction.author.id;
         };
 
         if (!message) {
-          message = await msg.channel.send({ embeds: getContent() });
+          message = await interaction.channel.send({ embeds: getContent() });
           ['🟥', '🟦', '🟧', '🟪', '🟩', '🛑'].forEach(s => message.react(s));
         } else {
           message.edit({ embeds: getContent() });
@@ -142,17 +142,17 @@ Filling starts at the top left corner.`)
         if (!collected) {
           gameOver = true;
           result = 'timeOut';
-          this.client.games.delete(msg.channel.id);
+          this.client.games.delete(interaction.channel.id);
           message.reactions.removeAll();
           return message.edit({ embeds: getContent() });
         }
 
-        collected.first().users.remove(msg.author.id);
+        collected.first().users.remove(interaction.author.id);
         selected = collected.first().emoji.name;
         if (selected === '🛑') {
           gameOver = true;
           result = 'earlyEnd';
-          this.client.games.delete(msg.channel.id);
+          this.client.games.delete(interaction.channel.id);
           message.reactions.removeAll();
           return message.edit({ embeds: getContent() });
         }
@@ -196,23 +196,23 @@ Filling starts at the top left corner.`)
       }
 
       if (gameOver === true) {
-        this.client.games.delete(msg.channel.id);
+        this.client.games.delete(interaction.channel.id);
         message.reactions.removeAll();
         return message.edit({ embeds: getContent() });
       }
 
       if (turn >= 25) {
-        this.client.games.delete(msg.channel.id);
+        this.client.games.delete(interaction.channel.id);
         message.reactions.removeAll();
         gameOver = true;
         result = 'maxTurns';
         return message.edit({ embeds: getContent() });
       }
 
-      this.client.games.delete(msg.channel.id);
-      return msg.channel.send('Something went wrong, please try again later.');
+      this.client.games.delete(interaction.channel.id);
+      return interaction.channel.send('Something went wrong, please try again later.');
     } catch (err) {
-      this.client.games.delete(msg.channel.id);
+      this.client.games.delete(interaction.channel.id);
       console.error(err);
       message.reactions.removeAll();
       gameOver = true;
