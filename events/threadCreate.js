@@ -9,7 +9,7 @@ module.exports = class {
   async run (thread) {
     if (thread.joinable) await thread.join();
 
-    const logChan = db.get(`servers.${thread.guild.id}.logs.thread`);
+    const logChan = db.get(`servers.${thread.guild.id}.logs.channel`);
     if (!logChan) return;
 
     const logSys = db.get(`servers.${thread.guild.id}.logs.log_system.thread-created`);
