@@ -7,7 +7,6 @@ module.exports = class {
   }
 
   async run (channel) {
-    if (!channel) return;
     if (channel.type === 'dm') return;
 
     const logChan = db.get(`servers.${channel.guild.id}.logs.channel`);

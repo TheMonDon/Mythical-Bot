@@ -7,6 +7,8 @@ module.exports = class {
   }
 
   async run (thread) {
+    if (thread.joinable) await thread.join();
+
     const logChan = db.get(`servers.${thread.guild.id}.logs.thread`);
     if (!logChan) return;
 
