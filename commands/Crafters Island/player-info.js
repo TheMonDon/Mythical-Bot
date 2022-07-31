@@ -28,7 +28,7 @@ class playerinfo extends Command {
       user1 ? user = user1.id : user = text.join(' ').trim().replace(/'/g, '').replace(/"/g, '');
     }
 
-    let member = Boolean(msg.guild.members.members.cache.get(user));
+    let member = Boolean(msg.guild.members.cache.get(user));
 
     const errMsg = 'I could not find that user. Did they sync their accounts using `!link`? \nAdd "" around mc username if their discord name is the same.';
 
@@ -121,9 +121,9 @@ class playerinfo extends Command {
         pool.query(`SELECT * FROM ranksync.synced_players WHERE player_id = ${playerID}`, async function (error, results) {
           if (error) { member = false; }
           user = results?.[0]?.identifier;
-          if (user && msg.guild.members.members.cache.get(user)) {
+          if (user && msg.guild.members.cache.get(user)) {
             member = true;
-            user1 = msg.guild.members.members.cache.get(user);
+            user1 = msg.guild.members.cache.get(user);
           } else {
             member = false;
           }

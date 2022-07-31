@@ -44,7 +44,7 @@ class ClearWarnings extends Command {
 
     if (previousPoints >= 10) {
       if (!msg.guild.members.me.permissions.has('BAN_MEMBERS')) return msg.channel.send('The bot does not have Ban_Members permission to unban the user.');
-      await msg.guild.members.members.unban(mem.id).catch(() => null);
+      await msg.guild.members.unban(mem.id).catch(() => null);
     }
 
     const otherCases = otherWarns.map((w) => `\`${w.warnID}\``).join(', ');

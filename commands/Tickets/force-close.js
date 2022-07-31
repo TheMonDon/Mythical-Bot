@@ -95,7 +95,7 @@ class forceClose extends Command {
 
     let received;
 
-    const tOwner = await msg.guild.members.members.cache.get(owner);
+    const tOwner = await msg.guild.members.cache.get(owner);
 
     const userEmbed = new DiscordJS.EmbedBuilder()
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })

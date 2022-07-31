@@ -26,9 +26,9 @@ class CleanLeaderboard extends Command {
       .setDescription('Please wait, this may take a while for bigger servers.');
     const message = await msg.channel.send({ embeds: [em] });
 
-    await msg.guild.members.members.fetch();
+    await msg.guild.members.fetch();
     for (const i in users) {
-      if (!msg.guild.members.members.cache.get(i)) toRemove.push(i);
+      if (!msg.guild.members.cache.get(i)) toRemove.push(i);
     }
 
     if (toRemove.length === 0) {

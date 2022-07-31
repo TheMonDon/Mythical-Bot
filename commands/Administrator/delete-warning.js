@@ -37,7 +37,7 @@ class DeleteWarning extends Command {
       if (!msg.guild.members.me.permissions.has('BAN_MEMBERS')) {
         msg.channel.send('The bot does not have Ban Members permission to unban the user.');
       } else {
-        await msg.guild.members.members.unban(userID).catch(() => null);
+        await msg.guild.members.unban(userID).catch(() => null);
         title = 'User Unbanned';
         color = 'GREEN';
       }

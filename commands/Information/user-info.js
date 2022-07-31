@@ -48,7 +48,7 @@ class UserInfo extends Command {
     };
 
     // Guild Member
-    if (msg.guild.members.members.cache.get(infoMem.id)) {
+    if (msg.guild.members.cache.get(infoMem.id)) {
       // Time Stamps
       const joinPosition = await getJoinPosition(infoMem.id, msg.guild);
       const ts = moment(infoMem.user.createdAt);
