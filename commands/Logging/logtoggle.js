@@ -39,8 +39,12 @@ class LogToggle extends Command {
     const ed = /^(emoji[-]?deleted)/gi;
     const bmd = /^(bulk[-]?messages[-]?deleted)/gi;
 
-    errorEmbed.setTitle(':x: Invalid parameter.');
-    errorEmbed.addField('Valid Parameters', `
+    errorEmbed
+      .setTitle(':x: Invalid parameter.')
+      .addFields([
+        {
+          name: 'Valid Parameters',
+          value: `
 channel-created
 channel-deleted
 channel-updated
@@ -57,8 +61,11 @@ role-deleted
 role-updated
 emoji-created
 emoji-deleted
-bulk-messages-deleted`, true);
-    errorEmbed.addField('Other Usage:', 'logtoggle <enable/disable> <channel> to enable/disable a channel from being logged.', false);
+bulk-messages-deleted`,
+          inLine: true
+        },
+        { name: 'Other Usage:', value: 'logtoggle <enable/disable> <channel> to enable/disable a channel from being logged.', inLine: false }
+      ]);
     if (['enable', 'disable'].includes(args?.[0].toLowerCase())) {
       if (args?.[0].toLowerCase() === 'enable') {
         // Enable channel

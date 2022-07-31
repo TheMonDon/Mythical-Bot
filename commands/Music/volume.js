@@ -18,7 +18,7 @@ class Volume extends Command {
     if (!premium) return msg.channel.send('Sorry, this is a beta command and requires the server to have premium status. \nContact TheMonDon#1721 for premium.');
 
     if (!msg.member.voice.channel) return msg.channel.send('You must be in a voice channel to change the volume.');
-    if (msg.guild.me.voice.channel && msg.member.voice.channel.id !== msg.guild.me.voice.channel.id) return msg.channel.send('You must be in the same voice channel as the bot.');
+    if (msg.guild.members.me.voice.channel && msg.member.voice.channel.id !== msg.guild.members.me.voice.channel.id) return msg.channel.send('You must be in the same voice channel as the bot.');
     if (!this.client.player.getQueue(msg.guild).playing) return msg.channel.send('There is nothing playing.');
 
     const volume = parseInt(args.join(' '), 10);

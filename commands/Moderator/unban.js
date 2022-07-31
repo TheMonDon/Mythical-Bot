@@ -15,7 +15,7 @@ class Unban extends Command {
 
   async run (msg, args) {
     if (!msg.member.permissions.has('BAN_MEMBERS')) return msg.channel.send('You are missing the BAN_MEMBERS permission.');
-    if (!msg.guild.me.permissions.has('BAN_MEMBERS')) return msg.channel.send('The bot is missing BAN_MEMBERS permission.');
+    if (!msg.guild.members.me.permissions.has('BAN_MEMBERS')) return msg.channel.send('The bot is missing BAN_MEMBERS permission.');
 
     if (!args || args.length < 1) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}unban <userID> [reason]`);
     const logChan = db.get(`servers.${msg.guild.id}.logging.channel`);
@@ -28,7 +28,7 @@ class Unban extends Command {
     if (!userID.matches(regex)) return msg.channel.send(`Error: Please enter a valid User ID. \nInput: ${userID}`);
 
     const embed = new DiscordJS.EmbedBuilder();
-    if (msg.guild.me.permissions.has('MANAGE_MESSAGES')) msg.delete();
+    if (msg.guild.members.me.permissions.has('MANAGE_MESSAGES')) msg.delete();
 
     try {
       const banList = await msg.guild.fetchBans();

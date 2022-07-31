@@ -15,7 +15,7 @@ class persistentRoles extends Command {
   }
 
   async run (msg) {
-    if (!msg.guild.me.permissions.has('MANAGE_ROLES')) return msg.channel.send('The bot requires the Manage Roles permission for this to work.');
+    if (!msg.guild.members.me.permissions.has('MANAGE_ROLES')) return msg.channel.send('The bot requires the Manage Roles permission for this to work.');
 
     const toggle = db.get(`servers.${msg.guild.id}.proles.system`) || false;
 

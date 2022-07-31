@@ -1,7 +1,6 @@
 const Command = require('../../base/Command.js');
 const Discord = require('discord.js');
 const db = require('quick.db');
-const { stripIndents } = require('common-tags');
 
 class LogSystem extends Command {
   constructor (client) {
@@ -19,7 +18,10 @@ class LogSystem extends Command {
 
     const embed = new Discord.EmbedBuilder()
       .setColor('#36393F')
-      .addField('Toggle Status', stripIndents`
+      .addFields([
+        {
+          name: 'Toggle Status',
+          value: `
 **Channel Created:** ${db.get(`servers.${msg.guild.id}.logs.log_system.channel-created`) || ':x:'}
 **Channel Deleted:** ${db.get(`servers.${msg.guild.id}.logs.log_system.channel-deleted`) || ':x:'}
 **Channel Updated:** ${db.get(`servers.${msg.guild.id}.logs.log_system.channel-updated`) || ':x:'}
@@ -37,8 +39,12 @@ class LogSystem extends Command {
 **Emoji Created:** ${db.get(`servers.${msg.guild.id}.logs.log_system.emoji-created`) || ':x:'}
 **Emoji Deleted:** ${db.get(`servers.${msg.guild.id}.logs.log_system.emoji-deleted`) || ':x:'}
 **Bulk Messages Deleted:** ${db.get(`servers.${msg.guild.id}.logs.log_system.bulk-messages-deleted`) || ':x:'}
-`, true)
-      .addField('System Status', `
+`,
+          inLine: true
+        },
+        {
+          name: 'System Status',
+          value: `
 **Channels Created:** ${db.get(`servers.${msg.guild.id}.logs.channel-created`) || '0'}
 **Channels Deleted:** ${db.get(`servers.${msg.guild.id}.logs.channel-deleted`) || '0'}
 **Channels Updated:** ${db.get(`servers.${msg.guild.id}.logs.channel-updated`) || '0'}
@@ -57,10 +63,13 @@ class LogSystem extends Command {
 **Emojis Deleted:** ${db.get(`servers.${msg.guild.id}.logs.emoji-deleted`) || '0'}
 **Bulk Messages Deleted:** ${db.get(`servers.${msg.guild.id}.logs.bulk-messages-deleted`) || '0'}
 **Total:** ${db.get(`servers.${msg.guild.id}.logs.all`) || '0'}
-`, true)
-      .setFooter({ text: 'Logs System V3.0-BETA' });
+`,
+          inLine: true
+        }
+      ])
+      .setFooter({ text: 'Logs System V3.1-BETA' });
 
-    if (msg.guild.me.permissions.has('MANAGE_MESSAGES')) msg.delete();
+    if (msg.guild.members.me.permissions.has('MANAGE_MESSAGES')) msg.delete();
     return msg.channel.send({ embeds: [embed] });
   }
 }

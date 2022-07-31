@@ -12,7 +12,7 @@ module.exports = class {
     if (message.author.bot) return;
 
     // if (message.guild && !message.channel.permissionsFor(this.client.user.id).has('SEND_MESSAGES')) return;
-    if (message.guild && !message.guild.members.me.permissions.has('SEND_MESSAGES')) return;
+    if (message.guild && !message.guild.members.members.me.permissions.has('SEND_MESSAGES')) return;
 
     const settings = this.client.getSettings(message.guild);
     message.settings = settings;
@@ -22,7 +22,7 @@ module.exports = class {
     const prefixMention = new RegExp(`^(<@!?${this.client.user.id}>)(\s+)?`);
     if (message.guild && message.content.match(prefixMention)) {
       bool = true;
-      tag = String(message.guild.members.me);
+      tag = String(message.guild.members.members.me);
     } else if (message.content.indexOf(settings.prefix) !== 0) {
       // Ticket message storage
 

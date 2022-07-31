@@ -20,9 +20,9 @@ class New extends Command {
     if (!db.get(`servers.${msg.guild.id}.tickets`)) return msg.channel.send('The ticket system has not been setup in this server.');
     const { catID, logID, roleID } = db.get(`servers.${msg.guild.id}.tickets`);
 
-    if (!msg.guild.me.permissions.has('MANAGE_CHANNELS')) return msg.channel.send('The bot is missing Manage Channels permission.');
-    if (!msg.guild.me.permissions.has('MANAGE_ROLES')) return msg.channel.send('The bot is missing Manage Roles permission');
-    if (!msg.guild.me.permissions.has('MANAGE_MESSAGES')) return msg.channel.send('The bot is missing Manage Messages permission');
+    if (!msg.guild.members.me.permissions.has('MANAGE_CHANNELS')) return msg.channel.send('The bot is missing Manage Channels permission.');
+    if (!msg.guild.members.me.permissions.has('MANAGE_ROLES')) return msg.channel.send('The bot is missing Manage Roles permission');
+    if (!msg.guild.members.me.permissions.has('MANAGE_MESSAGES')) return msg.channel.send('The bot is missing Manage Messages permission');
 
     if (msg.channel.name.startsWith('ticket')) return msg.channel.send('You\'re already in a ticket, silly.');
     if (!args || args.length < 1) return msg.channel.send(`Please provide a reason. Usage: ${msg.settings.prefix}New <reason>`);
@@ -41,7 +41,7 @@ class New extends Command {
         allow: ['VIEW_CHANNEL']
       },
       {
-        id: msg.guild.me.id,
+        id: msg.guild.members.me.id,
         allow: ['VIEW_CHANNEL']
       },
       {

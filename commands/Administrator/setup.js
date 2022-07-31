@@ -24,9 +24,9 @@ class Setup extends Command {
       const filter = m => m.author.id === msg.author.id;
       const filter2 = m => ['y', 'yes', 'n', 'no'].includes(m.content.toLowerCase()) && m.author.id === msg.author.id;
 
-      if (!msg.guild.me.permissions.has('MANAGE_CHANNELS')) return msg.channel.send('The bot is missing manage channels perm.');
-      if (!msg.guild.me.permissions.has('MANAGE_ROLES')) return msg.channel.send('The bot is missing manage roles perm');
-      if (!msg.guild.me.permissions.has('MANAGE_MESSAGES')) return msg.channel.send('The bot is missing manage messages perm');
+      if (!msg.guild.members.me.permissions.has('MANAGE_CHANNELS')) return msg.channel.send('The bot is missing manage channels perm.');
+      if (!msg.guild.members.me.permissions.has('MANAGE_ROLES')) return msg.channel.send('The bot is missing manage roles perm');
+      if (!msg.guild.members.me.permissions.has('MANAGE_MESSAGES')) return msg.channel.send('The bot is missing manage messages perm');
 
       // Check if the system is setup already
       if (db.get(`servers.${msg.guild.id}.tickets`)) {
@@ -108,7 +108,7 @@ class Setup extends Command {
           deny: ['VIEW_CHANNEL']
         },
         {
-          id: msg.guild.me.id,
+          id: msg.guild.members.me.id,
           allow: ['VIEW_CHANNEL']
         },
         {
@@ -123,7 +123,7 @@ class Setup extends Command {
           deny: ['VIEW_CHANNEL']
         },
         {
-          id: msg.guild.me.id,
+          id: msg.guild.members.me.id,
           allow: ['VIEW_CHANNEL']
         },
         {
@@ -148,7 +148,7 @@ class Setup extends Command {
             deny: ['ADD_REACTIONS', 'SEND_MESSAGES']
           },
           {
-            id: msg.guild.me.id,
+            id: msg.guild.members.me.id,
             allow: ['ADD_REACTIONS', 'SEND_MESSAGES']
           }
         ];

@@ -17,7 +17,7 @@ class Seek extends Command {
 
     if (!args || args.length < 1) return msg.reply(usage);
     if (!msg.member.voice.channel) return msg.channel.send('You must be in a voice channel to seek the music.');
-    if (msg.guild.me.voice.channel && msg.member.voice.channel.id !== msg.guild.me.voice.channel.id) return msg.channel.send('You must be in the same voice channel as the bot.');
+    if (msg.guild.members.me.voice.channel && msg.member.voice.channel.id !== msg.guild.members.me.voice.channel.id) return msg.channel.send('You must be in the same voice channel as the bot.');
     if (!queue.nowPlaying()) return msg.channel.send('There is nothing playing.');
 
     const num = parseInt(args[0] * 1000, 10);

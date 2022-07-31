@@ -34,10 +34,10 @@ class DeleteWarning extends Command {
     db.delete(`servers.${msg.guild.id}.warns.warnings.${caseID}`);
     const newerPoints = getTotalPoints(userID, msg);
     if (previousPoints >= 10 && newerPoints < 10) {
-      if (!msg.guild.me.permissions.has('BAN_MEMBERS')) {
+      if (!msg.guild.members.me.permissions.has('BAN_MEMBERS')) {
         msg.channel.send('The bot does not have Ban Members permission to unban the user.');
       } else {
-        await msg.guild.members.unban(userID).catch(() => null);
+        await msg.guild.members.members.unban(userID).catch(() => null);
         title = 'User Unbanned';
         color = 'GREEN';
       }

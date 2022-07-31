@@ -15,7 +15,7 @@ class Nickname extends Command {
 
   async run (msg, text) {
     if (!msg.member.permissions.has('MANAGE_NICKNAMES')) return msg.channel.send('You are missing the manage nicknames permission.');
-    if (!msg.guild.me.permissions.has('MANAGE_NICKNAMES')) return msg.channel.send('The bot doesn\'t have manage nicknames permission.');
+    if (!msg.guild.members.me.permissions.has('MANAGE_NICKNAMES')) return msg.channel.send('The bot doesn\'t have manage nicknames permission.');
 
     if (!text[0]) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}Nick <user> (nickname)`);
 
@@ -24,7 +24,7 @@ class Nickname extends Command {
 
     if (!infoMem) return msg.channel.send('Please supply a proper member.');
     if (infoMem.id === owner.user.id) return msg.channel.send('Only the server owner of the server can change their nickname.');
-    if (infoMem.roles.highest.position > msg.guild.me.roles.highest.position - 1) return msg.channel.send('I need my role higher to change that users nickname.');
+    if (infoMem.roles.highest.position > msg.guild.members.me.roles.highest.position - 1) return msg.channel.send('I need my role higher to change that users nickname.');
 
     text.shift();
     const nick = text.join(' ');
