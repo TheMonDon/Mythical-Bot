@@ -34,16 +34,17 @@ class RoleInfo extends Command {
       .setTitle(`${infoRole.name}'s Information`)
       .setColor(infoRole.hexColor)
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
-      .addField('Name', infoRole.name, true)
-      .addField('ID', infoRole.id.toString(), true)
-      .addField('Mention', `\`${infoRole}\``, true)
-      .addField('Color', infoRole.hexColor.toString(), true)
-      .addField('Members', infoRole.members.size.toLocaleString(), true)
-      .addField('Position', `${infoRole.position}/${msg.guild.roles.cache.size}`, true)
-      .addField('Hoisted', infoRole.hoist.toString(), true)
-      .addField('Mentionable', infoRole.mentionable.toString(), true)
-      .addField('Managed', infoRole.managed.toString(), true)
-      .addField('Created At', `${ca} (${time})`, true);
+      .addFields([
+        { name: 'Name', value: infoRole.name },
+        { name: 'ID', value: infoRole.id.toString() },
+        { name: 'Mention', value: `\`${infoRole}\`` },
+        { name: 'Color', value: infoRole.hexColor.toString().toUpperCase() },
+        { name: 'Members', value: infoRole.members.size.toLocaleString() },
+        { name: 'Position', value: `${infoRole.position}/${msg.guild.roles.cache.size}` },
+        { name: 'Mentionable', value: infoRole.mentionable.toString() },
+        { name: 'Managed', value: infoRole.managed.toString() },
+        { name: 'Created At', value: `${ca} (${time})` }
+      ]);
     return msg.channel.send({ embeds: [embed] });
   }
 }

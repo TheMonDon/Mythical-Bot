@@ -73,12 +73,14 @@ Incorrect Usage:
       if (!result) return msg.reply('That emoji was not found. Is it from this server?');
       const em = new DiscordJS.EmbedBuilder()
         .setTitle('Emoji Information')
-        .addField('Emoji', result, true)
-        .addField('Emoji Name', result.name, true)
-        .addField('Is Animated?', result.animated.toString(), true)
-        .addField('Emoji ID', result.id.toString(), true)
-        .addField('Emoji is Available?', result.available.toString(), true)
-        .addField('Emoji Author', result.author.toString() || 'N/A', true);
+        .addFields([
+          { name: 'Emoji', value: result },
+          { name: 'Emoji Name', value: result.name },
+          { name: 'Is Animated?', value: result.animated.toString() },
+          { name: 'Emoji ID', value: result.id.toString() },
+          { name: 'Emoji is Available?', value: result.available.toString() },
+          { name: 'Emoji Author', value: result.author.toString() || 'N/A' }
+        ]);
       return msg.channel.send({ embeds: [em] });
     } else if (type === 'rename') {
       const emoji = args[1];

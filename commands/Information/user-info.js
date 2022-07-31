@@ -75,15 +75,17 @@ class UserInfo extends Command {
         .setColor('#0099CC')
         .setThumbnail(infoMem.user.displayAvatarURL({ format: 'png', dynamic: true }))
         .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
-        .addField('User Tag', infoMem.user.tag, true)
-        .addField('Nickname', infoMem.displayName, true)
-        .addField('User ID', infoMem.id, true)
-        .addField('Joined Server', `${ja} \n (${jaTime})`, true)
-        .addField('Account Created', `${ca} \n (${caTime})`, true)
-        .addField('Join Position', `${Number(joinPosition).toLocaleString()}/${msg.guild.memberCount.toLocaleString()}`, true)
-        .addField('Account Type', infoMem.user.bot ? ':robot: Bot' : ':person_standing: Human', true)
-        .addField(`Badges [${userBadges?.length || 0}]`, badgesArray || 'No Badges', true)
-        .addField('Roles', roles1, false);
+        .addFields([
+          { name: 'User Tag', value: infoMem.user.tag },
+          { name: 'Nickname', value: infoMem.displayName },
+          { name: 'User ID', value: infoMem.id },
+          { name: 'Joined Server', value: `${ja} \n (${jaTime})` },
+          { name: 'Account Created', value: `${ca} \n (${caTime})` },
+          { name: 'Join Position', value: `${Number(joinPosition).toLocaleString()}/${msg.guild.memberCount.toLocaleString()}` },
+          { name: 'Account Type', value: infoMem.user.bot ? ':robot: Bot' : ':person_standing: Human' },
+          { name: `Badges [${userBadges?.length || 0}]`, value: badgesArray || 'No Badges' },
+          { name: 'Roles', value: roles1 }
+        ]);
       return msg.channel.send({ embeds: [embed] });
     }
 
@@ -102,11 +104,13 @@ class UserInfo extends Command {
       .setColor('#0099CC')
       .setThumbnail(infoMem.displayAvatarURL({ format: 'png', dynamic: true }))
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
-      .addField('User Tag', infoMem.tag, true)
-      .addField('User ID', infoMem.id.toString(), true)
-      .addField(`Badges [${userBadges?.length || 0}]`, badgesArray || 'No Badges', true)
-      .addField('Account Type', infoMem.bot ? ':robot: Bot' : ':person_standing: Human', true)
-      .addField('Account Created', ca, true);
+      .addFields([
+        { name: 'User Tag', value: infoMem.tag },
+        { name: 'User ID', value: infoMem.id.toString() },
+        { name: `Badges [${userBadges?.length || 0}]`, value: badgesArray || 'No Badges' },
+        { name: 'Account Type', value: infoMem.bot ? ':robot: Bot' : ':person_standing: Human' },
+        { name: 'Account Created', value: ca }
+      ]);
     return msg.channel.send({ embeds: [embed] });
   }
 }

@@ -35,9 +35,11 @@ class Ban extends Command {
       .setTitle('User Banned')
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
       .setColor('#ff0000')
-      .addField('User', banMem.toString(), true)
-      .addField('Banned By', msg.member.displayName.toString(), true)
-      .addField('Reason', reason, true)
+      .addFields([
+        { name: 'User', value: banMem.toString() },
+        { name: 'Banned By', value: msg.member.displayName.toString() },
+        { name: 'Reason', value: reason }
+      ])
       .setFooter({ text: `User ID: ${banMem.id}` })
       .setTimestamp();
     banMem.ban({ reason });

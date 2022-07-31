@@ -38,14 +38,17 @@ class Unban extends Command {
 
       msg.guild.unban(userID, reason)
         .then(unbanP => {
-          embed.setTitle('Member Unbanned');
-          embed.setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() });
-          embed.setColor('GREEN');
-          embed.addField('User', unbanP.toString(), true);
-          embed.addField('Unbanned By', msg.member.toString(), true);
-          embed.addField('Reason', reason, true);
-          embed.setFooter({ text: `ID: ${unbanP.id}` });
-          embed.setTimestamp();
+          embed
+            .setTitle('Member Unbanned')
+            .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
+            .setColor('#00FF00')
+            .addFields([
+              { name: 'User', value: unbanP.toString() },
+              { name: 'Unbanned By', value: msg.member.toString() },
+              { name: 'Reason', value: reason }
+            ])
+            .setFooter({ text: `ID: ${unbanP.id}` })
+            .setTimestamp();
           if (logChan) msg.guild.channels.cache.get(logChan).send({ embeds: [embed] });
 
           return msg.channel.send({ embeds: [embed] });

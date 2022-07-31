@@ -45,7 +45,7 @@ class TodayInHistory extends Command {
         .setTitle(`On this day (${body.date})...`)
         .setTimestamp()
         .setDescription(`${event.year}: ${event.text}`)
-        .addField('❯ See More', event.links.map(link => `[${link.title}](${link.link.replace(/\)/g, '%29')})`).join(', '));
+        .addFields([{ name: '❯ See More', value: event.links.map(link => `[${link.title}](${link.link.replace(/\)/g, '%29')})`).join(', ') }]);
 
       return msg.channel.send({ embeds: [embed] });
     } catch (err) {

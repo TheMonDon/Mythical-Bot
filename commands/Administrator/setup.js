@@ -139,7 +139,7 @@ class Setup extends Command {
       // Create the reaction message stuff
       if (reaction === 'yes') {
         embed.setTitle('New Ticket');
-        embed.setColor('GREEN');
+        embed.setColor('#00FF00');
 
         const reactPerms = [
           {
@@ -217,7 +217,7 @@ class Setup extends Command {
 
       if (currentChan) {
         embed.setTitle('Successfully Changed');
-        embed.setColor('GREEN');
+        embed.setColor('#00FF00');
         embed.setThumbnail('https://cdn.discordapp.com/emojis/482184108555108358.png');
         embed.setDescription(`Everything related to logs will be posted in ${chan} from now on.`);
         embed.setTimestamp();
@@ -226,7 +226,7 @@ class Setup extends Command {
       } else {
         db.set(`servers.${msg.guild.id}.logs.logSystem`, logSystem);
         embed.setTitle('Successfully Set');
-        embed.setColor('GREEN');
+        embed.setColor('#00FF00');
         embed.setThumbnail('https://cdn.discordapp.com/emojis/482184108555108358.png');
         embed.setDescription(`Everything related to logs will be posted in ${chan}.`);
         embed.setTimestamp();

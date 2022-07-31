@@ -199,7 +199,7 @@ client.player
       .setThumbnail(playlist.thumbnail)
       .setColor('0099CC')
       .setDescription(`[${playlist.title}](${playlist.url}) \n\nRequested By: ${tracks[0].requestedBy}`)
-      .addField('Playlist Length', length.toString(), true);
+      .addFields([{ name: 'Playlist Length', value: length.toString(), inLine: true }]);
     queue.metadata.channel.send({ embeds: [em] });
   })
   .on('noResults', (queue, query) => queue.metadata.channel.send(`No results were found for ${query}.`))

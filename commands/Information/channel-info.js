@@ -34,11 +34,11 @@ class ChannelInfo extends Command {
       .addFields([
         { name: 'Name', value: infoChan.name, inLine: true },
         { name: 'ID', value: infoChan.id.toString(), inLine: true },
-        { name: 'Type', value: ChannelType[msg.channel.type], inLine: true },
+        { name: 'Type', value: ChannelType[msg.channel.type].toString(), inLine: true },
         { name: 'Position', value: infoChan.position.toString(), inLine: true }
       ]);
-    if (infoChan.type === ChannelType.GuildText) embed.addFields([{ name: 'NSFW', value: infoChan.nsfw, inLine: true }]);
-    if (infoChan.type === 'ChannelType.GuildVoice') {
+    if (infoChan.type === ChannelType.GuildText) embed.addFields([{ name: 'NSFW', value: infoChan.nsfw.toString(), inLine: true }]);
+    if (infoChan.type === ChannelType.GuildVoice) {
       embed.addFields([
         { name: 'User Limit', value: infoChan.userLimit.toString(), inLine: true },
         { name: 'Bitrate', value: infoChan.bitrate.toString(), inLine: true }
@@ -49,7 +49,7 @@ class ChannelInfo extends Command {
       { name: 'Mention', value: `\`${infoChan}\``, inLine: true },
       { name: 'Created At', value: `${ca} \n(${time})`, inLine: true }
     ]);
-    if (infoChan.parent) embed.addFields([{ name: 'Parent', value: `${infoChan.parent.name} \n\`${infoChan.parentID}\``, inLine: true }]);
+    if (infoChan.parent) embed.addFields([{ name: 'Parent', value: `${infoChan.parent.name} \n\`${infoChan.parentId}\``, inLine: true }]);
     if (infoChan.type === ChannelType.GuildText) embed.addFields([{ name: 'Topic', value: infoChan.topic || 'None', inLine: false }]);
 
     return msg.channel.send({ embeds: [embed] });

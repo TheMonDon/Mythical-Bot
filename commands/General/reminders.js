@@ -56,7 +56,7 @@ class Reminders extends Command {
     } else {
       db.delete(`global.reminders.${ID}`);
 
-      em.setColor('GREEN');
+      em.setColor('#00FF00');
       em.setDescription(`${msg.member.displayName}, you've successfully deleted your reminder.`);
     }
     return msg.channel.send({ embeds: [em] });
