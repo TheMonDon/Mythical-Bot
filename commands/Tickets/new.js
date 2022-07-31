@@ -72,7 +72,7 @@ class New extends Command {
 
     db.set(`servers.${msg.guild.id}.tickets.${tName}.owner`, msg.author.id);
 
-    const userEmbed = new DiscordJS.MessageEmbed()
+    const userEmbed = new DiscordJS.EmbedBuilder()
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
       .setTitle(`${msg.member.displayName}'s Ticket`)
       .addField('Reason', reason, true)
@@ -84,7 +84,7 @@ class New extends Command {
     setTimeout(() => reply.delete(), 60000);
     msg.delete();
 
-    const logEmbed = new DiscordJS.MessageEmbed()
+    const logEmbed = new DiscordJS.EmbedBuilder()
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
       .setTitle('New Ticket Created')
       .addField('Author', `${msg.author} (${msg.author.id})`, false)
@@ -95,7 +95,7 @@ class New extends Command {
     const logChan = msg.guild.channels.cache.get(logID);
     await logChan.send({ embeds: [logEmbed] });
 
-    const chanEmbed = new DiscordJS.MessageEmbed()
+    const chanEmbed = new DiscordJS.EmbedBuilder()
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
       .setTitle(`${msg.member.displayName}'s Ticket`)
       .addField('Reason', reason, false)

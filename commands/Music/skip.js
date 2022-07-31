@@ -1,5 +1,5 @@
 const Command = require('../../base/Command.js');
-const { MessageEmbed } = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 
 class Skip extends Command {
   constructor (client) {
@@ -23,7 +23,7 @@ class Skip extends Command {
     const song = queue.nowPlaying();
     queue.skip();
 
-    const em = new MessageEmbed()
+    const em = new EmbedBuilder()
       .setColor('GREEN')
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
       .addField('Skipped Song', song.title, false);

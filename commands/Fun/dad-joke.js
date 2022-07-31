@@ -19,9 +19,9 @@ class DadJoke extends Command {
     })
       .then(res => res.text())
       .then(body => {
-        const embed = new DiscordJS.MessageEmbed()
+        const embed = new DiscordJS.EmbedBuilder()
           .setTitle('Dad Joke')
-          .setColor('RANDOM')
+          .setColor('#0099CC')
           .setDescription(body)
           .setFooter({ text: 'Powered by: https://icanhazdadjoke.com/' });
         return msg.channel.send({ embeds: [embed] });

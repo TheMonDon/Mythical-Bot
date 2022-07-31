@@ -62,11 +62,13 @@ class RemindMe extends Command {
       return (~~(Math.random() * 16)).toString(16);
     });
 
-    const embed = new DiscordJS.MessageEmbed()
+    const embed = new DiscordJS.EmbedBuilder()
       .setColor(rand)
       .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
-      .addField('I will remind you to:', `\`\`\`${message}\`\`\``, true)
-      .addField('in:', `\`\`\`${timeString}\`\`\``, true)
+      .addFields([
+        { name: 'I will remind you to:', value: `\`\`\`${message}\`\`\`` },
+        { name: 'in:', value: `\`\`\`${timeString}\`\`\`` }
+      ])
       .setFooter({ text: `ID: ${remID} | Got it! I'll remind you on:` })
       .setTimestamp(start);
     msg.channel.send({ embeds: [embed] });

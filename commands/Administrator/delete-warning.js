@@ -43,13 +43,15 @@ class DeleteWarning extends Command {
       }
     }
 
-    const em = new DiscordJS.MessageEmbed()
+    const em = new DiscordJS.EmbedBuilder()
       .setColor(color)
       .setTitle(title)
       .setDescription(`${msg.author} has cleared a case from a user.`)
-      .addField('User', `${user} (${user.id})`, true)
-      .addField('Deleted Case', `\`${caseID}\``, true)
-      .addField('Case Reason', warnReason, false);
+      .addFields([
+        { name: 'User', value: `${user} (${user.id})` },
+        { name: 'Deleted Case', value: `\`${caseID}\`` },
+        { name: 'Case Reason', value: warnReason }
+      ]);
     return msg.channel.send({ embeds: [em] });
   }
 }

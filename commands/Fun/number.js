@@ -23,9 +23,9 @@ class Number extends Command {
       });
     if (!body) return;
 
-    const em = new DiscordJS.MessageEmbed()
+    const em = new DiscordJS.EmbedBuilder()
       .setTitle(body)
-      .setColor('RANDOM');
+      .setColor('#0099CC');
     return msg.channel.send({ embeds: [em] });
   }
 }

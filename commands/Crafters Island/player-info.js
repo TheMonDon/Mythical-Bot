@@ -33,7 +33,7 @@ class playerinfo extends Command {
     const errMsg = 'I could not find that user. Did they sync their accounts using `!link`? \nAdd "" around mc username if their discord name is the same.';
 
     const information = async function (id, pool, member, user1, msg) {
-      const em = new DiscordJS.MessageEmbed()
+      const em = new DiscordJS.EmbedBuilder()
         .setTitle('Account Not Found')
         .setColor('FF0000')
         .setDescription(`An account with the name \`${user1}\` was not found.`);
@@ -65,18 +65,20 @@ class playerinfo extends Command {
             pool.query(`SELECT double_value FROM plan.plan_extension_user_values WHERE provider_id = 15 AND uuid = '${id}'`, function (error, results) {
               const bal = error ? 0 : results?.[0]?.double_value || 0;
 
-              const em = new DiscordJS.MessageEmbed()
+              const em = new DiscordJS.EmbedBuilder()
                 .setTitle(`${name}'s Account Information`)
                 .setColor('00FF00')
                 .setImage(`https://mc-heads.net/body/${id}`)
-                .addField('Name Changes History', nc || 'Error fetching data...', false)
-                .addField('UUID', id, false)
-                .addField('NameMC Link', `Click [here](https://es.namemc.com/profile/${id}) to go to their NameMC Profile`, false);
-              if (member) em.addField('Discord', `${user1.user.tag} (${user1.id})`, false);
-              if (wins) em.addField('Reaction Wins', wins, false);
-              if (lastOnline) em.addField('Last Online', lastOnline, false);
-              if (out !== '0s') em.addField('Play Time', out, false);
-              if (bal) em.addField('Survival Balance', `$${bal.toLocaleString()}`, false);
+                .addFields([
+                  { name: 'Name Changes History', value: nc || 'Error fetching data...' },
+                  { name: 'UUID', value: id },
+                  { name: 'NameMC Link', value: `Click [here](https://es.namemc.com/profile/${id}) to go to their NameMC Profile` }
+                ]);
+              if (member) em.addFields([{ name: 'Discord', value: `${user1.user.tag} (${user1.id})` }]);
+              if (wins) em.addFields([{ name: 'Reaction Wins', value: wins }]);
+              if (lastOnline) em.addFields([{ name: 'Last Online', value: lastOnline }]);
+              if (out !== '0s') em.addFields([{ name: 'Play Time', value: out }]);
+              if (bal) em.addFields([{ name: 'Survival Balance', value: `$${bal.toLocaleString()}` }]);
 
               return msg.channel.send({ embeds: [em] });
             });
@@ -85,7 +87,7 @@ class playerinfo extends Command {
       });
     };
 
-    const errorEmbed = new DiscordJS.MessageEmbed()
+    const errorEmbed = new DiscordJS.EmbedBuilder()
       .setTitle('Account Not Found')
       .setColor('FF0000')
       .setDescription(`An account with the name \`${user || user1}\` was not found.`);
@@ -94,7 +96,7 @@ class playerinfo extends Command {
       const nameRegex = /^\w{3,16}$/;
       // Make sure the username is a valid MC username
       if (!nameRegex.test(user)) {
-        const em = new DiscordJS.MessageEmbed()
+        const em = new DiscordJS.EmbedBuilder()
           .setTitle('Invalid Username')
           .setColor('FF0000')
           .setDescription(`\`${user}\` is not a valid username.`);

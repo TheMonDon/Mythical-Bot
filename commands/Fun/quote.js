@@ -22,12 +22,14 @@ class Quote extends Command {
 
     const quote = quoteArray[Math.floor(Math.random() * quoteArray.length)];
 
-    const em = new DiscordJS.MessageEmbed()
+    const em = new DiscordJS.EmbedBuilder()
+      .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
       .setTitle('Random Quote')
-      .setColor('RANDOM')
-      .addField('Author', quote.author)
-      .addField('Quote', quote.text)
-      .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() });
+      .setColor('#0099CC')
+      .addFields([
+        { name: 'Author', value: quote.author },
+        { name: 'Quote', value: quote.text }
+      ]);
 
     return msg.channel.send({ embeds: [em] });
   }

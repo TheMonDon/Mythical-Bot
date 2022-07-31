@@ -49,17 +49,21 @@ class ClearWarnings extends Command {
 
     const otherCases = otherWarns.map((w) => `\`${w.warnID}\``).join(', ');
 
-    const em = new DiscordJS.MessageEmbed()
+    const em = new DiscordJS.EmbedBuilder()
       .setDescription(`${msg.author.tag} has cleared all the warnings from a user.`)
-      .setColor('ORANGE')
-      .addField('User', `${mem} (${mem.id})`, true)
-      .addField('Cleared Cases', otherCases, true);
+      .setColor('#FFA500')
+      .addFields([
+        { name: 'User', value: `${mem} (${mem.id})` },
+        { name: 'Cleared Cases', value: otherCases }
+      ]);
 
-    const memEmbed = new DiscordJS.MessageEmbed()
+    const memEmbed = new DiscordJS.EmbedBuilder()
       .setDescription(`${msg.author.tag} has cleared all your warnings.`)
-      .setColor('ORANGE')
-      .addField('Cleared Cases', otherCases, true)
-      .addField('Issued In', msg.guild.name);
+      .setColor('#FFA500')
+      .addFields([
+        { name: 'Cleared Cases', value: otherCases },
+        { name: 'Issued In', value: msg.guild.name }
+      ]);
 
     mem.send({ embeds: [memEmbed] }).catch(() => null);
     return msg.channel.send({ embeds: [em] });

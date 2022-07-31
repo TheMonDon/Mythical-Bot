@@ -1,5 +1,5 @@
 const Command = require('../../base/Command.js');
-const { MessageEmbed } = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 
 class Queue extends Command {
   constructor (client) {
@@ -43,8 +43,8 @@ class Queue extends Command {
       }
     }
 
-    const embed = new MessageEmbed()
-      .setColor('RANDOM')
+    const embed = new EmbedBuilder()
+      .setColor('#0099CC')
       .setTitle(`${msg.guild.name}'s Queue`)
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
       .setDescription(q.join('\n'))

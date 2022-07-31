@@ -17,7 +17,7 @@ class Steam extends Command {
     const query = await clean(this.client, text.join(' '));
 
     if (!text || text.length < 1) {
-      const em = new DiscordJS.MessageEmbed()
+      const em = new DiscordJS.EmbedBuilder()
         .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
         .setTitle('Please provide something to search for')
         .setDescription(`Incorrect Usage: ${msg.settings.prefix}steam <game/app>`)
@@ -55,7 +55,7 @@ class Steam extends Command {
     if (data.platforms?.mac) platforms.push('Mac');
     if (data.platforms?.linux) platforms.push('Linux');
 
-    const embed = new DiscordJS.MessageEmbed()
+    const embed = new DiscordJS.EmbedBuilder()
       .setColor(0x101D2F)
       .setAuthor({ name: 'Steam', iconURL: 'https://i.imgur.com/xxr2UBZ.png', url: 'http://store.steampowered.com/' })
       .setTitle(data.name)

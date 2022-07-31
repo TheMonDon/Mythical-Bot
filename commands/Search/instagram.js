@@ -20,7 +20,7 @@ class Instagram extends Command {
 
     userInstagram(query)
       .then(res => {
-        const em = new DiscordJS.MessageEmbed()
+        const em = new DiscordJS.EmbedBuilder()
           .setTitle(res.fullName)
           .setURL(res.link)
           .setThumbnail(res.profilePicHD)

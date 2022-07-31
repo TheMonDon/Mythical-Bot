@@ -72,7 +72,7 @@ class Kill extends Command {
     ];
 
     const num = Math.round(Math.random() * (deaths.length - 1)) + 1;
-    const embed = new DiscordJS.MessageEmbed()
+    const embed = new DiscordJS.EmbedBuilder()
       .setTitle(deaths[num])
       .setFooter({ text: `Reply #${num}` });
     return msg.channel.send({ embeds: [embed] });

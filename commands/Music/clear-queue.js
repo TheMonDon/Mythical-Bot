@@ -1,5 +1,5 @@
 const Command = require('../../base/Command.js');
-const { MessageEmbed } = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 
 class ClearQueue extends Command {
   constructor (client) {
@@ -21,7 +21,7 @@ class ClearQueue extends Command {
 
     queue.destroy(false);
 
-    const em = new MessageEmbed()
+    const em = new EmbedBuilder()
       .setDescription(':recycle: The music queue has been cleared!');
     return msg.channel.send({ embeds: [em] });
   }

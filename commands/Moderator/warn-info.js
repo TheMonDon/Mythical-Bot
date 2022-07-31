@@ -27,7 +27,7 @@ class WarnInfo extends Command {
     const victim = await this.client.users.fetch(user);
     const moderator = await this.client.users.fetch(mod);
 
-    const em = new DiscordJS.MessageEmbed()
+    const em = new DiscordJS.EmbedBuilder()
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
       .setColor('#0099CC')
       .addField('Case ID', caseID.toString(), true)

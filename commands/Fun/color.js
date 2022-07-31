@@ -1,6 +1,6 @@
 const Command = require('../../base/Command.js');
 const { toProperCase } = require('../../util/Util.js');
-const { MessageEmbed } = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const isImageURL = require('is-image-url');
 const isURL = require('is-url');
 const rgbHex = require('rgb-hex');
@@ -23,7 +23,7 @@ class Color extends Command {
     let input = args.join(' ');
     let color;
 
-    const embed = new MessageEmbed()
+    const embed = new EmbedBuilder()
       .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() });
 
     const rgbRegex = /^rgb[\s+]?\((:?\d+\.?\d?%?)(,|-|\/\|)\s?(:?\d+\.?\d?%?)(,|-|\/\|)\s?(:?\d+\.?\d?%?)\)/i;

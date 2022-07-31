@@ -39,7 +39,7 @@ class TodayInHistory extends Command {
       const body = JSON.parse(text);
       const events = body.data.Events;
       const event = events[Math.floor(Math.random() * events.length)];
-      const embed = new DiscordJS.MessageEmbed()
+      const embed = new DiscordJS.EmbedBuilder()
         .setColor(0x9797FF)
         .setURL(body.url)
         .setTitle(`On this day (${body.date})...`)

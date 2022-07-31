@@ -17,7 +17,7 @@ class LogSystem extends Command {
   async run (msg) {
     if (!db.get(`servers.${msg.guild.id}.logs.channel`)) return msg.channel.send(`The log system is not set up! Use \`${msg.settings.prefix}setlogchannel <channel>\``);
 
-    const embed = new Discord.MessageEmbed()
+    const embed = new Discord.EmbedBuilder()
       .setColor('#36393F')
       .addField('Toggle Status', stripIndents`
 **Channel Created:** ${db.get(`servers.${msg.guild.id}.logs.log_system.channel-created`) || ':x:'}

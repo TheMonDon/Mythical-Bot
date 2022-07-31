@@ -20,10 +20,11 @@ class Discrim extends Command {
 
     if (output.length < 1) return msg.channel.send(`No users found with the discriminator: ${discrim}`);
 
-    const em = new DiscordJS.MessageEmbed()
-      .addField('Total Discriminators', output.length)
-      .setDescription(output.slice(0, 4000));
-    if (output.length > 4000) em.addField('Showing first 4000 characters.');
+    const em = new DiscordJS.EmbedBuilder()
+      .setDescription(output.slice(0, 4000))
+      .addFields([
+        { name: 'Total Discriminators', value: output.length }
+      ]);
 
     return msg.channel.send({ embeds: [em] });
   }

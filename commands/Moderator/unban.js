@@ -27,7 +27,7 @@ class Unban extends Command {
 
     if (!userID.matches(regex)) return msg.channel.send(`Error: Please enter a valid User ID. \nInput: ${userID}`);
 
-    const embed = new DiscordJS.MessageEmbed();
+    const embed = new DiscordJS.EmbedBuilder();
     if (msg.guild.me.permissions.has('MANAGE_MESSAGES')) msg.delete();
 
     try {

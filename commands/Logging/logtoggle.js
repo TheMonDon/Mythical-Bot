@@ -17,7 +17,7 @@ class LogToggle extends Command {
   async run (msg, args) {
     const query = args.join(' ').toLowerCase();
 
-    const errorEmbed = new DiscordJS.MessageEmbed();
+    const errorEmbed = new DiscordJS.EmbedBuilder();
     if (!db.get(`servers.${msg.guild.id}.logs.channel`)) return msg.channel.send(`The log system is not set up! Use \`${msg.settings.prefix}setlogchannel <channel>\``);
 
     // define regex

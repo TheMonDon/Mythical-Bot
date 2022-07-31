@@ -21,7 +21,7 @@ class Math extends Command {
 
     try {
       const solution = math.evaluate(text);
-      const embed = new DiscordJS.MessageEmbed()
+      const embed = new DiscordJS.EmbedBuilder()
         .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
         .setColor('#767CC1')
         .addField('**📥 Expression**', `\`\`\`${text.length > 1000 ? text.slice(0, 1000) + '...' : text}\`\`\``, false)

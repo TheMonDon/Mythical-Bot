@@ -107,7 +107,7 @@ class Warn extends Command {
     const logChan = db.get(`servers.${msg.guild.id}.logging.channel`);
 
     // Send the embed to the users DMS
-    const userEm = new DiscordJS.MessageEmbed()
+    const userEm = new DiscordJS.EmbedBuilder()
       .setColor(color)
       .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
       .setTitle(`You have been ${status}`)
@@ -118,7 +118,7 @@ class Warn extends Command {
       .setFooter({ text: `Issued in ${msg.guild.name}` });
     const um = await mem.send({ embeds: [userEm] }).catch(() => null);
 
-    const logEmbed = new DiscordJS.MessageEmbed()
+    const logEmbed = new DiscordJS.EmbedBuilder()
       .setColor(color)
       .setFooter({ text: `${msg.author.tag} • User ID: ${mem.id}` })
       .setTitle(`User has been ${status}`)

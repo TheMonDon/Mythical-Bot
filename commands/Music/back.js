@@ -1,5 +1,5 @@
 const Command = require('../../base/Command.js');
-const { MessageEmbed } = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 
 class Back extends Command {
   constructor (client) {
@@ -23,10 +23,10 @@ class Back extends Command {
     await queue.back(msg);
     const song = queue.nowPlaying();
 
-    const em = new MessageEmbed()
+    const em = new EmbedBuilder()
       .setColor('GREEN')
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
-      .addField('Now Playing', song.title, false);
+      .addFields([{ name: 'Now Playing', value: song.title }]);
 
     return msg.channel.send({ embeds: [em] });
   }

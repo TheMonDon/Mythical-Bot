@@ -46,7 +46,7 @@ class TyperCompetition extends Command {
 
     if (msg.guild.me.permissions.has('MANAGE_MESSAGES')) msg.delete();
 
-    const em = new DiscordJS.MessageEmbed()
+    const em = new DiscordJS.EmbedBuilder()
       .setTitle('Typer Competition')
       .setColor('#41f4eb')
       .setDescription(stripIndents`
@@ -115,13 +115,13 @@ class TyperCompetition extends Command {
                   highScoreUser = 'You';
                 }
 
-                const em1 = new DiscordJS.MessageEmbed()
+                const em1 = new DiscordJS.EmbedBuilder()
                   .setTitle('Winner!')
                   .setColor('#41f4eb')
                   .setDescription(stripIndents`
                   ${winner} won! :tada:
                   Time: ${time}s`)
-                  .addField('High Score', `${highScore}s by ${highScoreUser}`);
+                  .addFields([{ name: 'High Score', value: `${highScore}s by ${highScoreUser}` }]);
                 this.client.games.delete(msg.channel.id);
                 return msg.channel.send(em1);
               })

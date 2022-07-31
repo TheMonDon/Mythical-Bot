@@ -68,8 +68,8 @@ class Hangman extends Command {
 
           embedtitlechances = lang.hangman_embedtitlechances.replace('%chances', chances);
           const embeddescription = lang.hangman_embeddescription.replace('%word', `\`\`${newWordString.join(' ')}\`\``);
-          const firstEmbed = new Discord.MessageEmbed()
-            .setColor('BLUE')
+          const firstEmbed = new Discord.EmbedBuilder()
+            .setColor('#0000FF')
             .setTitle(lang.hangman_embedtitlestart)
             .setFooter({ text: embedtitlechances })
             .setImage(hangmanPictures[15 - chances])
@@ -260,8 +260,8 @@ class Hangman extends Command {
     } else {
       embedtitlechances = lang.hangman_embedtitlechances.replace('%chances', chances);
       const embeddescription = lang.hangman_embeddescription.replace('%word', `\`\`${newWordString.join(' ')}\`\``);
-      const firstEmbed = new Discord.MessageEmbed()
-        .setColor('BLUE')
+      const firstEmbed = new Discord.EmbedBuilder()
+        .setColor('#0000FF')
         .setTitle(lang.hangman_embedtitlestart)
         .setFooter({ text: embedtitlechances })
         .setImage(hangmanPictures[15 - chances])

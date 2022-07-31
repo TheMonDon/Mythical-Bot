@@ -20,9 +20,9 @@ class CleanLeaderboard extends Command {
     const users = db.get(`servers.${msg.guild.id}.users`) || {};
     const toRemove = [];
 
-    const em = new DiscordJS.MessageEmbed()
+    const em = new DiscordJS.EmbedBuilder()
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
-      .setColor('ORANGE')
+      .setColor('#FFA500')
       .setDescription('Please wait, this may take a while for bigger servers.');
     const message = await msg.channel.send({ embeds: [em] });
 
@@ -34,12 +34,12 @@ class CleanLeaderboard extends Command {
     if (toRemove.length === 0) {
       em.setColor('#0099CC');
       em.setDescription('There are no users to remove from the leaderboard.');
-      return message.edit(em);
+      return message.edit({ embeds: [em] });
     }
 
     em.setColor('#0099CC');
     em.setDescription(`This will reset the balance and remove ${toRemove.length} members from the leaderboard. \nDo you wish to continue? (yes/no)`);
-    await message.edit(em);
+    await message.edit({ embeds: [em] });
     const verified = await verify(msg.channel, msg.author);
 
     if (verified) {

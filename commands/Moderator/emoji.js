@@ -71,7 +71,7 @@ Incorrect Usage:
         if (guildEmoji) result = guildEmoji;
       }
       if (!result) return msg.reply('That emoji was not found. Is it from this server?');
-      const em = new DiscordJS.MessageEmbed()
+      const em = new DiscordJS.EmbedBuilder()
         .setTitle('Emoji Information')
         .addField('Emoji', result, true)
         .addField('Emoji Name', result.name, true)

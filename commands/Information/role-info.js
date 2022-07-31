@@ -30,7 +30,7 @@ class RoleInfo extends Command {
     const ca = then.format('MMM Do, YYYY');
     await msg.guild.members.fetch();
 
-    const embed = new DiscordJS.MessageEmbed()
+    const embed = new DiscordJS.EmbedBuilder()
       .setTitle(`${infoRole.name}'s Information`)
       .setColor(infoRole.hexColor)
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })

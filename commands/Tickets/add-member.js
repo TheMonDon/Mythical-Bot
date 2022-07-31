@@ -54,7 +54,7 @@ class AddMember extends Command {
 
     db.push(`servers.${msg.guild.id}.tickets.${tName}.chatLogs`, output);
 
-    const em = new DiscordJS.MessageEmbed()
+    const em = new DiscordJS.EmbedBuilder()
       .setTitle('Member Added')
       .setColor('#E65DF4')
       .setDescription(`${msg.author} has added another member: \n${mem} (${mem.displayName})`);

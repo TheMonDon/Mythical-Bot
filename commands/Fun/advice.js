@@ -23,9 +23,9 @@ class Advice extends Command {
 
     body = JSON.parse(body.toString());
 
-    const em = new DiscordJS.MessageEmbed()
+    const em = new DiscordJS.EmbedBuilder()
       .setTitle(body.slip.advice)
-      .setColor('RANDOM')
+      .setColor('#0099CC')
       .setFooter({ text: `ID: ${body.slip.id}` });
     return msg.channel.send({ embeds: [em] });
   }

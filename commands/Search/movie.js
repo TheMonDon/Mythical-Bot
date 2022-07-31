@@ -35,7 +35,7 @@ class Movie extends Command {
         .get(`https://api.themoviedb.org/3/movie/${find.id}`)
         .query({ api_key: this.client.config.TMDb });
 
-      const embed = new DiscordJS.MessageEmbed()
+      const embed = new DiscordJS.EmbedBuilder()
         .setColor('0099CC')
         .setTitle(body.title)
         .setURL(`https://www.themoviedb.org/movie/${body.id}`)

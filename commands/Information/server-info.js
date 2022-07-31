@@ -44,7 +44,7 @@ class ServerInfo extends Command {
       roles1 = roles1 + ' ...';
     }
 
-    const embed = new DiscordJS.MessageEmbed()
+    const embed = new DiscordJS.EmbedBuilder()
       .setTitle(`${server.name}'s Information`)
       .setColor('#EE82EE')
       .setThumbnail(msg.guild.iconURL())

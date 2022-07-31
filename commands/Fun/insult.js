@@ -18,9 +18,9 @@ class Insult extends Command {
         return msg.channel.send('Something went wrong, please try again in a few moments.');
       });
 
-    const em = new DiscordJS.MessageEmbed()
+    const em = new DiscordJS.EmbedBuilder()
       .setTitle(body.insult)
-      .setColor('RANDOM')
+      .setColor('#0099CC')
       .setFooter({ text: `ID: ${body.number}` });
     return msg.channel.send({ embeds: [em] });
   }

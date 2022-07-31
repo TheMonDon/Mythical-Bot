@@ -35,7 +35,7 @@ class MinecraftServer extends Command {
 
     if (!body.online) return msg.channel.send('Sorry, either that is not a valid IP or that server is offline.');
 
-    const em = new DiscordJS.MessageEmbed()
+    const em = new DiscordJS.EmbedBuilder()
       .setTitle('Minecraft Server Stats')
       .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
       .setColor('#2ecc71')

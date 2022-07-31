@@ -23,7 +23,7 @@ class ResetMoney extends Command {
       return response.content.toLowerCase() === ('yes' || 'no' || 'y' || 'n') && response.author.id === msg.author.id;
     };
 
-    const errEm = new DiscordJS.MessageEmbed()
+    const errEm = new DiscordJS.EmbedBuilder()
       .setColor('#EC5454')
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
       .setDescription(`Incorrect Usage: ${msg.settings.prefix}Reset-Money <user>`);
@@ -60,7 +60,7 @@ class ResetMoney extends Command {
         try {
           mem = await this.client.users.fetch(fid);
         } catch (err) {
-          const embed = new DiscordJS.MessageEmbed()
+          const embed = new DiscordJS.EmbedBuilder()
             .setColor('#EC5454')
             .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
             .setDescription(`That user was not found. \nUsage: ${msg.settings.prefix}Reset-Money <user>`);

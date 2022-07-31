@@ -25,7 +25,7 @@ class GooglePlay extends Command {
         const res = result?.[0];
         if (!res) return msg.channel.send('I could not find any app with that name.');
 
-        const em = new DiscordJS.MessageEmbed()
+        const em = new DiscordJS.EmbedBuilder()
           .setTitle(res.title)
           .setDescription(res.summary)
           .setURL(res.url)

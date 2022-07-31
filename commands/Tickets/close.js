@@ -43,7 +43,7 @@ class Close extends Command {
     let chatLogs = db.get(`servers.${msg.guild.id}.tickets.${tName}.chatLogs`);
     chatLogs ? chatLogs = chatLogs.join('\n') : chatLogs = 'No Transcript available';
 
-    const em = new DiscordJS.MessageEmbed()
+    const em = new DiscordJS.EmbedBuilder()
       .setTitle('Ticket Closed')
       .setColor('#E65DF4')
       .setDescription(stripIndents`${msg.author} has requested to close this ticket.
@@ -73,7 +73,7 @@ class Close extends Command {
 
       let received;
 
-      const userEmbed = new DiscordJS.MessageEmbed()
+      const userEmbed = new DiscordJS.EmbedBuilder()
         .setTitle('Ticket Closed')
         .setColor('#E65DF4')
         .addField('Transcript URL', url, false)
@@ -86,7 +86,7 @@ class Close extends Command {
           received = 'no';
         });
 
-      const logEmbed = new DiscordJS.MessageEmbed()
+      const logEmbed = new DiscordJS.EmbedBuilder()
         .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
         .setTitle('Ticket Closed')
         .addField('Author', `${msg.author} (${msg.author.id})`, false)
@@ -103,7 +103,7 @@ class Close extends Command {
     }
 
     const response = collected.first().content;
-    const embed = new DiscordJS.MessageEmbed()
+    const embed = new DiscordJS.EmbedBuilder()
       .setTitle('Ticket Re-Opened')
       .setDescription(stripIndents`
         Closing of the ticket has been cancelled with the following reason:

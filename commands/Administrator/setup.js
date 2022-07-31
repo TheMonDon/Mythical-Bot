@@ -135,7 +135,7 @@ class Setup extends Command {
       const category = await msg.guild.channels.create('Tickets', { type: 'GUILD_CATEGORY', reason: 'Setting up tickets system', permissionOverwrites: catPerms });
       db.set(`servers.${msg.guild.id}.tickets.catID`, category.id);
 
-      const embed = new DiscordJS.MessageEmbed();
+      const embed = new DiscordJS.EmbedBuilder();
       // Create the reaction message stuff
       if (reaction === 'yes') {
         embed.setTitle('New Ticket');
@@ -185,7 +185,7 @@ class Setup extends Command {
     // End of ticket setup.
 
     if (['logging', 'log', 'logs'].includes(type)) {
-      const embed = new DiscordJS.MessageEmbed();
+      const embed = new DiscordJS.EmbedBuilder();
 
       const logSystem = {
         'channel-created': 'enabled',
@@ -239,21 +239,29 @@ class Setup extends Command {
     // End of logging setup
 
     // Base command if there is not any args
-    const embed = new DiscordJS.MessageEmbed()
+    const embed = new DiscordJS.EmbedBuilder()
       .setTitle('Systems Setup')
-      .setColor('BLUE')
-      .addField('Tickets', stripIndents`
-        To setup the ticket system please use:
-        \`${msg.settings.prefix}Setup Ticket\`
+      .setColor('#0000FF')
+      .addFields([
+        {
+          name: 'Tickets',
+          value: stripIndents`
+          To setup the ticket system please use:
+          \`${msg.settings.prefix}Setup Ticket\`
 
-        This is not finished.
-      `)
-      .addField('Logging', stripIndents`
-        To setup the logging system please use:
-        \`${msg.settings.prefix}Setup Logging\`
-
-        This system should be fully operational.
-      `)
+          This is not finished.
+          `
+        },
+        {
+          name: 'Logging',
+          value: stripIndents`
+          To setup the logging system please use:
+          \`${msg.settings.prefix}Setup Logging\`
+  
+          This system should be fully operational.
+          `
+        }
+      ])
       .setDescription('These systems are not fully operational and may have bugs.')
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() });
     return msg.channel.send({ embeds: [embed] });

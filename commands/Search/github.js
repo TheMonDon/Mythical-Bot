@@ -40,7 +40,7 @@ class Github extends Command {
         .get(`https://api.github.com/repos/${author}/${repository}`)
         .set({ Authorization: `token ${this.client.config.github}` });
 
-      const embed = new DiscordJS.MessageEmbed()
+      const embed = new DiscordJS.EmbedBuilder()
         .setColor('0099CC')
         .setAuthor({ name: 'GitHub', iconURL: 'https://i.imgur.com/e4HunUm.png', url: 'https://github.com/' })
         .setTitle(body.full_name)

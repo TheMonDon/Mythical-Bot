@@ -19,7 +19,7 @@ class AddMoney extends Command {
   run (msg, args) {
     const usage = `Incorrect Usage: ${msg.settings.prefix}add-money <cash | bank> <member> <amount>`;
 
-    const errEmbed = new DiscordJS.MessageEmbed()
+    const errEmbed = new DiscordJS.EmbedBuilder()
       .setColor('#EC5454')
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() });
 
@@ -82,7 +82,7 @@ class AddMoney extends Command {
       db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, newAmount);
     }
 
-    const embed = new DiscordJS.MessageEmbed()
+    const embed = new DiscordJS.EmbedBuilder()
       .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
       .setColor('#0099CC')
       .setDescription(`:white_check_mark: Added **${cs}${amount.toLocaleString()}** to ${mem}'s ${type} balance.`)

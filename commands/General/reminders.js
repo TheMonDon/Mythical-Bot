@@ -20,14 +20,14 @@ class Reminders extends Command {
     };
     const numbers = [emoji[0], emoji[1], emoji[2], emoji[3], emoji[4], emoji[5], emoji[6], emoji[7], emoji[8], emoji[9], emoji[10]];
 
-    const em = new DiscordJS.MessageEmbed();
+    const em = new DiscordJS.EmbedBuilder();
     const reminders = db.get('global.reminders') || [];
 
     if (!args[0]) {
       let i = 1;
       for (const { triggerOn, reminder, userID, remID } of Object.values(reminders)) {
         if (userID === msg.author.id) {
-          em.addField(`**${numbers[i] || i + '.'}** I'll remind you ${moment(triggerOn).fromNow()} (ID: ${remID})`, reminder.slice(0, 200));
+          em.addFields([{ name: `**${numbers[i] || i + '.'}** I'll remind you ${moment(triggerOn).fromNow()} (ID: ${remID})`, value: reminder.slice(0, 200) }]);
           i += 1;
         }
       }
@@ -48,10 +48,10 @@ class Reminders extends Command {
     const reminder = db.get(`global.reminders.${ID}`);
 
     if (!ID) {
-      em.setColor('ORANGE');
+      em.setColor('#FFA500');
       em.setDescription(`${msg.author.username}, that isn't a valid reminder.`);
     } else if (!reminder || reminder.userID !== msg.author.id) {
-      em.setColor('ORANGE');
+      em.setColor('#FFA500');
       em.setDescription(`${msg.author.username}, that isn't a valid reminder.`);
     } else {
       db.delete(`global.reminders.${ID}`);

@@ -27,9 +27,9 @@ class NPMInfo extends Command {
       maintainers.push(results[0].maintainers[i].username);
     }
 
-    const em = new DiscordJS.MessageEmbed()
+    const em = new DiscordJS.EmbedBuilder()
       .setAuthor({ name: result.name, iconURL: 'https://i.imgur.com/24yrZxG.png', url: 'https://www.npmjs.com/' })
-      .setColor('ORANGE')
+      .setColor('#FFA500')
       .setDescription(stripIndents`
     ${result.description ? result.description : null}
     :up: Version: ${result.version}

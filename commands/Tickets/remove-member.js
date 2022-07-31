@@ -55,7 +55,7 @@ class RemoveMember extends Command {
 
     db.push(`servers.${msg.guild.id}.tickets.${tName}.chatLogs`, output);
 
-    const em = new DiscordJS.MessageEmbed()
+    const em = new DiscordJS.EmbedBuilder()
       .setTitle('Member Removed')
       .setColor('#E65DF4')
       .setDescription(`${msg.author} has removed a member: \n${mem} (${mem.displayName})`);

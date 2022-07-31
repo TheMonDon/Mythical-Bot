@@ -24,7 +24,7 @@ class Perms extends Command {
     const yes = '<:approved:622961998807826432>';
     const no = '<:denied:622961970093752320>';
 
-    const embed = new DiscordJS.MessageEmbed();
+    const embed = new DiscordJS.EmbedBuilder();
     embed.setColor('#2BFED5');
     embed.setAuthor({ name: infoMem.displayName, iconURL: infoMem.user.displayAvatarURL({ dynamic: true }) });
     embed.setFooter({ text: `Requested by: ${msg.member.displayName}` });

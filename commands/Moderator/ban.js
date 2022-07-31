@@ -31,10 +31,10 @@ class Ban extends Command {
     if (!banMem) return msg.channel.send('That user was not found.');
     if (!banMem.bannable) return msg.channel.send('That user is not bannable.');
 
-    const em = new DiscordJS.MessageEmbed()
+    const em = new DiscordJS.EmbedBuilder()
       .setTitle('User Banned')
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
-      .setColor('RED')
+      .setColor('#ff0000')
       .addField('User', banMem.toString(), true)
       .addField('Banned By', msg.member.displayName.toString(), true)
       .addField('Reason', reason, true)
@@ -43,9 +43,9 @@ class Ban extends Command {
     banMem.ban({ reason });
 
     if (logChan) {
-      const em2 = new DiscordJS.MessageEmbed()
+      const em2 = new DiscordJS.EmbedBuilder()
         .setTitle('User Banned')
-        .setColor('RED')
+        .setColor('#ff0000')
         .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
         .setDescription('Full info posted in the log channel.');
 

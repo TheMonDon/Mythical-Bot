@@ -97,7 +97,7 @@ class forceClose extends Command {
 
     const tOwner = await msg.guild.members.cache.get(owner);
 
-    const userEmbed = new DiscordJS.MessageEmbed()
+    const userEmbed = new DiscordJS.EmbedBuilder()
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
       .setTitle('Ticket Closed')
       .setColor('#E65DF4')
@@ -111,7 +111,7 @@ class forceClose extends Command {
     await tOwner.send({ embeds: [userEmbed] })
       .catch(() => { received = 'no'; });
 
-    const logEmbed = new DiscordJS.MessageEmbed()
+    const logEmbed = new DiscordJS.EmbedBuilder()
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
       .setTitle('Ticket Closed')
       .addField('Author', `${tOwner} (${tOwner.id})`, false)

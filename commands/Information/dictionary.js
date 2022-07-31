@@ -29,13 +29,15 @@ class Dictionary extends Command {
         const definition = result.definitions?.[0]?.definition;
         if (!definition) return msg.channel.send('No entry was found for that word.');
 
-        const em = new DiscordJS.MessageEmbed()
+        const em = new DiscordJS.EmbedBuilder()
           .setTitle('Dictionary Information')
-          .setColor('RANDOM')
+          .setColor('#0099CC')
           .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
-          .addField('Definition', definition, true)
-          .addField('Example', example || 'No example provided', true)
-          .addField('Pronunciation', result.pronunciation || 'No pronunciation provided', true);
+          .addFields([
+            { name: 'Definition', value: definition, inLine: true },
+            { name: 'Example', value: example || 'No example provided', inLine: true },
+            { name: 'Pronunciation', value: result.pronunciation || 'No pronunciation provided', inLine: true }
+          ]);
         if (result.definitions?.[0].image_url) em.setThumbnail(result.definitions[0].image_url);
         return msg.channel.send({ embeds: [em] });
       })

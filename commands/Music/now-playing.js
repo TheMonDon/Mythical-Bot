@@ -1,5 +1,5 @@
 const Command = require('../../base/Command.js');
-const { MessageEmbed } = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const { stripIndents } = require('common-tags');
 
 class NowPlaying extends Command {
@@ -19,7 +19,7 @@ class NowPlaying extends Command {
     const song = queue.nowPlaying();
     if (!song) return msg.channel.send('There is nothing playing.');
 
-    const em = new MessageEmbed()
+    const em = new EmbedBuilder()
       .setDescription(stripIndents`
         Currently ${queue.playing ? 'Playing' : 'Paused'} ♪: [${song.title}](${song.url})
 

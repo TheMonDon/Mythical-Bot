@@ -1,6 +1,6 @@
 const Command = require('../../base/Command.js');
-const { getChannel, toProperCase } = require('../../util/Util.js');
-const DiscordJS = require('discord.js');
+const { getChannel } = require('../../util/Util.js');
+const { ChannelType, EmbedBuilder } = require('discord.js');
 const moment = require('moment');
 require('moment-duration-format');
 
@@ -27,24 +27,30 @@ class ChannelInfo extends Command {
     const time = then.from(moment());
     const ca = then.format('MMM Do, YYYY');
 
-    const embed = new DiscordJS.MessageEmbed()
+    const embed = new EmbedBuilder()
       .setTitle('Channel Information')
-      .setColor('RANDOM')
+      .setColor('#0099CC')
       .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
-      .addField('Name', infoChan.name, true)
-      .addField('ID', infoChan.id.toString(), true)
-      .addField('Type', toProperCase(infoChan.type), true)
-      .addField('Position', infoChan.position.toString(), true);
-    if (infoChan.type === 'GUILD_TEXT') embed.addField('NSFW', infoChan.nsfw, true);
-    if (infoChan.type === 'GUILD_VOICE') {
-      embed.addField('User Limit', infoChan.userLimit.toString(), true);
-      embed.addField('Bitrate', infoChan.bitrate.toString(), true);
+      .addFields([
+        { name: 'Name', value: infoChan.name, inLine: true },
+        { name: 'ID', value: infoChan.id.toString(), inLine: true },
+        { name: 'Type', value: ChannelType[msg.channel.type], inLine: true },
+        { name: 'Position', value: infoChan.position.toString(), inLine: true }
+      ]);
+    if (infoChan.type === ChannelType.GuildText) embed.addFields([{ name: 'NSFW', value: infoChan.nsfw, inLine: true }]);
+    if (infoChan.type === 'ChannelType.GuildVoice') {
+      embed.addFields([
+        { name: 'User Limit', value: infoChan.userLimit.toString(), inLine: true },
+        { name: 'Bitrate', value: infoChan.bitrate.toString(), inLine: true }
+      ]);
     }
-    if (infoChan.type === 'GUILD_CATEGORY') embed.addField('Children', infoChan.children.size.toString(), true);
-    embed.addField('Mention', `\`${infoChan}\``, true);
-    embed.addField('Created At', `${ca} \n(${time})`, true);
-    if (infoChan.parent) embed.addField('Parent', `${infoChan.parent.name} \n\`${infoChan.parentID}\``, true);
-    if (infoChan.type === 'GUILD_TEXT') embed.addField('Topic', infoChan.topic || 'None', false);
+    if (infoChan.type === ChannelType.GuildCategory) embed.addFields([{ name: 'Children', value: infoChan.children.size.toString(), inLine: true }]);
+    embed.addFields([
+      { name: 'Mention', value: `\`${infoChan}\``, inLine: true },
+      { name: 'Created At', value: `${ca} \n(${time})`, inLine: true }
+    ]);
+    if (infoChan.parent) embed.addFields([{ name: 'Parent', value: `${infoChan.parent.name} \n\`${infoChan.parentID}\``, inLine: true }]);
+    if (infoChan.type === ChannelType.GuildText) embed.addFields([{ name: 'Topic', value: infoChan.topic || 'None', inLine: false }]);
 
     return msg.channel.send({ embeds: [embed] });
   }

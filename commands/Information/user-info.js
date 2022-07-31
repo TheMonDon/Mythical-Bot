@@ -70,9 +70,9 @@ class UserInfo extends Command {
         badgesArray += flags[userBadges[i]];
       }
 
-      const embed = new DiscordJS.MessageEmbed()
+      const embed = new DiscordJS.EmbedBuilder()
         .setTitle(`${infoMem.user.username}'s Info`)
-        .setColor('RANDOM')
+        .setColor('#0099CC')
         .setThumbnail(infoMem.user.displayAvatarURL({ format: 'png', dynamic: true }))
         .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
         .addField('User Tag', infoMem.user.tag, true)
@@ -97,9 +97,9 @@ class UserInfo extends Command {
       badgesArray += flags[userBadges[i]];
     }
 
-    const embed = new DiscordJS.MessageEmbed()
+    const embed = new DiscordJS.EmbedBuilder()
       .setTitle(`${infoMem.username}'s Info`)
-      .setColor('RANDOM')
+      .setColor('#0099CC')
       .setThumbnail(infoMem.displayAvatarURL({ format: 'png', dynamic: true }))
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
       .addField('User Tag', infoMem.tag, true)

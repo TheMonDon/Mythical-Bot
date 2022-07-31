@@ -1,6 +1,6 @@
 /* eslint-disable no-eval */
 /* eslint-disable no-unused-vars */
-const { MessageEmbed } = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const { inspect } = require('util');
 const Command = require('../../base/Command.js');
 const { clean } = require('../../util/Util.js');
@@ -25,7 +25,7 @@ class Eval extends Command {
     const member = msg.member;
     const config = this.client.config;
 
-    const embed = new MessageEmbed()
+    const embed = new EmbedBuilder()
       .setFooter({ text: msg.author.tag, iconURL: msg.author.displayAvatarURL() });
 
     const query = args.join(' ');
@@ -40,16 +40,16 @@ class Eval extends Command {
 
         embed.setDescription(`Result \n ${code('js', res2)}`);
 
-        if (!res || (!evald && evald !== 0)) embed.setColor('RED');
+        if (!res || (!evald && evald !== 0)) embed.setColor('#ff0000');
         else {
           embed
-            .addField('Type', code('css', typeof evald))
-            .setColor('GREEN');
+            .addFields([{ name: 'Type', value: code('css', typeof evald) }])
+            .setColor('#00FF00');
         }
       } catch (error) {
         embed
-          .addField('Error', code('js', error))
-          .setColor('RED');
+          .addFields([{ name: 'Error', value: code('js', error) }])
+          .setColor('#ff0000');
       } finally {
         msg.channel.send({ embeds: [embed] }).catch(error => {
           msg.channel.send(`There was an error while displaying the eval result! ${error.message}`);

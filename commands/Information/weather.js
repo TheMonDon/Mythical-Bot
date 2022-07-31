@@ -32,8 +32,8 @@ class Weather extends Command {
         const b4 = result[0].current.winddisplay.split('mph');
         const a4 = Math.round(b4[0] * 1.609344) + ' kph' + b4[1];
 
-        const embed = new DiscordJS.MessageEmbed()
-          .setColor('RANDOM')
+        const embed = new DiscordJS.EmbedBuilder()
+          .setColor('#0099CC')
           .setTitle(`Weather in: ${result[0].location.name}`)
           .setThumbnail(result[0].current.imageUrl)
           .addField('Temperature: ', `${result[0].current.temperature}°F \n${dc}°C`, true)

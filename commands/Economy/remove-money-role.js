@@ -20,7 +20,7 @@ class RemoveMoneyRole extends Command {
   run (msg, args) {
     const usage = `Incorrect Usage: ${msg.settings.prefix}remove-money-role <cash | bank> <role> <amount>`;
 
-    const errEmbed = new DiscordJS.MessageEmbed()
+    const errEmbed = new DiscordJS.EmbedBuilder()
       .setColor('#EC5454')
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() });
 
@@ -77,7 +77,7 @@ class RemoveMoneyRole extends Command {
       });
     }
 
-    const embed = new DiscordJS.MessageEmbed()
+    const embed = new DiscordJS.EmbedBuilder()
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
       .setColor('#0099CC')
       .setDescription(`:white_check_mark: Removed **${cs}${amount.toLocaleString()}** to ${type} balance of ${members.length} ${members.length > 1 ? 'members' : 'member'} with the ${role}.`)

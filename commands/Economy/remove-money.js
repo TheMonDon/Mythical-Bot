@@ -1,7 +1,7 @@
 const Command = require('../../base/Command.js');
 const { getMember } = require('../../util/Util.js');
 const db = require('quick.db');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const { stripIndents } = require('common-tags');
 
 class RemoveMoney extends Command {
@@ -9,7 +9,7 @@ class RemoveMoney extends Command {
     super(client, {
       name: 'remove-money',
       category: 'Economy',
-      description: 'Remove money from a member\'s cash or bank balance. \nIf the cash or bank argument isn\'t given, it will be added to the cash part.',
+      description: 'Remove money from a users\'s cash or bank balance. \nIf the cash or bank argument isn\'t given, it will be added to the cash part.',
       usage: 'remove-money [cash | bank] <member> <amount>',
       aliases: ['removemoney', 'removebal'],
       permLevel: 'Moderator',
@@ -20,7 +20,7 @@ class RemoveMoney extends Command {
   run (msg, args) {
     const usage = `Incorrect Usage: ${msg.settings.prefix}remove-money [cash | bank] <member> <amount>`;
 
-    const errEmbed = new DiscordJS.MessageEmbed()
+    const errEmbed = new EmbedBuilder()
       .setColor('#EC5454')
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() });
 
@@ -42,10 +42,10 @@ class RemoveMoney extends Command {
 
     if (args.length === 2) {
       mem = getMember(msg, args[0]);
-      amount = parseInt(args[1].replace(cs, '').replace(',', ''), 10);
+      amount = parseInt(args[1].replace(cs, '').replace(/,/ig, ''), 10);
     } else {
       mem = getMember(msg, args[1]);
-      amount = parseInt(args[2].replace(cs, '').replace(',', ''), 10);
+      amount = parseInt(args[2].replace(cs, '').replace(/,/ig, ''), 10);
     }
 
     if (['cash', 'bank'].includes(args[0].toLowerCase())) {
@@ -79,10 +79,10 @@ class RemoveMoney extends Command {
       db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, newAmount);
     }
 
-    const embed = new DiscordJS.MessageEmbed()
+    const embed = new EmbedBuilder()
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
       .setColor('#0099CC')
-      .setDescription(`:white_check_mark: Removed **${cs}${amount.toLocaleString()}** to ${mem}'s ${type} balance.`)
+      .setDescription(`:white_check_mark: Removed **${cs}${amount.toLocaleString()}** from ${mem}'s ${type} balance.`)
       .setTimestamp();
     return msg.channel.send({ embeds: [embed] });
   }
