@@ -1,5 +1,5 @@
 const db = require('quick.db');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 
 module.exports = class {
   constructor (client) {
@@ -15,12 +15,14 @@ module.exports = class {
     const logChannel = role.guild.channels.cache.get(logChan);
     if (!logChannel.permissionsFor(this.client.user.id).has('SEND_MESSAGES')) return;
 
-    const embed = new DiscordJS.MessageEmbed()
+    const embed = new EmbedBuilder()
       .setTitle('Role Created')
       .setColor('#20fc3a')
-      .addField('Name', role, true)
-      .addField('Managed', role.managed, true)
-      .addField('Position', role.position, true)
+      .addFields([
+        { name: 'Name', value: role },
+        { name: 'Managed', value: role.managed },
+        { name: 'Position', value: role.position }
+      ])
       .setFooter({ text: `ID: ${role.id}` })
       .setTimestamp();
     role.guild.channels.cache.get(logChan).send({ embeds: [embed] });

@@ -1,5 +1,5 @@
 const Command = require('../../base/Command.js');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const math = require('mathjs');
 
 class Math extends Command {
@@ -21,7 +21,7 @@ class Math extends Command {
 
     try {
       const solution = math.evaluate(text);
-      const embed = new DiscordJS.EmbedBuilder()
+      const embed = new EmbedBuilder()
         .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
         .setColor('#767CC1')
         .addFields([

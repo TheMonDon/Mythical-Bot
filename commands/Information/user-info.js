@@ -1,6 +1,6 @@
 const Command = require('../../base/Command.js');
 const { getMember, getJoinPosition } = require('../../util/Util.js');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const moment = require('moment');
 require('moment-duration-format');
 
@@ -70,7 +70,7 @@ class UserInfo extends Command {
         badgesArray += flags[userBadges[i]];
       }
 
-      const embed = new DiscordJS.EmbedBuilder()
+      const embed = new EmbedBuilder()
         .setTitle(`${infoMem.user.username}'s Info`)
         .setColor('#0099CC')
         .setThumbnail(infoMem.user.displayAvatarURL({ format: 'png', dynamic: true }))
@@ -99,7 +99,7 @@ class UserInfo extends Command {
       badgesArray += flags[userBadges[i]];
     }
 
-    const embed = new DiscordJS.EmbedBuilder()
+    const embed = new EmbedBuilder()
       .setTitle(`${infoMem.username}'s Info`)
       .setColor('#0099CC')
       .setThumbnail(infoMem.displayAvatarURL({ format: 'png', dynamic: true }))

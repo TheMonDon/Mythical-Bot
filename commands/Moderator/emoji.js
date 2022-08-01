@@ -1,6 +1,6 @@
 const Command = require('../../base/Command.js');
 const { stripIndents } = require('common-tags');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 
 class Emoji extends Command {
   constructor (client) {
@@ -71,7 +71,7 @@ Incorrect Usage:
         if (guildEmoji) result = guildEmoji;
       }
       if (!result) return msg.reply('That emoji was not found. Is it from this server?');
-      const em = new DiscordJS.EmbedBuilder()
+      const em = new EmbedBuilder()
         .setTitle('Emoji Information')
         .addFields([
           { name: 'Emoji', value: result },

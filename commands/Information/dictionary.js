@@ -1,5 +1,5 @@
 const Command = require('../../base/Command.js');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const config = require('../../config.js');
 const owlBot = require('owlbot-js');
 
@@ -29,7 +29,7 @@ class Dictionary extends Command {
         const definition = result.definitions?.[0]?.definition;
         if (!definition) return msg.channel.send('No entry was found for that word.');
 
-        const em = new DiscordJS.EmbedBuilder()
+        const em = new EmbedBuilder()
           .setTitle('Dictionary Information')
           .setColor('#0099CC')
           .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })

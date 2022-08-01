@@ -1,5 +1,5 @@
 const Command = require('../../base/Command.js');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 
 class Quote extends Command {
   constructor (client) {
@@ -22,7 +22,7 @@ class Quote extends Command {
 
     const quote = quoteArray[Math.floor(Math.random() * quoteArray.length)];
 
-    const em = new DiscordJS.EmbedBuilder()
+    const em = new EmbedBuilder()
       .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
       .setTitle('Random Quote')
       .setColor('#0099CC')

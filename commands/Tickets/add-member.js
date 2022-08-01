@@ -1,7 +1,7 @@
 const Command = require('../../base/Command.js');
 const { getMember } = require('../../util/Util.js');
 const db = require('quick.db');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 
 class AddMember extends Command {
   constructor (client) {
@@ -54,7 +54,7 @@ class AddMember extends Command {
 
     db.push(`servers.${msg.guild.id}.tickets.${tName}.chatLogs`, output);
 
-    const em = new DiscordJS.EmbedBuilder()
+    const em = new EmbedBuilder()
       .setTitle('Member Added')
       .setColor('#E65DF4')
       .setDescription(`${msg.author} has added another member: \n${mem} (${mem.displayName})`);

@@ -1,5 +1,5 @@
 const Command = require('../../base/Command.js');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const userInstagram = require('user-instagram');
 
 class Instagram extends Command {
@@ -20,16 +20,18 @@ class Instagram extends Command {
 
     userInstagram(query)
       .then(res => {
-        const em = new DiscordJS.EmbedBuilder()
+        const em = new EmbedBuilder()
           .setTitle(res.fullName)
           .setURL(res.link)
           .setThumbnail(res.profilePicHD)
-          .addField('Biography', res.biography || 'N/A', true)
-          .addField('Subscribers', res.subscribersCount || 'N/A', true)
-          .addField('Subscriptions', res.subscriptions || 'N/A', true)
-          .addField('Posts Count', res.postsCount || 'N/A', true)
-          .addField('Is Private?', res.isPrivate || 'N/A', true)
-          .addField('Is Verified?', res.isVerified || 'N/A', true);
+          .addFields([
+            { name: 'Biography', value: res.biography || 'N/A' },
+            { name: 'Subscribers', value: res.subscribersCount || 'N/A' },
+            { name: 'Subscriptions', value: res.subscriptions || 'N/A' },
+            { name: 'Posts Count', value: res.postsCount || 'N/A' },
+            { name: 'Is Private?', value: res.isPrivate || 'N/A' },
+            { name: 'Is Verified?', value: res.isVerified || 'N/A' }
+          ]);
         return msg.channel.send({ embeds: [em] });
       })
       .catch((err) => {

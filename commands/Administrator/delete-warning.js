@@ -1,7 +1,7 @@
 const Command = require('../../base/Command.js');
 const { getTotalPoints } = require('../../util/Util.js');
 const db = require('quick.db');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 
 class DeleteWarning extends Command {
   constructor (client) {
@@ -43,7 +43,7 @@ class DeleteWarning extends Command {
       }
     }
 
-    const em = new DiscordJS.EmbedBuilder()
+    const em = new EmbedBuilder()
       .setColor(color)
       .setTitle(title)
       .setDescription(`${msg.author} has cleared a case from a user.`)

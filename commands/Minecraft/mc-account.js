@@ -1,6 +1,6 @@
 /* eslint-disable prefer-regex-literals */
 const Command = require('../../base/Command.js');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const fetch = require('node-superfetch');
 const { JSONPath } = require('jsonpath-plus');
 
@@ -17,7 +17,7 @@ class MinecraftAccount extends Command {
 
   async run (msg, args) {
     if (!args || args.length < 1) {
-      const embed = new DiscordJS.EmbedBuilder()
+      const embed = new EmbedBuilder()
         .setTitle('Invalid Username')
         .setColor('FF0000')
         .setDescription(`Invalid Usage: ${msg.settings.prefix}mc-account <username>`);
@@ -28,7 +28,7 @@ class MinecraftAccount extends Command {
     const nameRegex = new RegExp(/^\w{3,16}$/);
     // Make sure the username is a valid MC username
     if (!nameRegex.test(name)) {
-      const em = new DiscordJS.EmbedBuilder()
+      const em = new EmbedBuilder()
         .setTitle('Invalid Username')
         .setColor('FF0000')
         .setDescription(`\`${name}\` is not a valid minecraft username.`);
@@ -44,7 +44,7 @@ class MinecraftAccount extends Command {
         const { body } = await fetch.get(`https://api.mojang.com/user/profiles/${id}/names`);
         const json = body;
         const nc = JSONPath({ path: '*.name', json }).join(', ');
-        const em = new DiscordJS.EmbedBuilder()
+        const em = new EmbedBuilder()
           .setTitle(`${rn}'s Account Information`)
           .setColor('00FF00')
           .setImage(`https://mc-heads.net/body/${id}`)
@@ -58,7 +58,7 @@ class MinecraftAccount extends Command {
         return console.error(err);
       }
     } catch (err) {
-      const em = new DiscordJS.EmbedBuilder()
+      const em = new EmbedBuilder()
         .setTitle('Account Not Found')
         .setColor('FF0000')
         .setDescription(`An account with the name \`${name}\` was not found.`);

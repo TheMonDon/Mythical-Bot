@@ -1,6 +1,6 @@
 const Command = require('../../base/Command.js');
 const fetch = require('node-fetch');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 
 class DadJoke extends Command {
   constructor (client) {
@@ -19,7 +19,7 @@ class DadJoke extends Command {
     })
       .then(res => res.text())
       .then(body => {
-        const embed = new DiscordJS.EmbedBuilder()
+        const embed = new EmbedBuilder()
           .setTitle('Dad Joke')
           .setColor('#0099CC')
           .setDescription(body)

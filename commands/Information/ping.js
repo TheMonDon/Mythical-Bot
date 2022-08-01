@@ -1,5 +1,5 @@
 const Command = require('../../base/Command.js');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 
 class Ping extends Command {
   constructor (client) {
@@ -13,7 +13,7 @@ class Ping extends Command {
   }
 
   async run (msg) {
-    const embed = new DiscordJS.EmbedBuilder()
+    const embed = new EmbedBuilder()
       .setTitle('Bot Ping')
       .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
       .setDescription(`🏓 The bots ping is: **${Math.round(this.client.ws.ping)}**ms`)

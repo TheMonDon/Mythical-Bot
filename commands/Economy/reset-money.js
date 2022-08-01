@@ -1,7 +1,7 @@
 const Command = require('../../base/Command.js');
 const { getMember } = require('../../util/Util.js');
 const db = require('quick.db');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 
 class ResetMoney extends Command {
   constructor (client) {
@@ -23,7 +23,7 @@ class ResetMoney extends Command {
       return response.content.toLowerCase() === ('yes' || 'no' || 'y' || 'n') && response.author.id === msg.author.id;
     };
 
-    const errEm = new DiscordJS.EmbedBuilder()
+    const errEm = new EmbedBuilder()
       .setColor('#EC5454')
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
       .setDescription(`Incorrect Usage: ${msg.settings.prefix}Reset-Money <user>`);
@@ -60,7 +60,7 @@ class ResetMoney extends Command {
         try {
           mem = await this.client.users.fetch(fid);
         } catch (err) {
-          const embed = new DiscordJS.EmbedBuilder()
+          const embed = new EmbedBuilder()
             .setColor('#EC5454')
             .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
             .setDescription(`That user was not found. \nUsage: ${msg.settings.prefix}Reset-Money <user>`);

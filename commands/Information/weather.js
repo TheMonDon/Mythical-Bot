@@ -1,5 +1,5 @@
 const Command = require('../../base/Command.js');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const weather = require('weather-js');
 
 class Weather extends Command {
@@ -32,7 +32,7 @@ class Weather extends Command {
         const b4 = result[0].current.winddisplay.split('mph');
         const a4 = Math.round(b4[0] * 1.609344) + ' kph' + b4[1];
 
-        const embed = new DiscordJS.EmbedBuilder()
+        const embed = new EmbedBuilder()
           .setColor('#0099CC')
           .setTitle(`Weather in: ${result[0].location.name}`)
           .setThumbnail(result[0].current.imageUrl)

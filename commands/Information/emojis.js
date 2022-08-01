@@ -1,5 +1,5 @@
 const Command = require('../../base/Command.js');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 
 class Emojis extends Command {
   constructor (client) {
@@ -19,7 +19,7 @@ class Emojis extends Command {
       result.push(e);
     });
 
-    const embed = new DiscordJS.EmbedBuilder()
+    const embed = new EmbedBuilder()
       .setTitle('Custom Emojis')
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
       .setDescription(`\`Here is the server's emoji list:\` \n\n${result.join(' ')}`)

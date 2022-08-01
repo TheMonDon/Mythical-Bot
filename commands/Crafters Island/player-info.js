@@ -1,6 +1,6 @@
 const Command = require('../../base/Command.js');
 const { getMember } = require('../../util/Util.js');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const Nfetch = require('node-superfetch');
 const { JSONPath } = require('jsonpath-plus');
 const moment = require('moment');
@@ -33,7 +33,7 @@ class playerinfo extends Command {
     const errMsg = 'I could not find that user. Did they sync their accounts using `!link`? \nAdd "" around mc username if their discord name is the same.';
 
     const information = async function (id, pool, member, user1, msg) {
-      const em = new DiscordJS.EmbedBuilder()
+      const em = new EmbedBuilder()
         .setTitle('Account Not Found')
         .setColor('FF0000')
         .setDescription(`An account with the name \`${user1}\` was not found.`);
@@ -65,7 +65,7 @@ class playerinfo extends Command {
             pool.query(`SELECT double_value FROM plan.plan_extension_user_values WHERE provider_id = 15 AND uuid = '${id}'`, function (error, results) {
               const bal = error ? 0 : results?.[0]?.double_value || 0;
 
-              const em = new DiscordJS.EmbedBuilder()
+              const em = new EmbedBuilder()
                 .setTitle(`${name}'s Account Information`)
                 .setColor('00FF00')
                 .setImage(`https://mc-heads.net/body/${id}`)
@@ -87,7 +87,7 @@ class playerinfo extends Command {
       });
     };
 
-    const errorEmbed = new DiscordJS.EmbedBuilder()
+    const errorEmbed = new EmbedBuilder()
       .setTitle('Account Not Found')
       .setColor('FF0000')
       .setDescription(`An account with the name \`${user || user1}\` was not found.`);
@@ -96,7 +96,7 @@ class playerinfo extends Command {
       const nameRegex = /^\w{3,16}$/;
       // Make sure the username is a valid MC username
       if (!nameRegex.test(user)) {
-        const em = new DiscordJS.EmbedBuilder()
+        const em = new EmbedBuilder()
           .setTitle('Invalid Username')
           .setColor('FF0000')
           .setDescription(`\`${user}\` is not a valid username.`);

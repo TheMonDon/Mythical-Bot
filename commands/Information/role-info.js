@@ -1,6 +1,6 @@
 const Command = require('../../base/Command.js');
 const { getRole } = require('../../util/Util.js');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const moment = require('moment');
 require('moment-duration-format');
 
@@ -30,7 +30,7 @@ class RoleInfo extends Command {
     const ca = then.format('MMM Do, YYYY');
     await msg.guild.members.fetch();
 
-    const embed = new DiscordJS.EmbedBuilder()
+    const embed = new EmbedBuilder()
       .setTitle(`${infoRole.name}'s Information`)
       .setColor(infoRole.hexColor)
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })

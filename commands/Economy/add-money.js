@@ -1,7 +1,7 @@
 const Command = require('../../base/Command.js');
 const { getMember } = require('../../util/Util.js');
 const db = require('quick.db');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const { stripIndents } = require('common-tags');
 
 class AddMoney extends Command {
@@ -19,7 +19,7 @@ class AddMoney extends Command {
   run (msg, args) {
     const usage = `Incorrect Usage: ${msg.settings.prefix}add-money <cash | bank> <member> <amount>`;
 
-    const errEmbed = new DiscordJS.EmbedBuilder()
+    const errEmbed = new EmbedBuilder()
       .setColor('#EC5454')
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() });
 
@@ -82,7 +82,7 @@ class AddMoney extends Command {
       db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, newAmount);
     }
 
-    const embed = new DiscordJS.EmbedBuilder()
+    const embed = new EmbedBuilder()
       .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
       .setColor('#0099CC')
       .setDescription(`:white_check_mark: Added **${cs}${amount.toLocaleString()}** to ${mem}'s ${type} balance.`)

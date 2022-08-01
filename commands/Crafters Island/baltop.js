@@ -1,5 +1,5 @@
 const Command = require('../../base/Command.js');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 
 module.exports = class baltop extends Command {
   constructor (client) {
@@ -44,7 +44,7 @@ module.exports = class baltop extends Command {
             if (i === results.length - 1) {
               arr.sort((a, b) => a - b);
 
-              const em = new DiscordJS.EmbedBuilder()
+              const em = new EmbedBuilder()
                 .setTitle('Survival Balance Leaderboard')
                 .setDescription(arr.join('\n'))
                 .setColor('#0099CC');

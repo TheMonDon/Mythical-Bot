@@ -1,5 +1,5 @@
 const Command = require('../../base/Command.js');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const moment = require('moment');
 require('moment-duration-format');
 const db = require('quick.db');
@@ -31,7 +31,7 @@ class Crime extends Command {
       } else {
         const tLeft = moment.duration(timeleft)
           .format('y[ years][,] M[ Months]d[ days][,] h[ hours][,] m[ minutes][, and] s[ seconds]'); // format to any format
-        const embed = new DiscordJS.EmbedBuilder()
+        const embed = new EmbedBuilder()
           .setColor('#EC5454')
           .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
           .setDescription(`You cannot commit a crime for ${tLeft}`);
@@ -71,7 +71,7 @@ class Crime extends Command {
       const num = Math.floor(Math.random() * (crimeFail.length - 1)) + 1;
       const txt = crimeFail[num].replace('csamount', csamount);
 
-      const embed = new DiscordJS.EmbedBuilder()
+      const embed = new EmbedBuilder()
         .setColor('#EC5454')
         .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
         .setDescription(txt)
@@ -86,7 +86,7 @@ class Crime extends Command {
       const num = Math.floor(Math.random() * (crimeSuccess.length - 1)) + 1;
       const txt = crimeSuccess[num].replace('csamount', csamount);
 
-      const embed = new DiscordJS.EmbedBuilder()
+      const embed = new EmbedBuilder()
         .setColor('#04ACF4')
         .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
         .setDescription(txt)

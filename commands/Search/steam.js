@@ -1,5 +1,5 @@
 const Command = require('../../base/Command.js');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const fetch = require('node-superfetch');
 const { clean } = require('../../util/Util.js');
 
@@ -17,7 +17,7 @@ class Steam extends Command {
     const query = await clean(this.client, text.join(' '));
 
     if (!text || text.length < 1) {
-      const em = new DiscordJS.EmbedBuilder()
+      const em = new EmbedBuilder()
         .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
         .setTitle('Please provide something to search for')
         .setDescription(`Incorrect Usage: ${msg.settings.prefix}steam <game/app>`)
@@ -55,20 +55,22 @@ class Steam extends Command {
     if (data.platforms?.mac) platforms.push('Mac');
     if (data.platforms?.linux) platforms.push('Linux');
 
-    const embed = new DiscordJS.EmbedBuilder()
+    const embed = new EmbedBuilder()
       .setColor(0x101D2F)
       .setAuthor({ name: 'Steam', iconURL: 'https://i.imgur.com/xxr2UBZ.png', url: 'http://store.steampowered.com/' })
       .setTitle(data.name)
       .setURL(`http://store.steampowered.com/app/${data.steam_appid}`)
       .setImage(tinyImage)
-      .addField('❯\u2000Price', `•\u2000 ${price}`, true)
-      .addField('❯\u2000Metascore', `•\u2000 ${data.metacritic ? data.metacritic.score : '???'}`, true)
-      .addField('❯\u2000Recommendations', `•\u2000 ${data.recommendations ? data.recommendations.total : '???'}`, true)
-      .addField('❯\u2000Platforms', `•\u2000 ${platforms.join(', ') || 'None'}`, true)
-      .addField('❯\u2000Release Date', `•\u2000 ${data.release_date ? data.release_date.date : '???'}`, true)
-      .addField('❯\u2000DLC Count', `•\u2000 ${data.dlc ? data.dlc.length : 0}`, true)
-      .addField('❯\u2000Developers', `•\u2000 ${data.developers ? data.developers.join(', ') || '???' : '???'}`, true)
-      .addField('❯\u2000Publishers', `•\u2000 ${data.publishers ? data.publishers.join(', ') || '???' : '???'}`, true);
+      .addFields([
+        { name: '❯\u2000Price', value: `•\u2000 ${price}` },
+        { name: '❯\u2000Metascore', value: `•\u2000 ${data.metacritic ? data.metacritic.score : 'Unknown'}` },
+        { name: '❯\u2000Recommendations', value: `•\u2000 ${data.recommendations ? data.recommendations.total : 'Unknown'}` },
+        { name: '❯\u2000Platforms', value: `•\u2000 ${platforms.join(', ') || 'None'}` },
+        { name: '❯\u2000Release Date', value: `•\u2000 ${data.release_date ? data.release_date.date : 'Unknown'}` },
+        { name: '❯\u2000DLC Count', value: `•\u2000 ${data.dlc ? data.dlc.length : 0}` },
+        { name: '❯\u2000Developers', value: `•\u2000 ${data.developers?.join(', ') || 'Unknown'}` },
+        { name: '❯\u2000Publishers', value: `•\u2000 ${data.publishers?.join(', ') || 'Unknown'}` }
+      ]);
 
     return msg.channel.send({ embeds: [embed] });
   }

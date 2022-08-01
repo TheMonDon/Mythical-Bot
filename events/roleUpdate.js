@@ -1,5 +1,5 @@
 const db = require('quick.db');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 
 module.exports = class {
   constructor (client) {
@@ -17,11 +17,13 @@ module.exports = class {
 
     if (rolebefore.name === roleafter.name && rolebefore.hexColor === roleafter.hexColor) return;
 
-    const embed = new DiscordJS.MessageEmbed()
+    const embed = new EmbedBuilder()
       .setTitle(`Role "${rolebefore.name}" Updated`)
       .setColor(roleafter.hexColor)
-      .addField('Name', (rolebefore.name === roleafter.name) ? 'Updated: :x:' : `Updated: ✅ \n New Name: ${roleafter.name}`, true)
-      .addField('Color', (rolebefore.hexColor === roleafter.hexColor) ? 'Updated: :x:' : `Updated: ✅ \n New Color: ${roleafter.hexColor}`, true)
+      .addFields([
+        { name: 'Name', value: (rolebefore.name === roleafter.name) ? 'Updated: :x:' : `Updated: ✅ \n New Name: ${roleafter.name}` },
+        { name: 'Color', value: (rolebefore.hexColor === roleafter.hexColor) ? 'Updated: :x:' : `Updated: ✅ \n New Color: ${roleafter.hexColor}` }
+      ])
       .setFooter({ text: `ID: ${roleafter.id}` })
       .setTimestamp();
     roleafter.guild.channels.cache.get(logChan).send({ embeds: [embed] });

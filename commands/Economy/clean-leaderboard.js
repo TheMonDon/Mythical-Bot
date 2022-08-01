@@ -1,7 +1,7 @@
 const Command = require('../../base/Command.js');
 const { verify } = require('../../util/Util.js');
 const db = require('quick.db');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 
 class CleanLeaderboard extends Command {
   constructor (client) {
@@ -20,7 +20,7 @@ class CleanLeaderboard extends Command {
     const users = db.get(`servers.${msg.guild.id}.users`) || {};
     const toRemove = [];
 
-    const em = new DiscordJS.EmbedBuilder()
+    const em = new EmbedBuilder()
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
       .setColor('#FFA500')
       .setDescription('Please wait, this may take a while for bigger servers.');

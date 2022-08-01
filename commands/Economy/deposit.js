@@ -1,5 +1,5 @@
 const Command = require('../../base/Command.js');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const db = require('quick.db');
 
 class Deposit extends Command {
@@ -35,13 +35,13 @@ class Deposit extends Command {
         db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, 0);
         db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`, cash);
 
-        const em = new DiscordJS.EmbedBuilder()
+        const em = new EmbedBuilder()
           .setColor('#04ACF4')
           .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
           .setDescription(`Deposited ${cs}${cash.toLocaleString()} to your bank.`);
         return msg.channel.send({ embeds: [em] });
       } else {
-        const embed = new DiscordJS.EmbedBuilder()
+        const embed = new EmbedBuilder()
           .setColor('#EC5454')
           .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
           .setDescription(`Incorrect Usage: ${usage}`);
@@ -60,7 +60,7 @@ class Deposit extends Command {
     db.subtract(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, amount); // take money from cash
     db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`, amount); // set money to bank
 
-    const embed = new DiscordJS.EmbedBuilder()
+    const embed = new EmbedBuilder()
       .setColor('#04ACF4')
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
       .setDescription(`Deposited ${cs}${amount.toLocaleString()} to your bank.`);

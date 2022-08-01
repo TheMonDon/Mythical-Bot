@@ -1,5 +1,5 @@
 const Command = require('../../base/Command.js');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const trev = require('trev');
 
 class Milf extends Command {
@@ -20,8 +20,9 @@ class Milf extends Command {
     if (trev.isImgurUpload(post.media)) image = trev.getRawImgur(post.media);
     if (trev.isGfyLink(post.media)) image = trev.gfyIframe(post.media);
 
-    const em = new DiscordJS.EmbedBuilder()
+    const em = new EmbedBuilder()
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
+      .setColor('#0099CC')
       .setTitle(post.title)
       .setURL(post.permalink)
       .setImage(image)

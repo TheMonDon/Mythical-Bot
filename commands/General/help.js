@@ -31,8 +31,8 @@ class Help extends Command {
     if (!args || args.length < 1) return msg.channel.send({ embeds: [errEm] });
 
     const category = toProperCase(args.join(' '));
-    em.setTitle(`${category} Commands`);
-    em.setColor('#0099CC');
+    em.setTitle(`${category} Commands`)
+      .setColor('#0099CC');
     const myCommands = this.client.commands.filter(cmd => this.client.levelCache[cmd.conf.permLevel] <= level);
     const myC = [...myCommands.values()];
     const sorted = myC.sort((p, c) => p.help.category > c.help.category ? 1 : p.help.name > c.help.name && p.help.category === c.help.category ? 1 : -1);
@@ -40,25 +40,27 @@ class Help extends Command {
       const cat = toProperCase(c.help.category);
       if (category === cat) em.addFields([{ name: `${msg.settings.prefix}${toProperCase(c.help.name)}`, value: `${c.help.description}` }]);
     });
-    if (em.fields < 1) {
+    if (em.data?.fields?.length < 1) {
       let command = category.toLowerCase();
       command = this.client.commands.get(command) || this.client.commands.get(this.client.aliases.get(command));
       if (command) {
         if (level < this.client.levelCache[command.conf.permLevel]) return;
-        em.setTitle(`${toProperCase(command.help.name)} Information`);
-        em.setColor('#0099CC');
-        em.addFields([
-          { name: 'Usage', value: command.help.usage },
-          { name: 'Aliases', value: command.conf.aliases.join(', ') || 'none' },
-          { mame: 'Guild Only', value: command.conf.guildOnly.toString() },
-          { name: 'NSFW', value: command.conf.nsfw.toString() },
-          { name: 'Description', value: command.help.description },
-          { name: 'Long Description', value: command.help.longDescription }
-        ]);
+        em.setTitle(`${toProperCase(command.help.name)} Information`)
+          .setColor('#0099CC')
+          .addFields([
+            { name: 'Usage', value: command.help.usage },
+            { name: 'Aliases', value: command.conf.aliases.join(', ') || 'none' },
+            { mame: 'Guild Only', value: command.conf.guildOnly.toString() },
+            { name: 'NSFW', value: command.conf.nsfw.toString() },
+            { name: 'Description', value: command.help.description },
+            { name: 'Long Description', value: command.help.longDescription }
+          ]);
         return msg.channel.send({ embeds: [em] });
-      } else return msg.channel.send({ embeds: [errEm] });
+      } else {
+        return msg.channel.send({ embeds: [errEm] });
+      }
     }
-    return msg.channel.send({ embeds: [em] });
+    return msg.channel.send({ embeds: [errEm] });
   }
 }
 

@@ -1,6 +1,6 @@
 const Command = require('../../base/Command.js');
 const fetch = require('node-superfetch');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 
 class Advice extends Command {
   constructor (client) {
@@ -23,7 +23,7 @@ class Advice extends Command {
 
     body = JSON.parse(body.toString());
 
-    const em = new DiscordJS.EmbedBuilder()
+    const em = new EmbedBuilder()
       .setTitle(body.slip.advice)
       .setColor('#0099CC')
       .setFooter({ text: `ID: ${body.slip.id}` });

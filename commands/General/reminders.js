@@ -1,5 +1,5 @@
 const Command = require('../../base/Command.js');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const moment = require('moment');
 require('moment-duration-format');
 const db = require('quick.db');
@@ -20,7 +20,7 @@ class Reminders extends Command {
     };
     const numbers = [emoji[0], emoji[1], emoji[2], emoji[3], emoji[4], emoji[5], emoji[6], emoji[7], emoji[8], emoji[9], emoji[10]];
 
-    const em = new DiscordJS.EmbedBuilder();
+    const em = new EmbedBuilder();
     const reminders = db.get('global.reminders') || [];
 
     if (!args[0]) {
@@ -34,7 +34,7 @@ class Reminders extends Command {
 
       em.setTitle(`To delete a reminder, use **\`${msg.settings.prefix}reminders <ID>\`**`);
 
-      if ((em.fields.length !== 0)) {
+      if ((em.data.fields.length !== 0)) {
         em.setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() });
       } else {
         em.setDescription(`${msg.author.username}, you don't have any reminders, use the **remindme** command to create a new one!`);

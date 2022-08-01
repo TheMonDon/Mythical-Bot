@@ -1,6 +1,6 @@
 const Command = require('../../base/Command.js');
 const { randomString } = require('../../util/Util.js');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const moment = require('moment');
 require('moment-duration-format');
 const db = require('quick.db');
@@ -62,7 +62,7 @@ class RemindMe extends Command {
       return (~~(Math.random() * 16)).toString(16);
     });
 
-    const embed = new DiscordJS.EmbedBuilder()
+    const embed = new EmbedBuilder()
       .setColor(rand)
       .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
       .addFields([

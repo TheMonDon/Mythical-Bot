@@ -1,6 +1,6 @@
 const Command = require('../../base/Command.js');
 const db = require('quick.db');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 
 class BlackJack extends Command {
   constructor (client) {
@@ -153,7 +153,7 @@ class BlackJack extends Command {
     let pcards = getCards('player', bj);
     let dcards = getCards('dealer', bj);
     if (blackjack) {
-      const embed = new DiscordJS.EmbedBuilder()
+      const embed = new EmbedBuilder()
         .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
         .setDescription(`Result: You win ${cs}${bj.bet.toLocaleString()}`)
         .setColor(color)
@@ -165,7 +165,7 @@ class BlackJack extends Command {
       db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bj.bet); // Add the winning money
       return msg.channel.send({ embeds: [embed] });
     }
-    const em = new DiscordJS.EmbedBuilder()
+    const em = new EmbedBuilder()
       .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
       .setDescription('Type `hit` to draw another card, `stand` to pass, or `doubledown` to double down.')
       .setColor(color)
@@ -194,7 +194,7 @@ class BlackJack extends Command {
         pcards = getCards('player', bj);
         dcards = getCards('dealer', bj);
 
-        const embed = new DiscordJS.EmbedBuilder()
+        const embed = new EmbedBuilder()
           .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
           .setDescription(`Result: You win ${cs}${bj.bet.toLocaleString()}`)
           .setColor(color)
@@ -209,7 +209,7 @@ class BlackJack extends Command {
         pcards = getCards('player', bj);
         dcards = getCards('dealer', bj);
 
-        const embed = new DiscordJS.EmbedBuilder()
+        const embed = new EmbedBuilder()
           .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
           .setDescription(`Result: BlackJack, you win ${cs}${bj.bet.toLocaleString()}`)
           .setColor(color)
@@ -224,7 +224,7 @@ class BlackJack extends Command {
         pcards = getCards('player', bj);
         dcards = getCards('dealer', bj);
 
-        const embed = new DiscordJS.EmbedBuilder()
+        const embed = new EmbedBuilder()
           .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
           .setDescription(`Result: Bust, you lose ${cs}${bj.bet.toLocaleString()}`)
           .setColor(color)
@@ -239,7 +239,7 @@ class BlackJack extends Command {
         pcards = getCards('player', bj);
         dcards = getCards('dealer', bj);
 
-        const embed = new DiscordJS.EmbedBuilder()
+        const embed = new EmbedBuilder()
           .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
           .setDescription('Result: Push, money back')
           .setColor(color)
@@ -253,7 +253,7 @@ class BlackJack extends Command {
       pcards = getCards('player', bj);
       dcards = getCards('dealer', bj);
 
-      const embed = new DiscordJS.EmbedBuilder()
+      const embed = new EmbedBuilder()
         .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
         .setDescription('Type `hit` to draw another card, `stand` to pass, or `doubledown` to double down.')
         .setColor(color)

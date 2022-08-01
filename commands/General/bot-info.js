@@ -28,7 +28,7 @@ class BotInfo extends Command {
         { name: 'Uptime', value: botuptime, inLine: true },
         { name: 'Ping', value: Math.floor(this.client.ws.ping).toLocaleString(), inLine: true },
         { name: 'Guilds', value: this.client.guilds.cache.size.toLocaleString(), inLine: true },
-        { name: 'Commands Used', value: db.get('global.commands').toLocaleString(), inLine: true },
+        { name: 'Commands Used', value: db.get('global.commands').toLocaleString(), inLine: false },
         { name: 'Discord.js', value: version, inLine: true },
         { name: 'Node', value: process.version, inLine: true },
         { name: 'RAM Usage', value: `${Math.floor((process.memoryUsage().heapUsed / 1024) / 1024).toLocaleString()} MB`, inLine: true },

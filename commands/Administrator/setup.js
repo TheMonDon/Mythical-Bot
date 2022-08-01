@@ -1,6 +1,6 @@
 const Command = require('../../base/Command.js');
 const { getChannel, getRole } = require('../../util/Util.js');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const db = require('quick.db');
 const { stripIndents } = require('common-tags');
 
@@ -135,7 +135,7 @@ class Setup extends Command {
       const category = await msg.guild.channels.create('Tickets', { type: 'GUILD_CATEGORY', reason: 'Setting up tickets system', permissionOverwrites: catPerms });
       db.set(`servers.${msg.guild.id}.tickets.catID`, category.id);
 
-      const embed = new DiscordJS.EmbedBuilder();
+      const embed = new EmbedBuilder();
       // Create the reaction message stuff
       if (reaction === 'yes') {
         embed.setTitle('New Ticket');
@@ -185,7 +185,7 @@ class Setup extends Command {
     // End of ticket setup.
 
     if (['logging', 'log', 'logs'].includes(type)) {
-      const embed = new DiscordJS.EmbedBuilder();
+      const embed = new EmbedBuilder();
 
       const logSystem = {
         'channel-created': 'enabled',
@@ -239,7 +239,7 @@ class Setup extends Command {
     // End of logging setup
 
     // Base command if there is not any args
-    const embed = new DiscordJS.EmbedBuilder()
+    const embed = new EmbedBuilder()
       .setTitle('Systems Setup')
       .setColor('#0000FF')
       .addFields([

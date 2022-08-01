@@ -1,6 +1,6 @@
 const Command = require('../../base/Command.js');
 const db = require('quick.db');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const { stripIndents } = require('common-tags');
 
 class SetPayout extends Command {
@@ -31,7 +31,7 @@ class SetPayout extends Command {
     const crimeMax = db.get(`servers.${msg.guild.id}.economy.crime.max`) || 2000;
 
     if (!text || text.length < 1) {
-      const embed = new DiscordJS.EmbedBuilder()
+      const embed = new EmbedBuilder()
         .setColor('#04ACF4')
         .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
         .setDescription(stripIndents`
@@ -44,7 +44,7 @@ class SetPayout extends Command {
         `);
       return msg.channel.send({ embeds: [embed] });
     }
-    const errEmbed = new DiscordJS.EmbedBuilder()
+    const errEmbed = new EmbedBuilder()
       .setColor('#EC5454')
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() });
 
@@ -80,7 +80,7 @@ class SetPayout extends Command {
       return msg.channel.send('The min amount for payout is one.');
     }
 
-    const embed = new DiscordJS.EmbedBuilder()
+    const embed = new EmbedBuilder()
       .setColor('#64BC6C')
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() });
 

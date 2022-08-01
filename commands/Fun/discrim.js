@@ -1,5 +1,5 @@
 const Command = require('../../base/Command.js');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 
 class Discrim extends Command {
   constructor (client) {
@@ -20,7 +20,7 @@ class Discrim extends Command {
 
     if (output.length < 1) return msg.channel.send(`No users found with the discriminator: ${discrim}`);
 
-    const em = new DiscordJS.EmbedBuilder()
+    const em = new EmbedBuilder()
       .setDescription(output.slice(0, 4000))
       .addFields([
         { name: 'Total Discriminators', value: output.length }

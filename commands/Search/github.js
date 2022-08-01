@@ -1,5 +1,5 @@
 const Command = require('../../base/Command.js');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const fetch = require('node-superfetch');
 const moment = require('moment');
 
@@ -40,19 +40,21 @@ class Github extends Command {
         .get(`https://api.github.com/repos/${author}/${repository}`)
         .set({ Authorization: `token ${this.client.config.github}` });
 
-      const embed = new DiscordJS.EmbedBuilder()
+      const embed = new EmbedBuilder()
         .setColor('0099CC')
         .setAuthor({ name: 'GitHub', iconURL: 'https://i.imgur.com/e4HunUm.png', url: 'https://github.com/' })
         .setTitle(body.full_name)
         .setURL(body.html_url)
         .setDescription(body.description ? body.description.slice(0, 2000) : 'No description.')
         .setThumbnail(body.owner.avatar_url)
-        .addField('Stars', body.stargazers_count.toLocaleString(), true)
-        .addField('Forks', body.forks.toLocaleString(), true)
-        .addField('Issues', body.open_issues.toLocaleString(), true)
-        .addField('Language', body.language || '???', true)
-        .addField('Creation Date', moment.utc(body.created_at).format('MM/DD/YYYY h:mm A'), true)
-        .addField('Modification Date', moment.utc(body.updated_at).format('MM/DD/YYYY h:mm A'), true);
+        .addFields([
+          { name: 'Stars', value: body.stargazers_count.toLocaleString() },
+          { name: 'Forks', value: body.forks.toLocaleString() },
+          { name: 'Issues', value: body.open_issues.toLocaleString() },
+          { name: 'Language', value: body.language || 'Unknown' },
+          { name: 'Creation Date', value: moment.utc(body.created_at).format('MM/DD/YYYY h:mm A') },
+          { name: 'Modification Date', value: moment.utc(body.updated_at).format('MM/DD/YYYY h:mm A') }
+        ]);
 
       return msg.channel.send({ embeds: [embed] });
     } catch (err) {

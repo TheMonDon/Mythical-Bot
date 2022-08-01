@@ -1,7 +1,7 @@
 const Command = require('../../base/Command.js');
 const { getMember } = require('../../util/Util.js');
 const db = require('quick.db');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 
 class Blacklist extends Command {
   constructor (client) {
@@ -56,7 +56,7 @@ class Blacklist extends Command {
       db.set(`servers.${msg.guild.id}.users.${mem.id}.blacklist`, true);
       db.set(`servers.${msg.guild.id}.users.${mem.id}.blacklistReason`, reason);
 
-      const em = new DiscordJS.EmbedBuilder()
+      const em = new EmbedBuilder()
         .setTitle(`${mem.user.tag} has been added to the blacklist.`)
         .setColor('#0099CC')
         .addFields([
@@ -74,7 +74,7 @@ class Blacklist extends Command {
       db.set(`servers.${msg.guild.id}.users.${mem.id}.blacklist`, false);
       db.set(`servers.${msg.guild.id}.users.${mem.id}.blacklistReason`, reason);
 
-      const em = new DiscordJS.EmbedBuilder()
+      const em = new EmbedBuilder()
         .setTitle(`${mem.user.tag} has been removed to the blacklist.`)
         .setColor('#0099CC')
         .addFields([
@@ -89,7 +89,7 @@ class Blacklist extends Command {
       const reason = db.get(`servers.${msg.guild.id}.users.${mem.id}.blacklistReason`) || false;
 
       const bl = blacklist ? 'is' : 'is not';
-      const em = new DiscordJS.EmbedBuilder()
+      const em = new EmbedBuilder()
         .setTitle(`${mem.user.tag} blacklist check`)
         .setColor('#0099CC')
         .addFields([

@@ -1,6 +1,6 @@
 const Command = require('../../base/Command.js');
 const { wait } = require('../../util/Util.js');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder, MessageAttachment } = require('discord.js');
 const https = require('https');
 const fntPath = './resources/fonts/Moms_Typewriter.ttf';
 const fs = require('fs');
@@ -46,7 +46,7 @@ class TyperCompetition extends Command {
 
     if (msg.guild.members.me.permissions.has('MANAGE_MESSAGES')) msg.delete();
 
-    const em = new DiscordJS.EmbedBuilder()
+    const em = new EmbedBuilder()
       .setTitle('Typer Competition')
       .setColor('#41f4eb')
       .setDescription(stripIndents`
@@ -72,7 +72,7 @@ class TyperCompetition extends Command {
             ctx.drawImage(image, 0, 0, 290, 80);
             ctx.fillText(randWord, 90, 45);
 
-            const attachment = new DiscordJS.MessageAttachment(canvas.toBuffer(), 'type-race.png');
+            const attachment = new MessageAttachment(canvas.toBuffer(), 'type-race.png');
 
             let getReady;
             let theImage;
@@ -115,7 +115,7 @@ class TyperCompetition extends Command {
                   highScoreUser = 'You';
                 }
 
-                const em1 = new DiscordJS.EmbedBuilder()
+                const em1 = new EmbedBuilder()
                   .setTitle('Winner!')
                   .setColor('#41f4eb')
                   .setDescription(stripIndents`

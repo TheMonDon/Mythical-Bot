@@ -1,6 +1,6 @@
 const Command = require('../../base/Command.js');
 const db = require('quick.db');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const { stripIndents } = require('common-tags');
 const hastebin = require('hastebin');
 
@@ -43,7 +43,7 @@ class Close extends Command {
     let chatLogs = db.get(`servers.${msg.guild.id}.tickets.${tName}.chatLogs`);
     chatLogs ? chatLogs = chatLogs.join('\n') : chatLogs = 'No Transcript available';
 
-    const em = new DiscordJS.EmbedBuilder()
+    const em = new EmbedBuilder()
       .setTitle('Ticket Closed')
       .setColor('#E65DF4')
       .setDescription(stripIndents`${msg.author} has requested to close this ticket.
@@ -73,12 +73,14 @@ class Close extends Command {
 
       let received;
 
-      const userEmbed = new DiscordJS.EmbedBuilder()
+      const userEmbed = new EmbedBuilder()
         .setTitle('Ticket Closed')
         .setColor('#E65DF4')
-        .addField('Transcript URL', url, false)
-        .addField('Reason', reason, false)
-        .addField('Server', msg.guild.name, false)
+        .addFields([
+          { name: 'Transcript URL', value: url, inLine: false },
+          { name: 'Reason', value: reason, inLine: false },
+          { name: 'Server', value: msg.guild.name, inLine: false }
+        ])
         .setFooter({ text: 'Transcripts expire 30 days after last view date.' })
         .setTimestamp();
       await msg.author.send({ embeds: [userEmbed] })
@@ -86,13 +88,15 @@ class Close extends Command {
           received = 'no';
         });
 
-      const logEmbed = new DiscordJS.EmbedBuilder()
+      const logEmbed = new EmbedBuilder()
         .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
         .setTitle('Ticket Closed')
-        .addField('Author', `${msg.author} (${msg.author.id})`, false)
-        .addField('Channel', `${tName}: ${msg.channel.id}`, false)
-        .addField('Transcript URL', url, false)
-        .addField('Reason', reason, false)
+        .addFields([
+          { name: 'Author', value: `${msg.author} (${msg.author.id})`, inLine: false },
+          { name: 'Channel', value: `${tName}: ${msg.channel.id}`, inLine: false },
+          { name: 'Transcript URL', value: url, inLine: false },
+          { name: 'Reason', value: reason, inLine: false }
+        ])
         .setColor('#E65DF4')
         .setTimestamp();
       if (received === 'no') logEmbed.setFooter({ text: 'Could not message author.' });
@@ -103,7 +107,7 @@ class Close extends Command {
     }
 
     const response = collected.first().content;
-    const embed = new DiscordJS.EmbedBuilder()
+    const embed = new EmbedBuilder()
       .setTitle('Ticket Re-Opened')
       .setDescription(stripIndents`
         Closing of the ticket has been cancelled with the following reason:

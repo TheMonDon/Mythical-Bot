@@ -1,5 +1,5 @@
 const db = require('quick.db');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 
 // Set guildOnly to true if you want it to be available on guilds only.
 // Otherwise false is global.
@@ -32,7 +32,7 @@ exports.run = async (client, interaction) => {
 
   const cs = db.get(`servers.${interaction.guildId}.economy.symbol`) || '$';
 
-  const embed = new DiscordJS.EmbedBuilder()
+  const embed = new EmbedBuilder()
     .setAuthor({ name: mem.user.tag, iconURL: mem.user.displayAvatarURL() })
     .setColor('#03A9F4')
     .addFields([

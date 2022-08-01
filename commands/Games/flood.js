@@ -1,5 +1,5 @@
 const Command = require('../../base/Command.js');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const db = require('quick.db');
 const moment = require('moment');
 require('moment-duration-format');
@@ -94,7 +94,7 @@ class Flood extends Command {
         }
 
         if (!isNaN(highScoreTime)) highScoreTime = moment.duration(highScoreTime).format('m[ minutes][, and] s[ seconds]');
-        embed = new DiscordJS.EmbedBuilder()
+        embed = new EmbedBuilder()
           .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL({ dynamic: true }) })
           .setColor('#08b9bf')
           .setTitle('Flood')
@@ -102,7 +102,7 @@ class Flood extends Command {
           .addFields([{ name: 'High Score', value: `${highScore} turns by ${highScoreUser || 'N/A'} in ${highScoreTime || 'N/A'}` }])
           .setTimestamp();
       } else {
-        embed = new DiscordJS.EmbedBuilder()
+        embed = new EmbedBuilder()
           .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL({ dynamic: true }) })
           .setColor('#08b9bf')
           .setTitle('Flood')

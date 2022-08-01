@@ -1,6 +1,6 @@
 const Command = require('../../base/Command.js');
 const db = require('quick.db');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const moment = require('moment');
 require('moment-duration-format');
 
@@ -34,7 +34,7 @@ class Topic extends Command {
       } else {
         const tLeft = moment.duration(timeleft)
           .format('y[ years][,] M[ Months]d[ days][,] h[ hours][,] m[ minutes][, and] s[ seconds]'); // format to any format
-        const embed = new DiscordJS.EmbedBuilder()
+        const embed = new EmbedBuilder()
           .setColor('#EC5454')
           .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
           .setDescription(`You can't change the topic for another: ${tLeft}`);
@@ -66,7 +66,7 @@ class Topic extends Command {
     db.push(`servers.${msg.guild.id}.tickets.${tName}.chatLogs`, output);
     await msg.channel.setTopic(topic);
 
-    const em = new DiscordJS.EmbedBuilder()
+    const em = new EmbedBuilder()
       .setTitle('Topic Changed')
       .setColor('#E65DF4')
       .setDescription(`${msg.author} has changed the topic to: \n${topic}`);

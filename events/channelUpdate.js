@@ -1,5 +1,5 @@
 const db = require('quick.db');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 
 module.exports = class {
   constructor (client) {
@@ -36,13 +36,15 @@ module.exports = class {
         catUp = 'Updated: ❌';
       }
 
-      const embed = new DiscordJS.MessageEmbed()
+      const embed = new EmbedBuilder()
         .setTitle(`Channel ${channel.name} Updated`)
         .setColor('#EE82EE')
-        .addField('Name', (channel.name === newChannel.name) ? 'Updated: ❌' : `Updated: ✅ \n New Name: ${newChannel.name}`, true)
-        .addField('Topic', (channel.topic === newChannel.topic) ? 'Updated: ❌' : `Updated: ✅ \n New Topic: ${newChannel.topic}`, true)
-        .addField('Is NSFW?', (newChannel.nsfw) ? '✅' : '❌', true)
-        .addField('Category', catUp, true)
+        .addFields([
+          { name: 'Name', value: (channel.name === newChannel.name) ? 'Updated: ❌' : `Updated: ✅ \n New Name: ${newChannel.name}` },
+          { name: 'Topic', value: (channel.topic === newChannel.topic) ? 'Updated: ❌' : `Updated: ✅ \n New Topic: ${newChannel.topic}` },
+          { name: 'Is NSFW?', value: (newChannel.nsfw) ? '✅' : '❌' },
+          { name: 'Category', value: catUp }
+        ])
         .setFooter({ text: `ID: ${newChannel.id}` })
         .setTimestamp();
 

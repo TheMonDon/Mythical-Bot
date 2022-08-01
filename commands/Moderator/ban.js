@@ -1,7 +1,7 @@
 const Command = require('../../base/Command.js');
 const { getMember } = require('../../util/Util.js');
 const db = require('quick.db');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 
 class Ban extends Command {
   constructor (client) {
@@ -31,7 +31,7 @@ class Ban extends Command {
     if (!banMem) return msg.channel.send('That user was not found.');
     if (!banMem.bannable) return msg.channel.send('That user is not bannable.');
 
-    const em = new DiscordJS.EmbedBuilder()
+    const em = new EmbedBuilder()
       .setTitle('User Banned')
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
       .setColor('#ff0000')
@@ -45,7 +45,7 @@ class Ban extends Command {
     banMem.ban({ reason });
 
     if (logChan) {
-      const em2 = new DiscordJS.EmbedBuilder()
+      const em2 = new EmbedBuilder()
         .setTitle('User Banned')
         .setColor('#ff0000')
         .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })

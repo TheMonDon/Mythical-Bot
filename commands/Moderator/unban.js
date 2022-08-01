@@ -1,6 +1,6 @@
 const Command = require('../../base/Command.js');
 const db = require('quick.db');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 
 class Unban extends Command {
   constructor (client) {
@@ -27,7 +27,7 @@ class Unban extends Command {
 
     if (!userID.matches(regex)) return msg.channel.send(`Error: Please enter a valid User ID. \nInput: ${userID}`);
 
-    const embed = new DiscordJS.EmbedBuilder();
+    const embed = new EmbedBuilder();
     if (msg.guild.members.me.permissions.has('MANAGE_MESSAGES')) msg.delete();
 
     try {

@@ -1,7 +1,7 @@
 const Command = require('../../base/Command.js');
 const { getRole } = require('../../util/Util.js');
 const db = require('quick.db');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const { stripIndents } = require('common-tags');
 
 class AddMoneyRole extends Command {
@@ -20,7 +20,7 @@ class AddMoneyRole extends Command {
   run (msg, args) {
     const usage = `Incorrect Usage: ${msg.settings.prefix}add-money-role <cash | bank> <role> <amount>`;
 
-    const errEmbed = new DiscordJS.EmbedBuilder()
+    const errEmbed = new EmbedBuilder()
       .setColor('#EC5454')
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() });
 
@@ -84,7 +84,7 @@ class AddMoneyRole extends Command {
         }
       });
     }
-    const embed = new DiscordJS.EmbedBuilder()
+    const embed = new EmbedBuilder()
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
       .setColor('#0099CC')
       .setDescription(`:white_check_mark: Added **${cs}${amount.toLocaleString()}** to ${type} balance of ${members.length} ${members.length > 1 ? 'members' : 'member'} with the ${role}.`)

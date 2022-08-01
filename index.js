@@ -1,7 +1,6 @@
 if (Number(process.version.slice(1).split('.')[0]) < 16) throw new Error('Node 16.x or higher is required. Update Node on your system.');
 
-const { GatewayIntentBits, Collection, Client } = require('discord.js');
-const DiscordJS = require('discord.js');
+const { GatewayIntentBits, Collection, Client, EmbedBuilder } = require('discord.js');
 const { readdirSync, statSync } = require('fs');
 const Enmap = require('enmap');
 const db = require('quick.db');
@@ -160,7 +159,7 @@ client.player = new Player(client, {
 
 client.player
   .on('trackStart', async (queue, track) => {
-    const em = new DiscordJS.MessageEmbed()
+    const em = new EmbedBuilder()
       .setTitle('Now Playing')
       .setDescription(`[${track.title}](${track.url}) \n\nRequested By: ${track.requestedBy}`)
       .setThumbnail(track.thumbnail)
@@ -183,7 +182,7 @@ client.player
     const url = track.url || track.tracks[track.tracks.length - 1].url;
     const requestedBy = track.requestedBy || track.tracks[track.tracks.length - 1].requestedBy;
 
-    const em = new DiscordJS.MessageEmbed()
+    const em = new EmbedBuilder()
       .setTitle('Track Added to Queue')
       .setThumbnail(track.thumbnail)
       .setColor('0099CC')
@@ -194,7 +193,7 @@ client.player
     const playlist = tracks[0].playlist;
     const length = playlist.videos?.length || playlist.tracks?.length || 'N/A';
 
-    const em = new DiscordJS.MessageEmbed()
+    const em = new EmbedBuilder()
       .setTitle('Playlist Added to Queue')
       .setThumbnail(playlist.thumbnail)
       .setColor('0099CC')

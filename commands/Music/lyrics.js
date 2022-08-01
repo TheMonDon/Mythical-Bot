@@ -1,6 +1,6 @@
 const Command = require('../../base/Command.js');
 const lf = require('lyrics-finder');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 
 class Lyrics extends Command {
   constructor (client) {
@@ -32,7 +32,7 @@ class Lyrics extends Command {
     let emLyrics = lyrics;
     if (emLyrics.length > 3090) emLyrics = lyrics.slice(0, 3090) + '...';
 
-    const em = new DiscordJS.EmbedBuilder()
+    const em = new EmbedBuilder()
       .setColor('#0099CC')
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
       .setDescription(`\`\`\`${emLyrics}\`\`\``);

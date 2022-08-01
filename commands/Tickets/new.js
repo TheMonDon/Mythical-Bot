@@ -1,8 +1,9 @@
 const Command = require('../../base/Command.js');
 const { getTickets } = require('../../util/Util.js');
 const db = require('quick.db');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const { stripIndents } = require('common-tags');
+const { DateTime } = require('luxon');
 
 class New extends Command {
   constructor (client) {
@@ -72,11 +73,13 @@ class New extends Command {
 
     db.set(`servers.${msg.guild.id}.tickets.${tName}.owner`, msg.author.id);
 
-    const userEmbed = new DiscordJS.EmbedBuilder()
+    const userEmbed = new EmbedBuilder()
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
       .setTitle(`${msg.member.displayName}'s Ticket`)
-      .addField('Reason', reason, true)
-      .addField('Channel', tixChan, true)
+      .addFields([
+        { name: 'Reason', value: reason },
+        { name: 'Channel', value: tixChan }
+      ])
       .setFooter({ text: 'Self destructing in 2 minutes.' })
       .setColor('#E65DF4')
       .setTimestamp();
@@ -84,21 +87,23 @@ class New extends Command {
     setTimeout(() => reply.delete(), 60000);
     msg.delete();
 
-    const logEmbed = new DiscordJS.EmbedBuilder()
+    const logEmbed = new EmbedBuilder()
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
       .setTitle('New Ticket Created')
-      .addField('Author', `${msg.author} (${msg.author.id})`, false)
-      .addField('Channel', `${tixChan} \n(${tName}: ${tixChan.id})`, false)
-      .addField('Reason', reason, false)
+      .addFields([
+        { name: 'Author', value: `${msg.author} (${msg.author.id})`, inLine: false },
+        { name: 'Channel', value: `${tixChan} \n(${tName}: ${tixChan.id})`, inLine: false },
+        { name: 'Reason', value: reason, inLine: false }
+      ])
       .setColor('#E65DF4')
       .setTimestamp();
     const logChan = msg.guild.channels.cache.get(logID);
     await logChan.send({ embeds: [logEmbed] });
 
-    const chanEmbed = new DiscordJS.EmbedBuilder()
+    const chanEmbed = new EmbedBuilder()
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
       .setTitle(`${msg.member.displayName}'s Ticket`)
-      .addField('Reason', reason, false)
+      .addFields([{ name: 'Reason', value: reason, inLine: false }])
       .setDescription('Please wait patiently and our support team will be with you shortly.')
       .setColor('#E65DF4')
       .setTimestamp();
@@ -116,16 +121,8 @@ class New extends Command {
     }
 
     // Logging info
-    const d = new Date();
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    const hour = String(d.getHours()).padStart(2, '0');
-    const min = String(d.getMinutes()).padStart(2, '0');
-    const timestamp = month + '/' + day + '/' + year + ' ' + hour + ':' + min;
-
     const output = stripIndents`
-    Ticket created at: ${timestamp}
+    Ticket created at: ${DateTime.now().toLocaleString(DateTime.DATETIME_FULL)}
 
     Author: ${msg.author.id} (${msg.author.tag})
 

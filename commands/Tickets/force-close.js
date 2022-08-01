@@ -1,6 +1,6 @@
 const Command = require('../../base/Command.js');
 const db = require('quick.db');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const hastebin = require('hastebin');
 
 class forceClose extends Command {
@@ -97,27 +97,31 @@ class forceClose extends Command {
 
     const tOwner = await msg.guild.members.cache.get(owner);
 
-    const userEmbed = new DiscordJS.EmbedBuilder()
+    const userEmbed = new EmbedBuilder()
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
       .setTitle('Ticket Closed')
       .setColor('#E65DF4')
-      .addField('Ticket Name', `${tName}`, false)
-      .addField('Transcript URL', url, false)
-      .addField('Reason', reason, false)
-      .addField('Server', msg.guild.name, false)
-      .addField('Closed By', `${msg.author} (${msg.author.id})`, false)
+      .addFields([
+        { name: 'Ticket Name', value: `${tName}`, inLine: false },
+        { name: 'Transcript URL', value: url, inLine: false },
+        { name: 'Reason', value: reason, inLine: false },
+        { name: 'Server', value: msg.guild.name, inLine: false },
+        { name: 'Closed By', value: `${msg.author} (${msg.author.id})`, inLine: false }
+      ])
       .setFooter({ text: 'Transcripts expire 30 days after last view date.' })
       .setTimestamp();
     await tOwner.send({ embeds: [userEmbed] })
       .catch(() => { received = 'no'; });
 
-    const logEmbed = new DiscordJS.EmbedBuilder()
+    const logEmbed = new EmbedBuilder()
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
       .setTitle('Ticket Closed')
-      .addField('Author', `${tOwner} (${tOwner.id})`, false)
-      .addField('Channel', `${tName}: ${chan.id}`, false)
-      .addField('Transcript URL', url, false)
-      .addField('Reason', reason, false)
+      .addFields([
+        { name: 'Author', value: `${tOwner} (${tOwner.id})`, inLine: false },
+        { name: 'Channel', value: `${tName}: ${chan.id}`, inLine: false },
+        { name: 'Transcript URL', value: url, inLine: false },
+        { name: 'Reason', value: reason, inLine: false }
+      ])
       .setColor('#E65DF4')
       .setTimestamp();
     if (received === 'no') logEmbed.setFooter({ text: 'Could not message author.' });

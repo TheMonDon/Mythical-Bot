@@ -1,7 +1,7 @@
 const Command = require('../../base/Command.js');
 const { getMember, getWarns, getTotalPoints } = require('../../util/Util.js');
 const db = require('quick.db');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 
 class ClearWarnings extends Command {
   constructor (client) {
@@ -49,7 +49,7 @@ class ClearWarnings extends Command {
 
     const otherCases = otherWarns.map((w) => `\`${w.warnID}\``).join(', ');
 
-    const em = new DiscordJS.EmbedBuilder()
+    const em = new EmbedBuilder()
       .setDescription(`${msg.author.tag} has cleared all the warnings from a user.`)
       .setColor('#FFA500')
       .addFields([
@@ -57,7 +57,7 @@ class ClearWarnings extends Command {
         { name: 'Cleared Cases', value: otherCases }
       ]);
 
-    const memEmbed = new DiscordJS.EmbedBuilder()
+    const memEmbed = new EmbedBuilder()
       .setDescription(`${msg.author.tag} has cleared all your warnings.`)
       .setColor('#FFA500')
       .addFields([

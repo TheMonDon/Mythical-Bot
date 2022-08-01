@@ -1,5 +1,5 @@
 const Command = require('../../base/Command.js');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const superagent = require('superagent');
 
 const countries = [
@@ -302,7 +302,7 @@ class Country extends Command {
       const countrycurrencysymbol = res.body.currencies[0].symbol;
       const countryflag = `http://www.countryflags.io/${res.body.alpha2Code}/flat/64.png`;
 
-      const em = new DiscordJS.EmbedBuilder()
+      const em = new EmbedBuilder()
         .setAuthor({ name: `'Country Information' -  ${countrycode}`, iconURL: countryflag })
         .setThumbnail(countryflag)
         .setColor(0x337fd5)

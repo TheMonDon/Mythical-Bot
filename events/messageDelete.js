@@ -1,5 +1,5 @@
 const db = require('quick.db');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 
 module.exports = class {
   constructor (client) {
@@ -24,7 +24,7 @@ module.exports = class {
     if (!msg.content) return;
 
     let delby;
-    if (msg.guild.me.permissions.has('VIEW_AUDIT_LOG')) {
+    if (msg.guild.members.me.permissions.has('VIEW_AUDIT_LOG')) {
       msg.guild.fetchAuditLogs()
         .then(audit => {
           delby = audit.entries.first().executor;
@@ -32,18 +32,20 @@ module.exports = class {
         .catch(console.error);
     }
 
-    const embed = new DiscordJS.MessageEmbed();
-    embed.setTitle('Message Deleted');
-    embed.setColor('RED');
-    embed.setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() });
-    embed.setThumbnail(msg.author.displayAvatarURL());
-    embed.addField('Deleted Text', (msg.content.length <= 1024) ? msg.content : `${msg.content.substring(0, 1020)}...`, true);
-    embed.addField('Channel', `<#${msg.channel.id}>`, true);
-    embed.addField('Message Author', `${msg.author} (${msg.author.tag})`, true);
-    if (delby && (msg.author !== delby)) embed.addField('Deleted By', delby, true);
-    (msg.mentions.users.size === 0) ? embed.addField('Mentioned Users', 'None', true) : embed.addField('Mentioned Users', `Mentioned Member Count: ${[...msg.mentions.users.values()].length} \n Mentioned Users List: \n ${[...msg.mentions.users.values()]}`, true);
-    embed.setTimestamp();
-    embed.setFooter({ text: `Message ID: ${msg.id}` });
+    const embed = new EmbedBuilder()
+      .setTitle('Message Deleted')
+      .setColor('RED')
+      .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
+      .setThumbnail(msg.author.displayAvatarURL())
+      .addFields([
+        { name: 'Deleted Text', value: (msg.content.length <= 1024) ? msg.content : `${msg.content.substring(0, 1020)}...` },
+        { name: 'Channel', value: `<#${msg.channel.id}>` },
+        { name: 'Message Author', value: `${msg.author} (${msg.author.tag})` }
+      ]);
+    if (delby && (msg.author !== delby)) embed.addFields([{ name: 'Deleted By', value: delby }]);
+    (msg.mentions.users.size === 0) ? embed.addFields({ name: 'Mentioned Users', value: 'None' }) : embed.addFields([{ name: 'Mentioned Users', value: `Mentioned Member Count: ${[...msg.mentions.users.values()].length} \n Mentioned Users List: \n ${[...msg.mentions.users.values()]}` }]);
+    embed.setTimestamp()
+      .setFooter({ text: `Message ID: ${msg.id}` });
     logChannel.send({ embeds: [embed] });
 
     db.add(`servers.${msg.guild.id}.logs.message-deleted`, 1);

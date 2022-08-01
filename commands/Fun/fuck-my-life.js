@@ -1,5 +1,5 @@
 const Command = require('../../base/Command.js');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const fetch = require('node-fetch');
 const HTMLParser = require('node-html-parser');
 
@@ -22,7 +22,7 @@ class FuckMyLife extends Command {
     const article = root.querySelector('.panel-classic .article-contents .article-link');
     const downdoot = root.querySelector('.panel-classic .article-contents .vote-button-container .vote-down-group .vote-count');
     const updoot = root.querySelector('.panel-classic .article-contents .vote-button-container .vote-group .vote-count');
-    const embed = new DiscordJS.EmbedBuilder()
+    const embed = new EmbedBuilder()
       .setTitle('Fuck my Life, Random Edition!')
       .setColor(165868)
       .setThumbnail('http://i.imgur.com/5cMj0fw.png')

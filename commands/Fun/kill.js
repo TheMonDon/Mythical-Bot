@@ -1,6 +1,6 @@
 const Command = require('../../base/Command.js');
 const { getMember } = require('../../util/Util.js');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 
 class Kill extends Command {
   constructor (client) {
@@ -72,7 +72,7 @@ class Kill extends Command {
     ];
 
     const num = Math.round(Math.random() * (deaths.length - 1)) + 1;
-    const embed = new DiscordJS.EmbedBuilder()
+    const embed = new EmbedBuilder()
       .setTitle(deaths[num])
       .setFooter({ text: `Reply #${num}` });
     return msg.channel.send({ embeds: [embed] });

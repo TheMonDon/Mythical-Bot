@@ -1,6 +1,6 @@
 const Command = require('../../base/Command.js');
 const db = require('quick.db');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const ms = require('ms');
 const { stripIndents } = require('common-tags');
 
@@ -28,7 +28,7 @@ class SetCooldown extends Command {
     const crimeCooldown = db.get(`servers.${msg.guild.id}.economy.crime.cooldown`) || 600;
 
     if (!args || args.length < 1) {
-      const embed = new DiscordJS.EmbedBuilder()
+      const embed = new EmbedBuilder()
         .setColor('#04ACF4')
         .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
         .setDescription(stripIndents`
@@ -46,7 +46,7 @@ class SetCooldown extends Command {
     } else {
       type = args[0].toLowerCase();
       if (!types.includes(type)) {
-        const embed = new DiscordJS.EmbedBuilder()
+        const embed = new EmbedBuilder()
           .setColor('#EC5454')
           .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
           .setDescription(`Incorrect Usage: ${usage}`);
@@ -59,7 +59,7 @@ class SetCooldown extends Command {
     const cooldown = ms(time);
 
     if (cooldown > 1209600000) {
-      const embed = new DiscordJS.EmbedBuilder()
+      const embed = new EmbedBuilder()
         .setColor('#EC5454')
         .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
         .setDescription(stripIndents`
@@ -70,7 +70,7 @@ class SetCooldown extends Command {
 
       return msg.channel.send({ embeds: [embed] });
     } else if (cooldown < 30000) {
-      const embed = new DiscordJS.EmbedBuilder()
+      const embed = new EmbedBuilder()
         .setColor('#EC5454')
         .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
         .setDescription(stripIndents`
@@ -81,7 +81,7 @@ class SetCooldown extends Command {
 
       return msg.channel.send({ embeds: [embed] });
     } else if (isNaN(cooldown)) {
-      const embed = new DiscordJS.EmbedBuilder()
+      const embed = new EmbedBuilder()
         .setColor('#EC5454')
         .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
         .setDescription(stripIndents`
@@ -97,7 +97,7 @@ class SetCooldown extends Command {
       const cd = cooldown / 1000;
       db.set(`servers.${msg.guild.id}.economy.work.cooldown`, cd);
 
-      const embed = new DiscordJS.EmbedBuilder()
+      const embed = new EmbedBuilder()
         .setColor('#64BC6C')
         .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
         .setDescription(`The cooldown of \`Work\` has been set to ${cd} seconds.`);
@@ -106,7 +106,7 @@ class SetCooldown extends Command {
       const cd = cooldown / 1000;
       db.set(`servers.${msg.guild.id}.economy.rob.cooldown`, cd);
 
-      const embed = new DiscordJS.EmbedBuilder()
+      const embed = new EmbedBuilder()
         .setColor('#64BC6C')
         .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
         .setDescription(`The cooldown of \`Rob\` has been set to ${cd} seconds.`);
@@ -115,7 +115,7 @@ class SetCooldown extends Command {
       const cd = cooldown / 1000;
       db.set(`servers.${msg.guild.id}.economy.crime.cooldown`, cd);
 
-      const embed = new DiscordJS.EmbedBuilder()
+      const embed = new EmbedBuilder()
         .setColor('#64BC6C')
         .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
         .setDescription(`The cooldown of \`Crime\` has been set to ${cd} seconds.`);
