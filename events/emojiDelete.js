@@ -18,7 +18,7 @@ module.exports = class {
 
     const embed = new EmbedBuilder()
       .setTitle('Emoji Deleted')
-      .setColor('RED')
+      .setColor('#ff0000')
       .setThumbnail(emoji.url)
       .addFields([
         { name: 'Name', value: emoji.name },

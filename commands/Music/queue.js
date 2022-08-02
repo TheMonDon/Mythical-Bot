@@ -7,7 +7,7 @@ class Queue extends Command {
       name: 'queue',
       description: 'Shows what is in the queue',
       category: 'Music',
-      usage: 'queue [page number]',
+      usage: 'queue [page]',
       aliases: ['q'],
       guildOnly: true
     });

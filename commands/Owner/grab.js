@@ -22,7 +22,7 @@ class Grab extends Command {
     if (!commands) return msg.channel.send(`The requested command '${name}' does not exist!`);
 
     fs.readFile(`${commands.conf.location}/${commands.help.name}.js`, 'utf8', function (err, data) {
-      if (err) return console.log(err);
+      if (err) return this.client.logger.error(err);
       const file = Buffer.from(data);
       return msg.channel.send({ files: [{ name: `${commands.help.name}.js`, attachment: file }] });
     });

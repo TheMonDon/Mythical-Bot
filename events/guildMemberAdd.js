@@ -1,4 +1,3 @@
-// This event executes when a new member joins a server. Let's welcome them!
 const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
 

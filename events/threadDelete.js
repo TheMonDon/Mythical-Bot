@@ -22,7 +22,7 @@ module.exports = class {
 
     const embed = new EmbedBuilder()
       .setTitle('Thread Channel Deleted')
-      .setColor('RED')
+      .setColor('#ff0000')
       .addFields([
         { name: 'Name', value: thread.name },
         { name: 'Category', value: thread.parent?.name || 'None' }

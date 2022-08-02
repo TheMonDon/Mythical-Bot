@@ -100,7 +100,6 @@ class playerinfo extends Command {
           .setTitle('Invalid Username')
           .setColor('FF0000')
           .setDescription(`\`${user}\` is not a valid username.`);
-        console.log(user);
         return msg.channel.send({ embeds: [em] });
       }
 

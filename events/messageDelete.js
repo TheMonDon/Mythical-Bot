@@ -34,7 +34,7 @@ module.exports = class {
 
     const embed = new EmbedBuilder()
       .setTitle('Message Deleted')
-      .setColor('RED')
+      .setColor('#FF0000')
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
       .setThumbnail(msg.author.displayAvatarURL())
       .addFields([
@@ -42,6 +42,7 @@ module.exports = class {
         { name: 'Channel', value: `<#${msg.channel.id}>` },
         { name: 'Message Author', value: `${msg.author} (${msg.author.tag})` }
       ]);
+
     if (delby && (msg.author !== delby)) embed.addFields([{ name: 'Deleted By', value: delby }]);
     (msg.mentions.users.size === 0) ? embed.addFields({ name: 'Mentioned Users', value: 'None' }) : embed.addFields([{ name: 'Mentioned Users', value: `Mentioned Member Count: ${[...msg.mentions.users.values()].length} \n Mentioned Users List: \n ${[...msg.mentions.users.values()]}` }]);
     embed.setTimestamp()

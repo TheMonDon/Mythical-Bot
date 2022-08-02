@@ -227,8 +227,6 @@ const init = async () => {
   const slashFiles = readdirSync('./slash').filter(file => file.endsWith('.js'));
   for (const file of slashFiles) {
     const command = require(`./slash/${file}`);
-    const commandName = file.split('.')[0];
-    console.log(`Loading Slash command: ${commandName}. 👌`);
 
     // Now set the name of the command with it's properties.
     client.slashcmds.set(command.commandData.name, command);

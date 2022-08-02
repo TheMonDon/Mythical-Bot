@@ -22,7 +22,7 @@ class Weather extends Command {
       search: city,
       degreeType: 'F'
     }, function (err, result) {
-      if (err) console.log(err);
+      if (err) this.client.logger.error(err);
 
       if (!result || result.length === 0) {
         return msg.channel.send(`No data was available for the location \`${(String(city).length > 1959) ? String(city).substring(0, 1956) + '...' : city}\``);

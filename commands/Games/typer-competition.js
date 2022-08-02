@@ -33,7 +33,7 @@ class TyperCompetition extends Command {
       https.get('https://raw.githubusercontent.com/TheMonDon/storage/master/Moms_Typewriter.ttf', function (response) {
         response.pipe(file);
       });
-      console.log('Downloaded file to: ' + fntPath);
+      this.client.logger.log('Downloaded file to: ' + fntPath);
     }
 
     registerFont(fntPath, {

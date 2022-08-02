@@ -1,6 +1,6 @@
 const Command = require('../../base/Command.js');
 const { randomString } = require('../../util/Util.js');
-const { EmbedBuilder } = require('discord.js');
+const { EmbedBuilder, ChannelType } = require('discord.js');
 const moment = require('moment');
 require('moment-duration-format');
 const db = require('quick.db');
@@ -77,7 +77,7 @@ class RemindMe extends Command {
       createdAt: now.getTime(),
       triggerOn: start,
       reminder: message,
-      channelID: msg.channel.type === 'dm' ? null : msg.channel.id,
+      channelID: msg.channel.type === ChannelType.DM ? null : msg.channel.id,
       userID: msg.author.id,
       color: rand,
       remID

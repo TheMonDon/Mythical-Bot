@@ -44,11 +44,11 @@ module.exports = class {
       .then(function (urlToPaste) {
         url = urlToPaste;
       })
-      .catch(function (requestError) { console.log(requestError); });
+      .catch(function (requestError) { this.client.logger.error(requestError); });
 
     const embed = new EmbedBuilder()
       .setTitle('Bulk Messages Deleted')
-      .setColor('RED')
+      .setColor('#FF0000')
       .addFields([
         { name: 'Deleted Messages', value: url },
         { name: 'Deleted Amount', value: messages.size },
