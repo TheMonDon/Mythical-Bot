@@ -40,20 +40,21 @@ class Help extends Command {
       const cat = toProperCase(c.help.category);
       if (category === cat) em.addFields([{ name: `${msg.settings.prefix}${toProperCase(c.help.name)}`, value: `${c.help.description}` }]);
     });
-    if (em.data?.fields?.length < 1) {
+    if (!em.data?.fields || em.data?.fields?.length < 1) {
       let command = category.toLowerCase();
       command = this.client.commands.get(command) || this.client.commands.get(this.client.aliases.get(command));
       if (command) {
         if (level < this.client.levelCache[command.conf.permLevel]) return;
-        em.setTitle(`${toProperCase(command.help.name)} Information`)
+        em
+          .setTitle(`${toProperCase(command.help.name)} Information`)
           .setColor('#0099CC')
           .addFields([
             { name: 'Usage', value: command.help.usage },
             { name: 'Aliases', value: command.conf.aliases.join(', ') || 'none' },
-            { mame: 'Guild Only', value: command.conf.guildOnly.toString() },
-            { name: 'NSFW', value: command.conf.nsfw.toString() },
-            { name: 'Description', value: command.help.description },
-            { name: 'Long Description', value: command.help.longDescription }
+            { name: 'Guild Only', value: command.conf.guildOnly.toString() || 'false' },
+            { name: 'NSFW', value: command.conf.nsfw.toString() || 'false' },
+            { name: 'Description', value: command.help.description || 'none' },
+            { name: 'Long Description', value: command.help.longDescription || 'none' }
           ]);
         return msg.channel.send({ embeds: [em] });
       } else {

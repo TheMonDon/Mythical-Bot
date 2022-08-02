@@ -158,6 +158,7 @@ client.giveawaysManager = new GiveawaysManager(client, {
   default: {
     botsCanWin: false,
     embedColor: '#0099CC',
+    embedColorEnd: '#000000',
     reaction: '🎉'
   }
 });

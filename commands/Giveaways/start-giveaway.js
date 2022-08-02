@@ -3,6 +3,7 @@ const { EmbedBuilder } = require('discord.js');
 const ms = require('ms');
 const { getChannel } = require('../../util/Util.js');
 const messages = require('../..//util/messages');
+const db = require('quick.db');
 
 class StartGiveaway extends Command {
   constructor (client) {
@@ -52,9 +53,14 @@ class StartGiveaway extends Command {
       winnerCount: winners,
       // Who hosts this giveaway
       hostedBy: msg.member,
+      // Embed color
+      embedColor: '#FF0000',
+      embedColorEnd: '#000000',
       // Messages
       messages
     });
+
+    db.add('global.giveaways', 1);
   }
 }
 
