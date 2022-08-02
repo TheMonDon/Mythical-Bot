@@ -32,7 +32,7 @@ class Crime extends Command {
         const tLeft = moment.duration(timeleft)
           .format('y[ years][,] M[ Months]d[ days][,] h[ hours][,] m[ minutes][, and] s[ seconds]'); // format to any format
         const embed = new EmbedBuilder()
-          .setColor('#EC5454')
+          .setColor('#0099CC')
           .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
           .setDescription(`You cannot commit a crime for ${tLeft}`);
         return msg.channel.send({ embeds: [embed] });
@@ -72,7 +72,7 @@ class Crime extends Command {
       const txt = crimeFail[num].replace('csamount', csamount);
 
       const embed = new EmbedBuilder()
-        .setColor('#EC5454')
+        .setColor('#FF0000')
         .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
         .setDescription(txt)
         .setFooter({ text: `Reply #${num.toLocaleString()}` });
@@ -87,7 +87,7 @@ class Crime extends Command {
       const txt = crimeSuccess[num].replace('csamount', csamount);
 
       const embed = new EmbedBuilder()
-        .setColor('#04ACF4')
+        .setColor('#00FF00')
         .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
         .setDescription(txt)
         .setFooter({ text: `Reply #${num.toLocaleString()}` });

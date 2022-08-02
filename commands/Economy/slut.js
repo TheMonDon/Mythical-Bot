@@ -72,7 +72,7 @@ class Slut extends Command {
       const txt = crimeFail[num].replace('csamount', csamount);
 
       const embed = new EmbedBuilder()
-        .setColor('#EC5454')
+        .setColor('#FF0000')
         .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
         .setDescription(txt)
         .setFooter({ text: `Reply #${num.toLocaleString()}` });
@@ -87,7 +87,7 @@ class Slut extends Command {
       const txt = crimeSuccess[num].replace('csamount', csamount);
 
       const embed = new EmbedBuilder()
-        .setColor('#04ACF4')
+        .setColor('#00FF00')
         .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
         .setDescription(txt)
         .setFooter({ text: `Reply #${num.toLocaleString()}` });
