@@ -1,7 +1,7 @@
 const Command = require('../../base/Command.js');
 const { getTickets } = require('../../util/Util.js');
 const db = require('quick.db');
-const { EmbedBuilder, ChannelType } = require('discord.js');
+const { EmbedBuilder, ChannelType, PermissionFlagsBits } = require('discord.js');
 const { stripIndents } = require('common-tags');
 const { DateTime } = require('luxon');
 
@@ -39,19 +39,19 @@ class NewTicket extends Command {
     const perms = [
       {
         id: msg.member.id,
-        allow: ['VIEW_CHANNEL']
+        allow: [PermissionFlagsBits.ViewChannel]
       },
       {
         id: msg.guild.members.me.id,
-        allow: ['VIEW_CHANNEL']
+        allow: [PermissionFlagsBits.ViewChannel]
       },
       {
         id: roleID,
-        allow: ['VIEW_CHANNEL']
+        allow: [PermissionFlagsBits.ViewChannel]
       },
       {
         id: msg.guild.id,
-        deny: ['VIEW_CHANNEL']
+        deny: [PermissionFlagsBits.ViewChannel]
       }
     ];
 

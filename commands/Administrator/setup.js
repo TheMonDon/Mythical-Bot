@@ -1,6 +1,6 @@
 const Command = require('../../base/Command.js');
 const { getChannel, getRole } = require('../../util/Util.js');
-const { EmbedBuilder, ChannelType } = require('discord.js');
+const { EmbedBuilder, ChannelType, PermissionFlagsBits } = require('discord.js');
 const db = require('quick.db');
 const { stripIndents } = require('common-tags');
 
@@ -105,30 +105,30 @@ class Setup extends Command {
       const catPerms = [
         {
           id: msg.guild.id,
-          deny: ['VIEW_CHANNEL']
+          deny: [PermissionFlagsBits.ViewChannel]
         },
         {
           id: msg.guild.members.me.id,
-          allow: ['VIEW_CHANNEL']
+          allow: [PermissionFlagsBits.ViewChannel]
         },
         {
           id: role.id,
-          allow: ['VIEW_CHANNEL']
+          allow: [PermissionFlagsBits.ViewChannel]
         }
       ];
 
       const logPerms = [
         {
           id: msg.guild.id,
-          deny: ['VIEW_CHANNEL']
+          deny: [PermissionFlagsBits.ViewChannel]
         },
         {
           id: msg.guild.members.me.id,
-          allow: ['VIEW_CHANNEL']
+          allow: [PermissionFlagsBits.ViewChannel]
         },
         {
           id: role.id,
-          allow: ['VIEW_CHANNEL']
+          allow: [PermissionFlagsBits.ViewChannel]
         }
       ];
 
@@ -144,12 +144,12 @@ class Setup extends Command {
         const reactPerms = [
           {
             id: msg.guild.id,
-            allow: ['VIEW_CHANNEL'],
-            deny: ['ADD_REACTIONS', 'SEND_MESSAGES']
+            allow: [PermissionFlagsBits.ViewChannel],
+            deny: [PermissionFlagsBits.AddReactions, PermissionFlagsBits.SendMessages]
           },
           {
             id: msg.guild.members.me.id,
-            allow: ['ADD_REACTIONS', 'SEND_MESSAGES']
+            allow: [PermissionFlagsBits.AddReactions, PermissionFlagsBits.SendMessages]
           }
         ];
 
