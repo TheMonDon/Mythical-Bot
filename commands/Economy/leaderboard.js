@@ -54,7 +54,7 @@ class Leaderboard extends Command {
     } else {
       for (let i = 1; i <= page; i++) {
         temp = abc123.slice(Math.floor((i - 1) * 10), Math.ceil(i * 10));
-        if (temp.length < 1) {
+        if (temp?.length < 1) {
           realPage = i - 1;
           maxPages = Math.ceil(abc123.length / 10);
           abc123 = abc123.slice(Math.floor(((i - 1) - 1) * 10), Math.ceil((i - 1) * 10));
@@ -66,7 +66,7 @@ class Leaderboard extends Command {
       .setColor('#0099CC')
       .setTitle(`${msg.guild.name}'s Leaderboard`)
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
-      .setDescription(abc123.join('\n'))
+      .setDescription(abc123.join('\n') || 'None')
       .setFooter({ text: `Page ${realPage} / ${maxPages}` })
       .setTimestamp();
     return msg.channel.send({ embeds: [embed] });

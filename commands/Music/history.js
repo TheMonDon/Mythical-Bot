@@ -17,6 +17,7 @@ class History extends Command {
     page = parseInt(page, 10);
     const queue = this.client.player.getQueue(msg.guild.id);
 
+    if (!queue) return msg.channel.send('There is no history of the queue.');
     if (!page) page = 1;
     if (isNaN(page)) return msg.channel.send('Please input a valid number.');
 
