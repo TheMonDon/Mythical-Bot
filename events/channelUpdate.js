@@ -18,7 +18,7 @@ module.exports = class {
     if (chans.includes(channel.id)) return;
 
     const logChannel = channel.guild.channels.cache.get(logChan);
-    if (!logChannel.permissionsFor(this.client.user.id).has('SEND_MESSAGES')) return;
+    if (!logChannel.permissionsFor(this.client.user.id).has('SendMessages')) return;
 
     if (channel === newChannel) return;
 

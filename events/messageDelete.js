@@ -19,12 +19,12 @@ module.exports = class {
     const chans = db.get(`servers.${msg.guild.id}.logs.noLogChans`) || [];
     if (chans.includes(msg.channel.id)) return;
     const logChannel = msg.guild.channels.cache.get(logChan);
-    if (!logChannel.permissionsFor(this.client.user.id).has('SEND_MESSAGES')) return;
+    if (!logChannel.permissionsFor(this.client.user.id).has('SendMessages')) return;
 
     if (!msg.content) return;
 
     let delby;
-    if (msg.guild.members.me.permissions.has('VIEW_AUDIT_LOG')) {
+    if (msg.guild.members.me.permissions.has('ViewAuditLog')) {
       msg.guild.fetchAuditLogs()
         .then(audit => {
           delby = audit.entries.first().executor;

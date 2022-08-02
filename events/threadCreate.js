@@ -20,7 +20,7 @@ module.exports = class {
     if (chans.includes(thread.id)) return;
 
     const logchan = thread.guild.channels.cache.get(logChan);
-    if (!logchan.permissionsFor(this.client.user.id).has('SEND_MESSAGES')) return;
+    if (!logchan.permissionsFor(this.client.user.id).has('SendMessages')) return;
 
     const embed = new EmbedBuilder()
       .setTitle('Thread Channel Created')

@@ -1,7 +1,6 @@
 const Command = require('../../base/Command.js');
 const { getMember } = require('../../util/Util.js');
 const db = require('quick.db');
-const { PermissionFlagsBits } = require('discord.js');
 
 class Mute extends Command {
   constructor (client) {
@@ -39,7 +38,7 @@ class Mute extends Command {
       msg.guild.channels.forEach(async (channel, id) => {
         await channel.overwritePermissions({
           id: role.id,
-          deny: [PermissionFlagsBits.SendMessages, PermissionFlagsBits.AddReactions]
+          deny: ['SendMessages', 'AddReactions']
         });
       });
     }

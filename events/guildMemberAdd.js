@@ -15,7 +15,7 @@ module.exports = class {
       if (logSys !== 'enabled') return;
 
       const logChannel = member.guild.channels.cache.get(logChan);
-      if (!logChannel.permissionsFor(this.client.user.id).has('SEND_MESSAGES')) return;
+      if (!logChannel.permissionsFor(this.client.user.id).has('SendMessages')) return;
 
       await member.guild.members.fetch();
       const embed = new EmbedBuilder()
@@ -38,7 +38,7 @@ module.exports = class {
       const toggle = db.get(`servers.${member.guild.id}.proles.system`) || false;
       if (!toggle) return;
 
-      if (!member.guild.members.me.permissions.has('MANAGE_ROLES')) return;
+      if (!member.guild.members.me.permissions.has('ManageRoles')) return;
       if (member.user.bot) return;
 
       const roles = db.get(`servers.${member.guild.id}.proles.users.${member.id}`);

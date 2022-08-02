@@ -17,7 +17,7 @@ class DeleteGiveaway extends Command {
     const usage = `Incorrect Usage: ${msg.settings.prefix}delete-giveaway <Message ID>`;
     if (!args || args.length < 1) return msg.channel.send(usage);
 
-    if (!msg.member.permissions.has('MANAGE_MESSAGES')) {
+    if (!msg.member.permissions.has('ManageMessages')) {
       return msg.channel.send(':x: You need to have the manage messages permissions to delete giveaways');
     }
 

@@ -14,8 +14,8 @@ class Nickname extends Command {
   }
 
   async run (msg, text) {
-    if (!msg.member.permissions.has('MANAGE_NICKNAMES')) return msg.channel.send('You are missing the manage nicknames permission.');
-    if (!msg.guild.members.me.permissions.has('MANAGE_NICKNAMES')) return msg.channel.send('The bot doesn\'t have manage nicknames permission.');
+    if (!msg.member.permissions.has('ManageNicknames')) return msg.channel.send('You are missing the manage nicknames permission.');
+    if (!msg.guild.members.me.permissions.has('ManageNicknames')) return msg.channel.send('The bot doesn\'t have manage nicknames permission.');
 
     if (!text[0]) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}Nick <user> (nickname)`);
 

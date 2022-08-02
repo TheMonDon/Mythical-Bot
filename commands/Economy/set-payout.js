@@ -18,7 +18,7 @@ class SetPayout extends Command {
   run (msg, text) {
     const types = ['work', 'crime', 'slut'];
 
-    if (!msg.member.permissions.has('MANAGE_GUILD')) return msg.channel.send('You are missing **Manage Guild** permission.');
+    if (!msg.member.permissions.has('ManageMessages')) return msg.channel.send('You are missing **Manage Guild** permission.');
 
     const cs = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
     const usage = `${msg.settings.prefix}set-payout <work | crime> <min | max> <amount>`;

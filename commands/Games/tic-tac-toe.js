@@ -124,7 +124,7 @@ class TicTacToe extends Command {
             winner = userTurn ? opponent : msg.author;
             break;
           }
-          if (msg.guild.members.me.permissions.has('MANAGE_MESSAGES')) turn.first().delete();
+          if (msg.guild.members.me.permissions.has('ManageMessages')) turn.first().delete();
         }
         sides[opponent.user.bot && !userTurn ? choice : Number.parseInt(choice, 10) - 1] = sign;
         taken.push(choice);

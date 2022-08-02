@@ -21,7 +21,7 @@ class StartGiveaway extends Command {
     const usage = `Incorrect Usage: ${msg.settings.prefix}start-giveaway <length> <winners> <channel> <prize>`;
     if (!args || args.length < 4) return msg.channel.send(usage);
 
-    if (!msg.member.permissions.has('MANAGE_MESSAGES')) {
+    if (!msg.member.permissions.has('ManageMessages')) {
       return msg.channel.send(':x: You need to have the manage messages permissions to start giveaways');
     }
 

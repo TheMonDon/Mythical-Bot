@@ -139,10 +139,10 @@ class Warn extends Command {
     db.set(`servers.${msg.guild.id}.warns.warnings.${warnID}`, opts);
 
     if (warnAmount >= ba) {
-      if (!msg.guild.members.me.permissions.has('BAN_MEMBERS')) return msg.channel.send('The bot does not have permission to ban members.');
+      if (!msg.guild.members.me.permissions.has('BenMembers')) return msg.channel.send('The bot does not have permission to ban members.');
       msg.guild.members.ban(mem.id, { reason }).catch(() => null); // Ban wether they are in the guild or not.
     } else if (warnAmount >= ka) {
-      if (!msg.guild.members.me.permissions.has('KICK_MEMBERS')) return msg.channel.send('The bot does not have permission to kick members.');
+      if (!msg.guild.members.me.permissions.has('KickMembers')) return msg.channel.send('The bot does not have permission to kick members.');
       const member = msg.guild.members.cache.get(mem.id);
       if (member) member.kick(reason).catch(() => null); // Kick them if they are in the guild
     }

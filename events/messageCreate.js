@@ -13,8 +13,8 @@ module.exports = class {
 
     if (message.author.bot) return;
 
-    // if (message.guild && !message.channel.permissionsFor(this.client.user.id).has('SEND_MESSAGES')) return;
-    if (message.guild && !message.guild.members.me.permissions.has('SEND_MESSAGES')) return;
+    if (message.guild && !message.channel.permissionsFor(this.client.user.id).has('SendMessages')) return;
+    if (message.guild && !message.guild.members.me.permissions.has('SendMessages')) return;
 
     const settings = this.client.getSettings(message.guild);
     message.settings = settings;

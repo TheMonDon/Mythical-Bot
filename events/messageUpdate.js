@@ -1,4 +1,3 @@
-/* eslint-disable no-empty */
 /* eslint-disable prefer-regex-literals */
 const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
@@ -24,7 +23,7 @@ module.exports = class {
       if (chans.includes(newmsg.channel.id)) return;
 
       const logChannel = newmsg.guild.channels.cache.get(logChan);
-      if (!logChannel.permissionsFor(this.client.user.id).has('SEND_MESSAGES')) return;
+      if (!logChannel.permissionsFor(this.client.user.id).has('SendMessages')) return;
 
       const msg1 = oldmsg;
       const msg2 = newmsg;
@@ -56,7 +55,7 @@ module.exports = class {
     const re = /'http'/;
     if (re.test(newmsg.content)) return;
     if (oldmsg.content === newmsg.content || oldmsg === newmsg) return;
-    if (newmsg.guild && !newmsg.channel.permissionsFor(newmsg.guild.members.me).missing('SEND_MESSAGES')) return;
+    if (newmsg.guild && !newmsg.channel.permissionsFor(newmsg.guild.members.me).missing('SendMessages')) return;
 
     const settings = this.client.getSettings(newmsg.guild);
     newmsg.settings = settings;

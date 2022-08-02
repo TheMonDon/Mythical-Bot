@@ -44,7 +44,7 @@ class TyperCompetition extends Command {
     const ctx = canvas.getContext('2d');
     ctx.font = '18px "Moms Typewriter';
 
-    if (msg.guild.members.me.permissions.has('MANAGE_MESSAGES')) msg.delete();
+    if (msg.guild.members.me.permissions.has('ManageMessages')) msg.delete();
 
     const em = new EmbedBuilder()
       .setTitle('Typer Competition')

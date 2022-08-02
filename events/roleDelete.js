@@ -13,7 +13,7 @@ module.exports = class {
     const logSys = db.get(`servers.${role.guild.id}.logs.log_system.role-deleted`);
     if (logSys !== 'enabled') return;
     const logChannel = role.guild.channels.cache.get(logChan);
-    if (!logChannel.permissionsFor(this.client.user.id).has('SEND_MESSAGES')) return;
+    if (!logChannel.permissionsFor(this.client.user.id).has('SendMessages')) return;
 
     const embed = new EmbedBuilder()
       .setTitle('Role Deleted')

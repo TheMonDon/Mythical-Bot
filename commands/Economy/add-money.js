@@ -23,7 +23,7 @@ class AddMoney extends Command {
       .setColor('#EC5454')
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() });
 
-    if (!msg.member.permissions.has('MANAGE_GUILD')) {
+    if (!msg.member.permissions.has('ManageGuild')) {
       errEmbed.setDescription('You are missing the **Manage Guild** permission.');
       return msg.channel.send({ embeds: [errEmbed] });
     }

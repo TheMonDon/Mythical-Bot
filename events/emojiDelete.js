@@ -14,7 +14,7 @@ module.exports = class {
     if (logSys !== 'enabled') return;
 
     const logChannel = emoji.guild.channels.cache.get(logChan);
-    if (!logChannel.permissionsFor(this.client.user.id).has('SEND_MESSAGES')) return;
+    if (!logChannel.permissionsFor(this.client.user.id).has('SendMessages')) return;
 
     const embed = new EmbedBuilder()
       .setTitle('Emoji Deleted')

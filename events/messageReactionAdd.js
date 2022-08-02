@@ -1,5 +1,5 @@
 const db = require('quick.db');
-const { EmbedBuilder, ChannelType, PermissionFlagsBits } = require('discord.js');
+const { EmbedBuilder, ChannelType } = require('discord.js');
 const { stripIndents } = require('common-tags');
 const { DateTime } = require('luxon');
 
@@ -19,9 +19,9 @@ module.exports = class {
 
       if (reactionID !== msg.id) return;
 
-      if (!msg.guild.members.me.permissions.has('MANAGE_CHANNELS')) return msg.channel.send('The bot is missing manage channels perm.');
-      if (!msg.guild.members.me.permissions.has('MANAGE_ROLES')) return msg.channel.send('The bot is missing manage roles perm');
-      if (!msg.guild.members.me.permissions.has('MANAGE_MESSAGES')) return msg.channel.send('The bot is missing manage messages perm');
+      if (!msg.guild.members.me.permissions.has('ManageChannels')) return msg.channel.send('The bot is missing manage channels perm.');
+      if (!msg.guild.members.me.permissions.has('ManageRoles')) return msg.channel.send('The bot is missing manage roles perm');
+      if (!msg.guild.members.me.permissions.has('ManageMessages')) return msg.channel.send('The bot is missing manage messages perm');
 
       if (messageReaction._emoji.name !== '📰') return;
       const member = await msg.guild.members.fetch(user.id);
@@ -29,19 +29,19 @@ module.exports = class {
 
       const perms = [{
         id: msg.member.id,
-        allow: [PermissionFlagsBits.ViewChannel]
+        allow: ['ViewChannel']
       },
       {
         id: msg.guild.members.me.id,
-        allow: [PermissionFlagsBits.ViewChannel]
+        allow: ['ViewChannel']
       },
       {
         id: roleID,
-        allow: [PermissionFlagsBits.ViewChannel]
+        allow: ['ViewChannel']
       },
       {
         id: msg.guild.id,
-        deny: [PermissionFlagsBits.ViewChannel]
+        deny: ['ViewChannel']
       }
       ];
 
@@ -85,7 +85,7 @@ module.exports = class {
       const role = msg.guild.roles.cache.get(roleID);
 
       if (!role.mentionable) {
-        if (!tixChan.permissionsFor(this.client.user.id).has('MENTION_EVERYONE')) {
+        if (!tixChan.permissionsFor(this.client.user.id).has('MentionEveryone')) {
           role.setMentionable(true);
           tixChan.send({ content: role.toString(), embeds: [chanEmbed] });
         } else {

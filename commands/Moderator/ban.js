@@ -20,14 +20,14 @@ class Ban extends Command {
     if (!args[0]) return msg.channel.send('Please provide a user and a reason.');
     const banMem = getMember(msg, args[0]);
 
-    if (!msg.guild.members.me.permissions.has('BAN_MEMBERS')) return msg.channel.send('The bot is missing the ban members permission.');
-    if (!msg.member.permissions.has('BAN_MEMBERS')) return msg.channel.send('You do not have permissions to ban members.');
+    if (!msg.guild.members.me.permissions.has('BanMembers')) return msg.channel.send('The bot is missing the ban members permission.');
+    if (!msg.member.permissions.has('BanMembers')) return msg.channel.send('You do not have permissions to ban members.');
 
     // start reason
     args.shift();
     const reason = args.join(' ');
     if (!reason) return msg.channel.send('Please provide a reason.');
-    if (msg.guild.members.me.permissions.has('MANAGE_MESSAGES')) msg.delete();
+    if (msg.guild.members.me.permissions.has('ManageMessages')) msg.delete();
     if (!banMem) return msg.channel.send('That user was not found.');
     if (!banMem.bannable) return msg.channel.send('That user is not bannable.');
 
