@@ -1,5 +1,4 @@
 const Command = require('../../base/Command.js');
-const { toProperCase } = require('../../util/Util.js');
 const { EmbedBuilder } = require('discord.js');
 const moment = require('moment');
 require('moment-duration-format');
@@ -44,6 +43,7 @@ class ServerInfo extends Command {
       roles1 = roles1 + ' ...';
     }
 
+    const verificationLevel = ['None', 'Low', 'Medium', 'High', 'Very High'];
     const embed = new EmbedBuilder()
       .setTitle(`${server.name}'s Information`)
       .setColor('#EE82EE')
@@ -53,7 +53,7 @@ class ServerInfo extends Command {
         { name: 'Name', value: server.name },
         { name: 'ID', value: server.id.toString() },
         { name: 'Owner', value: server.members.cache.get(server.ownerId).user.tag },
-        { name: 'Verification Level', value: toProperCase(server.verificationLevel) },
+        { name: 'Verification Level', value: verificationLevel[server.verificationLevel] },
         { name: 'Channels', value: server.channels.cache.size.toLocaleString() },
         { name: 'Created At', value: `${ca} \n (${time})` },
         { name: 'AFK Channel', value: server.afkChannel?.name || 'No AFK Channel' },

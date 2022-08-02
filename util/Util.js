@@ -41,10 +41,12 @@ module.exports = class Util {
 
   /**
    * Convert text to the proper case.
-   * @param {string} text Text to convert.
+   * @param {String} text Text to convert.
    */
   static toProperCase (text) {
-    return text.replace(/([^\W_]+[^\s-]*) */g, (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase());
+    let newText = text;
+    if (typeof text !== 'string') { newText = require('util').inspect(text, { depth: 1 }); }
+    return newText.replace(/([^\W_]+[^\s-]*) */g, (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase());
   }
 
   /**
