@@ -8,7 +8,7 @@ class RerollGiveaway extends Command {
       description: 'Reroll a giveaway',
       usage: 'reroll-giveaway <Message ID>',
       category: 'Giveaways',
-      aliases: ['reroll', 'rerollgiveaway'],
+      aliases: ['reroll', 'rerollgiveaway', 'greroll'],
       guildOnly: true
     });
   }

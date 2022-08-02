@@ -8,7 +8,7 @@ class DeleteGiveaway extends Command {
       description: 'Delete a giveaway',
       usage: 'delete-giveaway <Message ID>',
       category: 'Giveaways',
-      aliases: ['deletegiveaway', 'delgiveaway'],
+      aliases: ['deletegiveaway', 'delgiveaway', 'gdelete'],
       guildOnly: true
     });
   }

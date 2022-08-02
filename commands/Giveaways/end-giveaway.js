@@ -8,7 +8,7 @@ class EndGiveaway extends Command {
       description: 'End a giveaway',
       usage: 'end-giveaway <Message ID>',
       category: 'Giveaways',
-      aliases: ['endgiveaway'],
+      aliases: ['endgiveaway', 'gend'],
       guildOnly: true
     });
   }

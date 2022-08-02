@@ -12,7 +12,7 @@ class StartGiveaway extends Command {
       description: 'Start a giveaway',
       usage: 'start-giveaway <duration> <winners> <channel> <prize>',
       category: 'Giveaways',
-      aliases: ['create', 'startgiveaway'],
+      aliases: ['gcreate', 'startgiveaway', 'gstart'],
       guildOnly: true
     });
   }
@@ -53,9 +53,6 @@ class StartGiveaway extends Command {
       winnerCount: winners,
       // Who hosts this giveaway
       hostedBy: msg.member,
-      // Embed color
-      embedColor: '#FF0000',
-      embedColorEnd: '#000000',
       // Messages
       messages
     });
