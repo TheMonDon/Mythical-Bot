@@ -9,7 +9,7 @@ class SetFailRate extends Command {
       name: 'set-fail-rate',
       category: 'Economy',
       description: 'Sets the fail rate of economy commands',
-      usage: 'set-fail-rate <crime> <percentage>',
+      usage: 'set-fail-rate <crime | slut> <percentage>',
       aliases: ['setfailrate', 'setfail'],
       permLevel: 'Moderator',
       guildOnly: true
@@ -17,11 +17,11 @@ class SetFailRate extends Command {
   }
 
   run (msg, text) {
-    const types = ['crime'];
+    const types = ['crime', 'slut'];
 
-    const usage = `${msg.settings.prefix}set-fail-rate <crime> <percentage>`;
+    const usage = `${msg.settings.prefix}set-fail-rate <crime | slut> <percentage>`;
 
-    // const slutFail = db.get(`servers.${msg.guild.id}.economy.slut.failrate`) || 35;
+    const slutFail = db.get(`servers.${msg.guild.id}.economy.slut.failrate`) || 35;
     const crimeFail = db.get(`servers.${msg.guild.id}.economy.crime.failrate`) || 45;
 
     if (!text || text.length < 1) {
@@ -32,6 +32,7 @@ class SetFailRate extends Command {
         The current fail rates are: 
         
         \`Crime\` - ${crimeFail}%
+        \`Slut\`  - ${slutFail}%
     
         Usage: ${usage}
         `);
@@ -76,11 +77,11 @@ class SetFailRate extends Command {
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() });
 
     if (type === 'crime') {
-      db.set(`servers.${msg.guild.id}.economy.crime.failrate`, percentage);
+      db.set(`servers.${msg.guild.id}.economy.${type}.failrate`, percentage);
       embed.setDescription(`The fail rate for \`Crime\` has been set to ${percentage}%.`);
 
       return msg.channel.send({ embeds: [embed] });
-    } else if (type === 'slut') { // Shoved this in for future proofing :D
+    } else if (type === 'slut') { // Shoved this in for future proofing :D (Thanks past me!)
       db.set(`servers.${msg.guild.id}.economy.slut.failrate`, percentage);
       embed.setDescription(`The fail rate for \`Slut\` has been set to ${percentage}%.`);
     }
