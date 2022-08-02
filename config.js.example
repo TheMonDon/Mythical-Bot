@@ -1,3 +1,5 @@
+const { ChannelType } = require('discord.js');
+
 const config = {
   // Bot Admins, level 9 by default. Array of user ID strings.
   "admins": [],
@@ -78,6 +80,7 @@ const config = {
       check: (message) => {
         try {
           const adminRole = message.guild.roles.cache.find(r => r.name.toLowerCase() === message.settings.adminRole.toLowerCase());
+          if (message.member.permissions.has('ADMINISTRATOR')) return true;
           if (!adminRole) return false;
           if (message.member.roles.cache.has(adminRole.id)) return true;
           if (message.member.roles.highest.position > adminRole.position) return true;
@@ -86,12 +89,12 @@ const config = {
         }
       }
     },
-    // This is the server owner.
+
     { level: 4,
       name: "Server Owner", 
       // Simple check, if the guild owner id matches the message author's ID, then it will return true.
       // Otherwise it will return false.
-      check: (message) => message.channel.type === "text" ? (message.guild.ownerID === message.author.id ? true : false) : false
+      check: (message) => message.channel.type === ChannelType.GuildText ? (message.guild.ownerID === message.author.id ? true : false) : false
     },
 
     // Bot Support is a special in between level that has the equivalent of server owner access

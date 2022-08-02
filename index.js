@@ -154,7 +154,7 @@ global.pool = mysql.createPool({
 
 // Init discord giveaways
 client.giveawaysManager = new GiveawaysManager(client, {
-  storage: './giveaways.json',
+  storage: './data/giveaways.json',
   default: {
     botsCanWin: false,
     embedColor: '#0099CC',
