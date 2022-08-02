@@ -2,6 +2,7 @@ const Command = require('../../base/Command.js');
 const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
 const hastebin = require('hastebin');
+const { DateTime } = require('luxon');
 
 class forceClose extends Command {
   constructor (client) {
@@ -66,15 +67,7 @@ class forceClose extends Command {
     if (!chan) return msg.channel.send('That is not a valid ticket, or has already been closed.');
 
     // Logging info
-    const d = new Date();
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    const hour = String(d.getHours()).padStart(2, '0');
-    const min = String(d.getMinutes()).padStart(2, '0');
-    const timestamp = month + '/' + day + '/' + year + ' ' + hour + ':' + min;
-
-    const output = `${timestamp} - ${msg.author.tag} has requested to force-close this ticket. \nTranscript will be sent to ticket owner.`;
+    const output = `${DateTime.now().toLocaleString(DateTime.DATETIME_FULL)} - ${msg.author.tag} has requested to force-close this ticket. \nTranscript will be sent to ticket owner.`;
 
     db.push(`servers.${msg.guild.id}.tickets.${tName}.chatLogs`, output);
 

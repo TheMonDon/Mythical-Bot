@@ -9,6 +9,7 @@ const { Player } = require('discord-player');
 const mysql = require('mysql2');
 const config = require('./config.js');
 const { partials, permLevels, mysqlUsername, mysqlHost, mysqlPassword, token } = require('./config.js');
+const { GiveawaysManager } = require('discord-giveaways');
 
 class Bot extends Client {
   constructor (options) {
@@ -149,6 +150,16 @@ global.pool = mysql.createPool({
   host: mysqlHost,
   user: mysqlUsername,
   password: mysqlPassword
+});
+
+// Init discord giveaways
+client.giveawaysManager = new GiveawaysManager(client, {
+  storage: './giveaways.json',
+  default: {
+    botsCanWin: false,
+    embedColor: '#0099CC',
+    reaction: '🎉'
+  }
 });
 
 // Load the music player stuff

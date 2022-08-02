@@ -14,8 +14,8 @@ class Help extends Command {
   }
 
   async run (msg, args, level) {
-    const cats = ['Administrator', 'Economy', 'Fun', 'Games', 'General', 'Information', 'Logging', 'Memes', 'Minecraft', 'Moderator', 'Music', 'NSFW', 'Search', 'Tickets'];
-    const allcats = ['Bot Admin', 'Administrator', 'Crafters Island', 'Economy', 'Fun', 'Games', 'General', 'Information', 'Logging', 'Memes', 'Minecraft', 'Moderator', 'Music', 'NSFW', 'Owner', 'Search', 'Tickets'];
+    const cats = ['Administrator', 'Economy', 'Fun', 'Games', 'General', 'Giveaways', 'Information', 'Logging', 'Memes', 'Minecraft', 'Moderator', 'Music', 'NSFW', 'Search', 'Tickets'];
+    const allcats = ['Bot Admin', 'Administrator', 'Crafters Island', 'Economy', 'Fun', 'Games', 'General', 'Giveaways', 'Information', 'Logging', 'Memes', 'Minecraft', 'Moderator', 'Music', 'NSFW', 'Owner', 'Search', 'Tickets'];
 
     const em = new EmbedBuilder()
       .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() });
@@ -59,6 +59,8 @@ class Help extends Command {
       } else {
         return msg.channel.send({ embeds: [errEm] });
       }
+    } else if (em.data?.fields?.length > 0) {
+      return msg.channel.send({ embeds: [em] });
     }
     return msg.channel.send({ embeds: [errEm] });
   }

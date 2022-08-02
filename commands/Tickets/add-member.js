@@ -2,6 +2,7 @@ const Command = require('../../base/Command.js');
 const { getMember } = require('../../util/Util.js');
 const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
+const { DateTime } = require('luxon');
 
 class AddMember extends Command {
   constructor (client) {
@@ -42,15 +43,7 @@ class AddMember extends Command {
     await msg.channel.updateOverwrite(mem.id, { VIEW_CHANNEL: true });
 
     // Logging info
-    const d = new Date();
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    const hour = String(d.getHours()).padStart(2, '0');
-    const min = String(d.getMinutes()).padStart(2, '0');
-    const timestamp = month + '/' + day + '/' + year + ' ' + hour + ':' + min;
-
-    const output = `${timestamp} - ${msg.author.tag} has added another member: \n${mem.displayName}.`;
+    const output = `${DateTime.now().toLocaleString(DateTime.DATETIME_FULL)} - ${msg.author.tag} has added another member: \n${mem.displayName}.`;
 
     db.push(`servers.${msg.guild.id}.tickets.${tName}.chatLogs`, output);
 

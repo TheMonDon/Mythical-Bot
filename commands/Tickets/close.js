@@ -3,14 +3,16 @@ const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
 const { stripIndents } = require('common-tags');
 const hastebin = require('hastebin');
+const { DateTime } = require('luxon');
 
-class Close extends Command {
+class CloseTicket extends Command {
   constructor (client) {
     super(client, {
-      name: 'close',
+      name: 'close-ticket',
       description: 'Close your ticket',
-      usage: 'close [reason]',
+      usage: 'close-ticket [reason]',
       category: 'Tickets',
+      aliases: ['close', 'ct', 'closeticket'],
       guildOnly: true
     });
   }
@@ -28,15 +30,7 @@ class Close extends Command {
     if (owner !== msg.author.id) return msg.channel.send('You need to be the owner of the ticket to close it.');
 
     // Logging info
-    const d = new Date();
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    const hour = String(d.getHours()).padStart(2, '0');
-    const min = String(d.getMinutes()).padStart(2, '0');
-    const timestamp = month + '/' + day + '/' + year + ' ' + hour + ':' + min;
-
-    const output = `${timestamp} - ${msg.author.tag} has requested to close this ticket. \nTranscript will be sent in 5 minutes if no further activity occurs.`;
+    const output = `${DateTime.now().toLocaleString(DateTime.DATETIME_FULL)} - ${msg.author.tag} has requested to close this ticket. \nTranscript will be sent in 5 minutes if no further activity occurs.`;
 
     db.push(`servers.${msg.guild.id}.tickets.${tName}.chatLogs`, output);
 
@@ -123,4 +117,4 @@ class Close extends Command {
   }
 }
 
-module.exports = Close;
+module.exports = CloseTicket;

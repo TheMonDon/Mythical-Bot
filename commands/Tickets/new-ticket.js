@@ -5,14 +5,14 @@ const { EmbedBuilder } = require('discord.js');
 const { stripIndents } = require('common-tags');
 const { DateTime } = require('luxon');
 
-class New extends Command {
+class NewTicket extends Command {
   constructor (client) {
     super(client, {
-      name: 'new',
+      name: 'new-ticket',
       description: 'Create a new ticket.',
-      usage: 'New <reason>',
+      usage: 'New-ticket <reason>',
       category: 'Tickets',
-      aliases: ['new-ticket', 'nt', 'newt', 'create'],
+      aliases: ['new', 'nt', 'newticket'],
       guildOnly: true
     });
   }
@@ -26,7 +26,7 @@ class New extends Command {
     if (!msg.guild.members.me.permissions.has('MANAGE_MESSAGES')) return msg.channel.send('The bot is missing Manage Messages permission');
 
     if (msg.channel.name.startsWith('ticket')) return msg.channel.send('You\'re already in a ticket, silly.');
-    if (!args || args.length < 1) return msg.channel.send(`Please provide a reason. Usage: ${msg.settings.prefix}New <reason>`);
+    if (!args || args.length < 1) return msg.channel.send(`Please provide a reason. Usage: ${msg.settings.prefix}New-ticket <reason>`);
 
     const tix = getTickets(msg.author.id, msg);
     if (tix.length > 2) {
@@ -133,4 +133,4 @@ class New extends Command {
   }
 }
 
-module.exports = New;
+module.exports = NewTicket;
