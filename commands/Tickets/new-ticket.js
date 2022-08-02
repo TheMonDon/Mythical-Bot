@@ -69,7 +69,7 @@ class NewTicket extends Command {
 
     str = str.toLowerCase();
     const tName = `ticket-${str}-${count}`;
-    const tixChan = await msg.guild.channels.create(tName, { type: ChannelType.GuildText, parent: catID, permissionOverwrites: perms, topic: reason });
+    const tixChan = await msg.guild.channels.create({ name: tName, type: ChannelType.GuildText, parent: catID, permissionOverwrites: perms, topic: reason });
 
     db.set(`servers.${msg.guild.id}.tickets.${tName}.owner`, msg.author.id);
 
