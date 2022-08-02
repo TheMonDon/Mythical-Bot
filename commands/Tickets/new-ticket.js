@@ -78,7 +78,7 @@ class NewTicket extends Command {
       .setTitle(`${msg.member.displayName}'s Ticket`)
       .addFields([
         { name: 'Reason', value: reason },
-        { name: 'Channel', value: tixChan }
+        { name: 'Channel', value: tixChan.toString() }
       ])
       .setFooter({ text: 'Self destructing in 2 minutes.' })
       .setColor('#E65DF4')
