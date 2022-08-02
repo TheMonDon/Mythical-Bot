@@ -1,9 +1,7 @@
-/* eslint-disable no-unused-vars */
 const Command = require('../../base/Command.js');
 const { getMember } = require('../../util/Util.js');
 const db = require('quick.db');
-const DiscordJS = require('discord.js');
-const moment = require('moment');
+const { PermissionFlagsBits } = require('discord.js');
 
 class Mute extends Command {
   constructor (client) {
@@ -18,6 +16,7 @@ class Mute extends Command {
   }
 
   async run (msg, args) {
+    // eslint-disable-next-line no-unused-vars
     const logChan = db.get(`servers.${msg.guild.id}.logging.channel`);
     const roleName = db.get(`servers.${msg.guild.id}.mutes.role`) || 'Muted';
     const usage = `Incorrect Usage: ${msg.settings.prefix}mute <user> <time> <reason>`;
@@ -40,7 +39,7 @@ class Mute extends Command {
       msg.guild.channels.forEach(async (channel, id) => {
         await channel.overwritePermissions({
           id: role.id,
-          deny: ['SEND_MESSAGES', 'ADD_REACTIONS']
+          deny: [PermissionFlagsBits.SendMessages, PermissionFlagsBits.AddReactions]
         });
       });
     }
