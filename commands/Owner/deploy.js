@@ -25,7 +25,7 @@ module.exports = class Deploy extends Command {
     await this.client.guilds.cache.get(message.guild.id)?.commands.set(guildCmds.map(c => c.commandData));
 
     // Then set the global commands like this.
-    await this.client.application?.commands.set(globalCmds.map(c => c.commandData)).catch(e => console.log(e));
+    await this.client.application?.commands.set(globalCmds.map(c => c.commandData)).catch(e => this.client.logger.error(e));
 
     // Reply to the user that the commands have been deployed.
     await message.channel.send('All commands deployed!');

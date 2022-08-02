@@ -1,5 +1,5 @@
 const db = require('quick.db');
-const DiscordJS = require('discord.js');
+const { ChannelType, EmbedBuilder } = require('discord.js');
 
 module.exports = class {
   constructor (client) {
@@ -7,7 +7,7 @@ module.exports = class {
   }
 
   async run (channel) {
-    if (channel.type === 'dm') return;
+    if (channel.type === ChannelType.DM) return;
 
     const logChan = db.get(`servers.${channel.guild.id}.logs.channel`);
     if (!logChan) return;
@@ -22,11 +22,13 @@ module.exports = class {
     const logChannel = channel.guild.channels.cache.get(logChan);
     if (!logChannel.permissionsFor(this.client.user.id).has('SEND_MESSAGES')) return;
 
-    const embed = new DiscordJS.MessageEmbed()
+    const embed = new EmbedBuilder()
       .setTitle('Channel Created')
       .setColor('#20fc3a')
-      .addField('Name', channel.name, true)
-      .addField('Category', channel.parent?.name || 'None', true)
+      .addFields([
+        { name: 'Name', value: channel.name },
+        { name: 'Category', value: channel.parent?.name || 'None' }
+      ])
       .setFooter({ text: `ID: ${channel.id}` })
       .setTimestamp();
     channel.guild.channels.cache.get(logChan).send({ embeds: [embed] });

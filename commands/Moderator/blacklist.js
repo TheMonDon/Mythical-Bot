@@ -1,7 +1,7 @@
 const Command = require('../../base/Command.js');
 const { getMember } = require('../../util/Util.js');
 const db = require('quick.db');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 
 class Blacklist extends Command {
   constructor (client) {
@@ -56,12 +56,14 @@ class Blacklist extends Command {
       db.set(`servers.${msg.guild.id}.users.${mem.id}.blacklist`, true);
       db.set(`servers.${msg.guild.id}.users.${mem.id}.blacklistReason`, reason);
 
-      const em = new DiscordJS.MessageEmbed()
+      const em = new EmbedBuilder()
         .setTitle(`${mem.user.tag} has been added to the blacklist.`)
         .setColor('#0099CC')
-        .addField('Reason:', reason, true)
-        .addField('Member:', `${mem.displayName} \n(${mem.id})`, true)
-        .addField('Server:', `${msg.guild.name} \n(${msg.guild.id})`, true)
+        .addFields([
+          { name: 'Reason:', value: reason },
+          { name: 'Member:', value: `${mem.displayName} \n(${mem.id})` },
+          { name: 'Server:', value: `${msg.guild.name} \n(${msg.guild.id})` }
+        ])
         .setTimestamp();
       msg.channel.send({ embeds: [em] });
       mem.send({ embeds: [em] });
@@ -72,12 +74,14 @@ class Blacklist extends Command {
       db.set(`servers.${msg.guild.id}.users.${mem.id}.blacklist`, false);
       db.set(`servers.${msg.guild.id}.users.${mem.id}.blacklistReason`, reason);
 
-      const em = new DiscordJS.MessageEmbed()
+      const em = new EmbedBuilder()
         .setTitle(`${mem.user.tag} has been removed to the blacklist.`)
         .setColor('#0099CC')
-        .addField('Reason:', reason, true)
-        .addField('Member:', `${mem.displayName} \n(${mem.id})`, true)
-        .addField('Server:', `${msg.guild.name} \n(${msg.guild.id})`, true)
+        .addFields([
+          { name: 'Reason:', value: reason },
+          { name: 'Member:', value: `${mem.displayName} \n(${mem.id})` },
+          { name: 'Server:', value: `${msg.guild.name} \n(${msg.guild.id})` }
+        ])
         .setTimestamp();
       msg.channel.send({ embeds: [em] });
       mem.send({ embeds: [em] });
@@ -85,13 +89,15 @@ class Blacklist extends Command {
       const reason = db.get(`servers.${msg.guild.id}.users.${mem.id}.blacklistReason`) || false;
 
       const bl = blacklist ? 'is' : 'is not';
-      const em = new DiscordJS.MessageEmbed()
+      const em = new EmbedBuilder()
         .setTitle(`${mem.user.tag} blacklist check`)
         .setColor('#0099CC')
-        .addField('Member:', `${mem.user.tag} (${mem.id})`, true)
-        .addField('Is Blacklisted?', `That user ${bl} blacklisted.`)
+        .addFields([
+          { name: 'Member:', value: `${mem.user.tag} (${mem.id})`, inLine: true },
+          { name: 'Is Blacklisted?', value: `That user ${bl} blacklisted.` }
+        ])
         .setTimestamp();
-      if (reason) em.addField('reason', reason, true);
+      if (reason) em.addFields([{ name: 'reason', value: reason, inLine: true }]);
 
       return msg.channel.send({ embeds: [em] });
     }

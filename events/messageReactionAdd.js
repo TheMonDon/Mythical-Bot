@@ -1,6 +1,7 @@
 const db = require('quick.db');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const { stripIndents } = require('common-tags');
+const { DateTime } = require('luxon');
 
 module.exports = class {
   constructor (client) {
@@ -18,9 +19,9 @@ module.exports = class {
 
       if (reactionID !== msg.id) return;
 
-      if (!msg.guild.me.permissions.has('MANAGE_CHANNELS')) return msg.channel.send('The bot is missing manage channels perm.');
-      if (!msg.guild.me.permissions.has('MANAGE_ROLES')) return msg.channel.send('The bot is missing manage roles perm');
-      if (!msg.guild.me.permissions.has('MANAGE_MESSAGES')) return msg.channel.send('The bot is missing manage messages perm');
+      if (!msg.guild.members.me.permissions.has('MANAGE_CHANNELS')) return msg.channel.send('The bot is missing manage channels perm.');
+      if (!msg.guild.members.me.permissions.has('MANAGE_ROLES')) return msg.channel.send('The bot is missing manage roles perm');
+      if (!msg.guild.members.me.permissions.has('MANAGE_MESSAGES')) return msg.channel.send('The bot is missing manage messages perm');
 
       if (messageReaction._emoji.name !== '📰') return;
       const member = await msg.guild.members.fetch(user.id);
@@ -31,7 +32,7 @@ module.exports = class {
         allow: ['VIEW_CHANNEL']
       },
       {
-        id: msg.guild.me.id,
+        id: msg.guild.members.me.id,
         allow: ['VIEW_CHANNEL']
       },
       {
@@ -61,21 +62,23 @@ module.exports = class {
 
       db.set(`servers.${msg.guild.id}.tickets.${tName}.owner`, member.id);
 
-      const logEmbed = new DiscordJS.MessageEmbed()
+      const logEmbed = new EmbedBuilder()
         .setAuthor({ name: member.displayName, iconURL: member.user.displayAvatarURL() })
         .setTitle('New Ticket Created')
-        .addField('Author', `${member} (${member.id})`, false)
-        .addField('Channel', `${tixChan} \n(${tName}: ${tixChan.id})`, false)
-        .addField('Reason', reason, false)
+        .addFields([
+          { name: 'Author', value: `${member} (${member.id})`, inLine: false },
+          { name: 'Channel', value: `${tixChan} \n(${tName}: ${tixChan.id})`, inLine: false },
+          { name: 'Reason', value: reason, inLine: false }
+        ])
         .setColor('#E65DF4')
         .setTimestamp();
       const logChan = msg.guild.channels.cache.get(logID);
       await logChan.send({ embeds: [logEmbed] });
 
-      const chanEmbed = new DiscordJS.MessageEmbed()
+      const chanEmbed = new EmbedBuilder()
         .setAuthor({ name: member.displayName, iconURL: member.user.displayAvatarURL() })
         .setTitle(`${member.displayName}'s Ticket`)
-        .addField('Reason', reason, false)
+        .addFields([{ name: 'Reason', value: reason, inLine: false }])
         .setDescription('Please wait patiently and our support team will be with you shortly.')
         .setColor('#E65DF4')
         .setTimestamp();
@@ -93,16 +96,8 @@ module.exports = class {
       }
 
       // Logging info
-      const d = new Date();
-      const year = d.getFullYear();
-      const month = String(d.getMonth() + 1).padStart(2, '0');
-      const day = String(d.getDate()).padStart(2, '0');
-      const hour = String(d.getHours()).padStart(2, '0');
-      const min = String(d.getMinutes()).padStart(2, '0');
-      const timestamp = month + '/' + day + '/' + year + ' ' + hour + ':' + min;
-
       const output = stripIndents`
-      Ticket created at: ${timestamp}
+      Ticket created at: ${DateTime.now().toLocaleString(DateTime.DATETIME_FULL)}
 
       Author: ${member.id} (${member.user.tag})
 

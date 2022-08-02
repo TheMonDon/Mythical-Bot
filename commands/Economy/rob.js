@@ -1,7 +1,7 @@
 const Command = require('../../base/Command.js');
 const { getMember } = require('../../util/Util.js');
 const db = require('quick.db');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const moment = require('moment');
 
 class Rob extends Command {
@@ -33,7 +33,7 @@ class Rob extends Command {
       } else {
         const tLeft = moment.duration(timeleft)
           .format('y[ years][,] M[ Months]d[ days][,] h[ hours][,] m[ minutes][, and] s[ seconds]'); // format to any format
-        const embed = new DiscordJS.MessageEmbed()
+        const embed = new EmbedBuilder()
           .setColor('#EC5454')
           .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
           .setDescription(`You cannot rob for ${tLeft}`);
@@ -42,7 +42,7 @@ class Rob extends Command {
     }
 
     if (!text || text.length < 1) {
-      const embed = new DiscordJS.MessageEmbed()
+      const embed = new EmbedBuilder()
         .setColor('#EC5454')
         .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
         .setDescription(`Incorrect Usage: ${msg.settings.prefix}Rob <user>`);
@@ -52,13 +52,13 @@ class Rob extends Command {
     }
 
     if (!mem) {
-      const embed = new DiscordJS.MessageEmbed()
+      const embed = new EmbedBuilder()
         .setColor('#EC5454')
         .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
         .setDescription(`That user was not found. \nUsage: ${msg.settings.prefix}Rob <user>`);
       return msg.channel.send({ embeds: [embed] });
     } else if (mem.id === msg.author.id) {
-      const embed = new DiscordJS.MessageEmbed()
+      const embed = new EmbedBuilder()
         .setColor('#EC5454')
         .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
         .setDescription('You can\'t rob yourself.');
@@ -72,7 +72,7 @@ class Rob extends Command {
     const memCash = db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`) || db.get(`servers.${msg.guild.id}.economy.startBalance`) || 0;
 
     if (memCash <= 0) {
-      const embed = new DiscordJS.MessageEmbed()
+      const embed = new EmbedBuilder()
         .setColor('#EC5454')
         .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
         .setDescription(`${mem} does not have anything to rob.`);
@@ -97,8 +97,8 @@ class Rob extends Command {
     const cs = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
 
     if (failRate > 100) {
-      const em = new DiscordJS.MessageEmbed()
-        .setColor('ORANGE')
+      const em = new EmbedBuilder()
+        .setColor('#FFA500')
         .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
         .setDescription('You have too much money to rob someone.');
       return msg.channel.send({ embeds: [em] });
@@ -106,8 +106,8 @@ class Rob extends Command {
     if (ranNum < failRate) {
       db.subtract(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, fineAmnt);
 
-      const em = new DiscordJS.MessageEmbed()
-        .setColor('RED')
+      const em = new EmbedBuilder()
+        .setColor('#ff0000')
         .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
         .setDescription(`You were caught attempting to rob ${mem.displayName} and have been fined ${cs + fineAmnt.toLocaleString()}`);
       msg.channel.send({ embeds: [em] });
@@ -118,12 +118,14 @@ class Rob extends Command {
       db.subtract(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, amnt);
       db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, amnt);
 
-      const embed = new DiscordJS.MessageEmbed()
+      const embed = new EmbedBuilder()
         .setColor('#0099CC')
         .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
         .setDescription(`You successfully robbed ${mem} of ${cs}${amnt.toLocaleString()}`)
-        .addField('Your New Balance', `${cs}${db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`).toLocaleString()}`, false)
-        .addField(`${mem.displayName}'s New Balance`, `${cs}${db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`).toLocaleString()}`, false);
+        .addFields([
+          { name: 'Your New Balance', value: `${cs}${db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`).toLocaleString()}` },
+          { name: `${mem.displayName}'s New Balance`, value: `${cs}${db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`).toLocaleString()}` }
+        ]);
       msg.channel.send({ embeds: [embed] });
     }
 

@@ -1,5 +1,5 @@
 const Command = require('../../base/Command.js');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const superagent = require('superagent');
 
 const countries = [
@@ -302,18 +302,20 @@ class Country extends Command {
       const countrycurrencysymbol = res.body.currencies[0].symbol;
       const countryflag = `http://www.countryflags.io/${res.body.alpha2Code}/flat/64.png`;
 
-      const em = new DiscordJS.MessageEmbed()
+      const em = new EmbedBuilder()
         .setAuthor({ name: `'Country Information' -  ${countrycode}`, iconURL: countryflag })
         .setThumbnail(countryflag)
         .setColor(0x337fd5)
         .setTitle(countryname)
-        .addField('Population', countrypopulation.toLocaleString('en'), true)
-        .addField('Capital City', countrycapital, true)
-        .addField('Main Currency', countrycurrencyname + ' (' + countrycurrencysymbol + ')', true)
-        .addField('Located In', countryregion, true)
-        .addField('Demonym', countrydemonym, true)
-        .addField('Native Name', countrynativename, true)
-        .addField('Area', `${countryareakm.toLocaleString('en')}km (${countryaream}m)`, true)
+        .addFields([
+          { name: 'Population', value: countrypopulation.toLocaleString('en'), inLine: true },
+          { name: 'Capital City', value: countrycapital, inLine: true },
+          { name: 'Main Currency', value: countrycurrencyname + ' (' + countrycurrencysymbol + ')', inLine: true },
+          { name: 'Located In', value: countryregion, inLine: true },
+          { name: 'Demonym', value: countrydemonym, inLine: true },
+          { name: 'Native Name', value: countrynativename, inLine: true },
+          { name: 'Area', value: `${countryareakm.toLocaleString('en')}km (${countryaream}m)`, inLine: true }
+        ])
         .setFooter({ text: 'Powered by: restcountries.eu' })
         .setTimestamp();
 

@@ -1,6 +1,6 @@
 const Command = require('../../base/Command.js');
 const { toProperCase } = require('../../util/Util.js');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const moment = require('moment');
 require('moment-duration-format');
 
@@ -44,20 +44,22 @@ class ServerInfo extends Command {
       roles1 = roles1 + ' ...';
     }
 
-    const embed = new DiscordJS.MessageEmbed()
+    const embed = new EmbedBuilder()
       .setTitle(`${server.name}'s Information`)
       .setColor('#EE82EE')
       .setThumbnail(msg.guild.iconURL())
       .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
-      .addField('Name', server.name, true)
-      .addField('ID', server.id.toString(), true)
-      .addField('Owner', server.members.cache.get(server.ownerId).user.tag, true)
-      .addField('Verification Level', toProperCase(server.verificationLevel), true)
-      .addField('Channels', server.channels.cache.size.toLocaleString(), true)
-      .addField('Created At', `${ca} \n (${time})`, true)
-      .addField('AFK Channel', server.afkChannel?.name || 'No AFK Channel', true)
-      .addField('Members', server.members.cache.size.toLocaleString(), true)
-      .addField(`Roles (${server.roles.cache.size.toLocaleString()})`, server === msg.guild ? roles1 : 'Can\'t display roles outside the server', false);
+      .addFields([
+        { name: 'Name', value: server.name },
+        { name: 'ID', value: server.id.toString() },
+        { name: 'Owner', value: server.members.cache.get(server.ownerId).user.tag },
+        { name: 'Verification Level', value: toProperCase(server.verificationLevel) },
+        { name: 'Channels', value: server.channels.cache.size.toLocaleString() },
+        { name: 'Created At', value: `${ca} \n (${time})` },
+        { name: 'AFK Channel', value: server.afkChannel?.name || 'No AFK Channel' },
+        { name: 'Members', value: server.members.cache.size.toLocaleString() },
+        { name: `Roles (${server.roles.cache.size.toLocaleString()})`, value: server === msg.guild ? roles1 : 'Can\'t display roles outside the server' }
+      ]);
     return msg.channel.send({ embeds: [embed] });
   }
 }

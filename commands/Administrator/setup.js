@@ -1,6 +1,6 @@
 const Command = require('../../base/Command.js');
 const { getChannel, getRole } = require('../../util/Util.js');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const db = require('quick.db');
 const { stripIndents } = require('common-tags');
 
@@ -24,9 +24,9 @@ class Setup extends Command {
       const filter = m => m.author.id === msg.author.id;
       const filter2 = m => ['y', 'yes', 'n', 'no'].includes(m.content.toLowerCase()) && m.author.id === msg.author.id;
 
-      if (!msg.guild.me.permissions.has('MANAGE_CHANNELS')) return msg.channel.send('The bot is missing manage channels perm.');
-      if (!msg.guild.me.permissions.has('MANAGE_ROLES')) return msg.channel.send('The bot is missing manage roles perm');
-      if (!msg.guild.me.permissions.has('MANAGE_MESSAGES')) return msg.channel.send('The bot is missing manage messages perm');
+      if (!msg.guild.members.me.permissions.has('MANAGE_CHANNELS')) return msg.channel.send('The bot is missing manage channels perm.');
+      if (!msg.guild.members.me.permissions.has('MANAGE_ROLES')) return msg.channel.send('The bot is missing manage roles perm');
+      if (!msg.guild.members.me.permissions.has('MANAGE_MESSAGES')) return msg.channel.send('The bot is missing manage messages perm');
 
       // Check if the system is setup already
       if (db.get(`servers.${msg.guild.id}.tickets`)) {
@@ -108,7 +108,7 @@ class Setup extends Command {
           deny: ['VIEW_CHANNEL']
         },
         {
-          id: msg.guild.me.id,
+          id: msg.guild.members.me.id,
           allow: ['VIEW_CHANNEL']
         },
         {
@@ -123,7 +123,7 @@ class Setup extends Command {
           deny: ['VIEW_CHANNEL']
         },
         {
-          id: msg.guild.me.id,
+          id: msg.guild.members.me.id,
           allow: ['VIEW_CHANNEL']
         },
         {
@@ -135,11 +135,11 @@ class Setup extends Command {
       const category = await msg.guild.channels.create('Tickets', { type: 'GUILD_CATEGORY', reason: 'Setting up tickets system', permissionOverwrites: catPerms });
       db.set(`servers.${msg.guild.id}.tickets.catID`, category.id);
 
-      const embed = new DiscordJS.MessageEmbed();
+      const embed = new EmbedBuilder();
       // Create the reaction message stuff
       if (reaction === 'yes') {
         embed.setTitle('New Ticket');
-        embed.setColor('GREEN');
+        embed.setColor('#00FF00');
 
         const reactPerms = [
           {
@@ -148,7 +148,7 @@ class Setup extends Command {
             deny: ['ADD_REACTIONS', 'SEND_MESSAGES']
           },
           {
-            id: msg.guild.me.id,
+            id: msg.guild.members.me.id,
             allow: ['ADD_REACTIONS', 'SEND_MESSAGES']
           }
         ];
@@ -185,7 +185,7 @@ class Setup extends Command {
     // End of ticket setup.
 
     if (['logging', 'log', 'logs'].includes(type)) {
-      const embed = new DiscordJS.MessageEmbed();
+      const embed = new EmbedBuilder();
 
       const logSystem = {
         'channel-created': 'enabled',
@@ -217,7 +217,7 @@ class Setup extends Command {
 
       if (currentChan) {
         embed.setTitle('Successfully Changed');
-        embed.setColor('GREEN');
+        embed.setColor('#00FF00');
         embed.setThumbnail('https://cdn.discordapp.com/emojis/482184108555108358.png');
         embed.setDescription(`Everything related to logs will be posted in ${chan} from now on.`);
         embed.setTimestamp();
@@ -226,7 +226,7 @@ class Setup extends Command {
       } else {
         db.set(`servers.${msg.guild.id}.logs.logSystem`, logSystem);
         embed.setTitle('Successfully Set');
-        embed.setColor('GREEN');
+        embed.setColor('#00FF00');
         embed.setThumbnail('https://cdn.discordapp.com/emojis/482184108555108358.png');
         embed.setDescription(`Everything related to logs will be posted in ${chan}.`);
         embed.setTimestamp();
@@ -239,21 +239,29 @@ class Setup extends Command {
     // End of logging setup
 
     // Base command if there is not any args
-    const embed = new DiscordJS.MessageEmbed()
+    const embed = new EmbedBuilder()
       .setTitle('Systems Setup')
-      .setColor('BLUE')
-      .addField('Tickets', stripIndents`
-        To setup the ticket system please use:
-        \`${msg.settings.prefix}Setup Ticket\`
+      .setColor('#0000FF')
+      .addFields([
+        {
+          name: 'Tickets',
+          value: stripIndents`
+          To setup the ticket system please use:
+          \`${msg.settings.prefix}Setup Ticket\`
 
-        This is not finished.
-      `)
-      .addField('Logging', stripIndents`
-        To setup the logging system please use:
-        \`${msg.settings.prefix}Setup Logging\`
-
-        This system should be fully operational.
-      `)
+          This is not finished.
+          `
+        },
+        {
+          name: 'Logging',
+          value: stripIndents`
+          To setup the logging system please use:
+          \`${msg.settings.prefix}Setup Logging\`
+  
+          This system should be fully operational.
+          `
+        }
+      ])
       .setDescription('These systems are not fully operational and may have bugs.')
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() });
     return msg.channel.send({ embeds: [embed] });

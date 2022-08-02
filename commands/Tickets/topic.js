@@ -1,6 +1,7 @@
 const Command = require('../../base/Command.js');
 const db = require('quick.db');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
+const { DateTime } = require('luxon');
 const moment = require('moment');
 require('moment-duration-format');
 
@@ -34,7 +35,7 @@ class Topic extends Command {
       } else {
         const tLeft = moment.duration(timeleft)
           .format('y[ years][,] M[ Months]d[ days][,] h[ hours][,] m[ minutes][, and] s[ seconds]'); // format to any format
-        const embed = new DiscordJS.MessageEmbed()
+        const embed = new EmbedBuilder()
           .setColor('#EC5454')
           .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
           .setDescription(`You can't change the topic for another: ${tLeft}`);
@@ -53,20 +54,12 @@ class Topic extends Command {
     if (owner !== msg.author.id) return msg.channel.send('You need to be the owner of the ticket to change the topic.');
 
     // Logging info
-    const d = new Date();
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    const hour = String(d.getHours()).padStart(2, '0');
-    const min = String(d.getMinutes()).padStart(2, '0');
-    const timestamp = month + '/' + day + '/' + year + ' ' + hour + ':' + min;
-
-    const output = `${timestamp} - ${msg.author.tag} has changed the topic to: \n${topic}.`;
+    const output = `${DateTime.now().toLocaleString(DateTime.DATETIME_FULL)} - ${msg.author.tag} has changed the topic to: \n${topic}.`;
 
     db.push(`servers.${msg.guild.id}.tickets.${tName}.chatLogs`, output);
     await msg.channel.setTopic(topic);
 
-    const em = new DiscordJS.MessageEmbed()
+    const em = new EmbedBuilder()
       .setTitle('Topic Changed')
       .setColor('#E65DF4')
       .setDescription(`${msg.author} has changed the topic to: \n${topic}`);

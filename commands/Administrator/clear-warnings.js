@@ -1,7 +1,7 @@
 const Command = require('../../base/Command.js');
 const { getMember, getWarns, getTotalPoints } = require('../../util/Util.js');
 const db = require('quick.db');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 
 class ClearWarnings extends Command {
   constructor (client) {
@@ -43,23 +43,27 @@ class ClearWarnings extends Command {
     }
 
     if (previousPoints >= 10) {
-      if (!msg.guild.me.permissions.has('BAN_MEMBERS')) return msg.channel.send('The bot does not have Ban_Members permission to unban the user.');
+      if (!msg.guild.members.me.permissions.has('BAN_MEMBERS')) return msg.channel.send('The bot does not have Ban_Members permission to unban the user.');
       await msg.guild.members.unban(mem.id).catch(() => null);
     }
 
     const otherCases = otherWarns.map((w) => `\`${w.warnID}\``).join(', ');
 
-    const em = new DiscordJS.MessageEmbed()
+    const em = new EmbedBuilder()
       .setDescription(`${msg.author.tag} has cleared all the warnings from a user.`)
-      .setColor('ORANGE')
-      .addField('User', `${mem} (${mem.id})`, true)
-      .addField('Cleared Cases', otherCases, true);
+      .setColor('#FFA500')
+      .addFields([
+        { name: 'User', value: `${mem} (${mem.id})` },
+        { name: 'Cleared Cases', value: otherCases }
+      ]);
 
-    const memEmbed = new DiscordJS.MessageEmbed()
+    const memEmbed = new EmbedBuilder()
       .setDescription(`${msg.author.tag} has cleared all your warnings.`)
-      .setColor('ORANGE')
-      .addField('Cleared Cases', otherCases, true)
-      .addField('Issued In', msg.guild.name);
+      .setColor('#FFA500')
+      .addFields([
+        { name: 'Cleared Cases', value: otherCases },
+        { name: 'Issued In', value: msg.guild.name }
+      ]);
 
     mem.send({ embeds: [memEmbed] }).catch(() => null);
     return msg.channel.send({ embeds: [em] });

@@ -1,5 +1,5 @@
 const Command = require('../../base/Command.js');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const fetch = require('node-superfetch');
 
 class Wikipedia extends Command {
@@ -33,7 +33,7 @@ class Wikipedia extends Command {
 
     const str = body.query.pages[0].extract.replace(/[\n]/g, '\n\n');
 
-    const embed = new DiscordJS.MessageEmbed()
+    const embed = new EmbedBuilder()
       .setColor('#00A2E8')
       .setTitle(body.query.pages[0].title)
       .setAuthor({ name: 'Wikipedia', iconURL: 'https://i.imgur.com/a4eeEhh.png' })

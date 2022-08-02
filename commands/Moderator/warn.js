@@ -1,7 +1,7 @@
 const Command = require('../../base/Command.js');
 const { getMember, randomString, getWarns, getTotalPoints } = require('../../util/Util.js');
 const db = require('quick.db');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 
 class Warn extends Command {
   constructor (client) {
@@ -107,27 +107,31 @@ class Warn extends Command {
     const logChan = db.get(`servers.${msg.guild.id}.logging.channel`);
 
     // Send the embed to the users DMS
-    const userEm = new DiscordJS.MessageEmbed()
+    const userEm = new EmbedBuilder()
       .setColor(color)
       .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
       .setTitle(`You have been ${status}`)
-      .addField('Case ID', `\`${warnID}\``, true)
-      .addField('Points', `${points} points (Total: ${warnAmount} points)`, true)
-      .addField('Other Cases', otherCases, true)
-      .addField('Reason', reason, false)
+      .addFields([
+        { name: 'Case ID', value: `\`${warnID}\`` },
+        { name: 'Points', value: `${points} points (Total: ${warnAmount} points)` },
+        { name: 'Other Cases', value: otherCases },
+        { name: 'Reason', value: reason, inLine: false }
+      ])
       .setFooter({ text: `Issued in ${msg.guild.name}` });
     const um = await mem.send({ embeds: [userEm] }).catch(() => null);
 
-    const logEmbed = new DiscordJS.MessageEmbed()
+    const logEmbed = new EmbedBuilder()
       .setColor(color)
       .setFooter({ text: `${msg.author.tag} • User ID: ${mem.id}` })
       .setTitle(`User has been ${status}`)
-      .addField('User', `${mem} (${mem.id})`, true)
-      .addField('Moderator', `${msg.author.tag} (${msg.author.id})`, true)
-      .addField('Case ID', `\`${warnID}\``, true)
-      .addField('Points', `${points} points (Total: ${warnAmount} points)`, true)
-      .addField('Other Cases', otherCases, true)
-      .addField('Reason', reason, false);
+      .addFields([
+        { name: 'User', value: `${mem} (${mem.id})` },
+        { name: 'Moderator', value: `${msg.author.tag} (${msg.author.id})` },
+        { name: 'Case ID', value: `\`${warnID}\`` },
+        { name: 'Points', value: `${points} points (Total: ${warnAmount} points)` },
+        { name: 'Other Cases', value: otherCases },
+        { name: 'Reason', value: reason, inLine: false }
+      ]);
     if (!um) logEmbed.setFooter({ text: `Failed to message the user in question • User ID: ${mem.id}` });
     const logMessage = logChan ? await msg.guild.channels.cache.get(logChan).send({ embeds: [logEmbed] }) : await msg.channel.send({ embeds: [logEmbed] });
 
@@ -135,10 +139,10 @@ class Warn extends Command {
     db.set(`servers.${msg.guild.id}.warns.warnings.${warnID}`, opts);
 
     if (warnAmount >= ba) {
-      if (!msg.guild.me.permissions.has('BAN_MEMBERS')) return msg.channel.send('The bot does not have permission to ban members.');
+      if (!msg.guild.members.me.permissions.has('BAN_MEMBERS')) return msg.channel.send('The bot does not have permission to ban members.');
       msg.guild.members.ban(mem.id, { reason }).catch(() => null); // Ban wether they are in the guild or not.
     } else if (warnAmount >= ka) {
-      if (!msg.guild.me.permissions.has('KICK_MEMBERS')) return msg.channel.send('The bot does not have permission to kick members.');
+      if (!msg.guild.members.me.permissions.has('KICK_MEMBERS')) return msg.channel.send('The bot does not have permission to kick members.');
       const member = msg.guild.members.cache.get(mem.id);
       if (member) member.kick(reason).catch(() => null); // Kick them if they are in the guild
     }

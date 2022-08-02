@@ -51,7 +51,7 @@ class Connect4 extends Command {
     const usage = `Incorrect Usage: ${msg.settings.prefix}connect4 <opponent> <color>`;
     if (!args || args.length < 2) return msg.reply(usage);
     let opponent = getMember(msg, args[0]);
-    if (!opponent) opponent = msg.guild.me;
+    if (!opponent) opponent = msg.guild.members.me;
     if (opponent.id === msg.author.id) return msg.reply('You may not play against yourself.');
 
     args.shift();
@@ -218,12 +218,12 @@ class Connect4 extends Command {
           } else if (choice.toLowerCase() === 'play for me') {
             i = AIEngine.playAI('hard');
             lastMove = i + 1;
-            if (msg.guild.me.permissions.has('MANAGE_MESSAGES')) turn.first().delete();
+            if (msg.guild.members.me.permissions.has('MANAGE_MESSAGES')) turn.first().delete();
           } else {
             i = Number.parseInt(choice, 10) - 1;
             AIEngine.play(i);
             lastMove = i + 1;
-            if (msg.guild.me.permissions.has('MANAGE_MESSAGES')) turn.first().delete();
+            if (msg.guild.members.me.permissions.has('MANAGE_MESSAGES')) turn.first().delete();
           }
         }
         board[colLevels[i]][i] = sign;

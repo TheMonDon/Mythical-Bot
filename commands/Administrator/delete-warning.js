@@ -1,7 +1,7 @@
 const Command = require('../../base/Command.js');
 const { getTotalPoints } = require('../../util/Util.js');
 const db = require('quick.db');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 
 class DeleteWarning extends Command {
   constructor (client) {
@@ -34,7 +34,7 @@ class DeleteWarning extends Command {
     db.delete(`servers.${msg.guild.id}.warns.warnings.${caseID}`);
     const newerPoints = getTotalPoints(userID, msg);
     if (previousPoints >= 10 && newerPoints < 10) {
-      if (!msg.guild.me.permissions.has('BAN_MEMBERS')) {
+      if (!msg.guild.members.me.permissions.has('BAN_MEMBERS')) {
         msg.channel.send('The bot does not have Ban Members permission to unban the user.');
       } else {
         await msg.guild.members.unban(userID).catch(() => null);
@@ -43,13 +43,15 @@ class DeleteWarning extends Command {
       }
     }
 
-    const em = new DiscordJS.MessageEmbed()
+    const em = new EmbedBuilder()
       .setColor(color)
       .setTitle(title)
       .setDescription(`${msg.author} has cleared a case from a user.`)
-      .addField('User', `${user} (${user.id})`, true)
-      .addField('Deleted Case', `\`${caseID}\``, true)
-      .addField('Case Reason', warnReason, false);
+      .addFields([
+        { name: 'User', value: `${user} (${user.id})` },
+        { name: 'Deleted Case', value: `\`${caseID}\`` },
+        { name: 'Case Reason', value: warnReason }
+      ]);
     return msg.channel.send({ embeds: [em] });
   }
 }

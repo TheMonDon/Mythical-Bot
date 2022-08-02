@@ -1,5 +1,5 @@
 const Command = require('../../base/Command.js');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const math = require('mathjs');
 
 class Math extends Command {
@@ -21,11 +21,13 @@ class Math extends Command {
 
     try {
       const solution = math.evaluate(text);
-      const embed = new DiscordJS.MessageEmbed()
+      const embed = new EmbedBuilder()
         .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
         .setColor('#767CC1')
-        .addField('**📥 Expression**', `\`\`\`${text.length > 1000 ? text.slice(0, 1000) + '...' : text}\`\`\``, false)
-        .addField('**📤 Result**', `\`\`\`${solution}\`\`\``, false);
+        .addFields([
+          { name: '**📥 Expression**', value: `\`\`\`${text.length > 1000 ? text.slice(0, 1000) + '...' : text}\`\`\``, inLine: false },
+          { name: '**📤 Result**', value: `\`\`\`${solution}\`\`\``, inLine: false }
+        ]);
       return msg.channel.send({ embeds: [embed] });
     } catch (err) {
       return msg.channel.send(`Sorry, I couldn't solve that equation. \`${err}\``);

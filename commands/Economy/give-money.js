@@ -1,7 +1,7 @@
 const Command = require('../../base/Command.js');
 const { getMember } = require('../../util/Util.js');
 const db = require('quick.db');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 
 class GiveMoney extends Command {
   constructor (client) {
@@ -19,7 +19,7 @@ class GiveMoney extends Command {
     let mem;
 
     const usage = `${msg.settings.prefix}Give-Money <user> <amount | all>`;
-    const errEmbed = new DiscordJS.MessageEmbed()
+    const errEmbed = new EmbedBuilder()
       .setColor('#EC5454')
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() });
 
@@ -65,13 +65,13 @@ class GiveMoney extends Command {
         db.subtract(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, amount);
         db.add(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, amount);
 
-        const embed = new DiscordJS.MessageEmbed()
+        const embed = new EmbedBuilder()
           .setColor('#04ACF4')
           .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
           .setDescription(`${mem} has received your ${cs}${amount.toLocaleString()}.`);
         return msg.channel.send({ embeds: [embed] });
       } else {
-        const embed = new DiscordJS.MessageEmbed()
+        const embed = new EmbedBuilder()
           .setColor('#EC5454')
           .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
           .setDescription(`Incorrect Usage: ${usage}`);
@@ -94,7 +94,7 @@ class GiveMoney extends Command {
     db.subtract(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, amount);
     db.add(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, amount);
 
-    const embed = new DiscordJS.MessageEmbed()
+    const embed = new EmbedBuilder()
       .setColor('#0099CC')
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
       .setDescription(`${mem} has received your ${cs}${amount.toLocaleString()}.`);

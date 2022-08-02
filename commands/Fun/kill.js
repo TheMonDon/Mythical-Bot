@@ -1,6 +1,6 @@
 const Command = require('../../base/Command.js');
 const { getMember } = require('../../util/Util.js');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 
 class Kill extends Command {
   constructor (client) {
@@ -68,11 +68,12 @@ class Kill extends Command {
       `${mem.displayName} tried juggling swords...idiot.`,
       `${mem.displayName} was pecked to death by ${member.displayName}'s chicken :chicken:`,
       `${mem.displayName} died from embarassment by ${member.displayName}`,
-      `${mem.displayName} tried recreating fast and furious with ${member.displayName}'s car and died.`
+      `${mem.displayName} tried recreating fast and furious with ${member.displayName}'s car and died.`,
+      `${mem.displayName} got Covid-19 from ${mem.displayName} and died.`
     ];
 
     const num = Math.round(Math.random() * (deaths.length - 1)) + 1;
-    const embed = new DiscordJS.MessageEmbed()
+    const embed = new EmbedBuilder()
       .setTitle(deaths[num])
       .setFooter({ text: `Reply #${num}` });
     return msg.channel.send({ embeds: [embed] });

@@ -15,7 +15,7 @@ class Play extends Command {
 
   async run (msg, args) {
     if (!msg.member.voice.channel) return msg.channel.send('You must be in a voice channel to play music.');
-    if (msg.guild.me.voice.channel && msg.member.voice.channel.id !== msg.guild.me.voice.channel.id) return msg.channel.send('You have to be in the same voice channel as the bot to play music');
+    if (msg.guild.members.me.voice.channel && msg.member.voice.channel.id !== msg.guild.members.me.voice.channel.id) return msg.channel.send('You have to be in the same voice channel as the bot to play music');
 
     const query = args.join(' ').slice(0, 300);
     if (!query) return msg.channel.send('Please enter something to search for.');

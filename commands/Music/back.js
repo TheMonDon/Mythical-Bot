@@ -1,5 +1,5 @@
 const Command = require('../../base/Command.js');
-const { MessageEmbed } = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 
 class Back extends Command {
   constructor (client) {
@@ -17,16 +17,16 @@ class Back extends Command {
     const queue = this.client.player.getQueue(msg.guild);
 
     if (!msg.member.voice.channel) return msg.channel.send('You must be in a voice channel to skip music.');
-    if (msg.guild.me.voice.channel && msg.member.voice.channel.id !== msg.guild.me.voice.channel.id) return msg.channel.send('You must be in the same voice channel as the bot.');
+    if (msg.guild.members.me.voice.channel && msg.member.voice.channel.id !== msg.guild.members.me.voice.channel.id) return msg.channel.send('You must be in the same voice channel as the bot.');
     if (!queue.nowPlaying()) return msg.channel.send('There is nothing playing.');
 
     await queue.back(msg);
     const song = queue.nowPlaying();
 
-    const em = new MessageEmbed()
-      .setColor('GREEN')
+    const em = new EmbedBuilder()
+      .setColor('#00FF00')
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
-      .addField('Now Playing', song.title, false);
+      .addFields([{ name: 'Now Playing', value: song.title }]);
 
     return msg.channel.send({ embeds: [em] });
   }

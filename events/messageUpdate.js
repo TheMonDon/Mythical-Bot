@@ -1,7 +1,7 @@
 /* eslint-disable no-empty */
 /* eslint-disable prefer-regex-literals */
 const db = require('quick.db');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 
 module.exports = class {
   constructor (client) {
@@ -30,20 +30,22 @@ module.exports = class {
       const msg2 = newmsg;
       if (msg1.content === msg2.content) return;
 
-      const embed = new DiscordJS.MessageEmbed()
+      const embed = new EmbedBuilder()
         .setTitle('Message Edited')
         .setURL(msg2.url)
         .setAuthor({ name: msg1.author.tag, iconURL: msg1.author.displayAvatarURL() })
         .setColor('#EE82EE')
         .setThumbnail(msg1.author.displayAvatarURL())
-        .addField('Original Message', (msg1.content.length <= 1024) ? msg1.content : `${msg1.content.substring(0, 1020)}...`, true)
-        .addField('Edited Message', (msg2.content.length <= 1024) ? msg2.content : `${msg2.content.substring(0, 1020)}...`, true)
-        .addField('Channel', msg1.channel, true)
-        .addField('Message Author', `${msg1.author} (${msg1.author.tag})`, true)
+        .addFields([
+          { name: 'Original Message', value: (msg1.content.length <= 1024) ? msg1.content : `${msg1.content.substring(0, 1020)}...` },
+          { name: 'Edited Message', value: (msg2.content.length <= 1024) ? msg2.content : `${msg2.content.substring(0, 1020)}...` },
+          { name: 'Channel', value: msg1.channel },
+          { name: 'Message Author', value: `${msg1.author} (${msg1.author.tag})` }
+        ])
         .setTimestamp();
       (msg2.mentions.users.size === 0)
-        ? embed.addField('Mentioned Users', 'None', true)
-        : embed.addField('Mentioned Users', `Mentioned Member Count: ${[...msg2.mentions.users.values()].length} \nMentioned Users List: \n${[...msg2.mentions.users.values()]}`, true);
+        ? embed.addFields([{ name: 'Mentioned Users', value: 'None' }])
+        : embed.addFields([{ name: 'Mentioned Users', value: `Mentioned Member Count: ${[...msg2.mentions.users.values()].length} \nMentioned Users List: \n${[...msg2.mentions.users.values()]}` }]);
       newmsg.guild.channels.cache.get(logChan).send({ embeds: [embed] });
       db.add(`servers.${newmsg.guild.id}.logs.message-edited`, 1);
       db.add(`servers.${newmsg.guild.id}.logs.all`, 1);
@@ -54,7 +56,7 @@ module.exports = class {
     const re = /'http'/;
     if (re.test(newmsg.content)) return;
     if (oldmsg.content === newmsg.content || oldmsg === newmsg) return;
-    if (newmsg.guild && !newmsg.channel.permissionsFor(newmsg.guild.me).missing('SEND_MESSAGES')) return;
+    if (newmsg.guild && !newmsg.channel.permissionsFor(newmsg.guild.members.me).missing('SEND_MESSAGES')) return;
 
     const settings = this.client.getSettings(newmsg.guild);
     newmsg.settings = settings;

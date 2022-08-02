@@ -1,6 +1,6 @@
 const Command = require('../../base/Command.js');
 const db = require('quick.db');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 
 class Unban extends Command {
   constructor (client) {
@@ -15,7 +15,7 @@ class Unban extends Command {
 
   async run (msg, args) {
     if (!msg.member.permissions.has('BAN_MEMBERS')) return msg.channel.send('You are missing the BAN_MEMBERS permission.');
-    if (!msg.guild.me.permissions.has('BAN_MEMBERS')) return msg.channel.send('The bot is missing BAN_MEMBERS permission.');
+    if (!msg.guild.members.me.permissions.has('BAN_MEMBERS')) return msg.channel.send('The bot is missing BAN_MEMBERS permission.');
 
     if (!args || args.length < 1) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}unban <userID> [reason]`);
     const logChan = db.get(`servers.${msg.guild.id}.logging.channel`);
@@ -27,8 +27,8 @@ class Unban extends Command {
 
     if (!userID.matches(regex)) return msg.channel.send(`Error: Please enter a valid User ID. \nInput: ${userID}`);
 
-    const embed = new DiscordJS.MessageEmbed();
-    if (msg.guild.me.permissions.has('MANAGE_MESSAGES')) msg.delete();
+    const embed = new EmbedBuilder();
+    if (msg.guild.members.me.permissions.has('MANAGE_MESSAGES')) msg.delete();
 
     try {
       const banList = await msg.guild.fetchBans();
@@ -38,14 +38,17 @@ class Unban extends Command {
 
       msg.guild.unban(userID, reason)
         .then(unbanP => {
-          embed.setTitle('Member Unbanned');
-          embed.setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() });
-          embed.setColor('GREEN');
-          embed.addField('User', unbanP.toString(), true);
-          embed.addField('Unbanned By', msg.member.toString(), true);
-          embed.addField('Reason', reason, true);
-          embed.setFooter({ text: `ID: ${unbanP.id}` });
-          embed.setTimestamp();
+          embed
+            .setTitle('Member Unbanned')
+            .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
+            .setColor('#00FF00')
+            .addFields([
+              { name: 'User', value: unbanP.toString() },
+              { name: 'Unbanned By', value: msg.member.toString() },
+              { name: 'Reason', value: reason }
+            ])
+            .setFooter({ text: `ID: ${unbanP.id}` })
+            .setTimestamp();
           if (logChan) msg.guild.channels.cache.get(logChan).send({ embeds: [embed] });
 
           return msg.channel.send({ embeds: [embed] });

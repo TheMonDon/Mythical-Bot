@@ -1,5 +1,5 @@
 const Command = require('../../base/Command.js');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const fetch = require('node-superfetch');
 
 class TodayInHistory extends Command {
@@ -39,13 +39,13 @@ class TodayInHistory extends Command {
       const body = JSON.parse(text);
       const events = body.data.Events;
       const event = events[Math.floor(Math.random() * events.length)];
-      const embed = new DiscordJS.MessageEmbed()
+      const embed = new EmbedBuilder()
         .setColor(0x9797FF)
         .setURL(body.url)
         .setTitle(`On this day (${body.date})...`)
         .setTimestamp()
         .setDescription(`${event.year}: ${event.text}`)
-        .addField('❯ See More', event.links.map(link => `[${link.title}](${link.link.replace(/\)/g, '%29')})`).join(', '));
+        .addFields([{ name: '❯ See More', value: event.links.map(link => `[${link.title}](${link.link.replace(/\)/g, '%29')})`).join(', ') }]);
 
       return msg.channel.send({ embeds: [embed] });
     } catch (err) {

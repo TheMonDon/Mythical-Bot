@@ -1,7 +1,7 @@
 const Command = require('../../base/Command.js');
 const { getMember } = require('../../util/Util.js');
 const db = require('quick.db');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const { stripIndents } = require('common-tags');
 
 class Balance extends Command {
@@ -22,7 +22,7 @@ class Balance extends Command {
     if (args && args.length > 0) mem = getMember(msg, args.join(' '));
 
     if (!mem) {
-      const embed = new DiscordJS.MessageEmbed()
+      const embed = new EmbedBuilder()
         .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
         .setColor('#EC5454')
         .setDescription(stripIndents`
@@ -39,12 +39,14 @@ class Balance extends Command {
 
     const cs = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
 
-    const embed = new DiscordJS.MessageEmbed()
+    const embed = new EmbedBuilder()
       .setAuthor({ name: mem.user.tag, iconURL: mem.user.displayAvatarURL() })
       .setColor('#03A9F4')
-      .addField('Cash:', cs + cash.toLocaleString(), true)
-      .addField('Bank:', cs + bank.toLocaleString(), true)
-      .addField('Net Worth:', cs + nw.toLocaleString(), true)
+      .addFields([
+        { name: 'Cash:', value: cs + cash.toLocaleString() },
+        { name: 'Bank:', value: cs + bank.toLocaleString() },
+        { name: 'Net Worth:', value: cs + nw.toLocaleString() }
+      ])
       .setTimestamp();
     return msg.channel.send({ embeds: [embed] });
   }

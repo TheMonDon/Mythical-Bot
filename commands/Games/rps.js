@@ -1,7 +1,7 @@
 const Command = require('../../base/Command.js');
 const { getMember, verify } = require('../../util/Util.js');
 const { stripIndents } = require('common-tags');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 
 class RPS extends Command {
   constructor (client) {
@@ -133,9 +133,9 @@ class RPS extends Command {
         });
     }
 
-    const embed = new DiscordJS.MessageEmbed();
+    const embed = new EmbedBuilder();
     embed.setTitle('Rock - Paper - Scissors');
-    embed.setColor('RANDOM');
+    embed.setColor('#0099CC');
 
     if (authReply === memReply) {
       embed.setDescription(stripIndents`

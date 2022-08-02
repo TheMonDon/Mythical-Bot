@@ -1,6 +1,6 @@
 const Command = require('../../base/Command.js');
 const fetch = require('node-superfetch');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 
 class Advice extends Command {
   constructor (client) {
@@ -8,8 +8,7 @@ class Advice extends Command {
       name: 'advice',
       description: 'Get a random piece of advice.',
       usage: 'advice',
-      category: 'Fun',
-      aliases: ['num']
+      category: 'Fun'
     });
   }
 
@@ -23,9 +22,9 @@ class Advice extends Command {
 
     body = JSON.parse(body.toString());
 
-    const em = new DiscordJS.MessageEmbed()
+    const em = new EmbedBuilder()
       .setTitle(body.slip.advice)
-      .setColor('RANDOM')
+      .setColor('#0099CC')
       .setFooter({ text: `ID: ${body.slip.id}` });
     return msg.channel.send({ embeds: [em] });
   }

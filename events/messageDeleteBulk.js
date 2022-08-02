@@ -1,5 +1,5 @@
 const db = require('quick.db');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const hastebin = require('hastebin');
 
 module.exports = class {
@@ -44,14 +44,16 @@ module.exports = class {
       .then(function (urlToPaste) {
         url = urlToPaste;
       })
-      .catch(function (requestError) { console.log(requestError); });
+      .catch(function (requestError) { this.client.logger.error(requestError); });
 
-    const embed = new DiscordJS.MessageEmbed()
+    const embed = new EmbedBuilder()
       .setTitle('Bulk Messages Deleted')
-      .setColor('RED')
-      .addField('Deleted Messages', url, true)
-      .addField('Deleted Amount', messages.size, true)
-      .addField('Channel', `<#${chan.id}>`, true);
+      .setColor('#FF0000')
+      .addFields([
+        { name: 'Deleted Messages', value: url },
+        { name: 'Deleted Amount', value: messages.size },
+        { name: 'Channel', value: `<#${chan.id}>` }
+      ]);
     logChannel.send({ embeds: [embed] });
 
     db.add(`servers.${server.id}.logs.bulk-messages-deleted`, 1);

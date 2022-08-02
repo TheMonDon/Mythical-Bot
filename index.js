@@ -1,7 +1,6 @@
 if (Number(process.version.slice(1).split('.')[0]) < 16) throw new Error('Node 16.x or higher is required. Update Node on your system.');
 
-const { Intents, Collection, Client } = require('discord.js');
-const DiscordJS = require('discord.js');
+const { GatewayIntentBits, Collection, Client, EmbedBuilder } = require('discord.js');
 const { readdirSync, statSync } = require('fs');
 const Enmap = require('enmap');
 const db = require('quick.db');
@@ -9,7 +8,8 @@ const path = require('path');
 const { Player } = require('discord-player');
 const mysql = require('mysql2');
 const config = require('./config.js');
-const { intents, partials, permLevels, mysqlUsername, mysqlHost, mysqlPassword, token } = require('./config.js');
+const { partials, permLevels, mysqlUsername, mysqlHost, mysqlPassword, token } = require('./config.js');
+const { GiveawaysManager } = require('discord-giveaways');
 
 class Bot extends Client {
   constructor (options) {
@@ -143,15 +143,24 @@ class Bot extends Client {
 }
 
 // Enable intents for the bot
-const myIntents = new Intents();
-myIntents.add(Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_BANS, Intents.FLAGS.GUILD_MEMBERS, Intents.FLAGS.GUILD_EMOJIS_AND_STICKERS, Intents.FLAGS.GUILD_INTEGRATIONS, Intents.FLAGS.GUILD_WEBHOOKS, Intents.FLAGS.GUILD_INVITES, Intents.FLAGS.GUILD_VOICE_STATES, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_MESSAGE_REACTIONS, Intents.FLAGS.DIRECT_MESSAGES, Intents.FLAGS.DIRECT_MESSAGE_REACTIONS);
-const client = new Bot({ intents, partials });
+const client = new Bot({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildBans, GatewayIntentBits.GuildMembers, GatewayIntentBits.GuildEmojisAndStickers, GatewayIntentBits.GuildIntegrations, GatewayIntentBits.GuildWebhooks, GatewayIntentBits.GuildInvites, GatewayIntentBits.GuildVoiceStates, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMessageReactions, GatewayIntentBits.DirectMessages, GatewayIntentBits.DirectMessageReactions, GatewayIntentBits.MessageContent], partials });
 
 // Create MySQL Pool globally
 global.pool = mysql.createPool({
   host: mysqlHost,
   user: mysqlUsername,
   password: mysqlPassword
+});
+
+// Init discord giveaways
+client.giveawaysManager = new GiveawaysManager(client, {
+  storage: './data/giveaways.json',
+  default: {
+    botsCanWin: false,
+    embedColor: '#0099CC',
+    embedColorEnd: '#000000',
+    reaction: '🎉'
+  }
 });
 
 // Load the music player stuff
@@ -162,7 +171,7 @@ client.player = new Player(client, {
 
 client.player
   .on('trackStart', async (queue, track) => {
-    const em = new DiscordJS.MessageEmbed()
+    const em = new EmbedBuilder()
       .setTitle('Now Playing')
       .setDescription(`[${track.title}](${track.url}) \n\nRequested By: ${track.requestedBy}`)
       .setThumbnail(track.thumbnail)
@@ -185,7 +194,7 @@ client.player
     const url = track.url || track.tracks[track.tracks.length - 1].url;
     const requestedBy = track.requestedBy || track.tracks[track.tracks.length - 1].requestedBy;
 
-    const em = new DiscordJS.MessageEmbed()
+    const em = new EmbedBuilder()
       .setTitle('Track Added to Queue')
       .setThumbnail(track.thumbnail)
       .setColor('0099CC')
@@ -196,12 +205,12 @@ client.player
     const playlist = tracks[0].playlist;
     const length = playlist.videos?.length || playlist.tracks?.length || 'N/A';
 
-    const em = new DiscordJS.MessageEmbed()
+    const em = new EmbedBuilder()
       .setTitle('Playlist Added to Queue')
       .setThumbnail(playlist.thumbnail)
       .setColor('0099CC')
       .setDescription(`[${playlist.title}](${playlist.url}) \n\nRequested By: ${tracks[0].requestedBy}`)
-      .addField('Playlist Length', length.toString(), true);
+      .addFields([{ name: 'Playlist Length', value: length.toString(), inLine: true }]);
     queue.metadata.channel.send({ embeds: [em] });
   })
   .on('noResults', (queue, query) => queue.metadata.channel.send(`No results were found for ${query}.`))
@@ -226,26 +235,17 @@ client.player
   });
 
 const init = async () => {
-  // Let's load the slash commands, we're using a recursive method so you can have
-  // folders within folders, within folders, within folders, etc and so on.
+  // Now we load any **slash** commands you may have in the ./slash directory.
+  const slashFiles = readdirSync('./slash').filter(file => file.endsWith('.js'));
+  for (const file of slashFiles) {
+    const command = require(`./slash/${file}`);
 
-  /* function getSlashCommands (dir) {
-    const slashFiles = readdirSync(dir);
-    for (const file of slashFiles) {
-      const loc = path.resolve(dir, file);
-      const stats = statSync(loc);
-      if (stats.isDirectory()) {
-        getSlashCommands(path.resolve(dir, file));
-      } else {
-        const command = new (require(loc))(client);
-        console.log(`Loading slash command ${command.commandData.name}`);
-        client.slashcmds.set(command.commandData.name, command);
-      }
-    }
-  } */
+    // Now set the name of the command with it's properties.
+    client.slashcmds.set(command.commandData.name, command);
+  }
 
   // Here we load **commands** into memory, as a collection, so they're accessible
-  // here and everywhere else, and like the slash commands, sub-folders for days!
+  // here and everywhere else, sub-folders for days!
   function getCommands (dir) {
     const cmdFile = readdirSync(dir);
     for (const file of cmdFile) {
@@ -262,7 +262,6 @@ const init = async () => {
 
   // Now let's call the functions to actually load up the commands!
   getCommands('./commands');
-  // getSlashCommands('./slash'); Not using slash commands right now.
 
   // Then we load events, which will include our message and ready event.
   const eventFiles = readdirSync('./events/').filter(file => file.endsWith('.js'));

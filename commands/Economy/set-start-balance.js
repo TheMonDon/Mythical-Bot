@@ -1,6 +1,6 @@
 const Command = require('../../base/Command.js');
 const db = require('quick.db');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 
 class SetStartBalance extends Command {
   constructor (client) {
@@ -26,7 +26,7 @@ class SetStartBalance extends Command {
 
     db.set(`servers.${msg.guild.id}.economy.startBalance`, amount);
 
-    const em = new DiscordJS.MessageEmbed()
+    const em = new EmbedBuilder()
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
       .setDescription(amount > 0 ? `The starting balance for new members has been set to: ${cs + amount.toLocaleString()}` : 'The starting balance for new members has been disabled.');
     return msg.channel.send({ embeds: [em] });

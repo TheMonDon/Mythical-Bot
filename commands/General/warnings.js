@@ -1,7 +1,7 @@
 const Command = require('../../base/Command.js');
 const { getMember, getWarns, getTotalPoints, cleanString } = require('../../util/Util.js');
 const db = require('quick.db');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const moment = require('moment');
 
 class Warnings extends Command {
@@ -53,9 +53,9 @@ class Warnings extends Command {
     }
 
     mem = mem.user ? mem.user : mem;
-    const em = new DiscordJS.MessageEmbed()
+    const em = new EmbedBuilder()
       .setAuthor({ name: mem.username, iconURL: mem.displayAvatarURL() })
-      .setColor('ORANGE')
+      .setColor('#FFA500')
       .setTitle(`Total Warning Points: ${totalPoints}`)
       .setDescription(warns.length ? warns.join('\n') : 'This user is squeaky clean.');
     return msg.channel.send({ embeds: [em] });

@@ -1,6 +1,6 @@
 const Command = require('../../base/Command.js');
 const db = require('quick.db');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 
 class BlackJack extends Command {
   constructor (client) {
@@ -127,12 +127,12 @@ class BlackJack extends Command {
         case 'win':
           win = true;
           gameOver = true;
-          color = 'GREEN';
+          color = '#00FF00';
           break;
         case 'bust':
           bust = true;
           gameOver = true;
-          color = 'RED';
+          color = '#ff0000';
           break;
         case 'push':
           push = true;
@@ -141,7 +141,7 @@ class BlackJack extends Command {
         case 'blackjack':
           blackjack = true;
           gameOver = true;
-          color = 'GREEN';
+          color = '#00FF00';
           break;
         default:
           break;
@@ -153,22 +153,26 @@ class BlackJack extends Command {
     let pcards = getCards('player', bj);
     let dcards = getCards('dealer', bj);
     if (blackjack) {
-      const embed = new DiscordJS.MessageEmbed()
+      const embed = new EmbedBuilder()
         .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
         .setDescription(`Result: You win ${cs}${bj.bet.toLocaleString()}`)
         .setColor(color)
-        .addField('**Your Hand**', `${pcards} \n\nScore: Blackjack`, true)
-        .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
+        .addFields([
+          { name: '**Your Hand**', value: `${pcards} \n\nScore: Blackjack`, inLine: true },
+          { name: '**Dealer Hand**', value: `${dcards} \n\nScore: ${bj.dealer.score}`, inLine: true }
+        ]);
 
       db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bj.bet); // Add the winning money
       return msg.channel.send({ embeds: [embed] });
     }
-    const em = new DiscordJS.MessageEmbed()
+    const em = new EmbedBuilder()
       .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
       .setDescription('Type `hit` to draw another card, `stand` to pass, or `doubledown` to double down.')
       .setColor(color)
-      .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
-      .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
+      .addFields([
+        { name: '**Your Hand**', value: `${pcards} \n\nScore: ${bj.player.score}`, inLine: true },
+        { name: '**Dealer Hand**', value: `${dcards} \n\nScore: ${bj.dealer.score}`, inLine: true }
+      ]);
     const mEm = await msg.channel.send({ embeds: [em] });
 
     while (gameOver === false) {
@@ -190,12 +194,14 @@ class BlackJack extends Command {
         pcards = getCards('player', bj);
         dcards = getCards('dealer', bj);
 
-        const embed = new DiscordJS.MessageEmbed()
+        const embed = new EmbedBuilder()
           .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
           .setDescription(`Result: You win ${cs}${bj.bet.toLocaleString()}`)
           .setColor(color)
-          .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
-          .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
+          .addFields([
+            { name: '**Your Hand**', value: `${pcards} \n\nScore: ${bj.player.score}`, inLine: true },
+            { name: '**Dealer Hand**', value: `${dcards} \n\nScore: ${bj.dealer.score}`, inLine: true }
+          ]);
 
         db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bj.bet); // Add the winning money
         return mEm.edit({ embeds: [embed] });
@@ -203,12 +209,14 @@ class BlackJack extends Command {
         pcards = getCards('player', bj);
         dcards = getCards('dealer', bj);
 
-        const embed = new DiscordJS.MessageEmbed()
+        const embed = new EmbedBuilder()
           .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
           .setDescription(`Result: BlackJack, you win ${cs}${bj.bet.toLocaleString()}`)
           .setColor(color)
-          .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
-          .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
+          .addFields([
+            { name: '**Your Hand**', value: `${pcards} \n\nScore: ${bj.player.score}`, inLine: true },
+            { name: '**Dealer Hand**', value: `${dcards} \n\nScore: ${bj.dealer.score}`, inLine: true }
+          ]);
 
         db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bj.bet); // Add the winning money
         return mEm.edit({ embeds: [embed] });
@@ -216,12 +224,14 @@ class BlackJack extends Command {
         pcards = getCards('player', bj);
         dcards = getCards('dealer', bj);
 
-        const embed = new DiscordJS.MessageEmbed()
+        const embed = new EmbedBuilder()
           .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
           .setDescription(`Result: Bust, you lose ${cs}${bj.bet.toLocaleString()}`)
           .setColor(color)
-          .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
-          .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
+          .addFields([
+            { name: '**Your Hand**', value: `${pcards} \n\nScore: ${bj.player.score}`, inLine: true },
+            { name: '**Dealer Hand**', value: `${dcards} \n\nScore: ${bj.dealer.score}`, inLine: true }
+          ]);
 
         db.subtract(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bj.bet);
         return mEm.edit({ embeds: [embed] });
@@ -229,24 +239,28 @@ class BlackJack extends Command {
         pcards = getCards('player', bj);
         dcards = getCards('dealer', bj);
 
-        const embed = new DiscordJS.MessageEmbed()
+        const embed = new EmbedBuilder()
           .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
           .setDescription('Result: Push, money back')
           .setColor(color)
-          .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
-          .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
+          .addFields([
+            { name: '**Your Hand**', value: `${pcards} \n\nScore: ${bj.player.score}`, inLine: true },
+            { name: '**Dealer Hand**', value: `${dcards} \n\nScore: ${bj.dealer.score}`, inLine: true }
+          ]);
 
         return mEm.edit({ embeds: [embed] });
       }
       pcards = getCards('player', bj);
       dcards = getCards('dealer', bj);
 
-      const embed = new DiscordJS.MessageEmbed()
+      const embed = new EmbedBuilder()
         .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
         .setDescription('Type `hit` to draw another card, `stand` to pass, or `doubledown` to double down.')
         .setColor(color)
-        .addField('**Your Hand**', `${pcards} \n\nScore: ${bj.player.score}`, true)
-        .addField('**Dealer Hand**', `${dcards} \n\nScore: ${bj.dealer.score}`, true);
+        .addFields([
+          { name: '**Your Hand**', value: `${pcards} \n\nScore: ${bj.player.score}`, inLine: true },
+          { name: '**Dealer Hand**', value: `${dcards} \n\nScore: ${bj.dealer.score}`, inLine: true }
+        ]);
       mEm.edit({ embeds: [embed] });
     }
   }

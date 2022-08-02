@@ -1,5 +1,5 @@
 const Command = require('../../base/Command.js');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const db = require('quick.db');
 
 class Withdraw extends Command {
@@ -19,7 +19,7 @@ class Withdraw extends Command {
 
     const usage = `${msg.settings.prefix}Withdraw <amount | all>`;
     if (!amount || amount.length < 1) {
-      const embed = new DiscordJS.MessageEmbed()
+      const embed = new EmbedBuilder()
         .setColor('#EC5454')
         .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
         .setDescription(`Incorrect Usage: ${usage}`);
@@ -41,13 +41,13 @@ class Withdraw extends Command {
         db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`, 0);
         db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bank);
 
-        const em = new DiscordJS.MessageEmbed()
+        const em = new EmbedBuilder()
           .setColor('#04ACF4')
           .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
           .setDescription(`Withdrew ${cs}${bank.toLocaleString()} from your bank!`);
         return msg.channel.send({ embeds: [em] });
       } else {
-        const embed = new DiscordJS.MessageEmbed()
+        const embed = new EmbedBuilder()
           .setColor('#EC5454')
           .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
           .setDescription(`Incorrect Usage: ${usage}`);
@@ -66,7 +66,7 @@ class Withdraw extends Command {
     db.subtract(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`, amount); // take money from bank
     db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, amount); // set money to cash
 
-    const embed = new DiscordJS.MessageEmbed()
+    const embed = new EmbedBuilder()
       .setColor('#04ACF4')
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
       .setDescription(`Withdrew ${cs}${amount.toLocaleString()} from your bank!`);

@@ -1,5 +1,5 @@
 const Command = require('../../base/Command.js');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const gplay = require('google-play-scraper');
 
 class GooglePlay extends Command {
@@ -25,18 +25,20 @@ class GooglePlay extends Command {
         const res = result?.[0];
         if (!res) return msg.channel.send('I could not find any app with that name.');
 
-        const em = new DiscordJS.MessageEmbed()
+        const em = new EmbedBuilder()
           .setTitle(res.title)
           .setDescription(res.summary)
           .setURL(res.url)
           .setColor('#0099CC')
           .setThumbnail(res.icon)
-          .addField('Developer', res.developer || 'Unknown', true)
-          .addField('Price', res.priceText || 'Unknown', true)
-          .addField('Rating', res.scoreText || 'Unknown', true)
-          .addField('Genre', res.genre || 'Unknown', true)
-          .addField('Installs', res.maxInstalls ? res.maxInstalls.toLocaleString() + '+' : 'Unknown', true)
-          .addField('Released On', res.released || 'Unknown', true);
+          .addFields([
+            { name: 'Developer', value: res.developer || 'Unknown' },
+            { name: 'Price', value: res.priceText || 'Unknown' },
+            { name: 'Rating', value: res.scoreText || 'Unknown' },
+            { name: 'Genre', value: res.genre || 'Unknown' },
+            { name: 'Installs', value: res.maxInstalls ? res.maxInstalls.toLocaleString() + '+' : 'Unknown' },
+            { name: 'Released On', value: res.released || 'Unknown' }
+          ]);
         return msg.channel.send({ embeds: [em] });
       })
       .catch(() => {

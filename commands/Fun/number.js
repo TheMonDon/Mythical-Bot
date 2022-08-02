@@ -1,6 +1,6 @@
 const Command = require('../../base/Command.js');
 const fetch = require('node-superfetch');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 
 class Number extends Command {
   constructor (client) {
@@ -23,9 +23,9 @@ class Number extends Command {
       });
     if (!body) return;
 
-    const em = new DiscordJS.MessageEmbed()
+    const em = new EmbedBuilder()
       .setTitle(body)
-      .setColor('RANDOM');
+      .setColor('#0099CC');
     return msg.channel.send({ embeds: [em] });
   }
 }

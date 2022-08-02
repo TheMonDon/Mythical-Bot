@@ -1,6 +1,6 @@
 const Command = require('../../base/Command.js');
 const { toProperCase } = require('../../util/Util.js');
-const { MessageEmbed } = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const isImageURL = require('is-image-url');
 const isURL = require('is-url');
 const rgbHex = require('rgb-hex');
@@ -23,7 +23,7 @@ class Color extends Command {
     let input = args.join(' ');
     let color;
 
-    const embed = new MessageEmbed()
+    const embed = new EmbedBuilder()
       .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() });
 
     const rgbRegex = /^rgb[\s+]?\((:?\d+\.?\d?%?)(,|-|\/\|)\s?(:?\d+\.?\d?%?)(,|-|\/\|)\s?(:?\d+\.?\d?%?)\)/i;
@@ -213,16 +213,17 @@ class Color extends Command {
     };
 
     if (!embed.title) embed.setTitle('Color Information');
-    embed.setThumbnail(`https://dummyimage.com/100x100/${color.hex}.png&text=+`);
-    embed.setColor(color.hex);
-    embed.setDescription(stripIndent(`
+    embed
+      .setThumbnail(`https://dummyimage.com/100x100/${color.hex}.png&text=+`)
+      .setColor(color.hex)
+      .setDescription(stripIndent(`
           **Name:** ${toProperCase(color.css)}
           **Hex:** #${color.hex}
           **Rgb:** rgb(${color.rgb})
           **Hsl:** hsl(${color.hsl})
           **Cmyk:** cmyk(${color.cmyk})
           `));
-    msg.channel.send({ embeds: [embed] });
+    return msg.channel.send({ embeds: [embed] });
   }
 }
 

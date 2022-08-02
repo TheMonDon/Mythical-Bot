@@ -1,7 +1,8 @@
 const Command = require('../../base/Command.js');
 const { getMember } = require('../../util/Util.js');
 const db = require('quick.db');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
+const { DateTime } = require('luxon');
 
 class RemoveMember extends Command {
   constructor (client) {
@@ -43,19 +44,11 @@ class RemoveMember extends Command {
     msg.channel.permissionOverwrites.get(mem.id).delete();
 
     // Logging info
-    const d = new Date();
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    const hour = String(d.getHours()).padStart(2, '0');
-    const min = String(d.getMinutes()).padStart(2, '0');
-    const timestamp = month + '/' + day + '/' + year + ' ' + hour + ':' + min;
-
-    const output = `${timestamp} - ${msg.author.tag} has removed a member: \n${mem.displayName}.`;
+    const output = `${DateTime.now().toLocaleString(DateTime.DATETIME_FULL)} - ${msg.author.tag} has removed a member: \n${mem.displayName}.`;
 
     db.push(`servers.${msg.guild.id}.tickets.${tName}.chatLogs`, output);
 
-    const em = new DiscordJS.MessageEmbed()
+    const em = new EmbedBuilder()
       .setTitle('Member Removed')
       .setColor('#E65DF4')
       .setDescription(`${msg.author} has removed a member: \n${mem} (${mem.displayName})`);

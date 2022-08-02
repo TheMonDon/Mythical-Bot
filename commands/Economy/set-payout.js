@@ -1,6 +1,6 @@
 const Command = require('../../base/Command.js');
 const db = require('quick.db');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const { stripIndents } = require('common-tags');
 
 class SetPayout extends Command {
@@ -9,14 +9,14 @@ class SetPayout extends Command {
       name: 'set-payout',
       category: 'Economy',
       description: 'Sets the payout of the economy commands',
-      usage: 'set-payout <work | crime> <min | max> <amount>',
+      usage: 'set-payout <work | crime | slut> <min | max> <amount>',
       aliases: ['setpayout', 'sp'],
       guildOnly: true
     });
   }
 
   run (msg, text) {
-    const types = ['work', 'crime'];
+    const types = ['work', 'crime', 'slut'];
 
     if (!msg.member.permissions.has('MANAGE_GUILD')) return msg.channel.send('You are missing **Manage Guild** permission.');
 
@@ -25,26 +25,27 @@ class SetPayout extends Command {
 
     const workMin = db.get(`servers.${msg.guild.id}.economy.work.min`) || 50;
     const workMax = db.get(`servers.${msg.guild.id}.economy.work.max`) || 500;
-    // const slut_min = db.get(`servers.${msg.guild.id}.economy.slut.min`) || 100;
-    // const slut_max = db.get(`servers.${msg.guild.id}.economy.work.max`) || 1000;
+    const slutMin = db.get(`servers.${msg.guild.id}.economy.slut.min`) || 100;
+    const slutMax = db.get(`servers.${msg.guild.id}.economy.work.max`) || 1000;
     const crimeMin = db.get(`servers.${msg.guild.id}.economy.crime.min`) || 500;
     const crimeMax = db.get(`servers.${msg.guild.id}.economy.crime.max`) || 2000;
 
     if (!text || text.length < 1) {
-      const embed = new DiscordJS.MessageEmbed()
+      const embed = new EmbedBuilder()
         .setColor('#04ACF4')
         .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
         .setDescription(stripIndents`
           The current payout ranges are: 
         
-          \`Work\` - min: ${cs}${workMin} | max: ${cs}${workMax}
+          \`Work\`  - min: ${cs}${workMin}  | max: ${cs}${workMax}
           \`Crime\` - min: ${cs}${crimeMin} | max: ${cs}${crimeMax}
+          \`Slut\`  - min: ${cs}${slutMin}  | max: ${cs}${slutMax}
     
           Usage: ${usage}
         `);
       return msg.channel.send({ embeds: [embed] });
     }
-    const errEmbed = new DiscordJS.MessageEmbed()
+    const errEmbed = new EmbedBuilder()
       .setColor('#EC5454')
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() });
 
@@ -80,7 +81,7 @@ class SetPayout extends Command {
       return msg.channel.send('The min amount for payout is one.');
     }
 
-    const embed = new DiscordJS.MessageEmbed()
+    const embed = new EmbedBuilder()
       .setColor('#64BC6C')
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() });
 
@@ -100,7 +101,7 @@ class SetPayout extends Command {
         db.set(`servers.${msg.guild.id}.economy.crime.max`, amount);
         embed.setDescription(`The maximum amount for \`Crime\` has been changed to ${cs}${amount}`);
       }
-    } else if (type === 'slut') { // Shoved this in for future proofing :D
+    } else if (type === 'slut') { // Shoved this in for future proofing :D (Thanks past me!)
       if (minMax === 'min') {
         db.set(`servers.${msg.guild.id}.economy.slut.min`, amount);
         embed.setDescription(`The minimum amount for \`Slut\` has been changed to ${cs}${amount}`);

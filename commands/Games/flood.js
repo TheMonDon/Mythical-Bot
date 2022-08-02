@@ -1,5 +1,5 @@
 const Command = require('../../base/Command.js');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const db = require('quick.db');
 const moment = require('moment');
 require('moment-duration-format');
@@ -94,15 +94,15 @@ class Flood extends Command {
         }
 
         if (!isNaN(highScoreTime)) highScoreTime = moment.duration(highScoreTime).format('m[ minutes][, and] s[ seconds]');
-        embed = new DiscordJS.MessageEmbed()
+        embed = new EmbedBuilder()
           .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL({ dynamic: true }) })
           .setColor('#08b9bf')
           .setTitle('Flood')
           .setDescription(`${gameBoardToString()} \nGame Over! \n${turnResp[result]}`)
-          .addField('High Score', `${highScore} turns by ${highScoreUser || 'N/A'} in ${highScoreTime || 'N/A'}`)
+          .addFields([{ name: 'High Score', value: `${highScore} turns by ${highScoreUser || 'N/A'} in ${highScoreTime || 'N/A'}` }])
           .setTimestamp();
       } else {
-        embed = new DiscordJS.MessageEmbed()
+        embed = new EmbedBuilder()
           .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL({ dynamic: true }) })
           .setColor('#08b9bf')
           .setTitle('Flood')
@@ -111,7 +111,7 @@ Fill the entire image with the same color in 25 or fewer flood tiles (turns).
 
 Click on the reactions below to fill the area above.
 Filling starts at the top left corner.`)
-          .addField('Turn:', turn.toString(), true)
+          .addFields([{ name: 'Turn:', value: turn.toString() }])
           .setFooter({ text: `Currently Playing: ${msg.author.username}` })
           .setTimestamp();
       }

@@ -1,5 +1,5 @@
-const DiscordJS = require('discord.js');
-const moment = require('moment');
+const { EmbedBuilder } = require('discord.js');
+const { DateTime } = require('luxon');
 const db = require('quick.db');
 const { scheduleJob } = require('node-schedule');
 
@@ -22,7 +22,6 @@ module.exports = class {
     }
 
     // Set the game as the default help command + guild count.
-    // NOTE: This is also set in the guildCreate and guildDelete events!
     this.client.user.setActivity(`${this.client.settings.get('default').prefix}help | ${this.client.guilds.cache.size} Servers`);
 
     // Log that we're ready to serve, so we know the bot accepts commands.
@@ -40,12 +39,12 @@ module.exports = class {
               const channel = this.client.channels.cache.get(channelID);
               const user = this.client.users.cache.get(userID);
 
-              const em = new DiscordJS.MessageEmbed()
+              const em = new EmbedBuilder()
                 .setAuthor({ name: user.username, iconURL: user.displayAvatarURL() })
                 .setColor(color)
-                .addField('Reminder', `\`\`\`${reminder}\`\`\``)
+                .addFields([{ name: 'Reminder', value: `\`\`\`${reminder}\`\`\`` }])
                 .setFooter({ text: 'You created this reminder @' })
-                .setTimestamp(moment(createdAt));
+                .setTimestamp(new DateTime(createdAt).toLocaleString(DateTime.DATETIME_FULL));
               channel ? channel.send({ embeds: [em], content: `<@${userID}>, here's your reminder:` }) : user.send({ embeds: [em], content: `${user.username}, here's your reminder:` });
               db.delete(`global.reminders.${remID}`);
             } catch {

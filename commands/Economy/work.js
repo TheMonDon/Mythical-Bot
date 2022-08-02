@@ -1,6 +1,6 @@
 const Command = require('../../base/Command.js');
 const db = require('quick.db');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const moment = require('moment');
 
 class Work extends Command {
@@ -27,7 +27,7 @@ class Work extends Command {
       } else {
         const tLeft = moment.duration(timeleft)
           .format('y[ years][,] M[ Months]d[ days][,] h[ hours][,] m[ minutes][, and] s[ seconds]');
-        const embed = new DiscordJS.MessageEmbed()
+        const embed = new EmbedBuilder()
           .setColor('#EC5454')
           .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
           .setDescription(`You cannot work for ${tLeft}`);
@@ -57,7 +57,7 @@ class Work extends Command {
 
     db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newBalance);
 
-    const embed = new DiscordJS.MessageEmbed()
+    const embed = new EmbedBuilder()
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
       .setColor('#64BC6C')
       .setDescription(job)

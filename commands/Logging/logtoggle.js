@@ -1,5 +1,5 @@
 const Command = require('../../base/Command.js');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const db = require('quick.db');
 
 class LogToggle extends Command {
@@ -17,7 +17,7 @@ class LogToggle extends Command {
   async run (msg, args) {
     const query = args.join(' ').toLowerCase();
 
-    const errorEmbed = new DiscordJS.MessageEmbed();
+    const errorEmbed = new EmbedBuilder();
     if (!db.get(`servers.${msg.guild.id}.logs.channel`)) return msg.channel.send(`The log system is not set up! Use \`${msg.settings.prefix}setlogchannel <channel>\``);
 
     // define regex
@@ -39,8 +39,12 @@ class LogToggle extends Command {
     const ed = /^(emoji[-]?deleted)/gi;
     const bmd = /^(bulk[-]?messages[-]?deleted)/gi;
 
-    errorEmbed.setTitle(':x: Invalid parameter.');
-    errorEmbed.addField('Valid Parameters', `
+    errorEmbed
+      .setTitle(':x: Invalid parameter.')
+      .addFields([
+        {
+          name: 'Valid Parameters',
+          value: `
 channel-created
 channel-deleted
 channel-updated
@@ -57,8 +61,11 @@ role-deleted
 role-updated
 emoji-created
 emoji-deleted
-bulk-messages-deleted`, true);
-    errorEmbed.addField('Other Usage:', 'logtoggle <enable/disable> <channel> to enable/disable a channel from being logged.', false);
+bulk-messages-deleted`,
+          inLine: true
+        },
+        { name: 'Other Usage:', value: 'logtoggle <enable/disable> <channel> to enable/disable a channel from being logged.', inLine: false }
+      ]);
     if (['enable', 'disable'].includes(args?.[0].toLowerCase())) {
       if (args?.[0].toLowerCase() === 'enable') {
         // Enable channel

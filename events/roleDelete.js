@@ -1,5 +1,5 @@
 const db = require('quick.db');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 
 module.exports = class {
   constructor (client) {
@@ -15,14 +15,16 @@ module.exports = class {
     const logChannel = role.guild.channels.cache.get(logChan);
     if (!logChannel.permissionsFor(this.client.user.id).has('SEND_MESSAGES')) return;
 
-    const embed = new DiscordJS.MessageEmbed();
-    embed.setTitle('Role Deleted');
-    embed.setColor(role.hexColor);
-    embed.addField('Name', role.name, true);
-    embed.addField('Managed', role.managed, true);
-    embed.addField('Position', role.position, true);
-    embed.setFooter({ text: `ID: ${role.id}` });
-    embed.setTimestamp();
+    const embed = new EmbedBuilder()
+      .setTitle('Role Deleted')
+      .setColor(role.hexColor)
+      .addFields([
+        { name: 'Name', value: role.name },
+        { name: 'Managed', value: role.managed },
+        { name: 'Position', value: role.position }
+      ])
+      .setFooter({ text: `ID: ${role.id}` })
+      .setTimestamp();
     role.guild.channels.cache.get(logChan).send({ embeds: [embed] });
 
     db.add(`servers.${role.guild.id}.logs.role-deleted`, 1);

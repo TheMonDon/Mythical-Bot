@@ -1,5 +1,5 @@
 const db = require('quick.db');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 
 module.exports = class {
   constructor (client) {
@@ -20,11 +20,13 @@ module.exports = class {
     const logChannel = channel.guild.channels.cache.get(logChan);
     if (!logChannel.permissionsFor(this.client.user.id).has('SEND_MESSAGES')) return;
 
-    const embed = new DiscordJS.MessageEmbed()
+    const embed = new EmbedBuilder()
       .setTitle('Channel Deleted')
       .setColor('RED')
-      .addField('Name', channel.name, true)
-      .addField('Category', channel.parent?.name || 'None', true)
+      .addFields([
+        { name: 'Name', value: channel.name },
+        { name: 'Category', value: channel.parent?.name || 'None' }
+      ])
       .setFooter({ text: `ID: ${channel.id}` })
       .setTimestamp();
     channel.guild.channels.cache.get(logChan).send({ embeds: [embed] });

@@ -7,6 +7,8 @@
   </p>
 </div>
 
+Multi-utility bot including per-server economy, moderation, reminders, giveaways, and more!
+
 [![Fuck it Ship it](http://forthebadge.com/images/badges/fuck-it-ship-it.svg)](https://github.com/TheMonDon/Mythical-Bot) [![It Works. Why?](https://forthebadge.com/images/badges/it-works-why.svg)](https://github.com/TheMonDon/Mythical-Bot)
 
 ## Table of Contents

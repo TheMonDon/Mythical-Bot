@@ -1,6 +1,6 @@
 const Command = require('../../base/Command.js');
 const mcUtil = require('minecraft-server-util');
-const { MessageEmbed } = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 
 module.exports = class status extends Command {
   constructor (client) {
@@ -15,29 +15,22 @@ module.exports = class status extends Command {
   async run (msg) {
     const bungee = await mcUtil.status('192.168.2.29')
       .catch(() => {});
-    const hub = await mcUtil.status('192.168.2.29', { port: 25556 })
-      .catch(() => {});
     const creative = await mcUtil.status('192.168.2.29', { port: 25562 })
       .catch(() => {});
-    const prisons = await mcUtil.status('192.168.2.29', { port: 25563 })
-      .catch(() => {});
     const survival = await mcUtil.status('192.168.2.29', { port: 25567 })
-      .catch(() => {});
-    const skyblock = await mcUtil.status('192.168.2.29', { port: 25568 })
       .catch(() => {});
     const rcc = await mcUtil.status('192.168.2.29', { port: 25569 })
       .catch(() => {});
 
-    const em = new MessageEmbed()
+    const em = new EmbedBuilder()
       .setColor('0099CC')
       .setTitle('Status Checker')
-      .addField('Total', bungee ? `Players: ${bungee.onlinePlayers + '/' + bungee.maxPlayers}` : 'Offline', true)
-      .addField('Hub', hub ? `Players: ${hub.onlinePlayers + '/' + hub.maxPlayers}` : 'Offline', true)
-      .addField('Survival', survival ? `Players: ${survival.onlinePlayers + '/' + survival.maxPlayers}` : 'Offline', true)
-      .addField('Creative', creative ? `Players: ${creative.onlinePlayers + '/' + creative.maxPlayers}` : 'Offline', true)
-      .addField('Prisons', prisons ? `Players: ${prisons.onlinePlayers + '/' + prisons.maxPlayers}` : 'Offline', true)
-      .addField('Skyblock', skyblock ? `Players: ${skyblock.onlinePlayers + '/' + skyblock.maxPlayers}` : 'Offline', true)
-      .addField('RCC', rcc ? `Players: ${rcc.onlinePlayers + '/' + rcc.maxPlayers}` : 'Offline', true);
+      .addFields([
+        { name: 'Total', value: bungee ? `Players: ${bungee.onlinePlayers + '/' + bungee.maxPlayers}` : 'Offline' },
+        { name: 'Survival', value: survival ? `Players: ${survival.onlinePlayers + '/' + survival.maxPlayers}` : 'Offline' },
+        { name: 'Creative', value: creative ? `Players: ${creative.onlinePlayers + '/' + creative.maxPlayers}` : 'Offline' },
+        { name: 'RCC', value: rcc ? `Players: ${rcc.onlinePlayers + '/' + rcc.maxPlayers}` : 'Offline' }
+      ]);
     return msg.channel.send({ embeds: [em] });
   }
 };

@@ -1,5 +1,5 @@
 const Command = require('../../base/Command.js');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const trev = require('trev');
 
 class Reddit extends Command {
@@ -23,7 +23,7 @@ class Reddit extends Command {
     if (trev.isImgurUpload(post.media)) image = trev.getRawImgur(post.media);
     if (trev.isGfyLink(post.media)) image = trev.gfyIframe(post.media);
 
-    const em = new DiscordJS.MessageEmbed()
+    const em = new EmbedBuilder()
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
       .setTitle(post.title)
       .setURL(post.permalink)

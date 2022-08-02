@@ -18,7 +18,7 @@ class Restart extends Command {
       await Promise.all(this.client.commands.map(cmd => this.client.unloadCommand(cmd)));
       process.exit(0);
     } catch (e) {
-      console.log(e);
+      this.client.logger.error(e);
     }
   }
 }

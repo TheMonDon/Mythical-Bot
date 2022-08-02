@@ -1,16 +1,18 @@
 const Command = require('../../base/Command.js');
 const db = require('quick.db');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const { stripIndents } = require('common-tags');
 const hastebin = require('hastebin');
+const { DateTime } = require('luxon');
 
-class Close extends Command {
+class CloseTicket extends Command {
   constructor (client) {
     super(client, {
-      name: 'close',
+      name: 'close-ticket',
       description: 'Close your ticket',
-      usage: 'close [reason]',
+      usage: 'close-ticket [reason]',
       category: 'Tickets',
+      aliases: ['close', 'ct', 'closeticket'],
       guildOnly: true
     });
   }
@@ -28,22 +30,14 @@ class Close extends Command {
     if (owner !== msg.author.id) return msg.channel.send('You need to be the owner of the ticket to close it.');
 
     // Logging info
-    const d = new Date();
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    const hour = String(d.getHours()).padStart(2, '0');
-    const min = String(d.getMinutes()).padStart(2, '0');
-    const timestamp = month + '/' + day + '/' + year + ' ' + hour + ':' + min;
-
-    const output = `${timestamp} - ${msg.author.tag} has requested to close this ticket. \nTranscript will be sent in 5 minutes if no further activity occurs.`;
+    const output = `${DateTime.now().toLocaleString(DateTime.DATETIME_FULL)} - ${msg.author.tag} has requested to close this ticket. \nTranscript will be sent in 5 minutes if no further activity occurs.`;
 
     db.push(`servers.${msg.guild.id}.tickets.${tName}.chatLogs`, output);
 
     let chatLogs = db.get(`servers.${msg.guild.id}.tickets.${tName}.chatLogs`);
     chatLogs ? chatLogs = chatLogs.join('\n') : chatLogs = 'No Transcript available';
 
-    const em = new DiscordJS.MessageEmbed()
+    const em = new EmbedBuilder()
       .setTitle('Ticket Closed')
       .setColor('#E65DF4')
       .setDescription(stripIndents`${msg.author} has requested to close this ticket.
@@ -69,16 +63,18 @@ class Close extends Command {
         .then(function (urlToPaste) {
           url = urlToPaste;
         })
-        .catch(function (requestError) { console.log(requestError); });
+        .catch(function (requestError) { this.client.logger.error(requestError); });
 
       let received;
 
-      const userEmbed = new DiscordJS.MessageEmbed()
+      const userEmbed = new EmbedBuilder()
         .setTitle('Ticket Closed')
         .setColor('#E65DF4')
-        .addField('Transcript URL', url, false)
-        .addField('Reason', reason, false)
-        .addField('Server', msg.guild.name, false)
+        .addFields([
+          { name: 'Transcript URL', value: url, inLine: false },
+          { name: 'Reason', value: reason, inLine: false },
+          { name: 'Server', value: msg.guild.name, inLine: false }
+        ])
         .setFooter({ text: 'Transcripts expire 30 days after last view date.' })
         .setTimestamp();
       await msg.author.send({ embeds: [userEmbed] })
@@ -86,13 +82,15 @@ class Close extends Command {
           received = 'no';
         });
 
-      const logEmbed = new DiscordJS.MessageEmbed()
+      const logEmbed = new EmbedBuilder()
         .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
         .setTitle('Ticket Closed')
-        .addField('Author', `${msg.author} (${msg.author.id})`, false)
-        .addField('Channel', `${tName}: ${msg.channel.id}`, false)
-        .addField('Transcript URL', url, false)
-        .addField('Reason', reason, false)
+        .addFields([
+          { name: 'Author', value: `${msg.author} (${msg.author.id})`, inLine: false },
+          { name: 'Channel', value: `${tName}: ${msg.channel.id}`, inLine: false },
+          { name: 'Transcript URL', value: url, inLine: false },
+          { name: 'Reason', value: reason, inLine: false }
+        ])
         .setColor('#E65DF4')
         .setTimestamp();
       if (received === 'no') logEmbed.setFooter({ text: 'Could not message author.' });
@@ -103,7 +101,7 @@ class Close extends Command {
     }
 
     const response = collected.first().content;
-    const embed = new DiscordJS.MessageEmbed()
+    const embed = new EmbedBuilder()
       .setTitle('Ticket Re-Opened')
       .setDescription(stripIndents`
         Closing of the ticket has been cancelled with the following reason:
@@ -119,4 +117,4 @@ class Close extends Command {
   }
 }
 
-module.exports = Close;
+module.exports = CloseTicket;

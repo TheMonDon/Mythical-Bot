@@ -1,7 +1,7 @@
 const Command = require('../../base/Command.js');
 const { getMember } = require('../../util/Util.js');
 const db = require('quick.db');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 
 class Ban extends Command {
   constructor (client) {
@@ -20,32 +20,34 @@ class Ban extends Command {
     if (!args[0]) return msg.channel.send('Please provide a user and a reason.');
     const banMem = getMember(msg, args[0]);
 
-    if (!msg.guild.me.permissions.has('BAN_MEMBERS')) return msg.channel.send('The bot is missing the ban members permission.');
+    if (!msg.guild.members.me.permissions.has('BAN_MEMBERS')) return msg.channel.send('The bot is missing the ban members permission.');
     if (!msg.member.permissions.has('BAN_MEMBERS')) return msg.channel.send('You do not have permissions to ban members.');
 
     // start reason
     args.shift();
     const reason = args.join(' ');
     if (!reason) return msg.channel.send('Please provide a reason.');
-    if (msg.guild.me.permissions.has('MANAGE_MESSAGES')) msg.delete();
+    if (msg.guild.members.me.permissions.has('MANAGE_MESSAGES')) msg.delete();
     if (!banMem) return msg.channel.send('That user was not found.');
     if (!banMem.bannable) return msg.channel.send('That user is not bannable.');
 
-    const em = new DiscordJS.MessageEmbed()
+    const em = new EmbedBuilder()
       .setTitle('User Banned')
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
-      .setColor('RED')
-      .addField('User', banMem.toString(), true)
-      .addField('Banned By', msg.member.displayName.toString(), true)
-      .addField('Reason', reason, true)
+      .setColor('#ff0000')
+      .addFields([
+        { name: 'User', value: banMem.toString() },
+        { name: 'Banned By', value: msg.member.displayName.toString() },
+        { name: 'Reason', value: reason }
+      ])
       .setFooter({ text: `User ID: ${banMem.id}` })
       .setTimestamp();
     banMem.ban({ reason });
 
     if (logChan) {
-      const em2 = new DiscordJS.MessageEmbed()
+      const em2 = new EmbedBuilder()
         .setTitle('User Banned')
-        .setColor('RED')
+        .setColor('#ff0000')
         .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
         .setDescription('Full info posted in the log channel.');
 

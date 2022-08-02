@@ -1,4 +1,6 @@
 const db = require('quick.db');
+const { ChannelType } = require('discord.js');
+const { DateTime } = require('luxon');
 
 module.exports = class {
   constructor (client) {
@@ -11,8 +13,8 @@ module.exports = class {
 
     if (message.author.bot) return;
 
-    if (message.guild && !message.channel.permissionsFor(this.client.user.id).has('SEND_MESSAGES')) return;
-    if (message.guild && !message.guild.me.permissions.has('SEND_MESSAGES')) return;
+    // if (message.guild && !message.channel.permissionsFor(this.client.user.id).has('SEND_MESSAGES')) return;
+    if (message.guild && !message.guild.members.me.permissions.has('SEND_MESSAGES')) return;
 
     const settings = this.client.getSettings(message.guild);
     message.settings = settings;
@@ -22,24 +24,16 @@ module.exports = class {
     const prefixMention = new RegExp(`^(<@!?${this.client.user.id}>)(\s+)?`);
     if (message.guild && message.content.match(prefixMention)) {
       bool = true;
-      tag = String(message.guild.me);
+      tag = String(message.guild.members.me);
     } else if (message.content.indexOf(settings.prefix) !== 0) {
       // Ticket message storage
 
-      if (message.channel.type === 'text' && message.channel.name.startsWith('ticket-')) {
+      if (message.channel.type === ChannelType.GuildText && message.channel.name.startsWith('ticket-')) {
         if (message.channel.name === 'ticket-logs') return;
         const tix = db.get(`servers.${message.guild.id}.tickets.${message.channel.name}`);
         if (!tix) return;
 
         const tName = message.channel.name;
-
-        const d = new Date();
-        const year = d.getFullYear();
-        const month = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
-        const hour = String(d.getHours()).padStart(2, '0');
-        const min = String(d.getMinutes()).padStart(2, '0');
-        const timestamp = month + '/' + day + '/' + year + ' ' + hour + ':' + min;
 
         const attachments = [];
         const mArray = [...message.attachments?.values()];
@@ -60,14 +54,14 @@ module.exports = class {
           content = message.content;
         }
 
-        const output = `${timestamp} - [${message.author.tag}]: \n${content}`;
+        const output = `${DateTime.now().toLocaleString(DateTime.DATETIME_FULL)} - [${message.author.tag}]: \n${content}`;
 
         db.push(`servers.${message.guild.id}.tickets.${tName}.chatLogs`, output);
         return;
       }
 
       // Economy chat money event
-      if (message.channel.type === 'dm') return;
+      if (message.channel.type === ChannelType.DM) return;
       const msg = message;
       const server = msg.guild;
       const member = msg.member;

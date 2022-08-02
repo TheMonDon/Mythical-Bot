@@ -1,6 +1,6 @@
 const Command = require('../../base/Command.js');
 const db = require('quick.db');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const moment = require('moment');
 
 class WarnInfo extends Command {
@@ -27,16 +27,18 @@ class WarnInfo extends Command {
     const victim = await this.client.users.fetch(user);
     const moderator = await this.client.users.fetch(mod);
 
-    const em = new DiscordJS.MessageEmbed()
+    const em = new EmbedBuilder()
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
       .setColor('#0099CC')
-      .addField('Case ID', caseID.toString(), true)
-      .addField('User', victim.toString(), true)
-      .addField('Points', points.toString(), true)
-      .addField('Moderator', moderator.toString(), true)
-      .addField('Warned on', moment(timestamp).format('LLL'), true)
-      .addField('Message URL', messageURL, true)
-      .addField('Reason', reason, false);
+      .addFields([
+        { name: 'Case ID', value: caseID.toString() },
+        { name: 'User', value: victim.toString() },
+        { name: 'Points', value: points.toString() },
+        { name: 'Moderator', value: moderator.toString() },
+        { name: 'Warned on', value: moment(timestamp).format('LLL') },
+        { name: 'Message URL', value: messageURL },
+        { name: 'Reason', value: reason, inLine: false }
+      ]);
     return msg.channel.send({ embeds: [em] });
   }
 }

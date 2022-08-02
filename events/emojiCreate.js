@@ -1,5 +1,5 @@
 const db = require('quick.db');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 
 module.exports = class {
   constructor (client) {
@@ -16,15 +16,17 @@ module.exports = class {
     const logChannel = emoji.guild.channels.cache.get(logChan);
     if (!logChannel.permissionsFor(this.client.user.id).has('SEND_MESSAGES')) return;
 
-    const embed = new DiscordJS.MessageEmbed();
-    embed.setTitle('Emoji Created');
-    embed.setColor('#20fc3a');
-    embed.setThumbnail(emoji.url);
-    embed.addField('Name', emoji.name, true);
-    embed.addField('Identifier', emoji.identifier, true);
-    embed.addField('Is Animated?', emoji.animated, true);
-    embed.setFooter({ text: `ID: ${emoji.id}` });
-    embed.setTimestamp();
+    const embed = new EmbedBuilder()
+      .setTitle('Emoji Created')
+      .setColor('#20fc3a')
+      .setThumbnail(emoji.url)
+      .addFields([
+        { name: 'Name', value: emoji.name },
+        { name: 'Identifier', value: emoji.identifier },
+        { name: 'Is Animated?', value: emoji.animated }
+      ])
+      .setFooter({ text: `ID: ${emoji.id}` })
+      .setTimestamp();
     emoji.guild.channels.cache.get(logChan).send({ embeds: [embed] });
 
     db.add(`servers.${emoji.guild.id}.logs.emoji-created`, 1);

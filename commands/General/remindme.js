@@ -1,6 +1,6 @@
 const Command = require('../../base/Command.js');
 const { randomString } = require('../../util/Util.js');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder, ChannelType } = require('discord.js');
 const moment = require('moment');
 require('moment-duration-format');
 const db = require('quick.db');
@@ -62,11 +62,13 @@ class RemindMe extends Command {
       return (~~(Math.random() * 16)).toString(16);
     });
 
-    const embed = new DiscordJS.MessageEmbed()
+    const embed = new EmbedBuilder()
       .setColor(rand)
       .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
-      .addField('I will remind you to:', `\`\`\`${message}\`\`\``, true)
-      .addField('in:', `\`\`\`${timeString}\`\`\``, true)
+      .addFields([
+        { name: 'I will remind you to:', value: `\`\`\`${message}\`\`\`` },
+        { name: 'in:', value: `\`\`\`${timeString}\`\`\`` }
+      ])
       .setFooter({ text: `ID: ${remID} | Got it! I'll remind you on:` })
       .setTimestamp(start);
     msg.channel.send({ embeds: [embed] });
@@ -75,7 +77,7 @@ class RemindMe extends Command {
       createdAt: now.getTime(),
       triggerOn: start,
       reminder: message,
-      channelID: msg.channel.type === 'dm' ? null : msg.channel.id,
+      channelID: msg.channel.type === ChannelType.DM ? null : msg.channel.id,
       userID: msg.author.id,
       color: rand,
       remID

@@ -1,6 +1,6 @@
 const Command = require('../../base/Command.js');
 const db = require('quick.db');
-const { MessageEmbed } = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 
 class Leaderboard extends Command {
   constructor (client) {
@@ -62,8 +62,8 @@ class Leaderboard extends Command {
         }
       }
     }
-    const embed = new MessageEmbed()
-      .setColor('RANDOM')
+    const embed = new EmbedBuilder()
+      .setColor('#0099CC')
       .setTitle(`${msg.guild.name}'s Leaderboard`)
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
       .setDescription(abc123.join('\n'))

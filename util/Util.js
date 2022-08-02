@@ -1,6 +1,6 @@
 const db = require('quick.db');
-const yes = ['yes', 'y', 'ye', 'yeah', 'yup', 'yea', 'ya', 'hai', 'si', 'sí', 'oui', 'はい', 'correct', 'sure'];
-const no = ['no', 'n', 'nah', 'nope', 'nop', 'iie', 'いいえ', 'non', 'fuck off'];
+const yes = ['yes', 'y', 'ye', 'yeah', 'yup', 'yea', 'ya', 'correct', 'sure', 'hell yeah'];
+const no = ['no', 'n', 'nah', 'nope', 'fuck off', 'nada'];
 const inviteRegex = /(https?:\/\/)?(www\.|canary\.|ptb\.)?discord(\.gg|(app)?\.com\/invite|\.me)\/([^ ]+)\/?/gi;
 const botInvRegex = /(https?:\/\/)?(www\.|canary\.|ptb\.)?discord(app)?\.com\/(api\/)?oauth2\/authorize\?([^ ]+)\/?/gi;
 

@@ -68,8 +68,8 @@ class Hangman extends Command {
 
           embedtitlechances = lang.hangman_embedtitlechances.replace('%chances', chances);
           const embeddescription = lang.hangman_embeddescription.replace('%word', `\`\`${newWordString.join(' ')}\`\``);
-          const firstEmbed = new Discord.MessageEmbed()
-            .setColor('BLUE')
+          const firstEmbed = new Discord.EmbedBuilder()
+            .setColor('#0000FF')
             .setTitle(lang.hangman_embedtitlestart)
             .setFooter({ text: embedtitlechances })
             .setImage(hangmanPictures[15 - chances])
@@ -86,7 +86,7 @@ class Hangman extends Command {
             try {
               if (message) {
                 await message.delete();
-                if (msg.guild.me.permissions.has('MANAGE_MESSAGES')) await response.first().delete();
+                if (msg.guild.members.me.permissions.has('MANAGE_MESSAGES')) await response.first().delete();
               }
 
               if (turn === 1) {
@@ -134,14 +134,14 @@ class Hangman extends Command {
                         const mentiongamewon = lang.hangman_mentiongamewon.replace('%author', msg.author)
                           .replace('%word', wordToGuess);
                         await message.delete();
-                        if (msg.guild.me.permissions.has('MANAGE_MESSAGES')) await response.first().delete();
+                        if (msg.guild.members.me.permissions.has('MANAGE_MESSAGES')) await response.first().delete();
                         return msg.channel.send(mentiongamewon);
                       }
                       if (!newWordString.includes('_') && turn === 2) {
                         const mentiongamewon = lang.hangman_mentiongamewon.replace('%author', mention)
                           .replace('%word', wordToGuess);
                         await message.delete();
-                        if (msg.guild.me.permissions.has('MANAGE_MESSAGES')) await response.first().delete();
+                        if (msg.guild.members.me.permissions.has('MANAGE_MESSAGES')) await response.first().delete();
                         return msg.channel.send(mentiongamewon);
                       }
                     } else {
@@ -176,7 +176,7 @@ class Hangman extends Command {
                         hangmanEmbed.edit({ embeds: [firstEmbed] });
                         const mentionnowin = lang.hangman_mentionnowin.replace('%word', wordToGuess);
                         await message.delete();
-                        if (msg.guild.me.permissions.has('MANAGE_MESSAGES')) await response.first().delete();
+                        if (msg.guild.members.me.permissions.has('MANAGE_MESSAGES')) await response.first().delete();
                         this.client.games.delete(msg.channel.id);
                         return msg.channel.send(mentionnowin);
                       }
@@ -200,14 +200,14 @@ class Hangman extends Command {
                             .replace('%word', response.first().content.toLowerCase());
                           this.client.games.delete(msg.channel.id);
                           await message.delete();
-                          if (msg.guild.me.permissions.has('MANAGE_MESSAGES')) await response.first().delete();
+                          if (msg.guild.members.me.permissions.has('MANAGE_MESSAGES')) await response.first().delete();
                           return msg.channel.send(mentiongamewon);
                         }
                         const mentiongamewon = lang.hangman_mentiongamewon.replace('%author', mention)
                           .replace('%word', response.first().content.toLowerCase());
                         this.client.games.delete(msg.channel.id);
                         await message.delete();
-                        if (msg.guild.me.permissions.has('MANAGE_MESSAGES')) await response.first().delete();
+                        if (msg.guild.members.me.permissions.has('MANAGE_MESSAGES')) await response.first().delete();
                         return msg.channel.send(mentiongamewon);
                       }
 
@@ -244,11 +244,11 @@ class Hangman extends Command {
             }
           }
         } else if (r.emoji.name === '👎') {
-          if (msg.guild.me.permissions.has('MANAGE_MESSAGES')) await questionMessage.delete();
+          if (msg.guild.members.me.permissions.has('MANAGE_MESSAGES')) await questionMessage.delete();
           this.client.games.delete(msg.channel.id);
           msg.reply(lang.hangman_dontwanttoplay);
         } else {
-          if (msg.guild.me.permissions.has('MANAGE_MESSAGES')) await questionMessage.delete();
+          if (msg.guild.members.me.permissions.has('MANAGE_MESSAGES')) await questionMessage.delete();
           this.client.games.delete(msg.channel.id);
           msg.reply(lang.hangman_dontwanttoplay);
         }
@@ -260,8 +260,8 @@ class Hangman extends Command {
     } else {
       embedtitlechances = lang.hangman_embedtitlechances.replace('%chances', chances);
       const embeddescription = lang.hangman_embeddescription.replace('%word', `\`\`${newWordString.join(' ')}\`\``);
-      const firstEmbed = new Discord.MessageEmbed()
-        .setColor('BLUE')
+      const firstEmbed = new Discord.EmbedBuilder()
+        .setColor('#0000FF')
         .setTitle(lang.hangman_embedtitlestart)
         .setFooter({ text: embedtitlechances })
         .setImage(hangmanPictures[15 - chances])
@@ -276,7 +276,7 @@ class Hangman extends Command {
         try {
           if (message) {
             await message.delete();
-            if (msg.guild.me.permissions.has('MANAGE_MESSAGES')) await response.first().delete();
+            if (msg.guild.members.me.permissions.has('MANAGE_MESSAGES')) await response.first().delete();
           }
           message = await msg.reply(lang.hangman_letterorwordmessagenomention);
           response = await msg.channel.awaitMessages({
@@ -306,7 +306,7 @@ class Hangman extends Command {
                   const gamewon = lang.hangman_gamewon.replace('%word', wordToGuess);
                   if (!newWordString.includes('_')) {
                     await message.delete();
-                    if (msg.guild.me.permissions.has('MANAGE_MESSAGES')) await response.first().delete();
+                    if (msg.guild.members.me.permissions.has('MANAGE_MESSAGES')) await response.first().delete();
                     this.client.games.delete(msg.channel.id);
                     return msg.reply(gamewon);
                   }
@@ -335,7 +335,7 @@ class Hangman extends Command {
                     hangmanEmbed.edit({ embeds: [firstEmbed] });
                     const gamelost = lang.hangman_gamelost.replace('%word', wordToGuess);
                     await message.delete();
-                    if (msg.guild.me.permissions.has('MANAGE_MESSAGES')) await response.first().delete();
+                    if (msg.guild.members.me.permissions.has('MANAGE_MESSAGES')) await response.first().delete();
                     this.client.games.delete(msg.channel.id);
                     return msg.reply(gamelost);
                   }
@@ -355,7 +355,7 @@ class Hangman extends Command {
                     hangmanEmbed.edit({ embeds: [firstEmbed] });
                     const gamewon = lang.hangman_gamewon.replace('%word', wordToGuess);
                     await message.delete();
-                    if (msg.guild.me.permissions.has('MANAGE_MESSAGES')) await response.first().delete();
+                    if (msg.guild.members.me.permissions.has('MANAGE_MESSAGES')) await response.first().delete();
                     this.client.games.delete(msg.channel.id);
                     return msg.reply(gamewon);
                   }

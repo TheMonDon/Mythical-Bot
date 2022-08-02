@@ -1,5 +1,5 @@
 const db = require('quick.db');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 
 module.exports = class {
   constructor (client) {
@@ -18,13 +18,15 @@ module.exports = class {
       if (!logChannel.permissionsFor(this.client.user.id).has('SEND_MESSAGES')) return;
 
       await member.guild.members.fetch();
-      const embed = new DiscordJS.MessageEmbed()
+      const embed = new EmbedBuilder()
         .setTitle('Member Left')
         .setColor('#3dd0f4')
         .setAuthor({ name: member.user.tag, iconURL: member.user.displayAvatarURL() })
         .setThumbnail(member.user.displayAvatarURL())
-        .addField('User', member.toString(), true)
-        .addField('Member Count', member.guild.members.cache.size.toLocaleString(), true)
+        .addFields([
+          { name: 'User', value: member.toString() },
+          { name: 'Member Count', value: member.guild.members.cache.size.toLocaleString() }
+        ])
         .setFooter({ text: `ID: ${member.user.id}` })
         .setTimestamp();
       member.guild.channels.cache.get(logChan).send({ embeds: [embed] });
@@ -36,7 +38,7 @@ module.exports = class {
       const toggle = db.get(`servers.${member.guild.id}.proles.system`) || false;
       if (!toggle) return;
 
-      if (!member.guild.me.permissions.has('MANAGE_ROLES')) return;
+      if (!member.guild.members.me.permissions.has('MANAGE_ROLES')) return;
       if (member.user.bot) return;
 
       const roles = [...member.roles?.cache.values()];
@@ -57,8 +59,8 @@ module.exports = class {
     // Replace the placeholders in the welcome message with actual data
     const leaveMessage = settings.leaveMessage.replace('{{user}}', member.user.tag).replace('{{guild}}', member.guild.name);
 
-    const em = new DiscordJS.MessageEmbed()
-      .setColor('RANDOM')
+    const em = new EmbedBuilder()
+      .setColor('#0099CC')
       .setTitle('Goodbye')
       .setAuthor({ name: member.user.tag, iconURL: member.user.displayAvatarURL() })
       .setDescription(leaveMessage)

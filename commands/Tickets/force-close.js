@@ -1,7 +1,8 @@
 const Command = require('../../base/Command.js');
 const db = require('quick.db');
-const DiscordJS = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const hastebin = require('hastebin');
+const { DateTime } = require('luxon');
 
 class forceClose extends Command {
   constructor (client) {
@@ -66,15 +67,7 @@ class forceClose extends Command {
     if (!chan) return msg.channel.send('That is not a valid ticket, or has already been closed.');
 
     // Logging info
-    const d = new Date();
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    const hour = String(d.getHours()).padStart(2, '0');
-    const min = String(d.getMinutes()).padStart(2, '0');
-    const timestamp = month + '/' + day + '/' + year + ' ' + hour + ':' + min;
-
-    const output = `${timestamp} - ${msg.author.tag} has requested to force-close this ticket. \nTranscript will be sent to ticket owner.`;
+    const output = `${DateTime.now().toLocaleString(DateTime.DATETIME_FULL)} - ${msg.author.tag} has requested to force-close this ticket. \nTranscript will be sent to ticket owner.`;
 
     db.push(`servers.${msg.guild.id}.tickets.${tName}.chatLogs`, output);
 
@@ -91,33 +84,37 @@ class forceClose extends Command {
       .then(function (urlToPaste) {
         url = urlToPaste;
       })
-      .catch(function (requestError) { console.log(requestError); });
+      .catch(function (requestError) { this.client.logger.error(requestError); });
 
     let received;
 
     const tOwner = await msg.guild.members.cache.get(owner);
 
-    const userEmbed = new DiscordJS.MessageEmbed()
+    const userEmbed = new EmbedBuilder()
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
       .setTitle('Ticket Closed')
       .setColor('#E65DF4')
-      .addField('Ticket Name', `${tName}`, false)
-      .addField('Transcript URL', url, false)
-      .addField('Reason', reason, false)
-      .addField('Server', msg.guild.name, false)
-      .addField('Closed By', `${msg.author} (${msg.author.id})`, false)
+      .addFields([
+        { name: 'Ticket Name', value: `${tName}`, inLine: false },
+        { name: 'Transcript URL', value: url, inLine: false },
+        { name: 'Reason', value: reason, inLine: false },
+        { name: 'Server', value: msg.guild.name, inLine: false },
+        { name: 'Closed By', value: `${msg.author} (${msg.author.id})`, inLine: false }
+      ])
       .setFooter({ text: 'Transcripts expire 30 days after last view date.' })
       .setTimestamp();
     await tOwner.send({ embeds: [userEmbed] })
       .catch(() => { received = 'no'; });
 
-    const logEmbed = new DiscordJS.MessageEmbed()
+    const logEmbed = new EmbedBuilder()
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
       .setTitle('Ticket Closed')
-      .addField('Author', `${tOwner} (${tOwner.id})`, false)
-      .addField('Channel', `${tName}: ${chan.id}`, false)
-      .addField('Transcript URL', url, false)
-      .addField('Reason', reason, false)
+      .addFields([
+        { name: 'Author', value: `${tOwner} (${tOwner.id})`, inLine: false },
+        { name: 'Channel', value: `${tName}: ${chan.id}`, inLine: false },
+        { name: 'Transcript URL', value: url, inLine: false },
+        { name: 'Reason', value: reason, inLine: false }
+      ])
       .setColor('#E65DF4')
       .setTimestamp();
     if (received === 'no') logEmbed.setFooter({ text: 'Could not message author.' });
