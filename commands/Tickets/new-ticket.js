@@ -1,7 +1,7 @@
 const Command = require('../../base/Command.js');
 const { getTickets } = require('../../util/Util.js');
 const db = require('quick.db');
-const { EmbedBuilder } = require('discord.js');
+const { EmbedBuilder, ChannelType } = require('discord.js');
 const { stripIndents } = require('common-tags');
 const { DateTime } = require('luxon');
 
@@ -69,7 +69,7 @@ class NewTicket extends Command {
 
     str = str.toLowerCase();
     const tName = `ticket-${str}-${count}`;
-    const tixChan = await msg.guild.channels.create(tName, { type: 'text', parent: catID, permissionOverwrites: perms, topic: reason });
+    const tixChan = await msg.guild.channels.create(tName, { type: ChannelType.GuildText, parent: catID, permissionOverwrites: perms, topic: reason });
 
     db.set(`servers.${msg.guild.id}.tickets.${tName}.owner`, msg.author.id);
 
