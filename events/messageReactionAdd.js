@@ -58,7 +58,7 @@ module.exports = class {
         }
       }
       const tName = `ticket-${str}-${count}`;
-      const tixChan = await msg.guild.channels.create(tName, { type: ChannelType.GuildText, parent: catID, permissionOverwrites: perms, topic: reason });
+      const tixChan = await msg.guild.channels.create({ name: tName, type: ChannelType.GuildText, parent: catID, permissionOverwrites: perms, topic: reason });
 
       db.set(`servers.${msg.guild.id}.tickets.${tName}.owner`, member.id);
 

@@ -1,6 +1,6 @@
 const Command = require('../../base/Command.js');
 const { getChannel, getRole } = require('../../util/Util.js');
-const { EmbedBuilder } = require('discord.js');
+const { EmbedBuilder, ChannelType } = require('discord.js');
 const db = require('quick.db');
 const { stripIndents } = require('common-tags');
 
@@ -132,7 +132,7 @@ class Setup extends Command {
         }
       ];
 
-      const category = await msg.guild.channels.create('Tickets', { type: 'GUILD_CATEGORY', reason: 'Setting up tickets system', permissionOverwrites: catPerms });
+      const category = await msg.guild.channels.create({ name: 'Tickets', type: ChannelType.GuildCategory, reason: 'Setting up tickets system', permissionOverwrites: catPerms });
       db.set(`servers.${msg.guild.id}.tickets.catID`, category.id);
 
       const embed = new EmbedBuilder();
@@ -168,7 +168,7 @@ class Setup extends Command {
 
         const response2 = collected3.first().content.toLowerCase();
         embed.setDescription(response2);
-        const rchan = await msg.guild.channels.create('new-ticket', { type: 'GUILD_TEXT', parent: category.id, permissionOverwrites: reactPerms });
+        const rchan = await msg.guild.channels.create({ name: 'new-ticket', type: ChannelType.GuildText, parent: category.id, permissionOverwrites: reactPerms });
         const embed1 = await rchan.send({ embeds: [embed] });
         await embed1.react('📰');
 
@@ -176,7 +176,7 @@ class Setup extends Command {
       }
 
       // Do the rest of the stuff here after creating embed
-      const tixLog = await msg.guild.channels.create('ticket-logs', { type: 'GUILD_TEXT', parent: category.id, permissionOverwrites: logPerms });
+      const tixLog = await msg.guild.channels.create({ name: 'ticket-logs', type: ChannelType.GuildText, parent: category.id, permissionOverwrites: logPerms });
 
       db.set(`servers.${msg.guild.id}.tickets.logID`, tixLog.id);
 
