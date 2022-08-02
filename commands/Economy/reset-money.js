@@ -7,16 +7,15 @@ class ResetMoney extends Command {
   constructor (client) {
     super(client, {
       name: 'reset-money',
-      description: 'Reset money of you or another member',
+      description: 'Reset the money of a user.',
       category: 'Economy',
-      usage: 'Reset-Money <user>',
+      usage: 'Reset-Money [user]',
       aliases: ['resetmoney', 'rm'],
-      permLevel: 'Moderator',
       guildOnly: true
     });
   }
 
-  async run (msg, text) {
+  async run (msg, text, level) {
     let mem;
 
     if (!text || text.length < 1) {
@@ -31,6 +30,16 @@ class ResetMoney extends Command {
         return msg.channel.send('Cancelled, your money will not be reset.');
       }
     } else {
+      if (level < this.client.levelCache.Moderator) {
+        if (this.client.settings.systemNotice === 'true') {
+          return msg.channel.send(`You do not have permission to use this command.
+  Your permission level is ${level} (${this.client.config.permLevels.find(l => l.level === level).name})
+  This command requires level ${this.client.levelCache.Moderator} (Moderator)`);
+        } else {
+          return;
+        }
+      }
+
       mem = getMember(msg, text.join(' '));
 
       if (!mem) {

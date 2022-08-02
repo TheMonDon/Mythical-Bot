@@ -213,16 +213,17 @@ class Color extends Command {
     };
 
     if (!embed.title) embed.setTitle('Color Information');
-    embed.setThumbnail(`https://dummyimage.com/100x100/${color.hex}.png&text=+`);
-    embed.setColor(color.hex);
-    embed.setDescription(stripIndent(`
+    embed
+      .setThumbnail(`https://dummyimage.com/100x100/${color.hex}.png&text=+`)
+      .setColor(color.hex)
+      .setDescription(stripIndent(`
           **Name:** ${toProperCase(color.css)}
           **Hex:** #${color.hex}
           **Rgb:** rgb(${color.rgb})
           **Hsl:** hsl(${color.hsl})
           **Cmyk:** cmyk(${color.cmyk})
           `));
-    msg.channel.send({ embeds: [embed] });
+    return msg.channel.send({ embeds: [embed] });
   }
 }
 

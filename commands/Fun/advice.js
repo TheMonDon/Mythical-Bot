@@ -8,8 +8,7 @@ class Advice extends Command {
       name: 'advice',
       description: 'Get a random piece of advice.',
       usage: 'advice',
-      category: 'Fun',
-      aliases: ['num']
+      category: 'Fun'
     });
   }
 
