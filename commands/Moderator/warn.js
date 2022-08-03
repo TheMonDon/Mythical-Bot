@@ -115,7 +115,7 @@ class Warn extends Command {
         { name: 'Case ID', value: `\`${warnID}\`` },
         { name: 'Points', value: `${points} points (Total: ${warnAmount} points)` },
         { name: 'Other Cases', value: otherCases },
-        { name: 'Reason', value: reason, inLine: false }
+        { name: 'Reason', value: reason, inline: false }
       ])
       .setFooter({ text: `Issued in ${msg.guild.name}` });
     const um = await mem.send({ embeds: [userEm] }).catch(() => null);
@@ -130,7 +130,7 @@ class Warn extends Command {
         { name: 'Case ID', value: `\`${warnID}\`` },
         { name: 'Points', value: `${points} points (Total: ${warnAmount} points)` },
         { name: 'Other Cases', value: otherCases },
-        { name: 'Reason', value: reason, inLine: false }
+        { name: 'Reason', value: reason, inline: false }
       ]);
     if (!um) logEmbed.setFooter({ text: `Failed to message the user in question • User ID: ${mem.id}` });
     const logMessage = logChan ? await msg.guild.channels.cache.get(logChan).send({ embeds: [logEmbed] }) : await msg.channel.send({ embeds: [logEmbed] });

@@ -62,9 +62,9 @@ role-updated
 emoji-created
 emoji-deleted
 bulk-messages-deleted`,
-          inLine: true
+          inline: true
         },
-        { name: 'Other Usage:', value: 'logtoggle <enable/disable> <channel> to enable/disable a channel from being logged.', inLine: false }
+        { name: 'Other Usage:', value: 'logtoggle <enable/disable> <channel> to enable/disable a channel from being logged.', inline: false }
       ]);
     if (['enable', 'disable'].includes(args?.[0].toLowerCase())) {
       if (args?.[0].toLowerCase() === 'enable') {

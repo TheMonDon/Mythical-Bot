@@ -71,9 +71,9 @@ class CloseTicket extends Command {
         .setTitle('Ticket Closed')
         .setColor('#E65DF4')
         .addFields([
-          { name: 'Transcript URL', value: url, inLine: false },
-          { name: 'Reason', value: reason, inLine: false },
-          { name: 'Server', value: msg.guild.name, inLine: false }
+          { name: 'Transcript URL', value: url, inline: false },
+          { name: 'Reason', value: reason, inline: false },
+          { name: 'Server', value: msg.guild.name, inline: false }
         ])
         .setFooter({ text: 'Transcripts expire 30 days after last view date.' })
         .setTimestamp();
@@ -86,10 +86,10 @@ class CloseTicket extends Command {
         .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
         .setTitle('Ticket Closed')
         .addFields([
-          { name: 'Author', value: `${msg.author} (${msg.author.id})`, inLine: false },
-          { name: 'Channel', value: `${tName}: ${msg.channel.id}`, inLine: false },
-          { name: 'Transcript URL', value: url, inLine: false },
-          { name: 'Reason', value: reason, inLine: false }
+          { name: 'Author', value: `${msg.author} (${msg.author.id})`, inline: false },
+          { name: 'Channel', value: `${tName}: ${msg.channel.id}`, inline: false },
+          { name: 'Transcript URL', value: url, inline: false },
+          { name: 'Reason', value: reason, inline: false }
         ])
         .setColor('#E65DF4')
         .setTimestamp();

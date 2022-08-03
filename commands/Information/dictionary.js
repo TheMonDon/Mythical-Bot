@@ -34,9 +34,9 @@ class Dictionary extends Command {
           .setColor('#0099CC')
           .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
           .addFields([
-            { name: 'Definition', value: definition, inLine: true },
-            { name: 'Example', value: example || 'No example provided', inLine: true },
-            { name: 'Pronunciation', value: result.pronunciation || 'No pronunciation provided', inLine: true }
+            { name: 'Definition', value: definition, inline: true },
+            { name: 'Example', value: example || 'No example provided', inline: true },
+            { name: 'Pronunciation', value: result.pronunciation || 'No pronunciation provided', inline: true }
           ]);
         if (result.definitions?.[0].image_url) em.setThumbnail(result.definitions[0].image_url);
         return msg.channel.send({ embeds: [em] });

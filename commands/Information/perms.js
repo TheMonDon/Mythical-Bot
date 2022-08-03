@@ -45,7 +45,7 @@ class Perms extends Command {
           \`Manage Webhooks\`| ${infoMem.permissions.has('ManageWebhooks') ? yes : no}
           \`Manage Server\`| ${infoMem.permissions.has('ManageGuild') ? yes : no}
           `,
-          inLine: true
+          inline: true
         },
         {
           name: '➢ __Membership Permissions:__',
@@ -57,7 +57,7 @@ class Perms extends Command {
           \`Ban Members\`| ${infoMem.permissions.has('BanMembers') ? yes : no}
           \`Timeout Members\`| ${infoMem.permissions.has('ModerateMembers') ? yes : no}
           `,
-          inLine: true
+          inline: true
         },
         {
           name: '➢ __Text Channel Permissions:__',
@@ -77,7 +77,7 @@ class Perms extends Command {
           \`Send Text-to-Speech Messages\`| ${infoMem.permissions.has('SendTTSMessages') ? yes : no}
           \`Use Application Commands\`| ${infoMem.permissions.has('UseApplicationCommands') ? yes : no}
           `,
-          inLine: true
+          inline: true
         },
         {
           name: '➢ __Voice Permissions:__',
@@ -91,21 +91,21 @@ class Perms extends Command {
           \`Deafen Members\`| ${(infoMem.permissions.has('DeafenMembers') ? yes : no)}
           \`Move Members\`| ${(infoMem.permissions.has('MoveMembers') ? yes : no)}
           `,
-          inLine: true
+          inline: true
         },
         {
           name: '➢ __Stage Channel Permissions:__',
           value: stripIndents`
           \`Request to Speak\`| ${infoMem.permissions.has('RequestToSpeak') ? yes : no}
           `,
-          inLine: true
+          inline: true
         },
         {
           name: '➢ __Advanced Permissions:__',
           value: stripIndents`
           \`Administrator\`| ${infoMem.permissions.has('Administrator') ? yes : no}
           `,
-          inLine: true
+          inline: true
         }
       ]);
 

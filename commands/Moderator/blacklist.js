@@ -93,11 +93,11 @@ class Blacklist extends Command {
         .setTitle(`${mem.user.tag} blacklist check`)
         .setColor('#0099CC')
         .addFields([
-          { name: 'Member:', value: `${mem.user.tag} (${mem.id})`, inLine: true },
+          { name: 'Member:', value: `${mem.user.tag} (${mem.id})`, inline: true },
           { name: 'Is Blacklisted?', value: `That user ${bl} blacklisted.` }
         ])
         .setTimestamp();
-      if (reason) em.addFields([{ name: 'reason', value: reason, inLine: true }]);
+      if (reason) em.addFields([{ name: 'reason', value: reason, inline: true }]);
 
       return msg.channel.send({ embeds: [em] });
     }

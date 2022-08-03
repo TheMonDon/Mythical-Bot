@@ -25,15 +25,15 @@ class BotInfo extends Command {
       .setAuthor({ name: this.client.user.username, iconURL: this.client.user.displayAvatarURL() })
       .setThumbnail(this.client.user.displayAvatarURL())
       .addFields([
-        { name: 'Uptime', value: botuptime, inLine: true },
-        { name: 'Ping', value: Math.floor(this.client.ws.ping).toLocaleString(), inLine: true },
-        { name: 'Guilds', value: this.client.guilds.cache.size.toLocaleString(), inLine: true },
-        { name: 'Commands Used', value: db.get('global.commands').toLocaleString(), inLine: false },
-        { name: 'Discord.js', value: version, inLine: true },
-        { name: 'Node', value: process.version, inLine: true },
-        { name: 'RAM Usage', value: `${Math.floor((process.memoryUsage().heapUsed / 1024) / 1024).toLocaleString()} MB`, inLine: true },
-        { name: 'Bot Version', value: pjson.version, inLine: true },
-        { name: 'Invite', value: '[https://cisn.xyz/mythical](https://cisn.xyz/mythical)', inLine: true }
+        { name: 'Uptime', value: botuptime, inline: true },
+        { name: 'Ping', value: Math.floor(this.client.ws.ping).toLocaleString(), inline: true },
+        { name: 'Guilds', value: this.client.guilds.cache.size.toLocaleString(), inline: true },
+        { name: 'Commands Used', value: db.get('global.commands').toLocaleString(), inline: false },
+        { name: 'Discord.js', value: version, inline: true },
+        { name: 'Node', value: process.version, inline: true },
+        { name: 'RAM Usage', value: `${Math.floor((process.memoryUsage().heapUsed / 1024) / 1024).toLocaleString()} MB`, inline: true },
+        { name: 'Bot Version', value: pjson.version, inline: true },
+        { name: 'Invite', value: '[https://cisn.xyz/mythical](https://cisn.xyz/mythical)', inline: true }
       ]);
     return msg.channel.send({ embeds: [embed] });
   }

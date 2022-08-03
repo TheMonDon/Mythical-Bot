@@ -49,9 +49,9 @@ class MinecraftAccount extends Command {
           .setColor('00FF00')
           .setImage(`https://mc-heads.net/body/${id}`)
           .addFields([
-            { name: 'Name Changes History', value: nc || 'Error fetching data...', inLine: false },
-            { name: 'UUID', value: id.toString(), inLine: false },
-            { name: 'NameMC Link', value: `Click [here](https://es.namemc.com/profile/${id}) to go to their NameMC Profile`, inLine: false }
+            { name: 'Name Changes History', value: nc || 'Error fetching data...', inline: false },
+            { name: 'UUID', value: id.toString(), inline: false },
+            { name: 'NameMC Link', value: `Click [here](https://es.namemc.com/profile/${id}) to go to their NameMC Profile`, inline: false }
           ]);
         return msg.channel.send({ embeds: [em] });
       } catch (err) {

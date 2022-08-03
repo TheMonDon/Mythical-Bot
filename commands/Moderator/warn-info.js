@@ -37,7 +37,7 @@ class WarnInfo extends Command {
         { name: 'Moderator', value: moderator.toString() },
         { name: 'Warned on', value: moment(timestamp).format('LLL') },
         { name: 'Message URL', value: messageURL },
-        { name: 'Reason', value: reason, inLine: false }
+        { name: 'Reason', value: reason, inline: false }
       ]);
     return msg.channel.send({ embeds: [em] });
   }

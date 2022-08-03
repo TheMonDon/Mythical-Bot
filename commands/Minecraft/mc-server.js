@@ -40,10 +40,10 @@ class MinecraftServer extends Command {
       .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
       .setColor('#2ecc71')
       .addFields([
-        { name: 'IP Address:', value: `${body.hostname.toString() || body.ip.toString() + (body.port !== '25565' ? `:${body.port}` : '')}` || 'N/A', inLine: false },
-        { name: 'Version:', value: body.version.toString() || 'N/A', inLine: false },
-        { name: 'Players:', value: `${body.players.online}/${body.players.max}` || 'N/A', inLine: false },
-        { name: 'MOTD:', value: body.motd.clean.toString() || 'N/A', inLine: false }
+        { name: 'IP Address:', value: `${body.hostname.toString() || body.ip.toString() + (body.port !== '25565' ? `:${body.port}` : '')}` || 'N/A', inline: false },
+        { name: 'Version:', value: body.version.toString() || 'N/A', inline: false },
+        { name: 'Players:', value: `${body.players.online}/${body.players.max}` || 'N/A', inline: false },
+        { name: 'MOTD:', value: body.motd.clean.toString() || 'N/A', inline: false }
       ]);
     return msg.channel.send({ embeds: [em] });
   }

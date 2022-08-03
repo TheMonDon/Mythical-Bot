@@ -25,8 +25,8 @@ class Math extends Command {
         .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
         .setColor('#767CC1')
         .addFields([
-          { name: '**📥 Expression**', value: `\`\`\`${text.length > 1000 ? text.slice(0, 1000) + '...' : text}\`\`\``, inLine: false },
-          { name: '**📤 Result**', value: `\`\`\`${solution}\`\`\``, inLine: false }
+          { name: '**📥 Expression**', value: `\`\`\`${text.length > 1000 ? text.slice(0, 1000) + '...' : text}\`\`\``, inline: false },
+          { name: '**📤 Result**', value: `\`\`\`${solution}\`\`\``, inline: false }
         ]);
       return msg.channel.send({ embeds: [embed] });
     } catch (err) {

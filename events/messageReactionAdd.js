@@ -66,9 +66,9 @@ module.exports = class {
         .setAuthor({ name: member.displayName, iconURL: member.user.displayAvatarURL() })
         .setTitle('New Ticket Created')
         .addFields([
-          { name: 'Author', value: `${member} (${member.id})`, inLine: false },
-          { name: 'Channel', value: `${tixChan} \n(${tName}: ${tixChan.id})`, inLine: false },
-          { name: 'Reason', value: reason, inLine: false }
+          { name: 'Author', value: `${member} (${member.id})`, inline: false },
+          { name: 'Channel', value: `${tixChan} \n(${tName}: ${tixChan.id})`, inline: false },
+          { name: 'Reason', value: reason, inline: false }
         ])
         .setColor('#E65DF4')
         .setTimestamp();
@@ -78,7 +78,7 @@ module.exports = class {
       const chanEmbed = new EmbedBuilder()
         .setAuthor({ name: member.displayName, iconURL: member.user.displayAvatarURL() })
         .setTitle(`${member.displayName}'s Ticket`)
-        .addFields([{ name: 'Reason', value: reason, inLine: false }])
+        .addFields([{ name: 'Reason', value: reason, inline: false }])
         .setDescription('Please wait patiently and our support team will be with you shortly.')
         .setColor('#E65DF4')
         .setTimestamp();

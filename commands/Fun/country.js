@@ -308,13 +308,13 @@ class Country extends Command {
         .setColor(0x337fd5)
         .setTitle(countryname)
         .addFields([
-          { name: 'Population', value: countrypopulation.toLocaleString('en'), inLine: true },
-          { name: 'Capital City', value: countrycapital, inLine: true },
-          { name: 'Main Currency', value: countrycurrencyname + ' (' + countrycurrencysymbol + ')', inLine: true },
-          { name: 'Located In', value: countryregion, inLine: true },
-          { name: 'Demonym', value: countrydemonym, inLine: true },
-          { name: 'Native Name', value: countrynativename, inLine: true },
-          { name: 'Area', value: `${countryareakm.toLocaleString('en')}km (${countryaream}m)`, inLine: true }
+          { name: 'Population', value: countrypopulation.toLocaleString('en'), inline: true },
+          { name: 'Capital City', value: countrycapital, inline: true },
+          { name: 'Main Currency', value: countrycurrencyname + ' (' + countrycurrencysymbol + ')', inline: true },
+          { name: 'Located In', value: countryregion, inline: true },
+          { name: 'Demonym', value: countrydemonym, inline: true },
+          { name: 'Native Name', value: countrynativename, inline: true },
+          { name: 'Area', value: `${countryareakm.toLocaleString('en')}km (${countryaream}m)`, inline: true }
         ])
         .setFooter({ text: 'Powered by: restcountries.eu' })
         .setTimestamp();

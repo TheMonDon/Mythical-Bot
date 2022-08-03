@@ -43,8 +43,8 @@ class Movie extends Command {
         .setDescription(body.overview ? body.overview.slice(0, 2048) : 'No description available.')
         .setThumbnail(body.poster_path ? `https://image.tmdb.org/t/p/w500${body.poster_path}` : null)
         .addFields([
-          { name: 'Runtime', value: body.runtime ? `${body.runtime} mins.` : '???', inLine: true },
-          { name: 'Release Date', value: body.release_date || '???', inLine: true },
+          { name: 'Runtime', value: body.runtime ? `${body.runtime} mins.` : '???', inline: true },
+          { name: 'Release Date', value: body.release_date || '???', inline: true },
           { name: 'Genres', value: body.genres.length ? body.genres.map(genre => genre.name).join(', ') : '???' },
           { name: 'Production Companies', value: body.production_companies.length ? body.production_companies.map(c => c.name).join(', ') : '???' }
         ]);

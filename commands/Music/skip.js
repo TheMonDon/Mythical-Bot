@@ -26,7 +26,7 @@ class Skip extends Command {
     const em = new EmbedBuilder()
       .setColor('#00FF00')
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
-      .addFields([{ name: 'Skipped Song', value: song.title, inLine: false }]);
+      .addFields([{ name: 'Skipped Song', value: song.title, inline: false }]);
 
     return msg.channel.send({ embeds: [em] });
   }

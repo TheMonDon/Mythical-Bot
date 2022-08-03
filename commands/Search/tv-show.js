@@ -43,10 +43,10 @@ class TVShow extends Command {
         .setDescription(body.overview ? body.overview.slice(0, 2048) : 'No description available.')
         .setThumbnail(body.poster_path ? `https://image.tmdb.org/t/p/w500${body.poster_path}` : null)
         .addFields([
-          { name: '❯ First Air Date', value: body.first_air_date || '???', inLine: true },
-          { name: '❯ Last Air Date', value: body.last_air_date || '???', inLine: true },
-          { name: '❯ Seasons', value: body.number_of_seasons ? body.number_of_seasons.toLocaleString() : '???', inLine: true },
-          { name: '❯ Episodes', value: body.number_of_episodes ? body.number_of_episodes.toLocaleString() : '???', inLine: true },
+          { name: '❯ First Air Date', value: body.first_air_date || '???', inline: true },
+          { name: '❯ Last Air Date', value: body.last_air_date || '???', inline: true },
+          { name: '❯ Seasons', value: body.number_of_seasons ? body.number_of_seasons.toLocaleString() : '???', inline: true },
+          { name: '❯ Episodes', value: body.number_of_episodes ? body.number_of_episodes.toLocaleString() : '???', inline: true },
           { name: '❯ Genres', value: body.genres.length ? body.genres.map(genre => genre.name).join(', ') : '???' },
           { name: '❯ Production Companies', value: body.production_companies.length ? body.production_companies.map(c => c.name).join(', ') : '???' }
         ]);

@@ -91,9 +91,9 @@ class NewTicket extends Command {
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
       .setTitle('New Ticket Created')
       .addFields([
-        { name: 'Author', value: `${msg.author} (${msg.author.id})`, inLine: false },
-        { name: 'Channel', value: `${tixChan} \n(${tName}: ${tixChan.id})`, inLine: false },
-        { name: 'Reason', value: reason, inLine: false }
+        { name: 'Author', value: `${msg.author} (${msg.author.id})`, inline: false },
+        { name: 'Channel', value: `${tixChan} \n(${tName}: ${tixChan.id})`, inline: false },
+        { name: 'Reason', value: reason, inline: false }
       ])
       .setColor('#E65DF4')
       .setTimestamp();
@@ -103,7 +103,7 @@ class NewTicket extends Command {
     const chanEmbed = new EmbedBuilder()
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
       .setTitle(`${msg.member.displayName}'s Ticket`)
-      .addFields([{ name: 'Reason', value: reason, inLine: false }])
+      .addFields([{ name: 'Reason', value: reason, inline: false }])
       .setDescription('Please wait patiently and our support team will be with you shortly.')
       .setColor('#E65DF4')
       .setTimestamp();

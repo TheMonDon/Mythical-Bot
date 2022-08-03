@@ -49,16 +49,16 @@ class ServerInfo extends Command {
       .setColor('#EE82EE')
       .setThumbnail(msg.guild.iconURL())
       .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
-      .addFields([
-        { name: 'Name', value: server.name },
-        { name: 'ID', value: server.id.toString() },
-        { name: 'Owner', value: server.members.cache.get(server.ownerId).user.tag },
-        { name: 'Verification Level', value: verificationLevel[server.verificationLevel] },
-        { name: 'Channels', value: server.channels.cache.size.toLocaleString() },
-        { name: 'Created At', value: `${ca} \n (${time})` },
-        { name: 'AFK Channel', value: server.afkChannel?.name || 'No AFK Channel' },
-        { name: 'Members', value: server.members.cache.size.toLocaleString() },
-        { name: `Roles (${server.roles.cache.size.toLocaleString()})`, value: server === msg.guild ? roles1 : 'Can\'t display roles outside the server' }
+      .setFields([
+        { name: 'Name', value: server.name, inline: true },
+        { name: 'ID', value: server.id.toString(), inline: true },
+        { name: 'Owner', value: server.members.cache.get(server.ownerId).user.tag, inline: true },
+        { name: 'Verification Level', value: verificationLevel[server.verificationLevel], inline: true },
+        { name: 'Channels', value: server.channels.cache.size.toLocaleString(), inline: true },
+        { name: 'Created At', value: `${ca} \n (${time})`, inline: true },
+        { name: 'AFK Channel', value: server.afkChannel?.name || 'No AFK Channel', inline: true },
+        { name: 'Members', value: server.members.cache.size.toLocaleString(), inline: true },
+        { name: `Roles (${server.roles.cache.size.toLocaleString()})`, value: server === msg.guild ? roles1 : 'Can\'t display roles outside the server', inline: false }
       ]);
     return msg.channel.send({ embeds: [embed] });
   }

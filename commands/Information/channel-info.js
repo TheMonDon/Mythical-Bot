@@ -32,25 +32,25 @@ class ChannelInfo extends Command {
       .setColor('#0099CC')
       .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
       .addFields([
-        { name: 'Name', value: infoChan.name, inLine: true },
-        { name: 'ID', value: infoChan.id.toString(), inLine: true },
-        { name: 'Type', value: ChannelType[msg.channel.type].toString(), inLine: true },
-        { name: 'Position', value: infoChan.position.toString(), inLine: true }
+        { name: 'Name', value: infoChan.name, inline: true },
+        { name: 'ID', value: infoChan.id.toString(), inline: true },
+        { name: 'Type', value: ChannelType[msg.channel.type].toString(), inline: true },
+        { name: 'Position', value: infoChan.position.toString(), inline: true }
       ]);
-    if (infoChan.type === ChannelType.GuildText) embed.addFields([{ name: 'NSFW', value: infoChan.nsfw.toString(), inLine: true }]);
+    if (infoChan.type === ChannelType.GuildText) embed.addFields([{ name: 'NSFW', value: infoChan.nsfw.toString(), inline: true }]);
     if (infoChan.type === ChannelType.GuildVoice) {
       embed.addFields([
-        { name: 'User Limit', value: infoChan.userLimit.toString(), inLine: true },
-        { name: 'Bitrate', value: infoChan.bitrate.toString(), inLine: true }
+        { name: 'User Limit', value: infoChan.userLimit.toString(), inline: true },
+        { name: 'Bitrate', value: infoChan.bitrate.toString(), inline: true }
       ]);
     }
-    if (infoChan.type === ChannelType.GuildCategory) embed.addFields([{ name: 'Children', value: infoChan.children.size.toString(), inLine: true }]);
+    if (infoChan.type === ChannelType.GuildCategory) embed.addFields([{ name: 'Children', value: infoChan.children.size.toString(), inline: true }]);
     embed.addFields([
-      { name: 'Mention', value: `\`${infoChan}\``, inLine: true },
-      { name: 'Created At', value: `${ca} \n(${time})`, inLine: true }
+      { name: 'Mention', value: `\`${infoChan}\``, inline: true },
+      { name: 'Created At', value: `${ca} \n(${time})`, inline: true }
     ]);
-    if (infoChan.parent) embed.addFields([{ name: 'Parent', value: `${infoChan.parent.name} \n\`${infoChan.parentId}\``, inLine: true }]);
-    if (infoChan.type === ChannelType.GuildText) embed.addFields([{ name: 'Topic', value: infoChan.topic || 'None', inLine: false }]);
+    if (infoChan.parent) embed.addFields([{ name: 'Parent', value: `${infoChan.parent.name} \n\`${infoChan.parentId}\``, inline: true }]);
+    if (infoChan.type === ChannelType.GuildText) embed.addFields([{ name: 'Topic', value: infoChan.topic || 'None', inline: false }]);
 
     return msg.channel.send({ embeds: [embed] });
   }

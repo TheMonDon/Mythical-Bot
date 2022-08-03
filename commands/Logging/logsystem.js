@@ -40,7 +40,7 @@ class LogSystem extends Command {
 **Emoji Deleted:** ${db.get(`servers.${msg.guild.id}.logs.log_system.emoji-deleted`) || ':x:'}
 **Bulk Messages Deleted:** ${db.get(`servers.${msg.guild.id}.logs.log_system.bulk-messages-deleted`) || ':x:'}
 `,
-          inLine: true
+          inline: true
         },
         {
           name: 'System Status',
@@ -64,7 +64,7 @@ class LogSystem extends Command {
 **Bulk Messages Deleted:** ${db.get(`servers.${msg.guild.id}.logs.bulk-messages-deleted`) || '0'}
 **Total:** ${db.get(`servers.${msg.guild.id}.logs.all`) || '0'}
 `,
-          inLine: true
+          inline: true
         }
       ])
       .setFooter({ text: 'Logs System V3.1-BETA' });

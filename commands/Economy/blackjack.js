@@ -158,8 +158,8 @@ class BlackJack extends Command {
         .setDescription(`Result: You win ${cs}${bj.bet.toLocaleString()}`)
         .setColor(color)
         .addFields([
-          { name: '**Your Hand**', value: `${pcards} \n\nScore: Blackjack`, inLine: true },
-          { name: '**Dealer Hand**', value: `${dcards} \n\nScore: ${bj.dealer.score}`, inLine: true }
+          { name: '**Your Hand**', value: `${pcards} \n\nScore: Blackjack`, inline: true },
+          { name: '**Dealer Hand**', value: `${dcards} \n\nScore: ${bj.dealer.score}`, inline: true }
         ]);
 
       db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bj.bet); // Add the winning money
@@ -170,8 +170,8 @@ class BlackJack extends Command {
       .setDescription('Type `hit` to draw another card, `stand` to pass, or `doubledown` to double down.')
       .setColor(color)
       .addFields([
-        { name: '**Your Hand**', value: `${pcards} \n\nScore: ${bj.player.score}`, inLine: true },
-        { name: '**Dealer Hand**', value: `${dcards} \n\nScore: ${bj.dealer.score}`, inLine: true }
+        { name: '**Your Hand**', value: `${pcards} \n\nScore: ${bj.player.score}`, inline: true },
+        { name: '**Dealer Hand**', value: `${dcards} \n\nScore: ${bj.dealer.score}`, inline: true }
       ]);
     const mEm = await msg.channel.send({ embeds: [em] });
 
@@ -199,8 +199,8 @@ class BlackJack extends Command {
           .setDescription(`Result: You win ${cs}${bj.bet.toLocaleString()}`)
           .setColor(color)
           .addFields([
-            { name: '**Your Hand**', value: `${pcards} \n\nScore: ${bj.player.score}`, inLine: true },
-            { name: '**Dealer Hand**', value: `${dcards} \n\nScore: ${bj.dealer.score}`, inLine: true }
+            { name: '**Your Hand**', value: `${pcards} \n\nScore: ${bj.player.score}`, inline: true },
+            { name: '**Dealer Hand**', value: `${dcards} \n\nScore: ${bj.dealer.score}`, inline: true }
           ]);
 
         db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bj.bet); // Add the winning money
@@ -214,8 +214,8 @@ class BlackJack extends Command {
           .setDescription(`Result: BlackJack, you win ${cs}${bj.bet.toLocaleString()}`)
           .setColor(color)
           .addFields([
-            { name: '**Your Hand**', value: `${pcards} \n\nScore: ${bj.player.score}`, inLine: true },
-            { name: '**Dealer Hand**', value: `${dcards} \n\nScore: ${bj.dealer.score}`, inLine: true }
+            { name: '**Your Hand**', value: `${pcards} \n\nScore: ${bj.player.score}`, inline: true },
+            { name: '**Dealer Hand**', value: `${dcards} \n\nScore: ${bj.dealer.score}`, inline: true }
           ]);
 
         db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bj.bet); // Add the winning money
@@ -229,8 +229,8 @@ class BlackJack extends Command {
           .setDescription(`Result: Bust, you lose ${cs}${bj.bet.toLocaleString()}`)
           .setColor(color)
           .addFields([
-            { name: '**Your Hand**', value: `${pcards} \n\nScore: ${bj.player.score}`, inLine: true },
-            { name: '**Dealer Hand**', value: `${dcards} \n\nScore: ${bj.dealer.score}`, inLine: true }
+            { name: '**Your Hand**', value: `${pcards} \n\nScore: ${bj.player.score}`, inline: true },
+            { name: '**Dealer Hand**', value: `${dcards} \n\nScore: ${bj.dealer.score}`, inline: true }
           ]);
 
         db.subtract(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bj.bet);
@@ -244,8 +244,8 @@ class BlackJack extends Command {
           .setDescription('Result: Push, money back')
           .setColor(color)
           .addFields([
-            { name: '**Your Hand**', value: `${pcards} \n\nScore: ${bj.player.score}`, inLine: true },
-            { name: '**Dealer Hand**', value: `${dcards} \n\nScore: ${bj.dealer.score}`, inLine: true }
+            { name: '**Your Hand**', value: `${pcards} \n\nScore: ${bj.player.score}`, inline: true },
+            { name: '**Dealer Hand**', value: `${dcards} \n\nScore: ${bj.dealer.score}`, inline: true }
           ]);
 
         return mEm.edit({ embeds: [embed] });
@@ -258,8 +258,8 @@ class BlackJack extends Command {
         .setDescription('Type `hit` to draw another card, `stand` to pass, or `doubledown` to double down.')
         .setColor(color)
         .addFields([
-          { name: '**Your Hand**', value: `${pcards} \n\nScore: ${bj.player.score}`, inLine: true },
-          { name: '**Dealer Hand**', value: `${dcards} \n\nScore: ${bj.dealer.score}`, inLine: true }
+          { name: '**Your Hand**', value: `${pcards} \n\nScore: ${bj.player.score}`, inline: true },
+          { name: '**Dealer Hand**', value: `${dcards} \n\nScore: ${bj.dealer.score}`, inline: true }
         ]);
       mEm.edit({ embeds: [embed] });
     }
