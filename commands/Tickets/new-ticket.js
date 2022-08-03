@@ -21,6 +21,8 @@ class NewTicket extends Command {
     if (!db.get(`servers.${msg.guild.id}.tickets`)) return msg.channel.send('The ticket system has not been setup in this server.');
     const { catID, logID, roleID } = db.get(`servers.${msg.guild.id}.tickets`);
 
+    if (!msg.guild.channels.cache.get(catID)) return msg.channel.send('Please re-run `Setup`, the ticket category is missing.');
+
     if (!msg.guild.members.me.permissions.has('ManageChannels')) return msg.channel.send('The bot is missing Manage Channels permission.');
     if (!msg.guild.members.me.permissions.has('ManageRoles')) return msg.channel.send('The bot is missing Manage Roles permission');
     if (!msg.guild.members.me.permissions.has('ManageMessages')) return msg.channel.send('The bot is missing Manage Messages permission');
