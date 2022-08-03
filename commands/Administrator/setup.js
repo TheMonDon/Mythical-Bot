@@ -145,7 +145,7 @@ class Setup extends Command {
           {
             id: msg.guild.id,
             allow: ['ViewChannel'],
-            deny: ['AddReaction', 'SendMessages']
+            deny: ['AddReactions', 'SendMessages']
           },
           {
             id: msg.guild.members.me.id,
