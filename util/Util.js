@@ -1,26 +1,30 @@
 const db = require('quick.db');
 const yes = ['yes', 'y', 'ye', 'yeah', 'yup', 'yea', 'ya', 'correct', 'sure', 'hell yeah'];
-const no = ['no', 'n', 'nah', 'nope', 'fuck off', 'nada'];
+const no = ['no', 'n', 'nah', 'nope', 'fuck off', 'nada', 'cancel', 'stop'];
 const inviteRegex = /(https?:\/\/)?(www\.|canary\.|ptb\.)?discord(\.gg|(app)?\.com\/invite|\.me)\/([^ ]+)\/?/gi;
 const botInvRegex = /(https?:\/\/)?(www\.|canary\.|ptb\.)?discord(app)?\.com\/(api\/)?oauth2\/authorize\?([^ ]+)\/?/gi;
 
 module.exports = class Util {
   /**
    * Turns an array into a list with defineable ending conjunction
-   * @param {Array} arr The array to turn to a list
-   * @param {} conj Conjunction to end with, default 'and'
+   * @param {Array} array - The array to turn to a list
+   * @param {String} conj - Conjunction to end with, default 'and'
    */
-  static list (arr, conj = 'and') {
-    const len = arr.length;
+  static list (array, conj = 'and') {
+    const len = array.length;
     if (len === 0) return '';
-    if (len === 1) return arr[0];
-    return `${arr.slice(0, -1).join(', ')}${len > 1 ? `${len > 2 ? ',' : ''} ${conj} ` : ''}${arr.slice(-1)}`;
+    if (len === 1) return array[0];
+    return `${array.slice(0, -1).join(', ')}${len > 1 ? `${len > 2 ? ',' : ''} ${conj} ` : ''}${array.slice(-1)}`;
   }
 
   /**
-   * Verify yes/no answer in chat...not done with info
-   * @param {} channel
-   * @param
+   * Verify yes/no answer in channel
+   * @param {GuildChannel} channel - The channel to detect reply
+   * @param {GuildMember} user - The user to detect reply
+   * @param {Number} time - Optional time to wait
+   * @param {Array} extraYes - Optional extra words to detect as Yes
+   * @param {Array} extraNo - Optional extra words to detect as No
+   * @returns {String} - Returns true or false
    */
   static async verify (channel, user, { time = 30000, extraYes = [], extraNo = [] } = {}) {
     const filter = res => {
@@ -41,7 +45,8 @@ module.exports = class Util {
 
   /**
    * Convert text to the proper case.
-   * @param {String} text Text to convert.
+   * @param {String} text - Text to convert.
+   * @returns {String} - Returns text in proper case
    */
   static toProperCase (text) {
     let newText = text;
@@ -51,7 +56,7 @@ module.exports = class Util {
 
   /**
    * Time to pause script
-   * @param {Number} ms Time to pause
+   * @param {Number} ms - Time to pause
    */
   static wait (ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -59,8 +64,11 @@ module.exports = class Util {
 
   /**
    * Strip invites from messages.
-   * @param {String} str String to find invites in
-   * @param {Boolean} guild Boolean whether to check for this invite.
+   * @param {String} str - String to find invites in
+   * @param {Boolean} guild - Boolean whether to check for guild invite type.
+   * @param {Boolean} bot - Boolean whether to check for bot invite type.
+   * @param {String} text - Text to replace the invite with
+   * @returns {String} - String without invites in it
    */
   static stripInvites (str, { guild = true, bot = true, text = '[redacted invite]' } = {}) {
     let string = str;
@@ -70,9 +78,10 @@ module.exports = class Util {
   }
 
   /**
-   * Find guild member through various means.
-   * @param {Message} msg Message object for guild.
-   * @param {string} str String to use to find member.
+   *
+   * @param {Message} msg - Message object
+   * @param {String} str - String to use to find member
+   * @returns {?GuildMember} - Returns member object or false
    */
   static getMember (msg, str) {
     if (!msg.guild) return false;
@@ -86,8 +95,9 @@ module.exports = class Util {
 
   /**
    *
-   * @param {Message} msg
-   * @param {string} str
+   * @param {Message} msg - Message object
+   * @param {String} str - String to use to find role
+   * @returns {?GuildRole}
    */
   static getRole (msg, str) {
     if (!msg.guild) return false;
@@ -100,8 +110,9 @@ module.exports = class Util {
 
   /**
    *
-   * @param {Message} msg
-   * @param {string} str
+   * @param {Message} msg - Message object
+   * @param {string} str - String to use to find channel
+   * @returns {?GuildChannel}
    */
   static getChannel (msg, str) {
     if (!msg.guild) return false;
@@ -113,8 +124,9 @@ module.exports = class Util {
 
   /**
    *
-   * @param {Number} userID
-   * @param {Message} msg
+   * @param {Number} userID - User ID to get warns for
+   * @param {Message} msg - Message Object
+   * @returns {?Array}
    */
   static getWarns (userID, msg) {
     const warns = db.get(`servers.${msg.guild.id}.warns.warnings`);
@@ -132,8 +144,9 @@ module.exports = class Util {
 
   /**
    *
-   * @param {Number} userID
-   * @param {Message} msg
+   * @param {Number} userID - User ID to get points for
+   * @param {Message} msg - Message Object
+   * @returns {Number}
    */
   static getTotalPoints (userID, msg) {
     const warns = Util.getWarns(userID, msg);
@@ -148,9 +161,10 @@ module.exports = class Util {
 
   /**
    *
-   * @param {string} str
-   * @param {Number} minLength
-   * @param {Number} maxLength
+   * @param {String} str - String to clean
+   * @param {Number} minLength - Minimum length of string
+   * @param {Number} maxLength - Maximum length of string
+   * @returns {String}
    */
   static cleanString (str, minLength = 0, maxLength = 2000) {
     const string = String(str);
@@ -159,9 +173,9 @@ module.exports = class Util {
 
   /**
    *
-   * @param {String} haystack Original text
-   * @param {String} needle Text to find in haystack
-   * @param {String} replacement What to replace needle with
+   * @param {String} haystack - Original text
+   * @param {String} needle - Text to find in haystack
+   * @param {String} replacement - What to replace needle with
    */
   static replaceAll (haystack, needle, replacement) {
     return haystack.split(needle).join(replacement);

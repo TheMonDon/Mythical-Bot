@@ -1,5 +1,5 @@
 const Command = require('../../base/Command.js');
-const { getChannel, getRole } = require('../../util/Util.js');
+const { getChannel, getRole, verify } = require('../../util/Util.js');
 const { EmbedBuilder, ChannelType } = require('discord.js');
 const db = require('quick.db');
 const { stripIndents } = require('common-tags');
@@ -24,35 +24,25 @@ class Setup extends Command {
       const filter = m => m.author.id === msg.author.id;
       const filter2 = m => ['y', 'yes', 'n', 'no'].includes(m.content.toLowerCase()) && m.author.id === msg.author.id;
 
-      if (!msg.guild.members.me.permissions.has('ManageChannels')) return msg.channel.send('The bot is missing manage channels permission.');
-      if (!msg.guild.members.me.permissions.has('ManageRoles')) return msg.channel.send('The bot is missing manage roles permission');
-      if (!msg.guild.members.me.permissions.has('ManageMessages')) return msg.channel.send('The bot is missing manage messages permission');
+      if (!msg.guild.members.me.permissions.has('ManageChannels')) return msg.channel.reply('The bot is missing manage channels permission.');
+      if (!msg.guild.members.me.permissions.has('ManageRoles')) return msg.channel.reply('The bot is missing manage roles permission');
+      if (!msg.guild.members.me.permissions.has('ManageMessages')) return msg.channel.reply('The bot is missing manage messages permission');
 
       // Check if the system is setup already
       if (db.get(`servers.${msg.guild.id}.tickets`)) {
         const { catID } = db.get(`servers.${msg.guild.id}.tickets`);
         if (catID) {
           // Alert them of what happens
-          await msg.channel.send(stripIndents`The ticket system has already been setup in this server, do you want to re-run the setup?
+          await msg.channel.send(stripIndents`The ticket system has already been setup in this server. **Do you want to re-run the setup?**
           
           Please note, this will override the old channel categories and log channels, you will have to delete the old ones manually.
   
           Type \`cancel\` to exit.
           `);
 
-          // This is for the first question
-          const collected = await msg.channel.awaitMessages({
-            filter2,
-            max: 1,
-            time: 60000,
-            errors: ['time']
-          });
-          if (!collected) return msg.reply('You did not reply in time, the command has been cancelled.');
-          const response = collected.first().content.toLowerCase();
-
-          if (response.toLowerCase().includes('n', 'no')) return collected.first().reply('Got it! Nothing has been changed.');
-          if (response.toLowerCase() === 'cancel') return collected.first().reply('Got it! The command has been cancelled.');
-          if (response.toLowerCase().includes('y', 'yes')) db.delete(`servers.${msg.guild.id}.tickets`);
+          const collected = await verify(msg.channel, msg.author);
+          if (!collected) return collected.first().reply('Got it! Nothing has been changed.');
+          else db.delete(`servers.${msg.guild.id}.tickets`);
         }
       }
 
@@ -62,7 +52,6 @@ class Setup extends Command {
       Type \`cancel\` to exit.`);
       let reaction;
 
-      // This is for the first question
       const collected = await msg.channel.awaitMessages({
         filter,
         max: 1,
@@ -84,7 +73,7 @@ class Setup extends Command {
       }
       db.set(`servers.${msg.guild.id}.tickets.roleID`, role.id);
 
-      await msg.channel.send(stripIndents`Do you want to create a new ticket reaction menu?
+      await msg.channel.send(stripIndents`Do you want to create a new ticket reaction menu? (yes/no)
         You have 60 seconds.
 
         Type \`cancel\` to exit.`);
@@ -138,8 +127,9 @@ class Setup extends Command {
       const embed = new EmbedBuilder();
       // Create the reaction message stuff
       if (reaction === 'yes') {
-        embed.setTitle('New Ticket');
-        embed.setColor('#00FF00');
+        embed
+          .setTitle('New Ticket')
+          .setColor('#00FF00');
 
         const reactPerms = [
           {
@@ -157,7 +147,7 @@ class Setup extends Command {
           Please note the reaction emoji is: 📰.
           You have 120 seconds.`);
 
-        // This is to ask what to put inside the embed description for reaction role
+        // This is to ask what to put inside the embed description for reaction message
         const collected3 = await msg.channel.awaitMessages({
           filter,
           max: 1,
@@ -191,6 +181,8 @@ class Setup extends Command {
         'channel-created': 'enabled',
         'channel-deleted': 'enabled',
         'channel-updated': 'enabled',
+        'thread-created': 'enabled',
+        'thread-deleted': 'enabled',
         'member-join': 'enabled',
         'member-leave': 'enabled',
         'message-deleted': 'enabled',
@@ -208,29 +200,31 @@ class Setup extends Command {
 
       args.shift();
       const text = args.join(' ');
-      if (!args || args.length < 1) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}setup logging <channel>`);
+      if (!args || args.length < 1) return msg.channel.reply(`Incorrect Usage: ${msg.settings.prefix}setup logging <channel>`);
 
       const chan = getChannel(msg, text);
 
-      if (!chan) return msg.channel.send('Please provide a valid server channel.');
+      if (!chan) return msg.channel.reply('Please provide a valid server channel.');
       const currentChan = db.get(`servers.${msg.guild.id}.logs.channel`);
 
       if (currentChan) {
-        embed.setTitle('Successfully Changed');
-        embed.setColor('#00FF00');
-        embed.setThumbnail('https://cdn.discordapp.com/emojis/482184108555108358.png');
-        embed.setDescription(`Everything related to logs will be posted in ${chan} from now on.`);
-        embed.setTimestamp();
-        embed.setFooter({ text: 'Logs System V3.0-BETA' });
+        embed
+          .setTitle('Successfully Changed')
+          .setColor('#00FF00')
+          .setThumbnail('https://cdn.discordapp.com/emojis/482184108555108358.png')
+          .setDescription(`Everything related to logs will be posted in ${chan} from now on.`)
+          .setTimestamp()
+          .setFooter({ text: 'Logs System V3.1' });
         msg.channel.send({ embeds: [embed] });
       } else {
         db.set(`servers.${msg.guild.id}.logs.logSystem`, logSystem);
-        embed.setTitle('Successfully Set');
-        embed.setColor('#00FF00');
-        embed.setThumbnail('https://cdn.discordapp.com/emojis/482184108555108358.png');
-        embed.setDescription(`Everything related to logs will be posted in ${chan}.`);
-        embed.setTimestamp();
-        embed.setFooter({ text: 'Logs System V3.0-BETA' });
+        embed
+          .setTitle('Successfully Set')
+          .setColor('#00FF00')
+          .setThumbnail('https://cdn.discordapp.com/emojis/482184108555108358.png')
+          .setDescription(`Everything related to logs will be posted in ${chan}.`)
+          .setTimestamp()
+          .setFooter({ text: 'Logs System V3.1' });
         msg.channel.send({ embeds: [embed] });
       }
       db.set(`servers.${msg.guild.id}.logs.channel`, chan.id);
@@ -249,8 +243,7 @@ class Setup extends Command {
           To setup the ticket system please use:
           \`${msg.settings.prefix}Setup Ticket\`
 
-          This is not finished.
-          `
+          This system should be fully operational`
         },
         {
           name: 'Logging',
@@ -258,8 +251,7 @@ class Setup extends Command {
           To setup the logging system please use:
           \`${msg.settings.prefix}Setup Logging\`
   
-          This system should be fully operational.
-          `
+          This system should be fully operational.`
         }
       ])
       .setDescription('These systems are not fully operational and may have bugs.')

@@ -67,7 +67,7 @@ class LogSystem extends Command {
           inline: true
         }
       ])
-      .setFooter({ text: 'Logs System V3.1-BETA' });
+      .setFooter({ text: 'Logs System V3.1' });
 
     if (msg.guild.members.me.permissions.has('ManageMessages')) msg.delete();
     return msg.channel.send({ embeds: [embed] });
