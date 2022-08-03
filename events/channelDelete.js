@@ -22,7 +22,7 @@ module.exports = class {
 
     const embed = new EmbedBuilder()
       .setTitle('Channel Deleted')
-      .setColor('RED')
+      .setColor('#FF0000')
       .addFields([
         { name: 'Name', value: channel.name },
         { name: 'Category', value: channel.parent?.name || 'None' }

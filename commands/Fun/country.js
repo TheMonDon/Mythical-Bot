@@ -305,7 +305,7 @@ class Country extends Command {
       const em = new EmbedBuilder()
         .setAuthor({ name: `'Country Information' -  ${countrycode}`, iconURL: countryflag })
         .setThumbnail(countryflag)
-        .setColor(0x337fd5)
+        .setColor('#337FD5')
         .setTitle(countryname)
         .addFields([
           { name: 'Population', value: countrypopulation.toLocaleString('en'), inline: true },

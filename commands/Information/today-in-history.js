@@ -40,7 +40,7 @@ class TodayInHistory extends Command {
       const events = body.data.Events;
       const event = events[Math.floor(Math.random() * events.length)];
       const embed = new EmbedBuilder()
-        .setColor(0x9797FF)
+        .setColor('#9797FF')
         .setURL(body.url)
         .setTitle(`On this day (${body.date})...`)
         .setTimestamp()

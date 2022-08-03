@@ -24,7 +24,7 @@ class FuckMyLife extends Command {
     const updoot = root.querySelector('.panel-classic .article-contents .vote-button-container .vote-group .vote-count');
     const embed = new EmbedBuilder()
       .setTitle('Fuck my Life, Random Edition!')
-      .setColor(165868)
+      .setColor('#165868')
       .setThumbnail('http://i.imgur.com/5cMj0fw.png')
       .setFooter({ text: `Requested by: ${msg.author.username} | Powered By fmylife.com` })
       .setDescription(`_${article?.childNodes[0].text.replace(/&#039;/g, '\'').replace(/&quot;/g, '"')}\n\n_`)

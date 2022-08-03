@@ -90,13 +90,13 @@ class Warn extends Command {
     const warnAmount = getTotalPoints(mem.id, msg) + points;
 
     let status = 'warned';
-    let color = 'ORANGE';
+    let color = ' #FFA500';
     if (warnAmount === ka) {
       status = 'kicked';
-      color = 'GOLD';
+      color = '#FFD700';
     } else if (warnAmount >= ba) {
       status = 'banned';
-      color = 'RED';
+      color = ' #FF0000';
     }
 
     let otherCases = otherWarns.length > 0 ? otherWarns.map((w) => `\`${w.warnID}\``).join(', ') : 'No other cases.';
