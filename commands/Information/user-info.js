@@ -81,7 +81,7 @@ class UserInfo extends Command {
           { name: 'User ID', value: infoMem.id },
           { name: 'Joined Server', value: `${ja} \n (${jaTime})` },
           { name: 'Account Created', value: `${ca} \n (${caTime})` },
-          { name: 'Join Position', value: `${Number(joinPosition).toLocaleString()}/${msg.guild.members.memberCount.toLocaleString()}` },
+          { name: 'Join Position', value: `${Number(joinPosition)?.toLocaleString()}/${msg.guild.memberCount.toLocaleString()}` },
           { name: 'Account Type', value: infoMem.user.bot ? ':robot: Bot' : ':person_standing: Human' },
           { name: `Badges [${userBadges?.length || 0}]`, value: badgesArray || 'No Badges' },
           { name: 'Roles', value: roles1 }
