@@ -10,6 +10,9 @@ const config = {
   // Your Bots Token. Available on https://discordapp.com/developers/applications/me
   "token": " ",
 
+  // Auth token for BotList.me
+  BotListToken: '',
+
   language: 'en-us',
 
   // MySQL Information for Crafters-Island Server info (You can remove this)

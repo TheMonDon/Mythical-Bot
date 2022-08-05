@@ -8,8 +8,9 @@ const path = require('path');
 const { Player } = require('discord-player');
 const mysql = require('mysql2');
 const config = require('./config.js');
-const { partials, permLevels, mysqlUsername, mysqlHost, mysqlPassword, token } = require('./config.js');
+const { partials, permLevels, mysqlUsername, mysqlHost, mysqlPassword, token, BotListToken } = require('./config.js');
 const { GiveawaysManager } = require('discord-giveaways');
+const BotlistMeClient = require('botlist.me.js');
 
 class Bot extends Client {
   constructor (options) {
@@ -151,6 +152,8 @@ global.pool = mysql.createPool({
   user: mysqlUsername,
   password: mysqlPassword
 });
+
+BotlistMeClient(BotListToken, client);
 
 // Init discord giveaways
 client.giveawaysManager = new GiveawaysManager(client, {
