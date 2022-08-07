@@ -1,4 +1,4 @@
-if (Number(process.version.slice(1).split('.')[0]) < 16) throw new Error('Node 16.x or higher is required. Update Node on your system.');
+if (Number(process.version.slice(1).split('.')[0]) < 18) throw new Error('Node 18.x or higher is required. Update Node on your system.');
 
 const { GatewayIntentBits, Collection, Client, EmbedBuilder } = require('discord.js');
 const { readdirSync, statSync } = require('fs');
@@ -25,9 +25,6 @@ class Bot extends Client {
     this.games = new Enmap({ name: 'games', cloneLevel: 'deep', fetchAll: false, autoFetch: true });
 
     this.logger = require('./util/Logger');
-
-    // Basically just an async shortcut to using a setTimeout. Nothing fancy!
-    this.wait = require('util').promisify(setTimeout);
   }
 
   // PERMISSION LEVEL FUNCTION
@@ -87,25 +84,6 @@ class Bot extends Client {
     }
     delete require.cache[require.resolve(commandPath)];
     return false;
-  }
-
-  /*
-  MESSAGE CLEAN FUNCTION
-  "Clean" removes @everyone pings, as well as tokens, and makes code blocks
-  escaped so they're shown more easily. As a bonus it resolves promises
-  and stringifies objects!
-  This is mostly only used by the Eval and Exec commands.
-  */
-  async clean (text) {
-    if (text?.constructor.name === 'Promise') { text = await text; }
-    if (typeof text !== 'string') { text = require('util').inspect(text, { depth: 1 }); }
-
-    text = text
-      .replace(/`/g, '`' + String.fromCharCode(8203))
-      .replace(/@/g, '@' + String.fromCharCode(8203))
-      .replace(this.token, 'mfa.VkO_2G4Qv3T--NO--lWetW_tjND--TOKEN--QFTm6YGtzq9PH--4U--tG0');
-
-    return text;
   }
 
   /* SETTINGS FUNCTIONS
@@ -272,7 +250,6 @@ const init = async () => {
     const eventName = file.split('.')[0];
     const event = new (require(`./events/${file}`))(client);
 
-    // This line is awesome by the way. Just sayin'.
     client.on(eventName, (...args) => event.run(...args));
     delete require.cache[require.resolve(`./events/${file}`)];
   }
@@ -283,7 +260,6 @@ const init = async () => {
     client.levelCache[thisLevel.name] = thisLevel.level;
   }
 
-  // Here we login the client.
   client.login(token);
 
   // End top-level async/await function.
@@ -325,8 +301,6 @@ process.on('uncaughtException', (err) => {
   // eslint-disable-next-line node/no-path-concat
   const errorMsg = err.stack.replace(new RegExp(`${__dirname}/`, 'g'), './');
   console.error('Uncaught Exception: ', errorMsg);
-  // Always best practice to let the code crash on uncaught exceptions.
-  // Because you should be catching them anyway.
   process.exit(1);
 });
 
