@@ -66,8 +66,8 @@ bulk-messages-deleted`,
         },
         { name: 'Other Usage:', value: 'logtoggle <enable/disable> <channel> to enable/disable a channel from being logged.', inline: false }
       ]);
-    if (['enable', 'disable'].includes(args?.[0].toLowerCase())) {
-      if (args?.[0].toLowerCase() === 'enable') {
+    if (['enable', 'disable'].includes(args?.[0]?.toLowerCase())) {
+      if (args?.[0]?.toLowerCase() === 'enable') {
         // Enable channel
 
         let chan;
