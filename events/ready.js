@@ -9,11 +9,6 @@ module.exports = class {
   }
 
   async run () {
-    // Why await here? Because the ready event isn't actually ready, sometimes
-    // guild information will come in *after* ready. 1s is plenty, generally,
-    // for all of them to be loaded.
-    await this.client.wait(1000);
-
     // Check whether the "Default" guild settings are loaded in the enmap.
     // If they're not, write them in. This should only happen on first load.
     if (!this.client.settings.has('default')) {

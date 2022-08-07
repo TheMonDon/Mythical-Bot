@@ -131,7 +131,8 @@ global.pool = mysql.createPool({
   password: mysqlPassword
 });
 
-BotlistMeClient(BotListToken, client);
+// eslint-disable-next-line no-unused-vars
+const bmc = new BotlistMeClient(BotListToken, client);
 
 // Init discord giveaways
 client.giveawaysManager = new GiveawaysManager(client, {
