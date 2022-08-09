@@ -62,7 +62,7 @@ module.exports = class {
     const welcomeMessage = settings.welcomeMessage.replace('{{user}}', member.user.tag).replace('{{guild}}', member.guild.name);
 
     const em = new EmbedBuilder()
-      .setColor('RANDOM')
+      .setColor('#0099CC')
       .setTitle(`Welcome to ${member.guild.name}`)
       .setAuthor({ name: member.user.tag, iconURL: member.user.displayAvatarURL() })
       .setDescription(welcomeMessage)
