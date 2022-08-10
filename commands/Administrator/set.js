@@ -8,6 +8,7 @@
 // OR the same as:
 // const [action, key, ...value] = args;
 const Command = require('../../base/Command.js');
+const { EmbedBuilder } = require('discord.js');
 
 class Set extends Command {
   constructor (client) {
@@ -22,7 +23,7 @@ class Set extends Command {
     });
   }
 
-  async run (message, [action, key, ...value], level) { // eslint-disable-line no-unused-vars
+  async run (message, [action, key, ...value]) {
     // First we need to retrieve current guild settings
     const settings = message.settings;
     const defaults = this.client.settings.get('default');
@@ -79,7 +80,11 @@ class Set extends Command {
     } else {
       // Otherwise, the default action is to return the whole configuration;
       const array = Object.entries(settings).map(([key, value]) => `${key}${' '.repeat(20 - key.length)}::  ${value}`);
-      await message.channel.send(`\`\`\`asciidoc\n= Current Guild Settings =\n${array.join('\n')}\`\`\``);
+      const embed = new EmbedBuilder()
+        .setTitle('Current Guild Setting')
+        .setDescription(`\`\`\`asciidoc\n${array.join('\n')}\`\`\``)
+        .setFooter({ text: 'Usage: set <view/get/edit> <key> <value>' });
+      await message.channel.send({ embeds: [embed] });
     }
   }
 }
