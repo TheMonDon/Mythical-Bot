@@ -23,9 +23,9 @@ class EightBall extends Command {
     const em = new EmbedBuilder()
       .setTitle('Eight Ball')
       .setColor('#0099CC')
+      .setImage(out.url)
       .addFields([
-        { name: '__Question:__', value: question, inline: false },
-        { name: '__Download:__', value: out }
+        { name: '__Question:__', value: question, inline: false }
       ]);
     return msg.channel.send({ embeds: [em] });
   }

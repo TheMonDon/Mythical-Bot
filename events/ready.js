@@ -2,6 +2,7 @@ const { EmbedBuilder } = require('discord.js');
 const { DateTime } = require('luxon');
 const db = require('quick.db');
 const { scheduleJob } = require('node-schedule');
+const { BotListToken } = require('../config.js');
 
 module.exports = class {
   constructor (client) {
@@ -21,6 +22,19 @@ module.exports = class {
 
     // Log that we're ready to serve, so we know the bot accepts commands.
     this.client.logger.log(`${this.client.user.tag}, ready to serve ${this.client.guilds.cache.size} guilds.`, 'ready');
+
+    const BotlistMeClient = require('botlist.me.js');
+    const botlistme = new BotlistMeClient(BotListToken, this.client);
+    botlistme.postStats(this.client.guilds.cache.size);
+
+    // Optional events
+    botlistme.on('posted', () => {
+      console.log('Server count posted!');
+    });
+
+    botlistme.on('error', e => {
+      console.log(`Oops! ${e}`);
+    });
 
     // Now begins by new reminder system!
     scheduleJob('Reminders', '* * * * *', async () => {
