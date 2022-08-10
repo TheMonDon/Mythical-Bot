@@ -38,7 +38,7 @@ module.exports = class {
         .addFields([
           { name: 'Original Message', value: (msg1.content.length <= 1024) ? msg1.content : `${msg1.content.substring(0, 1020)}...` },
           { name: 'Edited Message', value: (msg2.content.length <= 1024) ? msg2.content : `${msg2.content.substring(0, 1020)}...` },
-          { name: 'Channel', value: msg1.channel },
+          { name: 'Channel', value: msg1.channel.toString() },
           { name: 'Message Author', value: `${msg1.author} (${msg1.author.tag})` }
         ])
         .setTimestamp();
