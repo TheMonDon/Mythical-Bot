@@ -16,7 +16,7 @@ class ToggleAll extends Command {
   async run (msg) {
     if (!db.get(`servers.${msg.guild.id}.logs.channel`)) return msg.channel.send(`The log system is not set up! Use \`${msg.settings.prefix}setlogchannel <channel>\``);
 
-    const all = db.get(`servers.${msg.guild.id}.logs.log_system.all`);
+    const all = db.get(`servers.${msg.guild.id}.logs.logSystem.all`);
     const enable = {
       'channel-created': 'enabled',
       'channel-deleted': 'enabled',
@@ -55,10 +55,10 @@ class ToggleAll extends Command {
     };
 
     if (all === 'enabled') {
-      db.set(`servers.${msg.guild.id}.logs.log_system`, disable);
+      db.set(`servers.${msg.guild.id}.logs.logSystem`, disable);
       return msg.channel.send('Everything has been disabled.');
     } else if (all === 'disabled') {
-      db.set(`servers.${msg.guild.id}.logs.log_system`, enable);
+      db.set(`servers.${msg.guild.id}.logs.logSystem`, enable);
       return msg.channel.send('Everything has been enabled.');
     }
 

@@ -7,8 +7,8 @@ class Perms extends Command {
   constructor (client) {
     super(client, {
       name: 'perms',
-      description: 'Figure out what permissions you or another member have.',
-      usage: 'perms',
+      description: 'Figure out what permissions you or another user have.',
+      usage: 'perms [user]',
       category: 'Information',
       aliases: ['permissions'],
       guildOnly: true

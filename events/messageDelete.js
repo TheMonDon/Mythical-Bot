@@ -13,7 +13,7 @@ module.exports = class {
     const logChan = db.get(`servers.${msg.guild.id}.logs.channel`);
     if (!logChan) return;
 
-    const logSys = db.get(`servers.${msg.guild.id}.logs.log_system.message-deleted`);
+    const logSys = db.get(`servers.${msg.guild.id}.logs.logSystem.message-deleted`);
     if (logSys !== 'enabled') return;
 
     const chans = db.get(`servers.${msg.guild.id}.logs.noLogChans`) || [];
