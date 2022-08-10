@@ -72,9 +72,9 @@ class Flood extends Command {
         if (result === 'winner') {
           const HS = { score: turn, user: msg.author.tag, time: gameTimeSeconds };
           const oldHS = db.get('global.highScores.flood');
-          highScore = oldHS?.score || 26;
+          highScore = oldHS?.score || 'N/A';
           highScoreUser = oldHS?.user | 'N/A';
-          highScoreTime = oldHS?.time | 480;
+          highScoreTime = oldHS?.time | 'N/A';
           if (HS.score < highScore) {
             db.set('global.highScores.flood', HS);
             highScore = HS.score;
@@ -99,7 +99,7 @@ class Flood extends Command {
           .setColor('#08b9bf')
           .setTitle('Flood')
           .setDescription(`${gameBoardToString()} \nGame Over! \n${turnResp[result]}`)
-          .addFields([{ name: 'High Score', value: `${highScore} turns by ${highScoreUser || 'N/A'} in ${highScoreTime || 'N/A'}` }])
+          .addFields([{ name: 'High Score', value: `${highScore} turns by ${highScoreUser} in ${highScoreTime}` }])
           .setTimestamp();
       } else {
         embed = new EmbedBuilder()
