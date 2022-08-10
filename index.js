@@ -133,7 +133,7 @@ global.pool = mysql.createPool({
 
 const botlistme = new BotlistMeClient(BotListToken, client);
 
-botlistme.postStats(this.client.guilds.cache.size);
+botlistme.postStats(client.guilds.cache.size);
 // Optional events
 botlistme.on('posted', () => {
   console.log('Server count posted!');
