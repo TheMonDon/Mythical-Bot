@@ -24,9 +24,9 @@ class Setup extends Command {
       const filter = m => m.author.id === msg.author.id;
       const filter2 = m => ['y', 'yes', 'n', 'no'].includes(m.content.toLowerCase()) && m.author.id === msg.author.id;
 
-      if (!msg.guild.members.me.permissions.has('ManageChannels')) return msg.channel.reply('The bot is missing manage channels permission.');
-      if (!msg.guild.members.me.permissions.has('ManageRoles')) return msg.channel.reply('The bot is missing manage roles permission');
-      if (!msg.guild.members.me.permissions.has('ManageMessages')) return msg.channel.reply('The bot is missing manage messages permission');
+      if (!msg.guild.members.me.permissions.has('ManageChannels')) return msg.reply('The bot is missing manage channels permission.');
+      if (!msg.guild.members.me.permissions.has('ManageRoles')) return msg.reply('The bot is missing manage roles permission');
+      if (!msg.guild.members.me.permissions.has('ManageMessages')) return msg.reply('The bot is missing manage messages permission');
 
       // Check if the system is setup already
       if (db.get(`servers.${msg.guild.id}.tickets`)) {
@@ -200,11 +200,11 @@ class Setup extends Command {
 
       args.shift();
       const text = args.join(' ');
-      if (!args || args.length < 1) return msg.channel.reply(`Incorrect Usage: ${msg.settings.prefix}setup logging <channel>`);
+      if (!args || args.length < 1) return msg.reply(`Incorrect Usage: ${msg.settings.prefix}setup logging <channel>`);
 
       const chan = getChannel(msg, text);
 
-      if (!chan) return msg.channel.reply('Please provide a valid server channel.');
+      if (!chan) return msg.reply('Please provide a valid server channel.');
       const currentChan = db.get(`servers.${msg.guild.id}.logs.channel`);
 
       if (currentChan) {
