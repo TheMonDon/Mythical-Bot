@@ -18,7 +18,7 @@ class EightBall extends Command {
 
     const question = args.join(' ');
 
-    const out = await neko.eightball({ text: question });
+    const out = await neko.eightBall({ text: question });
 
     const em = new EmbedBuilder()
       .setTitle('Eight Ball')
