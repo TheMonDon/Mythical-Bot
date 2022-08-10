@@ -131,8 +131,16 @@ global.pool = mysql.createPool({
   password: mysqlPassword
 });
 
-// eslint-disable-next-line no-unused-vars
-const bmc = new BotlistMeClient(BotListToken, client);
+const botlistme = new BotlistMeClient(BotListToken, client);
+
+// Optional events
+botlistme.on('posted', () => {
+  console.log('Server count posted!');
+});
+
+botlistme.on('error', e => {
+  console.log(`Oops! ${e}`);
+});
 
 // Init discord giveaways
 client.giveawaysManager = new GiveawaysManager(client, {
