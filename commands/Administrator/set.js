@@ -9,6 +9,7 @@
 // const [action, key, ...value] = args;
 const Command = require('../../base/Command.js');
 const { EmbedBuilder } = require('discord.js');
+const { awaitReply } = require('../../util/Util.js');
 
 class Set extends Command {
   constructor (client) {
@@ -57,7 +58,7 @@ class Set extends Command {
       if (!overrides[key]) return message.reply('This key does not have an override and is already using defaults.');
 
       // Throw the 'are you sure?' text at them.
-      const response = await this.client.awaitReply(message, `Are you sure you want to reset \`${key}\` to the default \`${defaults[key]}\`?`);
+      const response = await awaitReply(message, `Are you sure you want to reset \`${key}\` to the default \`${defaults[key]}\`?`);
 
       // If they respond with y or yes, continue.
       if (['y', 'yes'].includes(response)) {

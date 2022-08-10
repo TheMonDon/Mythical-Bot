@@ -1,5 +1,5 @@
 const Command = require('../../base/Command.js');
-const { getChannel, getRole, verify } = require('../../util/Util.js');
+const { getChannel, getRole, verify, awaitReply } = require('../../util/Util.js');
 const { EmbedBuilder, ChannelType } = require('discord.js');
 const db = require('quick.db');
 const { stripIndents } = require('common-tags');
@@ -199,8 +199,11 @@ class Setup extends Command {
       };
 
       args.shift();
-      const text = args.join(' ');
-      if (!args || args.length < 1) return msg.reply(`Incorrect Usage: ${msg.settings.prefix}setup logging <channel>`);
+      let text = args.join(' ');
+      if (!args || args.length < 1) {
+        text = await awaitReply(msg, 'What channel do you want to setup logging in?');
+        if (!text) return msg.reply('The command has been cancelled due to no reply.');
+      }
 
       const chan = getChannel(msg, text);
 
