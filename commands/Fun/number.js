@@ -24,7 +24,7 @@ class Number extends Command {
     if (!body) return;
 
     const em = new EmbedBuilder()
-      .setTitle(body)
+      .setTitle(body.toString())
       .setColor('#0099CC');
     return msg.channel.send({ embeds: [em] });
   }
