@@ -88,8 +88,6 @@ class forceClose extends Command {
 
     let received;
 
-    const tOwner = await msg.guild.members.cache.get(owner);
-
     const userEmbed = new EmbedBuilder()
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
       .setTitle('Ticket Closed')
@@ -103,8 +101,9 @@ class forceClose extends Command {
       ])
       .setFooter({ text: 'Transcripts expire 30 days after last view date.' })
       .setTimestamp();
-    await tOwner.send({ embeds: [userEmbed] })
-      .catch(() => { received = 'no'; });
+
+    const tOwner = await msg.guild.members.cache.get(owner);
+    await tOwner.send({ embeds: [userEmbed] }).catch(() => { received = 'no'; });
 
     const logEmbed = new EmbedBuilder()
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })

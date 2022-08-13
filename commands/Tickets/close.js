@@ -44,7 +44,7 @@ class CloseTicket extends Command {
       The ticket will close in 5 minutes if no further activity occurs.`);
     await msg.channel.send({ embeds: [em] });
 
-    const filter = m => m.content.length > 0;
+    const filter = m => m?.content?.length > 0;
 
     const collected = await msg.channel.awaitMessages({
       filter,
@@ -77,10 +77,7 @@ class CloseTicket extends Command {
         ])
         .setFooter({ text: 'Transcripts expire 30 days after last view date.' })
         .setTimestamp();
-      await msg.author.send({ embeds: [userEmbed] })
-        .catch(() => {
-          received = 'no';
-        });
+      await msg.author.send({ embeds: [userEmbed] }).catch(() => { received = 'no'; });
 
       const logEmbed = new EmbedBuilder()
         .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
@@ -105,7 +102,7 @@ class CloseTicket extends Command {
       .setTitle('Ticket Re-Opened')
       .setDescription(stripIndents`
         Closing of the ticket has been cancelled with the following reason:
-    
+
         ${response}`)
       .setColor('#E65DF4')
       .setTimestamp();
