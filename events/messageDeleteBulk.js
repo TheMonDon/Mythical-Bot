@@ -51,7 +51,7 @@ module.exports = class {
       .setColor('#FF0000')
       .addFields([
         { name: 'Deleted Messages', value: url },
-        { name: 'Deleted Amount', value: messages.size },
+        { name: 'Deleted Amount', value: messages.size.toLocaleString() },
         { name: 'Channel', value: `<#${chan.id}>` }
       ]);
     logChannel.send({ embeds: [embed] });
