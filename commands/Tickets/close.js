@@ -44,14 +44,15 @@ class CloseTicket extends Command {
       The ticket will close in 5 minutes if no further activity occurs.`);
     await msg.channel.send({ embeds: [em] });
 
-    const filter = m => m?.content?.length > 0;
+    const filter = m => m.content?.length > 0;
 
     const collected = await msg.channel.awaitMessages({
       filter,
       max: 1,
       time: 300000,
       errors: ['time']
-    });
+    }).catch((e) => this.client.logger.error(e));
+
     if (!collected) {
       let url;
 
@@ -91,7 +92,7 @@ class CloseTicket extends Command {
         .setColor('#E65DF4')
         .setTimestamp();
       if (received === 'no') logEmbed.setFooter({ text: 'Could not message author.' });
-      await msg.guild.channels.cache.get(logID).send({ embeds: [logEmbed] });
+      await msg.guild.channels.cache.get(logID).send({ embeds: [logEmbed] }).catch(e => this.client.logger.error(e));
 
       db.delete(`servers.${msg.guild.id}.tickets.${msg.channel.id}`);
       return msg.channel.delete();
