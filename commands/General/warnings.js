@@ -8,11 +8,11 @@ class Warnings extends Command {
   constructor (client) {
     super(client, {
       name: 'warnings',
-      description: 'View all your warnings, mods+ can view others warnings.',
-      usage: 'warnings [member]',
+      description: 'View all your warnings. Moderators can view others warnings.',
+      usage: 'Warnings [user]',
       category: 'General',
-      guildOnly: true,
-      aliases: ['warns', 'mywarns', 'mycases']
+      aliases: ['warns', 'mywarns', 'mycases'],
+      guildOnly: true
     });
   }
 

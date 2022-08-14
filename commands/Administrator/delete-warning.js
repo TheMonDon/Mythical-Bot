@@ -8,18 +8,18 @@ class DeleteWarning extends Command {
     super(client, {
       name: 'delete-warning',
       description: 'Delete a specific warnings case.',
-      usage: 'delete-warning <caseID>',
+      usage: 'Delete-Warning <CaseID>',
       category: 'Administrator',
-      guildOnly: true,
       permLevel: 'Administrator',
-      aliases: ['delwarn', 'deletecase', 'deletewarn', 'delcase', 'clearcase', 'deletewarning', 'delwarning']
+      aliases: ['delwarn', 'deletecase', 'deletewarn', 'delcase', 'clearcase', 'deletewarning', 'delwarning'],
+      guildOnly: true
     });
   }
 
   async run (msg, args) {
     let title = 'Case Cleared';
-    let color = 'BLUE';
-    if (!args || args.length < 1) return msg.channel.send('incorrect usage deletewarning <caseID>');
+    let color = '#0099CC';
+    if (!args || args.length < 1) return msg.channel.send('Incorrect Usage: Delete-Warning <CaseID>');
 
     const caseID = args.join(' ');
     const warning = db.get(`servers.${msg.guild.id}.warns.warnings.${caseID}`);
@@ -35,11 +35,11 @@ class DeleteWarning extends Command {
     const newerPoints = getTotalPoints(userID, msg);
     if (previousPoints >= 10 && newerPoints < 10) {
       if (!msg.guild.members.me.permissions.has('BanMembers')) {
-        msg.channel.send('The bot does not have Ban Members permission to unban the user.');
+        msg.channel.send('The bot does not have BanMembers permission to unban the user.');
       } else {
         await msg.guild.members.unban(userID).catch(() => null);
         title = 'User Unbanned';
-        color = 'GREEN';
+        color = '#00FF00';
       }
     }
 

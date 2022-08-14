@@ -87,7 +87,9 @@ class forceClose extends Command {
       .then(function (urlToPaste) {
         url = urlToPaste;
       })
-      .catch(function (requestError) { this.client.logger.error(requestError); });
+      .catch(function (requestError) {
+        this.client.logger.error(requestError);
+      });
 
     let received;
 

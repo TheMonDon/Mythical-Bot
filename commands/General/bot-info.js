@@ -10,7 +10,7 @@ class BotInfo extends Command {
     super(client, {
       name: 'bot-info',
       description: 'Gives some useful bot information',
-      usage: 'bot-info',
+      usage: 'Bot-Info',
       category: 'General',
       aliases: ['bi', 'botinfo', 'about']
     });
@@ -34,7 +34,7 @@ class BotInfo extends Command {
         { name: 'RAM Usage', value: `${Math.floor((process.memoryUsage().heapUsed / 1024) / 1024).toLocaleString()} MB`, inline: true },
         { name: 'Bot Version', value: pjson.version, inline: true },
         { name: 'Invite', value: '[https://cisn.xyz/mythical](https://cisn.xyz/mythical)', inline: true },
-        { name: 'Source Code', value: '[Github](https://github.com/TheMonDon/Mythical-Bot)', inline: true }
+        { name: 'Source Code', value: '[Source Code](https://github.com/TheMonDon/Mythical-Bot)', inline: true }
       ]);
     return msg.channel.send({ embeds: [embed] });
   }

@@ -6,7 +6,7 @@ class DeleteGiveaway extends Command {
     super(client, {
       name: 'delete-giveaway',
       description: 'Delete a giveaway',
-      usage: 'delete-giveaway <Message ID>',
+      usage: 'Delete-Giveaway <Message ID>',
       category: 'Giveaways',
       aliases: ['deletegiveaway', 'delgiveaway', 'gdelete'],
       guildOnly: true
@@ -14,11 +14,11 @@ class DeleteGiveaway extends Command {
   }
 
   async run (msg, args) {
-    const usage = `Incorrect Usage: ${msg.settings.prefix}delete-giveaway <Message ID>`;
+    const usage = `Incorrect Usage: ${msg.settings.prefix}Delete-Giveaway <Message ID>`;
     if (!args || args.length < 1) return msg.channel.send(usage);
 
     if (!msg.member.permissions.has('ManageMessages')) {
-      return msg.channel.send(':x: You need to have the manage messages permissions to delete giveaways');
+      return msg.channel.send(':x: You need to have the Manage Nessages permissions to delete giveaways');
     }
 
     const query = args.join(' ');

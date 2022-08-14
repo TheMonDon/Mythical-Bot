@@ -9,7 +9,7 @@ class TicTacToe extends Command {
     super(client, {
       name: 'tic-tac-toe',
       description: 'Play a game of tic-tac-toe with another user or the AI.',
-      usage: 'tictactoe <member>',
+      usage: 'Tic-Tac-Toe <User>',
       category: 'Games',
       aliases: ['ttt', 'tictactoe']
     });
@@ -141,7 +141,7 @@ class TicTacToe extends Command {
       `);
     } catch (err) {
       this.client.games.delete(msg.channel.id);
-      msg.channel.send(`An error has occured: ${err}`);
+      return msg.channel.send(`An error has occured: ${err}`);
     }
   }
 }

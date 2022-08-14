@@ -203,10 +203,7 @@ module.exports = class Util {
       config.owlKey,
       config.OxfordID,
       config.OxfordKey,
-      config.TMDb,
-      config.mysqlHost,
-      config.mysqlUsername,
-      config.mysqlPassword
+      config.TMDb
     ];
     for (let i = 0; i < secrets.length; i++) {
       newText = Util.replaceAll(newText, secrets[i], '*'.repeat(secrets[i].length));

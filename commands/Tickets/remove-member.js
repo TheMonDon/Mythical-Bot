@@ -9,7 +9,7 @@ class RemoveMember extends Command {
     super(client, {
       name: 'remove-member',
       description: 'Remove a member from a ticket.',
-      usage: 'remove-member <user>',
+      usage: 'Remove-Member <user>',
       category: 'Tickets',
       aliases: ['removemember', 'remove'],
       guildOnly: true

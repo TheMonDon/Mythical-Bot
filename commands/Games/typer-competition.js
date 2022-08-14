@@ -14,7 +14,7 @@ class TyperCompetition extends Command {
     super(client, {
       name: 'typer-competition',
       description: 'See who can type the fastest.',
-      usage: 'typer-competition',
+      usage: 'Typer-Competition',
       category: 'Games',
       aliases: ['typercompetition', 'tc']
     });

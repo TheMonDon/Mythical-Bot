@@ -16,11 +16,12 @@ class Set extends Command {
     super(client, {
       name: 'set',
       description: 'View or change the settings for your guild.',
+      longDescription: 'Example: `-set edit welcomeEnabled true` will enable the welcome message.',
       category: 'Administrator',
+      permLevel: 'Administrator',
       usage: 'set <view/get/edit> <key> <value>',
-      guildOnly: true,
       aliases: ['setting', 'settings'],
-      permLevel: 'Administrator'
+      guildOnly: true
     });
   }
 
@@ -84,7 +85,7 @@ class Set extends Command {
       const embed = new EmbedBuilder()
         .setTitle('Current Guild Setting')
         .setDescription(`\`\`\`asciidoc\n${array.join('\n')}\`\`\``)
-        .setFooter({ text: 'Usage: set <view/get/edit> <key> <value>' });
+        .setFooter({ text: 'For help use `-help set`' });
       await message.channel.send({ embeds: [embed] });
     }
   }

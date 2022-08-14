@@ -6,7 +6,7 @@ class RerollGiveaway extends Command {
     super(client, {
       name: 'reroll-giveaway',
       description: 'Reroll a giveaway',
-      usage: 'reroll-giveaway <Message ID>',
+      usage: 'Reroll-Giveaway <Message ID>',
       category: 'Giveaways',
       aliases: ['reroll', 'rerollgiveaway', 'greroll'],
       guildOnly: true
@@ -14,14 +14,14 @@ class RerollGiveaway extends Command {
   }
 
   async run (msg, args) {
-    const usage = `Incorrect Usage: ${msg.settings.prefix}reroll-giveaway <Message ID>`;
+    const usage = `Incorrect Usage: ${msg.settings.prefix}Reroll-Giveaway <Message ID>`;
     if (!args || args.length < 1) return msg.channel.send(usage);
 
     if (!msg.member.permissions.has('ManageMessages')) {
-      return msg.channel.send(':x: You need to have the manage messages permissions to reroll giveaways');
+      return msg.channel.send(':x: You need to have the Manage Messages permissions to reroll giveaways');
     }
 
-    const query = args.join(' ');
+    const query = args.join('');
 
     const ErrorEmbed = new EmbedBuilder()
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
@@ -42,7 +42,7 @@ class RerollGiveaway extends Command {
     }
 
     if (!giveaway.ended) {
-      ErrorEmbed.setTitle('The giveaway is not ended yet.');
+      ErrorEmbed.setTitle('That giveaway has not ended yet.');
       return msg.channel.send(ErrorEmbed);
     }
 

@@ -40,7 +40,7 @@ class Eval extends Command {
 
         embed.setDescription(`Result \n ${code('js', res2)}`);
 
-        if (!res || (!evald && evald !== 0)) embed.setColor('#ff0000');
+        if (!res || (!evald && evald !== 0)) embed.setColor('#FF0000');
         else {
           embed
             .addFields([{ name: 'Type', value: code('css', typeof evald) }])
@@ -49,7 +49,7 @@ class Eval extends Command {
       } catch (error) {
         embed
           .addFields([{ name: 'Error', value: code('js', error) }])
-          .setColor('#ff0000');
+          .setColor('#FF0000');
       } finally {
         msg.channel.send({ embeds: [embed] }).catch(error => {
           msg.channel.send(`There was an error while displaying the eval result! ${error.message}`);

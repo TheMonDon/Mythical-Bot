@@ -51,7 +51,7 @@ class CloseTicket extends Command {
       max: 1,
       time: 300000,
       errors: ['time']
-    }).catch((e) => this.client.logger.error(e));
+    }).catch(() => null); // Throws an error for time and we don't need that.
 
     if (!collected) {
       let url;

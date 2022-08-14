@@ -6,7 +6,7 @@ class EndGiveaway extends Command {
     super(client, {
       name: 'end-giveaway',
       description: 'End a giveaway',
-      usage: 'end-giveaway <Message ID>',
+      usage: 'End-Giveaway <Message ID>',
       category: 'Giveaways',
       aliases: ['endgiveaway', 'gend'],
       guildOnly: true
@@ -14,11 +14,11 @@ class EndGiveaway extends Command {
   }
 
   async run (msg, args) {
-    const usage = `Incorrect Usage: ${msg.settings.prefix}reroll-giveaway <Message ID>`;
+    const usage = `Incorrect Usage: ${msg.settings.prefix}End-Giveaway <Message ID>`;
     if (!args || args.length < 1) return msg.channel.send(usage);
 
     if (!msg.member.permissions.has('ManageMessages')) {
-      return msg.channel.send(':x: You need to have the manage messages permissions to end giveaways');
+      return msg.channel.send(':x: You need to have the Manage Messages permissions to end giveaways');
     }
 
     const query = args.join(' ');
@@ -42,7 +42,7 @@ class EndGiveaway extends Command {
     }
 
     if (giveaway.ended) {
-      ErrorEmbed.setTitle('The giveaway already ended.');
+      ErrorEmbed.setTitle('That giveaway has already ended.');
       return msg.channel.send(ErrorEmbed);
     }
 

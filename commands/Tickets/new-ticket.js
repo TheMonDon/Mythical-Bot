@@ -10,7 +10,7 @@ class NewTicket extends Command {
     super(client, {
       name: 'new-ticket',
       description: 'Create a new ticket.',
-      usage: 'New-Ticket <reason>',
+      usage: 'New-Ticket <Reason>',
       category: 'Tickets',
       aliases: ['new', 'nt', 'newticket'],
       guildOnly: true

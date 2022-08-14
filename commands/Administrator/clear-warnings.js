@@ -7,17 +7,17 @@ class ClearWarnings extends Command {
   constructor (client) {
     super(client, {
       name: 'clear-warnings',
-      description: 'Clear all the warnings of a specific user.',
-      usage: 'clear-warnings <user>',
+      description: 'Clear all the warnings of the specific user.',
+      usage: 'Clear-Warnings <User>',
       category: 'Administrator',
-      guildOnly: true,
       permLevel: 'Administrator',
-      aliases: ['cw', 'clearwarns', 'clearwarnings', 'cwarns']
+      aliases: ['cw', 'clearwarns', 'clearwarnings', 'cwarns'],
+      guildOnly: true
     });
   }
 
   async run (msg, args) {
-    const usage = `Incorrect Usage: ${msg.settings.prefix}clear-warnings <user>`;
+    const usage = `Incorrect Usage: ${msg.settings.prefix}Clear-Warnings <user>`;
 
     if (!args || args.length < 1) return msg.reply(usage);
 
@@ -43,7 +43,7 @@ class ClearWarnings extends Command {
     }
 
     if (previousPoints >= 10) {
-      if (!msg.guild.members.me.permissions.has('BanMembers')) return msg.channel.send('The bot does not have Ban_Members permission to unban the user.');
+      if (!msg.guild.members.me.permissions.has('BanMembers')) return msg.channel.send('The bot does not have BanMembers permission to unban the user.');
       await msg.guild.members.unban(mem.id).catch(() => null);
     }
 

@@ -6,9 +6,8 @@ const Enmap = require('enmap');
 const db = require('quick.db');
 const path = require('path');
 const { Player } = require('discord-player');
-const mysql = require('mysql2');
 const config = require('./config.js');
-const { partials, permLevels, mysqlUsername, mysqlHost, mysqlPassword, token } = require('./config.js');
+const { partials, permLevels, token } = require('./config.js');
 const { GiveawaysManager } = require('discord-giveaways');
 
 class Bot extends Client {
@@ -123,16 +122,52 @@ class Bot extends Client {
 // Enable intents for the bot
 const client = new Bot({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildBans, GatewayIntentBits.GuildMembers, GatewayIntentBits.GuildEmojisAndStickers, GatewayIntentBits.GuildIntegrations, GatewayIntentBits.GuildWebhooks, GatewayIntentBits.GuildInvites, GatewayIntentBits.GuildVoiceStates, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMessageReactions, GatewayIntentBits.DirectMessages, GatewayIntentBits.DirectMessageReactions, GatewayIntentBits.MessageContent], partials });
 
-// Create MySQL Pool globally
-global.pool = mysql.createPool({
-  host: mysqlHost,
-  user: mysqlUsername,
-  password: mysqlPassword
-});
+if (!Array.isArray(db.get('giveaways'))) db.set('giveaways', []);
 
-// Init discord giveaways
-client.giveawaysManager = new GiveawaysManager(client, {
-  storage: './data/giveaways.json',
+const GiveawayManagerWithOwnDatabase = class extends GiveawaysManager {
+  // This function is called when the manager needs to get all giveaways which are stored in the database.
+  async getAllGiveaways () {
+    // Get all giveaways from the database
+    return db.get('giveaways');
+  }
+
+  // This function is called when a giveaway needs to be saved in the database.
+  async saveGiveaway (messageId, giveawayData) {
+    // Add the new giveaway to the database
+    db.push('giveaways', giveawayData);
+    // Don't forget to return something!
+    return true;
+  }
+
+  // This function is called when a giveaway needs to be edited in the database.
+  async editGiveaway (messageId, giveawayData) {
+    // Get all giveaways from the database
+    const giveaways = db.get('giveaways');
+    // Remove the unedited giveaway from the array
+    const newGiveawaysArray = giveaways.filter((giveaway) => giveaway.messageId !== messageId);
+    // Push the edited giveaway into the array
+    newGiveawaysArray.push(giveawayData);
+    // Save the updated array
+    db.set('giveaways', newGiveawaysArray);
+    // Don't forget to return something!
+    return true;
+  }
+
+  // This function is called when a giveaway needs to be deleted from the database.
+  async deleteGiveaway (messageId) {
+    // Get all giveaways from the database
+    const giveaways = db.get('giveaways');
+    // Remove the giveaway from the array
+    const newGiveawaysArray = giveaways.filter((giveaway) => giveaway.messageId !== messageId);
+    // Save the updated array
+    db.set('giveaways', newGiveawaysArray);
+    // Don't forget to return something!
+    return true;
+  }
+};
+
+// Create a new instance of your new class
+const manager = new GiveawayManagerWithOwnDatabase(client, {
   default: {
     botsCanWin: false,
     embedColor: '#0099CC',
@@ -140,6 +175,8 @@ client.giveawaysManager = new GiveawaysManager(client, {
     reaction: '🎉'
   }
 });
+// We now have a giveawaysManager property to access the manager everywhere!
+client.giveawaysManager = manager;
 
 // Load the music player stuff
 client.player = new Player(client, {
@@ -153,7 +190,7 @@ client.player
       .setTitle('Now Playing')
       .setDescription(`[${track.title}](${track.url}) \n\nRequested By: ${track.requestedBy}`)
       .setThumbnail(track.thumbnail)
-      .setColor('0099CC');
+      .setColor('#0099CC');
     const msg = await queue.metadata.channel.send({ embeds: [em] });
 
     const oldmsg = db.get(`servers.${queue.metadata.guild.id}.music.lastTrack`) || null;
@@ -175,7 +212,7 @@ client.player
     const em = new EmbedBuilder()
       .setTitle('Track Added to Queue')
       .setThumbnail(track.thumbnail)
-      .setColor('0099CC')
+      .setColor('#0099CC')
       .setDescription(`[${title}](${url}) \n\nRequested By: ${requestedBy}`);
     queue.metadata.channel.send({ embeds: [em] });
   })
@@ -186,7 +223,7 @@ client.player
     const em = new EmbedBuilder()
       .setTitle('Playlist Added to Queue')
       .setThumbnail(playlist.thumbnail)
-      .setColor('0099CC')
+      .setColor('#0099CC')
       .setDescription(`[${playlist.title}](${playlist.url}) \n\nRequested By: ${tracks[0].requestedBy}`)
       .addFields([{ name: 'Playlist Length', value: length.toString(), inline: true }]);
     queue.metadata.channel.send({ embeds: [em] });

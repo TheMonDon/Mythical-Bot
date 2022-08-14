@@ -3,14 +3,14 @@ const { getMember, verify } = require('../../util/Util.js');
 const { stripIndents } = require('common-tags');
 const { EmbedBuilder } = require('discord.js');
 
-class RPS extends Command {
+class RockPaperScissors extends Command {
   constructor (client) {
     super(client, {
-      name: 'rps',
+      name: 'rock-paper-scissors',
       description: 'Play a game of rock paper scissors.',
-      usage: 'rps <opponent>',
+      usage: 'Rock-Paper-Scissors <User>',
       category: 'Games',
-      aliases: ['rockpaperscissors', 'rock-paper-scissors']
+      aliases: ['rockpaperscissors', 'rps']
     });
   }
 
@@ -191,4 +191,4 @@ class RPS extends Command {
   }
 }
 
-module.exports = RPS;
+module.exports = RockPaperScissors;

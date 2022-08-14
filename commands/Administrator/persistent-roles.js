@@ -4,10 +4,11 @@ const db = require('quick.db');
 class persistentRoles extends Command {
   constructor (client) {
     super(client, {
-      name: 'persistent-roles',
+      name: 'persistent-Roles',
       description: 'Enable/Disable the persistent roles system for your guild.',
+      longDescription: 'When persistent roles is enabled users who leave the guild will have their roles automatically returned when they come back.',
       category: 'Administrator',
-      usage: 'persistent-roles',
+      usage: 'Persistent-Roles',
       aliases: ['pr', 'proles'],
       permLevel: 'Administrator',
       guildOnly: true
