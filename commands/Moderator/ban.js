@@ -42,7 +42,7 @@ class Ban extends Command {
       ])
       .setFooter({ text: `User ID: ${banMem.id}` })
       .setTimestamp();
-    banMem.ban({ reason });
+    msg.guild.bans.create(banMem, { reason });
 
     if (logChan) {
       const em2 = new EmbedBuilder()

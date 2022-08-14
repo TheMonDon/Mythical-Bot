@@ -2,25 +2,33 @@ const Command = require('../../base/Command.js');
 const { getMember, randomString, getWarns, getTotalPoints } = require('../../util/Util.js');
 const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
+const { stripIndents } = require('common-tags');
 
 class Warn extends Command {
   constructor (client) {
     super(client, {
       name: 'warn',
       description: 'Warns a member',
-      usage: 'warn <user> <points> <reason>',
+      longDescription: stripIndents`
+      Warn system that will kick or ban a user depending on the points they have.
+      Users are kicked when they reach 8 points, or banned when they reach 10. (Option to change coming soonTM)
+
+      
+      `,
+      usage: 'Warn <User> <Points> <Reason>',
       category: 'Moderator',
-      guildOnly: true,
-      permLevel: 'Moderator'
+      permLevel: 'Moderator',
+      guildOnly: true
     });
   }
 
   async run (msg, args) {
     let mem;
     let member = true;
+    const usage = `Incorrect Usage: ${msg.settings.prefix}warn <member> <points> <reason>`;
 
     if (!args || args.length < 3) {
-      return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}warn <member> <points> <reason>`);
+      return msg.channel.send(usage);
     } else {
       mem = getMember(msg, args[0]);
     }
@@ -32,7 +40,7 @@ class Warn extends Command {
         mem = await this.client.users.fetch(ID);
         member = false;
       } catch (err) {
-        return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}warn <member> <points> <reason>`);
+        return msg.channel.send(usage);
       }
     }
 
@@ -46,7 +54,7 @@ class Warn extends Command {
     }
 
     const points = parseInt(args[1], 10);
-    if (isNaN(points)) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}warn <member> <points> <reason>`);
+    if (isNaN(points)) return msg.channel.send(usage);
     if (points < 0 || points > 1000) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}warn <member> <0-1000 points> <reason>`);
 
     // Convert shorthand to fullhand for reason
@@ -140,7 +148,7 @@ class Warn extends Command {
 
     if (warnAmount >= ba) {
       if (!msg.guild.members.me.permissions.has('BenMembers')) return msg.channel.send('The bot does not have permission to ban members.');
-      msg.guild.members.ban(mem.id, { reason }).catch(() => null); // Ban wether they are in the guild or not.
+      msg.guild.members.bans.create(mem.id, { reason }).catch(() => null); // Ban wether they are in the guild or not.
     } else if (warnAmount >= ka) {
       if (!msg.guild.members.me.permissions.has('KickMembers')) return msg.channel.send('The bot does not have permission to kick members.');
       const member = msg.guild.members.cache.get(mem.id);

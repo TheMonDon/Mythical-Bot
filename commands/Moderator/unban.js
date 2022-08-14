@@ -5,19 +5,19 @@ const { EmbedBuilder } = require('discord.js');
 class Unban extends Command {
   constructor (client) {
     super(client, {
-      name: 'unban',
+      name: 'Unban',
       description: 'Unban a member',
-      usage: 'unban <userID> [reason]',
+      usage: 'Unban <userID> [reason]',
       category: 'Moderator',
       guildOnly: true
     });
   }
 
   async run (msg, args) {
-    if (!msg.member.permissions.has('BanMembers')) return msg.channel.send('You are missing the BAN_MEMBERS permission.');
-    if (!msg.guild.members.me.permissions.has('BanMembers')) return msg.channel.send('The bot is missing BAN_MEMBERS permission.');
+    if (!msg.member.permissions.has('BanMembers')) return msg.channel.send('You are missing the Ban Members permission.');
+    if (!msg.guild.members.me.permissions.has('BanMembers')) return msg.channel.send('The bot is missing Ban Members permission.');
 
-    if (!args || args.length < 1) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}unban <userID> [reason]`);
+    if (!args || args.length < 1) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}Unban <userID> [reason]`);
     const logChan = db.get(`servers.${msg.guild.id}.logging.channel`);
 
     const regex = /\d+/g;
@@ -25,7 +25,7 @@ class Unban extends Command {
     args.shift();
     const reason = args.join(' ');
 
-    if (!userID.matches(regex)) return msg.channel.send(`Error: Please enter a valid User ID. \nInput: ${userID}`);
+    if (!userID.matches(regex)) return msg.channel.send(`Please provide a valid User ID. \nInput: ${userID}`);
 
     const embed = new EmbedBuilder();
     if (msg.guild.members.me.permissions.has('ManageMessages')) msg.delete();
@@ -36,7 +36,7 @@ class Unban extends Command {
 
       if (!bannedUser) return msg.channel.send(`The user with the ID ${userID} is not banned.`);
 
-      msg.guild.unban(userID, reason)
+      msg.guild.bans.remove(userID, { reason })
         .then(unbanP => {
           embed
             .setTitle('Member Unbanned')

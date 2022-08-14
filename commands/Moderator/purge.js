@@ -6,7 +6,7 @@ class Purge extends Command {
       name: 'purge',
       description: 'Purge messages in a channel optionally from a member.',
       longDescription: 'Purge messages in current channel, optionally from a member, or a member in a different channel.',
-      usage: 'purge <2-100> (@member) (@channel)',
+      usage: 'Purge <2-100> [@member] [@channel]',
       category: 'Moderator',
       permLevel: 'Moderator',
       guildOnly: true
@@ -14,7 +14,7 @@ class Purge extends Command {
   }
 
   async run (msg, args) {
-    const usage = `Incorrect Usage: ${msg.settings.prefix}purge <2-100> (@member) (@channel)`;
+    const usage = `Incorrect Usage: ${msg.settings.prefix}Purge <2-100> [@member] [@channel]`;
     if (!msg.guild.members.me.permissions.has('ManageMessages')) return msg.channel.send('The bot needs `Manage_Messages` permission to use this.');
     if (!args || args.length < 1) return msg.reply(usage);
 

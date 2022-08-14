@@ -8,7 +8,7 @@ class Github extends Command {
     super(client, {
       name: 'github',
       description: 'View information about a repository on Github',
-      usage: 'Github <user> <repository> OR Github <user/repository>',
+      usage: 'Github <user> <repository> \nGithub <user/repository>',
       category: 'Search',
       aliases: ['gh']
     });

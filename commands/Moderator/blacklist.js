@@ -8,10 +8,10 @@ class Blacklist extends Command {
     super(client, {
       name: 'blacklist',
       description: 'Blacklist someone from using the bot',
-      usage: 'blacklist <add | remove | check> <user> <reason>',
+      usage: 'Blacklist <Add | Remove | Check> <User> <Reason>',
       category: 'Moderator',
-      aliases: ['bl'],
       permLevel: 'Moderator',
+      aliases: ['bl'],
       guildOnly: true
     });
   }
@@ -19,7 +19,7 @@ class Blacklist extends Command {
   async run (msg, text) {
     let mem;
     let type;
-    const usage = `Incorrect Usage:${msg.settings.prefix}blacklist <add | remove | check> <user> <reason>`;
+    const usage = `Incorrect Usage:${msg.settings.prefix}Blacklist <Add | Remove | Check> <User> <Reason>`;
 
     if (!text || text.length < 1) {
       return msg.reply(usage);

@@ -58,14 +58,14 @@ class Help extends Command {
             { name: 'NSFW', value: command.conf.nsfw.toString() || 'false' },
             { name: 'Description', value: command.help.description || 'none' },
             { name: 'Long Description', value: command.help.longDescription || 'none' },
-            { name: 'Command Disabled', value: toProperCase(res.toString()) }
+            { name: 'Command Disabled', value: res.toString() }
           ]);
         return msg.channel.send({ embeds: [em] });
       } else {
         return msg.channel.send({ embeds: [errEm] });
       }
     } else if (em.data?.fields?.length > 0) {
-      em.addFields([{ name: 'Category Disabled', value: toProperCase(disabled.includes(category.toLowerCase()).toString()) }]);
+      em.addFields([{ name: 'Category Disabled', value: disabled.includes(category.toLowerCase()).toString() }]);
       return msg.channel.send({ embeds: [em] });
     }
     return msg.channel.send({ embeds: [errEm] });
