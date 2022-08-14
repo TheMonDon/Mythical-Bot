@@ -36,6 +36,7 @@ class AddMember extends Command {
         return msg.channel.send(`You need to be the ticket owner or a member of ${role.name} to add a user.`);
       }
     }
+    msg.guild.members.fetch(mem.id);
 
     if (msg.channel.permissionsFor(mem.id) !== undefined) return msg.channel.send('That person has already been added to this ticket.');
 

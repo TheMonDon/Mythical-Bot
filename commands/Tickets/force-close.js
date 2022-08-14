@@ -19,8 +19,7 @@ class forceClose extends Command {
   async run (msg, args) {
     if (!db.get(`servers.${msg.guild.id}.tickets`)) return msg.channel.send('The ticket system has not been setup in this server.');
 
-    let tName;
-    let tID
+    let tID;
     let reason;
     if (msg.channel.name.startsWith('ticket')) {
       if (!args[0]) {
@@ -45,6 +44,7 @@ class forceClose extends Command {
     const { logID, roleID } = db.get(`servers.${msg.guild.id}.tickets`);
 
     const owner = db.get(`servers.${msg.guild.id}.tickets.${tID}.owner`);
+    msg.guild.members.fetch(owner);
     const role = msg.guild.roles.cache.get(roleID);
 
     // Are they inside a ticket channel?
@@ -66,7 +66,8 @@ class forceClose extends Command {
 
     const chan = await msg.guild.channels.cache.find(c => c.id === tID);
     if (!chan) return msg.channel.send('That is not a valid ticket, or has already been closed.');
-    tName = chan.name;
+
+    const tName = chan.name;
 
     // Logging info
     const output = `${DateTime.now().toLocaleString(DateTime.DATETIME_FULL)} - ${msg.author.tag} has requested to force-close this ticket. \nTranscript will be sent to ticket owner.`;
