@@ -8,8 +8,8 @@ class AddMember extends Command {
   constructor (client) {
     super(client, {
       name: 'add-member',
-      description: 'Adds a member to a ticket.',
-      usage: 'add-member <user>',
+      description: 'Add a user to a ticket.',
+      usage: 'Add-Member <User>',
       category: 'Tickets',
       aliases: ['addmember', 'add'],
       guildOnly: true
@@ -28,8 +28,7 @@ class AddMember extends Command {
 
     const { roleID } = db.get(`servers.${msg.guild.id}.tickets`);
     const role = msg.guild.roles.cache.get(roleID);
-    const tName = msg.channel.name;
-    const owner = db.get(`servers.${msg.guild.id}.tickets.${tName}.owner`);
+    const owner = db.get(`servers.${msg.guild.id}.tickets.${msg.channel.id}.owner`);
 
     // Do they have the support role or are owner?
     if (owner !== msg.author.id) {
@@ -38,14 +37,14 @@ class AddMember extends Command {
       }
     }
 
-    if (msg.channel.permissionOverwrites.get(mem.id) !== undefined) return msg.channel.send('That person has already been added to this ticket.');
+    if (msg.channel.permissionFor(mem.id) !== undefined) return msg.channel.send('That person has already been added to this ticket.');
 
     await msg.channel.updateOverwrite(mem.id, { VIEW_CHANNEL: true });
 
     // Logging info
     const output = `${DateTime.now().toLocaleString(DateTime.DATETIME_FULL)} - ${msg.author.tag} has added another member: \n${mem.displayName}.`;
 
-    db.push(`servers.${msg.guild.id}.tickets.${tName}.chatLogs`, output);
+    db.push(`servers.${msg.guild.id}.tickets.${msg.channel.id}.chatLogs`, output);
 
     const em = new EmbedBuilder()
       .setTitle('Member Added')

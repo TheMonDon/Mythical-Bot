@@ -39,7 +39,7 @@ class RemoveMember extends Command {
       }
     }
 
-    if (!msg.channel.permissionOverwrites.get(mem.id)) return msg.channel.send('That person has not been added to this ticket.');
+    if (!msg.channel.permissionFor(mem.id)) return msg.channel.send('That person has not been added to this ticket.');
 
     msg.channel.permissionOverwrites.get(mem.id).delete();
 

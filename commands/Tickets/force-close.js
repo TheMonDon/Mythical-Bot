@@ -9,7 +9,7 @@ class forceClose extends Command {
     super(client, {
       name: 'force-close',
       description: 'Close your or another ticket',
-      usage: 'force-close [ticket-ID] [reason]',
+      usage: 'Force-Close [Ticket Channel ID] [Reason]',
       category: 'Tickets',
       aliases: ['fclose', 'forceclose'],
       guildOnly: true
@@ -20,22 +20,23 @@ class forceClose extends Command {
     if (!db.get(`servers.${msg.guild.id}.tickets`)) return msg.channel.send('The ticket system has not been setup in this server.');
 
     let tName;
+    let tID
     let reason;
     if (msg.channel.name.startsWith('ticket')) {
       if (!args[0]) {
-        tName = msg.channel.name;
+        tID = msg.channel.id;
         reason = 'No reason specified';
       } else if (db.get(`servers.${msg.guild.id}.tickets.${args[0]}`)) {
-        tName = args[0];
+        tID = args[0];
         args.shift();
         reason = args?.join(' ') || 'No reason specified';
       } else {
-        tName = msg.channel.name;
+        tID = msg.channel.id;
         reason = args?.join(' ') || 'No reason specified';
       }
     } else {
-      if (!args[0]) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}force-close [ticket-ID] [reason]`);
-      tName = args[0];
+      if (!args[0]) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}force-close [Ticket Channel ID] [reason]`);
+      tID = args[0];
       args.shift();
       reason = args?.join(' ') || 'No reason specified';
       // not inside tix channel so need tix ID
@@ -43,7 +44,7 @@ class forceClose extends Command {
 
     const { logID, roleID } = db.get(`servers.${msg.guild.id}.tickets`);
 
-    const owner = db.get(`servers.${msg.guild.id}.tickets.${tName}.owner`);
+    const owner = db.get(`servers.${msg.guild.id}.tickets.${tID}.owner`);
     const role = msg.guild.roles.cache.get(roleID);
 
     // Are they inside a ticket channel?
@@ -51,7 +52,7 @@ class forceClose extends Command {
       // Do they have the support role?
       if (!msg.member.roles.cache.some(r => r.id === roleID)) return msg.channel.send(`You need to be a member of ${role.name} to use force-close.`);
       // Did they supply a ticket ID?
-      if (!tName && !msg.channel.name.startsWith('ticket')) return msg.channel.send('You need to supply the ticket ID.');
+      if (!tID && !msg.channel.name.startsWith('ticket')) return msg.channel.send('You need to supply the ticket channel ID.');
 
       if (!owner) return msg.channel.send('That is not a valid ticket. Please try again.');
     } else {
@@ -63,15 +64,16 @@ class forceClose extends Command {
       }
     }
 
-    const chan = await msg.guild.channels.cache.find(c => c.name === tName);
+    const chan = await msg.guild.channels.cache.find(c => c.id === tID);
     if (!chan) return msg.channel.send('That is not a valid ticket, or has already been closed.');
+    tName = chan.name;
 
     // Logging info
     const output = `${DateTime.now().toLocaleString(DateTime.DATETIME_FULL)} - ${msg.author.tag} has requested to force-close this ticket. \nTranscript will be sent to ticket owner.`;
 
-    db.push(`servers.${msg.guild.id}.tickets.${tName}.chatLogs`, output);
+    db.push(`servers.${msg.guild.id}.tickets.${tID}.chatLogs`, output);
 
-    let chatLogs = db.get(`servers.${msg.guild.id}.tickets.${tName}.chatLogs`);
+    let chatLogs = db.get(`servers.${msg.guild.id}.tickets.${tID}.chatLogs`);
     chatLogs ? chatLogs = chatLogs.join('\n') : chatLogs = 'No Transcript available';
 
     let url;
@@ -119,7 +121,7 @@ class forceClose extends Command {
     if (received === 'no') logEmbed.setFooter({ text: 'Could not message author.' });
     await msg.guild.channels.cache.get(logID).send({ embeds: [logEmbed] });
 
-    db.delete(`servers.${msg.guild.id}.tickets.${tName}`);
+    db.delete(`servers.${msg.guild.id}.tickets.${tID}`);
     return msg.channel.delete();
   }
 }

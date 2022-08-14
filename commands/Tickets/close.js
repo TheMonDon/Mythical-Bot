@@ -26,15 +26,15 @@ class CloseTicket extends Command {
     if (!msg.channel.name.startsWith('ticket')) return msg.channel.send('You need to be inside the ticket you want to close.');
 
     const tName = msg.channel.name;
-    const owner = db.get(`servers.${msg.guild.id}.tickets.${tName}.owner`);
+    const owner = db.get(`servers.${msg.guild.id}.tickets.${msg.channel.id}.owner`);
     if (owner !== msg.author.id) return msg.channel.send('You need to be the owner of the ticket to close it.');
 
     // Logging info
     const output = `${DateTime.now().toLocaleString(DateTime.DATETIME_FULL)} - ${msg.author.tag} has requested to close this ticket. \nTranscript will be sent in 5 minutes if no further activity occurs.`;
 
-    db.push(`servers.${msg.guild.id}.tickets.${tName}.chatLogs`, output);
+    db.push(`servers.${msg.guild.id}.tickets.${msg.channel.id}.chatLogs`, output);
 
-    let chatLogs = db.get(`servers.${msg.guild.id}.tickets.${tName}.chatLogs`);
+    let chatLogs = db.get(`servers.${msg.guild.id}.tickets.${msg.channel.id}.chatLogs`);
     chatLogs ? chatLogs = chatLogs.join('\n') : chatLogs = 'No Transcript available';
 
     const em = new EmbedBuilder()
@@ -93,7 +93,7 @@ class CloseTicket extends Command {
       if (received === 'no') logEmbed.setFooter({ text: 'Could not message author.' });
       await msg.guild.channels.cache.get(logID).send({ embeds: [logEmbed] });
 
-      db.delete(`servers.${msg.guild.id}.tickets.${tName}`);
+      db.delete(`servers.${msg.guild.id}.tickets.${msg.channel.id}`);
       return msg.channel.delete();
     }
 
@@ -108,7 +108,7 @@ class CloseTicket extends Command {
       .setTimestamp();
 
     const output2 = `Closing of the ticket has been cancelled with the following reason: \n${response}`;
-    db.push(`servers.${msg.guild.id}.tickets.${tName}.chatLogs`, output2);
+    db.push(`servers.${msg.guild.id}.tickets.${msg.channel.id}.chatLogs`, output2);
 
     return msg.channel.send({ embeds: [embed] });
   }

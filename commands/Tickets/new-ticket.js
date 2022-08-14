@@ -10,7 +10,7 @@ class NewTicket extends Command {
     super(client, {
       name: 'new-ticket',
       description: 'Create a new ticket.',
-      usage: 'New-ticket <reason>',
+      usage: 'New-Ticket <reason>',
       category: 'Tickets',
       aliases: ['new', 'nt', 'newticket'],
       guildOnly: true
@@ -40,7 +40,7 @@ class NewTicket extends Command {
 
     const perms = [
       {
-        id: msg.member.id,
+        id: msg.author.id,
         allow: ['ViewChannel']
       },
       {
@@ -73,7 +73,7 @@ class NewTicket extends Command {
     const tName = `ticket-${str}-${count}`;
     const tixChan = await msg.guild.channels.create({ name: tName, type: ChannelType.GuildText, parent: catID, permissionOverwrites: perms, topic: reason });
 
-    db.set(`servers.${msg.guild.id}.tickets.${tName}.owner`, msg.author.id);
+    db.set(`servers.${msg.guild.id}.tickets.${tixChan.id}.owner`, msg.author.id);
 
     const userEmbed = new EmbedBuilder()
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
@@ -131,7 +131,7 @@ class NewTicket extends Command {
     Topic: ${reason}\n
     `;
 
-    db.push(`servers.${msg.guild.id}.tickets.${tName}.chatLogs`, output);
+    db.push(`servers.${msg.guild.id}.tickets.${tixChan.id}.chatLogs`, output);
   }
 }
 

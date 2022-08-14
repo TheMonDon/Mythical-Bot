@@ -1,6 +1,7 @@
 const Command = require('../../base/Command.js');
 const { toProperCase } = require('../../util/Util.js');
 const { EmbedBuilder } = require('discord.js');
+const db = require('quick.db');
 
 class Help extends Command {
   constructor (client) {
@@ -31,6 +32,7 @@ class Help extends Command {
     if (!args || args.length < 1) return msg.channel.send({ embeds: [errEm] });
 
     const category = toProperCase(args.join(' '));
+    const disabled = db.get(`servers.${msg.guild.id}.disabled`) || [];
     em.setTitle(`${category} Commands`)
       .setColor('#0099CC');
     const myCommands = this.client.commands.filter(cmd => this.client.levelCache[cmd.conf.permLevel] <= level);
@@ -45,6 +47,7 @@ class Help extends Command {
       command = this.client.commands.get(command) || this.client.commands.get(this.client.aliases.get(command));
       if (command) {
         if (level < this.client.levelCache[command.conf.permLevel]) return;
+        const res = disabled.includes(command.help.category.toLowerCase()) || disabled.includes(command.help.name.toLowerCase());
         em
           .setTitle(`${toProperCase(command.help.name)} Information`)
           .setColor('#0099CC')
@@ -54,13 +57,15 @@ class Help extends Command {
             { name: 'Guild Only', value: command.conf.guildOnly.toString() || 'false' },
             { name: 'NSFW', value: command.conf.nsfw.toString() || 'false' },
             { name: 'Description', value: command.help.description || 'none' },
-            { name: 'Long Description', value: command.help.longDescription || 'none' }
+            { name: 'Long Description', value: command.help.longDescription || 'none' },
+            { name: 'Command Disabled', value: toProperCase(res.toString()) }
           ]);
         return msg.channel.send({ embeds: [em] });
       } else {
         return msg.channel.send({ embeds: [errEm] });
       }
     } else if (em.data?.fields?.length > 0) {
+      em.addFields([{ name: 'Category Disabled', value: toProperCase(disabled.includes(category.toLowerCase()).toString()) }]);
       return msg.channel.send({ embeds: [em] });
     }
     return msg.channel.send({ embeds: [errEm] });
