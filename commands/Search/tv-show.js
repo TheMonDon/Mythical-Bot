@@ -7,17 +7,16 @@ class TVShow extends Command {
     super(client, {
       name: 'tv-show',
       description: 'View information on a tv-show from TMDb',
-      usage: 'tv-show <show>',
+      usage: 'TV-Show <Show>',
       category: 'Search',
       aliases: ['tvshow', 'tv']
     });
   }
 
   async run (msg, text) {
-    const p = msg.settings.prefix;
     const query = text.join(' ');
 
-    if (!query || query.length < 1) return msg.channel.send(`Incorrect Usage: ${p}tv-show <show>`);
+    if (!query || query.length < 1) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}TV-Show <Show>`);
 
     try {
       const search = await fetch

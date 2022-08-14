@@ -8,7 +8,7 @@ class Steam extends Command {
     super(client, {
       name: 'steam',
       description: 'Get some information about any steam game or application.',
-      usage: 'steam <game/app>',
+      usage: 'Steam <Game/App>',
       category: 'Search'
     });
   }

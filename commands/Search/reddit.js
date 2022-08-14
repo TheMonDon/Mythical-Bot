@@ -7,14 +7,13 @@ class Reddit extends Command {
     super(client, {
       name: 'reddit',
       description: 'Sends a random image from a subreddit of your choice.',
-      usage: 'reddit <subreddit>',
+      usage: 'Reddit <Subreddit>',
       category: 'Search'
     });
   }
 
   async run (msg, args) {
-    const usage = `Incorrect Usage: ${msg.settings.prefix}reddit <subreddit>`;
-    if (!args || args.length < 1) return msg.reply(usage);
+    if (!args || args.length < 1) return msg.reply(`Incorrect Usage: ${msg.settings.prefix}reddit <subreddit>`);
     const subreddit = args.join('');
 
     const post = await trev.getCustomSubreddit(subreddit);

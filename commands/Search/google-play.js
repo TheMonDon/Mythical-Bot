@@ -7,7 +7,7 @@ class GooglePlay extends Command {
     super(client, {
       name: 'google-play',
       description: 'Get some information about any Google Play application.',
-      usage: 'google-play <app>',
+      usage: 'Google-Play <App>',
       category: 'Search',
       aliases: ['gplay', 'g-play', 'googleplay']
     });
@@ -15,6 +15,7 @@ class GooglePlay extends Command {
 
   async run (msg, text) {
     const term = text.join(' ');
+    if (!term || term.length < 1) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}Google-Play <App>`);
 
     gplay.search({
       term,
