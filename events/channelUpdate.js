@@ -1,5 +1,5 @@
 const db = require('quick.db');
-const { EmbedBuilder } = require('discord.js');
+const { EmbedBuilder, ChannelType } = require('discord.js');
 
 module.exports = class {
   constructor (client) {
@@ -7,6 +7,8 @@ module.exports = class {
   }
 
   async run (channel, newChannel) {
+    if (channel.type === ChannelType.DM) return;
+
     const logChan = db.get(`servers.${channel.guild.id}.logs.channel`);
     if (!logChan) return;
 
@@ -22,35 +24,34 @@ module.exports = class {
 
     if (channel === newChannel) return;
 
-    if (channel.parent !== newChannel.parent && channel.name !== newChannel.name && channel.topic !== newChannel.topic) {
-      let catUp;
-      if (!channel.parent && newChannel.parent) {
-        catUp = `Updated: ✅ \n New Category: ${newChannel.parent.name}`;
-      } else if (!channel.parent && !newChannel.parent) {
-        catUp = 'Updated: ❌';
-      } else if (channel.parent && !newChannel.parent) {
-        catUp = 'Updated: ✅ \n New Category: `None`';
-      } else if (channel.parent !== newChannel.parent) {
-        catUp = `Updated: ✅ \n New Category: ${newChannel.parent.name}`;
-      } else if (channel.parent === newChannel.parent) {
-        catUp = 'Updated: ❌';
-      }
-
-      const embed = new EmbedBuilder()
-        .setTitle(`Channel ${channel.name} Updated`)
-        .setColor('#EE82EE')
-        .addFields([
-          { name: 'Name', value: (channel.name === newChannel.name) ? 'Updated: ❌' : `Updated: ✅ \n New Name: ${newChannel.name}` },
-          { name: 'Topic', value: (channel.topic === newChannel.topic) ? 'Updated: ❌' : `Updated: ✅ \n New Topic: ${newChannel.topic}` },
-          { name: 'Is NSFW?', value: (newChannel.nsfw) ? '✅' : '❌' },
-          { name: 'Category', value: catUp }
-        ])
-        .setFooter({ text: `ID: ${newChannel.id}` })
-        .setTimestamp();
-
-      channel.guild.channels.cache.get(logChan).send({ embeds: [embed] });
-      db.add(`servers.${channel.guild.id}.logs.channel-updated`, 1);
-      db.add(`servers.${channel.guild.id}.logs.all`, 1);
+    let catUp;
+    if (!channel.parent && newChannel.parent) {
+      catUp = `Updated: ✅ \n New Category: ${newChannel.parent.name}`;
+    } else if (!channel.parent && !newChannel.parent) {
+      catUp = 'Updated: ❌';
+    } else if (channel.parent && !newChannel.parent) {
+      catUp = 'Updated: ✅ \n New Category: `None`';
+    } else if (channel.parent !== newChannel.parent) {
+      catUp = `Updated: ✅ \n New Category: ${newChannel.parent.name}`;
+    } else if (channel.parent === newChannel.parent) {
+      catUp = 'Updated: ❌';
     }
+
+    const embed = new EmbedBuilder()
+      .setTitle(`Channel ${channel.name} Updated`)
+      .setColor('#EE82EE')
+      .addFields([
+        { name: 'Name', value: (channel.name === newChannel.name) ? 'Updated: ❌' : `Updated: ✅ \n New Name: ${newChannel.name}`, inline: true },
+        { name: 'Topic', value: (channel.topic === newChannel.topic) ? 'Updated: ❌' : `Updated: ✅ \n New Topic: ${newChannel.topic}`, inline: true },
+        { name: 'Category', value: catUp, inline: true }
+      ])
+      .setFooter({ text: `ID: ${newChannel.id}` })
+      .setTimestamp();
+    if (channel.type === ChannelType.GuildText) embed.addFields([{ name: 'Is NSFW?', value: (newChannel.nsfw) ? '✅' : '❌', inline: true }]);
+    if ([ChannelType.GuildVoice, ChannelType.GuildStageVoice].includes(channel.type)) embed.addFields([{ name: 'Bitrate', value: (channel.bitrate === newChannel.bitrate) ? 'Updated: ❌' : `Updated: ✅ \n New Bitrate: ${newChannel.bitrate.toLocaleString()}`, inline: true }]);
+
+    channel.guild.channels.cache.get(logChan).send({ embeds: [embed] });
+    db.add(`servers.${channel.guild.id}.logs.channel-updated`, 1);
+    db.add(`servers.${channel.guild.id}.logs.all`, 1);
   }
 };

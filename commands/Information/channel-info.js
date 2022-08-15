@@ -34,11 +34,11 @@ class ChannelInfo extends Command {
       .addFields([
         { name: 'Name', value: infoChan.name, inline: true },
         { name: 'ID', value: infoChan.id.toString(), inline: true },
-        { name: 'Type', value: ChannelType[msg.channel.type].toString(), inline: true },
+        { name: 'Type', value: ChannelType[infoChan.type].toString(), inline: true },
         { name: 'Position', value: infoChan.position.toString(), inline: true }
       ]);
     if (infoChan.type === ChannelType.GuildText) embed.addFields([{ name: 'NSFW', value: infoChan.nsfw.toString(), inline: true }]);
-    if (infoChan.type === ChannelType.GuildVoice) {
+    if (infoChan.type === ChannelType.GuildVoice || infoChan.type === ChannelType.GuildStageVoice) {
       embed.addFields([
         { name: 'User Limit', value: infoChan.userLimit.toString(), inline: true },
         { name: 'Bitrate', value: infoChan.bitrate.toString(), inline: true }

@@ -2,7 +2,6 @@ const Command = require('../../base/Command.js');
 const { EmbedBuilder } = require('discord.js');
 const ms = require('ms');
 const { getChannel } = require('../../util/Util.js');
-const messages = require('../../util/messages.js');
 const db = require('quick.db');
 
 class StartGiveaway extends Command {
@@ -75,7 +74,17 @@ class StartGiveaway extends Command {
       // Who hosts this giveaway
       hostedBy: msg.member,
       // Messages
-      messages
+      messages: {
+        giveaway: '',
+        giveawayEnded: '',
+        noWinner: 'Giveaway cancelled, no valid participants.',
+        winners: 'Winners:',
+        endedAt: 'Ended at',
+        winMessage: {
+          content: 'Congratulations, {winners}! You won **{this.prize}**!',
+          replyToGiveaway: true
+        }
+      }
     });
 
     db.add('global.giveaways', 1);

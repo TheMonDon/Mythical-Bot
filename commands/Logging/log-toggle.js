@@ -28,7 +28,7 @@ class LogToggle extends Command {
     const tc = /^(thread[-]?created)/gi;
     const td = /^(thread[-]?deleted)/gi;
     const vcc = /^((voice|v)[-]?channel[-]?created)/gi;
-    const vcd = /^((voice|v)[-]?channel[-]?created)/gi;
+    const vcd = /^((voice|v)[-]?channel[-]?deleted)/gi;
     const mj = /^(member[-]?join(ed)?)/gi;
     const ml = /^(member[-]?leave)/gi;
     const me1 = /^(message[-]?edited)/gi;
@@ -36,6 +36,9 @@ class LogToggle extends Command {
     const rc = /^(role[-]?created)/gi;
     const rd = /^(role[-]?deleted)/gi;
     const ru = /^(role[-]?updated)/gi;
+    const sc = /^((stage|s)[-]?channel[-]?created)/gi;
+    const sd = /^((stage|s)[-]?channel[-]?deleted)/gi;
+    const su = /^((stage|s)[-]?channel[-]?updated)/gi;
     const ec = /^(emoji[-]?created)/gi;
     const ed = /^(emoji[-]?deleted)/gi;
     const bmd = /^(bulk[-]?messages[-]?deleted)/gi;
@@ -60,12 +63,15 @@ message-deleted
 role-created
 role-deleted
 role-updated
+stage-channel-created
+stage-channel-deleted
+stage-channel-updated
 emoji-created
 emoji-deleted
 bulk-messages-deleted`,
           inline: true
         },
-        { name: 'Other Usage:', value: 'logtoggle <enable/disable> <channel> to enable/disable a channel from being logged.', inline: false }
+        { name: 'Other Usage:', value: 'Log-Toggle <Enable/Disable> <Channel> to enable/disable a channel from being logged.', inline: false }
       ]);
     if (['enable', 'disable'].includes(args?.[0]?.toLowerCase())) {
       if (args?.[0]?.toLowerCase() === 'enable') {
@@ -213,6 +219,30 @@ bulk-messages-deleted`,
       } else {
         db.set(`servers.${msg.guild.id}.logs.logSystem.role-updated`, 'enabled');
         msg.channel.send('Role-Updated logs has been enabled');
+      }
+    } else if (sc.test(query)) {
+      if (db.get(`servers.${msg.guild.id}.logs.logSystem.stage-channel-created`) === 'enabled') {
+        db.set(`servers.${msg.guild.id}.logs.logSystem.stage-channel-created`, 'disabled');
+        msg.channel.send('Stage-Channel-Created logs has been disabled');
+      } else {
+        db.set(`servers.${msg.guild.id}.logs.logSystem.stage-channel-created`, 'enabled');
+        msg.channel.send('Stage-Channel-Created logs has been enabled');
+      }
+    } else if (sd.test(query)) {
+      if (db.get(`servers.${msg.guild.id}.logs.logSystem.stage-channel-deleted`) === 'enabled') {
+        db.set(`servers.${msg.guild.id}.logs.logSystem.stage-channel-deleted`, 'disabled');
+        msg.channel.send('Stage-Channel-Deleted logs has been disabled');
+      } else {
+        db.set(`servers.${msg.guild.id}.logs.logSystem.stage-channel-deleted`, 'enabled');
+        msg.channel.send('Stage-Channel-Deleted logs has been enabled');
+      }
+    } else if (su.test(query)) {
+      if (db.get(`servers.${msg.guild.id}.logs.logSystem.stage-channel-updated`) === 'enabled') {
+        db.set(`servers.${msg.guild.id}.logs.logSystem.stage-channel-updated`, 'disabled');
+        msg.channel.send('Stage-Channel-Updated logs has been disabled');
+      } else {
+        db.set(`servers.${msg.guild.id}.logs.logSystem.stage-channel-updated`, 'enabled');
+        msg.channel.send('Stage-Channel-Updated logs has been enabled');
       }
     } else if (ec.test(query)) {
       if (db.get(`servers.${msg.guild.id}.logs.logSystem.emoji-created`) === 'enabled') {
