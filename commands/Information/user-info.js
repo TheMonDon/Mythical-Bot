@@ -19,10 +19,7 @@ class UserInfo extends Command {
   async run (msg, text) {
     let infoMem = msg.member;
 
-    if (text?.length > 0) {
-      infoMem = getMember(msg, text.join(' '));
-      infoMem.user.fetch();
-    }
+    if (text?.length > 0) infoMem = getMember(msg, text.join(' '));
 
     if (!infoMem) {
       const fid = text.join(' ').replace('<@', '').replace('>', '');
@@ -32,6 +29,8 @@ class UserInfo extends Command {
         infoMem = msg.member;
         infoMem.user.fetch();
       }
+    } else {
+      infoMem.user.fetch();
     }
 
     // User Flags / Badges
@@ -84,7 +83,7 @@ class UserInfo extends Command {
         .setImage(infoMem.user.bannerURL())
         .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
         .addFields([
-          { name: 'User Tag', value: infoMem.user.tag, inline: true },
+          { name: 'User Tag', value: `${infoMem.user.tag} (${infoMem})`, inline: true },
           { name: 'Nickname', value: infoMem.displayName, inline: true },
           { name: 'User ID', value: infoMem.id, inline: true },
           { name: 'Joined Server', value: `${ja} \n (${jaTime})`, inline: true },
@@ -113,12 +112,14 @@ class UserInfo extends Command {
       .setColor('#0099CC')
       .setThumbnail(infoMem.displayAvatarURL({ format: 'png', dynamic: true }))
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
+      .setImage(infoMem.bannerURL())
       .addFields([
-        { name: 'User Tag', value: infoMem.tag },
-        { name: 'User ID', value: infoMem.id.toString() },
-        { name: `Badges [${userBadges?.length || 0}]`, value: badgesArray || 'No Badges' },
-        { name: 'Account Type', value: infoMem.bot ? ':robot: Bot' : ':person_standing: Human' },
-        { name: 'Account Created', value: ca }
+        { name: 'User Tag', value: `${infoMem.tag} (${infoMem})`, inline: true },
+        { name: 'User ID', value: infoMem.id.toString(), inline: true },
+        { name: `Badges [${userBadges?.length || 0}]`, value: badgesArray || 'No Badges', inline: true },
+        { name: 'Account Type', value: infoMem.bot ? ':robot: Bot' : ':person_standing: Human', inline: true },
+        { name: 'Account Created', value: ca, inline: true },
+        { name: 'Accent Color', value: infoMem.hexAccentColor?.toString().toUpperCase() || 'None', inline: true }
       ]);
     return msg.channel.send({ embeds: [embed] });
   }
