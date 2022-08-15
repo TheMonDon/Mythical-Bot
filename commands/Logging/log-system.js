@@ -16,7 +16,7 @@ class logSystem extends Command {
   }
 
   async run (msg) {
-    if (!db.get(`servers.${msg.guild.id}.logs.logSystem.channel`)) return msg.channel.send(`The log system is not set up! Use \`${msg.settings.prefix}Setup Logging <Channel>\``);
+    if (!db.get(`servers.${msg.guild.id}.logs.channel`)) return msg.channel.send(`The log system is not set up! Use \`${msg.settings.prefix}Setup Logging <Channel>\``);
 
     const embed = new Discord.EmbedBuilder()
       .setColor('#36393F')
