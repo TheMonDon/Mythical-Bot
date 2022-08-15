@@ -16,7 +16,7 @@ module.exports = class {
       const logChan = db.get(`servers.${newmsg.guild.id}.logs.channel`);
       if (!logChan) return;
 
-      const logSys = db.get(`servers.${newmsg.guild.id}.logs.log_system.message-edited`);
+      const logSys = db.get(`servers.${newmsg.guild.id}.logs.logSystem.message-edited`);
       if (!logSys || logSys !== 'enabled') return;
 
       const chans = db.get(`servers.${newmsg.guild.id}.logs.noLogChans`) || [];

@@ -11,7 +11,7 @@ module.exports = class {
       const logChan = db.get(`servers.${member.guild.id}.logs.channel`);
       if (!logChan) return;
 
-      const logSys = db.get(`servers.${member.guild.id}.logs.log_system.member-leave`);
+      const logSys = db.get(`servers.${member.guild.id}.logs.logSystem.member-leave`);
       if (logSys !== 'enabled') return;
 
       const logChannel = member.guild.channels.cache.get(logChan);

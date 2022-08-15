@@ -14,7 +14,7 @@ module.exports = class {
     const logChan = db.get(`servers.${server.id}.logs.channel`);
     if (!logChan) return;
 
-    const logSys = db.get(`servers.${server.id}.logs.log_system.bulk-messages-deleted`);
+    const logSys = db.get(`servers.${server.id}.logs.logSystem.bulk-messages-deleted`);
     if (logSys !== 'enabled') return;
 
     const chans = db.get(`servers.${server.id}.logs.noLogChans`) || [];

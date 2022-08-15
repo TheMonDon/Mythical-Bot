@@ -11,9 +11,9 @@ class Setup extends Command {
       description: 'Setup the different systems of the bot.',
       usage: 'setup <system>',
       category: 'Administrator',
-      guildOnly: true,
       permLevel: 'Administrator',
-      aliases: ['setlogchannel', 'setupticket', 'logsetup', 'ticketsetup']
+      aliases: ['setlogchannel', 'setupticket', 'logsetup', 'ticketsetup'],
+      guildOnly: true
     });
   }
 
@@ -217,7 +217,7 @@ class Setup extends Command {
           .setThumbnail('https://cdn.discordapp.com/emojis/482184108555108358.png')
           .setDescription(`Everything related to logs will be posted in ${chan} from now on.`)
           .setTimestamp()
-          .setFooter({ text: 'Logs System V3.1' });
+          .setFooter({ text: 'Logs System V3.2' });
         msg.channel.send({ embeds: [embed] });
       } else {
         db.set(`servers.${msg.guild.id}.logs.logSystem`, logSystem);
@@ -227,7 +227,7 @@ class Setup extends Command {
           .setThumbnail('https://cdn.discordapp.com/emojis/482184108555108358.png')
           .setDescription(`Everything related to logs will be posted in ${chan}.`)
           .setTimestamp()
-          .setFooter({ text: 'Logs System V3.1' });
+          .setFooter({ text: 'Logs System V3.2' });
         msg.channel.send({ embeds: [embed] });
       }
       db.set(`servers.${msg.guild.id}.logs.channel`, chan.id);

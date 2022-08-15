@@ -10,7 +10,7 @@ module.exports = class {
     const logChan = db.get(`servers.${emoji.guild.id}.logs.channel`);
     if (!logChan) return;
 
-    const logSys = db.get(`servers.${emoji.guild.id}.logs.log_system.emoji-deleted`);
+    const logSys = db.get(`servers.${emoji.guild.id}.logs.logSystem.emoji-deleted`);
     if (logSys !== 'enabled') return;
 
     const logChannel = emoji.guild.channels.cache.get(logChan);

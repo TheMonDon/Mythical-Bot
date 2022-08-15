@@ -4,12 +4,13 @@ const db = require('quick.db');
 class ToggleAll extends Command {
   constructor (client) {
     super(client, {
-      name: 'toggleall',
+      name: 'toggle-all',
       description: 'Toggle all logs',
-      usage: 'toggleall',
+      usage: 'Toggle-All',
       category: 'Logging',
       permLevel: 'Moderator',
-      aliases: ['ta', 'toggle-all']
+      aliases: ['ta', 'toggleall'],
+      guildOnly: true
     });
   }
 

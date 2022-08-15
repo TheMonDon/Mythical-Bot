@@ -10,7 +10,7 @@ module.exports = class {
     const logChan = db.get(`servers.${roleafter.guild.id}.logs.channel`);
     if (!logChan) return;
 
-    const logSys = db.get(`servers.${roleafter.guild.id}.logs.log_system.role-updated`);
+    const logSys = db.get(`servers.${roleafter.guild.id}.logs.logSystem.role-updated`);
     if (logSys !== 'enabled') return;
     const logChannel = roleafter.guild.channels.cache.get(logChan);
     if (!logChannel.permissionsFor(this.client.user.id).has('SendMessages')) return;

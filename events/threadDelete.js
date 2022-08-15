@@ -10,7 +10,7 @@ module.exports = class {
     const logChan = db.get(`servers.${thread.guild.id}.logs.channel`);
     if (!logChan) return;
 
-    const logSys = db.get(`servers.${thread.guild.id}.logs.log_system.thread-deleted`);
+    const logSys = db.get(`servers.${thread.guild.id}.logs.logSystem.thread-deleted`);
     if (logSys !== 'enabled') return;
     if (thread.name.startsWith('ticket-')) return;
 

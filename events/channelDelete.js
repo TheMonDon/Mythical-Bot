@@ -10,7 +10,7 @@ module.exports = class {
     const logChan = db.get(`servers.${channel.guild.id}.logs.channel`);
     if (!logChan) return;
 
-    const logSys = db.get(`servers.${channel.guild.id}.logs.log_system.channel-deleted`);
+    const logSys = db.get(`servers.${channel.guild.id}.logs.logSystem.channel-deleted`);
     if (logSys !== 'enabled') return;
     if (channel.name.startsWith('ticket-')) return;
 
