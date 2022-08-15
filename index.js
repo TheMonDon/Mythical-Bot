@@ -1,4 +1,4 @@
-if (Number(process.version.slice(1).split('.')[0]) < 18) throw new Error('Node 18.x or higher is required. Update Node on your system.');
+if (Number(process.version.slice(1).split('.')[0]) < '16.9') throw new Error('Node 16.9 or higher is required. Update Node on your system.');
 
 const { GatewayIntentBits, Collection, Client, EmbedBuilder } = require('discord.js');
 const { readdirSync, statSync } = require('fs');

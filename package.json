@@ -1,11 +1,11 @@
 {
   "name": "mythical",
-  "version": "3.2.0",
+  "version": "3.3.0",
   "description": "Mythical Bot",
   "owner": "TheMonDon#1721",
   "main": "index.js",
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=16.9.0"
   },
   "license": "MIT",
   "dependencies": {
