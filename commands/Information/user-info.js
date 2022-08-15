@@ -19,7 +19,10 @@ class UserInfo extends Command {
   async run (msg, text) {
     let infoMem = msg.member;
 
-    if (text?.length > 0) infoMem = getMember(msg, text.join(' '));
+    if (text?.length > 0) {
+      infoMem = getMember(msg, text.join(' '));
+      infoMem.user.fetch();
+    }
 
     if (!infoMem) {
       const fid = text.join(' ').replace('<@', '').replace('>', '');
@@ -27,10 +30,9 @@ class UserInfo extends Command {
         infoMem = await this.client.users.fetch(fid);
       } catch (err) {
         infoMem = msg.member;
+        infoMem.user.fetch();
       }
     }
-
-    infoMem.user.fetch();
 
     // User Flags / Badges
     const flags = {

@@ -19,7 +19,7 @@ module.exports = class {
     const settings = this.client.getSettings(message.guild);
     message.settings = settings;
 
-    const prefixMention = new RegExp(`^(<@!?${this.client.user.id}>)(\s+)?`);
+    const prefixMention = new RegExp(`^(<@!?${this.client.user.id}>)(\\s+)?`);
     if (message.guild && message.content.match(prefixMention)) {
       bool = true;
       tag = String(message.guild.members.me);
