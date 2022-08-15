@@ -30,7 +30,7 @@ class UserInfo extends Command {
       }
     }
 
-    this.client.users.fetch(infoMem.id);
+    infoMem.user.fetch();
 
     // User Flags / Badges
     const flags = {
@@ -79,6 +79,7 @@ class UserInfo extends Command {
         .setTitle(`${infoMem.user.username}'s Info`)
         .setColor('#0099CC')
         .setThumbnail(infoMem.user.displayAvatarURL({ format: 'png', dynamic: true }))
+        .setImage(infoMem.user.bannerURL())
         .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
         .addFields([
           { name: 'User Tag', value: infoMem.user.tag, inline: true },
@@ -89,8 +90,7 @@ class UserInfo extends Command {
           { name: 'Join Position', value: `${Number(joinPosition)?.toLocaleString()}/${msg.guild.memberCount.toLocaleString()}`, inline: true },
           { name: 'Account Type', value: infoMem.user.bot ? ':robot: Bot' : ':person_standing: Human', inline: true },
           { name: `Badges [${userBadges?.length || 0}]`, value: badgesArray || 'No Badges', inline: true },
-          { name: 'Banner', value: infoMem.user.bannerURL() || 'None', inline: true },
-          { name: 'Accent Color', value: infoMem.user.accentColor?.toString() || 'None', inline: true },
+          { name: 'Accent Color', value: infoMem.user.hexAccentColor?.toString() || 'None', inline: true },
           { name: 'Roles', value: roles1, inline: false }
         ]);
       return msg.channel.send({ embeds: [embed] });
