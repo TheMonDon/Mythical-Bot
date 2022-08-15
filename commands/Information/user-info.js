@@ -30,21 +30,26 @@ class UserInfo extends Command {
       }
     }
 
+    this.client.users.fetch(infoMem.id);
+
     // User Flags / Badges
     const flags = {
-      DISCORD_EMPLOYEE: '<:DiscordEmployee:879966587816386591>',
-      PARTNERED_SERVER_OWNER: '<:partnered_server_owner:879967015119519756>',
-      HYPESQUAD_EVENTS: '<:hypesquad_events:879966257355587654>',
-      BUGHUNTER_LEVEL_1: '<:BugHunter:879966295829913601>',
-      BUGHUNTER_LEVEL_2: '<:BugHunterLvl2:879966322434388009>',
-      TEAM_USER: '',
-      HOUSE_BRILLIANCE: '<:house_brilliance:862241973271003156>',
-      HOUSE_BALANCE: '<:house_balance:862242872362139648>',
-      HOUSE_BRAVERY: '<:house_bravery:862241972765196309>',
-      EARLY_SUPPORTER: '<:early_supporter_badge:862241973388836884>',
-      EARLY_VERIFIED_BOT_DEVELOPER: '<:verified_developer_badge:862241973146353674>',
-      VERIFIED_BOT: '<:verified_bot:862241973326839818>',
-      DISCORD_CERTIFIED_MODERATOR: '<:certifiedModerator:879967930534740008>'
+      Staff: '<:DiscordEmployee:879966587816386591>',
+      Partner: '<:partnered_server_owner:879967015119519756>',
+      Hypesquad: '<:hypesquad_events:879966257355587654>',
+      BugHunterLevel1: '<:BugHunter:879966295829913601>',
+      BugHunterLevel2: '<:BugHunterLvl2:879966322434388009>',
+      HypeSquadOnlineHouse3: '<:house_balance:862242872362139648>',
+      HypeSquadOnlineHouse2: '<:house_brilliance:862241973271003156>',
+      HypeSquadOnlineHouse1: '<:house_bravery:862241972765196309>',
+      PremiumEarlySupporter: '<:early_supporter_badge:862241973388836884>',
+      VerifiedDeveloper: '<:verified_developer_badge:862241973146353674>',
+      VerifiedBot: '<:verified_bot:862241973326839818>',
+      CertifiedModerator: '<:certifiedModerator:879967930534740008>',
+      BotHTTPInteractions: '',
+      Quarantined: '',
+      Spammer: '',
+      TeamPseudoUser: ''
     };
 
     // Guild Member
@@ -76,15 +81,17 @@ class UserInfo extends Command {
         .setThumbnail(infoMem.user.displayAvatarURL({ format: 'png', dynamic: true }))
         .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
         .addFields([
-          { name: 'User Tag', value: infoMem.user.tag },
-          { name: 'Nickname', value: infoMem.displayName },
-          { name: 'User ID', value: infoMem.id },
-          { name: 'Joined Server', value: `${ja} \n (${jaTime})` },
-          { name: 'Account Created', value: `${ca} \n (${caTime})` },
-          { name: 'Join Position', value: `${Number(joinPosition)?.toLocaleString()}/${msg.guild.memberCount.toLocaleString()}` },
-          { name: 'Account Type', value: infoMem.user.bot ? ':robot: Bot' : ':person_standing: Human' },
-          { name: `Badges [${userBadges?.length || 0}]`, value: badgesArray || 'No Badges' },
-          { name: 'Roles', value: roles1 }
+          { name: 'User Tag', value: infoMem.user.tag, inline: true },
+          { name: 'Nickname', value: infoMem.displayName, inline: true },
+          { name: 'User ID', value: infoMem.id, inline: true },
+          { name: 'Joined Server', value: `${ja} \n (${jaTime})`, inline: true },
+          { name: 'Account Created', value: `${ca} \n (${caTime})`, inline: true },
+          { name: 'Join Position', value: `${Number(joinPosition)?.toLocaleString()}/${msg.guild.memberCount.toLocaleString()}`, inline: true },
+          { name: 'Account Type', value: infoMem.user.bot ? ':robot: Bot' : ':person_standing: Human', inline: true },
+          { name: `Badges [${userBadges?.length || 0}]`, value: badgesArray || 'No Badges', inline: true },
+          { name: 'Banner', value: infoMem.user.bannerURL, inline: true },
+          { name: 'Accent Color', value: infoMem.user.accentColor?.toString() || 'None', inline: true },
+          { name: 'Roles', value: roles1, inline: false }
         ]);
       return msg.channel.send({ embeds: [embed] });
     }
