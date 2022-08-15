@@ -61,8 +61,8 @@ class UserInfo extends Command {
       const ts2 = moment(infoMem.joinedAt);
       const caTime = ts.from(moment());
       const jaTime = ts2.from(moment());
-      const ca = ts.format('MMM Do, YYYY');
-      const ja = ts2.format('MMM Do, YYYY');
+      const ca = ts.format('dddd, MMMM Do, YYYY, h:mm a');
+      const ja = ts2.format('dddd, MMMM Do, YYYY, h:mm a');
 
       // Role Stuff
       const roles = infoMem.roles.cache.sort((a, b) => b.position - a.position);
