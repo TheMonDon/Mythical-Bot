@@ -89,7 +89,7 @@ class UserInfo extends Command {
           { name: 'Join Position', value: `${Number(joinPosition)?.toLocaleString()}/${msg.guild.memberCount.toLocaleString()}`, inline: true },
           { name: 'Account Type', value: infoMem.user.bot ? ':robot: Bot' : ':person_standing: Human', inline: true },
           { name: `Badges [${userBadges?.length || 0}]`, value: badgesArray || 'No Badges', inline: true },
-          { name: 'Banner', value: infoMem.user.bannerURL, inline: true },
+          { name: 'Banner', value: infoMem.user.bannerURL() || 'None', inline: true },
           { name: 'Accent Color', value: infoMem.user.accentColor?.toString() || 'None', inline: true },
           { name: 'Roles', value: roles1, inline: false }
         ]);
