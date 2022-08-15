@@ -19,7 +19,7 @@ class UserInfo extends Command {
   async run (msg, text) {
     let infoMem = msg.member;
 
-    if (text && text.length > 0) infoMem = getMember(msg, text.join(' '));
+    if (text?.length > 0) infoMem = getMember(msg, text.join(' '));
 
     if (!infoMem) {
       const fid = text.join(' ').replace('<@', '').replace('>', '');
@@ -90,7 +90,7 @@ class UserInfo extends Command {
           { name: 'Join Position', value: `${Number(joinPosition)?.toLocaleString()}/${msg.guild.memberCount.toLocaleString()}`, inline: true },
           { name: 'Account Type', value: infoMem.user.bot ? ':robot: Bot' : ':person_standing: Human', inline: true },
           { name: `Badges [${userBadges?.length || 0}]`, value: badgesArray || 'No Badges', inline: true },
-          { name: 'Accent Color', value: infoMem.user.hexAccentColor?.toString() || 'None', inline: true },
+          { name: 'Accent Color', value: infoMem.user.hexAccentColor?.toString().toUpperCase() || 'None', inline: true },
           { name: 'Roles', value: roles1, inline: false }
         ]);
       return msg.channel.send({ embeds: [embed] });

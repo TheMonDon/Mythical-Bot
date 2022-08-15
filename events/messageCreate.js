@@ -19,8 +19,6 @@ module.exports = class {
     const settings = this.client.getSettings(message.guild);
     message.settings = settings;
 
-    // Checks if the bot was mentioned, with no message after it, returns the prefix.
-    // eslint-disable-next-line no-useless-escape
     const prefixMention = new RegExp(`^(<@!?${this.client.user.id}>)(\s+)?`);
     if (message.guild && message.content.match(prefixMention)) {
       bool = true;
