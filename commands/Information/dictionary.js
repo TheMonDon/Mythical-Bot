@@ -8,7 +8,7 @@ class Dictionary extends Command {
     super(client, {
       name: 'dictionary',
       description: 'Get the definition of a word from owlbot English dictionary',
-      usage: 'dictionary <word>',
+      usage: 'Dictionary <Word>',
       category: 'Information',
       aliases: ['dict', 'dic']
     });
@@ -23,7 +23,7 @@ class Dictionary extends Command {
 
     owl.define(input)
       .then(function (result) {
-        if (!result) return msg.channel.send('No entry was found for that word.'); // Edited owlbot-js index.js to return error.
+        if (!result) return msg.channel.send('No entry was found for that word.');
         const example = result.definitions?.[0]?.example?.replace(/(<([^>]+)>)/gi, '');
 
         const definition = result.definitions?.[0]?.definition;
@@ -32,7 +32,7 @@ class Dictionary extends Command {
         const em = new EmbedBuilder()
           .setTitle('Dictionary Information')
           .setColor('#0099CC')
-          .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
+          .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
           .addFields([
             { name: 'Definition', value: definition, inline: true },
             { name: 'Example', value: example || 'No example provided', inline: true },

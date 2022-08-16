@@ -6,7 +6,7 @@ class Emojis extends Command {
     super(client, {
       name: 'emojis',
       description: 'Shows all the custom emojis in the server.',
-      usage: 'emojis',
+      usage: 'Emojis',
       category: 'Information',
       guildOnly: true
     });
@@ -15,6 +15,7 @@ class Emojis extends Command {
   async run (msg) {
     const result = [];
 
+    await msg.guild.emojis.fetch();
     msg.guild.emojis.cache.forEach((e) => {
       result.push(e);
     });

@@ -1,6 +1,5 @@
 const Command = require('../../base/Command.js');
 const cows = require('cows');
-const rn = require('random-number');
 
 class Cow extends Command {
   constructor (client) {
@@ -13,13 +12,11 @@ class Cow extends Command {
   }
 
   async run (msg) {
-    const options = {
-      min: 0,
-      max: cows().length - 1,
-      integer: true
-    };
-    const random = rn(options);
-    return msg.channel.send(`\`\`\`${cows()[random]}\`\`\``);
+    function randomInteger (min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    return msg.channel.send(`\`\`\`${cows()[randomInteger(0, cows().length - 1)]}\`\`\``);
   }
 }
 module.exports = Cow;

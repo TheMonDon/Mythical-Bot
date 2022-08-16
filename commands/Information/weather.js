@@ -1,6 +1,8 @@
 const Command = require('../../base/Command.js');
 const { EmbedBuilder } = require('discord.js');
 const weather = require('weather-js');
+// const weather = require("msn-weather").default;
+// Change to msn-weather as it is being updated.
 
 class Weather extends Command {
   constructor (client) {
@@ -8,8 +10,7 @@ class Weather extends Command {
       name: 'weather',
       description: 'Get the weather information from any city',
       usage: 'weather',
-      category: 'Information',
-      aliases: ['temp']
+      category: 'Information'
     });
   }
 

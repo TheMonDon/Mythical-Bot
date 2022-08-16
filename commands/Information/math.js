@@ -7,7 +7,7 @@ class Math extends Command {
     super(client, {
       name: 'math',
       description: 'Solve some math equations',
-      usage: 'math <math equation>',
+      usage: 'Math <Equation>',
       category: 'Information'
     });
   }
@@ -16,7 +16,7 @@ class Math extends Command {
     const text = args.join(' ');
 
     if (!text || text.length < 1) {
-      return msg.channel.send(`Please supply a mathematical equation \n${msg.settings.prefix}math <equation>`);
+      return msg.channel.send(`Please supply a mathematical equation \n${msg.settings.prefix}Math <Equation>`);
     }
 
     try {
@@ -27,7 +27,8 @@ class Math extends Command {
         .addFields([
           { name: '**📥 Expression**', value: `\`\`\`${text.length > 1000 ? text.slice(0, 1000) + '...' : text}\`\`\``, inline: false },
           { name: '**📤 Result**', value: `\`\`\`${solution}\`\`\``, inline: false }
-        ]);
+        ])
+        .setDescription('Powered by: [math.js](https://mathjs.org/examples/index.html)');
       return msg.channel.send({ embeds: [embed] });
     } catch (err) {
       return msg.channel.send(`Sorry, I couldn't solve that equation. \`${err}\``);
