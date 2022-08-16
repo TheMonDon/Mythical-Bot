@@ -30,7 +30,7 @@ class ServerInfo extends Command {
     await server.members.fetch();
     const then = moment(server.createdAt);
     const time = then.from(moment());
-    const ca = then.format('MMM Do, YYYY');
+    const ca = then.format('dddd, MMMM Do, YYYY, h:mm a');
 
     const roles = server.roles.cache.sort((a, b) => b.position - a.position);
     const fRoles = roles.filter(r => r.id !== server.id);

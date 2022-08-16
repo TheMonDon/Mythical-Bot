@@ -27,7 +27,7 @@ class RoleInfo extends Command {
     // time
     const then = moment(infoRole.createdAt);
     const time = then.from(moment());
-    const ca = then.format('MMM Do, YYYY');
+    const ca = then.format('dddd, MMMM Do, YYYY, h:mm a');
     await msg.guild.members.fetch();
 
     const embed = new EmbedBuilder()
@@ -35,15 +35,15 @@ class RoleInfo extends Command {
       .setColor(infoRole.hexColor)
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
       .addFields([
-        { name: 'Name', value: infoRole.name },
-        { name: 'ID', value: infoRole.id.toString() },
-        { name: 'Mention', value: `\`${infoRole}\`` },
-        { name: 'Color', value: infoRole.hexColor.toString().toUpperCase() },
-        { name: 'Members', value: infoRole.members.size.toLocaleString() },
-        { name: 'Position', value: `${infoRole.position}/${msg.guild.roles.cache.size}` },
-        { name: 'Mentionable', value: infoRole.mentionable.toString() },
-        { name: 'Managed', value: infoRole.managed.toString() },
-        { name: 'Created At', value: `${ca} (${time})` }
+        { name: 'Name', value: infoRole.name, inline: true },
+        { name: 'ID', value: infoRole.id.toString(), inline: true },
+        { name: 'Mention', value: `\`${infoRole}\``, inline: true },
+        { name: 'Color', value: infoRole.hexColor.toString().toUpperCase(), inline: true },
+        { name: 'Members', value: infoRole.members.size.toLocaleString(), inline: true },
+        { name: 'Position', value: `${infoRole.position}/${msg.guild.roles.cache.size}`, inline: true },
+        { name: 'Mentionable', value: infoRole.mentionable.toString(), inline: true },
+        { name: 'Managed', value: infoRole.managed.toString(), inline: true },
+        { name: 'Created At', value: `${ca} (${time})`, inline: true }
       ]);
     return msg.channel.send({ embeds: [embed] });
   }

@@ -25,7 +25,7 @@ class ChannelInfo extends Command {
 
     const then = moment(infoChan.createdAt);
     const time = then.from(moment());
-    const ca = then.format('MMM Do, YYYY');
+    const ca = then.format('dddd, MMMM Do, YYYY, h:mm a');
 
     const embed = new EmbedBuilder()
       .setTitle('Channel Information')
