@@ -24,6 +24,8 @@ module.exports = class {
 
     if (channel === newChannel) return;
 
+    if (channel.parent === newChannel.parent && channel.name === newChannel.name && channel.topic === newChannel.topic && channel.nsfw === newChannel.nsfw && channel.bitrate === newChannel.bitrate) return;
+
     let catUp;
     if (!channel.parent && newChannel.parent) {
       catUp = `Updated: ✅ \n New Category: ${newChannel.parent.name}`;
