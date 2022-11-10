@@ -15,8 +15,7 @@ class apply extends Command {
     // #0099CC
     const embed = new EmbedBuilder()
       .setColor('#2ecc71')
-      .setAuthor({ name: this.client.user.username, iconURL: this.client.user.displayAvatarURL() })
-      .setThumbnail(this.client.user.displayAvatarURL())
+      .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
       .addFields([
         { name: 'Crafters-Island Staff Applications', value: 'You can apply for staff here: https://forms.gle/hThZY7WyyHu7e3ZaA', inline: true }
       ]);
