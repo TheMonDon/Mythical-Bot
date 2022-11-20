@@ -21,6 +21,11 @@ class Play extends Command {
     if (!query) return msg.channel.send('Please enter something to search for.');
 
     const queue = await this.client.player.createQueue(msg.guild, {
+      ytdlOptions: {
+        filter: 'audioonly',
+        highWaterMark: 1 << 30,
+        dlChunkSize: 0
+      },
       metadata: msg,
       leaveOnEmpty: false,
       leaveOnEnd: false,
