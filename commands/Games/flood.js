@@ -72,10 +72,10 @@ class Flood extends Command {
         if (result === 'winner') {
           const HS = { score: turn, user: msg.author.tag, time: gameTimeSeconds };
           const oldHS = db.get('global.highScores.flood');
-          highScore = oldHS?.score || 'N/A';
-          highScoreUser = oldHS?.user | 'N/A';
-          highScoreTime = oldHS?.time | 'N/A';
-          if (HS.score < highScore) {
+          highScore = oldHS?.score || 0;
+          highScoreUser = oldHS?.user || 'N/A';
+          highScoreTime = oldHS?.time || 0;
+          if (HS.score < highScore || !oldHS) {
             db.set('global.highScores.flood', HS);
             highScore = HS.score;
             highScoreUser = 'You';
@@ -88,9 +88,9 @@ class Flood extends Command {
           }
         } else {
           const oldHS = db.get('global.highScores.flood');
-          highScore = oldHS?.score || 'N/A';
+          highScore = oldHS?.score || 0;
           highScoreUser = oldHS?.user || 'N/A';
-          highScoreTime = oldHS?.time || 'N/A';
+          highScoreTime = oldHS?.time || 0;
         }
 
         if (!isNaN(highScoreTime)) highScoreTime = moment.duration(highScoreTime).format('m[ minutes][, and] s[ seconds]');
