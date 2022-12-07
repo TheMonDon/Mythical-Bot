@@ -45,7 +45,6 @@ class Connect4 extends Command {
       coin: '🪙'
     };
 
-    
     const current = this.client.games.get(msg.channel.id);
     if (current) return msg.reply(`Please wait until the current game of \`${current.name}\` is finished.`);
 
@@ -57,8 +56,6 @@ class Connect4 extends Command {
 
     args.shift();
     if (!args || args.length < 1) return msg.channel.send(`${usage} \nThat is not a valid color, either an emoji or one of ${list(Object.keys(colors), 'or')}.`);
-
-    this.client.games.set(msg.channel.id, { name: this.help.name, user: msg.author.id, date: Date.now() });
 
     function checkLine (a, b, c, d) {
       return (a !== null) && (a === b) && (a === c) && (a === d);
@@ -108,12 +105,8 @@ class Connect4 extends Command {
       const hasEmoji = new RegExp(`^(?:${emojiRegex().source})$`).test(color);
       const hasCustom = color.match(customEmojiRegex);
       if (hasCustom && !msg.guild) return msg.channel.send('You can only use custom emoji in a server.');
-      if (hasCustom && msg.guild && !msg.guild.emojis.cache.has(hasCustom[2])) {
-        return msg.channel.send('You can only use custom emoji from this server.');
-      }
-      if (!hasCustom && !hasEmoji && !colors[color.toLowerCase()]) {
-        return msg.channel.send(`Please enter an emoji or one of the following: ${list(Object.keys(colors), 'or')}.`);
-      }
+      if (hasCustom && msg.guild && !msg.guild.emojis.cache.has(hasCustom[2])) return msg.channel.send('You can only use custom emoji from this server.');
+      if (!hasCustom && !hasEmoji && !colors[color.toLowerCase()]) return msg.channel.send(`Please enter an emoji or one of the following: ${list(Object.keys(colors), 'or')}.`);
       if (color === blankEmoji) return msg.channel.send('You cannot use this emoji.');
       return true;
     }
@@ -123,6 +116,8 @@ class Connect4 extends Command {
       if (hasCustom && msg.guild) return msg.guild.emojis.cache.get(hasCustom[2]).toString();
       return colors[color.toLowerCase()] || color;
     }
+
+    this.client.games.set(msg.channel.id, { name: this.help.name, user: msg.author.id, date: Date.now() });
 
     let color = args[0];
     if (validate(color, msg) !== true) return;
