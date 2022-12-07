@@ -1,5 +1,4 @@
 const { EmbedBuilder } = require('discord.js');
-const { DateTime } = require('luxon');
 const db = require('quick.db');
 const { scheduleJob } = require('node-schedule');
 const { BotListToken } = require('../config.js');
@@ -53,11 +52,11 @@ module.exports = class {
                 .setColor(color)
                 .addFields([{ name: 'Reminder', value: `\`\`\`${reminder}\`\`\`` }])
                 .setFooter({ text: 'You created this reminder @' })
-                .setTimestamp(new DateTime(createdAt).toLocaleString(DateTime.DATETIME_FULL));
+                .setTimestamp(createdAt);
               channel ? channel.send({ embeds: [em], content: `<@${userID}>, here's your reminder:` }) : user.send({ embeds: [em], content: `${user.username}, here's your reminder:` });
               db.delete(`global.reminders.${remID}`);
-            } catch {
-              return;
+            } catch (err) {
+              console.error(err)
             }
           }
         }
