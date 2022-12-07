@@ -25,7 +25,7 @@ module.exports = class {
 
     // Check if a game is being played by message author (hangman, connect4, etc)
     const current = this.client.games.get(msg.channel.id);
-    if ([connect4, hangman].includes(current.name) && current.user === msg.author.id) return;
+    if (['connect4', 'hangman'].includes(current.name) && current.user === msg.author.id) return;
 
     let delby;
     if (msg.guild.members.me.permissions.has('ViewAuditLog')) {
