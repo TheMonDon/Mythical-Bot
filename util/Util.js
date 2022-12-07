@@ -116,6 +116,7 @@ module.exports = class Util {
    */
   static getChannel (msg, str) {
     if (!msg.guild) return false;
+    str = str.replace('#', '').replace(/\s/g, '');
     return msg.mentions.channels.first() ||
     msg.guild.channels.cache.find(c => c.id === str) ||
     msg.guild.channels.cache.find(c => c.name.toLowerCase() === str.toLowerCase()) ||

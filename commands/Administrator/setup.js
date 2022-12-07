@@ -207,10 +207,16 @@ class Setup extends Command {
 
       const chan = getChannel(msg, text);
 
-      if (!chan) return msg.reply('Please provide a valid server channel.');
+      if (!chan) {
+        msg.reply('That channel was not found, please type a valid server channel.');
+        text = await awaitReply(msg, 'What channel do you want to setup logging in?');
+        if (!text) return msg.reply('The command has been cancelled due invalid channel.');
+      }
+
       const currentChan = db.get(`servers.${msg.guild.id}.logs.channel`);
 
       if (currentChan) {
+        db.set(`servers.${msg.guild.id}.logs.logSystem`, logSystem);
         embed
           .setTitle('Successfully Changed')
           .setColor('#00FF00')
@@ -252,7 +258,7 @@ class Setup extends Command {
           name: 'Logging',
           value: stripIndents`
           To setup the logging system please use:
-          \`${msg.settings.prefix}Setup Logging\`
+          \`${msg.settings.prefix}Setup Logging channel-name\`
   
           This system should be fully operational.`
         }

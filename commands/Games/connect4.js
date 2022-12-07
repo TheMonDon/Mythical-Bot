@@ -1,7 +1,7 @@
 const Command = require('../../base/Command.js');
 const { Connect4AI } = require('connect4-ai');
 const { stripIndents } = require('common-tags');
-const emojiRegex = require('emoji-regex/RGI_Emoji.js');
+const emojiRegex = require('emoji-regex');
 const { list, verify, getMember } = require('../../util/Util.js');
 const blankEmoji = '⚪';
 const nums = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣'];
