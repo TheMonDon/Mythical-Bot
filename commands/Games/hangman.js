@@ -284,6 +284,10 @@ class Hangman extends Command {
             max: 1,
             time: 180000,
             errors: ['time']
+          }).catch(() => {
+            const noanswer = lang.hangman_noanswer.replace('%word', wordToGuess);
+            this.client.games.delete(msg.channel.id);
+            return msg.channel.send(noanswer);
           });
 
           if (response.first().content.toLowerCase().match(/[a-z]/i)) {

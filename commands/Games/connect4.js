@@ -45,6 +45,7 @@ class Connect4 extends Command {
       coin: '🪙'
     };
 
+    
     const current = this.client.games.get(msg.channel.id);
     if (current) return msg.reply(`Please wait until the current game of \`${current.name}\` is finished.`);
 
