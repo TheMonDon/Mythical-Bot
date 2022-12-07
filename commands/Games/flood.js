@@ -93,7 +93,7 @@ class Flood extends Command {
           highScoreTime = oldHS?.time || 0;
         }
 
-        if (!isNaN(highScoreTime)) highScoreTime = moment.duration(highScoreTime).format('m[ minutes][, and] s[ seconds]');
+        if (!isNaN(highScoreTime)) highScoreTime = moment.duration(highScoreTime * 1000).format('m[ minutes][, and] s[ seconds]');
         embed = new EmbedBuilder()
           .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL({ dynamic: true }) })
           .setColor('#08b9bf')
