@@ -1,8 +1,7 @@
 const Command = require('../../base/Command.js');
 const { EmbedBuilder } = require('discord.js');
 const db = require('quick.db');
-const moment = require('moment');
-require('moment-duration-format');
+const { Duration } = require('luxon');
 
 class Flood extends Command {
   constructor (client) {
@@ -55,8 +54,10 @@ class Flood extends Command {
     function getContent () {
       let embed;
       if (gameOver === true) {
-        const gameTime = moment.duration(gameEnd - gameStart).format('m[ minutes][, and] s[ seconds]');
-        const gameTimeSeconds = (gameEnd - gameStart) / 1000;
+        const gameTimeMillis = gameEnd - gameStart;
+        let gameTime;
+        if (!isNaN(gameTimeMillis)) gameTime = Duration.fromMillis(gameTimeMillis).shiftTo('minutes', 'seconds').toHuman();
+        const gameTimeSeconds = gameTimeMillis / 1000;
         const turnResp = {
           winner: `Game beat in ${turn} turns! \nGame Time: ${gameTime}`,
           timeOut: 'Game timed out due to inactivity.',
@@ -93,7 +94,7 @@ class Flood extends Command {
           highScoreTime = oldHS?.time || 0;
         }
 
-        if (!isNaN(highScoreTime)) highScoreTime = moment.duration(highScoreTime * 1000).format('m[ minutes][, and] s[ seconds]');
+        if (!isNaN(highScoreTime)) highScoreTime = Duration.fromMillis(highScoreTime * 1000).shiftTo('minutes', 'seconds').toHuman();
         embed = new EmbedBuilder()
           .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL({ dynamic: true }) })
           .setColor('#08b9bf')
