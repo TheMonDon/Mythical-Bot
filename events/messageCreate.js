@@ -31,8 +31,6 @@ module.exports = class {
         const tix = db.get(`servers.${message.guild.id}.tickets.${message.channel.name}`);
         if (!tix) return;
 
-        const tName = message.channel.name;
-
         const attachments = [];
         const mArray = [...message.attachments?.values()];
         if (mArray.length > 0) {
@@ -54,7 +52,7 @@ module.exports = class {
 
         const output = `${DateTime.now().toLocaleString(DateTime.DATETIME_FULL)} - [${message.author.tag}]: \n${content}`;
 
-        db.push(`servers.${message.guild.id}.tickets.${tName}.chatLogs`, output);
+        db.push(`servers.${message.guild.id}.tickets.${message.channel.id}.chatLogs`, output);
         return;
       }
 

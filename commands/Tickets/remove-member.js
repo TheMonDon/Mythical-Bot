@@ -29,8 +29,7 @@ class RemoveMember extends Command {
 
     const { roleID } = db.get(`servers.${msg.guild.id}.tickets`);
     const role = msg.guild.roles.cache.get(roleID);
-    const tName = msg.channel.name;
-    const owner = db.get(`servers.${msg.guild.id}.tickets.${tName}.owner`);
+    const owner = db.get(`servers.${msg.guild.id}.tickets.${msg.channel.id}.owner`);
 
     // Do they have the support role or are owner?
     if (owner !== msg.author.id) {
@@ -46,7 +45,7 @@ class RemoveMember extends Command {
     // Logging info
     const output = `${DateTime.now().toLocaleString(DateTime.DATETIME_FULL)} - ${msg.author.tag} has removed a member: \n${mem.displayName}.`;
 
-    db.push(`servers.${msg.guild.id}.tickets.${tName}.chatLogs`, output);
+    db.push(`servers.${msg.guild.id}.tickets.${msg.channel.id}.chatLogs`, output);
 
     const em = new EmbedBuilder()
       .setTitle('Member Removed')

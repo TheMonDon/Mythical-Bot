@@ -104,7 +104,7 @@ module.exports = class {
       Topic: ${reason}\n
       `;
 
-      db.push(`servers.${msg.guild.id}.tickets.${tName}.chatLogs`, output);
+      db.push(`servers.${msg.guild.id}.tickets.${tixChan.id}.chatLogs`, output);
     }
   }
 };
