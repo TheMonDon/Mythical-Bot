@@ -60,7 +60,7 @@ module.exports = class {
       const tName = `ticket-${str}-${count}`;
       const tixChan = await msg.guild.channels.create({ name: tName, type: ChannelType.GuildText, parent: catID, permissionOverwrites: perms, topic: reason });
 
-      db.set(`servers.${msg.guild.id}.tickets.${tName}.owner`, member.id);
+      db.set(`servers.${msg.guild.id}.tickets.${tixChan.id}.owner`, member.id);
 
       const logEmbed = new EmbedBuilder()
         .setAuthor({ name: member.displayName, iconURL: member.user.displayAvatarURL() })
