@@ -106,8 +106,8 @@ class Connect4 extends Command {
       const hasCustom = color.match(customEmojiRegex);
       if (hasCustom && !msg.guild) return msg.channel.send('You can only use custom emoji in a server.');
       if (hasCustom && msg.guild && !msg.guild.emojis.cache.has(hasCustom[2])) return msg.channel.send('You can only use custom emoji from this server.');
-      if (!hasCustom && !hasEmoji && !colors[color.toLowerCase()]) return msg.channel.send(`Please enter an emoji or one of the following: ${list(Object.keys(colors), 'or')}.`);
-      if (color === blankEmoji) return msg.channel.send('You cannot use this emoji.');
+      if (!hasCustom && !hasEmoji && !colors[color.toLowerCase()]) return msg.channel.send(`Sorry that is not valid, please use an emoji or one of the following: ${list(Object.keys(colors), 'or')}.`);
+      if (color === blankEmoji) return msg.channel.send('You cannot use that emoji.');
       return true;
     }
 
@@ -130,12 +130,15 @@ class Connect4 extends Command {
       if (opponent.user.bot) {
         playerTwoEmoji = colors[available[Math.floor(Math.random() * available.length)]];
       } else {
+        // Check with opponent if they want to play
         await msg.channel.send(`${opponent}, do you accept this challenge?`);
         const verification = await verify(msg.channel, opponent);
         if (!verification) {
           this.client.games.delete(msg.channel.id);
           return msg.channel.send('Looks like they declined...');
         }
+
+        // Get opponent's color
         await msg.channel.send(`${opponent}, what color do you want to be? Either an emoji or one of ${list(available, 'or')}.`);
         const filter = res => {
           if (res.author.id !== opponent.id) return false;
@@ -145,11 +148,13 @@ class Connect4 extends Command {
           if (hasCustom && msg.guild && !msg.guild.emojis.cache.has(hasCustom[2])) return false;
           return (hasCustom && msg.guild) || hasEmoji || available.includes(res.content.toLowerCase());
         };
+
         const p2Color = await msg.channel.awaitMessages({
           filter,
           max: 1,
           time: 30000
         });
+
         if (p2Color.size) {
           const choice = p2Color.first().content.toLowerCase();
           const hasCustom = choice.match(customEmojiRegex);
@@ -157,6 +162,7 @@ class Connect4 extends Command {
         }
       }
 
+      // Create the game
       const AIEngine = new Connect4AI();
       const board = generateBoard();
       let userTurn = true;
@@ -169,11 +175,13 @@ class Connect4 extends Command {
         const user = userTurn ? msg.author : opponent;
         const sign = userTurn ? 'user' : 'oppo';
         let i = 0;
+
         if (opponent.user.bot && !userTurn) {
           i = AIEngine.playAI('hard');
           lastMove = i + 1;
         } else {
           const emoji = userTurn ? playerOneEmoji : playerTwoEmoji;
+          // Send original message
           if (message === 0) {
             message = await msg.channel.send(stripIndents`
             ${emoji} ${user}, which column do you pick? Type \`end\` to forfeit.
@@ -183,6 +191,8 @@ class Connect4 extends Command {
             ${nums.join('')}
           `);
           }
+
+          // Send updated message
           await message.edit(stripIndents`
             ${emoji} ${user}, which column do you pick? Type \`end\` to forfeit.
             Can't think of a move? Use \`play for me\`.
@@ -190,6 +200,8 @@ class Connect4 extends Command {
             ${displayBoard(board, playerOneEmoji, playerTwoEmoji)}
             ${nums.join('')}
           `);
+
+          // Filter function
           const pickFilter = res => {
             if (res.author.id !== user.id) return false;
             const choice = res.content;
@@ -198,14 +210,19 @@ class Connect4 extends Command {
             const j = Number.parseInt(choice, 10) - 1;
             return board[colLevels[j]] && board[colLevels[j]][j] !== undefined;
           };
+
           const turn = await msg.channel.awaitMessages({
             pickFilter,
             max: 1,
             time: 60000
           });
+
           const choice = turn.size ? turn.first().content : null;
           if (!choice) {
-            await msg.channel.send('Sorry, time is up! I\'ll pick their move for them.');
+            await msg.channel.send('Sorry, time is up! I\'ll pick their move for them.')
+              .then(msg => {
+                setTimeout(() => msg.delete(), 10000);
+              });
             i = AIEngine.playAI('hard');
             lastMove = i + 1;
           } else if (choice.toLowerCase() === 'end') {
@@ -217,19 +234,32 @@ class Connect4 extends Command {
             if (msg.guild.members.me.permissions.has('ManageMessages')) turn.first().delete();
           } else {
             i = Number.parseInt(choice, 10) - 1;
-            AIEngine.play(i);
+            // Check if the move is valid
+            if (!AIEngine.canPlay(i)) {
+              await msg.channel.send('That column is full! I\'ll pick their move for them.')
+                .then(msg => {
+                  setTimeout(() => msg.delete(), 10000);
+                });
+              i = AIEngine.playAI('hard');
+            } else {
+              AIEngine.play(i);
+            }
             lastMove = i + 1;
             if (msg.guild.members.me.permissions.has('ManageMessages')) turn.first().delete();
           }
         }
+
+        // Update board
         board[colLevels[i]][i] = sign;
         colLevels[i]--;
         if (verifyWin(board)) winner = userTurn ? msg.author : opponent;
         userTurn = !userTurn;
       }
+
       this.client.games.delete(msg.channel.id);
       message.delete();
 
+      // Announce winner
       if (winner === 'time') return msg.channel.send('Game ended due to inactivity.');
       return msg.channel.send(stripIndents`
         ${winner ? `Congrats, ${winner}!` : 'Looks like it\'s a draw...'}
