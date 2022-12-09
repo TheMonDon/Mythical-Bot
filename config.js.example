@@ -1,6 +1,9 @@
 const { ChannelType } = require('discord.js');
 
 const config = {
+  // Bot Owner(s), level 10 by default. Array of user ID strings.
+  owners: [],
+
   // Bot Admins, level 9 by default. Array of user ID strings.
   "admins": [],
 
@@ -8,12 +11,16 @@ const config = {
   "support": [],
 
   // Your Bots Token. Available on https://discordapp.com/developers/applications/me
-  "token": " ",
+  "token": '',
 
   // Auth token for BotList.me
   BotListToken: '',
 
   language: 'en-us',
+
+  // OxFord Dictionary
+  OxfordID: '',
+  OxfordKey: '',
 
   // OwlBot API key
   owlKey: '',
@@ -116,7 +123,7 @@ const config = {
     { level: 10,
       name: "Bot Owner", 
       // Another simple check, compares the message author id to the one stored in the config file.
-      check: (message) => message.client.appInfo.owner.id === message.author.id
+      check: (message) => config.owners.includes(message.author.id)
     }
   ]
 };
