@@ -1,5 +1,5 @@
 const Command = require('../../base/Command.js');
-const { EmbedBuilder, MessageActionRow, MessageButton } = require('discord.js');
+const { EmbedBuilder, ActionRowBuilder, ButtonBuilder } = require('discord.js');
 const db = require('quick.db');
 const { Duration } = require('luxon');
 
@@ -129,33 +129,33 @@ Filling starts at the top left corner.`)
         let selected = null;
 
         // New button collector
-        const row = new MessageActionRow()
+        const row = new ActionRowBuilder()
           .addComponents(
-            new MessageButton()
-              .setCustomId('red')
+            new ButtonBuilder()
+              .setCustomId('red_square')
               .setLabel('Red')
               .setEmoji('🟥')
-              .setStyle('SECONDARY'),
-            new MessageButton()
-              .setCustomId('blue')
+              .setStyle('Secondary'),
+            new ButtonBuilder()
+              .setCustomId('blue_square')
               .setLabel('Blue')
               .setEmoji('🟦')
-              .setStyle('SECONDARY'),
-            new MessageButton()
-              .setCustomId('orange')
+              .setStyle('Secondary'),
+            new ButtonBuilder()
+              .setCustomId('orange_square')
               .setLabel('Orange')
               .setEmoji('🟧')
-              .setStyle('SECONDARY'),
-            new MessageButton()
-              .setCustomId('purple')
+              .setStyle('Secondary'),
+            new ButtonBuilder()
+              .setCustomId('purple_square')
               .setLabel('Purple')
               .setEmoji('🟪')
-              .setStyle('SECONDARY'),
-            new MessageButton()
-              .setCustomId('green')
+              .setStyle('Secondary'),
+            new ButtonBuilder()
+              .setCustomId('green_ square')
               .setLabel('Green')
               .setEmoji('🟩')
-              .setStyle('SECONDARY')
+              .setStyle('Secondary')
           );
 
         if (!message) {
@@ -166,10 +166,11 @@ Filling starts at the top left corner.`)
 
         const collector = message.createMessageComponentCollector({ componentType: 'BUTTON', time: 30000 });
 
-        collector.on('collect', i => {
+        collector.on('collect', async i => {
           if (!i.user.id === msg.author.id) return i.reply({ content: 'You can\'t use this button.', ephemeral: true });
-          i.reply({ content: 'Button clicked!', ephemeral: true });
+          await i.deferReply();
           selected = i.customId;
+          collector.stop();
         });
 
         collector.on('end', collected => {
