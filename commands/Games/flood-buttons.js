@@ -3,17 +3,20 @@ const { EmbedBuilder, ActionRowBuilder, ButtonBuilder } = require('discord.js');
 const db = require('quick.db');
 const { Duration } = require('luxon');
 
+// I left this alone on December 9th, unable to figure out how to get buttons to work :(
+
 class FloodButtons extends Command {
   constructor (client) {
     super(client, {
       name: 'flood-buttons',
       description: 'Play a game of flood.',
       usage: 'flood-buttons',
-      category: 'Games'
+      category: 'Administrator',
+      permLevel: 'Administrator'
     });
   }
 
-  async run (msg, interaction) {
+  async run (msg) {
     const WIDTH = 13;
     const HEIGHT = 13;
     const SQUARES = { red_square: '🟥', blue_square: '🟦', orange_square: '🟧', purple_square: '🟪', green_square: '🟩' };
@@ -27,7 +30,7 @@ class FloodButtons extends Command {
 
     const current = this.client.games.get(msg.channel.id);
     if (current) return msg.reply(`Please wait until the current game of \`${current.name}\` is finished.`);
-    this.client.games.set(msg.channel.id, { name: this.help.name, user: msg.author.id });
+    // this.client.games.set(msg.channel.id, { name: this.help.name, user: msg.author.id });
 
     const up = (pos) => ({ x: pos.x, y: pos.y - 1 });
     const down = (pos) => ({ x: pos.x, y: pos.y + 1 });
@@ -121,73 +124,79 @@ Filling starts at the top left corner.`)
     }
 
     try {
-      while (gameOver === false && turn < 25) {
-        turn += 1;
-        const current = gameBoard[0];
-        const queue = [{ x: 0, y: 0 }];
-        const visited = [];
-        let selected = null;
+      // New button collector
+      const row = new ActionRowBuilder()
+        .addComponents(
+          new ButtonBuilder()
+            .setCustomId(':red_square:')
+            .setLabel('Red')
+            .setEmoji('🟥')
+            .setStyle('Secondary'),
+          new ButtonBuilder()
+            .setCustomId(':blue_square:')
+            .setLabel('Blue')
+            .setEmoji('🟦')
+            .setStyle('Secondary'),
+          new ButtonBuilder()
+            .setCustomId(':orange_square:')
+            .setLabel('Orange')
+            .setEmoji('🟧')
+            .setStyle('Secondary'),
+          new ButtonBuilder()
+            .setCustomId(':purple_square:')
+            .setLabel('Purple')
+            .setEmoji('🟪')
+            .setStyle('Secondary'),
+          new ButtonBuilder()
+            .setCustomId(':green_ square:')
+            .setLabel('Green')
+            .setEmoji('🟩')
+            .setStyle('Secondary')
+        );
 
-        // New button collector
-        const row = new ActionRowBuilder()
-          .addComponents(
-            new ButtonBuilder()
-              .setCustomId('red_square')
-              .setLabel('Red')
-              .setEmoji('🟥')
-              .setStyle('Secondary'),
-            new ButtonBuilder()
-              .setCustomId('blue_square')
-              .setLabel('Blue')
-              .setEmoji('🟦')
-              .setStyle('Secondary'),
-            new ButtonBuilder()
-              .setCustomId('orange_square')
-              .setLabel('Orange')
-              .setEmoji('🟧')
-              .setStyle('Secondary'),
-            new ButtonBuilder()
-              .setCustomId('purple_square')
-              .setLabel('Purple')
-              .setEmoji('🟪')
-              .setStyle('Secondary'),
-            new ButtonBuilder()
-              .setCustomId('green_ square')
-              .setLabel('Green')
-              .setEmoji('🟩')
-              .setStyle('Secondary')
-          );
+      message = await msg.channel.send({ embeds: getContent(), components: [row] });
 
-        if (!message) {
-          message = await msg.channel.send({ embeds: getContent(), components: [row] });
-        } else {
-          message.edit({ embeds: getContent(), components: [row] });
-        }
+      if (message) {
+        message.edit({ embeds: getContent(), components: [row] });
+      }
 
-        const collector = message.createMessageComponentCollector({ componentType: 'BUTTON', time: 30000 });
+      const current = gameBoard[0];
+      const queue = [{ x: 0, y: 0 }];
+      const visited = [];
+      let selected = null;
 
-        collector.on('collect', async i => {
-          if (!i.user.id === msg.author.id) return i.reply({ content: 'You can\'t use this button.', ephemeral: true });
-          await i.deferReply();
-          selected = i.customId;
-          collector.stop();
-        });
+      const filter = (interaction) => {
+        if (interaction.user.id === msg.author.id) return true;
+        interaction.reply({ content: 'You can\'t use this button.', ephemeral: true });
+      };
 
-        collector.on('end', collected => {
-          row.components.forEach(button => button.setDisabled(true));
+      const collector = await message.createMessageComponentCollector({ filter, max: 25 });
+
+      collector.on('end', async collected => {
+        if (collected.size === 0) {
           gameOver = true;
-          // result = 'timeOut';
+          result = 'timeOut';
           this.client.games.delete(msg.channel.id);
-          return message.edit({ embeds: getContent() });
-        });
+          return message.edit({ embeds: getContent(), components: [row] });
+        }
+        if (collected.deferred === false) {
+          await collected.deferUpdate();
+        }
+        selected = collected.customId;
 
+        /*
         if (selected === '🛑') {
           gameOver = true;
           result = 'earlyEnd';
           this.client.games.delete(msg.channel.id);
-          return message.edit({ embeds: getContent() });
+          return message.edit({ embeds: getContent(), components: [row] });
         }
+        */
 
+        // while (gameOver === false && turn < 25) {
+        console.log(turn);
+        console.log(queue.length);
+        turn += 1;
         while (queue.length > 0) {
           const pos = queue.shift();
           if (!pos || visited.includes(pos)) { continue; }
@@ -224,7 +233,8 @@ Filling starts at the top left corner.`)
             }
           }
         }
-      }
+        // }
+      });
 
       if (gameOver === true) {
         this.client.games.delete(msg.channel.id);
@@ -237,9 +247,6 @@ Filling starts at the top left corner.`)
         result = 'maxTurns';
         return message.edit({ embeds: getContent() });
       }
-
-      this.client.games.delete(msg.channel.id);
-      return msg.channel.send('Something went wrong, please try again later.');
     } catch (err) {
       this.client.games.delete(msg.channel.id);
       console.error(err);
