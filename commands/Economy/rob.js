@@ -16,7 +16,7 @@ class Rob extends Command {
     });
   }
 
-  run (msg, text) {
+  async run (msg, text) {
     let mem;
 
     const type = 'rob';

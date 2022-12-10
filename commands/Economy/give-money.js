@@ -15,7 +15,7 @@ class GiveMoney extends Command {
     });
   }
 
-  run (msg, text) {
+  async run (msg, text) {
     let mem;
 
     const usage = `${msg.settings.prefix}Give-Money <user> <amount | all>`;

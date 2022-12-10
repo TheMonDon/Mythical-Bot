@@ -17,7 +17,7 @@ class AddMoneyRole extends Command {
     });
   }
 
-  run (msg, args) {
+  async run (msg, args) {
     const usage = `Incorrect Usage: ${msg.settings.prefix}add-money-role <cash | bank> <role> <amount>`;
 
     const errEmbed = new EmbedBuilder()

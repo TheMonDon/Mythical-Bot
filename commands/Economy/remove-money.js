@@ -17,7 +17,7 @@ class RemoveMoney extends Command {
     });
   }
 
-  run (msg, args) {
+  async run (msg, args) {
     const usage = `Incorrect Usage: ${msg.settings.prefix}remove-money [cash | bank] <member> <amount>`;
 
     const errEmbed = new EmbedBuilder()
