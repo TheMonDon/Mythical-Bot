@@ -26,7 +26,7 @@ class Help extends Command {
       .setDescription(`Please select a category to see all available commands. \nUsage: \`${msg.settings.prefix}help <category>\` \nUsage: \`${msg.settings.prefix}help <command>\``)
       .addFields([
         { name: 'Current Categories:', value: level >= 8 ? allcats.join(', ') : cats.join(', ') },
-        { name: 'Quick Bits', value: '[Invite Link](https://cisn.xyz/mythical) \n[Source Code]((https://github.com/TheMonDon/Mythical-Bot))' }
+        { name: 'Quick Bits', value: '[Invite Link](https://cisn.xyz/mythical) \n[Source Code](https://github.com/TheMonDon/Mythical-Bot)' }
       ]);
 
     if (!args || args.length < 1) return msg.channel.send({ embeds: [errEm] });
