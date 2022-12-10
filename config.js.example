@@ -2,13 +2,13 @@ const { ChannelType } = require('discord.js');
 
 const config = {
   // Bot Owner(s), level 10 by default. Array of user ID strings.
-  owners: [],
+  owners: ['ownerId'],
 
   // Bot Admins, level 9 by default. Array of user ID strings.
-  "admins": [],
+  "admins": ['adminId'],
 
   // Bot Support, level 8 by default. Array of user ID strings
-  "support": [],
+  "support": ['supportId'],
 
   // Your Bots Token. Available on https://discordapp.com/developers/applications/me
   "token": '',
