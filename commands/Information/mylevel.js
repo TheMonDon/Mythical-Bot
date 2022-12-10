@@ -7,8 +7,8 @@ class MyLevel extends Command {
       description: 'Displays your permission level',
       usage: 'mylevel',
       category: 'Information',
-      guildOnly: true,
-      aliases: ['level', 'lvl', 'mylvl']
+      aliases: ['level', 'lvl', 'mylvl'],
+      guildOnly: true
     });
   }
 

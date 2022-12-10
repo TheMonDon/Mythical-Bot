@@ -8,8 +8,8 @@ class Grab extends Command {
       name: 'grab',
       description: 'Get the source code of a command.',
       category: 'Owner',
-      usage: 'grab <commandName>',
-      permLevel: 'Bot Owner'
+      permLevel: 'Bot Owner',
+      usage: 'grab <commandName>'
     });
   }
 

@@ -38,7 +38,7 @@ class AddMember extends Command {
     }
     msg.guild.members.fetch(mem.id);
 
-    if (msg.channel.permissionsFor(mem.id) !== undefined) return msg.channel.send('That person has already been added to this ticket.');
+    if (msg.channel.members.get(mem.id) !== undefined) return msg.channel.send('That person has already been added to this ticket.');
 
     await msg.channel.updateOverwrite(mem.id, { VIEW_CHANNEL: true });
 

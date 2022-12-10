@@ -8,9 +8,9 @@ class NPM extends Command {
       name: 'npm',
       category: 'Owner',
       memberName: 'npm',
+      permLevel: 'Bot Owner',
       description: 'Installs an NPM package and saves it to the package.json',
-      longDescription: '(Owner Only) It will install an npm package, save the package to the package.json and all its dependencies.',
-      permLevel: 'Bot Owner'
+      longDescription: '(Owner Only) It will install an npm package, save the package to the package.json and all its dependencies.'
     });
   }
 

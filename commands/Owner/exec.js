@@ -6,9 +6,9 @@ class Exec extends Command {
       name: 'exec',
       description: 'Executes stuff',
       category: 'Owner',
+      permLevel: 'Bot Owner',
       usage: 'exec <expression>',
-      aliases: ['ex', 'exe'],
-      permLevel: 'Bot Owner'
+      aliases: ['ex', 'exe']
     });
   }
 

@@ -8,6 +8,7 @@ class Nickname extends Command {
       description: 'Change the nickname of a member',
       usage: 'Nickname <User> [Nickname]',
       category: 'Moderator',
+      permLevel: 'Moderator',
       aliases: ['nick'],
       guildOnly: true
     });

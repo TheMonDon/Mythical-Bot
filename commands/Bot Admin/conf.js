@@ -13,10 +13,10 @@ class Conf extends Command {
       name: 'conf',
       description: 'Modify the default configuration for all guilds.',
       category: 'Bot Admin',
+      permLevel: 'Bot Admin',
       usage: 'conf <view/get/edit> <key> <value>',
-      guildOnly: true,
       aliases: ['defaults'],
-      permLevel: 'Bot Admin'
+      guildOnly: true
     });
   }
 

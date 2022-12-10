@@ -10,18 +10,19 @@ class Kick extends Command {
       description: 'Kick a naughty user',
       usage: 'Kick <User> <Reason>',
       category: 'Moderator',
+      permLevel: 'Moderator',
       guildOnly: true
     });
   }
 
   async run (msg, args) {
+    if (!msg.member.permissions.has('KickMembers')) return msg.channel.send('You do not have permissions to Kick Members.');
+    if (!msg.guild.members.me.permissions.has('KickMembers')) return msg.channel.send('The bot is missing the Kick Members permission.');
+
     const logChan = db.get(`servers.${msg.guild.id}.logging.channel`);
 
     if (!args[0]) return msg.channel.send('Please provide a user and a reason.');
     const kickMem = getMember(msg, args[0]);
-
-    if (!msg.guild.members.me.permissions.has('KickMembers')) return msg.channel.send('The bot is missing the Kick Members permission.');
-    if (!msg.member.permissions.has('KickMembers')) return msg.channel.send('You do not have permissions to Kick Members.');
 
     // start reason
     args.shift();

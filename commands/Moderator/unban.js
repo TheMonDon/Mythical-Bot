@@ -9,6 +9,7 @@ class Unban extends Command {
       description: 'Unban a member',
       usage: 'Unban <userID> [reason]',
       category: 'Moderator',
+      permLevel: 'Moderator',
       guildOnly: true
     });
   }

@@ -6,9 +6,8 @@ module.exports = class Deploy extends Command {
       name: 'deploy',
       description: 'This will deploy all slash commands.',
       category: 'Owner',
-      usage: 'deploy',
       permLevel: 'Bot Owner',
-      aliases: []
+      usage: 'deploy'
     });
   }
 

@@ -10,9 +10,9 @@ class WarnInfo extends Command {
       description: 'View the information of a specific case.',
       usage: 'warn-info <caseID>',
       category: 'Moderator',
-      guildOnly: true,
       permLevel: 'Moderator',
-      aliases: ['case', 'warning', 'caseinfo', 'warninginfo', 'warninfo']
+      aliases: ['case', 'warning', 'caseinfo', 'warninginfo', 'warninfo'],
+      guildOnly: true
     });
   }
 

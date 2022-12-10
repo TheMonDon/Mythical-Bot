@@ -6,8 +6,8 @@ class Reload extends Command {
       name: 'reload',
       description: 'Reloads a command that has been modified.',
       category: 'Bot Admin',
-      usage: 'Reload <Command>',
       permLevel: 'Bot Admin',
+      usage: 'Reload <Command>',
       aliases: ['r', 'rl']
     });
   }

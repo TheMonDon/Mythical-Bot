@@ -6,9 +6,9 @@ class Prefix extends Command {
       name: 'prefix',
       description: 'View or change the guild prefix.',
       category: 'Administrator',
+      permLevel: 'Administrator',
       usage: 'Prefix [New Prefix]',
-      aliases: ['p'],
-      permLevel: 'Administrator'
+      aliases: ['p']
     });
   }
 

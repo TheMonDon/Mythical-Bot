@@ -8,9 +8,9 @@ class persistentRoles extends Command {
       description: 'Enable/Disable the persistent roles system for your guild.',
       longDescription: 'When persistent roles is enabled users who leave the guild will have their roles automatically returned when they come back.',
       category: 'Administrator',
+      permLevel: 'Administrator',
       usage: 'Persistent-Roles',
       aliases: ['pr', 'proles'],
-      permLevel: 'Administrator',
       guildOnly: true
     });
   }

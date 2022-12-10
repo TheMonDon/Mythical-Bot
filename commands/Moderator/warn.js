@@ -12,8 +12,6 @@ class Warn extends Command {
       longDescription: stripIndents`
       Warn system that will kick or ban a user depending on the points they have.
       Users are kicked when they reach 8 points, or banned when they reach 10. (Option to change coming soonTM)
-
-      
       `,
       usage: 'Warn <User> <Points> <Reason>',
       category: 'Moderator',

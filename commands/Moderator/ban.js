@@ -10,18 +10,19 @@ class Ban extends Command {
       description: 'Ban a naughty user',
       usage: 'ban <user> <reason>',
       category: 'Moderator',
+      PermLevel: 'Moderator',
       guildOnly: true
     });
   }
 
   async run (msg, args) {
+    if (!msg.member.permissions.has('BanMembers')) return msg.channel.send('You do not have permissions to ban members.');
+    if (!msg.guild.members.me.permissions.has('BanMembers')) return msg.channel.send('The bot is missing the ban members permission.');
+
     const logChan = db.get(`servers.${msg.guild.id}.logging.channel`);
 
     if (!args[0]) return msg.channel.send('Please provide a user and a reason.');
     const banMem = getMember(msg, args[0]);
-
-    if (!msg.guild.members.me.permissions.has('BanMembers')) return msg.channel.send('The bot is missing the ban members permission.');
-    if (!msg.member.permissions.has('BanMembers')) return msg.channel.send('You do not have permissions to ban members.');
 
     // start reason
     args.shift();
