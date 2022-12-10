@@ -25,7 +25,7 @@ class RockPaperScissors extends Command {
       this.client.games.set(msg.channel.id, '');
       return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}rps <opponent>`);
     } else {
-      mem = getMember(msg, text.join(' '));
+      mem = await getMember(msg, text.join(' '));
     }
     const p1 = msg.author;
     const chan = msg.channel;

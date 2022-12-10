@@ -23,7 +23,7 @@ class AddMember extends Command {
 
     if (!args[0]) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}add <user>`);
 
-    const mem = getMember(msg, args.join(' '));
+    const mem = await getMember(msg, args.join(' '));
     if (!mem) return msg.channel.send('That is not a valid user.');
 
     const { roleID } = db.get(`servers.${msg.guild.id}.tickets`);
@@ -40,7 +40,7 @@ class AddMember extends Command {
 
     if (msg.channel.members.get(mem.id) !== undefined) return msg.channel.send('That person has already been added to this ticket.');
 
-    await msg.channel.updateOverwrite(mem.id, { VIEW_CHANNEL: true });
+    await msg.channel.permissionOverwrites.edit(mem.id, { ViewChannel: true });
 
     // Logging info
     const output = `${DateTime.now().toLocaleString(DateTime.DATETIME_FULL)} - ${msg.author.tag} has added another member: \n${mem.displayName}.`;

@@ -20,7 +20,7 @@ class Perms extends Command {
 
     if (args && args.length > 0) {
       await msg.guild.members.fetch();
-      infoMem = getMember(msg, args.join(' '));
+      infoMem = await getMember(msg, args.join(' '));
     }
     if (!infoMem) return msg.channel.send('That user was not found, please try again.');
 

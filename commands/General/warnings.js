@@ -23,7 +23,7 @@ class Warnings extends Command {
     if (!args || args.length < 1) {
       mem = msg.author;
     } else {
-      mem = getMember(msg, args.join(' '));
+      mem = await getMember(msg, args.join(' '));
 
       // Find the user by user ID
       if (!mem) {

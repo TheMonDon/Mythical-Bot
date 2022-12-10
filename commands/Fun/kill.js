@@ -22,7 +22,7 @@ class Kill extends Command {
     if (!text || text.length < 1) {
       return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}kill <user>`);
     } else {
-      mem = getMember(msg, text.join(' '));
+      mem = await getMember(msg, text.join(' '));
     }
 
     if (mem.id === msg.author.id) {

@@ -28,7 +28,7 @@ class Warn extends Command {
     if (!args || args.length < 3) {
       return msg.channel.send(usage);
     } else {
-      mem = getMember(msg, args[0]);
+      mem = await getMember(msg, args[0]);
     }
 
     // Find the user by user ID

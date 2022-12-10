@@ -22,7 +22,7 @@ class Kick extends Command {
     const logChan = db.get(`servers.${msg.guild.id}.logging.channel`);
 
     if (!args[0]) return msg.channel.send('Please provide a user and a reason.');
-    const kickMem = getMember(msg, args[0]);
+    const kickMem = await getMember(msg, args[0]);
 
     // start reason
     args.shift();

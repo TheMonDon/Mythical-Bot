@@ -50,7 +50,7 @@ class Hangman extends Command {
       newWordString.push('_');
     }
 
-    const mention = getMember(msg, args.join(' '));
+    const mention = await getMember(msg, args.join(' '));
     if (mention && !mention.user.bot) {
       const mentionplayquestion = lang.hangman_mentionplayquestion.replace('%mention', mention)
         .replace('%author', msg.author);

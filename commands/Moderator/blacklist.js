@@ -30,14 +30,14 @@ class Blacklist extends Command {
         type = text[0].toLowerCase();
       }
     } else if (text[0]) {
-      mem = getMember(msg, text[0]);
+      mem = await getMember(msg, text[0]);
       type = 'check';
 
       if (!mem) return msg.reply(usage);
     }
 
     if (!mem && text[1]) {
-      mem = getMember(msg, text[1]);
+      mem = await getMember(msg, text[1]);
 
       if (!mem) return msg.reply(`${usage} \nPlease provide a valid server member.`);
     }

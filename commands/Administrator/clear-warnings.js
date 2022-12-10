@@ -21,7 +21,7 @@ class ClearWarnings extends Command {
 
     if (!args || args.length < 1) return msg.reply(usage);
 
-    let mem = getMember(msg, args.join(' '));
+    let mem = await await getMember(msg, args.join(' '));
 
     // Find the user by user ID
     if (!mem) {

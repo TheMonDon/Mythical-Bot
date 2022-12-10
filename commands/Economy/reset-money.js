@@ -40,7 +40,7 @@ class ResetMoney extends Command {
         }
       }
 
-      mem = getMember(msg, text.join(' '));
+      mem = await getMember(msg, text.join(' '));
 
       if (!mem) {
         const fid = text.join(' ').replace('<@', '').replace('>', '');

@@ -27,7 +27,7 @@ class GiveMoney extends Command {
       errEmbed.setDescription(`Incorrect Usage: ${usage}`);
       return msg.channel.send({ embeds: [errEmbed] });
     } else {
-      mem = getMember(msg, text[0]);
+      mem = await getMember(msg, text[0]);
     }
 
     if (!mem) {

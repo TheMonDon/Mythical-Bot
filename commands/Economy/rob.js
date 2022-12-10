@@ -48,7 +48,7 @@ class Rob extends Command {
         .setDescription(`Incorrect Usage: ${msg.settings.prefix}Rob <user>`);
       return msg.channel.send({ embeds: [embed] });
     } else {
-      mem = getMember(msg, text.join(' '));
+      mem = await getMember(msg, text.join(' '));
     }
 
     if (!mem) {

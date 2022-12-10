@@ -19,7 +19,7 @@ class UserInfo extends Command {
   async run (msg, text) {
     let infoMem = msg.member;
 
-    if (text?.length > 0) infoMem = getMember(msg, text.join(' ').toLowerCase());
+    if (text?.length > 0) infoMem = await getMember(msg, text.join(' ').toLowerCase());
 
     if (!infoMem) {
       const fid = text.join(' ').toLowerCase().replace('<@', '').replace('>', '');

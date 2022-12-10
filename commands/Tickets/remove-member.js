@@ -23,7 +23,7 @@ class RemoveMember extends Command {
 
     if (!args[0]) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}remove <user>`);
 
-    const mem = getMember(msg, args.join(' '));
+    const mem = await await getMember(msg, args.join(' '));
     if (!mem) return msg.channel.send('That is not a valid user.');
     if (mem.id === msg.author.id) return msg.channel.send(`Are you trying to close your ticket? Use \`${msg.settings.prefix}close\` instead`);
 
@@ -40,7 +40,7 @@ class RemoveMember extends Command {
 
     if (!msg.channel.members.get(mem.id)) return msg.channel.send('That person has not been added to this ticket.');
 
-    msg.channel.permissionOverwrites.get(mem.id).delete();
+    msg.channel.permissionOverwrites.edit(mem.id, { ViewChannel: null });
 
     // Logging info
     const output = `${DateTime.now().toLocaleString(DateTime.DATETIME_FULL)} - ${msg.author.tag} has removed a member: \n${mem.displayName}.`;

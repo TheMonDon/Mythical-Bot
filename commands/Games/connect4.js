@@ -50,7 +50,7 @@ class Connect4 extends Command {
 
     const usage = `Incorrect Usage: ${msg.settings.prefix}connect4 <opponent> <color>`;
     if (!args || args.length < 2) return msg.reply(usage);
-    let opponent = getMember(msg, args[0]);
+    let opponent = await getMember(msg, args[0]);
     if (!opponent) opponent = msg.guild.members.me;
     if (opponent.id === msg.author.id) return msg.reply('You may not play against yourself.');
 

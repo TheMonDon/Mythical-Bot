@@ -83,8 +83,9 @@ module.exports = class Util {
    * @param {String} str - String to use to find member
    * @returns {?GuildMember} - Returns member object or false
    */
-  static getMember (msg, str) {
+  static async getMember (msg, str) {
     if (!msg.guild) return false;
+    await msg.guild.members.fetch();
     return msg.mentions.members.first() ||
     msg.guild.members.cache.find(m => m.id === str) ||
     msg.guild.members.cache.find(m => m.displayName.toUpperCase() === str.toUpperCase()) ||

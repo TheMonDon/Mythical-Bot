@@ -41,10 +41,10 @@ class RemoveMoney extends Command {
     const cs = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
 
     if (args.length === 2) {
-      mem = getMember(msg, args[0]);
+      mem = await getMember(msg, args[0]);
       amount = parseInt(args[1].replace(cs, '').replace(/,/ig, ''), 10);
     } else {
-      mem = getMember(msg, args[1]);
+      mem = await getMember(msg, args[1]);
       amount = parseInt(args[2].replace(cs, '').replace(/,/ig, ''), 10);
     }
 

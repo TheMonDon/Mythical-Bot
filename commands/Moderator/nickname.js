@@ -20,7 +20,7 @@ class Nickname extends Command {
 
     if (!text[0]) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}Nickname <User> [Nickname]`);
 
-    const infoMem = getMember(msg, text[0]);
+    const infoMem = await getMember(msg, text[0]);
     const owner = msg.guild.fetchOwner();
 
     if (!infoMem) return msg.channel.send('That user was not found.');

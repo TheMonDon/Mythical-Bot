@@ -21,7 +21,7 @@ class TicTacToe extends Command {
 
     if (!args || args.length < 1) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}tic-tac-toe <member>`);
 
-    const opponent = getMember(msg, args.join(' '));
+    const opponent = await getMember(msg, args.join(' '));
     if (opponent.id === msg.author.id) return msg.reply('You may not play against yourself.');
 
     this.client.games.set(msg.channel.id, { name: this.help.name, user: msg.author.id, date: Date.now() });

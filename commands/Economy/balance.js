@@ -19,7 +19,7 @@ class Balance extends Command {
   run (msg, args) {
     let mem = msg.member;
 
-    if (args && args.length > 0) mem = getMember(msg, args.join(' '));
+    if (args && args.length > 0) mem = await getMember(msg, args.join(' '));
 
     if (!mem) {
       const embed = new EmbedBuilder()
