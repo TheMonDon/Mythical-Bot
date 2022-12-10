@@ -28,7 +28,7 @@ module.exports = class {
 
       if (message.channel.type === ChannelType.GuildText && message.channel.name.startsWith('ticket-')) {
         if (message.channel.name === 'ticket-logs') return;
-        const tix = db.get(`servers.${message.guild.id}.tickets.${message.channel.name}`);
+        const tix = db.get(`servers.${message.guild.id}.tickets.${message.channel.id}`);
         if (!tix) return;
 
         const attachments = [];

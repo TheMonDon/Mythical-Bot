@@ -31,7 +31,7 @@ class Topic extends Command {
         // this is to check if the bot restarted before their cooldown was set.
         channelCooldown = {};
         channelCooldown.active = false;
-        db.set(`servers.${server.id}.tickets.${msg.channel.name}.tCooldown`, channelCooldown);
+        db.set(`servers.${server.id}.tickets.${msg.channel.id}.tCooldown`, channelCooldown);
       } else {
         const tLeft = moment.duration(timeleft)
           .format('y[ years][,] M[ Months]d[ days][,] h[ hours][,] m[ minutes][, and] s[ seconds]'); // format to any format
@@ -66,11 +66,11 @@ class Topic extends Command {
 
     channelCooldown.time = Date.now() + (cooldown * 1000);
     channelCooldown.active = true;
-    db.set(`servers.${server.id}.tickets.${msg.channel.name}.tCooldown`, channelCooldown);
+    db.set(`servers.${server.id}.tickets.${msg.channel.id}.tCooldown`, channelCooldown);
 
     setTimeout(() => {
       channelCooldown = { active: false };
-      db.set(`servers.${server.id}.tickets.${msg.channel.name}.tCooldown`, channelCooldown);
+      db.set(`servers.${server.id}.tickets.${msg.channe.id}.tCooldown`, channelCooldown);
     }, cooldown * 1000);
   }
 }
