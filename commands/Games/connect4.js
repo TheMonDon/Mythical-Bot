@@ -42,8 +42,7 @@ class Connect4 extends Command {
       cd: '💿',
       dvd: '📀',
       clock: '🕓',
-      coin: '🪙',
-      hardMode: '<:connect4hardmode:1051314426806014103>'
+      coin: '🪙'
     };
 
     const current = this.client.games.get(msg.channel.id);
