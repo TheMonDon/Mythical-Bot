@@ -42,7 +42,8 @@ class Connect4 extends Command {
       cd: '💿',
       dvd: '📀',
       clock: '🕓',
-      coin: '🪙'
+      coin: '🪙',
+      hardMode: '<:connect4hardmode:1051314426806014103>'
     };
 
     const current = this.client.games.get(msg.channel.id);
@@ -117,8 +118,6 @@ class Connect4 extends Command {
       return colors[color.toLowerCase()] || color;
     }
 
-    this.client.games.set(msg.channel.id, { name: this.help.name, user: msg.author.id, date: Date.now() });
-
     let color = args[0];
     if (validate(color, msg) !== true) return;
     color = parse(color, msg);
@@ -161,6 +160,8 @@ class Connect4 extends Command {
           hasCustom && msg.guild ? playerTwoEmoji = msg.guild.emojis.cache.get(hasCustom[2]).toString() : playerTwoEmoji = colors[choice] || choice;
         }
       }
+
+      this.client.games.set(msg.channel.id, { name: this.help.name, user: msg.author.id, date: Date.now() });
 
       // Create the game
       const AIEngine = new Connect4AI();
