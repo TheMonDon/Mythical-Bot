@@ -1,5 +1,6 @@
 const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
+const hastebin = require('hastebin');
 
 module.exports = class {
   constructor (client) {
@@ -21,8 +22,6 @@ module.exports = class {
     const logChannel = msg.guild.channels.cache.get(logChan);
     if (!logChannel.permissionsFor(this.client.user.id).has('SendMessages')) return;
 
-    if (!msg.content) return;
-
     // Check if a game is being played by message author (hangman, connect4, etc)
     const current = this.client.games.get(msg.channel.id);
     if (current && ['connect4', 'hangman'].includes(current.name) && current.user === msg.author.id) return;
@@ -36,13 +35,40 @@ module.exports = class {
         .catch(console.error);
     }
 
+    let url;
+    const content = [];
+    let shortContent;
+    let text;
+
+    if (msg.content) content.push(msg.content) && content.push('\n');
+    if (msg.embeds[0]) content.push(msg.embeds[0].description) && content.push('\n');
+    if (msg.attachments.first()) content.push(msg.attachments.map(a => a.url) + '\n');
+    if (content.length > 0) text = content.join('');
+    else return;
+
+    if (msg.content.length <= 1024) shortContent = msg.content;
+    else shortContent = `${msg.content.substring(0, 1020)}...`;
+
+    if (msg.content.length > 1024 || msg.attachments.first() || msg.embeds[0]) {
+      await hastebin.createPaste(text, {
+        raw: true,
+        contentType: 'text/plain',
+        server: 'https://haste.crafters-island.com'
+      })
+        .then(function (urlToPaste) {
+          url = urlToPaste;
+        })
+        .catch(function (requestError) { this.client.logger.error(requestError); });
+    }
+
     const embed = new EmbedBuilder()
       .setTitle('Message Deleted')
       .setColor('#FF0000')
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
       .setThumbnail(msg.author.displayAvatarURL())
       .addFields([
-        { name: 'Deleted Text', value: (msg.content.length <= 1024) ? msg.content : `${msg.content.substring(0, 1020)}...` },
+        { name: 'Deleted Text', value: shortContent || 'None' },
+        { name: 'Deleted Text URL', value: url || 'None' },
         { name: 'Channel', value: `<#${msg.channel.id}>` },
         { name: 'Message Author', value: `${msg.author} (${msg.author.tag})` }
       ]);

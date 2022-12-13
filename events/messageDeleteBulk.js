@@ -27,8 +27,12 @@ module.exports = class {
     output.push('\n');
     output.push('\n');
     messages.forEach(m => {
+      const content = [];
+      if (m.content) content.push(m.content) && content.push('\n');
+      if (m.embeds[0]) content.push(m.embeds[0].description) && content.push('\n');
+      if (m.attachments.first()) content.push(m.attachments.map(a => a.url) + '\n');
       output.push(`${m.author.tag} (User ID: ${m.author.id} Mesage ID: ${m.id})\n`);
-      output.push(m.content ? m.content : 'No text included in this message, or it was an embed.');
+      output.push(content || 'Unable to parse message content.');
       output.push('\n');
       output.push('\n');
     });
