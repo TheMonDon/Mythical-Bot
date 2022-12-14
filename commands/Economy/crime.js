@@ -32,7 +32,7 @@ class Crime extends Command {
         const tLeft = moment.duration(timeleft)
           .format('y[ years][,] M[ Months]d[ days][,] h[ hours][,] m[ minutes][, and] s[ seconds]'); // format to any format
         const embed = new EmbedBuilder()
-          .setColor('#0099CC')
+          .setColor(msg.settings.embedColor)
           .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
           .setDescription(`You cannot commit a crime for ${tLeft}`);
         return msg.channel.send({ embeds: [embed] });

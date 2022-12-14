@@ -19,6 +19,7 @@ class CleanLeaderboard extends Command {
   async run (msg) {
     const users = db.get(`servers.${msg.guild.id}.users`) || {};
     const toRemove = [];
+    const color = msg.settings.embedColor;
 
     const em = new EmbedBuilder()
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
@@ -32,12 +33,12 @@ class CleanLeaderboard extends Command {
     }
 
     if (toRemove.length === 0) {
-      em.setColor('#0099CC');
+      em.setColor(color);
       em.setDescription('There are no users to remove from the leaderboard.');
       return message.edit({ embeds: [em] });
     }
 
-    em.setColor('#0099CC');
+    em.setColor(color);
     em.setDescription(`This will reset the balance and remove ${toRemove.length} members from the leaderboard. \nDo you wish to continue? (yes/no)`);
     await message.edit({ embeds: [em] });
     const verified = await verify(msg.channel, msg.author);

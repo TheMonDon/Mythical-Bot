@@ -12,9 +12,8 @@ class apply extends Command {
   }
 
   async run (msg) {
-    // #0099CC
     const embed = new EmbedBuilder()
-      .setColor('#2ecc71')
+      .setColor(msg.settings.embedColor)
       .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
       .addFields([
         { name: 'Crafters-Island Staff Applications', value: 'You can apply for staff here: https://forms.gle/hThZY7WyyHu7e3ZaA', inline: true }

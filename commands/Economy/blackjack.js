@@ -109,7 +109,7 @@ class BlackJack extends Command {
     if (bet < 1) return msg.channel.send(`You can't bet less than ${cs}1.`);
     if (bet > cash) return msg.channel.send('You can\'t bet more cash than you have.');
 
-    let color = '#0099CC';
+    let color = msg.settings.embedColor;
 
     const bj = new Blackjack(bet, 1);
     // this function is called every time something happens

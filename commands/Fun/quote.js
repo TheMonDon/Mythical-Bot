@@ -25,7 +25,7 @@ class Quote extends Command {
     const em = new EmbedBuilder()
       .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
       .setTitle('Random Quote')
-      .setColor('#0099CC')
+      .setColor(msg.settings.embedColor)
       .addFields([
         { name: 'Author', value: quote.author },
         { name: 'Quote', value: quote.text }

@@ -41,7 +41,7 @@ class Balance extends Command {
 
     const embed = new EmbedBuilder()
       .setAuthor({ name: mem.user.tag, iconURL: mem.user.displayAvatarURL() })
-      .setColor('#03A9F4')
+      .setColor(msg.settings.embedColor)
       .addFields([
         { name: 'Cash:', value: cs + cash.toLocaleString() },
         { name: 'Bank:', value: cs + bank.toLocaleString() },

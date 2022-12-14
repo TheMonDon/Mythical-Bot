@@ -38,7 +38,7 @@ class MinecraftServer extends Command {
     const em = new EmbedBuilder()
       .setTitle('Minecraft Server Stats')
       .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
-      .setColor('#2ecc71')
+      .setColor(msg.settings.embedColor)
       .addFields([
         { name: 'IP Address:', value: `${body.hostname.toString() || body.ip.toString() + (body.port !== '25565' ? `:${body.port}` : '')}` || 'N/A', inline: false },
         { name: 'Version:', value: body.version.toString() || 'N/A', inline: false },

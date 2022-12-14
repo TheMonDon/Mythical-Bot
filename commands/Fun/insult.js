@@ -20,7 +20,7 @@ class Insult extends Command {
 
     const em = new EmbedBuilder()
       .setTitle(body.insult)
-      .setColor('#0099CC')
+      .setColor(msg.settings.embedColor)
       .setFooter({ text: `ID: ${body.number}` });
     return msg.channel.send({ embeds: [em] });
   }

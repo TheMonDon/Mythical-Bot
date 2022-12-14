@@ -41,7 +41,7 @@ class Github extends Command {
         .set({ Authorization: `token ${this.client.config.github}` });
 
       const embed = new EmbedBuilder()
-        .setColor('0099CC')
+        .setColor(msg.settings.embedColor)
         .setAuthor({ name: 'GitHub', iconURL: 'https://i.imgur.com/e4HunUm.png', url: 'https://github.com/' })
         .setTitle(body.full_name)
         .setURL(body.html_url)

@@ -24,7 +24,7 @@ class Advice extends Command {
 
     const em = new EmbedBuilder()
       .setTitle(body.slip.advice)
-      .setColor('#0099CC')
+      .setColor(msg.settings.embedColor)
       .setFooter({ text: `ID: ${body.slip.id}` });
     return msg.channel.send({ embeds: [em] });
   }

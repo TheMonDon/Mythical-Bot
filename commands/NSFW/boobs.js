@@ -23,7 +23,7 @@ class Boobs extends Command {
 
     const em = new EmbedBuilder()
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
-      .setColor('#0099CC')
+      .setColor(msg.settings.embedColor)
       .setTitle(post.title)
       .setURL(post.permalink)
       .setImage(image)

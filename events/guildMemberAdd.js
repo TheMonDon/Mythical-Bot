@@ -63,7 +63,7 @@ module.exports = class {
 
     const em = new EmbedBuilder()
       .setTitle('Member Joined')
-      .setColor('#0099CC')
+      .setColor(settings.embedColor)
       .setTitle(`Welcome to ${member.guild.name}`)
       .setAuthor({ name: member.user.tag, iconURL: member.user.displayAvatarURL() })
       .setDescription(welcomeMessage)

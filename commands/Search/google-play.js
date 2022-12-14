@@ -30,7 +30,7 @@ class GooglePlay extends Command {
           .setTitle(res.title)
           .setDescription(res.summary)
           .setURL(res.url)
-          .setColor('#0099CC')
+          .setColor(msg.settings.embedColor)
           .setThumbnail(res.icon)
           .addFields([
             { name: 'Developer', value: res.developer || 'Unknown' },

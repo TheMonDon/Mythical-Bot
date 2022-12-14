@@ -63,7 +63,7 @@ class Leaderboard extends Command {
       }
     }
     const embed = new EmbedBuilder()
-      .setColor('#0099CC')
+      .setColor(msg.settings.embedColor)
       .setTitle(`${msg.guild.name}'s Leaderboard`)
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
       .setDescription(abc123.join('\n') || 'None')

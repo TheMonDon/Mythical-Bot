@@ -23,7 +23,7 @@ class Math extends Command {
       const solution = math.evaluate(text);
       const embed = new EmbedBuilder()
         .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
-        .setColor('#767CC1')
+        .setColor(msg.settings.embedColor)
         .addFields([
           { name: '**📥 Expression**', value: `\`\`\`${text.length > 1000 ? text.slice(0, 1000) + '...' : text}\`\`\``, inline: false },
           { name: '**📤 Result**', value: `\`\`\`${solution}\`\`\``, inline: false }

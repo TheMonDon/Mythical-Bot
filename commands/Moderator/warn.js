@@ -95,7 +95,6 @@ class Warn extends Command {
     while (db.has(`servers.${msg.guild.id}.warns.warnings.${warnID}`)) warnID = randomString(5);
 
     const otherWarns = getWarns(mem.id, msg);
-
     const warnAmount = getTotalPoints(mem.id, msg) + points;
 
     let status = 'warned';

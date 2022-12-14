@@ -119,7 +119,7 @@ class Rob extends Command {
       db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, amnt);
 
       const embed = new EmbedBuilder()
-        .setColor('#0099CC')
+        .setColor(msg.settings.embedColor)
         .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
         .setDescription(`You successfully robbed ${mem} of ${cs}${amnt.toLocaleString()}`)
         .addFields([

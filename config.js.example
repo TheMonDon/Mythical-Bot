@@ -46,7 +46,8 @@ const config = {
     welcomeMessage: 'Hello {{user}}, welcome to **{{guild}}**. We hope you have a great time here!',
     leaveChannel: 'welcome-leave',
     leaveMessage: 'Goodbye {{user}} :( Sorry to see you go.',
-    leaveEnabled: 'false'
+    leaveEnabled: 'false',
+    embedColor: '#0099CC'
   },
 
   // PERMISSION LEVEL DEFINITIONS.

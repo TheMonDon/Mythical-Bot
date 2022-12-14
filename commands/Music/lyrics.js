@@ -33,7 +33,7 @@ class Lyrics extends Command {
     if (emLyrics.length > 3090) emLyrics = lyrics.slice(0, 3090) + '...';
 
     const em = new EmbedBuilder()
-      .setColor('#0099CC')
+      .setColor(msg.settings.embedColor)
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
       .setDescription(`\`\`\`${emLyrics}\`\`\``);
     return msg.channel.send({ embeds: [em] });

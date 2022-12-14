@@ -86,7 +86,7 @@ class AddMoneyRole extends Command {
     }
     const embed = new EmbedBuilder()
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
-      .setColor('#0099CC')
+      .setColor(msg.settings.embedColor)
       .setDescription(`:white_check_mark: Added **${cs}${amount.toLocaleString()}** to ${type} balance of ${members.length} ${members.length > 1 ? 'members' : 'member'} with the ${role}.`)
       .setTimestamp();
     return msg.channel.send({ embeds: [embed] });

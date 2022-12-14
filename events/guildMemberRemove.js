@@ -60,7 +60,7 @@ module.exports = class {
     const leaveMessage = settings.leaveMessage.replace('{{user}}', member.user.tag).replace('{{guild}}', member.guild.name);
 
     const em = new EmbedBuilder()
-      .setColor('#0099CC')
+      .setColor(settings.embedColor)
       .setTitle('Member left')
       .setAuthor({ name: member.user.tag, iconURL: member.user.displayAvatarURL() })
       .setDescription(leaveMessage)

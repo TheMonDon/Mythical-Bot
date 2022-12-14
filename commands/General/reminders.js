@@ -39,7 +39,7 @@ class Reminders extends Command {
       } else {
         em.setDescription(`${msg.author.username}, you don't have any reminders, use the **remindme** command to create a new one!`);
       }
-      em.setColor('#0099CC');
+      em.setColor(msg.settings.embedColor);
 
       return msg.channel.send({ embeds: [em] });
     }

@@ -34,7 +34,7 @@ class Wikipedia extends Command {
     const str = body.query.pages[0].extract.replace(/[\n]/g, '\n\n');
 
     const embed = new EmbedBuilder()
-      .setColor('#00A2E8')
+      .setColor(msg.settings.embedColor)
       .setTitle(body.query.pages[0].title)
       .setAuthor({ name: 'Wikipedia', iconURL: 'https://i.imgur.com/a4eeEhh.png' })
       .setDescription(str.length > 3095 ? str.substr(0, 3090) + ' ...' : str);

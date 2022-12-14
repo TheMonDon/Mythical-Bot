@@ -29,7 +29,7 @@ class WarnInfo extends Command {
 
     const em = new EmbedBuilder()
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
-      .setColor('#0099CC')
+      .setColor(msg.settings.embedColor)
       .addFields([
         { name: 'Case ID', value: caseID.toString() },
         { name: 'User', value: victim.toString() },

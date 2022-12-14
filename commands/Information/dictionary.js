@@ -31,7 +31,7 @@ class Dictionary extends Command {
 
         const em = new EmbedBuilder()
           .setTitle('Dictionary Information')
-          .setColor('#0099CC')
+          .setColor(msg.settings.embedColor)
           .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
           .addFields([
             { name: 'Definition', value: definition, inline: true },

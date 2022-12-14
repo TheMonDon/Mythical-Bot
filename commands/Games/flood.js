@@ -24,6 +24,7 @@ class Flood extends Command {
     let result;
     const gameStart = msg.createdAt;
     let gameEnd;
+    const color = msg.settings.embedColor;
 
     const current = this.client.games.get(msg.channel.id);
     if (current) return msg.reply(`Please wait until the current game of \`${current.name}\` is finished.`);
@@ -97,7 +98,7 @@ class Flood extends Command {
         if (!isNaN(highScoreTime)) highScoreTime = Duration.fromMillis(highScoreTime * 1000).shiftTo('minutes', 'seconds').toHuman();
         embed = new EmbedBuilder()
           .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL({ dynamic: true }) })
-          .setColor('#08b9bf')
+          .setColor(color)
           .setTitle('Flood')
           .setDescription(`${gameBoardToString()} \nGame Over! \n${turnResp[result]}`)
           .addFields([{ name: 'High Score', value: `${highScore} turns by ${highScoreUser} in ${highScoreTime}` }])
@@ -105,7 +106,7 @@ class Flood extends Command {
       } else {
         embed = new EmbedBuilder()
           .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL({ dynamic: true }) })
-          .setColor('#08b9bf')
+          .setColor(color)
           .setTitle('Flood')
           .setDescription(`${gameBoardToString()} 
 Fill the entire image with the same color in 25 or fewer flood tiles (turns).

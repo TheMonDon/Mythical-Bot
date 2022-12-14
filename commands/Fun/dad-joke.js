@@ -21,7 +21,7 @@ class DadJoke extends Command {
       .then(body => {
         const embed = new EmbedBuilder()
           .setTitle('Dad Joke')
-          .setColor('#0099CC')
+          .setColor(msg.settings.embedColor)
           .setDescription(body)
           .setFooter({ text: 'Powered by: https://icanhazdadjoke.com/' });
         return msg.channel.send({ embeds: [embed] });

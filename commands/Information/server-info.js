@@ -46,7 +46,7 @@ class ServerInfo extends Command {
     const verificationLevel = ['None', 'Low', 'Medium', 'High', 'Very High'];
     const embed = new EmbedBuilder()
       .setTitle(`${server.name}'s Information`)
-      .setColor('#EE82EE')
+      .setColor(msg.settings.embedColor)
       .setThumbnail(msg.guild.iconURL())
       .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
       .setFields([

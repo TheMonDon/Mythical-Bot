@@ -19,6 +19,7 @@ class Blacklist extends Command {
   async run (msg, text) {
     let mem;
     let type;
+    const color = msg.settings.embedColor;
     const usage = `Incorrect Usage:${msg.settings.prefix}Blacklist <Add | Remove | Check> <User> <Reason>`;
 
     if (!text || text.length < 1) {
@@ -47,6 +48,11 @@ class Blacklist extends Command {
     const reason = text.join(' ') || false;
 
     const blacklist = db.get(`servers.${msg.guild.id}.users.${mem.id}.blacklist`);
+
+    const em = new EmbedBuilder()
+      .setColor(color)
+      .setTimestamp();
+
     if (type === 'add') { // Add member to blacklist
       if (blacklist) {
         return msg.channel.send('That user is already blacklisted.');
@@ -56,17 +62,15 @@ class Blacklist extends Command {
       db.set(`servers.${msg.guild.id}.users.${mem.id}.blacklist`, true);
       db.set(`servers.${msg.guild.id}.users.${mem.id}.blacklistReason`, reason);
 
-      const em = new EmbedBuilder()
-        .setTitle(`${mem.user.tag} has been added to the blacklist.`)
-        .setColor('#0099CC')
-        .addFields([
-          { name: 'Reason:', value: reason },
-          { name: 'Member:', value: `${mem.displayName} \n(${mem.id})` },
-          { name: 'Server:', value: `${msg.guild.name} \n(${msg.guild.id})` }
-        ])
-        .setTimestamp();
+      em.setTitle(`${mem.user.tag} has been added to the blacklist.`);
+      em.addFields([
+        { name: 'Reason:', value: reason },
+        { name: 'Member:', value: `${mem.displayName} \n(${mem.id})` },
+        { name: 'Server:', value: `${msg.guild.name} \n(${msg.guild.id})` }
+      ]);
+
       msg.channel.send({ embeds: [em] });
-      mem.send({ embeds: [em] });
+      return mem.send({ embeds: [em] });
     } else if (type === 'remove') { // remove member from blacklist
       if (!blacklist) return msg.channel.send('That user is not blacklisted');
       if (!reason) return msg.channel.send(`${usage} \nPlease provide a valid reason.`);
@@ -74,29 +78,24 @@ class Blacklist extends Command {
       db.set(`servers.${msg.guild.id}.users.${mem.id}.blacklist`, false);
       db.set(`servers.${msg.guild.id}.users.${mem.id}.blacklistReason`, reason);
 
-      const em = new EmbedBuilder()
-        .setTitle(`${mem.user.tag} has been removed to the blacklist.`)
-        .setColor('#0099CC')
-        .addFields([
-          { name: 'Reason:', value: reason },
-          { name: 'Member:', value: `${mem.displayName} \n(${mem.id})` },
-          { name: 'Server:', value: `${msg.guild.name} \n(${msg.guild.id})` }
-        ])
-        .setTimestamp();
+      em.setTitle(`${mem.user.tag} has been removed to the blacklist.`);
+      em.addFields([
+        { name: 'Reason:', value: reason },
+        { name: 'Member:', value: `${mem.displayName} \n(${mem.id})` },
+        { name: 'Server:', value: `${msg.guild.name} \n(${msg.guild.id})` }
+      ]);
+
       msg.channel.send({ embeds: [em] });
-      mem.send({ embeds: [em] });
+      return mem.send({ embeds: [em] });
     } else if (type === 'check') { // check if member is blacklisted
       const reason = db.get(`servers.${msg.guild.id}.users.${mem.id}.blacklistReason`) || false;
 
       const bl = blacklist ? 'is' : 'is not';
-      const em = new EmbedBuilder()
-        .setTitle(`${mem.user.tag} blacklist check`)
-        .setColor('#0099CC')
-        .addFields([
-          { name: 'Member:', value: `${mem.user.tag} (${mem.id})`, inline: true },
-          { name: 'Is Blacklisted?', value: `That user ${bl} blacklisted.` }
-        ])
-        .setTimestamp();
+      em.setTitle(`${mem.user.tag} blacklist check`);
+      em.addFields([
+        { name: 'Member:', value: `${mem.user.tag} (${mem.id})`, inline: true },
+        { name: 'Is Blacklisted?', value: `That user ${bl} blacklisted.` }
+      ]);
       if (reason) em.addFields([{ name: 'reason', value: reason, inline: true }]);
 
       return msg.channel.send({ embeds: [em] });

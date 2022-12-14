@@ -18,7 +18,7 @@ class DeleteWarning extends Command {
 
   async run (msg, args) {
     let title = 'Case Cleared';
-    let color = '#0099CC';
+    let color = msg.settings.embedColor;
     if (!args || args.length < 1) return msg.channel.send('Incorrect Usage: Delete-Warning <CaseID>');
 
     const caseID = args.join(' ');

@@ -18,6 +18,7 @@ class UserInfo extends Command {
 
   async run (msg, text) {
     let infoMem = msg.member;
+    const color = msg.settings.embedColor;
 
     if (text?.length > 0) infoMem = await getMember(msg, text.join(' ').toLowerCase());
 
@@ -78,7 +79,7 @@ class UserInfo extends Command {
 
       const embed = new EmbedBuilder()
         .setTitle(`${infoMem.user.username}'s Info`)
-        .setColor('#0099CC')
+        .setColor(color)
         .setThumbnail(infoMem.user.displayAvatarURL({ format: 'png', dynamic: true }))
         .setImage(infoMem.user.bannerURL())
         .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
@@ -109,7 +110,7 @@ class UserInfo extends Command {
 
     const embed = new EmbedBuilder()
       .setTitle(`${infoMem.username}'s Info`)
-      .setColor('#0099CC')
+      .setColor(color)
       .setThumbnail(infoMem.displayAvatarURL({ format: 'png', dynamic: true }))
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
       .setImage(infoMem.bannerURL())

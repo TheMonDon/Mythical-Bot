@@ -24,6 +24,7 @@ class TyperCompetition extends Command {
     const current = this.client.games.get(msg.channel.id);
     if (current) return msg.reply(`Please wait until the current game of \`${current.name}\` is finished.`);
     this.client.games.set(msg.channel.id, { name: this.help.name, user: msg.author.id, data: Date.now() });
+    const color = msg.settings.embedColor;
 
     const randWord = randomWords(1).toString();
 
@@ -48,7 +49,7 @@ class TyperCompetition extends Command {
 
     const em = new EmbedBuilder()
       .setTitle('Typer Competition')
-      .setColor('#41f4eb')
+      .setColor(color)
       .setDescription(stripIndents`
       Who is the fastest? I will send a word, the person who types it the quickest wins!
       To start, 2 or more people must react with 🏁`);
@@ -117,7 +118,7 @@ class TyperCompetition extends Command {
 
                 const em1 = new EmbedBuilder()
                   .setTitle('Winner!')
-                  .setColor('#41f4eb')
+                  .setColor(color)
                   .setDescription(stripIndents`
                   ${winner} won! :tada:
                   Time: ${time}s`)

@@ -35,7 +35,7 @@ class History extends Command {
           ? `\n...${(queue.previousTracks.length + pageStart)} more track(s)`
           : ''
       }`)
-      .setColor('#0099CC')
+      .setColor(msg.settings.embedColor)
       .addFields([{ name: 'Now Playing', value: `🎶 | **${currentTrack.title}** ([link](${currentTrack.url}))` }]);
 
     return msg.channel.send({ embeds: [embed] });

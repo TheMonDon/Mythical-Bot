@@ -22,7 +22,7 @@ class EightBall extends Command {
 
     const em = new EmbedBuilder()
       .setTitle('Eight Ball')
-      .setColor('#0099CC')
+      .setColor(msg.settings.embedColor)
       .setImage(out.url)
       .addFields([
         { name: '__Question:__', value: question, inline: false }

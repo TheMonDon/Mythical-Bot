@@ -21,7 +21,7 @@ class BotInfo extends Command {
     const botuptime = moment.duration(this.client.uptime).format('y[ years][,] M[ months][,] d[ days][,] h[ hours][,] m[ minutes][, and] s[ seconds]');
 
     const embed = new EmbedBuilder()
-      .setColor('#2ecc71')
+      .setColor(msg.settings.embedColor)
       .setAuthor({ name: this.client.user.username, iconURL: this.client.user.displayAvatarURL() })
       .setThumbnail(this.client.user.displayAvatarURL())
       .addFields([

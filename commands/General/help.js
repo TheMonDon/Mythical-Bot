@@ -17,6 +17,7 @@ class Help extends Command {
   async run (msg, args, level) {
     const cats = ['Administrator', 'Economy', 'Fun', 'Games', 'General', 'Giveaways', 'Information', 'Logging', 'Memes', 'Minecraft', 'Moderator', 'Music', 'NSFW', 'Search', 'Tickets'];
     const allcats = ['Bot Admin', 'Administrator', 'Crafters Island', 'Economy', 'Fun', 'Games', 'General', 'Giveaways', 'Information', 'Logging', 'Memes', 'Minecraft', 'Moderator', 'Music', 'NSFW', 'Owner', 'Search', 'Tickets'];
+    const color = msg.settings.embedColor;
 
     const em = new EmbedBuilder()
       .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() });
@@ -34,7 +35,7 @@ class Help extends Command {
     const category = toProperCase(args.join(' '));
     const disabled = db.get(`servers.${msg.guild.id}.disabled`) || [];
     em.setTitle(`${category} Commands`)
-      .setColor('#0099CC');
+      .setColor(color);
     const myCommands = this.client.commands.filter(cmd => this.client.levelCache[cmd.conf.permLevel] <= level);
     const myC = [...myCommands.values()];
     const sorted = myC.sort((p, c) => p.help.category > c.help.category ? 1 : p.help.name > c.help.name && p.help.category === c.help.category ? 1 : -1);
@@ -50,7 +51,7 @@ class Help extends Command {
         const res = disabled.includes(command.help.category.toLowerCase()) || disabled.includes(command.help.name.toLowerCase());
         em
           .setTitle(`${toProperCase(command.help.name)} Information`)
-          .setColor('#0099CC')
+          .setColor(color)
           .addFields([
             { name: 'Usage', value: command.help.usage },
             { name: 'Aliases', value: command.conf.aliases.join(', ') || 'none' },

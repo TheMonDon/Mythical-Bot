@@ -95,7 +95,7 @@ class GiveMoney extends Command {
     db.add(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, amount);
 
     const embed = new EmbedBuilder()
-      .setColor('#0099CC')
+      .setColor(msg.settings.embedColor)
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
       .setDescription(`${mem} has received your ${cs}${amount.toLocaleString()}.`);
     return msg.channel.send({ embeds: [embed] });

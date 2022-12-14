@@ -18,6 +18,7 @@ class ClearWarnings extends Command {
 
   async run (msg, args) {
     const usage = `Incorrect Usage: ${msg.settings.prefix}Clear-Warnings <user>`;
+    const color = msg.settings.embedColor;
 
     if (!args || args.length < 1) return msg.reply(usage);
 
@@ -51,7 +52,7 @@ class ClearWarnings extends Command {
 
     const em = new EmbedBuilder()
       .setDescription(`${msg.author.tag} has cleared all the warnings from a user.`)
-      .setColor('#FFA500')
+      .setColor(color)
       .addFields([
         { name: 'User', value: `${mem} (${mem.id})` },
         { name: 'Cleared Cases', value: otherCases }
@@ -59,7 +60,7 @@ class ClearWarnings extends Command {
 
     const memEmbed = new EmbedBuilder()
       .setDescription(`${msg.author.tag} has cleared all your warnings.`)
-      .setColor('#FFA500')
+      .setColor(color)
       .addFields([
         { name: 'Cleared Cases', value: otherCases },
         { name: 'Issued In', value: msg.guild.name }

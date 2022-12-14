@@ -44,7 +44,7 @@ class Queue extends Command {
     }
 
     const embed = new EmbedBuilder()
-      .setColor('#0099CC')
+      .setColor(msg.settings.embedColor)
       .setTitle(`${msg.guild.name}'s Queue`)
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
       .setDescription(q.join('\n'))

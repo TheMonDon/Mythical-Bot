@@ -34,7 +34,7 @@ class Weather extends Command {
         const a4 = Math.round(b4[0] * 1.609344) + ' kph' + b4[1];
 
         const embed = new EmbedBuilder()
-          .setColor('#0099CC')
+          .setColor(msg.settings.embedColor)
           .setTitle(`Weather in: ${result[0].location.name}`)
           .setThumbnail(result[0].current.imageUrl)
           .addFields([

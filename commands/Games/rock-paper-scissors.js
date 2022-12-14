@@ -135,7 +135,7 @@ class RockPaperScissors extends Command {
 
     const embed = new EmbedBuilder();
     embed.setTitle('Rock - Paper - Scissors');
-    embed.setColor('#0099CC');
+    embed.setColor(msg.settings.embedColor);
 
     if (authReply === memReply) {
       embed.setDescription(stripIndents`

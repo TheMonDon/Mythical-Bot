@@ -81,7 +81,7 @@ class RemoveMoney extends Command {
 
     const embed = new EmbedBuilder()
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
-      .setColor('#0099CC')
+      .setColor(msg.settings.embedColor)
       .setDescription(`:white_check_mark: Removed **${cs}${amount.toLocaleString()}** from ${mem}'s ${type} balance.`)
       .setTimestamp();
     return msg.channel.send({ embeds: [embed] });

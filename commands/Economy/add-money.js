@@ -84,7 +84,7 @@ class AddMoney extends Command {
 
     const embed = new EmbedBuilder()
       .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
-      .setColor('#0099CC')
+      .setColor(msg.settings.embedColor)
       .setDescription(`:white_check_mark: Added **${cs}${amount.toLocaleString()}** to ${mem}'s ${type} balance.`)
       .setTimestamp();
     return msg.channel.send({ embeds: [embed] });

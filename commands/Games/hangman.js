@@ -17,6 +17,7 @@ class Hangman extends Command {
     const current = this.client.games.get(msg.channel.id);
     if (current) return msg.reply(`Please wait until the current game of \`${current.name}\` is finished.`);
     this.client.games.set(msg.channel.id, { name: this.help.name, user: msg.author.id, date: Date.now() });
+    const color = msg.settings.embedColor;
 
     const lang = require('../../languages/en-US.json');
 
@@ -69,7 +70,7 @@ class Hangman extends Command {
           embedtitlechances = lang.hangman_embedtitlechances.replace('%chances', chances);
           const embeddescription = lang.hangman_embeddescription.replace('%word', `\`\`${newWordString.join(' ')}\`\``);
           const firstEmbed = new EmbedBuilder()
-            .setColor('#0000FF')
+            .setColor(color)
             .setTitle(lang.hangman_embedtitlestart)
             .setFooter({ text: embedtitlechances })
             .setImage(hangmanPictures[15 - chances])
@@ -261,7 +262,7 @@ class Hangman extends Command {
       embedtitlechances = lang.hangman_embedtitlechances.replace('%chances', chances);
       const embeddescription = lang.hangman_embeddescription.replace('%word', `\`\`${newWordString.join(' ')}\`\``);
       const firstEmbed = new EmbedBuilder()
-        .setColor('#0000FF')
+        .setColor(color)
         .setTitle(lang.hangman_embedtitlestart)
         .setFooter({ text: embedtitlechances })
         .setImage(hangmanPictures[15 - chances])

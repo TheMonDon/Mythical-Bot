@@ -35,7 +35,7 @@ class Movie extends Command {
         .query({ api_key: this.client.config.TMDb });
 
       const embed = new EmbedBuilder()
-        .setColor('0099CC')
+        .setColor(msg.settings.embedColor)
         .setTitle(body.title)
         .setURL(`https://www.themoviedb.org/movie/${body.id}`)
         .setAuthor({ name: 'TMDb', iconURL: 'https://i.imgur.com/3K3QMv9.png', url: 'https://www.themoviedb.org/' })

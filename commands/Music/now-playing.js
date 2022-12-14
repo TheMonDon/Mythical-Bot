@@ -27,7 +27,7 @@ class NowPlaying extends Command {
 
         Requested By: ${song.requestedBy}
       `)
-      .setColor('0099CC')
+      .setColor(msg.settings.embedColor)
       .setThumbnail(song.thumbnail)
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() });
     return msg.channel.send({ embeds: [em] });
