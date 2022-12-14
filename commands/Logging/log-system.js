@@ -47,27 +47,28 @@ class logSystem extends Command {
         {
           name: 'System Status',
           value: `
-**Channels Created:** ${db.get(`servers.${msg.guild.id}.logs.logSystem.channel-created`) || '0'}
-**Channels Deleted:** ${db.get(`servers.${msg.guild.id}.logs.logSystem.channel-deleted`) || '0'}
-**Channels Updated:** ${db.get(`servers.${msg.guild.id}.logs.logSystem.channel-updated`) || '0'}
-**Thread Channels Created:** ${db.get(`servers.${msg.guild.id}.logs.logSystem.thread-deleted`) || '0'}
-**Thread Channels Deleted:** ${db.get(`servers.${msg.guild.id}.logs.logSystem.thread-deleted`) || '0'}
-**Voice Channels Created:** ${db.get(`servers.${msg.guild.id}.logs.logSystem.v_channel-created`) || '0'}
-**Voice Channels Deleted:** ${db.get(`servers.${msg.guild.id}.logs.logSystem.v_channel-deleted`) || '0'}
-**Members Joined:** ${db.get(`servers.${msg.guild.id}.logs.logSystem.member-joined`) || '0'}
-**Members Left:** ${db.get(`servers.${msg.guild.id}.logs.logSystem.member-leave`) || '0'}
-**Messages Edited:** ${db.get(`servers.${msg.guild.id}.logs.logSystem.message-edited`) || '0'}
-**Messages Deleted:** ${db.get(`servers.${msg.guild.id}.logs.logSystem.message-deleted`) || '0'}
-**Roles Created:** ${db.get(`servers.${msg.guild.id}.logs.logSystem.role-created`) || '0'}
-**Roles Deleted:** ${db.get(`servers.${msg.guild.id}.logs.logSystem.role-deleted`) || '0'}
-**Roles Updated:** ${db.get(`servers.${msg.guild.id}.logs.logSystem.role-updated`) || '0'}
-**Emojis Created:** ${db.get(`servers.${msg.guild.id}.logs.logSystem.emoji-created`) || '0'}
-**Emojis Deleted:** ${db.get(`servers.${msg.guild.id}.logs.logSystem.emoji-deleted`) || '0'}
-**Bulk Messages Deleted:** ${db.get(`servers.${msg.guild.id}.logs.logSystem.bulk-messages-deleted`) || '0'}
-**Total:** ${db.get(`servers.${msg.guild.id}.logs.logSystem.all`) || '0'}
+**Channels Created:** ${db.get(`servers.${msg.guild.id}.logs.channel-created`) || '0'}
+**Channels Deleted:** ${db.get(`servers.${msg.guild.id}.logs.channel-deleted`) || '0'}
+**Channels Updated:** ${db.get(`servers.${msg.guild.id}.logs.channel-updated`) || '0'}
+**Thread Channels Created:** ${db.get(`servers.${msg.guild.id}.logs.thread-deleted`) || '0'}
+**Thread Channels Deleted:** ${db.get(`servers.${msg.guild.id}.logs.thread-deleted`) || '0'}
+**Voice Channels Created:** ${db.get(`servers.${msg.guild.id}.logs.v_channel-created`) || '0'}
+**Voice Channels Deleted:** ${db.get(`servers.${msg.guild.id}.logs.v_channel-deleted`) || '0'}
+**Members Joined:** ${db.get(`servers.${msg.guild.id}.logs.member-joined`) || '0'}
+**Members Left:** ${db.get(`servers.${msg.guild.id}.logs.member-leave`) || '0'}
+**Messages Edited:** ${db.get(`servers.${msg.guild.id}.logs.message-edited`) || '0'}
+**Messages Deleted:** ${db.get(`servers.${msg.guild.id}.logs.message-deleted`) || '0'}
+**Roles Created:** ${db.get(`servers.${msg.guild.id}.logs.role-created`) || '0'}
+**Roles Deleted:** ${db.get(`servers.${msg.guild.id}.logs.role-deleted`) || '0'}
+**Roles Updated:** ${db.get(`servers.${msg.guild.id}.logs.role-updated`) || '0'}
+**Emojis Created:** ${db.get(`servers.${msg.guild.id}.logs.emoji-created`) || '0'}
+**Emojis Deleted:** ${db.get(`servers.${msg.guild.id}.logs.emoji-deleted`) || '0'}
+**Bulk Messages Deleted:** ${db.get(`servers.${msg.guild.id}.logs.bulk-messages-deleted`) || '0'}
+**Total:** ${db.get(`servers.${msg.guild.id}.logs.all`) || '0'}
 `,
           inline: true
-        }
+        },
+        { name: 'Log Channel', value: `${db.get(`servers.${msg.guild.id}.logs.logSystem.channel`) || ':x:'}` }
       ])
       .setFooter({ text: 'logs.logSystem System V3.2' });
 

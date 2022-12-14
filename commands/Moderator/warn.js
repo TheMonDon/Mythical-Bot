@@ -11,8 +11,7 @@ class Warn extends Command {
       description: 'Warns a member',
       longDescription: stripIndents`
       Warn system that will kick or ban a user depending on the points they have.
-      Users are kicked when they reach 8 points, or banned when they reach 10. (Option to change coming soonTM)
-      `,
+      Users are kicked when they reach 8 points, or banned when they reach 10. (Change with \`setup\` command)`,
       usage: 'Warn <User> <Points> <Reason>',
       category: 'Moderator',
       permLevel: 'Moderator',
@@ -23,7 +22,8 @@ class Warn extends Command {
   async run (msg, args) {
     let mem;
     let member = true;
-    const usage = `Incorrect Usage: ${msg.settings.prefix}warn <member> <points> <reason>`;
+    let logMessage;
+    const usage = `Incorrect Usage: ${msg.settings.prefix}warn <member> <points Kick:${msg.settings.warnKickPoints} | Ban:${msg.settings.warnBanPoints}> <reason>`;
 
     if (!args || args.length < 3) {
       return msg.channel.send(usage);
@@ -51,6 +51,7 @@ class Warn extends Command {
       }
     }
 
+    // Check if points is a number and is between 0 and 1000
     const points = parseInt(args[1], 10);
     if (isNaN(points)) return msg.channel.send(usage);
     if (points < 0 || points > 1000) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}warn <member> <0-1000 points> <reason>`);
@@ -84,8 +85,10 @@ class Warn extends Command {
       reason = 'Please do not mention users unless they have explicitly agreed to it.';
     }
 
-    const ka = db.get(`servers.${msg.guild.id}.warns.kick`) || 8; // add an option to change this later, for now this is fine.
+    // Grab the settings for the server
+    const ka = db.get(`servers.${msg.guild.id}.warns.kick`) || 8;
     const ba = db.get(`servers.${msg.guild.id}.warns.ban`) || 10;
+    const logChan = db.get(`servers.${msg.guild.id}.warns.channel`);
 
     // Make sure that the ID doesn't exist on that server
     let warnID = randomString(5);
@@ -105,12 +108,11 @@ class Warn extends Command {
       color = ' #FF0000';
     }
 
+    // Check if they have other cases
     let otherCases = otherWarns.length > 0 ? otherWarns.map((w) => `\`${w.warnID}\``).join(', ') : 'No other cases.';
 
     if (!reason) reason = 'Automated Ban';
     if (!otherCases) otherCases = 'No other cases';
-
-    const logChan = db.get(`servers.${msg.guild.id}.logging.channel`);
 
     // Send the embed to the users DMS
     const userEm = new EmbedBuilder()
@@ -126,6 +128,7 @@ class Warn extends Command {
       .setFooter({ text: `Issued in ${msg.guild.name}` });
     const um = await mem.send({ embeds: [userEm] }).catch(() => null);
 
+    // Send the embed to the logs channel
     const logEmbed = new EmbedBuilder()
       .setColor(color)
       .setFooter({ text: `${msg.author.tag} • User ID: ${mem.id}` })
@@ -139,11 +142,33 @@ class Warn extends Command {
         { name: 'Reason', value: reason, inline: false }
       ]);
     if (!um) logEmbed.setFooter({ text: `Failed to message the user in question • User ID: ${mem.id}` });
-    const logMessage = logChan ? await msg.guild.channels.cache.get(logChan).send({ embeds: [logEmbed] }) : await msg.channel.send({ embeds: [logEmbed] });
 
+    // Check if the logs channel exists and send the message
+    if (logChan) {
+      const em2 = new EmbedBuilder()
+        .setColor(color)
+        .setFooter({ text: `${msg.author.tag} • User ID: ${mem.id}` })
+        .setTitle(`User has been ${status}`)
+        .addFields([
+          { name: 'User', value: `${mem} (${mem.id})` }
+        ])
+        .setDescription('Full info posted in the log channel.');
+
+      logMessage = await msg.guild.channels.cache.get(logChan).send({ embeds: [logEmbed] });
+
+      msg.channel.send({ embeds: [em2] })
+        .then(msg => {
+          setTimeout(() => msg.delete(), 30000);
+        });
+    } else {
+      logMessage = await msg.channel.send({ embeds: [logEmbed] });
+    }
+
+    // Add the warn to the database
     const opts = { messageURL: logMessage.url, mod: msg.author.id, points, reason, timestamp: Date.now(), user: mem.id, warnID };
     db.set(`servers.${msg.guild.id}.warns.warnings.${warnID}`, opts);
 
+    // Check if they should be banned or kicked
     if (warnAmount >= ba) {
       if (!msg.guild.members.me.permissions.has('BenMembers')) return msg.channel.send('The bot does not have permission to ban members.');
       msg.guild.members.bans.create(mem.id, { reason }).catch(() => null); // Ban wether they are in the guild or not.

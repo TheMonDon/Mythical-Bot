@@ -9,10 +9,10 @@ class Setup extends Command {
     super(client, {
       name: 'setup',
       description: 'Setup the different systems of the bot.',
-      usage: 'setup <system>',
+      usage: 'setup <logs | tickets | warns>',
       category: 'Administrator',
       permLevel: 'Administrator',
-      aliases: ['setlogchannel', 'setupticket', 'logsetup', 'ticketsetup'],
+      aliases: ['setlogchannel', 'setupticket', 'logsetup', 'ticketsetup', 'setupwarns'],
       guildOnly: true
     });
   }
@@ -205,12 +205,13 @@ class Setup extends Command {
         if (!text) return msg.reply('The command has been cancelled due to no reply.');
       }
 
-      const chan = getChannel(msg, text);
+      let chan = getChannel(msg, text);
 
       if (!chan) {
         msg.reply('That channel was not found, please type a valid server channel.');
         text = await awaitReply(msg, 'What channel do you want to setup logging in?');
         if (!text) return msg.reply('The command has been cancelled due invalid channel.');
+        chan = getChannel(msg, text);
       }
 
       const currentChan = db.get(`servers.${msg.guild.id}.logs.channel`);
@@ -241,6 +242,49 @@ class Setup extends Command {
     }
     // End of logging setup
 
+    // Start of warns setup
+    if (['warns', 'warn', 'warnings'].includes(type)) {
+      if (!args || args.length < 3) {
+        const usage = `Usage: ${msg.settings.prefix}Setup Warns <channel-name> <Points for kick> <Points for ban>`;
+        return msg.reply(usage);
+      }
+
+      let channel;
+      args.shift();
+      let channelArg = args[0];
+      const kickAmount = args[1];
+      const banAmount = args[2];
+
+      channel = await getChannel(msg, channelArg);
+
+      if (!channel) {
+        msg.reply('That channel was not found, please type a valid server channel.');
+        channelArg = await awaitReply(msg, 'What channel do you want to setup logging in?');
+        channel = await getChannel(msg, channelArg);
+        if (!channel || !channelArg) return msg.reply('The command has been cancelled due invalid channel.');
+      }
+
+      db.set(`servers.${msg.guild.id}.warns.kick`, kickAmount);
+      db.set(`servers.${msg.guild.id}.warns.ban`, banAmount);
+      db.set(`servers.${msg.guild.id}.warns.channel`, channel.id);
+
+      const em = new EmbedBuilder()
+        .setTitle('Warns System Setup')
+        .setColor('#00FF00')
+        .setDescription(stripIndents`
+        Warn information will now be sent to the log channel.
+        
+        **Kick Amount:** ${kickAmount}
+        **Ban Amount:** ${banAmount}
+        
+        To change the amount of warns needed to kick or ban a user just re-run the command with the new amount.`)
+        .setTimestamp();
+
+      await msg.channel.send({ embeds: [em] });
+      return msg.guild.channels.cache.get(channel.id).send({ embeds: [em] });
+    }
+    // End of the warns setup
+
     // Base command if there is not any args
     const embed = new EmbedBuilder()
       .setTitle('Systems Setup')
@@ -250,20 +294,22 @@ class Setup extends Command {
           name: 'Tickets',
           value: stripIndents`
           To setup the ticket system please use:
-          \`${msg.settings.prefix}Setup Ticket\`
-
-          This system should be fully operational`
+          \`${msg.settings.prefix}Setup Ticket\``
         },
         {
           name: 'Logging',
           value: stripIndents`
           To setup the logging system please use:
-          \`${msg.settings.prefix}Setup Logging channel-name\`
-  
-          This system should be fully operational.`
+          \`${msg.settings.prefix}Setup Logging <channel-name>\``
+        },
+        {
+          name: 'Warns',
+          value: stripIndents`
+          To setup the warns system please use:
+          \`${msg.settings.prefix}Setup Warns <channel-name> <Points for kick> <Points for ban>\``
         }
       ])
-      .setDescription('These systems are not fully operational and may have bugs.')
+      .setDescription('These systems should have minimal bugs, if you find any please report them to the support server.')
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() });
     return msg.channel.send({ embeds: [embed] });
   }

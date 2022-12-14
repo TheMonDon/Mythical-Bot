@@ -19,7 +19,7 @@ class Kick extends Command {
     if (!msg.member.permissions.has('KickMembers')) return msg.channel.send('You do not have permissions to Kick Members.');
     if (!msg.guild.members.me.permissions.has('KickMembers')) return msg.channel.send('The bot is missing the Kick Members permission.');
 
-    const logChan = db.get(`servers.${msg.guild.id}.logging.channel`);
+    const logChan = db.get(`servers.${msg.guild.id}.logs.channel`);
 
     if (!args[0]) return msg.channel.send('Please provide a user and a reason.');
     const kickMem = await getMember(msg, args[0]);
@@ -32,6 +32,8 @@ class Kick extends Command {
     if (!kickMem) return msg.channel.send('That user was not found.');
     if (!kickMem.kickable) return msg.channel.send('That user is not kickable.');
 
+    kickMem.kick({ reason });
+
     const em = new EmbedBuilder()
       .setTitle('User Kicked')
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
@@ -43,7 +45,6 @@ class Kick extends Command {
       ])
       .setFooter({ text: `User ID: ${kickMem.id}` })
       .setTimestamp();
-    kickMem.kick({ reason });
 
     if (logChan) {
       const em2 = new EmbedBuilder()

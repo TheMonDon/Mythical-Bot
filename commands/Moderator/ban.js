@@ -19,7 +19,7 @@ class Ban extends Command {
     if (!msg.member.permissions.has('BanMembers')) return msg.channel.send('You do not have permissions to ban members.');
     if (!msg.guild.members.me.permissions.has('BanMembers')) return msg.channel.send('The bot is missing the ban members permission.');
 
-    const logChan = db.get(`servers.${msg.guild.id}.logging.channel`);
+    const logChan = db.get(`servers.${msg.guild.id}.logs.channel`);
 
     if (!args[0]) return msg.channel.send('Please provide a user and a reason.');
     const banMem = await getMember(msg, args[0]);
