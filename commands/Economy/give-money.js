@@ -17,10 +17,11 @@ class GiveMoney extends Command {
 
   async run (msg, text) {
     let mem;
+    const errorColor = msg.settings.embedErrorColor;
 
     const usage = `${msg.settings.prefix}Give-Money <user> <amount | all>`;
     const errEmbed = new EmbedBuilder()
-      .setColor('#EC5454')
+      .setColor(errorColor)
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() });
 
     if (!text || text.length < 1) {
@@ -72,7 +73,7 @@ class GiveMoney extends Command {
         return msg.channel.send({ embeds: [embed] });
       } else {
         const embed = new EmbedBuilder()
-          .setColor('#EC5454')
+          .setColor(errorColor)
           .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
           .setDescription(`Incorrect Usage: ${usage}`);
         return msg.channel.send({ embeds: [embed] });

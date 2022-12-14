@@ -19,6 +19,7 @@ class Setup extends Command {
 
   async run (msg, args) {
     const type = args[0]?.toLowerCase();
+    const successColor = msg.settings.embedSuccessColor;
 
     if (['ticket', 'tix', 'tickets'].includes(type)) {
       const filter = m => m.author.id === msg.author.id;
@@ -129,7 +130,7 @@ class Setup extends Command {
       if (reaction === 'yes') {
         embed
           .setTitle('New Ticket')
-          .setColor('#00FF00');
+          .setColor(successColor);
 
         const reactPerms = [
           {
@@ -220,7 +221,7 @@ class Setup extends Command {
         db.set(`servers.${msg.guild.id}.logs.logSystem`, logSystem);
         embed
           .setTitle('Successfully Changed')
-          .setColor('#00FF00')
+          .setColor(successColor)
           .setThumbnail('https://cdn.discordapp.com/emojis/482184108555108358.png')
           .setDescription(`Everything related to logs will be posted in ${chan} from now on.`)
           .setTimestamp()
@@ -230,7 +231,7 @@ class Setup extends Command {
         db.set(`servers.${msg.guild.id}.logs.logSystem`, logSystem);
         embed
           .setTitle('Successfully Set')
-          .setColor('#00FF00')
+          .setColor(successColor)
           .setThumbnail('https://cdn.discordapp.com/emojis/482184108555108358.png')
           .setDescription(`Everything related to logs will be posted in ${chan}.`)
           .setTimestamp()
@@ -270,7 +271,7 @@ class Setup extends Command {
 
       const em = new EmbedBuilder()
         .setTitle('Warns System Setup')
-        .setColor('#00FF00')
+        .setColor(successColor)
         .setDescription(stripIndents`
         Warn information will now be sent to the log channel.
         

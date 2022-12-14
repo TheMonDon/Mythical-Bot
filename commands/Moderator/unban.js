@@ -25,6 +25,7 @@ class Unban extends Command {
     const userID = args[0];
     args.shift();
     const reason = args.join(' ');
+    const successColor = msg.settings.embedSuccessColor;
 
     if (!userID.matches(regex)) return msg.channel.send(`Please provide a valid User ID. \nInput: ${userID}`);
     if (msg.guild.members.me.permissions.has('ManageMessages')) msg.delete();
@@ -39,7 +40,7 @@ class Unban extends Command {
       const embed = new EmbedBuilder()
         .setTitle('Member Unbanned')
         .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
-        .setColor('#00FF00')
+        .setColor(successColor)
         .addFields([
           { name: 'User', value: unbanP.toString() },
           { name: 'Unbanned By', value: msg.member.toString() },
@@ -51,7 +52,7 @@ class Unban extends Command {
       if (logChan) {
         const em2 = new EmbedBuilder()
           .setTitle('User unbanned')
-          .setColor('#00FF00')
+          .setColor(successColor)
           .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
           .setDescription('Full info posted in the log channel.');
 

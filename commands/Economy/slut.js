@@ -32,7 +32,7 @@ class Slut extends Command {
         const tLeft = moment.duration(timeleft)
           .format('y[ years][,] M[ Months]d[ days][,] h[ hours][,] m[ minutes][, and] s[ seconds]'); // format to any format
         const embed = new EmbedBuilder()
-          .setColor('#EC5454')
+          .setColor(msg.settings.embedErrorColor)
           .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
           .setDescription(`Please wait ${tLeft} to be a slut again.`);
         return msg.channel.send({ embeds: [embed] });
@@ -87,7 +87,7 @@ class Slut extends Command {
       const txt = crimeSuccess[num].replace('csamount', csamount);
 
       const embed = new EmbedBuilder()
-        .setColor('#00FF00')
+        .setColor(msg.settings.embedSuccessColor)
         .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
         .setDescription(txt)
         .setFooter({ text: `Reply #${num.toLocaleString()}` });

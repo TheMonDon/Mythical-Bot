@@ -16,11 +16,12 @@ class Withdraw extends Command {
 
   run (msg, text) {
     let amount = text.join(' ');
+    const errorColor = msg.settings.embedErrorColor;
 
     const usage = `${msg.settings.prefix}Withdraw <amount | all>`;
     if (!amount || amount.length < 1) {
       const embed = new EmbedBuilder()
-        .setColor('#EC5454')
+        .setColor(errorColor)
         .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
         .setDescription(`Incorrect Usage: ${usage}`);
       return msg.channel.send({ embeds: [embed] });
@@ -48,7 +49,7 @@ class Withdraw extends Command {
         return msg.channel.send({ embeds: [em] });
       } else {
         const embed = new EmbedBuilder()
-          .setColor('#EC5454')
+          .setColor(errorColor)
           .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
           .setDescription(`Incorrect Usage: ${usage}`);
         return msg.channel.send({ embeds: [embed] });

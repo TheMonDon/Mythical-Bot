@@ -87,7 +87,7 @@ class Crime extends Command {
       const txt = crimeSuccess[num].replace('csamount', csamount);
 
       const embed = new EmbedBuilder()
-        .setColor('#00FF00')
+        .setColor(msg.settings.embedSuccessColor)
         .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
         .setDescription(txt)
         .setFooter({ text: `Reply #${num.toLocaleString()}` });

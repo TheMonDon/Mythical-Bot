@@ -47,7 +47,9 @@ const config = {
     leaveChannel: 'welcome-leave',
     leaveMessage: 'Goodbye {{user}} :( Sorry to see you go.',
     leaveEnabled: 'false',
-    embedColor: '#0099CC'
+    embedColor: '#0099CC',
+    embedErrorColor: '#EC5454',
+    embedSuccessColor: '#00FF00'
   },
 
   // PERMISSION LEVEL DEFINITIONS.

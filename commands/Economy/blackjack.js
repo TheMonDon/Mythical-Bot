@@ -119,6 +119,7 @@ class BlackJack extends Command {
     let push = false;
     let blackjack = false;
     let gameOver = false;
+    const successColor = msg.settings.embedSuccessColor;
     bj.event = event => {
       switch (event) {
         case 'hit':
@@ -127,7 +128,7 @@ class BlackJack extends Command {
         case 'win':
           win = true;
           gameOver = true;
-          color = '#00FF00';
+          color = successColor;
           break;
         case 'bust':
           bust = true;
@@ -141,7 +142,7 @@ class BlackJack extends Command {
         case 'blackjack':
           blackjack = true;
           gameOver = true;
-          color = '#00FF00';
+          color = successColor;
           break;
         default:
           break;

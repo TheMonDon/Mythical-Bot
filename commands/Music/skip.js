@@ -24,7 +24,7 @@ class Skip extends Command {
     queue.skip();
 
     const em = new EmbedBuilder()
-      .setColor('#00FF00')
+      .setColor(msg.settings.embedSuccessColor)
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
       .addFields([{ name: 'Skipped Song', value: song.title, inline: false }]);
 

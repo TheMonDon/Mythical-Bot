@@ -24,7 +24,7 @@ class Back extends Command {
     const song = queue.nowPlaying();
 
     const em = new EmbedBuilder()
-      .setColor('#00FF00')
+      .setColor(msg.settings.embedSuccessColor)
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
       .addFields([{ name: 'Now Playing', value: song.title }]);
 

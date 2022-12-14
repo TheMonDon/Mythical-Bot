@@ -18,6 +18,7 @@ class Rob extends Command {
 
   async run (msg, text) {
     let mem;
+    const errorColor = msg.settings.embedErrorColor;
 
     const type = 'rob';
 
@@ -34,7 +35,7 @@ class Rob extends Command {
         const tLeft = moment.duration(timeleft)
           .format('y[ years][,] M[ Months]d[ days][,] h[ hours][,] m[ minutes][, and] s[ seconds]'); // format to any format
         const embed = new EmbedBuilder()
-          .setColor('#EC5454')
+          .setColor(errorColor)
           .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
           .setDescription(`You cannot rob for ${tLeft}`);
         return msg.channel.send({ embeds: [embed] });
@@ -43,7 +44,7 @@ class Rob extends Command {
 
     if (!text || text.length < 1) {
       const embed = new EmbedBuilder()
-        .setColor('#EC5454')
+        .setColor(errorColor)
         .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
         .setDescription(`Incorrect Usage: ${msg.settings.prefix}Rob <user>`);
       return msg.channel.send({ embeds: [embed] });
@@ -53,13 +54,13 @@ class Rob extends Command {
 
     if (!mem) {
       const embed = new EmbedBuilder()
-        .setColor('#EC5454')
+        .setColor(errorColor)
         .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
         .setDescription(`That user was not found. \nUsage: ${msg.settings.prefix}Rob <user>`);
       return msg.channel.send({ embeds: [embed] });
     } else if (mem.id === msg.author.id) {
       const embed = new EmbedBuilder()
-        .setColor('#EC5454')
+        .setColor(errorColor)
         .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
         .setDescription('You can\'t rob yourself.');
       return msg.channel.send({ embeds: [embed] });
@@ -73,7 +74,7 @@ class Rob extends Command {
 
     if (memCash <= 0) {
       const embed = new EmbedBuilder()
-        .setColor('#EC5454')
+        .setColor(errorColor)
         .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
         .setDescription(`${mem} does not have anything to rob.`);
       return msg.channel.send({ embeds: [embed] });

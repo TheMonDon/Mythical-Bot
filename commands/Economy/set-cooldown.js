@@ -18,6 +18,7 @@ class SetCooldown extends Command {
 
   run (msg, args) {
     let type;
+    const errorColor = msg.settings.embedErrorColor;
 
     const types = ['rob', 'work', 'crime'];
 
@@ -47,7 +48,7 @@ class SetCooldown extends Command {
       type = args[0].toLowerCase();
       if (!types.includes(type)) {
         const embed = new EmbedBuilder()
-          .setColor('#EC5454')
+          .setColor(errorColor)
           .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
           .setDescription(`Incorrect Usage: ${usage}`);
         return msg.channel.send({ embeds: [embed] });
@@ -60,7 +61,7 @@ class SetCooldown extends Command {
 
     if (cooldown > 1209600000) {
       const embed = new EmbedBuilder()
-        .setColor('#EC5454')
+        .setColor(errorColor)
         .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
         .setDescription(stripIndents`
             :x: Invalid cooldown. Cooldowns can not be longer than 2 weeks.
@@ -71,7 +72,7 @@ class SetCooldown extends Command {
       return msg.channel.send({ embeds: [embed] });
     } else if (cooldown < 30000) {
       const embed = new EmbedBuilder()
-        .setColor('#EC5454')
+        .setColor(errorColor)
         .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
         .setDescription(stripIndents`
             :x: Invalid cooldown. Cooldowns can not be shorter than 30 seconds.
@@ -82,7 +83,7 @@ class SetCooldown extends Command {
       return msg.channel.send({ embeds: [embed] });
     } else if (isNaN(cooldown)) {
       const embed = new EmbedBuilder()
-        .setColor('#EC5454')
+        .setColor(errorColor)
         .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
         .setDescription(stripIndents`
             :x: Invalid cooldown. Please provide a valid cooldown time.

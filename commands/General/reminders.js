@@ -19,6 +19,7 @@ class Reminders extends Command {
       0: '0⃣', 1: '1⃣', 2: '2⃣', 3: '3⃣', 4: '4⃣', 5: '5⃣', 6: '6⃣', 7: '7⃣', 8: '8⃣', 9: '9⃣', 10: '🔟'
     };
     const numbers = [emoji[0], emoji[1], emoji[2], emoji[3], emoji[4], emoji[5], emoji[6], emoji[7], emoji[8], emoji[9], emoji[10]];
+    const errorColor = msg.settings.embedErrorColor;
 
     const em = new EmbedBuilder();
     const reminders = db.get('global.reminders') || [];
@@ -48,15 +49,15 @@ class Reminders extends Command {
     const reminder = db.get(`global.reminders.${ID}`);
 
     if (!ID) {
-      em.setColor('#FFA500');
+      em.setColor(errorColor);
       em.setDescription(`${msg.author.username}, that isn't a valid reminder.`);
     } else if (!reminder || reminder.userID !== msg.author.id) {
-      em.setColor('#FFA500');
+      em.setColor(errorColor);
       em.setDescription(`${msg.author.username}, that isn't a valid reminder.`);
     } else {
       db.delete(`global.reminders.${ID}`);
 
-      em.setColor('#00FF00');
+      em.setColor(msg.settings.embedSuccessColor);
       em.setDescription(`${msg.member.displayName}, you've successfully deleted your reminder.`);
     }
     return msg.channel.send({ embeds: [em] });

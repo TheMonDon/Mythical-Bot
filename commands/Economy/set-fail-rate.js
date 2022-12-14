@@ -18,6 +18,7 @@ class SetFailRate extends Command {
 
   run (msg, text) {
     const types = ['crime', 'slut'];
+    const errorColor = msg.settings.embedErrorColor;
 
     const usage = `${msg.settings.prefix}set-fail-rate <crime | slut> <percentage>`;
 
@@ -40,7 +41,7 @@ class SetFailRate extends Command {
     }
 
     const errEmbed = new EmbedBuilder()
-      .setColor('#EC5454')
+      .setColor(errorColor)
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() });
 
     const type = text[0]?.toLowerCase();
@@ -54,7 +55,7 @@ class SetFailRate extends Command {
 
     if (isNaN(percentage)) {
       const embed = new EmbedBuilder()
-        .setColor('#EC5454')
+        .setColor(errorColor)
         .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
         .setDescription(stripIndents`
           :x: Invalid fail rate. Please provide a valid number.

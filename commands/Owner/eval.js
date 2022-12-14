@@ -44,16 +44,17 @@ class Eval extends Command {
         else {
           embed
             .addFields([{ name: 'Type', value: code('css', typeof evald) }])
-            .setColor('#00FF00');
+            .setColor(msg.settings.embedSuccessColor);
         }
       } catch (error) {
         embed
           .addFields([{ name: 'Error', value: code('js', error) }])
-          .setColor('#FF0000');
+          .setColor(msg.settings.embedErrorColor);
       } finally {
-        msg.channel.send({ embeds: [embed] }).catch(error => {
-          msg.channel.send(`There was an error while displaying the eval result! ${error.message}`);
-        });
+        msg.channel.send({ embeds: [embed] })
+          .catch(error => {
+            msg.channel.send(`There was an error while displaying the eval result! ${error.message}`);
+          });
       }
     }
   }

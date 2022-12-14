@@ -39,7 +39,7 @@ class DeleteWarning extends Command {
       } else {
         await msg.guild.members.unban(userID).catch(() => null);
         title = 'User Unbanned';
-        color = '#00FF00';
+        color = msg.settings.embedSuccessColor;
       }
     }
 

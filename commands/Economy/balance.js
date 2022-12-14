@@ -24,7 +24,7 @@ class Balance extends Command {
     if (!mem) {
       const embed = new EmbedBuilder()
         .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
-        .setColor('#EC5454')
+        .setColor(msg.settings.embedErrorColor)
         .setDescription(stripIndents`
       :x: Invalid member given.
 

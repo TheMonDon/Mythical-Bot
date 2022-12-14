@@ -21,7 +21,7 @@ class RemoveMoney extends Command {
     const usage = `Incorrect Usage: ${msg.settings.prefix}remove-money [cash | bank] <member> <amount>`;
 
     const errEmbed = new EmbedBuilder()
-      .setColor('#EC5454')
+      .setColor(msg.settings.embedErrorColor)
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() });
 
     if (!msg.member.permissions.has('ManageGuild')) {
