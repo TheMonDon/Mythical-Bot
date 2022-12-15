@@ -15,27 +15,26 @@ class RockPaperScissors extends Command {
   }
 
   async run (msg, text) {
-    const current = this.client.games.get(msg.channel.id);
-    if (current) return msg.reply(`Please wait until the current game of \`${current.name}\` is finished.`);
-    this.client.games.set(msg.channel.id, { name: this.help.name, user: msg.author.id, date: Date.now() });
-
-    let mem;
-
-    if (!text || text.length < 1) {
-      this.client.games.set(msg.channel.id, '');
-      return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}rps <opponent>`);
-    } else {
-      mem = await getMember(msg, text.join(' '));
-    }
     const p1 = msg.author;
     const chan = msg.channel;
     let authReply;
     let memReply;
+    let reply;
 
+    const current = this.client.games.get(msg.channel.id);
+    if (current) return msg.reply(`Please wait until the current game of \`${current.name}\` is finished.`);
+    this.client.games.set(msg.channel.id, { name: this.help.name, user: msg.author.id, date: Date.now() });
+
+    if (!text || text.length < 1) {
+      this.client.games.set(msg.channel.id, '');
+      return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}rps <opponent>`);
+    }
+
+    const mem = await getMember(msg, text.join(' '));
     if (!mem) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}rps <opponent> (Please enter a valid user)`);
     if (mem.user.id === msg.author.id) return msg.channel.send('You can\'t play against yourself, silly.');
 
-    let reply;
+    // If the opponent isn't a bot, ask them if they accept the challenge.
     if (!mem.user.bot) {
       await msg.channel.send(`${mem}, do you accept this challenge?`);
       const verification = await verify(msg.channel, mem);
@@ -133,10 +132,11 @@ class RockPaperScissors extends Command {
         });
     }
 
-    const embed = new EmbedBuilder();
-    embed.setTitle('Rock - Paper - Scissors');
-    embed.setColor(msg.settings.embedColor);
+    const embed = new EmbedBuilder()
+      .setTitle('Rock - Paper - Scissors')
+      .setColor(msg.settings.embedColor);
 
+    // It's a tie.
     if (authReply === memReply) {
       embed.setDescription(stripIndents`
         No winner this time!
@@ -144,47 +144,21 @@ class RockPaperScissors extends Command {
         
         The tied item was: ${authReply}
         `);
-    } else if (authReply === 'rock') {
-      if (memReply === 'scissors') {
-        embed.setDescription(stripIndents`
-          The winner was: ${p1}!
-          The winning item was: ${authReply}
-          `);
-      } else {
-        embed.setDescription(stripIndents`
-          The winner was: ${mem}!
-          The winning item was: ${memReply}
-          `);
-      }
-    } else if (authReply === 'paper') {
-      if (memReply === 'rock') {
-        embed.setDescription(stripIndents`
-          The winner was: ${p1}!
-          The winning item was: ${authReply}
-          `);
-      } else {
-        if (memReply === 'scissors') {
-          embed.setDescription(stripIndents`
-            The winner was: ${mem}!
-            The winning item was: ${memReply}
-            `);
-        }
-      }
-    } else if (authReply === 'scissors') {
-      if (memReply === 'rock') {
-        embed.setDescription(stripIndents`
-          The winner was: ${mem}!
-          The winning item was: ${memReply}
-          `);
-      } else {
-        if (memReply === 'paper') {
-          embed.setDescription(stripIndents`
-            The winner was: ${p1}!
-            The winning item was: ${authReply}
-            `);
-        }
-      }
     }
+
+    // Figure out who won.
+    if ((authReply === 'rock' && memReply === 'scissors') || (authReply === 'paper' && memReply === 'rock') || (authReply === 'scissors' && memReply === 'paper')) {
+      embed.setDescription(stripIndents`
+        The winner was: ${p1}!
+        The winning item was: ${authReply}
+      `);
+    } else if ((memReply === 'rock' && authReply === 'scissors') || (memReply === 'paper' && authReply === 'rock') || (memReply === 'scissors' && authReply === 'paper')) {
+      embed.setDescription(stripIndents`
+        The winner was: ${mem}!
+        The winning item was: ${memReply}
+      `);
+    }
+
     if (reply) reply.delete();
     this.client.games.delete(msg.channel.id);
     return chan.send({ embeds: [embed] });
