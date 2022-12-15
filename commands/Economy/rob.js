@@ -90,10 +90,15 @@ class Rob extends Command {
     }
     const ranNum = Math.random() * 100;
 
+    // Minimum fine is 10% of the amount of money the user has, maximum fine is 30% of the amount of money the user has
     const minFine = 10;
     const maxFine = 30;
-    const randomFine = parseInt(Math.floor(Math.random() * maxFine), minFine);
-    const fineAmnt = parseInt(authNet * (randomFine / 100), 10);
+
+    // randomFine is a random number between 10 and 30
+    const randomFine = Math.round(Math.random() * (maxFine - minFine + 1) + minFine);
+
+    // fineAmnt is the amount of money the user will lose if they fail the robbery
+    const fineAmnt = Math.floor((authNet / 100) * randomFine);
 
     const cs = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
 
@@ -101,7 +106,7 @@ class Rob extends Command {
       const em = new EmbedBuilder()
         .setColor('#FFA500')
         .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
-        .setDescription('You have too much money to rob someone.');
+        .setDescription('You networth is either too high, or the person you are trying to rob networth is too high. You cannot rob them.');
       return msg.channel.send({ embeds: [em] });
     }
     if (ranNum < failRate) {

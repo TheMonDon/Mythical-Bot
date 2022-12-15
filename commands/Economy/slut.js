@@ -46,13 +46,17 @@ class Slut extends Command {
     const min = db.get(`servers.${msg.guild.id}.economy.${type}.min`) || 500;
     const max = db.get(`servers.${msg.guild.id}.economy.${type}.max`) || 2000;
 
+    // Get the min and max fine percentages
     const minFine = db.get(`servers.${msg.guild.id}.economy.${type}.fine.min`) || 10;
-    const maxFine = db.get(`servers.${msg.guild.id}.economy.${type}.fine.max`) || 30; // these are %s
+    const maxFine = db.get(`servers.${msg.guild.id}.economy.${type}.fine.max`) || 30;
 
-    // I don't really understand how this works LMAO
-    const randomFine = parseInt(Math.min(Math.max(Math.floor(Math.random() * maxFine), minFine), maxFine), 10);
-    const fineAmnt = parseInt(authNet * (randomFine / 100), 10);
+    // randomFine is a random number between the minimum and maximum fail rate
+    const randomFine = Math.round(Math.random() * (maxFine - minFine + 1) + minFine);
 
+    // fineAmnt is the amount of money the user will lose if they fail the action
+    const fineAmnt = Math.floor((authNet / 100) * randomFine);
+
+    // failRate is the percentage chance of the user failing the action
     const failRate = db.get(`servers.${msg.guild.id}.economy.${type}.failrate`) || 45;
     const ranNum = Math.random() * 100;
 
@@ -67,6 +71,7 @@ class Slut extends Command {
       if (isNaN(fineAmnt)) {
         return msg.channel.send('You have too much money to be able to be fined.');
       }
+
       const csamount = cs + fineAmnt.toLocaleString();
       const num = Math.floor(Math.random() * (crimeFail.length - 1)) + 1;
       const txt = crimeFail[num].replace('csamount', csamount);
