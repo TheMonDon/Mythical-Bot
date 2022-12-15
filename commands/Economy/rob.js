@@ -81,9 +81,11 @@ class Rob extends Command {
     }
 
     let failRate;
-    if (authNet === Number.MAX_VALUE || authNet === Infinity) {
+    if (authNet >= Number.MAX_VALUE || authNet >= Infinity) {
       failRate = 101;
-    } else if ((memCash + authNet) === Number.MAX_VALUE || (memCash + authNet) === Infinity) {
+    } else if ((memCash + authNet) >= Number.MAX_VALUE || (memCash + authNet) >= Infinity) {
+      failRate = 101;
+    } else if (isNaN(authNet) || isNaN(memCash)) {
       failRate = 101;
     } else {
       failRate = (authNet / (memCash + authNet)) * 100;
@@ -95,10 +97,10 @@ class Rob extends Command {
     const maxFine = 30;
 
     // randomFine is a random number between 10 and 30
-    const randomFine = Math.round(Math.random() * (maxFine - minFine + 1) + minFine);
+    const randomFine = parseInt(Math.round(Math.random() * (maxFine - minFine + 1) + minFine));
 
     // fineAmnt is the amount of money the user will lose if they fail the robbery
-    const fineAmnt = Math.floor((authNet / 100) * randomFine);
+    const fineAmnt = parseInt(Math.floor((authNet / 100) * randomFine));
 
     const cs = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
 
@@ -119,7 +121,7 @@ class Rob extends Command {
       msg.channel.send({ embeds: [em] });
     } else {
       // Lucky then, give them the money!
-      const amnt = Math.floor(Math.random() * memCash) + 1;
+      const amnt = parseInt(Math.floor(Math.random() * memCash) + 1);
 
       db.subtract(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, amnt);
       db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, amnt);
