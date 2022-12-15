@@ -18,7 +18,6 @@ class LogToggle extends Command {
   async run (msg, args) {
     const query = args.join(' ').toLowerCase();
 
-    const errorEmbed = new EmbedBuilder();
     if (!db.get(`servers.${msg.guild.id}.logs.channel`)) return msg.channel.send(`The log system is not set up! Use \`${msg.settings.prefix}setlogchannel <channel>\``);
 
     // define regex
@@ -43,7 +42,7 @@ class LogToggle extends Command {
     const ed = /^(emoji[-]?deleted)/gi;
     const bmd = /^(bulk[-]?messages[-]?deleted)/gi;
 
-    errorEmbed
+    const errorEmbed = new EmbedBuilder()
       .setTitle(':x: Invalid parameter.')
       .addFields([
         {
@@ -89,9 +88,8 @@ bulk-messages-deleted`,
         if (!chan) return msg.channel.send('I could not find a channel with that information.');
 
         const chans = db.get(`servers.${msg.guild.id}.logs.noLogChans`);
-        if (chans) {
-          if (!chans.includes(chan.id)) return msg.channel.send('That channel is already enabled.');
-        }
+        if (chans && !chans.includes(chan.id)) return msg.channel.send('That channel is already enabled.');
+
         const indx = chans.indexOf(chan.id);
 
         if (indx > -1) {
