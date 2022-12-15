@@ -108,7 +108,7 @@ class Rob extends Command {
       db.subtract(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, fineAmnt);
 
       const em = new EmbedBuilder()
-        .setColor('#ff0000')
+        .setColor(errorColor)
         .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
         .setDescription(`You were caught attempting to rob ${mem.displayName} and have been fined ${cs + fineAmnt.toLocaleString()}`);
       msg.channel.send({ embeds: [em] });

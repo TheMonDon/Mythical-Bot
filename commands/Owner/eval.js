@@ -40,7 +40,7 @@ class Eval extends Command {
 
         embed.setDescription(`Result \n ${code('js', res2)}`);
 
-        if (!res || (!evald && evald !== 0)) embed.setColor('#FF0000');
+        if (!res || (!evald && evald !== 0)) embed.setColor(msg.settings.embedErrorColor);
         else {
           embed
             .addFields([{ name: 'Type', value: code('css', typeof evald) }])

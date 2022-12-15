@@ -12,6 +12,9 @@ module.exports = class {
       // If that command doesn't exist, silently exit and do nothing
       if (!cmd) return;
 
+      const settings = this.client.getSettings(interaction.guild);
+      interaction.settings = settings;
+
       // Run the command
       try {
         await cmd.run(this.client, interaction);

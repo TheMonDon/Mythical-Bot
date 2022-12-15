@@ -48,7 +48,7 @@ const config = {
     leaveMessage: 'Goodbye {{user}} :( Sorry to see you go.',
     leaveEnabled: 'false',
     embedColor: '#0099CC',
-    embedErrorColor: '#EC5454',
+    embedErrorColor: '#FF0000',
     embedSuccessColor: '#00FF00'
   },
 

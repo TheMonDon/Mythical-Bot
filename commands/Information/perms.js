@@ -22,13 +22,18 @@ class Perms extends Command {
       await msg.guild.members.fetch();
       infoMem = await getMember(msg, args.join(' '));
     }
+
     if (!infoMem) return msg.channel.send('That user was not found, please try again.');
 
     const yes = '<:approved:622961998807826432>';
     const no = '<:denied:622961970093752320>';
 
+    function has (perm) {
+      return infoMem.permissions.has(perm);
+    }
+
     const embed = new EmbedBuilder()
-      .setColor('#2BFED5')
+      .setColor(msg.settings.embedColor)
       .setAuthor({ name: infoMem.displayName, iconURL: infoMem.user.displayAvatarURL({ dynamic: true }) })
       .setFooter({ text: `Requested by: ${msg.member.displayName}` })
       .setTimestamp()
@@ -36,74 +41,74 @@ class Perms extends Command {
         {
           name: '➢ __General Server Permissions:__',
           value: stripIndents`
-          \`View Channels\`| ${infoMem.permissions.has('ViewChannel') ? yes : no}
-          \`Manage Channels\`| ${infoMem.permissions.has('ManageChannels') ? yes : no}
-          \`Manage Roles\`| ${infoMem.permissions.has('ManageRoles') ? yes : no}
-          \`Manage Emojis and Stickers\`| ${infoMem.permissions.has('ManageEmojisAndStickers') ? yes : no}
-          \`View Audit Log\`| ${infoMem.permissions.has('ViewAuditLog') ? yes : no}
-          \`View Server Insights\`| ${infoMem.permissions.has('ViewGuildInsights') ? yes : no}
-          \`Manage Webhooks\`| ${infoMem.permissions.has('ManageWebhooks') ? yes : no}
-          \`Manage Server\`| ${infoMem.permissions.has('ManageGuild') ? yes : no}
+          \`View Channels\`| ${has('ViewChannel') ? yes : no}
+          \`Manage Channels\`| ${has('ManageChannels') ? yes : no}
+          \`Manage Roles\`| ${has('ManageRoles') ? yes : no}
+          \`Manage Emojis and Stickers\`| ${has('ManageEmojisAndStickers') ? yes : no}
+          \`View Audit Log\`| ${has('ViewAuditLog') ? yes : no}
+          \`View Server Insights\`| ${has('ViewGuildInsights') ? yes : no}
+          \`Manage Webhooks\`| ${has('ManageWebhooks') ? yes : no}
+          \`Manage Server\`| ${has('ManageGuild') ? yes : no}
           `,
           inline: true
         },
         {
           name: '➢ __Membership Permissions:__',
           value: stripIndents`
-          \`Create Invite\`| ${infoMem.permissions.has('CreateInstantInvite') ? yes : no}
-          \`Change Nickname\`| ${infoMem.permissions.has('ChangeNickname') ? yes : no}
-          \`Manage Nicknames\`| ${infoMem.permissions.has('ManageNicknames') ? yes : no}
-          \`Kick Members\`| ${infoMem.permissions.has('KickMembers') ? yes : no}
-          \`Ban Members\`| ${infoMem.permissions.has('BanMembers') ? yes : no}
-          \`Timeout Members\`| ${infoMem.permissions.has('ModerateMembers') ? yes : no}
+          \`Create Invite\`| ${has('CreateInstantInvite') ? yes : no}
+          \`Change Nickname\`| ${has('ChangeNickname') ? yes : no}
+          \`Manage Nicknames\`| ${has('ManageNicknames') ? yes : no}
+          \`Kick Members\`| ${has('KickMembers') ? yes : no}
+          \`Ban Members\`| ${has('BanMembers') ? yes : no}
+          \`Timeout Members\`| ${has('ModerateMembers') ? yes : no}
           `,
           inline: true
         },
         {
           name: '➢ __Text Channel Permissions:__',
           value: stripIndents`
-          \`Send Messages\`| ${infoMem.permissions.has('SendMessages') ? yes : no}
-          \`Create Public Threads\`| ${infoMem.permissions.has('CreatePublicThreads') ? yes : no}
-          \`Create Private Threads\`| ${infoMem.permissions.has('CreatePrivateThreads') ? yes : no}
-          \`Embed Links\`| ${infoMem.permissions.has('EmbedLinks') ? yes : no}
-          \`Attach Files\`| ${infoMem.permissions.has('AttachFiles') ? yes : no}
-          \`Add Reactions\`| ${infoMem.permissions.has('AddReactions') ? yes : no}
-          \`Use External Emojis\`| ${infoMem.permissions.has('UseExternalEmojis') ? yes : no}
-          \`Use External Stickers\`| ${infoMem.permissions.has('UseExternalStickers') ? yes : no}
-          \`Mention @everyone, @here, and All Roles\`| ${infoMem.permissions.has('MentionEveryone') ? yes : no}
-          \`Manage Messages\`| ${infoMem.permissions.has('ManageMessages') ? yes : no}
-          \`Manage Threads\`| ${infoMem.permissions.has('ManageThreads') ? yes : no}
-          \`Read Message History\`| ${infoMem.permissions.has('ReadMessageHistory') ? yes : no}
-          \`Send Text-to-Speech Messages\`| ${infoMem.permissions.has('SendTTSMessages') ? yes : no}
-          \`Use Application Commands\`| ${infoMem.permissions.has('UseApplicationCommands') ? yes : no}
+          \`Send Messages\`| ${has('SendMessages') ? yes : no}
+          \`Create Public Threads\`| ${has('CreatePublicThreads') ? yes : no}
+          \`Create Private Threads\`| ${has('CreatePrivateThreads') ? yes : no}
+          \`Embed Links\`| ${has('EmbedLinks') ? yes : no}
+          \`Attach Files\`| ${has('AttachFiles') ? yes : no}
+          \`Add Reactions\`| ${has('AddReactions') ? yes : no}
+          \`Use External Emojis\`| ${has('UseExternalEmojis') ? yes : no}
+          \`Use External Stickers\`| ${has('UseExternalStickers') ? yes : no}
+          \`Mention @everyone, @here, and All Roles\`| ${has('MentionEveryone') ? yes : no}
+          \`Manage Messages\`| ${has('ManageMessages') ? yes : no}
+          \`Manage Threads\`| ${has('ManageThreads') ? yes : no}
+          \`Read Message History\`| ${has('ReadMessageHistory') ? yes : no}
+          \`Send Text-to-Speech Messages\`| ${has('SendTTSMessages') ? yes : no}
+          \`Use Application Commands\`| ${has('UseApplicationCommands') ? yes : no}
           `,
           inline: true
         },
         {
           name: '➢ __Voice Permissions:__',
           value: stripIndents`
-          \`Connect\`| ${(infoMem.permissions.has('Connect') ? yes : no)}
-          \`Speak\`| ${(infoMem.permissions.has('Speak') ? yes : no)}
-          \`Stream\`| ${infoMem.permissions.has('Stream') ? yes : no}
-          \`Use Voice Activity\`| ${(infoMem.permissions.has('UseVAD') ? yes : no)}
-          \`Priority Speaker\`| ${(infoMem.permissions.has('PrioritySpeaker') ? yes : no)}
-          \`Mute Members\`| ${(infoMem.permissions.has('MuteMembers') ? yes : no)}
-          \`Deafen Members\`| ${(infoMem.permissions.has('DeafenMembers') ? yes : no)}
-          \`Move Members\`| ${(infoMem.permissions.has('MoveMembers') ? yes : no)}
+          \`Connect\`| ${(has('Connect') ? yes : no)}
+          \`Speak\`| ${(has('Speak') ? yes : no)}
+          \`Stream\`| ${has('Stream') ? yes : no}
+          \`Use Voice Activity\`| ${(has('UseVAD') ? yes : no)}
+          \`Priority Speaker\`| ${(has('PrioritySpeaker') ? yes : no)}
+          \`Mute Members\`| ${(has('MuteMembers') ? yes : no)}
+          \`Deafen Members\`| ${(has('DeafenMembers') ? yes : no)}
+          \`Move Members\`| ${(has('MoveMembers') ? yes : no)}
           `,
           inline: true
         },
         {
           name: '➢ __Stage Channel Permissions:__',
           value: stripIndents`
-          \`Request to Speak\`| ${infoMem.permissions.has('RequestToSpeak') ? yes : no}
+          \`Request to Speak\`| ${has('RequestToSpeak') ? yes : no}
           `,
           inline: true
         },
         {
           name: '➢ __Advanced Permissions:__',
           value: stripIndents`
-          \`Administrator\`| ${infoMem.permissions.has('Administrator') ? yes : no}
+          \`Administrator\`| ${has('Administrator') ? yes : no}
           `,
           inline: true
         }

@@ -17,6 +17,7 @@ class Crime extends Command {
 
   run (msg) {
     const type = 'crime';
+    const errorColor = msg.settings.embedErrorColor;
 
     const cooldown = db.get(`servers.${msg.guild.id}.economy.${type}.cooldown`) || 600;
     let userCooldown = db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.${type}.cooldown`) || {};
@@ -72,7 +73,7 @@ class Crime extends Command {
       const txt = crimeFail[num].replace('csamount', csamount);
 
       const embed = new EmbedBuilder()
-        .setColor('#FF0000')
+        .setColor(errorColor)
         .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
         .setDescription(txt)
         .setFooter({ text: `Reply #${num.toLocaleString()}` });

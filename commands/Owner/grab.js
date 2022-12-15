@@ -15,7 +15,8 @@ class Grab extends Command {
 
   async run (msg, args) {
     const em = new EmbedBuilder();
-    if (!args || args.length < 1) return em.setDescription('Must provide a command.').setColor('#ff0000') && msg.reply({ embeds: [em] });
+
+    if (!args || args.length < 1) return em.setDescription('Must provide a command.').setColor(msg.settings.embedErrorColor) && msg.reply({ embeds: [em] });
     const name = args.join(' ');
 
     const commands = this.client.commands.get(name) || this.client.commands.get(this.client.aliases.get(name));

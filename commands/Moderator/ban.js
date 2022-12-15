@@ -19,6 +19,7 @@ class Ban extends Command {
     if (!msg.member.permissions.has('BanMembers')) return msg.channel.send('You do not have permissions to ban members.');
     if (!msg.guild.members.me.permissions.has('BanMembers')) return msg.channel.send('The bot is missing the ban members permission.');
 
+    const successColor = msg.settings.embedSuccessColor;
     const logChan = db.get(`servers.${msg.guild.id}.logs.channel`);
 
     if (!args[0]) return msg.channel.send('Please provide a user and a reason.');
@@ -35,7 +36,7 @@ class Ban extends Command {
     const em = new EmbedBuilder()
       .setTitle('User Banned')
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
-      .setColor('#ff0000')
+      .setColor(successColor)
       .addFields([
         { name: 'User', value: banMem.toString() },
         { name: 'Banned By', value: msg.member.displayName.toString() },
@@ -48,7 +49,7 @@ class Ban extends Command {
     if (logChan) {
       const em2 = new EmbedBuilder()
         .setTitle('User Banned')
-        .setColor('#ff0000')
+        .setColor(successColor)
         .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
         .setDescription('Full info posted in the log channel.');
 

@@ -16,10 +16,13 @@ class MinecraftAccount extends Command {
   }
 
   async run (msg, args) {
+    const errorColor = msg.settings.embedErrorColor;
+    const successColor = msg.settings.embedSuccessColor;
+
     if (!args || args.length < 1) {
       const embed = new EmbedBuilder()
         .setTitle('Invalid Username')
-        .setColor('FF0000')
+        .setColor(errorColor)
         .setDescription(`Invalid Usage: ${msg.settings.prefix}mc-account <username>`);
       return msg.channel.send({ embeds: [embed] });
     }
@@ -30,7 +33,7 @@ class MinecraftAccount extends Command {
     if (!nameRegex.test(name)) {
       const em = new EmbedBuilder()
         .setTitle('Invalid Username')
-        .setColor('FF0000')
+        .setColor(errorColor)
         .setDescription(`\`${name}\` is not a valid minecraft username.`);
       return msg.channel.send({ embeds: [em] });
     }
@@ -46,7 +49,7 @@ class MinecraftAccount extends Command {
         const nc = JSONPath({ path: '*.name', json }).join(', ');
         const em = new EmbedBuilder()
           .setTitle(`${rn}'s Account Information`)
-          .setColor('00FF00')
+          .setColor(successColor)
           .setImage(`https://mc-heads.net/body/${id}`)
           .addFields([
             { name: 'Name Changes History', value: nc || 'Error fetching data...', inline: false },
@@ -60,7 +63,7 @@ class MinecraftAccount extends Command {
     } catch (err) {
       const em = new EmbedBuilder()
         .setTitle('Account Not Found')
-        .setColor('FF0000')
+        .setColor(errorColor)
         .setDescription(`An account with the name \`${name}\` was not found.`);
       return msg.channel.send({ embeds: [em] });
     }

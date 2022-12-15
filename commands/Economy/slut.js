@@ -72,7 +72,7 @@ class Slut extends Command {
       const txt = crimeFail[num].replace('csamount', csamount);
 
       const embed = new EmbedBuilder()
-        .setColor('#FF0000')
+        .setColor(msg.settings.embedErrorColor)
         .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
         .setDescription(txt)
         .setFooter({ text: `Reply #${num.toLocaleString()}` });

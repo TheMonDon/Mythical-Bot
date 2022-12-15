@@ -35,7 +35,7 @@ class StartGiveaway extends Command {
     const ErrorEmbed = new EmbedBuilder()
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
       .setTitle('Incorrect Parameter')
-      .setColor('#FF0000');
+      .setColor(msg.settings.embedErrorColor);
 
     if (isNaN(winnerCount)) {
       ErrorEmbed.setDescription(usage);

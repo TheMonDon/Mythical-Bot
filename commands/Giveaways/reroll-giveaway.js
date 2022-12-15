@@ -26,7 +26,7 @@ class RerollGiveaway extends Command {
     const ErrorEmbed = new EmbedBuilder()
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
       .setTitle('Invalid Message ID')
-      .setColor('#FF0000');
+      .setColor(msg.settings.embedErrorColor);
 
     if (isNaN(query)) {
       ErrorEmbed.setDescription(usage);
