@@ -16,11 +16,8 @@ class Help extends Command {
 
   async run (msg, args, level) {
     const cats = ['Administrator', 'Economy', 'Fun', 'Games', 'General', 'Giveaways', 'Information', 'Logging', 'Memes', 'Minecraft', 'Moderator', 'Music', 'NSFW', 'Search', 'Tickets'];
-    const allcats = ['Bot Admin', 'Administrator', 'Crafters Island', 'Economy', 'Fun', 'Games', 'General', 'Giveaways', 'Information', 'Logging', 'Memes', 'Minecraft', 'Moderator', 'Music', 'NSFW', 'Owner', 'Search', 'Tickets'];
+    const allcats = ['Bot Admin', 'Administrator', 'Economy', 'Fun', 'Games', 'General', 'Giveaways', 'Information', 'Logging', 'Memes', 'Minecraft', 'Moderator', 'Music', 'NSFW', 'Owner', 'Search', 'Tickets'];
     const color = msg.settings.embedColor;
-
-    const em = new EmbedBuilder()
-      .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() });
 
     const errEm = new EmbedBuilder()
       .setColor('#FFA500')
@@ -34,18 +31,28 @@ class Help extends Command {
 
     const category = toProperCase(args.join(' '));
     const disabled = db.get(`servers.${msg.guild.id}.disabled`) || [];
-    em.setTitle(`${category} Commands`)
+
+    const em = new EmbedBuilder()
+      .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
+      .setTitle(`${category} Commands`)
       .setColor(color);
+
+    // Get the commands the user has access to
     const myCommands = this.client.commands.filter(cmd => this.client.levelCache[cmd.conf.permLevel] <= level);
     const myC = [...myCommands.values()];
     const sorted = myC.sort((p, c) => p.help.category > c.help.category ? 1 : p.help.name > c.help.name && p.help.category === c.help.category ? 1 : -1);
+
+    // Show all commands in the category
     sorted.forEach(c => {
       const cat = toProperCase(c.help.category);
       if (category === cat) em.addFields([{ name: `${msg.settings.prefix}${toProperCase(c.help.name)}`, value: `${c.help.description}` }]);
     });
+
+    // If no category is found, assume it's a command
     if (!em.data?.fields || em.data?.fields?.length < 1) {
       let command = category.toLowerCase();
       command = this.client.commands.get(command) || this.client.commands.get(this.client.aliases.get(command));
+
       if (command) {
         if (level < this.client.levelCache[command.conf.permLevel]) return;
         const res = disabled.includes(command.help.category.toLowerCase()) || disabled.includes(command.help.name.toLowerCase());
@@ -62,10 +69,11 @@ class Help extends Command {
             { name: 'Command Disabled', value: res.toString() }
           ]);
         return msg.channel.send({ embeds: [em] });
-      } else {
-        return msg.channel.send({ embeds: [errEm] });
       }
+
+      return msg.channel.send({ embeds: [errEm] });
     } else if (em.data?.fields?.length > 0) {
+      // If category is found, show all commands in the category
       em.addFields([{ name: 'Category Disabled', value: disabled.includes(category.toLowerCase()).toString() }]);
       return msg.channel.send({ embeds: [em] });
     }

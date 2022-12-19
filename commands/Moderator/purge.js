@@ -18,13 +18,14 @@ class Purge extends Command {
     if (!msg.guild.members.me.permissions.has('ManageMessages')) return msg.channel.send('The bot needs `Manage_Messages` permission to use this.');
     if (!args || args.length < 1) return msg.reply(usage);
 
-    msg.delete();
+    await msg.delete();
 
     const num = parseInt(args[0], 10);
     if (isNaN(num)) return msg.channel.send(`\`${num}\` is not a valid number, please input another number.`);
     if (num < 2 || num > 100) return msg.reply(usage);
 
     try {
+      // If both member and channel are mentioned
       if (msg.mentions.channels.first() && msg.mentions.members.first()) {
         const chan = msg.mentions.channels.first();
         const mem = msg.mentions.members.first();
@@ -43,6 +44,7 @@ class Purge extends Command {
           });
       }
 
+      // If only member is mentioned
       if (msg.mentions.members.first()) {
         const mem = msg.mentions.members.first();
         return msg.channel.messages.fetch({
@@ -60,6 +62,7 @@ class Purge extends Command {
           });
       }
 
+      // If only channel is mentioned
       if (msg.mentions.channels.first()) {
         const chan = msg.mentions.channels.first();
         return chan.bulkDelete(num, true)
@@ -69,6 +72,7 @@ class Purge extends Command {
           });
       }
 
+      // If no member or channel is mentioned
       return msg.channel.bulkDelete(num, true)
         .then(async messages => {
           const reply = await msg.channel.send(`<:YES:520531392422215690> Successfully deleted ${messages.size} messages from current channel. Self destructing in 5 seconds!`);

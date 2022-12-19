@@ -16,7 +16,6 @@ class Ban extends Command {
   }
 
   async run (msg, args) {
-    if (!msg.member.permissions.has('BanMembers')) return msg.channel.send('You do not have permissions to ban members.');
     if (!msg.guild.members.me.permissions.has('BanMembers')) return msg.channel.send('The bot is missing the ban members permission.');
 
     const successColor = msg.settings.embedSuccessColor;
