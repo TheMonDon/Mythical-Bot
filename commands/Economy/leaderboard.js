@@ -8,8 +8,8 @@ class Leaderboard extends Command {
       name: 'leaderboard',
       description: 'Get the economy leaderboard',
       category: 'Economy',
-      examples: ['leaderboard [page]'],
-      aliases: ['lb'],
+      examples: ['leaderboard [page number]'],
+      aliases: ['lb', 'baltop'],
       guildOnly: true
     });
   }
@@ -17,11 +17,12 @@ class Leaderboard extends Command {
   async run (msg, text) {
     let page = text.join(' ');
     page = parseInt(page, 10);
+    const usage = `Incorrect Usage: ${msg.settings.prefix}Leaderboard [page number]`;
 
     // Leaderboard made possible by: CoolGuy#9889
 
     if (!page) page = 1;
-    if (isNaN(page)) return msg.channel.send('Please input a valid number.');
+    if (isNaN(page)) return msg.reply(usage);
 
     const cs = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
     let realPage = page;
@@ -29,6 +30,7 @@ class Leaderboard extends Command {
     const stuff = db.get(`servers.${msg.guild.id}.users`) || {};
     const lb = [];
 
+    // Cache users and add them to the leaderboard
     for (const i in stuff) {
       try {
         const u = await this.client.users.cache.get(i);
@@ -43,10 +45,12 @@ class Leaderboard extends Command {
       }
     }
 
+    // Sort the leaderboard
     let abc123 = lb.sort((a, b) => b.money - a.money)
       .map((c) => `**${lb.indexOf(c) + 1}.** ${c.user} - ${cs}${(c.money.toLocaleString().length > 156) ? `${c.money.toLocaleString().slice(0, 153) + '...'}` : `${c.money.toLocaleString()}`}`);
     let temp = abc123.slice(Math.floor((page - 1) * 10), Math.ceil(page * 10));
 
+    // Create the pages
     if (temp.length > 0) {
       realPage = page;
       maxPages = Math.ceil((abc123.length + 1) / 10);
@@ -62,6 +66,8 @@ class Leaderboard extends Command {
         }
       }
     }
+
+    // Send the leaderboard
     const embed = new EmbedBuilder()
       .setColor(msg.settings.embedColor)
       .setTitle(`${msg.guild.name}'s Leaderboard`)
