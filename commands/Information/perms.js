@@ -18,6 +18,7 @@ class Perms extends Command {
   async run (msg, args) {
     let infoMem = msg.member;
 
+    // If a user is mentioned, fetch them and set them as the infoMem
     if (args && args.length > 0) {
       await msg.guild.members.fetch();
       infoMem = await getMember(msg, args.join(' '));
@@ -25,9 +26,11 @@ class Perms extends Command {
 
     if (!infoMem) return msg.channel.send('That user was not found, please try again.');
 
+    // Emojis to use for the permissions
     const yes = '<:approved:622961998807826432>';
     const no = '<:denied:622961970093752320>';
 
+    // Function to check if the user has a permission
     function has (perm) {
       return infoMem.permissions.has(perm);
     }

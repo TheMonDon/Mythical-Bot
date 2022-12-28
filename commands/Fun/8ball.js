@@ -27,6 +27,7 @@ class EightBall extends Command {
       .addFields([
         { name: '__Question:__', value: question, inline: false }
       ]);
+
     return msg.channel.send({ embeds: [em] });
   }
 }

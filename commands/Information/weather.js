@@ -1,50 +1,57 @@
 const Command = require('../../base/Command.js');
 const { EmbedBuilder } = require('discord.js');
-const weather = require('weather-js');
-// const weather = require("msn-weather").default;
-// Change to msn-weather as it is being updated.
+const config = require('../../config.js');
+const weatherApi = require('openweather-apis');
 
 class Weather extends Command {
   constructor (client) {
     super(client, {
       name: 'weather',
       description: 'Get the weather information from any city',
-      usage: 'weather',
+      usage: 'weather <City Name or Zip Code>',
       category: 'Information'
     });
   }
 
   async run (msg, text) {
     const city = text.join(' ');
+    if (!city) return msg.channel.send('Incorrect Usage: `weather <City Name or Zip Code>`');
 
-    if (!city) return msg.channel.send('Please enter a city to get the weather in!');
+    const ZipCode = /^-?\d+\.?\d*$/;
 
-    weather.find({
-      search: city,
-      degreeType: 'F'
-    }, function (err, result) {
-      if (err) this.client.logger.error(err);
+    // Set the stuff for the weather api
+    weatherApi.setLang('en');
+    weatherApi.setAPPID(config.OpenWeather);
+    weatherApi.setUnits('imperial');
 
-      if (!result || result.length === 0) {
-        return msg.channel.send(`No data was available for the location \`${(String(city).length > 1959) ? String(city).substring(0, 1956) + '...' : city}\``);
-      } else {
-        const dc = Math.round(((result[0].current.temperature - 32) * 5 / 9) * 100) / 100;
-        const dc2 = Math.round(((result[0].current.feelslike - 32) * 5 / 9) * 100) / 100;
-        const b4 = result[0].current.winddisplay.split('mph');
-        const a4 = Math.round(b4[0] * 1.609344) + ' kph' + b4[1];
+    if (ZipCode.test(city)) {
+      weatherApi.setZipCode(city);
+    } else {
+      weatherApi.setCity(city);
+    }
 
-        const embed = new EmbedBuilder()
-          .setColor(msg.settings.embedColor)
-          .setTitle(`Weather in: ${result[0].location.name}`)
-          .setThumbnail(result[0].current.imageUrl)
-          .addFields([
-            { name: 'Temperature: ', value: `${result[0].current.temperature}°F \n${dc}°C` },
-            { name: 'Feels Like: ', value: `${result[0].current.feelslike}°F \n${dc2}°C` },
-            { name: 'Humidity: ', value: `${result[0].current.humidity}%` }
-          ])
-          .setDescription(`**Sky weather:** ${result[0].current.skytext} \n\n**Wind info:** ${result[0].current.winddisplay} (${a4})`);
-        return msg.channel.send({ embeds: [embed] });
-      }
+    // GetAllWeather returns a JSON object with all the weather information
+    weatherApi.getAllWeather(function (err, JSONObj) {
+      if (err) console.error(err);
+
+      if (!JSONObj || JSONObj.length === 0) return msg.channel.send(`No data was available for the location \`${(String(city).length > 1959) ? String(city).substring(0, 1956) + '...' : city}\``);
+
+      // Convert from imperial to metric
+      const metricTemperature = Math.round(((JSONObj.main.temp - 32) * 5 / 9) * 100) / 100;
+      const metricFeelsLike = Math.round(((JSONObj.main.feels_like - 32) * 5 / 9) * 100) / 100;
+      const metricWindSpeed = Math.round(JSONObj.wind.speed * 1.609344) + ' kph';
+
+      const embed = new EmbedBuilder()
+        .setColor(msg.settings.embedColor)
+        .setTitle(`Weather in: ${JSONObj.name}`)
+        .addFields([
+          { name: 'Temperature: ', value: `${JSONObj.main.temp}°F \n${metricTemperature}°C` },
+          { name: 'Feels Like: ', value: `${JSONObj.main.feels_like}°F \n${metricFeelsLike}°C` },
+          { name: 'Humidity: ', value: `${JSONObj.main.humidity}%` }
+        ])
+        .setDescription(`**Sky info:** ${JSONObj.weather[0].description} \n\n**Wind Info:** ${JSONObj.wind.speed + 'mph'} (${metricWindSpeed})`);
+
+      return msg.channel.send({ embeds: [embed] });
     });
   }
 }

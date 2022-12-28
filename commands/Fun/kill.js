@@ -25,14 +25,14 @@ class Kill extends Command {
       mem = await getMember(msg, text.join(' '));
     }
 
-    if (mem.id === msg.author.id) {
-      return msg.channel.send('Please don\'t try to kill yourself :(');
-    }
+    if (mem.id === msg.author.id) return msg.channel.send('Please don\'t try to kill yourself :(');
 
     const num = Math.round(Math.random() * (deaths.length - 1)) + 1;
+
     const embed = new EmbedBuilder()
       .setTitle(deaths[num].replace('{mem.displayName}', mem.displayName).replace('{member.displayName}', member.displayName))
       .setFooter({ text: `Reply #${num}` });
+
     return msg.channel.send({ embeds: [embed] });
   }
 }

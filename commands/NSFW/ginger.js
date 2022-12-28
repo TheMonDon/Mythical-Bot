@@ -6,7 +6,7 @@ class Ginger extends Command {
   constructor (client) {
     super(client, {
       name: 'ginger',
-      description: 'Sends a random image of some thongs.',
+      description: 'Sends a random image of gingers.',
       usage: 'ginger',
       category: 'NSFW',
       nsfw: true,

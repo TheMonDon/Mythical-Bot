@@ -23,9 +23,10 @@ class ChannelInfo extends Command {
 
     if (!infoChan) return msg.reply('That is not a valid channel.');
 
+    // Get the time since the channel was created
     const then = moment(infoChan.createdAt);
     const time = then.from(moment());
-    const ca = then.format('dddd, MMMM Do, YYYY, h:mm a');
+    const createdAt = then.format('dddd, MMMM Do, YYYY, h:mm a');
 
     const embed = new EmbedBuilder()
       .setTitle('Channel Information')
@@ -37,19 +38,25 @@ class ChannelInfo extends Command {
         { name: 'Type', value: ChannelType[infoChan.type].toString(), inline: true },
         { name: 'Position', value: infoChan.position.toString(), inline: true }
       ]);
+
     if (infoChan.type === ChannelType.GuildText) embed.addFields([{ name: 'NSFW', value: infoChan.nsfw.toString(), inline: true }]);
+
     if (infoChan.type === ChannelType.GuildVoice || infoChan.type === ChannelType.GuildStageVoice) {
       embed.addFields([
         { name: 'User Limit', value: infoChan.userLimit.toString(), inline: true },
         { name: 'Bitrate', value: infoChan.bitrate.toString(), inline: true }
       ]);
     }
+
     if (infoChan.type === ChannelType.GuildCategory) embed.addFields([{ name: 'Children', value: infoChan.children.size.toString(), inline: true }]);
+
     embed.addFields([
       { name: 'Mention', value: `\`${infoChan}\``, inline: true },
-      { name: 'Created At', value: `${ca} \n(${time})`, inline: true }
+      { name: 'Created At', value: `${createdAt} \n(${time})`, inline: true }
     ]);
+
     if (infoChan.parent) embed.addFields([{ name: 'Parent', value: `${infoChan.parent.name} \n\`${infoChan.parentId}\``, inline: true }]);
+
     if (infoChan.type === ChannelType.GuildText) embed.addFields([{ name: 'Topic', value: infoChan.topic || 'None', inline: false }]);
 
     return msg.channel.send({ embeds: [embed] });

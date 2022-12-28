@@ -22,7 +22,9 @@ class Insult extends Command {
       .setTitle(body.insult)
       .setColor(msg.settings.embedColor)
       .setFooter({ text: `ID: ${body.number}` });
+
     return msg.channel.send({ embeds: [em] });
   }
 }
+
 module.exports = Insult;

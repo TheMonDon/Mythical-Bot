@@ -14,10 +14,11 @@ class Dictionary extends Command {
     });
   }
 
-  async run (msg, input) {
+  async run (msg, args) {
+    // Create an instance of the owlbot-js package
     const owl = owlBot(config.owlKey);
 
-    input = input.join(' ').toLowerCase();
+    const input = args.join(' ').toLowerCase();
 
     if (!input || input.length < 1) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}Dictionary <word>`);
 

@@ -24,10 +24,11 @@ class RoleInfo extends Command {
     const infoRole = getRole(msg, text.join(' '));
     if (!infoRole) return msg.reply(usage);
 
-    // time
+    // Get the role's creation date and format it
     const then = moment(infoRole.createdAt);
     const time = then.from(moment());
     const ca = then.format('dddd, MMMM Do, YYYY, h:mm a');
+
     await msg.guild.members.fetch();
 
     const embed = new EmbedBuilder()
@@ -45,6 +46,7 @@ class RoleInfo extends Command {
         { name: 'Managed', value: infoRole.managed.toString(), inline: true },
         { name: 'Created At', value: `${ca} (${time})`, inline: true }
       ]);
+
     return msg.channel.send({ embeds: [embed] });
   }
 }

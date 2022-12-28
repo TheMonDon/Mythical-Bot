@@ -13,8 +13,9 @@ class MyLevel extends Command {
   }
 
   async run (msg, _args, level) {
+    // Change the level number to a friendly name
     const friendly = this.client.config.permLevels.find(l => l.level === level).name;
-    msg.reply(`Your permission level is: ${level} - ${friendly}`);
+    return msg.reply(`Your permission level is: ${level} - ${friendly}`);
   }
 }
 

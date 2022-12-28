@@ -18,7 +18,7 @@ class Advice extends Command {
       .catch(() => {
         return msg.channel.send('Something went wrong, please try again in a few moments.');
       });
-    if (!body) return;
+    if (!body) return msg.channel.send('Something went wrong, please try again in a few moments.');
 
     body = JSON.parse(body.toString());
 

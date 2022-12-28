@@ -14,13 +14,11 @@ class Math extends Command {
 
   async run (msg, args) {
     const text = args.join(' ');
-
-    if (!text || text.length < 1) {
-      return msg.channel.send(`Please supply a mathematical equation \n${msg.settings.prefix}Math <Equation>`);
-    }
+    if (!text || text.length < 1) return msg.channel.send(`Please supply a mathematical equation. \n${msg.settings.prefix}Math <Equation>`);
 
     try {
       const solution = math.evaluate(text);
+
       const embed = new EmbedBuilder()
         .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
         .setColor(msg.settings.embedColor)

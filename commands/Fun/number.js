@@ -21,11 +21,12 @@ class Number extends Command {
       .catch(() => {
         return msg.channel.send('I could not find any information about that number.');
       });
-    if (!body) return;
+    if (!body) return msg.channel.send('I could not find any information about that number.');
 
     const em = new EmbedBuilder()
       .setTitle(body.toString())
       .setColor(msg.settings.embedColor);
+
     return msg.channel.send({ embeds: [em] });
   }
 }

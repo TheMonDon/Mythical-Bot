@@ -15,6 +15,7 @@ class DownloadEmoji extends Command {
 
   async run (msg, args) {
     if (!args || args.length < 1) return msg.reply('You need to input at least one emoji.');
+
     const content = args.join(' ');
     const result = [];
     const res = [];
@@ -49,7 +50,7 @@ class DownloadEmoji extends Command {
       }
     });
     const emojis = res.splice(0, 10);
-    const text = emojis.length > 1 ? 'here are your emojis' : 'here is your emoji';
+    const text = emojis.length > 1 ? 'Here are your emojis:' : 'Here is your emoji:';
 
     return msg.reply({ content: text, files: emojis });
   }

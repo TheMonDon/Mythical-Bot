@@ -15,7 +15,6 @@ class Choose extends Command {
     if (!text || text.length < 1) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}choose (1 1, 2 2, 3 3) or (one two three)`);
 
     const join = text.join(' ');
-
     const args = /^(.+( ?, ?.+[^,])+)$/i.test(join) ? join.split(',') : join.split(' ');
 
     return msg.channel.send(`I choose: \`${random(args).trim()}\``);

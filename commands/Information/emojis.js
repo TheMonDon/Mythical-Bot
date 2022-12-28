@@ -15,10 +15,13 @@ class Emojis extends Command {
   async run (msg) {
     const result = [];
 
+    // Fetches all the emojis in the server and adds them to the result array
     await msg.guild.emojis.fetch();
     msg.guild.emojis.cache.forEach((e) => {
       result.push(e);
     });
+
+    if (result.length === 0) return msg.channel.send('There are no custom emojis in this server. :(');
 
     const embed = new EmbedBuilder()
       .setTitle('Custom Emojis')

@@ -20,17 +20,21 @@ class UserInfo extends Command {
     let infoMem = msg.member;
     const color = msg.settings.embedColor;
 
+    // If text is provided, try to get the member
     if (text?.length > 0) infoMem = await getMember(msg, text.join(' ').toLowerCase());
 
     if (!infoMem) {
+      // If no member is found, try to get the user by ID
       const fid = text.join(' ').toLowerCase().replace('<@', '').replace('>', '');
       try {
         infoMem = await this.client.users.fetch(fid);
       } catch (err) {
+        // If no user is found, use the author
         infoMem = msg.member;
         infoMem.user.fetch();
       }
     } else {
+      // If a member is found, fetch the user
       infoMem.user.fetch();
     }
 
@@ -54,23 +58,26 @@ class UserInfo extends Command {
       TeamPseudoUser: ''
     };
 
-    // Guild Member
+    // If the user is a guild member
     if (msg.guild.members.cache.get(infoMem.id)) {
-      // Time Stamps
       const joinPosition = await getJoinPosition(infoMem.id, msg.guild);
-      const ts = moment(infoMem.user.createdAt);
-      const ts2 = moment(infoMem.joinedAt);
-      const caTime = ts.from(moment());
-      const jaTime = ts2.from(moment());
-      const ca = ts.format('dddd, MMMM Do, YYYY, h:mm a');
-      const ja = ts2.format('dddd, MMMM Do, YYYY, h:mm a');
 
-      // Role Stuff
+      // Created At timestamp
+      const createdAtTimestamp = moment(infoMem.user.createdAt);
+      const createdAtDurationFrom = createdAtTimestamp.from(moment());
+      const createdAtFullDate = createdAtTimestamp.format('dddd, MMMM Do, YYYY, h:mm a');
+
+      // Joined At timestamp
+      const joinedAtTimestamp = moment(infoMem.joinedAt);
+      const joinedAtDurationFrom = joinedAtTimestamp.from(moment());
+      const joinedAtFullDate = joinedAtTimestamp.format('dddd, MMMM Do, YYYY, h:mm a');
+
+      // Create array of roles
       const roles = infoMem.roles.cache.sort((a, b) => b.position - a.position);
       let roles1 = [...roles.filter(r => r.id !== msg.guild.id).values()].join(', ');
       if (roles1 === undefined || roles1.length === 0) roles1 = 'No Roles';
 
-      // Badge Things
+      // Create array of user flags / badges
       const userBadges = infoMem.user.flags?.toArray() || '';
       let badgesArray = '';
       for (let i = 0; i < userBadges.length; i++) {
@@ -87,21 +94,25 @@ class UserInfo extends Command {
           { name: 'User Tag', value: `${infoMem.user.tag} (${infoMem})`, inline: true },
           { name: 'Nickname', value: infoMem.displayName, inline: true },
           { name: 'User ID', value: infoMem.id, inline: true },
-          { name: 'Joined Server', value: `${ja} \n (${jaTime})`, inline: true },
-          { name: 'Account Created', value: `${ca} \n (${caTime})`, inline: true },
+          { name: 'Joined Server', value: `${joinedAtFullDate} \n (${joinedAtDurationFrom})`, inline: true },
+          { name: 'Account Created', value: `${createdAtFullDate} \n (${createdAtDurationFrom})`, inline: true },
           { name: 'Join Position', value: `${Number(joinPosition)?.toLocaleString()}/${msg.guild.memberCount.toLocaleString()}`, inline: true },
           { name: 'Account Type', value: infoMem.user.bot ? ':robot: Bot' : ':person_standing: Human', inline: true },
           { name: `Badges [${userBadges?.length || 0}]`, value: badgesArray || 'No Badges', inline: true },
           { name: 'Accent Color', value: infoMem.user.hexAccentColor?.toString().toUpperCase() || 'None', inline: true },
           { name: 'Roles', value: roles1, inline: false }
         ]);
+
       return msg.channel.send({ embeds: [embed] });
     }
 
-    // not guild member
-    const ts = moment(infoMem.createdAt);
-    const ca = ts.format('MMM Do, YYYY');
-    // Badge Things
+    // Otherwise, if the user is not a guild member
+
+    // Created At timestamp
+    const timestamp = moment(infoMem.createdAt);
+    const createdAt = timestamp.format('dddd, MMMM Do, YYYY, h:mm a');
+
+    // Create array of user flags / badges
     const userBadges = infoMem.flags?.toArray() || '';
     let badgesArray = '';
     for (let i = 0; i < userBadges.length; i++) {
@@ -119,7 +130,7 @@ class UserInfo extends Command {
         { name: 'User ID', value: infoMem.id.toString(), inline: true },
         { name: `Badges [${userBadges?.length || 0}]`, value: badgesArray || 'No Badges', inline: true },
         { name: 'Account Type', value: infoMem.bot ? ':robot: Bot' : ':person_standing: Human', inline: true },
-        { name: 'Account Created', value: ca, inline: true },
+        { name: 'Account Created', value: createdAt, inline: true },
         { name: 'Accent Color', value: infoMem.hexAccentColor?.toString().toUpperCase() || 'None', inline: true }
       ]);
     return msg.channel.send({ embeds: [embed] });
