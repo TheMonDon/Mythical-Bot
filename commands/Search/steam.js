@@ -62,14 +62,14 @@ class Steam extends Command {
       .setURL(`http://store.steampowered.com/app/${data.steam_appid}`)
       .setImage(tinyImage)
       .addFields([
-        { name: '❯\u2000Price', value: `•\u2000 ${price}` },
-        { name: '❯\u2000Metascore', value: `•\u2000 ${data.metacritic ? data.metacritic.score : 'Unknown'}` },
-        { name: '❯\u2000Recommendations', value: `•\u2000 ${data.recommendations ? data.recommendations.total : 'Unknown'}` },
-        { name: '❯\u2000Platforms', value: `•\u2000 ${platforms.join(', ') || 'None'}` },
-        { name: '❯\u2000Release Date', value: `•\u2000 ${data.release_date ? data.release_date.date : 'Unknown'}` },
-        { name: '❯\u2000DLC Count', value: `•\u2000 ${data.dlc ? data.dlc.length : 0}` },
-        { name: '❯\u2000Developers', value: `•\u2000 ${data.developers?.join(', ') || 'Unknown'}` },
-        { name: '❯\u2000Publishers', value: `•\u2000 ${data.publishers?.join(', ') || 'Unknown'}` }
+        { name: '❯ Price', value: `•\u2000 ${price}`, inline: true },
+        { name: '❯ Metascore', value: `•\u2000 ${data.metacritic ? data.metacritic.score : 'Unknown'}`, inline: true },
+        { name: '❯ Recommendations', value: `•\u2000 ${data.recommendations ? data.recommendations.total : 'Unknown'}`, inline: true },
+        { name: '❯ Platforms', value: `•\u2000 ${platforms.join(', ') || 'None'}`, inline: true },
+        { name: '❯ Release Date', value: `•\u2000 ${data.release_date ? data.release_date.date : 'Unknown'}`, inline: true },
+        { name: '❯ DLC Count', value: `•\u2000 ${data.dlc ? data.dlc.length : 0}`, inline: true },
+        { name: '❯ Developers', value: `•\u2000 ${data.developers?.join(', ') || 'Unknown'}`, inline: true },
+        { name: '❯ Publishers', value: `•\u2000 ${data.publishers?.join(', ') || 'Unknown'}`, inline: true }
       ]);
 
     return msg.channel.send({ embeds: [embed] });

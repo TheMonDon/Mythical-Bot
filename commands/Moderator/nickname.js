@@ -15,7 +15,6 @@ class Nickname extends Command {
   }
 
   async run (msg, text) {
-    if (!msg.member.permissions.has('ManageNicknames')) return msg.channel.send('You are missing the Manage Nicknames permission.');
     if (!msg.guild.members.me.permissions.has('ManageNicknames')) return msg.channel.send('The bot doesn\'t have Manage Nicknames permission.');
 
     if (!text[0]) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}Nickname <User> [Nickname]`);
@@ -29,6 +28,7 @@ class Nickname extends Command {
 
     text.shift();
     const nick = text.join(' ');
+
     if (nick) {
       const oldNick = infoMem.nickname || infoMem.user.username;
       infoMem.setNickname(nick);

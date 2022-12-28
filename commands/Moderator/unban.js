@@ -15,12 +15,12 @@ class Unban extends Command {
   }
 
   async run (msg, args) {
-    if (!msg.member.permissions.has('BanMembers')) return msg.channel.send('You are missing the Ban Members permission.');
     if (!msg.guild.members.me.permissions.has('BanMembers')) return msg.channel.send('The bot is missing Ban Members permission.');
 
     if (!args || args.length < 1) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}Unban <userID> [reason]`);
     const logChan = db.get(`servers.${msg.guild.id}.logs.channel`);
 
+    // Regex to check if the input for userID is a number
     const regex = /\d+/g;
     const userID = args[0];
     args.shift();
@@ -31,6 +31,7 @@ class Unban extends Command {
     if (msg.guild.members.me.permissions.has('ManageMessages')) msg.delete();
 
     try {
+      // Fetch the ban list and find the user
       const banList = await msg.guild.fetchBans();
       const bannedUser = banList.find(user => user.id === userID);
 

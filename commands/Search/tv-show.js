@@ -46,9 +46,10 @@ class TVShow extends Command {
           { name: '❯ Last Air Date', value: body.last_air_date || '???', inline: true },
           { name: '❯ Seasons', value: body.number_of_seasons ? body.number_of_seasons.toLocaleString() : '???', inline: true },
           { name: '❯ Episodes', value: body.number_of_episodes ? body.number_of_episodes.toLocaleString() : '???', inline: true },
-          { name: '❯ Genres', value: body.genres.length ? body.genres.map(genre => genre.name).join(', ') : '???' },
-          { name: '❯ Production Companies', value: body.production_companies.length ? body.production_companies.map(c => c.name).join(', ') : '???' }
+          { name: '❯ Genres', value: body.genres.length ? body.genres.map(genre => genre.name).join(', ') : '???', inline: true },
+          { name: '❯ Production Companies', value: body.production_companies.length ? body.production_companies.map(c => c.name).join(', ') : '???', inline: true }
         ]);
+
       return msg.channel.send({ embeds: [embed] });
     } catch (err) {
       return msg.reply(`Oh no, an error occurred: \`${err.message}\`. Try again later!`);

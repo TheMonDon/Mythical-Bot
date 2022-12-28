@@ -31,7 +31,7 @@
     "emoji-regex": "^10.1.0",
     "enmap": "^5.8.6",
     "fetch": "^1.1.0",
-    "google-play-scraper": "^9.0.2",
+    "google-play-scraper": "^9.1.1",
     "hastebin": "github:TheMonDon/hastebin",
     "is-image-url": "^1.1.8",
     "is-url": "^1.2.4",

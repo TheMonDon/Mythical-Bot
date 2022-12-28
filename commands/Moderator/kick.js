@@ -16,7 +16,6 @@ class Kick extends Command {
   }
 
   async run (msg, args) {
-    if (!msg.member.permissions.has('KickMembers')) return msg.channel.send('You do not have permissions to Kick Members.');
     if (!msg.guild.members.me.permissions.has('KickMembers')) return msg.channel.send('The bot is missing the Kick Members permission.');
 
     const logChan = db.get(`servers.${msg.guild.id}.logs.channel`);

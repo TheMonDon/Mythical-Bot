@@ -17,7 +17,9 @@ class Github extends Command {
   async run (msg, args) {
     let author;
     let repository;
+
     if (!args || args.length < 2) {
+      // If there is only one argument, it could be in the format of user/repository
       if (args.length === 1) {
         args = args.join('');
         args = args.split('/');
@@ -48,17 +50,20 @@ class Github extends Command {
         .setDescription(body.description ? body.description.slice(0, 2000) : 'No description.')
         .setThumbnail(body.owner.avatar_url)
         .addFields([
-          { name: 'Stars', value: body.stargazers_count.toLocaleString() },
-          { name: 'Forks', value: body.forks.toLocaleString() },
-          { name: 'Issues', value: body.open_issues.toLocaleString() },
-          { name: 'Language', value: body.language || 'Unknown' },
-          { name: 'Creation Date', value: moment.utc(body.created_at).format('MM/DD/YYYY h:mm A') },
-          { name: 'Modification Date', value: moment.utc(body.updated_at).format('MM/DD/YYYY h:mm A') }
+          { name: 'Stars', value: body.stargazers_count.toLocaleString(), inline: true },
+          { name: 'Forks', value: body.forks.toLocaleString(), inline: true },
+          { name: 'Issues', value: body.open_issues.toLocaleString(), inline: true },
+          { name: 'Language', value: body.language || 'Unknown', inline: true },
+          { name: 'License', value: body.license ? body.license.name : 'None', inline: true },
+          { name: 'Archived', value: body.archived ? 'Yes' : 'No', inline: true },
+          { name: 'Size', value: `${(body.size / 1000).toLocaleString()} MB`, inline: true },
+          { name: 'Creation Date', value: moment.utc(body.created_at).format('MM/DD/YYYY h:mm A'), inline: true },
+          { name: 'Modification Date', value: moment.utc(body.updated_at).format('MM/DD/YYYY h:mm A'), inline: true }
         ]);
 
       return msg.channel.send({ embeds: [embed] });
     } catch (err) {
-      if (err.status === 404) return msg.channel.send('Could not find any results.');
+      if (err.status === 404) return msg.channel.send('No results were found for that repository.');
       return msg.channel.send(`Oh no, an error occurred: \`${err.message}\`. Try again later!`);
     }
   }

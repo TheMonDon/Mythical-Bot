@@ -52,8 +52,10 @@ Incorrect Usage:
         const guildEmoji = msg.guild.emojis.cache.find(e => e.name === emoji);
         if (guildEmoji) result = guildEmoji;
       }
+
       if (!result) return msg.reply('That emoji was not found. Is it from this server?');
       if (!result.deletable) return msg.reply('That emoji is not deletable.');
+
       result.delete();
       return msg.reply('The emoji has been successfully deleted.');
     } else if (type === 'info') {
@@ -70,7 +72,9 @@ Incorrect Usage:
         const guildEmoji = msg.guild.emojis.cache.find(e => e.name === emoji);
         if (guildEmoji) result = guildEmoji;
       }
+
       if (!result) return msg.reply('That emoji was not found. Is it from this server?');
+
       const em = new EmbedBuilder()
         .setTitle('Emoji Information')
         .addFields([
@@ -81,6 +85,7 @@ Incorrect Usage:
           { name: 'Emoji is Available?', value: result.available.toString() },
           { name: 'Emoji Author', value: result.author.toString() || 'N/A' }
         ]);
+
       return msg.channel.send({ embeds: [em] });
     } else if (type === 'rename') {
       const emoji = args[1];
@@ -97,7 +102,9 @@ Incorrect Usage:
         const guildEmoji = msg.guild.emojis.cache.find(e => e.name === emoji);
         if (guildEmoji) result = guildEmoji;
       }
+
       if (!result) return msg.reply('That emoji was not found. Is it from this server?');
+
       result.edit({ name })
         .then(() => {
           return msg.reply(`${result} has been renamed to \`${name}\``);

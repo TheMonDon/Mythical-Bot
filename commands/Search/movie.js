@@ -42,10 +42,13 @@ class Movie extends Command {
         .setDescription(body.overview ? body.overview.slice(0, 2048) : 'No description available.')
         .setThumbnail(body.poster_path ? `https://image.tmdb.org/t/p/w500${body.poster_path}` : null)
         .addFields([
-          { name: 'Runtime', value: body.runtime ? `${body.runtime} mins.` : '???', inline: true },
-          { name: 'Release Date', value: body.release_date || '???', inline: true },
-          { name: 'Genres', value: body.genres.length ? body.genres.map(genre => genre.name).join(', ') : '???' },
-          { name: 'Production Companies', value: body.production_companies.length ? body.production_companies.map(c => c.name).join(', ') : '???' }
+          { name: '❯ Runtime', value: body.runtime ? `${body.runtime} mins.` : '???', inline: true },
+          { name: '❯ Release Date', value: body.release_date || '???', inline: true },
+          { name: '❯ Budget', value: body.budget ? `$${body.budget.toLocaleString()}` : '???', inline: true },
+          { name: '❯ Revenue', value: body.revenue ? `$${body.revenue.toLocaleString()}` : '???', inline: true },
+          { name: '❯ Genres', value: body.genres.length ? body.genres.map(genre => genre.name).join(', ') : '???', inline: true },
+          { name: '❯ Popularity', value: body.popularity ? body.popularity.toFixed(2) : '???', inline: true },
+          { name: '❯ Production Companies', value: body.production_companies.length ? body.production_companies.map(c => c.name).join(', ') : '???', inline: true }
         ]);
 
       return msg.channel.send({ embeds: [embed] });

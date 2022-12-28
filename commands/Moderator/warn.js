@@ -10,8 +10,8 @@ class Warn extends Command {
       name: 'warn',
       description: 'Warns a member',
       longDescription: stripIndents`
-      Warn system that will kick or ban a user depending on the points they have.
-      Users are kicked when they reach 8 points, or banned when they reach 10. (Change with \`setup\` command)`,
+        Warn system that will kick or ban a user depending on the points they have.
+        Users are kicked when they reach 8 points, or banned when they reach 10. (Change with \`setup\` command)`,
       usage: 'Warn <User> <Points> <Reason>',
       category: 'Moderator',
       permLevel: 'Moderator',
@@ -23,13 +23,10 @@ class Warn extends Command {
     let mem;
     let member = true;
     let logMessage;
-    const usage = `Incorrect Usage: ${msg.settings.prefix}warn <member> <points Kick:${msg.settings.warnKickPoints} | Ban:${msg.settings.warnBanPoints}> <reason>`;
+    const usage = `Incorrect Usage: ${msg.settings.prefix}warn <User> <Points Kick:${msg.settings.warnKickPoints} | Ban:${msg.settings.warnBanPoints}> <Reason>`;
 
-    if (!args || args.length < 3) {
-      return msg.channel.send(usage);
-    } else {
-      mem = await getMember(msg, args[0]);
-    }
+    if (!args || args.length < 3) return msg.channel.send(usage);
+    mem = await getMember(msg, args[0]);
 
     // Find the user by user ID
     if (!mem) {
@@ -60,6 +57,7 @@ class Warn extends Command {
     args.shift();
     args.shift();
     let reason = args.join(' ');
+
     const reasonTest = reason.toLowerCase();
     if (['-ad', '-advertise', '-advertising', '-ads', '-promoting'].includes(reasonTest)) {
       reason = 'Please do not attempt to advertise in our server.';
@@ -94,9 +92,11 @@ class Warn extends Command {
     let warnID = randomString(5);
     while (db.has(`servers.${msg.guild.id}.warns.warnings.${warnID}`)) warnID = randomString(5);
 
+    // Get the users current warns and total points
     const otherWarns = getWarns(mem.id, msg);
     const warnAmount = getTotalPoints(mem.id, msg) + points;
 
+    // Set the status and color of the embed
     let status = 'warned';
     let color = ' #FFA500';
     if (warnAmount === ka) {
@@ -127,7 +127,7 @@ class Warn extends Command {
       .setFooter({ text: `Issued in ${msg.guild.name}` });
     const um = await mem.send({ embeds: [userEm] }).catch(() => null);
 
-    // Send the embed to the logs channel
+    // Create the embed for the logs channel
     const logEmbed = new EmbedBuilder()
       .setColor(color)
       .setFooter({ text: `${msg.author.tag} • User ID: ${mem.id}` })

@@ -32,6 +32,7 @@ class Ban extends Command {
     if (!banMem) return msg.channel.send('That user was not found.');
     if (!banMem.bannable) return msg.channel.send('That user is not bannable.');
 
+    // Embed for log channel or reply
     const em = new EmbedBuilder()
       .setTitle('User Banned')
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
@@ -43,9 +44,11 @@ class Ban extends Command {
       ])
       .setFooter({ text: `User ID: ${banMem.id}` })
       .setTimestamp();
+
     msg.guild.bans.create(banMem, { reason });
 
     if (logChan) {
+      // Embed for reply
       const em2 = new EmbedBuilder()
         .setTitle('User Banned')
         .setColor(successColor)
@@ -54,6 +57,7 @@ class Ban extends Command {
 
       const reply = await msg.channel.send({ embeds: [em2] });
       msg.guild.channels.cache.get(logChan).send({ embeds: [em] });
+
       setTimeout(() => {
         reply.delete();
       }, 30000);

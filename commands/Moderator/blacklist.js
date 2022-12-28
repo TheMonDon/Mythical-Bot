@@ -22,9 +22,9 @@ class Blacklist extends Command {
     const color = msg.settings.embedColor;
     const usage = `Incorrect Usage:${msg.settings.prefix}Blacklist <Add | Remove | Check> <User> <Reason>`;
 
-    if (!text || text.length < 1) {
-      return msg.reply(usage);
-    } else if (text[0] && text[1]) {
+    if (!text || text.length < 1) return msg.reply(usage);
+
+    if (text[0] && text[1]) {
       if (!['add', 'remove', 'check'].includes(text[0].toLowerCase())) {
         return msg.reply(usage);
       } else {
