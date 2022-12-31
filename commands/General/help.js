@@ -45,7 +45,9 @@ class Help extends Command {
     // Show all commands in the category
     sorted.forEach(c => {
       const cat = toProperCase(c.help.category);
-      if (category === cat) em.addFields([{ name: `${msg.settings.prefix}${toProperCase(c.help.name)}`, value: `${c.help.description}` }]);
+      if (category === cat) {
+        em.addFields([{ name: `${msg.settings.prefix}${toProperCase(c.help.name)}`, value: `${c.help.description}` }]);
+      }
     });
 
     // If no category is found, assume it's a command
