@@ -8,8 +8,8 @@ class Purge extends Command {
     super(client, {
       name: 'purge',
       description: 'Purge messages in a channel optionally from a member.',
-      longDescription: 'Purge <2-100> [@member] \nPurge links <2-100> \nPurge invites <2-100> \n\nPurge will purge the last 2-100 messages in the channel. \nPurge links will purge the last 2-100 messages in the channel that contain links. \nPurge invites will purge the last 2-100 messages in the channel that contain invites. \n\nPurge can also be used to purge messages from a specific member. \n\n**Examples:** \n`Purge 50` \n`Purge 50 @member` \n`Purge links 50` \n`Purge invites 50` \n`Purge match ? 50` \n`Purge not ? 50` \n`Purge startswith ? 50` \n`Purge endswith ? 50` \n`Purge bots 50` \n`Purge human 50` \n`Purge images 50` \n`Purge mentions 50`',
-      usage: 'Purge <2-100> [@member]',
+      longDescription: 'Purge <count> [@member] \nPurge links <count> \nPurge invites <count> \n\nPurge will purge up to the last 1000 messages in the channel. \nPurge links will purge up to the last 100 messages in the channel that contain links. \nPurge invites will purge up to the last 100 messages in the channel that contain invites. \n\nPurge can also be used to purge messages from a specific member. \n\n**Examples:** \n`Purge 150` \n`Purge 50 @member` \n`Purge links 50` \n`Purge invites 50` \n`Purge match ? 50` \n`Purge not ? 50` \n`Purge startswith ? 50` \n`Purge endswith ? 50` \n`Purge bots 50` \n`Purge human 50` \n`Purge images 50` \n`Purge mentions 50`',
+      usage: 'Purge <count> [@member]',
       category: 'Moderator',
       permLevel: 'Moderator',
       guildOnly: true
