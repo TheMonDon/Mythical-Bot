@@ -29,7 +29,9 @@ module.exports = class {
         ])
         .setFooter({ text: `ID: ${member.user.id}` })
         .setTimestamp();
+
       member.guild.channels.cache.get(logChan).send({ embeds: [embed] });
+
       db.add(`servers.${member.guild.id}.logs.member-leave`, 1);
       db.add(`servers.${member.guild.id}.logs.all`, 1);
     })();

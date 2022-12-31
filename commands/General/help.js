@@ -18,6 +18,8 @@ class Help extends Command {
     const cats = ['Administrator', 'Economy', 'Fun', 'Games', 'General', 'Giveaways', 'Information', 'Logging', 'Memes', 'Minecraft', 'Moderator', 'Music', 'NSFW', 'Search', 'Tickets'];
     const allcats = ['Bot Admin', 'Administrator', 'Economy', 'Fun', 'Games', 'General', 'Giveaways', 'Information', 'Logging', 'Memes', 'Minecraft', 'Moderator', 'Music', 'NSFW', 'Owner', 'Search', 'Tickets'];
     const color = msg.settings.embedColor;
+    const msgArray = [];
+    let type = 'command';
 
     const errEm = new EmbedBuilder()
       .setColor('#FFA500')
@@ -46,9 +48,16 @@ class Help extends Command {
     sorted.forEach(c => {
       const cat = toProperCase(c.help.category);
       if (category === cat) {
+        msgArray.push(`${msg.settings.prefix}${toProperCase(c.help.name)}`);
+        msgArray.push(`${c.help.description}`);
+        type = 'category';
         em.addFields([{ name: `${msg.settings.prefix}${toProperCase(c.help.name)}`, value: `${c.help.description}` }]);
       }
     });
+
+    if (type === 'category') {
+      // Do stuff
+    }
 
     // If no category is found, assume it's a command
     if (!em.data?.fields || em.data?.fields?.length < 1) {
