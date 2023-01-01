@@ -103,9 +103,8 @@ class BlackJack extends Command {
 
     const bet = parseFloat(args.join(' ').replace(/,/g, '').replace(currencySymbol, ''), 10);
 
-    if (isNaN(bet)) {
-      return msg.channel.send('Please enter a number for the bet.');
-    }
+    if (isNaN(bet)) return msg.channel.send('Please enter a number for the bet.');
+
     if (bet < 1) return msg.channel.send(`You can't bet less than ${currencySymbol}1.`);
     if (bet > cash) return msg.channel.send('You can\'t bet more cash than you have.');
 
@@ -155,6 +154,7 @@ class BlackJack extends Command {
 
     let pcards = getCards('player', bj);
     let dcards = getCards('dealer', bj);
+
     if (blackjack) {
       const embed = new EmbedBuilder()
         .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
@@ -168,6 +168,7 @@ class BlackJack extends Command {
       db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bj.bet); // Add the winning money
       return msg.channel.send({ embeds: [embed] });
     }
+
     const em = new EmbedBuilder()
       .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
       .setDescription('Type `hit` to draw another card, `stand` to pass, or `doubledown` to double down.')
@@ -184,14 +185,22 @@ class BlackJack extends Command {
         max: 1,
         time: 60000
       });
-      if (!collected || !collected.first()) {
-        gameOver = true;
-      }
+      if (!collected || !collected.first()) gameOver = true;
+
       const selected = collected.first().content.toLowerCase();
 
-      if (selected === 'hit') bj.hit();
-      if (selected === 'stand') bj.stand();
-      if (selected === 'doubledown') bj.doubleDown();
+      if (selected === 'hit') {
+        bj.hit();
+        selected.first().delete().catch(() => {});
+      } else
+      if (selected === 'stand') {
+        bj.stand();
+        selected.first().delete().catch(() => {});
+      } else
+      if (selected === 'doubledown') {
+        bj.doubleDown();
+        selected.first().delete().catch(() => {});
+      }
 
       if (win) {
         pcards = getCards('player', bj);
@@ -253,6 +262,7 @@ class BlackJack extends Command {
 
         return mEm.edit({ embeds: [embed] });
       }
+
       pcards = getCards('player', bj);
       dcards = getCards('dealer', bj);
 
@@ -264,6 +274,7 @@ class BlackJack extends Command {
           { name: '**Your Hand**', value: `${pcards} \n\nScore: ${bj.player.score}`, inline: true },
           { name: '**Dealer Hand**', value: `${dcards} \n\nScore: ${bj.dealer.score}`, inline: true }
         ]);
+
       mEm.edit({ embeds: [embed] });
     }
   }
