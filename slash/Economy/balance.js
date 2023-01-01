@@ -26,19 +26,19 @@ exports.run = async (client, interaction) => {
   let mem = interaction.options?.get('user')?.member;
   if (!mem) mem = interaction.member;
 
-  const cash = db.get(`servers.${interaction.guildId}.users.${mem.id}.economy.cash`) || db.get(`servers.${interaction.guildId}.economy.startBalance`) || 0;
-  const bank = db.get(`servers.${interaction.guildId}.users.${mem.id}.economy.bank`) || 0;
-  const nw = cash + bank;
+  const cash = parseFloat(db.get(`servers.${interaction.guildId}.users.${mem.id}.economy.cash`) || db.get(`servers.${interaction.guildId}.economy.startBalance`) || 0);
+  const bank = parseFloat(db.get(`servers.${interaction.guildId}.users.${mem.id}.economy.bank`) || 0);
+  const netWorth = cash + bank;
 
-  const cs = db.get(`servers.${interaction.guildId}.economy.symbol`) || '$';
+  const currencySymbol = db.get(`servers.${interaction.guildId}.economy.symbol`) || '$';
 
   const embed = new EmbedBuilder()
     .setAuthor({ name: mem.user.tag, iconURL: mem.user.displayAvatarURL() })
     .setColor(interaction.settings.embedColor)
     .addFields([
-      { name: 'Cash:', value: cs + cash.toLocaleString() },
-      { name: 'Bank:', value: cs + bank.toLocaleString() },
-      { name: 'Net Worth:', value: cs + nw.toLocaleString() }
+      { name: 'Cash:', value: currencySymbol + cash.toLocaleString() },
+      { name: 'Bank:', value: currencySymbol + bank.toLocaleString() },
+      { name: 'Net Worth:', value: currencySymbol + netWorth.toLocaleString() }
     ])
     .setTimestamp();
   return interaction.editReply({ embeds: [embed] });

@@ -175,6 +175,7 @@ const manager = new GiveawayManagerWithOwnDatabase(client, {
     reaction: '🎉'
   }
 });
+
 // We now have a giveawaysManager property to access the manager everywhere!
 client.giveawaysManager = manager;
 
@@ -250,6 +251,7 @@ client.player
   });
 
 const init = async () => {
+  /*
   // Now we load any **slash** commands you may have in the ./slash directory.
   const slashFiles = readdirSync('./slash').filter(file => file.endsWith('.js'));
   for (const file of slashFiles) {
@@ -258,6 +260,24 @@ const init = async () => {
     // Now set the name of the command with it's properties.
     client.slashcmds.set(command.commandData.name, command);
   }
+  */
+
+  // New slash command loader
+  function getSlashCommands (dir) {
+    const slashFiles = readdirSync(dir);
+    for (const file of slashFiles) {
+      const loc = path.resolve(dir, file);
+      const stats = statSync(loc);
+      if (stats.isDirectory()) {
+        getSlashCommands(path.resolve(dir, file));
+      } else {
+        const command = require(loc);
+        client.slashcmds.set(command.commandData.name, command);
+      }
+    }
+  }
+
+  getSlashCommands('./slash');
 
   // Here we load **commands** into memory, as a collection, so they're accessible
   // here and everywhere else, sub-folders for days!

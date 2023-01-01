@@ -33,19 +33,19 @@ class Balance extends Command {
       return msg.channel.send({ embeds: [embed] });
     }
 
-    const cash = db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`) || db.get(`servers.${msg.guild.id}.economy.startBalance`) || 0;
-    const bank = db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`) || 0;
-    const nw = cash + bank;
+    const cash = parseFloat(db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`) || db.get(`servers.${msg.guild.id}.economy.startBalance`) || 0);
+    const bank = parseFloat(db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`) || 0);
+    const netWorth = cash + bank;
 
-    const cs = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
+    const currencySymbol = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
 
     const embed = new EmbedBuilder()
       .setAuthor({ name: mem.user.tag, iconURL: mem.user.displayAvatarURL() })
       .setColor(msg.settings.embedColor)
       .addFields([
-        { name: 'Cash:', value: cs + cash.toLocaleString() },
-        { name: 'Bank:', value: cs + bank.toLocaleString() },
-        { name: 'Net Worth:', value: cs + nw.toLocaleString() }
+        { name: 'Cash:', value: currencySymbol + cash.toLocaleString() },
+        { name: 'Bank:', value: currencySymbol + bank.toLocaleString() },
+        { name: 'Net Worth:', value: currencySymbol + netWorth.toLocaleString() }
       ])
       .setTimestamp();
     return msg.channel.send({ embeds: [embed] });
