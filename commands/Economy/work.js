@@ -39,8 +39,8 @@ class Work extends Command {
     const max = db.get(`servers.${msg.guild.id}.economy.work.max`) || 500;
 
     const amount = Math.floor(Math.random() * (max - min + 1) + min);
-    const cs = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
-    const csamount = cs + amount.toLocaleString();
+    const currencySymbol = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
+    const csamount = currencySymbol + amount.toLocaleString();
 
     delete require.cache[require.resolve('../../resources/messages/work_jobs.json')];
     const jobs = require('../../resources/messages/work_jobs.json');
@@ -52,8 +52,8 @@ class Work extends Command {
     userCooldown.active = true;
     db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.work.cooldown`, userCooldown);
 
-    let newBalance = db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`) || db.get(`servers.${msg.guild.id}.economy.startBalance`) || 0;
-    newBalance = newBalance + amount;
+    const oldBalance = parseFloat(db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`) || db.get(`servers.${msg.guild.id}.economy.startBalance`) || 0);
+    const newBalance = oldBalance + amount;
 
     db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newBalance);
 

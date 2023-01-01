@@ -20,7 +20,7 @@ class SetPayout extends Command {
 
     if (!msg.member.permissions.has('ManageMessages')) return msg.channel.send('You are missing **Manage Guild** permission.');
 
-    const cs = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
+    const currencySymbol = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
     const usage = `${msg.settings.prefix}set-payout <work | crime> <min | max> <amount>`;
 
     const workMin = db.get(`servers.${msg.guild.id}.economy.work.min`) || 50;
@@ -37,9 +37,9 @@ class SetPayout extends Command {
         .setDescription(stripIndents`
           The current payout ranges are: 
         
-          \`Work\`  - min: ${cs}${workMin}  | max: ${cs}${workMax}
-          \`Crime\` - min: ${cs}${crimeMin} | max: ${cs}${crimeMax}
-          \`Slut\`  - min: ${cs}${slutMin}  | max: ${cs}${slutMax}
+          \`Work\`  - min: ${currencySymbol}${workMin}  | max: ${currencySymbol}${workMax}
+          \`Crime\` - min: ${currencySymbol}${crimeMin} | max: ${currencySymbol}${crimeMax}
+          \`Slut\`  - min: ${currencySymbol}${slutMin}  | max: ${currencySymbol}${slutMax}
     
           Usage: ${usage}
         `);
@@ -63,7 +63,7 @@ class SetPayout extends Command {
 
     text.shift();
     text.shift();
-    const amount = parseInt(text.join('').replace(/,/g, '').replace(cs, '').replace(/-/g, ''), 10);
+    const amount = parseInt(text.join('').replace(/,/g, '').replace(currencySymbol, '').replace(/-/g, ''), 10);
 
     if (isNaN(amount)) {
       errEmbed.setDescription(stripIndents`
@@ -88,26 +88,26 @@ class SetPayout extends Command {
     if (type === 'work') {
       if (minMax === 'min') {
         db.set(`servers.${msg.guild.id}.economy.work.min`, amount);
-        embed.setDescription(`The minimum amount for \`Work\` has been changed to ${cs}${amount}`);
+        embed.setDescription(`The minimum amount for \`Work\` has been changed to ${currencySymbol}${amount}`);
       } else {
         db.set(`servers.${msg.guild.id}.economy.work.max`, amount);
-        embed.setDescription(`The maximum amount for \`Work\` has been changed to ${cs}${amount}`);
+        embed.setDescription(`The maximum amount for \`Work\` has been changed to ${currencySymbol}${amount}`);
       }
     } else if (type === 'crime') {
       if (minMax === 'min') {
         db.set(`servers.${msg.guild.id}.economy.crime.min`, amount);
-        embed.setDescription(`The minimum amount for \`Crime\` has been changed to ${cs}${amount}`);
+        embed.setDescription(`The minimum amount for \`Crime\` has been changed to ${currencySymbol}${amount}`);
       } else {
         db.set(`servers.${msg.guild.id}.economy.crime.max`, amount);
-        embed.setDescription(`The maximum amount for \`Crime\` has been changed to ${cs}${amount}`);
+        embed.setDescription(`The maximum amount for \`Crime\` has been changed to ${currencySymbol}${amount}`);
       }
     } else if (type === 'slut') { // Shoved this in for future proofing :D (Thanks past me!)
       if (minMax === 'min') {
         db.set(`servers.${msg.guild.id}.economy.slut.min`, amount);
-        embed.setDescription(`The minimum amount for \`Slut\` has been changed to ${cs}${amount}`);
+        embed.setDescription(`The minimum amount for \`Slut\` has been changed to ${currencySymbol}${amount}`);
       } else {
         db.set(`servers.${msg.guild.id}.economy.slut.max`, amount);
-        embed.setDescription(`The maximum amount for \`Slut\` has been changed to ${cs}${amount}`);
+        embed.setDescription(`The maximum amount for \`Slut\` has been changed to ${currencySymbol}${amount}`);
       }
     }
 

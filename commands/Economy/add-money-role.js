@@ -38,14 +38,14 @@ class AddMoneyRole extends Command {
       return msg.channel.send({ embeds: [errEmbed] });
     }
 
-    const cs = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
+    const currencySymbol = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
 
     if (args.length === 2) {
       role = getRole(msg, args[0]);
-      amount = parseInt(args[1].replace(cs, '').replace(/,/g, ''), 10);
+      amount = parseInt(args[1].replace(currencySymbol, '').replace(/,/g, ''), 10);
     } else {
       role = getRole(msg, args[1]);
-      amount = parseInt(args[2].replace(cs, '').replace(/,/g, ''), 10);
+      amount = parseInt(args[2].replace(currencySymbol, '').replace(/,/g, ''), 10);
     }
 
     if (['cash', 'bank'].includes(args[0].toLowerCase())) {
@@ -71,14 +71,14 @@ class AddMoneyRole extends Command {
     if (type === 'bank') {
       members.forEach(mem => {
         if (!mem.user.bot) {
-          const current = db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`);
+          const current = parseFloat(db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`) || 0);
           if ((current + amount) !== Infinity) db.add(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`, amount);
         }
       });
     } else {
       members.forEach(mem => {
         if (!mem.user.bot) {
-          const cash = db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`) || db.get(`servers.${msg.guild.id}.economy.startBalance`) || 0;
+          const cash = parseFloat(db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`) || db.get(`servers.${msg.guild.id}.economy.startBalance`) || 0);
           const newAmount = cash + amount;
           if (newAmount !== Infinity) db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, newAmount);
         }
@@ -87,7 +87,7 @@ class AddMoneyRole extends Command {
     const embed = new EmbedBuilder()
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
       .setColor(msg.settings.embedColor)
-      .setDescription(`:white_check_mark: Added **${cs}${amount.toLocaleString()}** to ${type} balance of ${members.length} ${members.length > 1 ? 'members' : 'member'} with the ${role}.`)
+      .setDescription(`:white_check_mark: Added **${currencySymbol}${amount.toLocaleString()}** to ${type} balance of ${members.length} ${members.length > 1 ? 'members' : 'member'} with the ${role}.`)
       .setTimestamp();
     return msg.channel.send({ embeds: [embed] });
   }

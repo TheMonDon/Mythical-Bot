@@ -18,13 +18,14 @@ class Leaderboard extends Command {
     let page = text.join(' ');
     page = parseInt(page, 10);
     const usage = `Incorrect Usage: ${msg.settings.prefix}Leaderboard [page number]`;
+    await msg.guild.members.fetch();
 
     // Leaderboard made possible by: CoolGuy#9889
 
     if (!page) page = 1;
     if (isNaN(page)) return msg.reply(usage);
 
-    const cs = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
+    const currencySymbol = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
     let realPage = page;
     let maxPages = page;
     const stuff = db.get(`servers.${msg.guild.id}.users`) || {};
@@ -37,7 +38,7 @@ class Leaderboard extends Command {
         if (u) {
           lb.push({
             user: u.tag,
-            money: (stuff[i].economy.cash || 0) + (stuff[i].economy.bank || 0)
+            money: parseFloat((stuff[i].economy.cash || 0) + (stuff[i].economy.bank || 0))
           });
         }
       } catch (err) {
@@ -47,7 +48,7 @@ class Leaderboard extends Command {
 
     // Sort the leaderboard
     let abc123 = lb.sort((a, b) => b.money - a.money)
-      .map((c) => `**${lb.indexOf(c) + 1}.** ${c.user} - ${cs}${(c.money.toLocaleString().length > 156) ? `${c.money.toLocaleString().slice(0, 153) + '...'}` : `${c.money.toLocaleString()}`}`);
+      .map((c) => `**${lb.indexOf(c) + 1}.** ${c.user} - ${currencySymbol}${(c.money.toLocaleString().length > 156) ? `${c.money.toLocaleString().slice(0, 153) + '...'}` : `${c.money.toLocaleString()}`}`);
     let temp = abc123.slice(Math.floor((page - 1) * 10), Math.ceil(page * 10));
 
     // Create the pages

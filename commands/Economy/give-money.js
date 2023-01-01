@@ -42,18 +42,18 @@ class GiveMoney extends Command {
       return msg.channel.send({ embeds: [errEmbed] });
     }
 
-    const cs = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
-    const authCash = db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`) || db.get(`servers.${msg.guild.id}.economy.startBalance`) || 0;
+    const currencySymbol = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
+    const authCash = parseFloat(db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`) || db.get(`servers.${msg.guild.id}.economy.startBalance`) || 0);
 
     let amount = text[1];
     amount = amount.replace(/,/g, '');
-    amount = amount.replace(cs, '');
+    amount = amount.replace(currencySymbol, '');
     if (isNaN(amount)) {
       if (amount.toLowerCase() === 'all') {
         amount = authCash;
 
         if (amount > authCash) {
-          errEmbed.setDescription(`You don't have that much money to give. You currently have ${cs}${authCash}`);
+          errEmbed.setDescription(`You don't have that much money to give. You currently have ${currencySymbol}${authCash}`);
           return msg.channel.send({ embeds: [errEmbed] });
         } else if (amount < 0) {
           errEmbed.setDescription('You can\'t give negative amounts of money.');
@@ -69,7 +69,7 @@ class GiveMoney extends Command {
         const embed = new EmbedBuilder()
           .setColor('#04ACF4')
           .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
-          .setDescription(`${mem} has received your ${cs}${amount.toLocaleString()}.`);
+          .setDescription(`${mem} has received your ${currencySymbol}${amount.toLocaleString()}.`);
         return msg.channel.send({ embeds: [embed] });
       } else {
         const embed = new EmbedBuilder()
@@ -82,7 +82,7 @@ class GiveMoney extends Command {
     amount = parseInt(amount, 10);
 
     if (amount > authCash) {
-      errEmbed.setDescription(`You don't have that much money to give. You currently have ${cs}${authCash.toLocaleString()}`);
+      errEmbed.setDescription(`You don't have that much money to give. You currently have ${currencySymbol}${authCash.toLocaleString()}`);
       return msg.channel.send({ embeds: [errEmbed] });
     } else if (amount < 0) {
       errEmbed.setDescription('You can\'t give negative amounts of money.');
@@ -98,7 +98,7 @@ class GiveMoney extends Command {
     const embed = new EmbedBuilder()
       .setColor(msg.settings.embedColor)
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
-      .setDescription(`${mem} has received your ${cs}${amount.toLocaleString()}.`);
+      .setDescription(`${mem} has received your ${currencySymbol}${amount.toLocaleString()}.`);
     return msg.channel.send({ embeds: [embed] });
   }
 }

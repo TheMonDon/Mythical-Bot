@@ -98,15 +98,15 @@ class BlackJack extends Command {
       }
     }
 
-    const cs = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
-    const cash = db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`) || db.get(`servers.${msg.guild.id}.economy.startBalance`) || 0;
+    const currencySymbol = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
+    const cash = parseFloat(db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`) || db.get(`servers.${msg.guild.id}.economy.startBalance`) || 0);
 
-    const bet = parseInt(args.join(' ').replace(/,/g, '').replace(cs, ''), 10);
+    const bet = parseFloat(args.join(' ').replace(/,/g, '').replace(currencySymbol, ''), 10);
 
     if (isNaN(bet)) {
       return msg.channel.send('Please enter a number for the bet.');
     }
-    if (bet < 1) return msg.channel.send(`You can't bet less than ${cs}1.`);
+    if (bet < 1) return msg.channel.send(`You can't bet less than ${currencySymbol}1.`);
     if (bet > cash) return msg.channel.send('You can\'t bet more cash than you have.');
 
     let color = msg.settings.embedColor;
@@ -158,7 +158,7 @@ class BlackJack extends Command {
     if (blackjack) {
       const embed = new EmbedBuilder()
         .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
-        .setDescription(`Result: You win ${cs}${bj.bet.toLocaleString()}`)
+        .setDescription(`Result: You win ${currencySymbol}${bj.bet.toLocaleString()}`)
         .setColor(color)
         .addFields([
           { name: '**Your Hand**', value: `${pcards} \n\nScore: Blackjack`, inline: true },
@@ -199,7 +199,7 @@ class BlackJack extends Command {
 
         const embed = new EmbedBuilder()
           .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
-          .setDescription(`Result: You win ${cs}${bj.bet.toLocaleString()}`)
+          .setDescription(`Result: You win ${currencySymbol}${bj.bet.toLocaleString()}`)
           .setColor(color)
           .addFields([
             { name: '**Your Hand**', value: `${pcards} \n\nScore: ${bj.player.score}`, inline: true },
@@ -214,7 +214,7 @@ class BlackJack extends Command {
 
         const embed = new EmbedBuilder()
           .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
-          .setDescription(`Result: BlackJack, you win ${cs}${bj.bet.toLocaleString()}`)
+          .setDescription(`Result: BlackJack, you win ${currencySymbol}${bj.bet.toLocaleString()}`)
           .setColor(color)
           .addFields([
             { name: '**Your Hand**', value: `${pcards} \n\nScore: ${bj.player.score}`, inline: true },
@@ -229,7 +229,7 @@ class BlackJack extends Command {
 
         const embed = new EmbedBuilder()
           .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
-          .setDescription(`Result: Bust, you lose ${cs}${bj.bet.toLocaleString()}`)
+          .setDescription(`Result: Bust, you lose ${currencySymbol}${bj.bet.toLocaleString()}`)
           .setColor(color)
           .addFields([
             { name: '**Your Hand**', value: `${pcards} \n\nScore: ${bj.player.score}`, inline: true },

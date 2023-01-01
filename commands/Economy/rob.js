@@ -66,11 +66,11 @@ class Rob extends Command {
       return msg.channel.send({ embeds: [embed] });
     }
 
-    const authCash = db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`) || db.get(`servers.${msg.guild.id}.economy.startBalance`) || 0;
-    const authBank = db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`) || 0;
+    const authCash = parseFloat(db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`) || db.get(`servers.${msg.guild.id}.economy.startBalance`) || 0);
+    const authBank = parseFloat(db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`) || 0);
     const authNet = authCash + authBank;
 
-    const memCash = db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`) || db.get(`servers.${msg.guild.id}.economy.startBalance`) || 0;
+    const memCash = parseFloat(db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`) || db.get(`servers.${msg.guild.id}.economy.startBalance`) || 0);
 
     if (memCash <= 0) {
       const embed = new EmbedBuilder()
@@ -102,7 +102,7 @@ class Rob extends Command {
     // fineAmnt is the amount of money the user will lose if they fail the robbery
     const fineAmnt = parseInt(Math.floor((authNet / 100) * randomFine));
 
-    const cs = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
+    const currencySymbol = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
 
     if (failRate > 100) {
       const em = new EmbedBuilder()
@@ -117,7 +117,7 @@ class Rob extends Command {
       const em = new EmbedBuilder()
         .setColor(errorColor)
         .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
-        .setDescription(`You were caught attempting to rob ${mem.displayName} and have been fined ${cs + fineAmnt.toLocaleString()}`);
+        .setDescription(`You were caught attempting to rob ${mem.displayName} and have been fined ${currencySymbol + fineAmnt.toLocaleString()}`);
       msg.channel.send({ embeds: [em] });
     } else {
       // Lucky then, give them the money!
@@ -129,10 +129,10 @@ class Rob extends Command {
       const embed = new EmbedBuilder()
         .setColor(msg.settings.embedColor)
         .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
-        .setDescription(`You successfully robbed ${mem} of ${cs}${amnt.toLocaleString()}`)
+        .setDescription(`You successfully robbed ${mem} of ${currencySymbol}${amnt.toLocaleString()}`)
         .addFields([
-          { name: 'Your New Balance', value: `${cs}${db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`).toLocaleString()}` },
-          { name: `${mem.displayName}'s New Balance`, value: `${cs}${db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`).toLocaleString()}` }
+          { name: 'Your New Balance', value: `${currencySymbol}${db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`).toLocaleString()}` },
+          { name: `${mem.displayName}'s New Balance`, value: `${currencySymbol}${db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`).toLocaleString()}` }
         ]);
       msg.channel.send({ embeds: [embed] });
     }

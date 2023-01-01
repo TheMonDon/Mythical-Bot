@@ -37,14 +37,14 @@ class AddMoney extends Command {
       return msg.channel.send({ embeds: [errEmbed] });
     }
 
-    const cs = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
+    const currencySymbol = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
 
     if (args.length === 2) {
       mem = await getMember(msg, args[0]);
-      amount = parseInt(args[1].replace(cs, '').replace(/,/g, ''), 10);
+      amount = parseFloat(args[1].replace(currencySymbol, '').replace(/,/g, ''));
     } else {
       mem = await getMember(msg, args[1]);
-      amount = parseInt(args[2].replace(cs, '').replace(/,/g, ''), 10);
+      amount = parseFloat(args[2].replace(currencySymbol, '').replace(/,/g, ''));
     }
 
     if (['cash', 'bank'].includes(args[0].toLowerCase())) {
@@ -73,7 +73,7 @@ class AddMoney extends Command {
     if (type === 'bank') {
       db.add(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`, amount);
     } else {
-      const cash = db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`) || db.get(`servers.${msg.guild.id}.economy.startBalance`) || 0;
+      const cash = parseFloat(db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`) || db.get(`servers.${msg.guild.id}.economy.startBalance`) || 0);
       const newAmount = cash + amount;
       if (isNaN(newAmount) || newAmount === Infinity) {
         errEmbed.setDescription(`${mem}'s balance would be Infinity if you gave them that much!`);
@@ -85,7 +85,7 @@ class AddMoney extends Command {
     const embed = new EmbedBuilder()
       .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
       .setColor(msg.settings.embedColor)
-      .setDescription(`:white_check_mark: Added **${cs}${amount.toLocaleString()}** to ${mem}'s ${type} balance.`)
+      .setDescription(`:white_check_mark: Added **${currencySymbol}${amount.toLocaleString()}** to ${mem}'s ${type} balance.`)
       .setTimestamp();
     return msg.channel.send({ embeds: [embed] });
   }

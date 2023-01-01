@@ -27,11 +27,11 @@ class Withdraw extends Command {
       return msg.channel.send({ embeds: [embed] });
     }
 
-    const cs = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
-    const bank = db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`) || 0; // store bank info prior to checking args
-    const cash = db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`) || 0; // same thing but cash
+    const currencySymbol = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
+    const bank = parseFloat(db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`) || 0); // store bank info prior to checking args
+    const cash = parseFloat(db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`) || 0); // same thing but cash
 
-    amount = amount.replace(/,/g, '').replace(cs, '');
+    amount = amount.replace(/,/g, '').replace(currencySymbol, '');
     if (isNaN(amount)) {
       if (amount.toLowerCase() === 'all') {
         if (bank <= 0) return msg.channel.send('You don\'t have any money to withdraw.');
@@ -45,7 +45,7 @@ class Withdraw extends Command {
         const em = new EmbedBuilder()
           .setColor('#04ACF4')
           .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
-          .setDescription(`Withdrew ${cs}${bank.toLocaleString()} from your bank!`);
+          .setDescription(`Withdrew ${currencySymbol}${bank.toLocaleString()} from your bank!`);
         return msg.channel.send({ embeds: [em] });
       } else {
         const embed = new EmbedBuilder()
@@ -55,10 +55,10 @@ class Withdraw extends Command {
         return msg.channel.send({ embeds: [embed] });
       }
     }
-    amount = parseInt(amount, 10);
+    amount = parseFloat(amount);
 
     if (amount < 0) return msg.channel.send('You can\'t withdraw negative amounts of money.');
-    if (amount > bank) return msg.channel.send(`You don't have that much money to withdraw. You currently have ${cs}${bank.toLocaleString()} in the bank.`);
+    if (amount > bank) return msg.channel.send(`You don't have that much money to withdraw. You currently have ${currencySymbol}${bank.toLocaleString()} in the bank.`);
     if (bank <= 0) return msg.channel.send('You don\'t have any money to withdraw.');
     if ((cash + amount) > Number.MAX_VALUE) {
       return msg.channel.send('You have too much cash to be able to withdraw that much money.');
@@ -70,7 +70,7 @@ class Withdraw extends Command {
     const embed = new EmbedBuilder()
       .setColor('#04ACF4')
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
-      .setDescription(`Withdrew ${cs}${amount.toLocaleString()} from your bank!`);
+      .setDescription(`Withdrew ${currencySymbol}${amount.toLocaleString()} from your bank!`);
     return msg.channel.send({ embeds: [embed] });
   }
 }

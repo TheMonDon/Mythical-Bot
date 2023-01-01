@@ -38,14 +38,14 @@ class RemoveMoney extends Command {
       return msg.channel.send({ embeds: [errEmbed] });
     }
 
-    const cs = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
+    const currencySymbol = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
 
     if (args.length === 2) {
       mem = await getMember(msg, args[0]);
-      amount = parseInt(args[1].replace(cs, '').replace(/,/ig, ''), 10);
+      amount = parseFloat(args[1].replace(currencySymbol, '').replace(/,/ig, ''));
     } else {
       mem = await getMember(msg, args[1]);
-      amount = parseInt(args[2].replace(cs, '').replace(/,/ig, ''), 10);
+      amount = parseFloat(args[2].replace(currencySymbol, '').replace(/,/ig, ''));
     }
 
     if (['cash', 'bank'].includes(args[0].toLowerCase())) {
@@ -82,7 +82,7 @@ class RemoveMoney extends Command {
     const embed = new EmbedBuilder()
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
       .setColor(msg.settings.embedColor)
-      .setDescription(`:white_check_mark: Removed **${cs}${amount.toLocaleString()}** from ${mem}'s ${type} balance.`)
+      .setDescription(`:white_check_mark: Removed **${currencySymbol}${amount.toLocaleString()}** from ${mem}'s ${type} balance.`)
       .setTimestamp();
     return msg.channel.send({ embeds: [embed] });
   }

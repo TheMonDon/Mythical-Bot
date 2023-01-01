@@ -42,13 +42,13 @@ class Crime extends Command {
     }
 
     // Get the user's net worth
-    const cash = db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`) || db.get(`servers.${msg.guild.id}.economy.startBalance`) || 0;
-    const bank = db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`) || 0;
+    const cash = parseFloat(db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`) || db.get(`servers.${msg.guild.id}.economy.startBalance`) || 0);
+    const bank = parseFloat(db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`) || 0);
     const authNet = cash + bank;
 
     // Get the min and max amounts of money the user can get
-    const min = db.get(`servers.${msg.guild.id}.economy.${type}.min`) || 500;
-    const max = db.get(`servers.${msg.guild.id}.economy.${type}.max`) || 2000;
+    const min = parseFloat(db.get(`servers.${msg.guild.id}.economy.${type}.min`) || 500);
+    const max = parseFloat(db.get(`servers.${msg.guild.id}.economy.${type}.max`) || 2000);
 
     // Get the min and max fine percentages
     const minFine = db.get(`servers.${msg.guild.id}.economy.${type}.fine.min`) || 10;
@@ -63,7 +63,7 @@ class Crime extends Command {
     const failRate = db.get(`servers.${msg.guild.id}.economy.${type}.failrate`) || 45;
     const ranNum = Math.random() * 100;
 
-    const cs = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$'; // get economy symbol
+    const currencySymbol = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$'; // get economy symbol
 
     delete require.cache[require.resolve('../../resources/messages/crime_success.json')];
     delete require.cache[require.resolve('../../resources/messages/crime_fail.json')];
@@ -74,7 +74,7 @@ class Crime extends Command {
       if (isNaN(fineAmnt)) {
         return msg.channel.send('You have too much money to be able to be fined.');
       }
-      const csamount = cs + fineAmnt.toLocaleString();
+      const csamount = currencySymbol + fineAmnt.toLocaleString();
       const num = Math.floor(Math.random() * (crimeFail.length - 1)) + 1;
       const txt = crimeFail[num].replace('csamount', csamount);
 
@@ -88,7 +88,7 @@ class Crime extends Command {
       db.subtract(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, fineAmnt);
     } else {
       const amount = Math.floor(Math.random() * (max - min + 1) + min);
-      const csamount = cs + amount.toLocaleString();
+      const csamount = currencySymbol + amount.toLocaleString();
 
       const num = Math.floor(Math.random() * (crimeSuccess.length - 1)) + 1;
       const txt = crimeSuccess[num].replace('csamount', csamount);

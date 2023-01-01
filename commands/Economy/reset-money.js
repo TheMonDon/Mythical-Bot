@@ -16,8 +16,6 @@ class ResetMoney extends Command {
   }
 
   async run (msg, text, level) {
-    let mem;
-
     if (!text || text.length < 1) {
       await msg.channel.send('Are you sure you want to reset your money? (yes/no)');
       const verification = await verify(msg.channel, msg.author);
@@ -40,7 +38,7 @@ class ResetMoney extends Command {
         }
       }
 
-      mem = await getMember(msg, text.join(' '));
+      let mem = await getMember(msg, text.join(' '));
 
       if (!mem) {
         const fid = text.join(' ').replace('<@', '').replace('>', '');

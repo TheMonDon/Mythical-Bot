@@ -33,14 +33,14 @@ class RemoveMoneyRole extends Command {
       return msg.channel.send({ embeds: [errEmbed] });
     }
 
-    const cs = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
+    const currencySymbol = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
 
     if (args.length === 2) {
       role = getRole(msg, args[0]);
-      amount = parseInt(args[1].replace(cs, '').replace(',', ''), 10);
+      amount = parseFloat(args[1].replace(currencySymbol, '').replace(',', ''));
     } else {
       role = getRole(msg, args[1]);
-      amount = parseInt(args[2].replace(cs, '').replace(',', ''), 10);
+      amount = parseFloat(args[2].replace(currencySymbol, '').replace(',', ''));
     }
 
     if (['cash', 'bank'].includes(args[0].toLowerCase())) {
@@ -80,7 +80,7 @@ class RemoveMoneyRole extends Command {
     const embed = new EmbedBuilder()
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
       .setColor(msg.settings.embedColor)
-      .setDescription(`:white_check_mark: Removed **${cs}${amount.toLocaleString()}** to ${type} balance of ${members.length} ${members.length > 1 ? 'members' : 'member'} with the ${role}.`)
+      .setDescription(`:white_check_mark: Removed **${currencySymbol}${amount.toLocaleString()}** to ${type} balance of ${members.length} ${members.length > 1 ? 'members' : 'member'} with the ${role}.`)
       .setTimestamp();
     return msg.channel.send({ embeds: [embed] });
   }

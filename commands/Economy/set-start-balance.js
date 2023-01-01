@@ -18,9 +18,9 @@ class SetStartBalance extends Command {
   run (msg, args) {
     if (!args || args.length < 1) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}set-start-balance <amount>`);
 
-    const cs = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
+    const currencySymbol = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
 
-    const amount = parseInt(args.join('').replace(/,/g, '').replace(cs, '').replace(/-/g, ''), 10);
+    const amount = parseInt(args.join('').replace(/,/g, '').replace(currencySymbol, '').replace(/-/g, ''), 10);
 
     if (amount > 1000000000000) return msg.channel.send('The max starting balance is one trillion.');
 
@@ -28,7 +28,7 @@ class SetStartBalance extends Command {
 
     const em = new EmbedBuilder()
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
-      .setDescription(amount > 0 ? `The starting balance for new members has been set to: ${cs + amount.toLocaleString()}` : 'The starting balance for new members has been disabled.');
+      .setDescription(amount > 0 ? `The starting balance for new members has been set to: ${currencySymbol + amount.toLocaleString()}` : 'The starting balance for new members has been disabled.');
     return msg.channel.send({ embeds: [em] });
   }
 }
