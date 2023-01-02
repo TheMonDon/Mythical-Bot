@@ -70,7 +70,7 @@ class Topic extends Command {
 
     setTimeout(() => {
       channelCooldown = { active: false };
-      db.set(`servers.${server.id}.tickets.${msg.channe.id}.tCooldown`, channelCooldown);
+      db.set(`servers.${server.id}.tickets.${msg.channel.id}.tCooldown`, channelCooldown);
     }, cooldown * 1000);
   }
 }

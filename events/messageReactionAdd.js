@@ -28,7 +28,7 @@ module.exports = class {
       messageReaction.users.remove(user.id);
 
       const perms = [{
-        id: msg.member.id,
+        id: user.id,
         allow: ['ViewChannel']
       },
       {

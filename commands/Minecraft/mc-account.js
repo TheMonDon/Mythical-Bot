@@ -2,7 +2,6 @@
 const Command = require('../../base/Command.js');
 const { EmbedBuilder } = require('discord.js');
 const fetch = require('node-superfetch');
-const { JSONPath } = require('jsonpath-plus');
 
 class MinecraftAccount extends Command {
   constructor (client) {
@@ -43,23 +42,16 @@ class MinecraftAccount extends Command {
       const id = body.body.id;
       const rn = body.body.name;
 
-      try {
-        const { body } = await fetch.get(`https://api.mojang.com/user/profiles/${id}/names`);
-        const json = body;
-        const nc = JSONPath({ path: '*.name', json }).join(', ');
-        const em = new EmbedBuilder()
-          .setTitle(`${rn}'s Account Information`)
-          .setColor(successColor)
-          .setImage(`https://mc-heads.net/body/${id}`)
-          .addFields([
-            { name: 'Name Changes History', value: nc || 'Error fetching data...', inline: false },
-            { name: 'UUID', value: id.toString(), inline: false },
-            { name: 'NameMC Link', value: `Click [here](https://es.namemc.com/profile/${id}) to go to their NameMC Profile`, inline: false }
-          ]);
-        return msg.channel.send({ embeds: [em] });
-      } catch (err) {
-        return console.error(err);
-      }
+      const em = new EmbedBuilder()
+        .setTitle(`${rn}'s Account Information`)
+        .setColor(successColor)
+        .setImage(`https://mc-heads.net/body/${id}`)
+        .addFields([
+          { name: 'UUID', value: id.toString(), inline: false },
+          { name: 'NameMC Link', value: `Click [here](https://es.namemc.com/profile/${id}) to go to their NameMC Profile`, inline: false }
+        ]);
+
+      return msg.channel.send({ embeds: [em] });
     } catch (err) {
       const em = new EmbedBuilder()
         .setTitle('Account Not Found')
