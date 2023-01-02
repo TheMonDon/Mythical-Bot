@@ -3,6 +3,8 @@
 const Command = require('../../base/Command.js');
 const randomWords = require('random-words');
 const { EmbedBuilder } = require('discord.js');
+const { readFileSync } = require('fs');
+const path = require('path');
 
 class Wordle extends Command {
   constructor (client) {
@@ -19,10 +21,12 @@ class Wordle extends Command {
     let winner = false;
     let turn = 0;
     let message;
+    let error;
     const WIDTH = 5;
     const HEIGHT = 6;
     const gameBoard = [];
-    const SQUARES = { green_square: '🟩', yellow_square: '🟨', black_square: '⬛', white_square: '⬜' };
+    const allWords = readFileSync(path.join(__dirname, '/../../resources/sgb-words.txt'), 'utf8');
+
     let theWord = randomWords({ exactly: 1, minLength: 5, maxLength: 5 }).toString();
     while (theWord.length < 5) {
       theWord = randomWords({ exactly: 1, minLength: 5, maxLength: 5 }).toString();
@@ -99,6 +103,7 @@ class Wordle extends Command {
     }
 
     message = await msg.channel.send({ embeds: getContent() });
+
     while (gameOver === false && turn <= 5) {
       const collected = await msg.channel.awaitMessages({
         filter: m => m.author.id === msg.author.id && m.content.length === 5,
@@ -109,6 +114,11 @@ class Wordle extends Command {
       if (!collected?.first()?.content) gameOver = true;
       const word = collected.first().content.toLowerCase();
       collected.first().delete().catch(() => {});
+
+      if (!allWords.includes(word)) {
+        error = await msg.channel.send('That word is not in the dictionary!');
+        continue;
+      }
 
       const [results] = testWord(word, theWord);
 
@@ -136,12 +146,8 @@ class Wordle extends Command {
       }
 
       message.edit({ embeds: getContent() });
-
-      if (turn >= 5) {
-        gameOver = true;
-      } else {
-        turn += 1;
-      }
+      turn >= 5 ? gameOver = true : turn += 1;
+      error?.delete().catch(() => {});
     }
 
     if (gameOver && turn >= 5) {
