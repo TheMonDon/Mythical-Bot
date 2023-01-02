@@ -10,7 +10,7 @@ class Ban extends Command {
       description: 'Ban a naughty user',
       usage: 'ban <user> <reason>',
       category: 'Moderator',
-      PermLevel: 'Moderator',
+      permLevel: 'Moderator',
       guildOnly: true
     });
   }
