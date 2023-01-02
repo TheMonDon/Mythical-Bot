@@ -21,7 +21,7 @@ module.exports = class {
       .addFields([
         { name: 'Name', value: role.name },
         { name: 'Managed', value: role.managed },
-        { name: 'Position', value: role.position }
+        { name: 'Position', value: role.position.toString() }
       ])
       .setFooter({ text: `ID: ${role.id}` })
       .setTimestamp();

@@ -19,9 +19,9 @@ module.exports = class {
       .setTitle('Role Created')
       .setColor('#20fc3a')
       .addFields([
-        { name: 'Name', value: role },
+        { name: 'Name', value: role.toString() },
         { name: 'Managed', value: role.managed },
-        { name: 'Position', value: role.position }
+        { name: 'Position', value: role.position.toString() }
       ])
       .setFooter({ text: `ID: ${role.id}` })
       .setTimestamp();

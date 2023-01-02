@@ -35,12 +35,14 @@ class Flood extends Command {
     const left = (pos) => ({ x: pos.x - 1, y: pos.y });
     const right = (pos) => ({ x: pos.x + 1, y: pos.y });
 
+    // Randomly generate the game board
     for (let y = 0; y < HEIGHT; y++) {
       for (let x = 0; x < WIDTH; x++) {
         gameBoard[y * WIDTH + x] = Object.values(SQUARES)[Math.floor(Math.random() * Object.keys(SQUARES).length)];
       }
     }
 
+    // Return the game board as a string
     function gameBoardToString () {
       let str = '';
       for (let y = 0; y < HEIGHT; y++) {
@@ -52,6 +54,7 @@ class Flood extends Command {
       return str;
     }
 
+    // Get the content of the embed
     function getContent () {
       let embed;
       if (gameOver === true) {
@@ -133,6 +136,7 @@ Filling starts at the top left corner.`)
           return ['🟥', '🟦', '🟧', '🟪', '🟩', '🛑'].includes(reaction.emoji.name) && user.id === msg.author.id;
         };
 
+        // If the message doesn't exist, create it
         if (!message) {
           message = await msg.channel.send({ embeds: getContent() });
           ['🟥', '🟦', '🟧', '🟪', '🟩', '🛑'].forEach(s => message.react(s));

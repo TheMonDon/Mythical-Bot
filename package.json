@@ -13,6 +13,7 @@
     "@discordjs/voice": "^0.11.0",
     "@mapbox/node-pre-gyp": "^1.0.9",
     "better-sqlite3": "^7.4.1",
+    "big-integer": "^1.6.51",
     "blackjack-n-deck": "^1.0.1",
     "botlist.me.js": "^1.0.2",
     "canvas": "^2.9.3",
