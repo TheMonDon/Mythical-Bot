@@ -16,7 +16,11 @@ class Wordle extends Command {
     });
   }
 
-  async run (msg, args) {
+  async run (msg) {
+    const current = this.client.games.get(msg.channel.id);
+    if (current) return msg.reply(`Please wait until the current game of \`${current.name}\` is finished.`);
+    this.client.games.set(msg.channel.id, { name: this.help.name, user: msg.author.id, date: Date.now() });
+
     let gameOver = false;
     let winner = false;
     let turn = 0;
@@ -150,15 +154,14 @@ class Wordle extends Command {
       error?.delete().catch(() => {});
     }
 
+    this.client.games.delete(msg.channel.id);
     if (gameOver && turn >= 5) {
       return message.edit({ embeds: getContent() });
     }
-
     if (gameOver && winner) {
       return message.edit({ embeds: getContent() });
     }
-
-    return msg.channel.send('This command is a Work In Progress.');
+    return msg.channel.send('You took too long to guess the word!');
   }
 }
 
