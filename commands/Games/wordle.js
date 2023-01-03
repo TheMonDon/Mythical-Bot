@@ -126,32 +126,23 @@ class Wordle extends Command {
 
       const [results] = testWord(word, theWord);
 
-      if (word === theWord) {
-        gameOver = true;
-        winner = true;
-
-        // Add the results to the game board based on the row
-        for (let i = 0; i < results.length; i += 1) {
-          if (i === results.length - 1) {
-            gameBoard[turn * WIDTH + i] = results[i] + ' | ' + word;
-          } else {
-            gameBoard[turn * WIDTH + i] = results[i];
-          }
-        }
-      } else {
-        // Add the results to the game board based on the row
-        for (let i = 0; i < results.length; i += 1) {
-          if (i === results.length - 1) {
-            gameBoard[turn * WIDTH + i] = results[i] + ' | ' + word;
-          } else {
-            gameBoard[turn * WIDTH + i] = results[i];
-          }
+      // Add the results to the game board based on the row
+      for (let i = 0; i < results.length; i += 1) {
+        if (i === results.length - 1) {
+          gameBoard[turn * WIDTH + i] = results[i] + ' | ' + word;
+        } else {
+          gameBoard[turn * WIDTH + i] = results[i];
         }
       }
 
-      message.edit({ embeds: getContent() });
+      if (word === theWord) {
+        gameOver = true;
+        winner = true;
+      }
+
+      await message.edit({ embeds: getContent() });
       turn >= 5 ? gameOver = true : turn += 1;
-      error?.delete().catch(() => {});
+      await error?.delete().catch(() => {});
     }
 
     this.client.games.delete(msg.channel.id);
