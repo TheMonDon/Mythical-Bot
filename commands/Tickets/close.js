@@ -18,6 +18,7 @@ class CloseTicket extends Command {
   }
 
   async run (msg, args) {
+    const client = this.client;
     const reason = args.join(' ') || 'No reason specified';
 
     if (!db.get(`servers.${msg.guild.id}.tickets`)) return msg.channel.send('The ticket system has not been setup in this server.');
@@ -64,7 +65,7 @@ class CloseTicket extends Command {
         .then(function (urlToPaste) {
           url = urlToPaste;
         })
-        .catch(function (requestError) { this.client.logger.error(requestError); });
+        .catch(function (requestError) { client.logger.error(requestError); });
 
       let received;
 
