@@ -16,10 +16,19 @@ class Wordle extends Command {
     });
   }
 
-  async run (msg) {
+  async run (msg, args, level) {
+    let dev = false;
     const current = this.client.games.get(msg.channel.id);
     if (current) return msg.reply(`Please wait until the current game of \`${current.name}\` is finished.`);
     this.client.games.set(msg.channel.id, { name: this.help.name, user: msg.author.id, date: Date.now() });
+
+    // Allow the owner to use the dev test function
+    if (args?.length > 0) {
+      if (args[0] === 'dev') {
+        if (level < 2) return msg.reply('You do not have permission to use this command.');
+        dev = true;
+      }
+    }
 
     let gameOver = false;
     let winner = false;
@@ -36,6 +45,7 @@ class Wordle extends Command {
       theWord = randomWords({ exactly: 1, minLength: 5, maxLength: 5 }).toString();
     }
 
+    // Take the guess and the answer and return an array of results (🟩, 🟨, ⬜)
     function testWord (guess, answer) {
       const results = [];
       for (let i = 0; i < guess.length; i += 1) {
@@ -50,6 +60,26 @@ class Wordle extends Command {
       }
       return [results];
     };
+
+    // Updated function to check for duplicate letters
+    function devTestWord (guess, answer) {
+      const results = [];
+      for (let i = 0; i < guess.length; i += 1) {
+        const char = guess[i];
+        if (char === answer[i]) {
+          results.push('🟩');
+        } else if (answer.includes(char)) {
+          if (guess.includes(char)) {
+            results.push('⬜');
+          } else {
+            results.push('🟨');
+          }
+        } else {
+          results.push('⬜');
+        }
+      }
+      return [results];
+    }
 
     // Fill the game board with black squares
     for (let y = 0; y < HEIGHT; y++) {
@@ -124,7 +154,7 @@ class Wordle extends Command {
         continue;
       }
 
-      const [results] = testWord(word, theWord);
+      const [results] = dev ? devTestWord(word, theWord) : testWord(word, theWord);
 
       // Add the results to the game board based on the row
       for (let i = 0; i < results.length; i += 1) {
