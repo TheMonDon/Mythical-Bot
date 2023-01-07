@@ -17,15 +17,6 @@ class Wordle extends Command {
     let dev = false;
     const current = this.client.games.get(msg.channel.id);
     if (current) return msg.reply(`Please wait until the current game of \`${current.name}\` is finished.`);
-    this.client.games.set(msg.channel.id, { name: this.help.name, user: msg.author.id, date: Date.now() });
-
-    // Allow the owner to use the dev test function
-    if (args?.length > 0) {
-      if (args[0] === 'dev') {
-        if (level < 2) return msg.reply('You are not a developer, re-run this command without arguments.');
-        dev = true;
-      }
-    }
 
     let gameOver = false;
     let winner = false;
@@ -37,6 +28,16 @@ class Wordle extends Command {
     const allWords = readFileSync(path.join(__dirname, '/../../resources/sgb-words.txt'), 'utf8');
     const wordArray = allWords.split('\n');
     const theWord = wordArray[Math.floor(Math.random() * wordArray.length)];
+
+    // Allow the owner to use the dev test function
+    if (args?.length > 0) {
+      if (args[0] === 'dev') {
+        if (level < 2) return msg.reply('You are not a developer, re-run this command without arguments.');
+        dev = true;
+      }
+    }
+
+    this.client.games.set(msg.channel.id, { name: this.help.name, user: msg.author.id, date: Date.now() });
 
     // Take the guess and the answer and return an array of results (🟩, 🟨, ⬜)
     function testWord (guess, answer) {
