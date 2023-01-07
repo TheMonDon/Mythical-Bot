@@ -127,7 +127,7 @@ class Wordle extends Command {
           .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL({ dynamic: true }) })
           .setColor(msg.settings.embedColor)
           .setTitle('Wordle (5 Minutes)')
-          .setDescription(`${gameBoardToString()} \nGuess the word! (5 letters)`)
+          .setDescription(`${gameBoardToString()} \nGuess the word! (5 letters)` + (dev ? `\nThe word is: ${theWord}` : ''))
           .addFields([{ name: 'Turn:', value: (turn + 1).toString() }])
           .setFooter({ text: `Currently Playing: ${msg.author.username}` })
           .setTimestamp();
