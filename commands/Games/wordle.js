@@ -1,7 +1,4 @@
-/* eslint-disable prefer-const */
-/* eslint-disable no-unused-vars */
 const Command = require('../../base/Command.js');
-const randomWords = require('random-words');
 const { EmbedBuilder } = require('discord.js');
 const { readFileSync } = require('fs');
 const path = require('path');
@@ -25,7 +22,7 @@ class Wordle extends Command {
     // Allow the owner to use the dev test function
     if (args?.length > 0) {
       if (args[0] === 'dev') {
-        if (level < 2) return msg.reply('You do not have permission to use this command.');
+        if (level < 2) return msg.reply('You are not a developer, re-run this command without arguments.');
         dev = true;
       }
     }
@@ -33,17 +30,13 @@ class Wordle extends Command {
     let gameOver = false;
     let winner = false;
     let turn = 0;
-    let message;
     let error;
     const WIDTH = 5;
     const HEIGHT = 6;
     const gameBoard = [];
     const allWords = readFileSync(path.join(__dirname, '/../../resources/sgb-words.txt'), 'utf8');
-
-    let theWord = randomWords({ exactly: 1, minLength: 5, maxLength: 5 }).toString();
-    while (theWord.length < 5) {
-      theWord = randomWords({ exactly: 1, minLength: 5, maxLength: 5 }).toString();
-    }
+    const wordArray = allWords.split('\n');
+    const theWord = wordArray[Math.floor(Math.random() * wordArray.length)];
 
     // Take the guess and the answer and return an array of results (🟩, 🟨, ⬜)
     function testWord (guess, answer) {
@@ -61,7 +54,7 @@ class Wordle extends Command {
       return [results];
     };
 
-    // Updated function to check for duplicate letters
+    // Dev function to test double letter word without breaking the game
     function devTestWord (guess, answer) {
       const results = [];
       for (let i = 0; i < guess.length; i += 1) {
@@ -69,11 +62,7 @@ class Wordle extends Command {
         if (char === answer[i]) {
           results.push('🟩');
         } else if (answer.includes(char)) {
-          if (guess.includes(char)) {
-            results.push('⬜');
-          } else {
-            results.push('🟨');
-          }
+          results.push('🟨');
         } else {
           results.push('⬜');
         }
@@ -100,7 +89,7 @@ class Wordle extends Command {
       return str;
     }
 
-    // Return the embed content
+    // Check if the game is over, along with the winner and return an embed based on the results
     function getContent () {
       let embed;
 
@@ -136,7 +125,7 @@ class Wordle extends Command {
       return [embed];
     }
 
-    message = await msg.channel.send({ embeds: getContent() });
+    const message = await msg.channel.send({ embeds: getContent() });
 
     while (gameOver === false && turn <= 5) {
       const collected = await msg.channel.awaitMessages({
