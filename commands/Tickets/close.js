@@ -67,7 +67,7 @@ class CloseTicket extends Command {
         })
         .catch(function (requestError) {
           client.logger.error(requestError);
-          msg.channel.send('There was an error uploading the logs, Please try again later.');
+          return msg.channel.send('There was an error uploading the logs, Please try again later.');
         });
 
       let received;

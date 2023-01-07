@@ -1,31 +1,31 @@
 const Command = require('../../base/Command.js');
-const fetch = require('node-fetch');
+const request = require('node-superfetch');
 const { EmbedBuilder } = require('discord.js');
 
 class DadJoke extends Command {
   constructor (client) {
     super(client, {
       name: 'dad-joke',
-      description: 'Send a dad joke.',
+      description: 'Get a random dad joke.',
       usage: 'dad-joke',
       category: 'Fun',
-      aliases: ['dadjoke', 'dj', 'dadj', 'djoke']
+      aliases: ['dadjoke']
     });
   }
 
-  async run (msg) {
-    fetch('https://icanhazdadjoke.com/', {
-      headers: { Accept: 'text/plain' }
-    })
-      .then(res => res.text())
-      .then(body => {
-        const embed = new EmbedBuilder()
-          .setTitle('Dad Joke')
-          .setColor(msg.settings.embedColor)
-          .setDescription(body)
-          .setFooter({ text: 'Powered by: https://icanhazdadjoke.com/' });
-        return msg.channel.send({ embeds: [embed] });
-      });
+  async run (msg, args) {
+    try {
+      const { body } = await request.get('https://icanhazdadjoke.com/').set('Accept', 'application/json');
+      const embed = new EmbedBuilder()
+        .setTitle('Dad Joke')
+        .setColor(msg.settings.embedColor)
+        .setDescription(`**Dad Joke:** \n${body.joke}`)
+        .setFooter({ text: `Powered by: https://icanhazdadjoke.com/ ID: ${body.id}` });
+
+      return msg.channel.send({ embeds: [embed] });
+    } catch (err) {
+      return msg.channel.send(`Oh no, an error occurred: \`${err.message}\`. Try again later!`);
+    }
   }
 }
 module.exports = DadJoke;

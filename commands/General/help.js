@@ -15,8 +15,8 @@ class Help extends Command {
   }
 
   async run (msg, args, level) {
-    const cats = ['Administrator', 'Economy', 'Fun', 'Games', 'General', 'Giveaways', 'Information', 'Logging', 'Memes', 'Minecraft', 'Moderator', 'Music', 'NSFW', 'Search', 'Tickets'];
-    const allcats = ['Bot Admin', 'Administrator', 'Economy', 'Fun', 'Games', 'General', 'Giveaways', 'Information', 'Logging', 'Memes', 'Minecraft', 'Moderator', 'Music', 'NSFW', 'Owner', 'Search', 'Tickets'];
+    const cats = ['Administrator', 'Economy', 'Fun', 'Games', 'General', 'Giveaways', 'Information', 'Logging', 'Minecraft', 'Moderator', 'Music', 'NSFW', 'Search', 'Tickets'];
+    const allcats = ['Bot Admin', 'Administrator', 'Economy', 'Fun', 'Games', 'General', 'Giveaways', 'Information', 'Logging', 'Minecraft', 'Moderator', 'Music', 'NSFW', 'Owner', 'Search', 'Tickets'];
     const color = msg.settings.embedColor;
     const msgArray = [];
     let type = 'command';

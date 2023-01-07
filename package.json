@@ -1,6 +1,6 @@
 {
   "name": "mythical",
-  "version": "3.4.0",
+  "version": "3.4.1",
   "description": "Mythical Bot",
   "owner": "TheMonDon#1721",
   "main": "index.js",
@@ -46,7 +46,6 @@
     "mysql2": "^2.2.5",
     "nearest-color": "^0.4.4",
     "nekos.life": "^3.0.0",
-    "node-fetch": "^2.6.1",
     "node-html-parser": "^5.4.2-0",
     "node-schedule": "^2.1.0",
     "node-superfetch": "^0.2.3",
