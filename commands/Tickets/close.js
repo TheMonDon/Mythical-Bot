@@ -65,7 +65,10 @@ class CloseTicket extends Command {
         .then(function (urlToPaste) {
           url = urlToPaste;
         })
-        .catch(function (requestError) { client.logger.error(requestError); });
+        .catch(function (requestError) {
+          client.logger.error(requestError);
+          msg.channel.send('There was an error uploading the logs, Please try again later.');
+        });
 
       let received;
 
