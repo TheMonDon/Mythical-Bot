@@ -28,12 +28,12 @@ class Dictionary extends Command {
     define.then((res) => {
       if (!res) return msg.channel.send('No entry was found for that word.');
 
-      const definition = res.results[0]?.lexicalEntries[0]?.entries[0]?.senses[0]?.definitions[0];
+      const definition = res.results[0]?.lexicalEntries[0]?.entries[0]?.senses[0]?.definitions?.[0];
       const pronunciation = res.results[0]?.lexicalEntries[0]?.entries[0]?.pronunciations[0]?.phoneticSpelling;
-      const etymology = res.results[0]?.lexicalEntries[0]?.entries[0]?.etymologies[0];
+      const etymology = res.results[0]?.lexicalEntries[0]?.entries[0]?.etymologies?.[0];
       const examplesObj = res.results[0]?.lexicalEntries[0]?.entries[0]?.senses[0]?.examples;
       const phrasesObj = res.results[0]?.lexicalEntries[0]?.phrases;
-      const synonymsObj = res.results[0].lexicalEntries[0].entries[0].senses[0].subsenses[0].synonyms;
+      const synonymsObj = res.results[0]?.lexicalEntries[0]?.entries[0]?.senses[0]?.subsenses?.[0]?.synonyms;
 
       if (examplesObj) {
         examplesObj.forEach((example) => {
