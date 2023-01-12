@@ -170,7 +170,7 @@ class Warn extends Command {
     // Check if they should be banned or kicked
     if (warnAmount >= ba) {
       if (!msg.guild.members.me.permissions.has('BenMembers')) return msg.channel.send('The bot does not have permission to ban members.');
-      msg.guild.members.bans.create(mem.id, { reason }).catch(() => null); // Ban wether they are in the guild or not.
+      msg.guild.members.ban(mem.id, { reason }).catch(() => null); // Ban wether they are in the guild or not.
     } else if (warnAmount >= ka) {
       if (!msg.guild.members.me.permissions.has('KickMembers')) return msg.channel.send('The bot does not have permission to kick members.');
       const member = msg.guild.members.cache.get(mem.id);
