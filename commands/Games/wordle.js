@@ -150,6 +150,8 @@ class Wordle extends Command {
         await error?.delete().catch(() => {});
         error = await msg.channel.send('You already used that word!');
         continue;
+      } else {
+        usedWords.push(word);
       }
 
       const [results] = dev ? devTestWord(word, theWord) : testWord(word, theWord);
