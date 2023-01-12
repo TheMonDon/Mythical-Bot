@@ -52,11 +52,7 @@ class UserInfo extends Command {
       VerifiedDeveloper: '<:verified_developer_badge:862241973146353674>',
       VerifiedBot: '<:verified_bot:862241973326839818>',
       CertifiedModerator: '<:certifiedModerator:879967930534740008>',
-      ActiveDeveloper: '<:ActiveDeveloper:1062978324894330930>',
-      BotHTTPInteractions: '',
-      Quarantined: '',
-      Spammer: '',
-      TeamPseudoUser: ''
+      ActiveDeveloper: '<:ActiveDeveloper:1062978324894330930>'
     };
 
     // If the user is a guild member
