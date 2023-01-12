@@ -150,7 +150,7 @@ class Purge extends Command {
 
     if (type === 'match') {
       args.shift();
-      const count = args.length >= 2 && isNaN(args[args.length]) ? args.pop() : 100;
+      const count = (args.length >= 2 && !isNaN(args[args.length])) ? args.pop() : 100;
       const match = args.join(' ').split('|');
       const filter = function (m) {
         const content = m.content.toLowerCase();
@@ -170,7 +170,7 @@ class Purge extends Command {
 
     if (type === 'not') {
       args.shift();
-      const count = args.length >= 2 && isNaN(args[args.length]) ? args.pop() : 100;
+      const count = args.length >= 2 && !isNaN(args[args.length]) ? args.pop() : 100;
       const match = args.join(' ').split('|');
       const filter = function (m) {
         const content = m.content.toLowerCase();
@@ -190,7 +190,7 @@ class Purge extends Command {
 
     if (type === 'startswith') {
       args.shift();
-      const count = args.length >= 2 && isNaN(args[args.length]) ? args.pop() : 100;
+      const count = args.length >= 2 && !isNaN(args[args.length]) ? args.pop() : 100;
       const match = args.join(' ').split('|');
       const filter = function (m) {
         const content = m.content.toLowerCase();
@@ -210,7 +210,7 @@ class Purge extends Command {
 
     if (type === 'endswith') {
       args.shift();
-      const count = args.length >= 2 && isNaN(args[args.length]) ? args.pop() : 100;
+      const count = args.length >= 2 && !isNaN(args[args.length]) ? args.pop() : 100;
       const match = args.join(' ').split('|');
       const filter = function (m) {
         const content = m.content.toLowerCase();
