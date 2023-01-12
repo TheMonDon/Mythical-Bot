@@ -22,6 +22,7 @@ class Wordle extends Command {
     let winner = false;
     let turn = 0;
     let error;
+    const usedWords = [];
     const WIDTH = 5;
     const HEIGHT = 6;
     const gameBoard = [];
@@ -140,7 +141,14 @@ class Wordle extends Command {
       collected.first().delete().catch(() => {});
 
       if (!allWords.includes(word)) {
+        await error?.delete().catch(() => {});
         error = await msg.channel.send('That word is not in the dictionary!');
+        continue;
+      }
+
+      if (usedWords.includes(word)) {
+        await error?.delete().catch(() => {});
+        error = await msg.channel.send('You already used that word!');
         continue;
       }
 
