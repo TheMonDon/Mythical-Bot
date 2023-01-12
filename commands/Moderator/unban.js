@@ -37,7 +37,7 @@ class Unban extends Command {
 
       if (!bannedUser) return msg.channel.send(`The user with the ID ${userID} is not banned.`);
 
-      const unbanP = await msg.guild.bans.remove(userID, { reason }).catch(err => { return msg.channel.send(`An error occurred: ${err}`); });
+      const unbanP = await msg.guild.members.unban(userID, { reason }).catch(err => { return msg.channel.send(`An error occurred: ${err}`); });
       const embed = new EmbedBuilder()
         .setTitle('Member Unbanned')
         .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
