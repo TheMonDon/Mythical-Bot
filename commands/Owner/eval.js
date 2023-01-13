@@ -36,7 +36,10 @@ class Eval extends Command {
 
     try {
       let evald = eval(query);
-      if (evald instanceof Promise) evald = await evald; promise = true;
+      if (evald instanceof Promise) {
+        evald = await evald;
+        promise = true;
+      }
       const res = typeof evald === 'string' ? evald : inspect(evald, { depth: 0 });
       const res2 = await clean(this.client, res);
 
