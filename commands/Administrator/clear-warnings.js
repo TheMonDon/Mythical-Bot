@@ -11,7 +11,7 @@ class ClearWarnings extends Command {
       usage: 'Clear-Warnings <User>',
       category: 'Administrator',
       permLevel: 'Administrator',
-      aliases: ['cw', 'clearwarns', 'clearwarnings', 'cwarns'],
+      aliases: ['clearwarns', 'clearwarnings', 'cwarns'],
       guildOnly: true
     });
   }
@@ -22,7 +22,7 @@ class ClearWarnings extends Command {
 
     if (!args || args.length < 1) return msg.reply(usage);
 
-    let mem = await await getMember(msg, args.join(' '));
+    let mem = await getMember(msg, args.join(' '));
 
     // Find the user by user ID
     if (!mem) {
@@ -36,6 +36,7 @@ class ClearWarnings extends Command {
 
     const otherWarns = getWarns(mem.id, msg);
     const previousPoints = getTotalPoints(mem.id, msg);
+    const logChan = db.get(`servers.${msg.guild.id}.warns.channel`);
 
     if (!otherWarns || otherWarns.length < 1) return msg.channel.send('That user has no warnings.');
 
@@ -44,30 +45,53 @@ class ClearWarnings extends Command {
     }
 
     if (previousPoints >= 10) {
-      if (!msg.guild.members.me.permissions.has('BanMembers')) return msg.channel.send('The bot does not have BanMembers permission to unban the user.');
-      await msg.guild.members.unban(mem.id).catch(() => null);
+      if (!msg.guild.members.me.permissions.has('BanMembers')) {
+        msg.channel.send('The bot does not have BanMembers permission to unban the user.');
+      } else {
+        await msg.guild.members.unban(mem.id).catch(() => null);
+      }
     }
 
     const otherCases = otherWarns.map((w) => `\`${w.warnID}\``).join(', ');
 
-    const em = new EmbedBuilder()
-      .setDescription(`${msg.author.tag} has cleared all the warnings from a user.`)
+    const userEmbed = new EmbedBuilder()
+      .setDescription('Warnings Cleared')
       .setColor(color)
       .addFields([
-        { name: 'User', value: `${mem} (${mem.id})` },
-        { name: 'Cleared Cases', value: otherCases }
+        { name: 'Moderator', value: `${msg.author.tag} (${msg.author.id})`, inline: true },
+        { name: 'Cleared Cases', value: otherCases, inline: true },
+        { name: 'Issued In', value: msg.guild.name, inline: true }
       ]);
+    const userMessage = await mem.send({ embeds: [userEmbed] }).catch(() => null);
 
-    const memEmbed = new EmbedBuilder()
-      .setDescription(`${msg.author.tag} has cleared all your warnings.`)
+    const logEmbed = new EmbedBuilder()
+      .setTitle('Warnings Cleared')
       .setColor(color)
       .addFields([
-        { name: 'Cleared Cases', value: otherCases },
-        { name: 'Issued In', value: msg.guild.name }
+        { name: 'Moderator', value: `${msg.author.tag} (${msg.author.id})`, inline: true },
+        { name: 'User', value: `${mem} (${mem.id})`, inline: true },
+        { name: 'Cleared Cases', value: otherCases, inline: true }
       ]);
+    if (!userMessage) logEmbed.setFooter({ text: 'Failed to send a DM to the user. (User has DMs disabled)' });
 
-    mem.send({ embeds: [memEmbed] }).catch(() => null);
-    return msg.channel.send({ embeds: [em] });
+    if (logChan) {
+      const channelEmbed = new EmbedBuilder()
+        .setTitle('Warnings Cleared')
+        .setColor(color)
+        .addFields([
+          { name: 'User', value: `${mem} (${mem.id})` },
+          { name: 'Cleared Cases', value: otherCases }
+        ]);
+
+      msg.channel.send({ embeds: [channelEmbed] })
+        .then(embed => {
+          setTimeout(() => embed.delete(), 30000);
+        });
+
+      return msg.guild.channels.cache.get(logChan).send({ embeds: [logEmbed] });
+    } else {
+      return msg.channel.send({ embeds: [logEmbed] });
+    }
   }
 }
 

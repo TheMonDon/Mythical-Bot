@@ -25,6 +25,7 @@ class Warn extends Command {
     let logMessage;
     const usage = `Incorrect Usage: ${msg.settings.prefix}warn <User> <Points Kick:${msg.settings.warnKickPoints} | Ban:${msg.settings.warnBanPoints}> <Reason>`;
 
+    await msg.delete();
     if (!args || args.length < 3) return msg.channel.send(usage);
     mem = await getMember(msg, args[0]);
 
@@ -59,9 +60,9 @@ class Warn extends Command {
     let reason = args.join(' ');
 
     const reasonTest = reason.toLowerCase();
-    if (['-ad', '-advertise', '-advertising', '-ads', '-promoting'].includes(reasonTest)) {
+    if (['-ad', '-advertise', '-advertising', '-ads'].includes(reasonTest)) {
       reason = 'Please do not attempt to advertise in our server.';
-    } else if (['-botcommands', '-botcmds', '-botcmd', '-botchannel', '-botchan', '-botc'].includes(reasonTest)) {
+    } else if (['-botcommands', '-botcmds', '-botcmd', '-botchannel', '-botchan'].includes(reasonTest)) {
       reason = 'Please make sure that you use bot commands in the appropriate channels.';
     } else if (['-dmad', '-dmads', '-dmadvertise', '-privatead', '-pmad', '-pmads'].includes(reasonTest)) {
       reason = 'Do not use our server as a platform to advertise to users in their DMs.';
@@ -114,50 +115,48 @@ class Warn extends Command {
     if (!otherCases) otherCases = 'No other cases';
 
     // Send the embed to the users DMS
-    const userEm = new EmbedBuilder()
+    const userEmbed = new EmbedBuilder()
       .setColor(color)
       .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
-      .setTitle(`You have been ${status}`)
+      .setTitle(`You have been ${status}.`)
       .addFields([
         { name: 'Case ID', value: `\`${warnID}\`` },
         { name: 'Points', value: `${points} points (Total: ${warnAmount} points)` },
         { name: 'Other Cases', value: otherCases },
         { name: 'Reason', value: reason, inline: false }
       ])
-      .setFooter({ text: `Issued in ${msg.guild.name}` });
-    const um = await mem.send({ embeds: [userEm] }).catch(() => null);
+      .setFooter({ text: `Issued in: ${msg.guild.name}` });
+    const userMessage = await mem.send({ embeds: [userEmbed] }).catch(() => null);
 
     // Create the embed for the logs channel
     const logEmbed = new EmbedBuilder()
       .setColor(color)
       .setFooter({ text: `${msg.author.tag} • User ID: ${mem.id}` })
-      .setTitle(`User has been ${status}`)
+      .setTitle(`User has been ${status}.`)
       .addFields([
-        { name: 'User', value: `${mem} (${mem.id})` },
-        { name: 'Moderator', value: `${msg.author.tag} (${msg.author.id})` },
-        { name: 'Case ID', value: `\`${warnID}\`` },
-        { name: 'Points', value: `${points} points (Total: ${warnAmount} points)` },
-        { name: 'Other Cases', value: otherCases },
+        { name: 'User', value: `${mem} (${mem.id})`, inline: true },
+        { name: 'Moderator', value: `${msg.author.tag} (${msg.author.id})`, inline: true },
+        { name: 'Case ID', value: `\`${warnID}\``, inline: true },
+        { name: 'Points', value: `${points} points (Total: ${warnAmount} points)`, inline: true },
+        { name: 'Other Cases', value: otherCases, inline: true },
         { name: 'Reason', value: reason, inline: false }
       ]);
-    if (!um) logEmbed.setFooter({ text: `Failed to message the user in question • User ID: ${mem.id}` });
+    if (!userMessage) logEmbed.setFooter({ text: 'Failed to send a DM to the user. (User has DMs disabled)' });
 
     // Check if the logs channel exists and send the message
     if (logChan) {
-      const em2 = new EmbedBuilder()
+      const channelEmbed = new EmbedBuilder()
         .setColor(color)
         .setFooter({ text: `${msg.author.tag} • User ID: ${mem.id}` })
         .setTitle(`User has been ${status}`)
-        .addFields([
-          { name: 'User', value: `${mem} (${mem.id})` }
-        ])
-        .setDescription('Full info posted in the log channel.');
+        .addFields([{ name: 'User', value: `${mem} (${mem.id})` }])
+        .setDescription('Full info posted inside the log channel.');
 
       logMessage = await msg.guild.channels.cache.get(logChan).send({ embeds: [logEmbed] });
 
-      msg.channel.send({ embeds: [em2] })
-        .then(msg => {
-          setTimeout(() => msg.delete(), 30000);
+      msg.channel.send({ embeds: [channelEmbed] })
+        .then(embed => {
+          setTimeout(() => embed.delete(), 30000);
         });
     } else {
       logMessage = await msg.channel.send({ embeds: [logEmbed] });
