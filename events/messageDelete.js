@@ -19,8 +19,6 @@ module.exports = class {
 
     const chans = db.get(`servers.${msg.guild.id}.logs.noLogChans`) || [];
     if (chans.includes(msg.channel.id)) return;
-    const logChannel = msg.guild.channels.cache.get(logChan);
-    if (!logChannel.permissionsFor(this.client.user.id).has('SendMessages')) return;
 
     // Check if a game is being played by message author (hangman, connect4, etc)
     const current = this.client.games.get(msg.channel.id);
@@ -71,13 +69,14 @@ module.exports = class {
         { name: 'Deleted Text URL', value: url || 'None' },
         { name: 'Channel', value: `<#${msg.channel.id}>` },
         { name: 'Message Author', value: `${msg.author} (${msg.author.tag})` }
-      ]);
+      ])
+      .setFooter({ text: `Message ID: ${msg.id}` })
+      .setTimestamp();
 
     if (delby && (msg.author !== delby)) embed.addFields([{ name: 'Deleted By', value: delby }]);
-    (msg.mentions.users.size === 0) ? embed.addFields({ name: 'Mentioned Users', value: 'None' }) : embed.addFields([{ name: 'Mentioned Users', value: `Mentioned Member Count: ${[...msg.mentions.users.values()].length} \n Mentioned Users List: \n ${[...msg.mentions.users.values()]}` }]);
-    embed.setTimestamp()
-      .setFooter({ text: `Message ID: ${msg.id}` });
-    logChannel.send({ embeds: [embed] });
+    (msg.mentions.users.size === 0) ? embed.addFields({ name: 'Mentioned Users', value: 'None' }) : embed.addFields([{ name: 'Mentioned Users', value: `Mentioned Member Count: ${[...msg.mentions.users.values()].length} \nMentioned Users List: \n ${[...msg.mentions.users.values()]}` }]);
+
+    msg.guild.channels.cache.get(logChan).send({ embeds: [embed] }).catch(() => {});
 
     db.add(`servers.${msg.guild.id}.logs.message-deleted`, 1);
     db.add(`servers.${msg.guild.id}.logs.all`, 1);

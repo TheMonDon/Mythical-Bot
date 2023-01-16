@@ -10,15 +10,12 @@ module.exports = class {
     const logChan = db.get(`servers.${channel.guild.id}.logs.channel`);
     if (!logChan) return;
 
-    const logSys = db.get(`servers.${channel.guild.id}.logs.logSystem.channel-deleted`);
-    if (logSys !== 'enabled') return;
+    const logSystem = db.get(`servers.${channel.guild.id}.logs.logSystem.channel-deleted`);
+    if (logSystem !== 'enabled') return;
     if (channel.name.startsWith('ticket-')) return;
 
     const chans = db.get(`servers.${channel.guild.id}.logs.noLogChans`) || [];
     if (chans.includes(channel.id)) return;
-
-    const logChannel = channel.guild.channels.cache.get(logChan);
-    if (!logChannel.permissionsFor(this.client.user.id).has('SendMessages')) return;
 
     const embed = new EmbedBuilder()
       .setTitle('Channel Deleted')
@@ -29,7 +26,7 @@ module.exports = class {
       ])
       .setFooter({ text: `ID: ${channel.id}` })
       .setTimestamp();
-    channel.guild.channels.cache.get(logChan).send({ embeds: [embed] });
+    channel.guild.channels.cache.get(logChan).send({ embeds: [embed] }).catch(() => {});
 
     db.add(`servers.${channel.guild.id}.logs.channel-deleted`, 1);
     db.add(`servers.${channel.guild.id}.logs.all`, 1);

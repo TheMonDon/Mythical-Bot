@@ -7,15 +7,12 @@ module.exports = class {
   }
 
   async run (member) {
-    (async () => {
+    async function LogSystem () {
       const logChan = db.get(`servers.${member.guild.id}.logs.channel`);
       if (!logChan) return;
 
       const logSys = db.get(`servers.${member.guild.id}.logs.logSystem.member-join`);
       if (logSys !== 'enabled') return;
-
-      const logChannel = member.guild.channels.cache.get(logChan);
-      if (!logChannel.permissionsFor(this.client.user.id).has('SendMessages')) return;
 
       await member.guild.members.fetch();
       const embed = new EmbedBuilder()
@@ -30,13 +27,13 @@ module.exports = class {
         .setFooter({ text: `ID: ${member.user.id}` })
         .setTimestamp();
 
-      member.guild.channels.cache.get(logChan).send({ embeds: [embed] });
+      member.guild.channels.cache.get(logChan).send({ embeds: [embed] }).catch(() => {});
 
       db.add(`servers.${member.guild.id}.logs.member-join`, 1);
       db.add(`servers.${member.guild.id}.logs.all`, 1);
-    })();
+    };
 
-    (async () => {
+    async function AutoRole () {
       const toggle = db.get(`servers.${member.guild.id}.proles.system`) || false;
       if (!toggle) return;
 
@@ -52,25 +49,32 @@ module.exports = class {
       }
 
       db.delete(`servers.${member.guild.id}.proles.users.${member.id}`);
-    })();
+    };
 
+    function WelcomeSystem () {
     // Load the guild's settings
-    const settings = this.client.getSettings(member.guild);
+      const settings = this.client.getSettings(member.guild);
 
-    // If welcome is off, don't proceed (don't welcome the user)
-    if (settings.welcomeEnabled !== 'true') return;
+      // If welcome is off, don't proceed (don't welcome the user)
+      if (settings.welcomeEnabled !== 'true') return;
 
-    // Replace the placeholders in the welcome message with actual data
-    const welcomeMessage = settings.welcomeMessage.replace('{{user}}', member.user.tag).replace('{{guild}}', member.guild.name);
+      // Replace the placeholders in the welcome message with actual data
+      const welcomeMessage = settings.welcomeMessage.replace('{{user}}', member.user.tag).replace('{{guild}}', member.guild.name);
 
-    const em = new EmbedBuilder()
-      .setTitle('Member Joined')
-      .setColor(settings.embedColor)
-      .setTitle(`Welcome to ${member.guild.name}`)
-      .setAuthor({ name: member.user.tag, iconURL: member.user.displayAvatarURL() })
-      .setDescription(welcomeMessage)
-      .setTimestamp();
+      const em = new EmbedBuilder()
+        .setTitle('Member Joined')
+        .setColor(settings.embedColor)
+        .setTitle(`Welcome to ${member.guild.name}`)
+        .setAuthor({ name: member.user.tag, iconURL: member.user.displayAvatarURL() })
+        .setDescription(welcomeMessage)
+        .setTimestamp();
 
-    member.guild.channels.cache.find(c => c.name === settings.welcomeChannel).send({ embeds: [em] });
+      member.guild.channels.cache.find(c => c.name === settings.welcomeChannel).send({ embeds: [em] }).catch(() => {});
+    }
+
+    // Run the functions
+    LogSystem();
+    AutoRole();
+    WelcomeSystem();
   }
 };

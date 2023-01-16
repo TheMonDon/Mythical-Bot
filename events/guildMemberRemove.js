@@ -7,15 +7,12 @@ module.exports = class {
   }
 
   async run (member) {
-    (async () => {
+    async function LogSystem () {
       const logChan = db.get(`servers.${member.guild.id}.logs.channel`);
       if (!logChan) return;
 
       const logSys = db.get(`servers.${member.guild.id}.logs.logSystem.member-leave`);
       if (logSys !== 'enabled') return;
-
-      const logChannel = member.guild.channels.cache.get(logChan);
-      if (!logChannel.permissionsFor(this.client.user.id).has('SendMessages')) return;
 
       await member.guild.members.fetch();
       const embed = new EmbedBuilder()
@@ -30,13 +27,13 @@ module.exports = class {
         .setFooter({ text: `ID: ${member.user.id}` })
         .setTimestamp();
 
-      member.guild.channels.cache.get(logChan).send({ embeds: [embed] });
+      member.guild.channels.cache.get(logChan).send({ embeds: [embed] }).catch(() => {});
 
       db.add(`servers.${member.guild.id}.logs.member-leave`, 1);
       db.add(`servers.${member.guild.id}.logs.all`, 1);
-    })();
+    };
 
-    (async () => {
+    async function AutoRole () {
       const toggle = db.get(`servers.${member.guild.id}.proles.system`) || false;
       if (!toggle) return;
 
@@ -52,22 +49,29 @@ module.exports = class {
       });
 
       db.set(`servers.${member.guild.id}.proles.users.${member.id}`, arr);
-    })();
+    };
 
-    const settings = this.client.getSettings(member.guild);
+    function WelcomeMessage () {
+      const settings = this.client.getSettings(member.guild);
 
-    if (settings.leaveEnabled !== 'true') return;
+      if (settings.leaveEnabled !== 'true') return;
 
-    // Replace the placeholders in the welcome message with actual data
-    const leaveMessage = settings.leaveMessage.replace('{{user}}', member.user.tag).replace('{{guild}}', member.guild.name);
+      // Replace the placeholders in the welcome message with actual data
+      const leaveMessage = settings.leaveMessage.replace('{{user}}', member.user.tag).replace('{{guild}}', member.guild.name);
 
-    const em = new EmbedBuilder()
-      .setColor(settings.embedColor)
-      .setTitle('Member left')
-      .setAuthor({ name: member.user.tag, iconURL: member.user.displayAvatarURL() })
-      .setDescription(leaveMessage)
-      .setTimestamp();
+      const em = new EmbedBuilder()
+        .setColor(settings.embedColor)
+        .setTitle('Member left')
+        .setAuthor({ name: member.user.tag, iconURL: member.user.displayAvatarURL() })
+        .setDescription(leaveMessage)
+        .setTimestamp();
 
-    member.guild.channels.cache.find(c => c.name === settings.leaveChannel).send({ embeds: [em] });
+      member.guild.channels.cache.find(c => c.name === settings.leaveChannel).send({ embeds: [em] }).catch(() => {});
+    }
+
+    // Run the functions
+    LogSystem();
+    AutoRole();
+    WelcomeMessage();
   }
 };

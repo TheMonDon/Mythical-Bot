@@ -13,9 +13,6 @@ module.exports = class {
     const logSys = db.get(`servers.${stage.guild.id}.logs.logSystem.stage-channel-created`);
     if (logSys !== 'enabled') return;
 
-    const logChannel = stage.guild.stages.cache.get(logChan);
-    if (!logChannel.permissionsFor(this.client.user.id).has('SendMessages')) return;
-
     const embed = new EmbedBuilder()
       .setTitle('Stage Channel Created')
       .setColor('#20fc3a')
@@ -25,7 +22,7 @@ module.exports = class {
       ])
       .setFooter({ text: `ID: ${stage.id}` })
       .setTimestamp();
-    stage.guild.channels.cache.get(logChan).send({ embeds: [embed] });
+    stage.guild.channels.cache.get(logChan).send({ embeds: [embed] }).catch(() => {});
 
     db.add(`servers.${stage.guild.id}.logs.stage-channel-created`, 1);
     db.add(`servers.${stage.guild.id}.logs.all`, 1);

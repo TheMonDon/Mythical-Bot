@@ -19,8 +19,6 @@ module.exports = class {
 
     const chans = db.get(`servers.${server.id}.logs.noLogChans`) || [];
     if (chans.includes(chan.id)) return;
-    const logChannel = server.channels.cache.get(logChan);
-    if (!logChannel.permissionsFor(this.client.user.id).has('SendMessages')) return;
 
     const output = [];
     output.push(`${messages.size} messages deleted in ${chan.name}:`);
@@ -58,7 +56,7 @@ module.exports = class {
         { name: 'Deleted Amount', value: messages.size.toLocaleString() },
         { name: 'Channel', value: `<#${chan.id}>` }
       ]);
-    logChannel.send({ embeds: [embed] });
+    server.channels.cache.get(logChan).send({ embeds: [embed] }).catch(() => {});
 
     db.add(`servers.${server.id}.logs.bulk-messages-deleted`, 1);
     db.add(`servers.${server.id}.logs.all`, 1);

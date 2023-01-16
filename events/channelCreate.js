@@ -9,18 +9,15 @@ module.exports = class {
   async run (channel) {
     if (channel.type === ChannelType.DM) return;
 
-    const logChan = db.get(`servers.${channel.guild.id}.logs.channel`);
-    if (!logChan) return;
+    const logChannelId = db.get(`servers.${channel.guild.id}.logs.channel`);
+    if (!logChannelId) return;
 
-    const logSys = db.get(`servers.${channel.guild.id}.logs.logSystem.channel-created`);
-    if (logSys !== 'enabled') return;
+    const logSystem = db.get(`servers.${channel.guild.id}.logs.logSystem.channel-created`);
+    if (logSystem !== 'enabled') return;
     if (channel.name.startsWith('ticket-')) return;
 
     const chans = db.get(`servers.${channel.guild.id}.logs.noLogChans`) || [];
     if (chans.includes(channel.id)) return;
-
-    const logChannel = channel.guild.channels.cache.get(logChan);
-    if (!logChannel.permissionsFor(this.client.user.id).has('SendMessages')) return;
 
     const embed = new EmbedBuilder()
       .setTitle('Channel Created')
@@ -31,7 +28,7 @@ module.exports = class {
       ])
       .setFooter({ text: `ID: ${channel.id}` })
       .setTimestamp();
-    channel.guild.channels.cache.get(logChan).send({ embeds: [embed] });
+    channel.guild.channels.cache.get(logChannelId).send({ embeds: [embed] }).catch(() => {});
 
     db.add(`servers.${channel.guild.id}.logs.channel-created`, 1);
     db.add(`servers.${channel.guild.id}.logs.all`, 1);

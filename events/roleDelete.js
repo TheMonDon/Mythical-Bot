@@ -12,8 +12,6 @@ module.exports = class {
 
     const logSys = db.get(`servers.${role.guild.id}.logs.logSystem.role-deleted`);
     if (logSys !== 'enabled') return;
-    const logChannel = role.guild.channels.cache.get(logChan);
-    if (!logChannel.permissionsFor(this.client.user.id).has('SendMessages')) return;
 
     const embed = new EmbedBuilder()
       .setTitle('Role Deleted')
@@ -25,7 +23,7 @@ module.exports = class {
       ])
       .setFooter({ text: `ID: ${role.id}` })
       .setTimestamp();
-    role.guild.channels.cache.get(logChan).send({ embeds: [embed] });
+    role.guild.channels.cache.get(logChan).send({ embeds: [embed] }).catch(() => {});
 
     db.add(`servers.${role.guild.id}.logs.role-deleted`, 1);
     db.add(`servers.${role.guild.id}.logs.all`, 1);

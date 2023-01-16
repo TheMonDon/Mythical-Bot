@@ -14,13 +14,9 @@ module.exports = class {
 
     const logSys = db.get(`servers.${thread.guild.id}.logs.logSystem.thread-created`);
     if (logSys !== 'enabled') return;
-    if (thread.name.startsWith('ticket-')) return;
 
     const chans = db.get(`servers.${thread.guild.id}.logs.noLogChans`) || [];
     if (chans.includes(thread.id)) return;
-
-    const logchan = thread.guild.channels.cache.get(logChan);
-    if (!logchan.permissionsFor(this.client.user.id).has('SendMessages')) return;
 
     const embed = new EmbedBuilder()
       .setTitle('Thread Channel Created')
@@ -31,7 +27,7 @@ module.exports = class {
       ])
       .setFooter({ text: `ID: ${thread.id}` })
       .setTimestamp();
-    thread.guild.channels.cache.get(logChan).send({ embeds: [embed] });
+    thread.guild.channels.cache.get(logChan).send({ embeds: [embed] }).catch(() => {});
 
     db.add(`servers.${thread.guild.id}.logs.thread-created`, 1);
     db.add(`servers.${thread.guild.id}.logs.all`, 1);
