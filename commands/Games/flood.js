@@ -9,7 +9,8 @@ class Flood extends Command {
       name: 'flood',
       description: 'Play a game of flood.',
       usage: 'flood',
-      category: 'Games'
+      category: 'Games',
+      disabled: 'true'
     });
   }
 
