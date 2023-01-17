@@ -18,14 +18,16 @@ class Flood extends Command {
     const WIDTH = 13;
     const HEIGHT = 13;
     const SQUARES = { red_square: '🟥', blue_square: '🟦', orange_square: '🟧', purple_square: '🟪', green_square: '🟩' };
-    const gameBoard = [];
-    let turn = 0;
-    let message;
-    let gameOver = false;
-    let result;
-    const gameStart = msg.createdAt;
-    let gameEnd;
     const color = msg.settings.embedColor;
+    const gameStart = msg.createdAt;
+    const gameBoard = [];
+    let gameOver = false;
+    let turn = 0;
+    let lastMove;
+    let message;
+    let gameEnd;
+    let result;
+    let error;
 
     const current = this.client.games.get(msg.channel.id);
     if (current) return msg.reply(`Please wait until the current game of \`${current.name}\` is finished.`);
@@ -162,6 +164,10 @@ Filling starts at the top left corner.`)
           this.client.games.delete(msg.channel.id);
           message.reactions.removeAll();
           return message.edit({ embeds: getContent() });
+        } else if (selected === lastMove) {
+          if (error) error.delete();
+          error = await msg.channel.send('You can\'t flood with the same color twice in a row!');
+          continue;
         }
 
         while (queue.length > 0) {
@@ -192,6 +198,7 @@ Filling starts at the top left corner.`)
         gameOver = true;
         result = 'winner';
         gameEnd = Date.now();
+
         for (let y = 0; y < HEIGHT; y++) {
           for (let x = 0; x < WIDTH; x++) {
             if (gameBoard[y * WIDTH + x] !== selected) {
@@ -200,6 +207,8 @@ Filling starts at the top left corner.`)
             }
           }
         }
+
+        error.delete();
       }
 
       if (gameOver === true) {
