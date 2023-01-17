@@ -158,7 +158,6 @@ Filling starts at the top left corner.`)
 
         collected.first().users.remove(msg.author.id);
         selected = collected.first().emoji.name;
-        lastMove = selected;
         if (selected === '🛑') {
           gameOver = true;
           result = 'earlyEnd';
@@ -170,6 +169,7 @@ Filling starts at the top left corner.`)
           error = await msg.channel.send('You can\'t flood with the same color twice in a row!');
           continue;
         }
+        lastMove = selected;
 
         while (queue.length > 0) {
           const pos = queue.shift();
