@@ -208,7 +208,7 @@ Filling starts at the top left corner.`)
           }
         }
 
-        error.delete();
+        if (error) error.delete();
       }
 
       if (gameOver === true) {
