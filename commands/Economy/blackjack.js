@@ -191,15 +191,15 @@ class BlackJack extends Command {
 
       if (selected === 'hit') {
         bj.hit();
-        selected.first().delete().catch(() => {});
+        collected.first().delete().catch(() => {});
       } else
       if (selected === 'stand') {
         bj.stand();
-        selected.first().delete().catch(() => {});
+        collected.first().delete().catch(() => {});
       } else
       if (selected === 'doubledown') {
         bj.doubleDown();
-        selected.first().delete().catch(() => {});
+        collected.first().delete().catch(() => {});
       }
 
       if (win) {
