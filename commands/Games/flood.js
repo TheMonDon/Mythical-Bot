@@ -158,6 +158,7 @@ Filling starts at the top left corner.`)
 
         collected.first().users.remove(msg.author.id);
         selected = collected.first().emoji.name;
+        lastMove = selected;
         if (selected === '🛑') {
           gameOver = true;
           result = 'earlyEnd';
