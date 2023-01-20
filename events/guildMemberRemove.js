@@ -7,7 +7,7 @@ module.exports = class {
   }
 
   async run (member) {
-    async function LogSystem () {
+    async function LogSystem (client, member) {
       const logChan = db.get(`servers.${member.guild.id}.logs.channel`);
       if (!logChan) return;
 
@@ -33,7 +33,7 @@ module.exports = class {
       db.add(`servers.${member.guild.id}.logs.all`, 1);
     };
 
-    async function AutoRole () {
+    async function AutoRole (client, member) {
       const toggle = db.get(`servers.${member.guild.id}.proles.system`) || false;
       if (!toggle) return;
 
@@ -51,8 +51,8 @@ module.exports = class {
       db.set(`servers.${member.guild.id}.proles.users.${member.id}`, arr);
     };
 
-    function WelcomeMessage () {
-      const settings = this.client.getSettings(member.guild);
+    function WelcomeMessage (client, member) {
+      const settings = client.getSettings(member.guild);
 
       if (settings.leaveEnabled !== 'true') return;
 
@@ -70,8 +70,8 @@ module.exports = class {
     }
 
     // Run the functions
-    LogSystem();
-    AutoRole();
-    WelcomeMessage();
+    LogSystem(this.client, member);
+    AutoRole(this.client, member);
+    WelcomeMessage(this.client, member);
   }
 };

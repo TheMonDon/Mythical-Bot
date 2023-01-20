@@ -10,7 +10,7 @@ module.exports = class {
   async run (oldmsg, newmsg) {
     if (oldmsg.author.bot) return;
 
-    function LogSystem () {
+    function LogSystem (client, oldmsg, newmsg) {
       if (!newmsg.guild) return;
 
       const logChan = db.get(`servers.${newmsg.guild.id}.logs.channel`);
@@ -23,7 +23,7 @@ module.exports = class {
       if (chans.includes(newmsg.channel.id)) return;
 
       const logChannel = newmsg.guild.channels.cache.get(logChan);
-      if (!logChannel.permissionsFor(this.client.user.id).has('SendMessages')) return;
+      if (!logChannel.permissionsFor(client.user.id).has('SendMessages')) return;
 
       const msg1 = oldmsg;
       const msg2 = newmsg;
@@ -50,7 +50,7 @@ module.exports = class {
       db.add(`servers.${newmsg.guild.id}.logs.all`, 1);
     };
 
-    async function CommandUpdate () {
+    async function CommandUpdate (client, oldmsg, newmsg) {
       let bool;
       let tag;
       const re = /'http'/;
@@ -58,11 +58,11 @@ module.exports = class {
       if (oldmsg.content === newmsg.content || oldmsg === newmsg) return;
       if (newmsg.guild && !newmsg.channel.permissionsFor(newmsg.guild.members.me).missing('SendMessages')) return;
 
-      const settings = this.client.getSettings(newmsg.guild);
+      const settings = client.getSettings(newmsg.guild);
       newmsg.settings = settings;
 
       // eslint-disable-next-line no-useless-escape
-      const prefixMention = new RegExp(`^(<@!?${this.client.user.id}>)(\s+)?`);
+      const prefixMention = new RegExp(`^(<@!?${client.user.id}>)(\s+)?`);
       if (newmsg.guild && newmsg.content.match(prefixMention)) {
         bool = true;
         tag = String(newmsg.guild.me);
@@ -83,9 +83,9 @@ module.exports = class {
       // If the member on a guild is invisible or not cached, fetch them.
       if (newmsg.guild && !newmsg.member) await newmsg.guild.fetchMember(newmsg.author);
       // Get the user or member's permission level from the elevation
-      const level = this.client.permlevel(newmsg);
+      const level = client.permlevel(newmsg);
 
-      const cmd = this.client.commands.get(command) || this.client.commands.get(this.client.aliases.get(command));
+      const cmd = client.commands.get(command) || client.commands.get(client.aliases.get(command));
       if (!cmd) return;
 
       // Check if the member is blacklisted from using commands in this guild.
@@ -100,11 +100,11 @@ module.exports = class {
       // and return a friendly error message.
       if (cmd && !newmsg.guild && cmd.conf.guildOnly) { return newmsg.channel.send('This command is unavailable via private message. Please run this command in a guild.'); }
 
-      if (level < this.client.levelCache[cmd.conf.permLevel]) {
+      if (level < client.levelCache[cmd.conf.permLevel]) {
         if (settings.systemNotice === 'true') {
           return newmsg.channel.send(`You do not have permission to use this command.
-Your permission level is ${level} (${this.client.config.permLevels.find(l => l.level === level).name})
-This command requires level ${this.client.levelCache[cmd.conf.permLevel]} (${cmd.conf.permLevel})`);
+Your permission level is ${level} (${client.config.permLevels.find(l => l.level === level).name})
+This command requires level ${client.levelCache[cmd.conf.permLevel]} (${cmd.conf.permLevel})`);
         } else {
           return;
         }
@@ -116,7 +116,7 @@ This command requires level ${this.client.levelCache[cmd.conf.permLevel]} (${cmd
       cmd.run(newmsg, args, level);
     }
 
-    LogSystem();
-    CommandUpdate();
+    LogSystem(this.client, oldmsg, newmsg);
+    CommandUpdate(this.client, oldmsg, newmsg);
   }
 };
