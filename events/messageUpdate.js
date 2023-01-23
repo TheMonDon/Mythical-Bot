@@ -42,10 +42,10 @@ module.exports = class {
           { name: 'Message Author', value: `${msg1.author} (${msg1.author.tag})` }
         ])
         .setTimestamp();
-      (msg2.mentions.users.size === 0)
-        ? embed.addFields([{ name: 'Mentioned Users', value: 'None' }])
-        : embed.addFields([{ name: 'Mentioned Users', value: `Mentioned Member Count: ${[...msg2.mentions.users.values()].length} \nMentioned Users List: \n${[...msg2.mentions.users.values()]}` }]);
+
+      if (msg2.mentions.users.size === 0) embed.addFields([{ name: 'Mentioned Users', value: `Mentioned Member Count: ${[...msg2.mentions.users.values()].length} \nMentioned Users List: \n${[...msg2.mentions.users.values()]}` }]);
       newmsg.guild.channels.cache.get(logChan).send({ embeds: [embed] });
+
       db.add(`servers.${newmsg.guild.id}.logs.message-edited`, 1);
       db.add(`servers.${newmsg.guild.id}.logs.all`, 1);
     };

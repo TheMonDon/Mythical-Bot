@@ -35,17 +35,26 @@ module.exports = class {
     }
 
     const embed = new EmbedBuilder()
-      .setTitle(`Channel ${channel.name} Updated`)
+      .setTitle(`Channel "${channel.name}" Updated`)
       .setColor('#EE82EE')
-      .addFields([
-        { name: 'Name', value: (channel.name === newChannel.name) ? 'Updated: ❌' : `Updated: ✅ \nNew Name: ${newChannel.name}`, inline: true },
-        { name: 'Topic', value: (channel.topic === newChannel.topic) ? 'Updated: ❌' : `Updated: ✅ \nNew Topic: ${newChannel.topic}`, inline: true },
-        { name: 'Category', value: catUp, inline: true }
-      ])
-      .setFooter({ text: `ID: ${newChannel.id}` })
+      .setFooter({ text: `Channel ID: ${newChannel.id}` })
       .setTimestamp();
-    if (channel.type === ChannelType.GuildText) embed.addFields([{ name: 'Is NSFW?', value: (newChannel.nsfw) ? '✅' : '❌', inline: true }]);
-    if ([ChannelType.GuildVoice, ChannelType.GuildStageVoice].includes(channel.type)) embed.addFields([{ name: 'Bitrate', value: (channel.bitrate === newChannel.bitrate) ? 'Updated: ❌' : `Updated: ✅ \nNew Bitrate: ${newChannel.bitrate.toLocaleString()}`, inline: true }]);
+
+    if (channel.name !== newChannel.name) embed.addFields([{ name: 'Name', value: `Updated: ✅ \nNew Name: ${newChannel.name}`, inline: true }]);
+
+    if (channel.topic !== newChannel.topic) embed.addFields([{ name: 'Topic', value: `Updated: ✅ \nOld Topic: ${channel.topic} \nNew Topic: ${newChannel.topic}`, inline: true }]);
+
+    if (catUp !== 'Updated: ❌') embed.addFields([{ name: 'Category', value: catUp, inline: true }]);
+
+    if (channel.type === ChannelType.GuildText) {
+      if (channel.nsfw !== newChannel.nsfw) embed.addFields([{ name: 'NSFW', value: `Updated: ✅ \nNew NSFW Type: ${newChannel.nsfw}`, inline: true }]);
+    }
+
+    if ([ChannelType.GuildVoice, ChannelType.GuildStageVoice].includes(channel.type)) {
+      if (channel.bitrate !== newChannel.bitrate) embed.addFields([{ name: 'Bitrate', value: `Updated: ✅ \nNew Bitrate Level: ${newChannel.bitrate.toLocaleString()}`, inline: true }]);
+    }
+
+    if (embed.fields?.length === 0) return;
 
     channel.guild.channels.cache.get(logChan).send({ embeds: [embed] }).catch(() => {});
 
