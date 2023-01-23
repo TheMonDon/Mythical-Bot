@@ -136,8 +136,8 @@ class Wordle extends Command {
         time: 300000
       });
 
-      if (!collected?.first()?.content) gameOver = true;
-      const word = collected.first().content.toLowerCase();
+      const word = collected?.first()?.content.toLowerCase();
+      if (!word) gameOver = true;
       collected.first().delete().catch(() => {});
 
       if (!allWords.includes(word)) {
