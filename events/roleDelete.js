@@ -24,7 +24,7 @@ module.exports = class {
       .setFooter({ text: `ID: ${role.id}` })
       .setTimestamp();
 
-    if (role.hexColor !== 0) embed.addField({ name: 'Color', value: role.hexColor.toString() });
+    if (role.hexColor !== 0) embed.addFields({ name: 'Color', value: role.hexColor.toString() });
 
     role.guild.channels.cache.get(logChan).send({ embeds: [embed] }).catch(() => {});
 
