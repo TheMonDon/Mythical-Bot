@@ -21,10 +21,11 @@ module.exports = class {
       .setColor(roleafter.hexColor)
       .addFields([
         { name: 'Name', value: (rolebefore.name === roleafter.name) ? 'Updated: ❌' : `Updated: ✅ \nNew Name: ${roleafter.name}` },
-        { name: 'Color', value: (rolebefore.hexColor === roleafter.hexColor) ? 'Updated: ❌' : `Updated: ✅ \nNew Color: ${roleafter.hexColor}` }
+        { name: 'Color', value: (rolebefore.hexColor === roleafter.hexColor) ? 'Updated: ❌' : `Updated: ✅ \nOld Color: ${rolebefore.hexColor} \nNew Color: ${roleafter.hexColor}` }
       ])
       .setFooter({ text: `ID: ${roleafter.id}` })
       .setTimestamp();
+
     roleafter.guild.channels.cache.get(logChan).send({ embeds: [embed] }).catch(() => {});
 
     db.add(`servers.${roleafter.guild.id}.logs.role-updated`, 1);

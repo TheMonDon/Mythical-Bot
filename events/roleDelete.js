@@ -15,14 +15,17 @@ module.exports = class {
 
     const embed = new EmbedBuilder()
       .setTitle('Role Deleted')
-      .setColor(role.hexColor)
+      .setColor('#FF0000')
       .addFields([
         { name: 'Name', value: role.name },
-        { name: 'Managed', value: role.managed },
+        { name: 'Managed', value: role.managed.toString() },
         { name: 'Position', value: role.position.toString() }
       ])
       .setFooter({ text: `ID: ${role.id}` })
       .setTimestamp();
+
+    if (role.hexColor !== 0) embed.addField({ name: 'Color', value: role.hexColor.toString() });
+
     role.guild.channels.cache.get(logChan).send({ embeds: [embed] }).catch(() => {});
 
     db.add(`servers.${role.guild.id}.logs.role-deleted`, 1);

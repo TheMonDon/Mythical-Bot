@@ -18,11 +18,12 @@ module.exports = class {
       .setColor('#20fc3a')
       .addFields([
         { name: 'Name', value: role.toString() },
-        { name: 'Managed', value: role.managed },
+        { name: 'Managed', value: role.managed.toString() },
         { name: 'Position', value: role.position.toString() }
       ])
       .setFooter({ text: `ID: ${role.id}` })
       .setTimestamp();
+
     role.guild.channels.cache.get(logChan).send({ embeds: [embed] }).catch(() => {});
 
     db.add(`servers.${role.guild.id}.logs.role-created`, 1);
