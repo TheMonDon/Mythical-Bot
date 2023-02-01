@@ -27,15 +27,19 @@ module.exports = class Util {
    * @returns {String} - Returns true or false
    */
   static async verify (channel, user, { time = 30000, extraYes = [], extraNo = [] } = {}) {
+    if (!channel || !user) return false;
+
     const filter = res => {
       const value = res.content.toLowerCase();
       return (user ? res.author.id === user.id : true) && (yes.includes(value) || no.includes(value) || extraYes.includes(value) || extraNo.includes(value));
     };
+
     const verify = await channel.awaitMessages({
       filter,
       max: 1,
       time
     });
+
     if (!verify.size) return 0;
     const choice = verify.first().content.toLowerCase();
     if (yes.includes(choice) || extraYes.includes(choice)) return true;
@@ -168,8 +172,9 @@ module.exports = class Util {
    * @param {Number} maxLength - Maximum length of string
    * @returns {String}
    */
-  static cleanString (str, minLength = 0, maxLength = 2000) {
+  static limitStringLength (str, minLength = 0, maxLength = 2000) {
     const string = String(str);
+    if (string.length < maxLength) return string;
     return string.slice(minLength, maxLength - 3) + (str.length > maxLength - 3 ? '...' : '');
   }
 
@@ -189,6 +194,8 @@ module.exports = class Util {
    * @param {String} text Text to clean
    */
   static async clean (client, text) {
+    if (!client || !text) throw new Error('Missing parameters');
+
     let newText = text;
     if (text && text.constructor.name === 'Promise') { newText = await text; }
     if (typeof text !== 'string') { newText = require('util').inspect(text, { depth: 1 }); }
@@ -207,6 +214,7 @@ module.exports = class Util {
       config.OxfordKey,
       config.TMDb
     ];
+
     for (let i = 0; i < secrets.length; i++) {
       newText = Util.replaceAll(newText, secrets[i], '*'.repeat(secrets[i].length));
     }

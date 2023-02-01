@@ -1,7 +1,6 @@
 const Command = require('../../base/Command.js');
 const { EmbedBuilder } = require('discord.js');
 const fetch = require('node-superfetch');
-const { clean } = require('../../util/Util.js');
 
 class Steam extends Command {
   constructor (client) {
@@ -14,9 +13,7 @@ class Steam extends Command {
   }
 
   async run (msg, text) {
-    const query = await clean(this.client, text.join(' '));
-
-    if (!text || text.length < 1) {
+    if (text?.length < 1) {
       const em = new EmbedBuilder()
         .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
         .setTitle('Please provide something to search for')
@@ -24,6 +21,8 @@ class Steam extends Command {
         .setTimestamp();
       return msg.channel.send({ embeds: [em] });
     }
+
+    const query = await this.client.util.clean(this.client, text.join(' '));
 
     const search = await fetch
       .get('https://store.steampowered.com/api/storesearch')

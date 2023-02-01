@@ -1,5 +1,4 @@
 const Command = require('../../base/Command.js');
-const { randomString } = require('../../util/Util.js');
 const { EmbedBuilder, ChannelType } = require('discord.js');
 const moment = require('moment');
 require('moment-duration-format');
@@ -20,11 +19,11 @@ class RemindMe extends Command {
   async run (msg, args) {
     const query = args.join(' ');
 
-    if (!query || query.length < 1) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}Remindme <reminder> \nExample: ${msg.settings.prefix}Remindme Ban Zeph in 1 year`);
+    if (query?.length < 1) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}Remindme <reminder> \nExample: ${msg.settings.prefix}Remindme Ban Zeph in 1 year`);
 
     const reminders = db.get('global.reminders') || [];
-    let remID = randomString(5);
-    while (reminders.length > 0 && reminders.includes(remID)) remID = randomString(5);
+    let remID = this.client.util.randomString(5);
+    while (reminders.length > 0 && reminders.includes(remID)) remID = this.client.util.randomString(5);
 
     /* this is all old.
     // Want to find a way to put this back in at some point.

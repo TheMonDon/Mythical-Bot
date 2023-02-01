@@ -1,5 +1,4 @@
 const Command = require('../../base/Command.js');
-const { getMember } = require('../../util/Util.js');
 const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
 const { DateTime } = require('luxon');
@@ -23,7 +22,7 @@ class AddMember extends Command {
 
     if (!args[0]) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}add <user>`);
 
-    const mem = await getMember(msg, args.join(' '));
+    const mem = await this.client.util.getMember(msg, args.join(' '));
     if (!mem) return msg.channel.send('That is not a valid user.');
 
     const { roleID } = db.get(`servers.${msg.guild.id}.tickets`);

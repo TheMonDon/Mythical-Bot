@@ -22,8 +22,9 @@ module.exports = class {
         { name: 'Identifier', value: emoji.identifier },
         { name: 'Was Animated?', value: emoji.animated }
       ])
-      .setFooter({ text: `ID: ${emoji.id}` })
+      .setFooter({ text: `Emoji ID: ${emoji.id}` })
       .setTimestamp();
+
     emoji.guild.channels.cache.get(logChan).send({ embeds: [embed] }).catch(() => {});
 
     db.add(`servers.${emoji.guild.id}.logs.emoji-deleted`, 1);

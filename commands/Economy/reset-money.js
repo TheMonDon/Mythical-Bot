@@ -1,5 +1,4 @@
 const Command = require('../../base/Command.js');
-const { getMember, verify } = require('../../util/Util.js');
 const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
 
@@ -18,7 +17,7 @@ class ResetMoney extends Command {
   async run (msg, text, level) {
     if (!text || text.length < 1) {
       await msg.channel.send('Are you sure you want to reset your money? (yes/no)');
-      const verification = await verify(msg.channel, msg.author);
+      const verification = await this.client.util.verify(msg.channel, msg.author);
       if (verification) {
         const amount = db.get(`servers.${msg.guild.id}.economy.startBalance`) || 0;
         db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, amount);
@@ -38,7 +37,7 @@ class ResetMoney extends Command {
         }
       }
 
-      let mem = await getMember(msg, text.join(' '));
+      let mem = await this.client.util.getMember(msg, text.join(' '));
 
       if (!mem) {
         const fid = text.join(' ').replace('<@', '').replace('>', '');
@@ -54,7 +53,7 @@ class ResetMoney extends Command {
       }
 
       await msg.channel.send(`Are you sure you want to reset ${mem.user?.tag || mem.tag}'s money? (yes/no)`);
-      const verification = await verify(msg.channel, msg.author);
+      const verification = await this.client.util.verify(msg.channel, msg.author);
       if (verification) {
         const amount = db.get(`servers.${msg.guild.id}.economy.startBalance`) || 0;
         db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, amount);

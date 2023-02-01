@@ -1,5 +1,4 @@
 const Command = require('../../base/Command.js');
-const { getRole } = require('../../util/Util.js');
 const { EmbedBuilder } = require('discord.js');
 const moment = require('moment');
 require('moment-duration-format');
@@ -19,9 +18,9 @@ class RoleInfo extends Command {
   async run (msg, text) {
     const usage = `Incorrect Usage: ${msg.settings.prefix}Role-Info <Role Name | Role Id | @role>`;
 
-    if (!text || text.length < 1) return msg.reply(usage);
+    if (text?.length < 1) return msg.reply(usage);
 
-    const infoRole = getRole(msg, text.join(' '));
+    const infoRole = this.client.util.getRole(msg, text.join(' '));
     if (!infoRole) return msg.reply(usage);
 
     // Get the role's creation date and format it

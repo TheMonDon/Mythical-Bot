@@ -1,5 +1,4 @@
 const Command = require('../../base/Command.js');
-const { getMember } = require('../../util/Util.js');
 const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
 const { stripIndents } = require('common-tags');
@@ -41,10 +40,10 @@ class RemoveMoney extends Command {
     const currencySymbol = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
 
     if (args.length === 2) {
-      mem = await getMember(msg, args[0]);
+      mem = await this.client.util.getMember(msg, args[0]);
       amount = parseFloat(args[1].replace(currencySymbol, '').replace(/,/ig, ''));
     } else {
-      mem = await getMember(msg, args[1]);
+      mem = await this.client.util.getMember(msg, args[1]);
       amount = parseFloat(args[2].replace(currencySymbol, '').replace(/,/ig, ''));
     }
 

@@ -2,7 +2,6 @@ const Command = require('../../base/Command.js');
 const { Connect4AI } = require('connect4-ai');
 const { stripIndents } = require('common-tags');
 const emojiRegex = require('emoji-regex');
-const { list, verify, getMember } = require('../../util/Util.js');
 const blankEmoji = '⚪';
 const nums = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣'];
 const customEmojiRegex = /^(?:<a?:([a-zA-Z0-9_]+):)?([0-9]+)>?$/;
@@ -50,12 +49,12 @@ class Connect4 extends Command {
 
     const usage = `Incorrect Usage: ${msg.settings.prefix}connect4 <opponent> <color>`;
     if (!args || args.length < 2) return msg.reply(usage);
-    let opponent = await getMember(msg, args[0]);
+    let opponent = await this.client.util.getMember(msg, args[0]);
     if (!opponent) opponent = msg.guild.members.me;
     if (opponent.id === msg.author.id) return msg.reply('You may not play against yourself.');
 
     args.shift();
-    if (!args || args.length < 1) return msg.channel.send(`${usage} \nThat is not a valid color, either an emoji or one of ${list(Object.keys(colors), 'or')}.`);
+    if (!args || args.length < 1) return msg.channel.send(`${usage} \nThat is not a valid color, either an emoji or one of ${this.client.util.list(Object.keys(colors), 'or')}.`);
 
     function checkLine (a, b, c, d) {
       return (a !== null) && (a === b) && (a === c) && (a === d);
@@ -106,7 +105,7 @@ class Connect4 extends Command {
       const hasCustom = color.match(customEmojiRegex);
       if (hasCustom && !msg.guild) return msg.channel.send('You can only use custom emoji in a server.');
       if (hasCustom && msg.guild && !msg.guild.emojis.cache.has(hasCustom[2])) return msg.channel.send('You can only use custom emoji from this server.');
-      if (!hasCustom && !hasEmoji && !colors[color.toLowerCase()]) return msg.channel.send(`Sorry that is not valid, please use an emoji or one of the following: ${list(Object.keys(colors), 'or')}.`);
+      if (!hasCustom && !hasEmoji && !colors[color.toLowerCase()]) return msg.channel.send(`Sorry that is not valid, please use an emoji or one of the following: ${this.client.util.list(Object.keys(colors), 'or')}.`);
       if (color === blankEmoji) return msg.channel.send('You cannot use that emoji.');
       return true;
     }
@@ -130,14 +129,14 @@ class Connect4 extends Command {
       } else {
         // Check with opponent if they want to play
         await msg.channel.send(`${opponent}, do you accept this challenge?`);
-        const verification = await verify(msg.channel, opponent);
+        const verification = await this.client.util.verify(msg.channel, opponent);
         if (!verification) {
           this.client.games.delete(msg.channel.id);
           return msg.channel.send('Looks like they declined...');
         }
 
         // Get opponent's color
-        await msg.channel.send(`${opponent}, what color do you want to be? Either an emoji or one of ${list(available, 'or')}.`);
+        await msg.channel.send(`${opponent}, what color do you want to be? Either an emoji or one of ${this.client.util.list(available, 'or')}.`);
         const filter = res => {
           if (res.author.id !== opponent.id) return false;
           if (res.content === blankEmoji) return false;

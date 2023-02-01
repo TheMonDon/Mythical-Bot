@@ -1,5 +1,4 @@
 const Command = require('../../base/Command.js');
-const { getChannel, getRole, verify, awaitReply } = require('../../util/Util.js');
 const { EmbedBuilder, ChannelType } = require('discord.js');
 const db = require('quick.db');
 const { stripIndents } = require('common-tags');
@@ -41,7 +40,7 @@ class Setup extends Command {
           Type \`cancel\` to exit.
           `);
 
-          const collected = await verify(msg.channel, msg.author);
+          const collected = await this.client.util.verify(msg.channel, msg.author);
           if (!collected) return collected.first().reply('Got it! Nothing has been changed.');
           else db.delete(`servers.${msg.guild.id}.tickets`);
         }
@@ -62,7 +61,7 @@ class Setup extends Command {
 
       if (!collected) return msg.reply('You did not reply in time, the command has been cancelled.');
       const response = collected.first().content.toLowerCase();
-      let role = getRole(msg, response);
+      let role = this.client.util.getRole(msg, response);
 
       if (response.toLowerCase() === 'cancel') return collected.first().reply('Got it! The command has been cancelled.');
 
@@ -202,17 +201,17 @@ class Setup extends Command {
       args.shift();
       let text = args.join(' ');
       if (!args || args.length < 1) {
-        text = await awaitReply(msg, 'What channel do you want to setup logging in?');
+        text = await this.client.util.awaitReply(msg, 'What channel do you want to setup logging in?');
         if (!text) return msg.reply('The command has been cancelled due to no reply.');
       }
 
-      let chan = getChannel(msg, text);
+      let chan = this.client.util.getChannel(msg, text);
 
       if (!chan) {
         msg.reply('That channel was not found, please type a valid server channel.');
-        text = await awaitReply(msg, 'What channel do you want to setup logging in?');
+        text = await this.client.util.awaitReply(msg, 'What channel do you want to setup logging in?');
         if (!text) return msg.reply('The command has been cancelled due invalid channel.');
-        chan = getChannel(msg, text);
+        chan = this.client.util.getChannel(msg, text);
       }
 
       const currentChan = db.get(`servers.${msg.guild.id}.logs.channel`);
@@ -256,12 +255,12 @@ class Setup extends Command {
       const kickAmount = args[1];
       const banAmount = args[2];
 
-      channel = await getChannel(msg, channelArg);
+      channel = await this.client.util.getChannel(msg, channelArg);
 
       if (!channel) {
         msg.reply('That channel was not found, please type a valid server channel.');
-        channelArg = await awaitReply(msg, 'What channel do you want to setup logging in?');
-        channel = await getChannel(msg, channelArg);
+        channelArg = await this.client.util.awaitReply(msg, 'What channel do you want to setup logging in?');
+        channel = await this.client.util.getChannel(msg, channelArg);
         if (!channel || !channelArg) return msg.reply('The command has been cancelled due invalid channel.');
       }
 

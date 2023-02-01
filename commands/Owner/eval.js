@@ -3,7 +3,6 @@
 const { EmbedBuilder } = require('discord.js');
 const { inspect } = require('util');
 const Command = require('../../base/Command.js');
-const { clean } = require('../../util/Util.js');
 
 class Eval extends Command {
   constructor (client) {
@@ -20,10 +19,7 @@ class Eval extends Command {
   async run (msg, args, level) {
     const db = require('quick.db');
     const DiscordJS = require('discord.js');
-    const Util = require('../../util/Util.js');
-    const server = msg.guild;
-    const member = msg.member;
-    const config = this.client.config;
+    const util = this.client.util;
     let promise = false;
 
     const embed = new EmbedBuilder()
@@ -41,7 +37,7 @@ class Eval extends Command {
         promise = true;
       }
       const res = typeof evald === 'string' ? evald : inspect(evald, { depth: 0 });
-      const res2 = await clean(this.client, res);
+      const res2 = await util.clean(this.client, res);
 
       embed.setDescription(`Result ${promise ? '(Promise Awaited)' : ''} \n ${code('js', res2)}`);
 

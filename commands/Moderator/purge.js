@@ -1,7 +1,4 @@
-/* eslint-disable prefer-const */
-/* eslint-disable no-unused-vars */
 const Command = require('../../base/Command.js');
-const { getMember, wait } = require('../../util/Util.js');
 const { stripIndents } = require('common-tags');
 
 class Purge extends Command {
@@ -98,8 +95,8 @@ class Purge extends Command {
     if (type === 'default') {
       let total = Number(count);
       let purged = 0;
-      let progress = count > 100;
-      let user = args[1] ? getMember(msg, args.slice(1).join(' ')) : null;
+      const progress = count > 100;
+      const user = args[1] ? this.client.util.getMember(msg, args.slice(1).join(' ')) : null;
 
       if (count > 1000) {
         count = 1000;
@@ -147,7 +144,7 @@ class Purge extends Command {
 
         if (!messages.size) count = 0;
 
-        await wait(1100);
+        await this.client.util.wait(1100);
         count -= Math.min(count, 100);
       }
 
@@ -191,8 +188,8 @@ class Purge extends Command {
 
       const filter = function (m) {
         const content = m.content.toLowerCase();
-        for (let t of match) {
-          if (content.includes(t.toLowerCase())) return true;
+        for (const text of match) {
+          if (content.includes(text.toLowerCase())) return true;
         }
         return false;
       };
@@ -219,8 +216,8 @@ class Purge extends Command {
 
       const filter = function (m) {
         const content = m.content.toLowerCase();
-        for (let t of match) {
-          if (!content.includes(t.toLowerCase())) return true;
+        for (const text of match) {
+          if (!content.includes(text.toLowerCase())) return true;
         }
         return false;
       };
@@ -247,8 +244,8 @@ class Purge extends Command {
 
       const filter = function (m) {
         const content = m.content.toLowerCase();
-        for (let t of match) {
-          if (content.startsWith(t.toLowerCase())) return true;
+        for (const text of match) {
+          if (content.startsWith(text.toLowerCase())) return true;
         }
         return false;
       };
@@ -275,8 +272,8 @@ class Purge extends Command {
 
       const filter = function (m) {
         const content = m.content.toLowerCase();
-        for (let t of match) {
-          if (content.endsWith(t.toLowerCase())) return true;
+        for (const text of match) {
+          if (content.endsWith(text.toLowerCase())) return true;
         }
         return false;
       };

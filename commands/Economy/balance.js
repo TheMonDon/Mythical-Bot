@@ -1,5 +1,4 @@
 const Command = require('../../base/Command.js');
-const { getMember } = require('../../util/Util.js');
 const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
 const { stripIndents } = require('common-tags');
@@ -19,7 +18,7 @@ class Balance extends Command {
   async run (msg, args) {
     let mem = msg.member;
 
-    if (args && args.length > 0) mem = await getMember(msg, args.join(' '));
+    if (args && args.length > 0) mem = await this.client.util.getMember(msg, args.join(' '));
 
     if (!mem) {
       const embed = new EmbedBuilder()

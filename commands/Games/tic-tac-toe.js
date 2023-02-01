@@ -1,7 +1,6 @@
 const Command = require('../../base/Command.js');
 const tictactoe = require('tictactoe-minimax-ai');
 const { stripIndents } = require('common-tags');
-const { verify, getMember } = require('../../util/Util.js');
 const nums = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣'];
 
 class TicTacToe extends Command {
@@ -21,7 +20,7 @@ class TicTacToe extends Command {
 
     if (!args || args.length < 1) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}tic-tac-toe <member>`);
 
-    const opponent = await getMember(msg, args.join(' '));
+    const opponent = await this.client.util.getMember(msg, args.join(' '));
     if (opponent.id === msg.author.id) return msg.reply('You may not play against yourself.');
 
     this.client.games.set(msg.channel.id, { name: this.help.name, user: msg.author.id, date: Date.now() });
@@ -68,7 +67,7 @@ class TicTacToe extends Command {
     try {
       if (!opponent.user.bot) {
         await msg.channel.send(`${opponent}, do you accept this challenge?`);
-        const verification = await verify(msg.channel, opponent);
+        const verification = await this.client.util.verify(msg.channel, opponent);
         if (!verification) {
           this.client.games.delete(msg.channel.id);
           return msg.channel.send('Looks like they declined...');

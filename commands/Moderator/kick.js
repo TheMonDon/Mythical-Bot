@@ -1,5 +1,4 @@
 const Command = require('../../base/Command.js');
-const { getMember } = require('../../util/Util.js');
 const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
 
@@ -21,7 +20,7 @@ class Kick extends Command {
     const logChan = db.get(`servers.${msg.guild.id}.logs.channel`);
 
     if (!args[0]) return msg.channel.send('Please provide a user and a reason.');
-    const kickMem = await getMember(msg, args[0]);
+    const kickMem = await this.client.util.getMember(msg, args[0]);
 
     // start reason
     args.shift();

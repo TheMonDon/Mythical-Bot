@@ -1,5 +1,4 @@
 const Command = require('../../base/Command.js');
-const { getMember, getJoinPosition } = require('../../util/Util.js');
 const { EmbedBuilder } = require('discord.js');
 const moment = require('moment');
 require('moment-duration-format');
@@ -21,7 +20,7 @@ class UserInfo extends Command {
     const color = msg.settings.embedColor;
 
     // If text is provided, try to get the member
-    if (text?.length > 0) infoMem = await getMember(msg, text.join(' ').toLowerCase());
+    if (text?.length > 0) infoMem = await this.client.util.getMember(msg, text.join(' ').toLowerCase());
 
     if (!infoMem) {
       // If no member is found, try to get the user by ID
@@ -57,7 +56,7 @@ class UserInfo extends Command {
 
     // If the user is a guild member
     if (msg.guild.members.cache.get(infoMem.id)) {
-      const joinPosition = await getJoinPosition(infoMem.id, msg.guild);
+      const joinPosition = await this.client.util.getJoinPosition(infoMem.id, msg.guild);
 
       // Created At timestamp
       const createdAtTimestamp = moment(infoMem.user.createdAt);

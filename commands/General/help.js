@@ -1,5 +1,4 @@
 const Command = require('../../base/Command.js');
-const { toProperCase } = require('../../util/Util.js');
 const { EmbedBuilder } = require('discord.js');
 const db = require('quick.db');
 
@@ -31,7 +30,7 @@ class Help extends Command {
 
     if (!args || args.length < 1) return msg.channel.send({ embeds: [errEm] });
 
-    const category = toProperCase(args.join(' '));
+    const category = this.client.util.toProperCase(args.join(' '));
     const disabled = db.get(`servers.${msg.guild.id}.disabled`) || [];
 
     const em = new EmbedBuilder()
@@ -46,12 +45,12 @@ class Help extends Command {
 
     // Show all commands in the category
     sorted.forEach(c => {
-      const cat = toProperCase(c.help.category);
+      const cat = this.client.util.toProperCase(c.help.category);
       if (category === cat) {
-        msgArray.push(`${msg.settings.prefix}${toProperCase(c.help.name)}`);
+        msgArray.push(`${msg.settings.prefix}${this.client.util.toProperCase(c.help.name)}`);
         msgArray.push(`${c.help.description}`);
         type = 'category';
-        em.addFields([{ name: `${msg.settings.prefix}${toProperCase(c.help.name)}`, value: `${c.help.description}` }]);
+        em.addFields([{ name: `${msg.settings.prefix}${this.client.util.toProperCase(c.help.name)}`, value: `${c.help.description}` }]);
       }
     });
 
@@ -68,7 +67,7 @@ class Help extends Command {
         if (level < this.client.levelCache[command.conf.permLevel]) return;
         const res = disabled.includes(command.help.category.toLowerCase()) || disabled.includes(command.help.name.toLowerCase());
         em
-          .setTitle(`${toProperCase(command.help.name)} Information`)
+          .setTitle(`${this.client.util.toProperCase(command.help.name)} Information`)
           .setColor(color)
           .addFields([
             { name: 'Usage', value: command.help.usage },

@@ -1,5 +1,4 @@
 const Command = require('../../base/Command.js');
-const { getMember } = require('../../util/Util.js');
 const randomWords = require('random-words');
 const { EmbedBuilder } = require('discord.js');
 
@@ -51,7 +50,7 @@ class Hangman extends Command {
       newWordString.push('_');
     }
 
-    const mention = await getMember(msg, args.join(' '));
+    const mention = await this.client.util.getMember(msg, args.join(' '));
     if (mention && !mention.user.bot) {
       const mentionplayquestion = lang.hangman_mentionplayquestion.replace('%mention', mention)
         .replace('%author', msg.author);

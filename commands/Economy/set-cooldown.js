@@ -3,7 +3,6 @@ const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
 const ms = require('ms');
 const { stripIndents } = require('common-tags');
-const { toProperCase } = require('../../util/Util.js');
 
 class SetCooldown extends Command {
   constructor (client) {
@@ -62,7 +61,7 @@ class SetCooldown extends Command {
     args.shift();
     const time = args.join(' ');
     const cooldown = ms(time);
-    const properCase = toProperCase(type);
+    const properCase = this.client.util.toProperCase(type);
 
     if (cooldown > 1209600000) {
       const embed = new EmbedBuilder()

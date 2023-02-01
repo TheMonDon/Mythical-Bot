@@ -1,5 +1,4 @@
 const Command = require('../../base/Command.js');
-const { getMember } = require('../../util/Util.js');
 const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
 const moment = require('moment');
@@ -17,9 +16,7 @@ class Rob extends Command {
   }
 
   async run (msg, text) {
-    let mem;
     const errorColor = msg.settings.embedErrorColor;
-
     const type = 'rob';
 
     const cooldown = db.get(`servers.${msg.guild.id}.economy.${type}.cooldown`) || 600; // get cooldown from database or set to 600 seconds (10 minutes)
@@ -48,9 +45,9 @@ class Rob extends Command {
         .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
         .setDescription(`Incorrect Usage: ${msg.settings.prefix}Rob <user>`);
       return msg.channel.send({ embeds: [embed] });
-    } else {
-      mem = await getMember(msg, text.join(' '));
     }
+
+    const mem = await this.client.util.getMember(msg, text.join(' '));
 
     if (!mem) {
       const embed = new EmbedBuilder()

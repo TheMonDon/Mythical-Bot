@@ -1,5 +1,4 @@
 const Command = require('../../base/Command.js');
-const { clean, cleanString } = require('../../util/Util.js');
 const cowsay = require('cowsay');
 
 class CowSay extends Command {
@@ -16,9 +15,10 @@ class CowSay extends Command {
   async run (msg, args) {
     if (!args || args.length < 1) return msg.channel.send('Please type a message for me to say as a cow.');
     const text = args.join(' ');
+    const lengthLimited = this.client.util.limitStringLength(text);
 
     const cmsg = cowsay.say({
-      text: await clean(this.client, cleanString(text))
+      text: await this.client.util.clean(this.client, lengthLimited)
     });
 
     return msg.channel.send(`\`\`\`${cmsg}\`\`\``);

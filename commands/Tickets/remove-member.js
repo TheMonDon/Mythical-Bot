@@ -1,5 +1,4 @@
 const Command = require('../../base/Command.js');
-const { getMember } = require('../../util/Util.js');
 const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
 const { DateTime } = require('luxon');
@@ -23,7 +22,7 @@ class RemoveMember extends Command {
 
     if (!args[0]) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}remove <user>`);
 
-    const mem = await await getMember(msg, args.join(' '));
+    const mem = await this.client.util.getMember(msg, args.join(' '));
     if (!mem) return msg.channel.send('That is not a valid user.');
     if (mem.id === msg.author.id) return msg.channel.send(`Are you trying to close your ticket? Use \`${msg.settings.prefix}close\` instead`);
 

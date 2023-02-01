@@ -1,5 +1,4 @@
 const Command = require('../../base/Command.js');
-const { getRole } = require('../../util/Util.js');
 const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
 const { stripIndents } = require('common-tags');
@@ -36,10 +35,10 @@ class RemoveMoneyRole extends Command {
     const currencySymbol = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
 
     if (args.length === 2) {
-      role = getRole(msg, args[0]);
+      role = this.client.util.getRole(msg, args[0]);
       amount = parseFloat(args[1].replace(currencySymbol, '').replace(',', ''));
     } else {
-      role = getRole(msg, args[1]);
+      role = this.client.util.getRole(msg, args[1]);
       amount = parseFloat(args[2].replace(currencySymbol, '').replace(',', ''));
     }
 

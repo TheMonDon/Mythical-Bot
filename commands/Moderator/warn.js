@@ -1,5 +1,4 @@
 const Command = require('../../base/Command.js');
-const { getMember, randomString, getWarns, getTotalPoints } = require('../../util/Util.js');
 const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
 const { stripIndents } = require('common-tags');
@@ -27,7 +26,7 @@ class Warn extends Command {
 
     await msg.delete();
     if (!args || args.length < 3) return msg.channel.send(usage);
-    mem = await getMember(msg, args[0]);
+    mem = await this.client.util.getMember(msg, args[0]);
 
     // Find the user by user ID
     if (!mem) {
@@ -90,12 +89,12 @@ class Warn extends Command {
     const logChan = db.get(`servers.${msg.guild.id}.warns.channel`);
 
     // Make sure that the ID doesn't exist on that server
-    let warnID = randomString(5);
-    while (db.has(`servers.${msg.guild.id}.warns.warnings.${warnID}`)) warnID = randomString(5);
+    let warnID = this.client.util.randomString(5);
+    while (db.has(`servers.${msg.guild.id}.warns.warnings.${warnID}`)) warnID = this.client.util.randomString(5);
 
     // Get the users current warns and total points
-    const otherWarns = getWarns(mem.id, msg);
-    const warnAmount = getTotalPoints(mem.id, msg) + points;
+    const otherWarns = this.client.util.getWarns(mem.id, msg);
+    const warnAmount = this.client.util.getTotalPoints(mem.id, msg) + points;
 
     // Set the status and color of the embed
     let status = 'warned';

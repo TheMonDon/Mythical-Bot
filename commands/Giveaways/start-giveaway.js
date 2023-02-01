@@ -1,7 +1,6 @@
 const Command = require('../../base/Command.js');
 const { EmbedBuilder } = require('discord.js');
 const ms = require('ms');
-const { getChannel } = require('../../util/Util.js');
 const db = require('quick.db');
 
 class StartGiveaway extends Command {
@@ -18,7 +17,7 @@ class StartGiveaway extends Command {
 
   async run (msg, args) {
     const usage = `Incorrect Usage: ${msg.settings.prefix}Start-Giveaway <Duration> <Winners> <Channel> <Prize>`;
-    if (!args || args.length < 4) return msg.channel.send(usage);
+    if (args?.length < 4) return msg.channel.send(usage);
 
     if (!msg.member.permissions.has('ManageMessages')) {
       return msg.channel.send(':x: You need to have the Manage Messages permissions to start giveaways');
@@ -26,7 +25,7 @@ class StartGiveaway extends Command {
 
     const duration = ms(args[0]);
     const winnerCount = parseInt(args[1]);
-    const channel = getChannel(msg, args[2]);
+    const channel = this.client.util.getChannel(msg, args[2]);
     args.shift();
     args.shift();
     args.shift();

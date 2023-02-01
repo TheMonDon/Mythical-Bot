@@ -1,5 +1,4 @@
 const Command = require('../../base/Command.js');
-const { getMember, getWarns, getTotalPoints, cleanString } = require('../../util/Util.js');
 const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
 const moment = require('moment');
@@ -20,10 +19,10 @@ class Warnings extends Command {
     const warns = [];
     let mem;
 
-    if (!args || args.length < 1) {
+    if (args?.length < 1) {
       mem = msg.author;
     } else {
-      mem = await getMember(msg, args.join(' '));
+      mem = await this.client.util.getMember(msg, args.join(' '));
 
       // Find the user by user ID
       if (!mem) {
@@ -38,8 +37,8 @@ class Warnings extends Command {
       mem = level > 0 ? mem : msg.author;
     }
 
-    const otherWarns = getWarns(mem.id, msg);
-    const totalPoints = getTotalPoints(mem.id, msg);
+    const otherWarns = this.client.util.getWarns(mem.id, msg);
+    const totalPoints = this.client.util.getTotalPoints(mem.id, msg);
 
     if (otherWarns) {
       let otherCases = otherWarns.length > 0 ? otherWarns.map((w) => `\`${w.warnID}\``).join(', ') : 'No other cases.';
@@ -47,7 +46,7 @@ class Warnings extends Command {
 
       for (const i of otherWarns) {
         const data = db.get(`servers.${msg.guild.id}.warns.warnings.${i.warnID}`);
-        warns.push(`\`${i.warnID}\` - ${data.points} pts - ${cleanString(data.reason, 0, 24)} - ` +
+        warns.push(`\`${i.warnID}\` - ${data.points} pts - ${this.client.util.limitStringLength(data.reason, 0, 24)} - ` +
           `${moment(Number(data.timestamp)).format('LLL')}`);
       }
     }

@@ -1,5 +1,4 @@
 const Command = require('../../base/Command.js');
-const { getMember, verify } = require('../../util/Util.js');
 const { stripIndents } = require('common-tags');
 const { EmbedBuilder } = require('discord.js');
 
@@ -30,14 +29,14 @@ class RockPaperScissors extends Command {
       return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}rps <opponent>`);
     }
 
-    const mem = await getMember(msg, text.join(' '));
+    const mem = await this.client.util.getMember(msg, text.join(' '));
     if (!mem) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}rps <opponent> (Please enter a valid user)`);
     if (mem.user.id === msg.author.id) return msg.channel.send('You can\'t play against yourself, silly.');
 
     // If the opponent isn't a bot, ask them if they accept the challenge.
     if (!mem.user.bot) {
       await msg.channel.send(`${mem}, do you accept this challenge?`);
-      const verification = await verify(msg.channel, mem);
+      const verification = await this.client.util.verify(msg.channel, mem);
       if (!verification) {
         this.client.games.delete(msg.channel.id);
         return msg.channel.send('Looks like they declined...');

@@ -1,5 +1,4 @@
 const Command = require('../../base/Command.js');
-const { getMember } = require('../../util/Util.js');
 const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
 
@@ -19,10 +18,9 @@ class Blacklist extends Command {
   async run (msg, text) {
     let mem;
     let type;
-    const color = msg.settings.embedColor;
     const usage = `Incorrect Usage:${msg.settings.prefix}Blacklist <Add | Remove | Check> <User> <Reason>`;
 
-    if (!text || text.length < 1) return msg.reply(usage);
+    if (text?.length < 1) return msg.reply(usage);
 
     if (text[0] && text[1]) {
       if (!['add', 'remove', 'check'].includes(text[0].toLowerCase())) {
@@ -31,14 +29,14 @@ class Blacklist extends Command {
         type = text[0].toLowerCase();
       }
     } else if (text[0]) {
-      mem = await getMember(msg, text[0]);
+      mem = await this.client.util.getMember(msg, text[0]);
       type = 'check';
 
       if (!mem) return msg.reply(usage);
     }
 
     if (!mem && text[1]) {
-      mem = await getMember(msg, text[1]);
+      mem = await this.client.util.getMember(msg, text[1]);
 
       if (!mem) return msg.reply(`${usage} \nPlease provide a valid server member.`);
     }
@@ -50,7 +48,7 @@ class Blacklist extends Command {
     const blacklist = db.get(`servers.${msg.guild.id}.users.${mem.id}.blacklist`);
 
     const em = new EmbedBuilder()
-      .setColor(color)
+      .setColor(msg.settings.embedColor)
       .setTimestamp();
 
     if (type === 'add') { // Add member to blacklist

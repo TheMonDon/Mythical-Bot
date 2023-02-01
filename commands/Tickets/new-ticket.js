@@ -1,5 +1,4 @@
 const Command = require('../../base/Command.js');
-const { getTickets } = require('../../util/Util.js');
 const db = require('quick.db');
 const { EmbedBuilder, ChannelType } = require('discord.js');
 const { stripIndents } = require('common-tags');
@@ -30,7 +29,7 @@ class NewTicket extends Command {
     if (msg.channel.name.startsWith('ticket')) return msg.channel.send('You\'re already in a ticket, silly.');
     if (!args || args.length < 1) return msg.channel.send(`Please provide a reason. Usage: ${msg.settings.prefix}New-ticket <reason>`);
 
-    const tix = getTickets(msg.author.id, msg);
+    const tix = this.client.util.getTickets(msg.author.id, msg);
     if (tix.length > 2) {
       return msg.channel.send(`Sorry ${msg.author}, you already have three or more tickets open. Please close one before making a new one.`);
     }

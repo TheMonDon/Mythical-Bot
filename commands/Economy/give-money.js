@@ -1,5 +1,4 @@
 const Command = require('../../base/Command.js');
-const { getMember } = require('../../util/Util.js');
 const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
 
@@ -28,7 +27,7 @@ class GiveMoney extends Command {
       errEmbed.setDescription(`Incorrect Usage: ${usage}`);
       return msg.channel.send({ embeds: [errEmbed] });
     } else {
-      mem = await getMember(msg, text[0]);
+      mem = await this.client.util.getMember(msg, text[0]);
     }
 
     if (!mem) {

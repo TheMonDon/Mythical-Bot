@@ -1,5 +1,4 @@
 const Command = require('../../base/Command.js');
-const { getMember, getWarns, getTotalPoints } = require('../../util/Util.js');
 const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
 
@@ -22,7 +21,7 @@ class ClearWarnings extends Command {
 
     if (!args || args.length < 1) return msg.reply(usage);
 
-    let mem = await getMember(msg, args.join(' '));
+    let mem = await this.client.util.getMember(msg, args.join(' '));
 
     // Find the user by user ID
     if (!mem) {
@@ -34,8 +33,8 @@ class ClearWarnings extends Command {
       }
     }
 
-    const otherWarns = getWarns(mem.id, msg);
-    const previousPoints = getTotalPoints(mem.id, msg);
+    const otherWarns = this.client.util.getWarns(mem.id, msg);
+    const previousPoints = this.client.util.getTotalPoints(mem.id, msg);
     const logChan = db.get(`servers.${msg.guild.id}.warns.channel`);
 
     if (!otherWarns || otherWarns.length < 1) return msg.channel.send('That user has no warnings.');

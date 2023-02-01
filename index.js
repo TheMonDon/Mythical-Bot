@@ -18,6 +18,7 @@ class Bot extends Client {
     this.commands = new Collection();
     this.aliases = new Collection();
     this.slashcmds = new Collection();
+    this.util = require('./util/Util.js');
 
     this.settings = new Enmap({ name: 'settings', cloneLevel: 'deep', fetchAll: false, autoFetch: true });
     this.games = new Enmap({ name: 'games', cloneLevel: 'deep', fetchAll: false, autoFetch: true });

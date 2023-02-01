@@ -1,8 +1,5 @@
 const Command = require('../../base/Command.js');
-const { getMember } = require('../../util/Util.js');
 const { EmbedBuilder } = require('discord.js');
-delete require.cache[require.resolve('../../resources/messages/deaths.json')];
-const deaths = require('../../resources/messages/deaths.json');
 
 class Kill extends Command {
   constructor (client) {
@@ -16,14 +13,13 @@ class Kill extends Command {
   }
 
   async run (msg, text) {
+    delete require.cache[require.resolve('../../resources/messages/deaths.json')];
+    const deaths = require('../../resources/messages/deaths.json');
     const member = msg.member;
-    let mem;
 
-    if (!text || text.length < 1) {
-      return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}kill <user>`);
-    } else {
-      mem = await getMember(msg, text.join(' '));
-    }
+    if (text?.length < 1) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}kill <user>`);
+
+    const mem = await this.client.util.getMember(msg, text.join(' '));
 
     if (mem.id === msg.author.id) return msg.channel.send('Please don\'t try to kill yourself :(');
 

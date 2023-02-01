@@ -1,5 +1,4 @@
 const Command = require('../../base/Command.js');
-const { getChannel } = require('../../util/Util.js');
 const { ChannelType, EmbedBuilder } = require('discord.js');
 const moment = require('moment');
 require('moment-duration-format');
@@ -19,8 +18,7 @@ class ChannelInfo extends Command {
   async run (msg, text) {
     let infoChan = msg.channel;
 
-    if (text && text.length > 0) infoChan = getChannel(msg, text.join(' '));
-
+    if (text?.length > 0) infoChan = this.client.util.getChannel(msg, text.join(' '));
     if (!infoChan) return msg.reply('That is not a valid channel.');
 
     // Get the time since the channel was created

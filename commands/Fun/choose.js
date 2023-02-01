@@ -1,5 +1,4 @@
 const Command = require('../../base/Command.js');
-const { random } = require('../../util/Util.js');
 
 class Choose extends Command {
   constructor (client) {
@@ -17,7 +16,7 @@ class Choose extends Command {
     const join = text.join(' ');
     const args = /^(.+( ?, ?.+[^,])+)$/i.test(join) ? join.split(',') : join.split(' ');
 
-    return msg.channel.send(`I choose: \`${random(args).trim()}\``);
+    return msg.channel.send(`I choose: \`${this.client.util.random(args).trim()}\``);
   }
 }
 module.exports = Choose;

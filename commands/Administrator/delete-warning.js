@@ -1,5 +1,4 @@
 const Command = require('../../base/Command.js');
-const { getTotalPoints } = require('../../util/Util.js');
 const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
 
@@ -33,9 +32,9 @@ class DeleteWarning extends Command {
 
     if (!user) return msg.channel.send('I couldn\'t find the user of that case.');
 
-    const previousPoints = getTotalPoints(userID, msg);
+    const previousPoints = this.client.util.getTotalPoints(userID, msg);
     db.delete(`servers.${msg.guild.id}.warns.warnings.${caseID}`);
-    const newerPoints = getTotalPoints(userID, msg);
+    const newerPoints = this.client.util.getTotalPoints(userID, msg);
 
     if (previousPoints >= 10 && newerPoints < 10) {
       if (!msg.guild.members.me.permissions.has('BanMembers')) {

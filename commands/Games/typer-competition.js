@@ -1,5 +1,4 @@
 const Command = require('../../base/Command.js');
-const { wait } = require('../../util/Util.js');
 const { EmbedBuilder, MessageAttachment } = require('discord.js');
 const https = require('https');
 const fntPath = './resources/fonts/Moms_Typewriter.ttf';
@@ -81,11 +80,11 @@ class TyperCompetition extends Command {
 
             (async () => {
               getReady = await msg.channel.send('Are you ready? \n3');
-              await wait(1000);
+              await this.client.util.wait(1000);
               getReady.edit('Are you ready? \n2');
-              await wait(1000);
+              await this.client.util.wait(1000);
               getReady.edit('Are you ready? \n1');
-              await wait(1000);
+              await this.client.util.wait(1000);
               getReady.edit('Go!');
               theImage = await msg.channel.send(attachment);
             })();

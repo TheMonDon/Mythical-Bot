@@ -1,5 +1,4 @@
 const Command = require('../../base/Command.js');
-const { getMember } = require('../../util/Util.js');
 const { EmbedBuilder } = require('discord.js');
 const { stripIndents } = require('common-tags');
 
@@ -19,9 +18,9 @@ class Perms extends Command {
     let infoMem = msg.member;
 
     // If a user is mentioned, fetch them and set them as the infoMem
-    if (args && args.length > 0) {
+    if (args?.length > 0) {
       await msg.guild.members.fetch();
-      infoMem = await getMember(msg, args.join(' '));
+      infoMem = await this.client.util.getMember(msg, args.join(' '));
     }
 
     if (!infoMem) return msg.channel.send('That user was not found, please try again.');

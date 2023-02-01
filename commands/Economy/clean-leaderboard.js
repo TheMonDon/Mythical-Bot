@@ -1,5 +1,4 @@
 const Command = require('../../base/Command.js');
-const { verify } = require('../../util/Util.js');
 const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
 
@@ -41,7 +40,7 @@ class CleanLeaderboard extends Command {
     em.setColor(color);
     em.setDescription(`This will reset the balance and remove ${toRemove.length} members from the leaderboard. \nDo you wish to continue? (yes/no)`);
     await message.edit({ embeds: [em] });
-    const verified = await verify(msg.channel, msg.author);
+    const verified = await this.client.util.verify(msg.channel, msg.author);
 
     if (verified) {
       toRemove.forEach(i => {

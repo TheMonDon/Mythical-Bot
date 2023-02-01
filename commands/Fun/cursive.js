@@ -1,6 +1,5 @@
 const Command = require('../../base/Command.js');
 const { letterTrans } = require('custom-translate');
-const { clean, cleanString } = require('../../util/Util.js');
 
 class Cursive extends Command {
   constructor (client) {
@@ -81,7 +80,11 @@ class Cursive extends Command {
     if (!args || args.length < 1) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}Cursive <text>`);
 
     const string = args.join(' ');
-    return msg.channel.send(await clean(this.client, cleanString(letterTrans(string, dictionary))));
+    const lengthLimited = this.client.util.limitStringLength(string);
+    const cleanString = await this.client.util.clean(this.client, lengthLimited);
+    const cursive = letterTrans(cleanString, dictionary);
+
+    return msg.channel.send(cursive);
   }
 }
 module.exports = Cursive;
