@@ -4,6 +4,8 @@ module.exports = class {
   }
 
   async run (guild) {
+    if (!guild.available) return; // Ignore unavailable guilds
+
     this.client.user.setActivity(`${this.client.settings.get('default').prefix}help | ${this.client.guilds.cache.size} Servers`);
     // Well they're gone. Let's remove them from the settings and log it!
     this.client.settings.delete(guild.id);

@@ -93,6 +93,7 @@ module.exports = class Util {
     return msg.mentions.members.first() ||
     msg.guild.members.cache.find(m => m.id === str) ||
     msg.guild.members.cache.find(m => m.displayName.toUpperCase() === str.toUpperCase()) ||
+    msg.guild.members.cache.find(m => m.displayName.toUpperCase().includes(str.toUpperCase())) ||
     msg.guild.members.cache.find(m => m.user.username.toUpperCase() === str.toUpperCase()) ||
     msg.guild.members.cache.find(m => m.user.username.toUpperCase().includes(str.toUpperCase())) ||
     msg.guild.members.cache.find(m => m.user.tag === str);
