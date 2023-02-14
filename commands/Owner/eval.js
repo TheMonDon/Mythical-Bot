@@ -39,7 +39,7 @@ class Eval extends Command {
       const res = typeof evald === 'string' ? evald : inspect(evald, { depth: 0 });
       const res2 = await util.clean(this.client, res);
 
-      embed.setDescription(`Result ${promise ? '(Promise Awaited)' : ''} \n ${code('js', res2)}`);
+      embed.setDescription(`Result ${promise ? '(Promise Awaited)' : ''} \n${code('js', res2)}`);
 
       if (!res || (!evald && evald !== 0)) embed.setColor(msg.settings.embedErrorColor);
       else {

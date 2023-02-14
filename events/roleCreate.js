@@ -17,7 +17,7 @@ module.exports = class {
       .setTitle('Role Created')
       .setColor('#20fc3a')
       .addFields([
-        { name: 'Name', value: role.toString() },
+        { name: 'Name', value: role.name },
         { name: 'Managed', value: role.managed.toString() },
         { name: 'Position', value: role.position.toString() }
       ])

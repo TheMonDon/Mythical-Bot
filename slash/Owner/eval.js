@@ -2,7 +2,6 @@
 /* eslint-disable no-unused-vars */
 const { EmbedBuilder } = require('discord.js');
 const { inspect } = require('util');
-const { clean } = require('../../util/Util.js');
 
 // Set guildOnly to true if you want it to be available on guilds only.
 // Otherwise false is global.
@@ -30,10 +29,9 @@ exports.run = async (client, interaction) => {
 
   const db = require('quick.db');
   const DiscordJS = require('discord.js');
-  const Util = require('../../util/Util.js');
-  const server = interaction.guild;
-  const member = interaction.member;
+  const util = client.util;
   const config = client.config;
+  let promise = false;
 
   const embed = new EmbedBuilder()
     .setFooter({ text: interaction.user.tag, iconURL: interaction.user.displayAvatarURL() });
@@ -43,11 +41,15 @@ exports.run = async (client, interaction) => {
   const query = interaction.options.get('query').value;
 
   try {
-    const evald = eval(query);
+    let evald = eval(query);
+    if (evald instanceof Promise) {
+      evald = await evald;
+      promise = true;
+    }
     const res = typeof evald === 'string' ? evald : inspect(evald, { depth: 0 });
-    const res2 = await clean(client, res);
+    const res2 = await util.clean(client, res);
 
-    embed.setDescription(`Result \n ${code('js', res2)}`);
+    embed.setDescription(`Result ${promise ? '(Promise Awaited)' : ''} \n${code('js', res2)}`);
 
     if (!res || (!evald && evald !== 0)) embed.setColor(interaction.settings.embedErrorColor);
     else {

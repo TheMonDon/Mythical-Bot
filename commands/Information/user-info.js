@@ -17,7 +17,6 @@ class UserInfo extends Command {
 
   async run (msg, text) {
     let infoMem = msg.member;
-    const color = msg.settings.embedColor;
 
     // If text is provided, try to get the member
     if (text?.length > 0) infoMem = await this.client.util.getMember(msg, text.join(' ').toLowerCase());
@@ -70,8 +69,7 @@ class UserInfo extends Command {
 
       // Create array of roles
       const roles = infoMem.roles.cache.sort((a, b) => b.position - a.position);
-      let roles1 = [...roles.filter(r => r.id !== msg.guild.id).values()].join(', ');
-      if (roles1 === undefined || roles1.length === 0) roles1 = 'No Roles';
+      const roles1 = [...roles.filter(r => r.id !== msg.guild.id).values()].join(', ');
 
       // Create array of user flags / badges
       const userBadges = infoMem.user.flags?.toArray() || '';
@@ -80,6 +78,7 @@ class UserInfo extends Command {
         badgesArray += flags[userBadges[i]];
       }
 
+      const color = infoMem.user.hexAccentColor?.toString().toUpperCase() || msg.settings.embedColor;
       const embed = new EmbedBuilder()
         .setTitle(`${infoMem.user.username}'s Info`)
         .setColor(color)
@@ -95,9 +94,10 @@ class UserInfo extends Command {
           { name: 'Join Position', value: `${Number(joinPosition)?.toLocaleString()}/${msg.guild.memberCount.toLocaleString()}`, inline: true },
           { name: 'Account Type', value: infoMem.user.bot ? ':robot: Bot' : ':person_standing: Human', inline: true },
           { name: `Badges [${userBadges?.length || 0}]`, value: badgesArray || 'No Badges', inline: true },
-          { name: 'Accent Color', value: infoMem.user.hexAccentColor?.toString().toUpperCase() || 'None', inline: true },
-          { name: 'Roles', value: roles1, inline: false }
+          { name: 'Accent Color', value: infoMem.user.hexAccentColor?.toString().toUpperCase() || 'None', inline: true }
         ]);
+
+      if (roles1) embed.addFields({ name: 'Roles', value: roles1, inline: false });
 
       return msg.channel.send({ embeds: [embed] });
     }
@@ -115,6 +115,7 @@ class UserInfo extends Command {
       badgesArray += flags[userBadges[i]];
     }
 
+    const color = infoMem.hexAccentColor?.toString().toUpperCase() || msg.settings.embedColor;
     const embed = new EmbedBuilder()
       .setTitle(`${infoMem.username}'s Info`)
       .setColor(color)
