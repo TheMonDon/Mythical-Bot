@@ -46,7 +46,8 @@ module.exports = class {
           if (triggerOn <= now) {
             try {
               const channel = this.client.channels.cache.get(channelID);
-              const user = this.client.users.cache.get(userID);
+              const user = await this.client.users.fetch(userID);
+              if (!user || !channel) return;
 
               const em = new EmbedBuilder()
                 .setAuthor({ name: user.username, iconURL: user.displayAvatarURL() })
