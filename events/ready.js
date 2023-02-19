@@ -47,7 +47,7 @@ module.exports = class {
             try {
               const channel = this.client.channels.cache.get(channelID);
               const user = await this.client.users.fetch(userID);
-              if (!user || !channel) return;
+              if (!user) return;
 
               const em = new EmbedBuilder()
                 .setAuthor({ name: user.username, iconURL: user.displayAvatarURL() })
