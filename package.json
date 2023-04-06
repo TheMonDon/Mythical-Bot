@@ -33,6 +33,7 @@
     "enmap": "^5.8.6",
     "fetch": "^1.1.0",
     "hastebin": "github:TheMonDon/hastebin",
+    "http-cache-semantics": "^4.1.1",
     "is-image-url": "^1.1.8",
     "is-url": "^1.2.4",
     "jsonpath": "^1.1.1",
@@ -63,6 +64,7 @@
     "tictactoe-minimax-ai": "github:lukechu10/tictactoe-minimax",
     "trev": "^2.0.8",
     "twemoji": "^14.0.2",
+    "undici": "^5.19.1",
     "weather-js": "^2.0.0",
     "youtube-sr": "^4.3.4",
     "ytdl-core": "^4.11.2"
