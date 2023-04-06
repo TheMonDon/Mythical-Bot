@@ -16,7 +16,7 @@
     "big-integer": "^1.6.51",
     "blackjack-n-deck": "^1.0.1",
     "botlist.me.js": "^1.0.2",
-    "canvas": "^2.9.3",
+    "canvas": "^2.11.2",
     "chalk": "^4.1.1",
     "color-convert": "^2.0.1",
     "color-name-list": "^8.12.0",
