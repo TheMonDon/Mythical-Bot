@@ -78,12 +78,14 @@ Incorrect Usage:
       const em = new EmbedBuilder()
         .setTitle('Emoji Information')
         .addFields([
-          { name: 'Emoji', value: result.toString() },
-          { name: 'Emoji Name', value: result.name },
-          { name: 'Is Animated?', value: result.animated.toString() },
-          { name: 'Emoji ID', value: result.id.toString() },
-          { name: 'Emoji is Available?', value: result.available.toString() },
-          { name: 'Emoji Author', value: result.author?.toString() || 'N/A' }
+          { name: 'Emoji', value: result.toString(), inline: true },
+          { name: 'Name', value: result.name, inline: true },
+          { name: 'Is Animated?', value: result.animated.toString(), inline: true },
+          { name: 'ID', value: result.id.toString(), inline: true },
+          { name: 'is Available?', value: result.available.toString(), inline: true },
+          { name: 'Author', value: result.author?.toString() || 'N/A', inline: true },
+          { name: 'is Deleteable?', value: result.deleteable.toString(), inline: true },
+          { name: 'Created At', value: result.createdAt.toString() || 'N/A', inline: true }
         ]);
 
       return msg.channel.send({ embeds: [em] });
