@@ -84,7 +84,7 @@ Incorrect Usage:
           { name: 'ID', value: result.id.toString(), inline: true },
           { name: 'is Available?', value: result.available.toString(), inline: true },
           { name: 'Author', value: result.author?.toString() || 'N/A', inline: true },
-          { name: 'is Deleteable?', value: result.deleteable.toString(), inline: true },
+          { name: 'is Deleteable?', value: result.deletable.toString(), inline: true },
           { name: 'Created At', value: result.createdAt.toString() || 'N/A', inline: true }
         ]);
 
