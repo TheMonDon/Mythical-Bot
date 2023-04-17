@@ -78,7 +78,7 @@ Incorrect Usage:
       const em = new EmbedBuilder()
         .setTitle('Emoji Information')
         .addFields([
-          { name: 'Emoji', value: result },
+          { name: 'Emoji', value: result.toString() },
           { name: 'Emoji Name', value: result.name },
           { name: 'Is Animated?', value: result.animated.toString() },
           { name: 'Emoji ID', value: result.id.toString() },
