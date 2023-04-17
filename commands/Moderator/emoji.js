@@ -83,7 +83,7 @@ Incorrect Usage:
           { name: 'Is Animated?', value: result.animated.toString() },
           { name: 'Emoji ID', value: result.id.toString() },
           { name: 'Emoji is Available?', value: result.available.toString() },
-          { name: 'Emoji Author', value: result.author.toString() || 'N/A' }
+          { name: 'Emoji Author', value: result.author?.toString() || 'N/A' }
         ]);
 
       return msg.channel.send({ embeds: [em] });
