@@ -1,6 +1,5 @@
 const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
-const hastebin = require('hastebin');
 
 module.exports = class {
   constructor (client) {
@@ -33,52 +32,37 @@ module.exports = class {
         .catch(console.error);
     }
 
-    let url;
-    const content = [];
-    let shortContent;
-    let text;
+    try {
+      const embed = new EmbedBuilder()
+        .setTitle('Message Deleted')
+        .setColor('#FF0000')
+        .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
+        .setThumbnail(msg.author.displayAvatarURL())
+        .addFields([
+          { name: 'Channel', value: `<#${msg.channel.id}>` },
+          { name: 'Message Author', value: `${msg.author} (${msg.author.tag})` }
+        ])
+        .setFooter({ text: `Message ID: ${msg.id}` })
+        .setTimestamp();
 
-    if (msg.content) content.push(msg.content) && content.push('\n');
-    if (msg.embeds[0]) content.push(msg.embeds[0].description) && content.push('\n');
-    if (msg.attachments.first()) content.push(msg.attachments.map(a => a.url) + '\n');
-    if (content.length > 0) text = content.join('');
-    else return;
+      if (msg.content) embed.setDescription(`**Content:**\n${msg.content}`);
+      if (msg.attachments?.size > 0) {
+        const attachmentString = msg.attachments.map((attachment) => `[${attachment.name}](${attachment.url})\n`);
+        embed.addFields([{ name: 'Attachments', value: attachmentString.join('').slice(0, 1_024) }]);
+      }
 
-    if (msg.content.length <= 1024) shortContent = msg.content;
-    else shortContent = `${msg.content.substring(0, 1020)}...`;
+      if (msg.stickers?.size > 0) {
+        const stickerString = msg.stickers.map((sticker) => `[${sticker.name}](${sticker.url})\n`);
+        embed.addFields([{ name: 'Stickers', value: stickerString.join('').slice(0, 1_024) }]);
+      }
 
-    if (msg.content.length > 1024 || msg.attachments.first() || msg.embeds[0]) {
-      await hastebin.createPaste(text, {
-        raw: true,
-        contentType: 'text/plain',
-        server: 'https://haste.crafters-island.com'
-      })
-        .then(function (urlToPaste) {
-          url = urlToPaste;
-        })
-        .catch(function (requestError) { this.client.logger.error(requestError); });
-    }
+      if (delby && (msg.author !== delby)) embed.addFields([{ name: 'Deleted By', value: delby }]);
+      if (msg.mentions.users.size >= 1) embed.addFields([{ name: 'Mentioned Users', value: `${[...msg.mentions.users.values()]}` }]);
 
-    const embed = new EmbedBuilder()
-      .setTitle('Message Deleted')
-      .setColor('#FF0000')
-      .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
-      .setThumbnail(msg.author.displayAvatarURL())
-      .addFields([
-        { name: 'Deleted Text', value: shortContent || 'None' },
-        { name: 'Deleted Text URL', value: url || 'None' },
-        { name: 'Channel', value: `<#${msg.channel.id}>` },
-        { name: 'Message Author', value: `${msg.author} (${msg.author.tag})` }
-      ])
-      .setFooter({ text: `Message ID: ${msg.id}` })
-      .setTimestamp();
+      msg.guild.channels.cache.get(logChan).send({ embeds: [embed] }).catch(() => { });
 
-    if (delby && (msg.author !== delby)) embed.addFields([{ name: 'Deleted By', value: delby }]);
-    (msg.mentions.users.size === 0) ? embed.addFields({ name: 'Mentioned Users', value: 'None' }) : embed.addFields([{ name: 'Mentioned Users', value: `Mentioned Member Count: ${[...msg.mentions.users.values()].length} \nMentioned Users List: \n ${[...msg.mentions.users.values()]}` }]);
-
-    msg.guild.channels.cache.get(logChan).send({ embeds: [embed] }).catch(() => {});
-
-    db.add(`servers.${msg.guild.id}.logs.message-deleted`, 1);
-    db.add(`servers.${msg.guild.id}.logs.all`, 1);
+      db.add(`servers.${msg.guild.id}.logs.message-deleted`, 1);
+      db.add(`servers.${msg.guild.id}.logs.all`, 1);
+    } catch (err) { console.error(err); }
   }
 };
