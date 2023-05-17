@@ -111,7 +111,6 @@ class UserInfo extends Command {
 
     // Create array of user flags / badges
     const userBadges = infoMem.flags?.toArray() || '';
-    console.log(userBadges);
     let badgesArray = '';
     for (let i = 0; i < userBadges.length; i++) {
       badgesArray += flags[userBadges[i]];
