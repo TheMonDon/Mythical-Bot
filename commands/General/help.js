@@ -84,7 +84,6 @@ class Help extends Command {
       return msg.channel.send({ embeds: [errEm] });
     } else if (em.data?.fields?.length > 0) {
       // If category is found, show all commands in the category
-      em.addFields([{ name: 'Category Disabled', value: disabled.includes(category.toLowerCase()).toString() }]);
       return msg.channel.send({ embeds: [em] });
     }
     return msg.channel.send({ embeds: [errEm] });

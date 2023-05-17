@@ -49,8 +49,9 @@ class UserInfo extends Command {
       PremiumEarlySupporter: '<:early_supporter_badge:862241973388836884>',
       VerifiedDeveloper: '<:verified_developer_badge:862241973146353674>',
       VerifiedBot: '<:verified_bot:862241973326839818>',
-      CertifiedModerator: '<:certifiedModerator:879967930534740008>',
-      ActiveDeveloper: '<:ActiveDeveloper:1062978324894330930>'
+      OldCertifiedModerator: '<:certifiedModerator:879967930534740008>',
+      ActiveDeveloper: '<:ActiveDeveloper:1062978324894330930>',
+      CertifiedModerator: '<:ModeratorProgramsAlumni:1108517824617525308>'
     };
 
     // If the user is a guild member
@@ -110,6 +111,7 @@ class UserInfo extends Command {
 
     // Create array of user flags / badges
     const userBadges = infoMem.flags?.toArray() || '';
+    console.log(userBadges);
     let badgesArray = '';
     for (let i = 0; i < userBadges.length; i++) {
       badgesArray += flags[userBadges[i]];
