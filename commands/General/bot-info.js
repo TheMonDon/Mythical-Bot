@@ -33,7 +33,7 @@ class BotInfo extends Command {
         { name: 'Node', value: process.version, inline: true },
         { name: 'RAM Usage', value: `${Math.floor((process.memoryUsage().heapUsed / 1024) / 1024).toLocaleString()} MB`, inline: true },
         { name: 'Bot Version', value: botVersion, inline: true },
-        { name: 'Invite', value: '[https://cisn.xyz/mythical](https://cisn.xyz/mythical)', inline: true },
+        { name: 'Invite', value: '[cisn.xyz/mythical](https://cisn.xyz/mythical)', inline: true },
         { name: 'Source Code', value: '[Source Code](https://github.com/TheMonDon/Mythical-Bot)', inline: true }
       ]);
 
