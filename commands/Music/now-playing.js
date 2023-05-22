@@ -1,6 +1,7 @@
 const Command = require('../../base/Command.js');
 const { EmbedBuilder } = require('discord.js');
 const { stripIndents } = require('common-tags');
+const { useQueue } = require('discord-player');
 
 class NowPlaying extends Command {
   constructor (client) {
@@ -15,15 +16,16 @@ class NowPlaying extends Command {
   }
 
   async run (msg) {
-    const queue = this.client.player.getQueue(msg.guild);
-    const song = queue.nowPlaying();
+    const queue = useQueue(msg.guild.id);
+    const song = queue.currentTrack;
+
     if (!song) return msg.channel.send('There is nothing playing.');
 
     const em = new EmbedBuilder()
       .setDescription(stripIndents`
-        Currently ${queue.playing ? 'Playing' : 'Paused'} ♪: [${song.title}](${song.url})
+        Currently ${queue.node.isPlaying() ? 'Playing' : 'Paused'} ♪: [${song.title}](${song.url})
 
-        ${queue.createProgressBar({ timecodes: true })}
+        ${queue.node.createProgressBar({ timecodes: true })}
 
         Requested By: ${song.requestedBy}
       `)

@@ -20,28 +20,26 @@ class Play extends Command {
     const query = args.join(' ').slice(0, 300);
     if (!query) return msg.channel.send('Please enter something to search for.');
 
-    const queue = await this.client.player.createQueue(msg.guild, {
-      ytdlOptions: {
-        filter: 'audioonly',
-        highWaterMark: 1 << 30,
-        dlChunkSize: 0
-      },
-      metadata: msg,
-      leaveOnEmpty: false,
-      leaveOnEnd: false,
-      leaveOnStop: true,
-      autoSelfDeaf: true
-    });
-    const track = await this.client.player.search(query, { requestedBy: msg.author });
+    const searchResult = await this.client.player.search(query, { requestedBy: msg.author });
 
-    try {
-      if (!queue.connection) await queue.connect(msg.member.voice.channel);
-    } catch {
-      return msg.reply('Could not join your voice channel.');
+    if (!searchResult.hasTracks()) {
+      // If player didn't find any songs for this query
+      return msg.channel.send(`We couldn't find any tracks for ${query}!`);
     }
 
-    track.playlist ? queue.addTracks(track.tracks) : queue.addTrack(track.tracks[0]);
-    if (!queue.playing) await queue.play();
+    try {
+      await this.client.player.play(msg.member.voice.channel, searchResult, {
+        nodeOptions: {
+          metadata: msg,
+          selfDead: true,
+          leaveOnStop: true,
+          leaveOnEnd: false,
+          leaveOnEmpty: false
+        }
+      });
+    } catch (e) {
+      return msg.channel.send(`Something went wrong: ${e}`);
+    }
   }
 }
 

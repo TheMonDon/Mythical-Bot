@@ -180,76 +180,81 @@ const manager = new GiveawayManagerWithOwnDatabase(client, {
 // We now have a giveawaysManager property to access the manager everywhere!
 client.giveawaysManager = manager;
 
-// Load the music player stuff
-client.player = new Player(client, {
-  autoSelfDeaf: true,
-  enableLive: true
-});
-
-client.player
-  .on('trackStart', async (queue, track) => {
-    const em = new EmbedBuilder()
-      .setTitle('Now Playing')
-      .setDescription(`[${track.title}](${track.url}) \n\nRequested By: ${track.requestedBy}`)
-      .setThumbnail(track.thumbnail)
-      .setColor('#0099CC');
-    const msg = await queue.metadata.channel.send({ embeds: [em] });
-
-    const oldmsg = db.get(`servers.${queue.metadata.guild.id}.music.lastTrack`) || null;
-    if (oldmsg !== null) {
-      try {
-        await queue.metadata.guild.channels.cache.get(oldmsg.channelId).messages.cache.get(oldmsg.id).delete();
-      } catch {
-        db.delete(`servers.${queue.metadata.guild.id}.music.lastTrack`);
-      }
-    }
-
-    db.set(`servers.${queue.metadata.guild.id}.music.lastTrack`, msg);
-  })
-  .on('trackAdd', (queue, track) => {
-    const title = track.title || track.tracks[track.tracks.length - 1].title;
-    const url = track.url || track.tracks[track.tracks.length - 1].url;
-    const requestedBy = track.requestedBy || track.tracks[track.tracks.length - 1].requestedBy;
-
-    const em = new EmbedBuilder()
-      .setTitle('Track Added to Queue')
-      .setThumbnail(track.thumbnail)
-      .setColor('#0099CC')
-      .setDescription(`[${title}](${url}) \n\nRequested By: ${requestedBy}`);
-    queue.metadata.channel.send({ embeds: [em] });
-  })
-  .on('tracksAdd', (queue, tracks) => {
-    const playlist = tracks[0].playlist;
-    const length = playlist.videos?.length || playlist.tracks?.length || 'N/A';
-
-    const em = new EmbedBuilder()
-      .setTitle('Playlist Added to Queue')
-      .setThumbnail(playlist.thumbnail)
-      .setColor('#0099CC')
-      .setDescription(`[${playlist.title}](${playlist.url}) \n\nRequested By: ${tracks[0].requestedBy}`)
-      .addFields([{ name: 'Playlist Length', value: length.toString(), inline: true }]);
-    queue.metadata.channel.send({ embeds: [em] });
-  })
-  .on('noResults', (queue, query) => queue.metadata.channel.send(`No results were found for ${query}.`))
-  .on('queueEnd', (queue) => queue.metadata.channel.send('Music stopped as there is no more music in the queue.'))
-  .on('error', (queue, error) => {
-    switch (error) {
-      case 'NotPlaying':
-        queue.metadata.channel.send('There is no music being played on this server!');
-        break;
-      case 'NotConnected':
-        queue.metadata.channel.send('You are not connected in any voice channel!');
-        break;
-      case 'UnableToJoin':
-        queue.metadata.channel.send('I am not able to join your voice channel, please check my permissions!');
-        break;
-      case 'DestroyedQueue':
-        break;
-      default:
-        queue.metadata.channel.send(`Something went wrong... ${error}`);
-        break;
-    }
+const loadMusic = async loadMusic => {
+  client.player = new Player(client, {
+    autoSelfDeaf: true,
+    enableLive: true
   });
+
+  await client.player.extractors.loadDefault();
+
+  client.player.events
+    .on('playerStart', async (queue, track) => {
+      const em = new EmbedBuilder()
+        .setTitle('Now Playing')
+        .setDescription(`[${track.title}](${track.url}) \n\nRequested By: ${track.requestedBy}`)
+        .setThumbnail(track.thumbnail)
+        .setColor('#0099CC');
+      const msg = await queue.metadata.channel.send({ embeds: [em] });
+
+      const oldmsg = db.get(`servers.${queue.metadata.guild.id}.music.lastTrack`) || null;
+      if (oldmsg !== null) {
+        try {
+          await queue.metadata.guild.channels.cache.get(oldmsg.channelId).messages.cache.get(oldmsg.id).delete();
+        } catch {
+          db.delete(`servers.${queue.metadata.guild.id}.music.lastTrack`);
+        }
+      }
+
+      db.set(`servers.${queue.metadata.guild.id}.music.lastTrack`, msg);
+    })
+    .on('audioTrackAdd', (queue, track) => {
+      const title = track.title || track.tracks[track.tracks.length - 1].title;
+      const url = track.url || track.tracks[track.tracks.length - 1].url;
+      const requestedBy = track.requestedBy || track.tracks[track.tracks.length - 1].requestedBy;
+
+      const em = new EmbedBuilder()
+        .setTitle('Track Added to Queue')
+        .setThumbnail(track.thumbnail)
+        .setColor('#0099CC')
+        .setDescription(`[${title}](${url}) \n\nRequested By: ${requestedBy}`);
+      queue.metadata.channel.send({ embeds: [em] });
+    })
+    .on('audioTracksAdd', (queue, tracks) => {
+      const playlist = tracks[0].playlist;
+      const length = playlist.videos?.length || playlist.tracks?.length || 'N/A';
+
+      const em = new EmbedBuilder()
+        .setTitle('Playlist Added to Queue')
+        .setThumbnail(playlist.thumbnail)
+        .setColor('#0099CC')
+        .setDescription(`[${playlist.title}](${playlist.url}) \n\nRequested By: ${tracks[0].requestedBy}`)
+        .addFields([{ name: 'Playlist Length', value: length.toString(), inline: true }]);
+      queue.metadata.channel.send({ embeds: [em] });
+    })
+    .on('noResults', (queue, query) => queue.metadata.channel.send(`No results were found for ${query}.`))
+    .on('emptyQueue', (queue) => queue.metadata.channel.send('Music stopped as there is no more music in the queue.'))
+    .on('error', (queue, error) => {
+      switch (error) {
+        case 'NotPlaying':
+          queue.metadata.channel.send('There is no music being played on this server!');
+          break;
+        case 'NotConnected':
+          queue.metadata.channel.send('You are not connected in any voice channel!');
+          break;
+        case 'UnableToJoin':
+          queue.metadata.channel.send('I am not able to join your voice channel, please check my permissions!');
+          break;
+        case 'DestroyedQueue':
+          break;
+        default:
+          queue.metadata.channel.send(`Something went wrong... ${error}`);
+          break;
+      }
+    });
+};
+
+loadMusic();
 
 const init = async () => {
   /*

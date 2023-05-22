@@ -13,7 +13,7 @@ class Repeat extends Command {
   }
 
   async run (msg, args) {
-    const queue = this.client.player.getQueue(msg.guild);
+    const queue = this.client.player.nodes.get(msg.guild.id);
 
     if (!msg.member.voice.channel) return msg.channel.send('You must be in a voice channel to loop music.');
     if (msg.guild.members.me.voice.channel && msg.member.voice.channel.id !== msg.guild.members.me.voice.channel.id) return msg.channel.send('You must be in the same voice channel as the bot.');
@@ -31,7 +31,7 @@ class Repeat extends Command {
     } else if (mode === 1) {
       // Mode: Track
       queue.setRepeatMode(1);
-      const song = queue.nowPlaying();
+      const song = queue.currentTrack;
       return msg.channel.send(`Now Repeating: ${song.title}`);
     } else if (mode === 2) {
       // Mode: Queue

@@ -1,5 +1,6 @@
 const Command = require('../../base/Command.js');
 const { EmbedBuilder } = require('discord.js');
+const { useQueue } = require('discord-player');
 
 class Queue extends Command {
   constructor (client) {
@@ -16,9 +17,9 @@ class Queue extends Command {
   async run (msg, args) {
     let page = args.join(' ');
     page = parseInt(page, 10);
-    const queue = this.client.player.getQueue(msg.guild);
+    const queue = useQueue(msg.guild.id);
 
-    if (!queue || queue.tracks.length < 1) return msg.channel.send('There are no more songs in the queue.');
+    if (!queue || queue.tracks.size < 1) return msg.channel.send('There are no more songs in the queue.');
     if (!page) page = 1;
     if (isNaN(page)) return msg.channel.send('Please input a valid number.');
 

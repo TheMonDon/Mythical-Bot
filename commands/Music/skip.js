@@ -1,5 +1,6 @@
 const Command = require('../../base/Command.js');
 const { EmbedBuilder } = require('discord.js');
+const { useQueue } = require('discord-player');
 
 class Skip extends Command {
   constructor (client) {
@@ -14,14 +15,14 @@ class Skip extends Command {
   }
 
   async run (msg) {
-    const queue = this.client.player.getQueue(msg.guild);
+    const queue = useQueue(msg.guild.id);
 
     if (!msg.member.voice.channel) return msg.channel.send('You must be in a voice channel to skip music.');
     if (msg.guild.members.me.voice.channel && msg.member.voice.channel.id !== msg.guild.members.me.voice.channel.id) return msg.channel.send('You must be in the same voice channel as the bot.');
-    if (!queue.nowPlaying()) return msg.channel.send('There is nothing playing.');
+    if (!queue.isPlaying()) return msg.channel.send('There is nothing playing.');
 
-    const song = queue.nowPlaying();
-    queue.skip();
+    const song = queue.currentTrack;
+    queue.node.skip();
 
     const em = new EmbedBuilder()
       .setColor(msg.settings.embedSuccessColor)
