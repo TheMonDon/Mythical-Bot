@@ -58,7 +58,7 @@ class Color extends Command {
 
       try {
         color = {
-          css: nearestColor(convert.rgb.hex(input)),
+          css: nearestColor(convert.rgb.hex(input)).name,
           hex: convert.rgb.hex(input),
           hsl: convert.rgb.hsl(input),
           cmyk: convert.rgb.cmyk(input),
