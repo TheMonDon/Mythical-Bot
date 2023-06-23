@@ -87,14 +87,6 @@ class Color extends Command {
         input = input.substr(2);
       }
 
-      if (input.length === '3') {
-        input = input.slice();
-        const pos1 = input[0];
-        const pos2 = input[1];
-        const pos3 = input[2];
-        input = pos1 + pos1 + pos2 + pos2 + pos3 + pos3;
-      }
-
       try {
         color = {
           css: nearestColor(input).name,
@@ -201,12 +193,14 @@ class Color extends Command {
     // Formatting HEX
     let hex = JSON.stringify(color.hex)
       .slice(1, -1);
-    if (hex.length === '3') {
+    if (hex.length === 3) {
       hex = hex.slice();
       const pos1 = hex[0];
       const pos2 = hex[1];
       const pos3 = hex[2];
       hex = (pos1 + pos1 + pos2 + pos2 + pos3 + pos3).toUpperCase();
+    } else {
+      hex = hex.toUpperCase();
     }
 
     // Getting originals back
