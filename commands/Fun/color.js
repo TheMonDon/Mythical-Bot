@@ -184,13 +184,13 @@ class Color extends Command {
       .split(',')
       .join(', ');
 
-    // Formatting cmyk
+    // Formatting CMYK
     let cmyk = JSON.stringify(color.cmyk)
       .slice(1, -1);
     cmyk = cmyk.split(',')
       .join('%, ') + '%';
 
-    // Formatting hsl
+    // Formatting HSL
     const str = JSON.stringify(color.hsl)
       .slice(1, -1);
     const h = str.split(',')[0];
@@ -198,12 +198,20 @@ class Color extends Command {
     const l = str.split(',')[2];
     const hsl = h + ', ' + s + '%, ' + l + '%';
 
+    // Formatting HEX
+    let hex = JSON.stringify(color.hex)
+      .slice(1, -1);
+    if (hex.length === '3') {
+      hex = hex.slice();
+      const pos1 = hex[0];
+      const pos2 = hex[1];
+      const pos3 = hex[2];
+      hex = (pos1 + pos1 + pos2 + pos2 + pos3 + pos3).toUpperCase();
+    }
+
     // Getting originals back
     const css = JSON.stringify(color.css)
       .slice(1, -1);
-    const hex = JSON.stringify(color.hex)
-      .slice(1, -1)
-      .toUpperCase();
 
     // Saving color again
     color = {
