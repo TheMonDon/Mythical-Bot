@@ -126,7 +126,7 @@ class Rob extends Command {
       db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, amnt);
 
       embed
-        .setColor(msg.settings.embedColor)
+        .setColor('#64BC6C')
         .setDescription(`You successfully robbed ${mem} of ${currencySymbol}${amnt.toLocaleString()}`)
         .addFields([
           {
