@@ -2,11 +2,11 @@ const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
 
 module.exports = class {
-  constructor (client) {
+  constructor(client) {
     this.client = client;
   }
 
-  async run (emoji) {
+  async run(emoji) {
     const logChan = db.get(`servers.${emoji.guild.id}.logs.channel`);
     if (!logChan) return;
 
@@ -20,11 +20,14 @@ module.exports = class {
       .addFields([
         { name: 'Name', value: emoji.name },
         { name: 'Identifier', value: emoji.identifier },
-        { name: 'Is Animated?', value: emoji.animated }
+        { name: 'Is Animated?', value: emoji.animated },
       ])
       .setFooter({ text: `ID: ${emoji.id}` })
       .setTimestamp();
-    emoji.guild.channels.cache.get(logChan).send({ embeds: [embed] }).catch(() => {});
+    emoji.guild.channels.cache
+      .get(logChan)
+      .send({ embeds: [embed] })
+      .catch(() => {});
 
     db.add(`servers.${emoji.guild.id}.logs.emoji-created`, 1);
     db.add(`servers.${emoji.guild.id}.logs.all`, 1);

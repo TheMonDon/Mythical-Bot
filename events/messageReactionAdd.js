@@ -4,11 +4,11 @@ const { stripIndents } = require('common-tags');
 const { DateTime } = require('luxon');
 
 module.exports = class {
-  constructor (client) {
+  constructor(client) {
     this.client = client;
   }
 
-  async run (messageReaction, user) {
+  async run(messageReaction, user) {
     if (user.bot) return;
     if (!messageReaction) return;
     const msg = messageReaction.message;
@@ -19,30 +19,34 @@ module.exports = class {
 
       if (reactionID !== msg.id) return;
 
-      if (!msg.guild.members.me.permissions.has('ManageChannels')) return msg.channel.send('The bot is missing manage channels perm.');
-      if (!msg.guild.members.me.permissions.has('ManageRoles')) return msg.channel.send('The bot is missing manage roles perm');
-      if (!msg.guild.members.me.permissions.has('ManageMessages')) return msg.channel.send('The bot is missing manage messages perm');
+      if (!msg.guild.members.me.permissions.has('ManageChannels'))
+        return msg.channel.send('The bot is missing manage channels perm.');
+      if (!msg.guild.members.me.permissions.has('ManageRoles'))
+        return msg.channel.send('The bot is missing manage roles perm');
+      if (!msg.guild.members.me.permissions.has('ManageMessages'))
+        return msg.channel.send('The bot is missing manage messages perm');
 
       if (messageReaction._emoji.name !== '📰') return;
       const member = await msg.guild.members.fetch(user.id);
       messageReaction.users.remove(user.id);
 
-      const perms = [{
-        id: user.id,
-        allow: ['ViewChannel']
-      },
-      {
-        id: msg.guild.members.me.id,
-        allow: ['ViewChannel']
-      },
-      {
-        id: roleID,
-        allow: ['ViewChannel']
-      },
-      {
-        id: msg.guild.id,
-        deny: ['ViewChannel']
-      }
+      const perms = [
+        {
+          id: user.id,
+          allow: ['ViewChannel'],
+        },
+        {
+          id: msg.guild.members.me.id,
+          allow: ['ViewChannel'],
+        },
+        {
+          id: roleID,
+          allow: ['ViewChannel'],
+        },
+        {
+          id: msg.guild.id,
+          deny: ['ViewChannel'],
+        },
       ];
 
       const reason = 'Ticket has been created from the reaction menu. Use `topic` command to change it.';
@@ -58,7 +62,13 @@ module.exports = class {
         }
       }
       const tName = `ticket-${str}-${count}`;
-      const tixChan = await msg.guild.channels.create({ name: tName, type: ChannelType.GuildText, parent: catID, permissionOverwrites: perms, topic: reason });
+      const tixChan = await msg.guild.channels.create({
+        name: tName,
+        type: ChannelType.GuildText,
+        parent: catID,
+        permissionOverwrites: perms,
+        topic: reason,
+      });
 
       db.set(`servers.${msg.guild.id}.tickets.${tixChan.id}.owner`, member.id);
 
@@ -68,7 +78,7 @@ module.exports = class {
         .addFields([
           { name: 'Author', value: `${member} (${member.id})`, inline: false },
           { name: 'Channel', value: `${tixChan} \n(${tName}: ${tixChan.id})`, inline: false },
-          { name: 'Reason', value: reason, inline: false }
+          { name: 'Reason', value: reason, inline: false },
         ])
         .setColor('#E65DF4')
         .setTimestamp();
@@ -96,10 +106,11 @@ module.exports = class {
       }
 
       // Logging info
+      const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
       const output = stripIndents`
       Ticket created at: ${DateTime.now().toLocaleString(DateTime.DATETIME_FULL)}
 
-      Author: ${member.id} (${member.user.tag})
+      Author: ${member.id} (${authorName})
 
       Topic: ${reason}\n
       `;

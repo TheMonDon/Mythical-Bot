@@ -3,7 +3,7 @@ const { stripIndents } = require('common-tags');
 const { EmbedBuilder } = require('discord.js');
 
 class Emoji extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'emoji',
       description: 'Sends the image of the provided emojis',
@@ -15,11 +15,11 @@ class Emoji extends Command {
       \`emoji delete <emoji>\`
       \`emoji info <emoji>\`
       \`emoji rename <emoji> <name>\`
-    `
+    `,
     });
   }
 
-  async run (msg, args) {
+  async run(msg, args) {
     const usage = `
 Incorrect Usage:
 \`${msg.settings.prefix}emoji create <name> <image | attachment>\`
@@ -45,11 +45,11 @@ Incorrect Usage:
       // Guild emojis
       let guildEmojis = emoji.match(/:[_a-zA-Z0-9]*>/g);
       if (guildEmojis) {
-        guildEmojis = guildEmojis.map(e => e.substring(1, e.length - 1));
+        guildEmojis = guildEmojis.map((e) => e.substring(1, e.length - 1));
         const guildEmoji = msg.guild.emojis.cache.get(guildEmojis[0]);
         if (guildEmoji) result = guildEmoji;
       } else {
-        const guildEmoji = msg.guild.emojis.cache.find(e => e.name === emoji);
+        const guildEmoji = msg.guild.emojis.cache.find((e) => e.name === emoji);
         if (guildEmoji) result = guildEmoji;
       }
 
@@ -65,28 +65,26 @@ Incorrect Usage:
       // Guild emojis
       let guildEmojis = emoji.match(/:[_a-zA-Z0-9]*>/g);
       if (guildEmojis) {
-        guildEmojis = guildEmojis.map(e => e.substring(1, e.length - 1));
+        guildEmojis = guildEmojis.map((e) => e.substring(1, e.length - 1));
         const guildEmoji = msg.guild.emojis.cache.get(guildEmojis[0]);
         if (guildEmoji) result = guildEmoji;
       } else {
-        const guildEmoji = msg.guild.emojis.cache.find(e => e.name === emoji);
+        const guildEmoji = msg.guild.emojis.cache.find((e) => e.name === emoji);
         if (guildEmoji) result = guildEmoji;
       }
 
       if (!result) return msg.reply('That emoji was not found. Is it from this server?');
 
-      const em = new EmbedBuilder()
-        .setTitle('Emoji Information')
-        .addFields([
-          { name: 'Emoji', value: result.toString(), inline: true },
-          { name: 'Name', value: result.name, inline: true },
-          { name: 'Is Animated?', value: result.animated.toString(), inline: true },
-          { name: 'ID', value: result.id.toString(), inline: true },
-          { name: 'is Available?', value: result.available.toString(), inline: true },
-          { name: 'Author', value: result.author?.toString() || 'N/A', inline: true },
-          { name: 'is Deleteable?', value: result.deletable.toString(), inline: true },
-          { name: 'Created At', value: result.createdAt.toString() || 'N/A', inline: true }
-        ]);
+      const em = new EmbedBuilder().setTitle('Emoji Information').addFields([
+        { name: 'Emoji', value: result.toString(), inline: true },
+        { name: 'Name', value: result.name, inline: true },
+        { name: 'Is Animated?', value: result.animated.toString(), inline: true },
+        { name: 'ID', value: result.id.toString(), inline: true },
+        { name: 'is Available?', value: result.available.toString(), inline: true },
+        { name: 'Author', value: result.author?.toString() || 'N/A', inline: true },
+        { name: 'is Deleteable?', value: result.deletable.toString(), inline: true },
+        { name: 'Created At', value: result.createdAt.toString() || 'N/A', inline: true },
+      ]);
 
       return msg.channel.send({ embeds: [em] });
     } else if (type === 'rename') {
@@ -97,21 +95,22 @@ Incorrect Usage:
       // Guild emojis
       let guildEmojis = emoji.match(/:[_a-zA-Z0-9]*>/g);
       if (guildEmojis) {
-        guildEmojis = guildEmojis.map(e => e.substring(1, e.length - 1));
+        guildEmojis = guildEmojis.map((e) => e.substring(1, e.length - 1));
         const guildEmoji = msg.guild.emojis.cache.get(guildEmojis[0]);
         if (guildEmoji) result = guildEmoji;
       } else {
-        const guildEmoji = msg.guild.emojis.cache.find(e => e.name === emoji);
+        const guildEmoji = msg.guild.emojis.cache.find((e) => e.name === emoji);
         if (guildEmoji) result = guildEmoji;
       }
 
       if (!result) return msg.reply('That emoji was not found. Is it from this server?');
 
-      result.edit({ name })
+      result
+        .edit({ name })
         .then(() => {
           return msg.reply(`${result} has been renamed to \`${name}\``);
         })
-        .catch(e => {
+        .catch((e) => {
           return msg.reply(`An error occurred: ${e}`);
         });
     } else {

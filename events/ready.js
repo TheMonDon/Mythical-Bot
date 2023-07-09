@@ -4,20 +4,23 @@ const { scheduleJob } = require('node-schedule');
 const { BotListToken } = require('../config.js');
 
 module.exports = class {
-  constructor (client) {
+  constructor(client) {
     this.client = client;
   }
 
-  async run () {
+  async run() {
     // Check whether the "Default" guild settings are loaded in the enmap.
     // If they're not, write them in. This should only happen on first load.
     if (!this.client.settings.has('default')) {
-      if (!this.client.config.defaultSettings) throw new Error('defaultSettings not preset in config.js or settings database. Bot cannot load.');
+      if (!this.client.config.defaultSettings)
+        throw new Error('defaultSettings not preset in config.js or settings database. Bot cannot load.');
       this.client.settings.set('default', this.client.config.defaultSettings);
     }
 
     // Set the game as the default help command + guild count.
-    this.client.user.setActivity(`${this.client.settings.get('default').prefix}help | ${this.client.guilds.cache.size} Servers`);
+    this.client.user.setActivity(
+      `${this.client.settings.get('default').prefix}help | ${this.client.guilds.cache.size} Servers`,
+    );
 
     // Log that we're ready to serve, so we know the bot accepts commands.
     this.client.logger.log(`${this.client.user.tag}, ready to serve ${this.client.guilds.cache.size} guilds.`, 'ready');
@@ -32,7 +35,7 @@ module.exports = class {
       console.log('Server count posted!');
     });
 
-    botlistme.on('error', e => {
+    botlistme.on('error', (e) => {
       console.log(`Oops! ${e}`);
     });
 
@@ -55,7 +58,9 @@ module.exports = class {
                 .addFields([{ name: 'Reminder', value: `\`\`\`${reminder}\`\`\`` }])
                 .setFooter({ text: 'You created this reminder @' })
                 .setTimestamp(createdAt);
-              channel ? channel.send({ embeds: [em], content: `<@${userID}>, here's your reminder:` }) : user.send({ embeds: [em], content: `${user.username}, here's your reminder:` });
+              channel
+                ? channel.send({ embeds: [em], content: `<@${userID}>, here's your reminder:` })
+                : user.send({ embeds: [em], content: `${user.username}, here's your reminder:` });
               db.delete(`global.reminders.${remID}`);
             } catch (err) {
               console.error(err);

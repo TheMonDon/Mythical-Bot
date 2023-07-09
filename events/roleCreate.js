@@ -2,11 +2,11 @@ const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
 
 module.exports = class {
-  constructor (client) {
+  constructor(client) {
     this.client = client;
   }
 
-  async run (role) {
+  async run(role) {
     const logChan = db.get(`servers.${role.guild.id}.logs.channel`);
     if (!logChan) return;
 
@@ -19,12 +19,15 @@ module.exports = class {
       .addFields([
         { name: 'Name', value: role.name },
         { name: 'Managed', value: role.managed.toString() },
-        { name: 'Position', value: role.position.toString() }
+        { name: 'Position', value: role.position.toString() },
       ])
       .setFooter({ text: `ID: ${role.id}` })
       .setTimestamp();
 
-    role.guild.channels.cache.get(logChan).send({ embeds: [embed] }).catch(() => {});
+    role.guild.channels.cache
+      .get(logChan)
+      .send({ embeds: [embed] })
+      .catch(() => {});
 
     db.add(`servers.${role.guild.id}.logs.role-created`, 1);
     db.add(`servers.${role.guild.id}.logs.all`, 1);

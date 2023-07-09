@@ -6,20 +6,23 @@ const db = require('quick.db');
 const sherlock = require('sherlockjs');
 
 class RemindMe extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'Remind-Me',
       description: 'Gives you a reminder',
       usage: 'Remind-Me <reminder>',
       category: 'General',
-      aliases: ['remind', 'remindme', 'rememberforme']
+      aliases: ['remind', 'remindme', 'rememberforme'],
     });
   }
 
-  async run (msg, args) {
+  async run(msg, args) {
     const query = args.join(' ');
 
-    if (query?.length < 1) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}Remindme <reminder> \nExample: ${msg.settings.prefix}Remindme Ban Zeph in 1 year`);
+    if (query?.length < 1)
+      return msg.channel.send(
+        `Incorrect Usage: ${msg.settings.prefix}Remindme <reminder> \nExample: ${msg.settings.prefix}Remindme Ban Zeph in 1 year`,
+      );
 
     const reminders = db.get('global.reminders') || [];
     let remID = this.client.util.randomString(5);
@@ -66,7 +69,7 @@ class RemindMe extends Command {
       .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
       .addFields([
         { name: 'I will remind you to:', value: `\`\`\`${message}\`\`\`` },
-        { name: 'in:', value: `\`\`\`${timeString}\`\`\`` }
+        { name: 'in:', value: `\`\`\`${timeString}\`\`\`` },
       ])
       .setFooter({ text: `ID: ${remID} | Got it! I'll remind you on:` })
       .setTimestamp(start);
@@ -79,7 +82,7 @@ class RemindMe extends Command {
       channelID: msg.channel.type === ChannelType.DM ? null : msg.channel.id,
       userID: msg.author.id,
       color: rand,
-      remID
+      remID,
     };
 
     db.set(`global.reminders.${remID}`, obj);

@@ -1,21 +1,21 @@
 const Command = require('../../base/Command.js');
 
 class Restart extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'restart',
       description: 'Restarts the bot',
       category: 'Bot Admin',
       permLevel: 'Bot Admin',
       usage: 'Restart',
-      aliases: ['reboot']
+      aliases: ['reboot'],
     });
   }
 
-  async run (msg) {
+  async run(msg) {
     try {
       await msg.reply('Bot is restarting.');
-      await Promise.all(this.client.commands.map(cmd => this.client.unloadCommand(cmd)));
+      await Promise.all(this.client.commands.map((cmd) => this.client.unloadCommand(cmd)));
       process.exit(0);
     } catch (e) {
       this.client.logger.error(e);

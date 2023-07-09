@@ -3,18 +3,18 @@ const { EmbedBuilder } = require('discord.js');
 const { stripIndents } = require('common-tags');
 
 class Perms extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'perms',
       description: 'Figure out what permissions you or another user have.',
       usage: 'perms [user]',
       category: 'Information',
       aliases: ['permissions'],
-      guildOnly: true
+      guildOnly: true,
     });
   }
 
-  async run (msg, args) {
+  async run(msg, args) {
     let infoMem = msg.member;
 
     // If a user is mentioned, fetch them and set them as the infoMem
@@ -30,7 +30,7 @@ class Perms extends Command {
     const no = '<:denied:622961970093752320>';
 
     // Function to check if the user has a permission
-    function has (perm) {
+    function has(perm) {
       return infoMem.permissions.has(perm);
     }
 
@@ -52,7 +52,7 @@ class Perms extends Command {
           \`Manage Webhooks\`| ${has('ManageWebhooks') ? yes : no}
           \`Manage Server\`| ${has('ManageGuild') ? yes : no}
           `,
-          inline: true
+          inline: true,
         },
         {
           name: '➢ __Membership Permissions:__',
@@ -64,7 +64,7 @@ class Perms extends Command {
           \`Ban Members\`| ${has('BanMembers') ? yes : no}
           \`Timeout Members\`| ${has('ModerateMembers') ? yes : no}
           `,
-          inline: true
+          inline: true,
         },
         {
           name: '➢ __Text Channel Permissions:__',
@@ -84,36 +84,36 @@ class Perms extends Command {
           \`Send Text-to-Speech Messages\`| ${has('SendTTSMessages') ? yes : no}
           \`Use Application Commands\`| ${has('UseApplicationCommands') ? yes : no}
           `,
-          inline: true
+          inline: true,
         },
         {
           name: '➢ __Voice Permissions:__',
           value: stripIndents`
-          \`Connect\`| ${(has('Connect') ? yes : no)}
-          \`Speak\`| ${(has('Speak') ? yes : no)}
+          \`Connect\`| ${has('Connect') ? yes : no}
+          \`Speak\`| ${has('Speak') ? yes : no}
           \`Stream\`| ${has('Stream') ? yes : no}
-          \`Use Voice Activity\`| ${(has('UseVAD') ? yes : no)}
-          \`Priority Speaker\`| ${(has('PrioritySpeaker') ? yes : no)}
-          \`Mute Members\`| ${(has('MuteMembers') ? yes : no)}
-          \`Deafen Members\`| ${(has('DeafenMembers') ? yes : no)}
-          \`Move Members\`| ${(has('MoveMembers') ? yes : no)}
+          \`Use Voice Activity\`| ${has('UseVAD') ? yes : no}
+          \`Priority Speaker\`| ${has('PrioritySpeaker') ? yes : no}
+          \`Mute Members\`| ${has('MuteMembers') ? yes : no}
+          \`Deafen Members\`| ${has('DeafenMembers') ? yes : no}
+          \`Move Members\`| ${has('MoveMembers') ? yes : no}
           `,
-          inline: true
+          inline: true,
         },
         {
           name: '➢ __Stage Channel Permissions:__',
           value: stripIndents`
           \`Request to Speak\`| ${has('RequestToSpeak') ? yes : no}
           `,
-          inline: true
+          inline: true,
         },
         {
           name: '➢ __Advanced Permissions:__',
           value: stripIndents`
           \`Administrator\`| ${has('Administrator') ? yes : no}
           `,
-          inline: true
-        }
+          inline: true,
+        },
       ]);
 
     return msg.channel.send({ embeds: [embed] });

@@ -1,6 +1,7 @@
-if (Number(process.version.slice(1).split('.')[0]) < '16.9') throw new Error('Node 16.9 or higher is required. Update Node on your system.');
+if (Number(process.version.slice(1).split('.')[0]) < '16.9')
+  throw new Error('Node 16.9 or higher is required. Update Node on your system.');
 
-const { GatewayIntentBits, Collection, Client, EmbedBuilder } = require('discord.js');
+const { GatewayIntentBits, Collection, Client, EmbedBuilder, Message } = require('discord.js');
 const { readdirSync, statSync } = require('fs');
 const Enmap = require('enmap');
 const db = require('quick.db');
@@ -11,7 +12,7 @@ const { partials, permLevels, token } = require('./config.js');
 const { GiveawaysManager } = require('discord-giveaways');
 
 class Bot extends Client {
-  constructor (options) {
+  constructor(options) {
     super(options);
 
     this.config = config;
@@ -27,17 +28,24 @@ class Bot extends Client {
   }
 
   // PERMISSION LEVEL FUNCTION
-  permlevel (message) {
+  permlevel(object) {
     let permlvl = 0;
 
-    const permOrder = permLevels.slice(0).sort((p, c) => p.level < c.level ? 1 : -1);
+    const permOrder = permLevels.slice(0).sort((p, c) => (p.level < c.level ? 1 : -1));
 
     while (permOrder.length) {
       const currentLevel = permOrder.shift();
-      if (message.guild && currentLevel.guildOnly) continue;
-      if (currentLevel.check(message)) {
-        permlvl = currentLevel.level;
-        break;
+      if (object.guild && currentLevel.guildOnly) continue;
+      if (object instanceof Message) {
+        if (currentLevel.check(object)) {
+          permlvl = currentLevel.level;
+          break;
+        }
+      } else {
+        if (currentLevel.checkInteraction(object)) {
+          permlvl = currentLevel.level;
+          break;
+        }
       }
     }
     return permlvl;
@@ -51,7 +59,7 @@ class Bot extends Client {
   that unloading happens in a consistent manner across the board.
   */
 
-  loadCommand (commandPath, commandName) {
+  loadCommand(commandPath, commandName) {
     try {
       const props = new (require(commandPath))(this);
       props.conf.location = commandPath;
@@ -60,7 +68,7 @@ class Bot extends Client {
       }
 
       this.commands.set(props.help.name, props);
-      props.conf.aliases.forEach(alias => {
+      props.conf.aliases.forEach((alias) => {
         this.aliases.set(alias, props.help.name);
       });
       return false;
@@ -69,14 +77,15 @@ class Bot extends Client {
     }
   }
 
-  async unloadCommand (commandPath, commandName) {
+  async unloadCommand(commandPath, commandName) {
     let command;
     if (this.commands.has(commandName)) {
       command = this.commands.get(commandName);
     } else if (this.aliases.has(commandName)) {
       command = this.commands.get(this.aliases.get(commandName));
     }
-    if (!command) return console.log(`The command \`${commandName}\` doesn't seem to exist, nor is it an alias. Try again!`);
+    if (!command)
+      return console.log(`The command \`${commandName}\` doesn't seem to exist, nor is it an alias. Try again!`);
 
     if (command.shutdown) {
       await command.shutdown(this);
@@ -93,7 +102,7 @@ class Bot extends Client {
 
   // getSettings merges the client defaults with the guild settings. guild settings in
   // enmap should only have *unique* overrides that are different from defaults.
-  getSettings (guild) {
+  getSettings(guild) {
     const defaults = this.settings.get('default') || {};
     const guildData = guild ? this.settings.get(guild.id) || {} : {};
     const returnObject = {};
@@ -105,7 +114,7 @@ class Bot extends Client {
 
   // writeSettings overrides, or adds, any configuration item that is different
   // than the defaults. This ensures less storage wasted and to detect overrides.
-  writeSettings (id, newSettings) {
+  writeSettings(id, newSettings) {
     const defaults = this.settings.get('default');
     let settings = this.settings.get(id);
     if (typeof settings !== 'object') settings = {};
@@ -121,19 +130,36 @@ class Bot extends Client {
 }
 
 // Enable intents for the bot
-const client = new Bot({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildBans, GatewayIntentBits.GuildMembers, GatewayIntentBits.GuildEmojisAndStickers, GatewayIntentBits.GuildIntegrations, GatewayIntentBits.GuildWebhooks, GatewayIntentBits.GuildInvites, GatewayIntentBits.GuildVoiceStates, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMessageReactions, GatewayIntentBits.DirectMessages, GatewayIntentBits.DirectMessageReactions, GatewayIntentBits.MessageContent], partials });
+const client = new Bot({
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildBans,
+    GatewayIntentBits.GuildMembers,
+    GatewayIntentBits.GuildEmojisAndStickers,
+    GatewayIntentBits.GuildIntegrations,
+    GatewayIntentBits.GuildWebhooks,
+    GatewayIntentBits.GuildInvites,
+    GatewayIntentBits.GuildVoiceStates,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.GuildMessageReactions,
+    GatewayIntentBits.DirectMessages,
+    GatewayIntentBits.DirectMessageReactions,
+    GatewayIntentBits.MessageContent,
+  ],
+  partials,
+});
 
 if (!Array.isArray(db.get('giveaways'))) db.set('giveaways', []);
 
 const GiveawayManagerWithOwnDatabase = class extends GiveawaysManager {
   // This function is called when the manager needs to get all giveaways which are stored in the database.
-  async getAllGiveaways () {
+  async getAllGiveaways() {
     // Get all giveaways from the database
     return db.get('giveaways');
   }
 
   // This function is called when a giveaway needs to be saved in the database.
-  async saveGiveaway (messageId, giveawayData) {
+  async saveGiveaway(messageId, giveawayData) {
     // Add the new giveaway to the database
     db.push('giveaways', giveawayData);
     // Don't forget to return something!
@@ -141,7 +167,7 @@ const GiveawayManagerWithOwnDatabase = class extends GiveawaysManager {
   }
 
   // This function is called when a giveaway needs to be edited in the database.
-  async editGiveaway (messageId, giveawayData) {
+  async editGiveaway(messageId, giveawayData) {
     // Get all giveaways from the database
     const giveaways = db.get('giveaways');
     // Remove the unedited giveaway from the array
@@ -155,7 +181,7 @@ const GiveawayManagerWithOwnDatabase = class extends GiveawaysManager {
   }
 
   // This function is called when a giveaway needs to be deleted from the database.
-  async deleteGiveaway (messageId) {
+  async deleteGiveaway(messageId) {
     // Get all giveaways from the database
     const giveaways = db.get('giveaways');
     // Remove the giveaway from the array
@@ -173,17 +199,17 @@ const manager = new GiveawayManagerWithOwnDatabase(client, {
     botsCanWin: false,
     embedColor: '#0099CC',
     embedColorEnd: '#000000',
-    reaction: '🎉'
-  }
+    reaction: '🎉',
+  },
 });
 
 // We now have a giveawaysManager property to access the manager everywhere!
 client.giveawaysManager = manager;
 
-const loadMusic = async loadMusic => {
+const loadMusic = async (loadMusic) => {
   client.player = new Player(client, {
     autoSelfDeaf: true,
-    enableLive: true
+    enableLive: true,
   });
 
   await client.player.extractors.loadDefault();
@@ -269,7 +295,7 @@ const init = async () => {
   */
 
   // New slash command loader
-  function getSlashCommands (dir) {
+  function getSlashCommands(dir) {
     const slashFiles = readdirSync(dir);
     for (const file of slashFiles) {
       const loc = path.resolve(dir, file);
@@ -287,7 +313,7 @@ const init = async () => {
 
   // Here we load **commands** into memory, as a collection, so they're accessible
   // here and everywhere else, sub-folders for days!
-  function getCommands (dir) {
+  function getCommands(dir) {
     const cmdFile = readdirSync(dir);
     for (const file of cmdFile) {
       const loc = path.resolve(dir, file);
@@ -305,7 +331,7 @@ const init = async () => {
   getCommands('./commands');
 
   // Then we load events, which will include our message and ready event.
-  const eventFiles = readdirSync('./events/').filter(file => file.endsWith('.js'));
+  const eventFiles = readdirSync('./events/').filter((file) => file.endsWith('.js'));
   for (const file of eventFiles) {
     const eventName = file.split('.')[0];
     const event = new (require(`./events/${file}`))(client);
@@ -327,12 +353,13 @@ const init = async () => {
 
 init();
 
-client.on('disconnect', () => client.logger.warn('Bot is disconnecting...'))
+client
+  .on('disconnect', () => client.logger.warn('Bot is disconnecting...'))
   .on('reconnecting', () => client.logger.log('Bot reconnecting...', 'log'))
-  .on('error', e => client.logger.error(e))
-  .on('warn', info => client.logger.warn(info));
+  .on('error', (e) => client.logger.error(e))
+  .on('warn', (info) => client.logger.warn(info));
 
-client.on('raw', packet => {
+client.on('raw', (packet) => {
   // We don't want this to run on unrelated packets
   if (!['MESSAGE_REACTION_ADD', 'MESSAGE_REACTION_REMOVE'].includes(packet.t)) return;
   // Grab the channel to check the message from
@@ -340,7 +367,7 @@ client.on('raw', packet => {
   // There's no need to emit if the message is cached, because the event will fire anyway for that
   if (channel.messages.cache.has(packet.d.message_id)) return;
   // Since we have confirmed the message is not cached, let's fetch it
-  channel.messages.fetch(packet.d.message_id).then(message => {
+  channel.messages.fetch(packet.d.message_id).then((message) => {
     // Emojis can have identifiers of name:id format, so we have to account for that case as well
     const emoji = packet.d.emoji.id ? `${packet.d.emoji.name}:${packet.d.emoji.id}` : packet.d.emoji.name;
     // This gives us the reaction we need to emit the event properly, in top of the message object
@@ -364,6 +391,6 @@ process.on('uncaughtException', (err) => {
   process.exit(1);
 });
 
-process.on('unhandledRejection', err => {
+process.on('unhandledRejection', (err) => {
   console.error('Uncaught Promise Error: ', err);
 });

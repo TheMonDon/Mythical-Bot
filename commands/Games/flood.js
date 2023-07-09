@@ -4,20 +4,26 @@ const db = require('quick.db');
 const { Duration } = require('luxon');
 
 class Flood extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'flood',
       description: 'Play a game of flood.',
       usage: 'flood',
       category: 'Games',
-      enabled: 'false'
+      enabled: 'false',
     });
   }
 
-  async run (msg) {
+  async run(msg) {
     const WIDTH = 13;
     const HEIGHT = 13;
-    const SQUARES = { red_square: '🟥', blue_square: '🟦', orange_square: '🟧', purple_square: '🟪', green_square: '🟩' };
+    const SQUARES = {
+      red_square: '🟥',
+      blue_square: '🟦',
+      orange_square: '🟧',
+      purple_square: '🟪',
+      green_square: '🟩',
+    };
     const color = msg.settings.embedColor;
     const gameStart = msg.createdAt;
     const gameBoard = [];
@@ -46,7 +52,7 @@ class Flood extends Command {
     }
 
     // Return the game board as a string
-    function gameBoardToString () {
+    function gameBoardToString() {
       let str = '';
       for (let y = 0; y < HEIGHT; y++) {
         for (let x = 0; x < WIDTH; x++) {
@@ -58,27 +64,29 @@ class Flood extends Command {
     }
 
     // Get the content of the embed
-    function getContent () {
+    function getContent() {
       let embed;
       if (gameOver === true) {
         const gameTimeMillis = gameEnd - gameStart;
         let gameTime;
-        if (!isNaN(gameTimeMillis)) gameTime = Duration.fromMillis(gameTimeMillis).shiftTo('minutes', 'seconds').toHuman();
+        if (!isNaN(gameTimeMillis))
+          gameTime = Duration.fromMillis(gameTimeMillis).shiftTo('minutes', 'seconds').toHuman();
         const gameTimeSeconds = gameTimeMillis / 1000;
         const turnResp = {
           winner: `Game beat in ${turn} turns! \nGame Time: ${gameTime}`,
           timeOut: 'Game timed out due to inactivity.',
           error: 'Game ended with an error.',
           maxTurns: 'Game ended because you reached the max turns.',
-          playing: 'Game shouldn\'t have ended. :(',
-          earlyEnd: 'Game player decided to quit.'
+          playing: "Game shouldn't have ended. :(",
+          earlyEnd: 'Game player decided to quit.',
         };
 
         let highScore;
         let highScoreUser;
         let highScoreTime;
         if (result === 'winner') {
-          const HS = { score: turn, user: msg.author.tag, time: gameTimeSeconds };
+          const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
+          const HS = { score: turn, user: authorName, time: gameTimeSeconds };
           const oldHS = db.get('global.highScores.flood');
           highScore = oldHS?.score || 0;
           highScoreUser = oldHS?.user || 'N/A';
@@ -101,7 +109,10 @@ class Flood extends Command {
           highScoreTime = oldHS?.time || 0;
         }
 
-        if (!isNaN(highScoreTime)) highScoreTime = Duration.fromMillis(highScoreTime * 1000).shiftTo('minutes', 'seconds').toHuman();
+        if (!isNaN(highScoreTime))
+          highScoreTime = Duration.fromMillis(highScoreTime * 1000)
+            .shiftTo('minutes', 'seconds')
+            .toHuman();
         embed = new EmbedBuilder()
           .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL({ dynamic: true }) })
           .setColor(color)
@@ -114,11 +125,13 @@ class Flood extends Command {
           .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL({ dynamic: true }) })
           .setColor(color)
           .setTitle('Flood')
-          .setDescription(`${gameBoardToString()} 
+          .setDescription(
+            `${gameBoardToString()} 
 Fill the entire image with the same color in 25 or fewer flood tiles (turns).
 
 Click on the reactions below to fill the area above.
-Filling starts at the top left corner.`)
+Filling starts at the top left corner.`,
+          )
           .addFields([{ name: 'Turn:', value: turn.toString() }])
           .setFooter({ text: `Currently Playing: ${msg.author.username}` })
           .setTimestamp();
@@ -142,7 +155,7 @@ Filling starts at the top left corner.`)
         // If the message doesn't exist, create it
         if (!message) {
           message = await msg.channel.send({ embeds: getContent() });
-          ['🟥', '🟦', '🟧', '🟪', '🟩', '🛑'].forEach(s => message.react(s));
+          ['🟥', '🟦', '🟧', '🟪', '🟩', '🛑'].forEach((s) => message.react(s));
         } else {
           message.edit({ embeds: getContent() });
         }
@@ -166,14 +179,16 @@ Filling starts at the top left corner.`)
           return message.edit({ embeds: getContent() });
         } else if (selected === lastMove) {
           if (error) error.delete();
-          error = await msg.channel.send('You can\'t flood with the same color twice in a row!');
+          error = await msg.channel.send("You can't flood with the same color twice in a row!");
           continue;
         }
         lastMove = selected;
 
         while (queue.length > 0) {
           const pos = queue.shift();
-          if (!pos || visited.includes(pos)) { continue; }
+          if (!pos || visited.includes(pos)) {
+            continue;
+          }
           visited.push(pos);
           if (gameBoard[pos.y * WIDTH + pos.x] === current) {
             gameBoard[pos.y * WIDTH + pos.x] = selected;

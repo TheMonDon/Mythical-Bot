@@ -4,19 +4,19 @@ const moment = require('moment');
 require('moment-duration-format');
 
 class ServerInfo extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'server-info',
       description: 'Gives some useful server information',
       usage: 'server-info [server ID]',
       category: 'Information',
-      aliases: ['si', 'serverinfo', 'guildinfo']
+      aliases: ['si', 'serverinfo'],
     });
   }
 
-  async run (msg, args) {
+  async run(msg, args) {
     let server;
-    const usage = `${msg.settings.prefix}server-info [server ID] (The bot must be in the server you want to get information for.)`;
+    const usage = `${msg.settings.prefix}server-info [server ID] (The bot must be in the server you want to get information for)`;
 
     // Check if the user provided a server ID
     if (!args || args.length < 1) {
@@ -43,7 +43,7 @@ class ServerInfo extends Command {
 
     // Get the server's roles and format them
     const roles = server.roles.cache.sort((a, b) => b.position - a.position);
-    const fRoles = roles.filter(r => r.id !== server.id);
+    const fRoles = roles.filter((r) => r.id !== server.id);
     let roles1 = [...fRoles.values()].join(', ');
 
     if (roles1 === undefined || roles1.length === 0) roles1 = 'No Roles';
@@ -56,21 +56,28 @@ class ServerInfo extends Command {
 
     const verificationLevel = ['None', 'Low', 'Medium', 'High', 'Very High'];
 
+    const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
+    const owner = server.members.cache.get(server.ownerId).user;
+    const ownerName = owner.discriminator === '0' ? owner.username : owner.tag;
     const embed = new EmbedBuilder()
       .setTitle(`${server.name}'s Information`)
       .setColor(msg.settings.embedColor)
       .setThumbnail(msg.guild.iconURL())
-      .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
+      .setAuthor({ name: authorName, iconURL: msg.author.displayAvatarURL() })
       .setFields([
         { name: 'Name', value: server.name, inline: true },
         { name: 'ID', value: server.id.toString(), inline: true },
-        { name: 'Owner', value: server.members.cache.get(server.ownerId).user.tag, inline: true },
+        { name: 'Owner', value: ownerName, inline: true },
         { name: 'Verification Level', value: verificationLevel[server.verificationLevel], inline: true },
         { name: 'Channels', value: server.channels.cache.size.toLocaleString(), inline: true },
         { name: 'Created At', value: `${ca} \n (${time})`, inline: true },
         { name: 'AFK Channel', value: server.afkChannel?.name || 'No AFK Channel', inline: true },
         { name: 'Members', value: server.members.cache.size.toLocaleString(), inline: true },
-        { name: `Roles (${server.roles.cache.size.toLocaleString()})`, value: server === msg.guild ? roles1 : 'Can\'t display roles outside the server', inline: false }
+        {
+          name: `Roles (${server.roles.cache.size.toLocaleString()})`,
+          value: server === msg.guild ? roles1 : "Can't display roles outside the server",
+          inline: false,
+        },
       ]);
 
     return msg.channel.send({ embeds: [embed] });

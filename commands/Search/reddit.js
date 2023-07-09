@@ -3,16 +3,16 @@ const { EmbedBuilder } = require('discord.js');
 const trev = require('trev');
 
 class Reddit extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'reddit',
       description: 'Sends a random image from a subreddit of your choice.',
       usage: 'Reddit <Subreddit>',
-      category: 'Search'
+      category: 'Search',
     });
   }
 
-  async run (msg, args) {
+  async run(msg, args) {
     if (!args || args.length < 1) return msg.reply(`Incorrect Usage: ${msg.settings.prefix}reddit <subreddit>`);
     const subreddit = args.join('');
 
@@ -22,8 +22,9 @@ class Reddit extends Command {
     if (trev.isImgurUpload(post.media)) image = trev.getRawImgur(post.media);
     if (trev.isGfyLink(post.media)) image = trev.gfyIframe(post.media);
 
+    const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
     const em = new EmbedBuilder()
-      .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
+      .setAuthor({ name: authorName, iconURL: msg.author.displayAvatarURL() })
       .setTitle(post.title)
       .setURL(post.permalink)
       .setImage(image)

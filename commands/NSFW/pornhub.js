@@ -3,18 +3,18 @@ const cheerio = require('cheerio');
 const fetch = require('node-superfetch');
 
 class PornHub extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'pornhub',
       description: 'Sends the video result from pornhub',
       usage: 'pornhub <search>',
       category: 'NSFW',
       nsfw: true,
-      aliases: ['ph', 'ch', 'cornhub']
+      aliases: ['ph', 'ch', 'cornhub'],
     });
   }
 
-  async run (msg, args) {
+  async run(msg, args) {
     const query = args.join(' ');
 
     if (!query || query.length < 1) return msg.channel.send('Please enter something to search for.');

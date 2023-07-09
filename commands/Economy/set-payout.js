@@ -4,21 +4,22 @@ const { EmbedBuilder } = require('discord.js');
 const { stripIndents } = require('common-tags');
 
 class SetPayout extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'set-payout',
       category: 'Economy',
       description: 'Sets the payout of the economy commands',
       usage: 'set-payout <work | crime | slut> <min | max> <amount>',
-      aliases: ['setpayout', 'sp'],
-      guildOnly: true
+      aliases: ['setpayout'],
+      guildOnly: true,
     });
   }
 
-  run (msg, text) {
+  run(msg, text) {
     const types = ['work', 'crime', 'slut'];
 
-    if (!msg.member.permissions.has('ManageMessages')) return msg.channel.send('You are missing **Manage Guild** permission.');
+    if (!msg.member.permissions.has('ManageMessages'))
+      return msg.channel.send('You are missing **Manage Guild** permission.');
 
     const currencySymbol = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
     const usage = `${msg.settings.prefix}set-payout <work | crime> <min | max> <amount>`;
@@ -30,10 +31,13 @@ class SetPayout extends Command {
     const crimeMin = db.get(`servers.${msg.guild.id}.economy.crime.min`) || 500;
     const crimeMax = db.get(`servers.${msg.guild.id}.economy.crime.max`) || 2000;
 
+    const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
+    const embed = new EmbedBuilder()
+      .setColor(msg.settings.embedErrorColor)
+      .setAuthor({ name: authorName, iconURL: msg.author.displayAvatarURL() });
+
     if (!text || text.length < 1) {
-      const embed = new EmbedBuilder()
-        .setColor('#04ACF4')
-        .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
+      embed.setColor('#04ACF4')
         .setDescription(stripIndents`
           The current payout ranges are: 
         
@@ -45,20 +49,17 @@ class SetPayout extends Command {
         `);
       return msg.channel.send({ embeds: [embed] });
     }
-    const errEmbed = new EmbedBuilder()
-      .setColor(msg.settings.embedErrorColor)
-      .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() });
 
     const type = text[0]?.toLowerCase();
     if (!types.includes(type)) {
-      errEmbed.setDescription(`Incorrect Usage: ${usage}`);
-      return msg.channel.send({ embeds: [errEmbed] });
+      embed.setDescription(`Incorrect Usage: ${usage}`);
+      return msg.channel.send({ embeds: [embed] });
     }
 
     const minMax = text[1]?.toLowerCase();
     if (!['min', 'max'].includes(minMax)) {
-      errEmbed.setDescription(`Incorrect Usage: ${usage}`);
-      return msg.channel.send({ embeds: [errEmbed] });
+      embed.setDescription(`Incorrect Usage: ${usage}`);
+      return msg.channel.send({ embeds: [embed] });
     }
 
     text.shift();
@@ -66,13 +67,13 @@ class SetPayout extends Command {
     const amount = parseInt(text.join('').replace(/,/g, '').replace(currencySymbol, '').replace(/-/g, ''), 10);
 
     if (isNaN(amount)) {
-      errEmbed.setDescription(stripIndents`
+      embed.setDescription(stripIndents`
         :x: Invalid payout. Please provide a valid number.
 
         Usage: ${usage}
       `);
 
-      return msg.channel.send({ embeds: [errEmbed] });
+      return msg.channel.send({ embeds: [embed] });
     }
 
     if (amount > 1000000000000) {
@@ -81,9 +82,7 @@ class SetPayout extends Command {
       return msg.channel.send('The min amount for payout is one.');
     }
 
-    const embed = new EmbedBuilder()
-      .setColor('#64BC6C')
-      .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() });
+    embed.setColor('#64BC6C');
 
     if (type === 'work') {
       if (minMax === 'min') {
@@ -101,7 +100,8 @@ class SetPayout extends Command {
         db.set(`servers.${msg.guild.id}.economy.crime.max`, amount);
         embed.setDescription(`The maximum amount for \`Crime\` has been changed to ${currencySymbol}${amount}`);
       }
-    } else if (type === 'slut') { // Shoved this in for future proofing :D (Thanks past me!)
+    } else if (type === 'slut') {
+      // Shoved this in for future proofing :D (Thanks past me!)
       if (minMax === 'min') {
         db.set(`servers.${msg.guild.id}.economy.slut.min`, amount);
         embed.setDescription(`The minimum amount for \`Slut\` has been changed to ${currencySymbol}${amount}`);

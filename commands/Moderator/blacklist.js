@@ -3,7 +3,7 @@ const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
 
 class Blacklist extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'blacklist',
       description: 'Blacklist someone from using the bot',
@@ -11,11 +11,11 @@ class Blacklist extends Command {
       category: 'Moderator',
       permLevel: 'Moderator',
       aliases: ['bl'],
-      guildOnly: true
+      guildOnly: true,
     });
   }
 
-  async run (msg, text) {
+  async run(msg, text) {
     let mem;
     let type;
     const usage = `Incorrect Usage:${msg.settings.prefix}Blacklist <Add | Remove | Check> <User> <Reason>`;
@@ -47,11 +47,14 @@ class Blacklist extends Command {
 
     const blacklist = db.get(`servers.${msg.guild.id}.users.${mem.id}.blacklist`);
 
-    const em = new EmbedBuilder()
+    const memberName = mem.user.discriminator === '0' ? mem.user.username : mem.user.tag;
+    const embed = new EmbedBuilder()
+    .setAuthor({ name: memberName, iconURL: msg.author.displayAvatarURL() })
       .setColor(msg.settings.embedColor)
       .setTimestamp();
 
-    if (type === 'add') { // Add member to blacklist
+    if (type === 'add') {
+      // Add member to blacklist
       if (blacklist) {
         return msg.channel.send('That user is already blacklisted.');
       }
@@ -60,43 +63,42 @@ class Blacklist extends Command {
       db.set(`servers.${msg.guild.id}.users.${mem.id}.blacklist`, true);
       db.set(`servers.${msg.guild.id}.users.${mem.id}.blacklistReason`, reason);
 
-      em.setTitle(`${mem.user.tag} has been added to the blacklist.`);
-      em.addFields([
+      embed.setTitle(`${memberName} has been added to the blacklist.`).addFields([
         { name: 'Reason:', value: reason },
         { name: 'Member:', value: `${mem.displayName} \n(${mem.id})` },
-        { name: 'Server:', value: `${msg.guild.name} \n(${msg.guild.id})` }
+        { name: 'Server:', value: `${msg.guild.name} \n(${msg.guild.id})` },
       ]);
 
-      msg.channel.send({ embeds: [em] });
-      return mem.send({ embeds: [em] });
-    } else if (type === 'remove') { // remove member from blacklist
+      msg.channel.send({ embeds: [embed] });
+      return mem.send({ embeds: [embed] });
+    } else if (type === 'remove') {
+      // remove member from blacklist
       if (!blacklist) return msg.channel.send('That user is not blacklisted');
       if (!reason) return msg.channel.send(`${usage} \nPlease provide a valid reason.`);
 
       db.set(`servers.${msg.guild.id}.users.${mem.id}.blacklist`, false);
       db.set(`servers.${msg.guild.id}.users.${mem.id}.blacklistReason`, reason);
 
-      em.setTitle(`${mem.user.tag} has been removed to the blacklist.`);
-      em.addFields([
+      embed.setTitle(`${memberName} has been removed to the blacklist.`).addFields([
         { name: 'Reason:', value: reason },
         { name: 'Member:', value: `${mem.displayName} \n(${mem.id})` },
-        { name: 'Server:', value: `${msg.guild.name} \n(${msg.guild.id})` }
+        { name: 'Server:', value: `${msg.guild.name} \n(${msg.guild.id})` },
       ]);
 
-      msg.channel.send({ embeds: [em] });
-      return mem.send({ embeds: [em] });
-    } else if (type === 'check') { // check if member is blacklisted
+      msg.channel.send({ embeds: [embed] });
+      return mem.send({ embeds: [embed] });
+    } else if (type === 'check') {
+      // check if member is blacklisted
       const reason = db.get(`servers.${msg.guild.id}.users.${mem.id}.blacklistReason`) || false;
 
       const bl = blacklist ? 'is' : 'is not';
-      em.setTitle(`${mem.user.tag} blacklist check`);
-      em.addFields([
-        { name: 'Member:', value: `${mem.user.tag} (${mem.id})`, inline: true },
-        { name: 'Is Blacklisted?', value: `That user ${bl} blacklisted.` }
+      embed.setTitle(`${memberName} blacklist check`).addFields([
+        { name: 'Member:', value: `${memberName} (${mem.id})`, inline: true },
+        { name: 'Is Blacklisted?', value: `That user ${bl} blacklisted.` },
       ]);
-      if (reason) em.addFields([{ name: 'reason', value: reason, inline: true }]);
+      if (reason) embed.addFields([{ name: 'reason', value: reason, inline: true }]);
 
-      return msg.channel.send({ embeds: [em] });
+      return msg.channel.send({ embeds: [embed] });
     }
   }
 }

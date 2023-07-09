@@ -1,11 +1,16 @@
 {
   "name": "mythical",
-  "version": "3.6.0",
+  "version": "4.0.0",
   "description": "Mythical Bot",
-  "owner": "TheMonDon#1721",
+  "owner": "themondon",
   "main": "index.js",
   "engines": {
     "node": ">=16.9.0"
+  },
+  "scripts": {
+    "lint": "eslint --fix --cache commands events slash",
+    "prettier:check": "prettier **/**.{js,json} --check --ignore-unknown",
+    "prettier:fix": "prettier **/**.{js,json} --write --ignore-unknown"
   },
   "license": "MIT",
   "dependencies": {
@@ -71,9 +76,11 @@
   },
   "devDependencies": {
     "eslint": "^7.32.0",
+    "eslint-config-prettier": "^8.8.0",
     "eslint-config-standard": "^16.0.3",
     "eslint-plugin-import": "^2.26.0",
     "eslint-plugin-node": "^11.1.0",
-    "eslint-plugin-promise": "^5.1.0"
+    "eslint-plugin-promise": "^5.1.0",
+    "prettier": "3.0.0"
   }
 }

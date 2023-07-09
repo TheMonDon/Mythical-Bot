@@ -3,18 +3,18 @@ const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
 
 class ResetMoney extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'reset-money',
       description: 'Reset the money of a user.',
       category: 'Economy',
       usage: 'Reset-Money [user]',
       aliases: ['resetmoney', 'rm'],
-      guildOnly: true
+      guildOnly: true,
     });
   }
 
-  async run (msg, text, level) {
+  async run(msg, text, level) {
     if (!text || text.length < 1) {
       await msg.channel.send('Are you sure you want to reset your money? (yes/no)');
       const verification = await this.client.util.verify(msg.channel, msg.author);
@@ -30,7 +30,7 @@ class ResetMoney extends Command {
       if (level < this.client.levelCache.Moderator) {
         if (this.client.settings.systemNotice === 'true') {
           return msg.channel.send(`You do not have permission to use this command.
-  Your permission level is ${level} (${this.client.config.permLevels.find(l => l.level === level).name})
+  Your permission level is ${level} (${this.client.config.permLevels.find((l) => l.level === level).name})
   This command requires level ${this.client.levelCache.Moderator} (Moderator)`);
         } else {
           return;
@@ -44,23 +44,26 @@ class ResetMoney extends Command {
         try {
           mem = await this.client.users.fetch(fid);
         } catch (err) {
+          const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
           const embed = new EmbedBuilder()
             .setColor(msg.settings.embedErrorColor)
-            .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
+            .setAuthor({ name: authorName, iconURL: msg.author.displayAvatarURL() })
             .setDescription(`That user was not found. \nUsage: ${msg.settings.prefix}Reset-Money <user>`);
           return msg.channel.send({ embeds: [embed] });
         }
       }
+      mem = mem.user ? mem.user : mem;
+      const memberName = mem.discriminator === '0' ? mem.username : mem.tag;
 
-      await msg.channel.send(`Are you sure you want to reset ${mem.user?.tag || mem.tag}'s money? (yes/no)`);
+      await msg.channel.send(`Are you sure you want to reset ${memberName}'s money? (yes/no)`);
       const verification = await this.client.util.verify(msg.channel, msg.author);
       if (verification) {
         const amount = db.get(`servers.${msg.guild.id}.economy.startBalance`) || 0;
         db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, amount);
         db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`, 0);
-        return msg.channel.send(`Successfully reset ${mem.user?.tag || mem.tag}'s money.`);
+        return msg.channel.send(`Successfully reset ${memberName}'s money.`);
       } else {
-        return msg.channel.send(`Cancelled, ${mem.user?.tag || mem.tag}'s money won't be reset.`);
+        return msg.channel.send(`Cancelled, ${memberName}'s money won't be reset.`);
       }
     }
   }

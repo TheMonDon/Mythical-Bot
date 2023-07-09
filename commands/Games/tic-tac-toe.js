@@ -4,28 +4,29 @@ const { stripIndents } = require('common-tags');
 const nums = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣'];
 
 class TicTacToe extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'tic-tac-toe',
       description: 'Play a game of tic-tac-toe with another user or the AI.',
       usage: 'Tic-Tac-Toe <User>',
       category: 'Games',
-      aliases: ['ttt', 'tictactoe']
+      aliases: ['ttt', 'tictactoe'],
     });
   }
 
-  async run (msg, args) {
+  async run(msg, args) {
     const current = this.client.games.get(msg.channel.id);
     if (current) return msg.reply(`Please wait until the current game of \`${current.name}\` is finished.`);
 
-    if (!args || args.length < 1) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}tic-tac-toe <member>`);
+    if (!args || args.length < 1)
+      return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}tic-tac-toe <member>`);
 
     const opponent = await this.client.util.getMember(msg, args.join(' '));
     if (opponent.id === msg.author.id) return msg.reply('You may not play against yourself.');
 
     this.client.games.set(msg.channel.id, { name: this.help.name, user: msg.author.id, date: Date.now() });
 
-    function verifyWin (sides, player1, player2) {
+    function verifyWin(sides, player1, player2) {
       const evaluated = tictactoe.boardEvaluate(convertBoard(sides)).status;
       if (evaluated === 'win') return player1;
       if (evaluated === 'loss') return player2;
@@ -33,7 +34,7 @@ class TicTacToe extends Command {
       return false;
     }
 
-    function convertBoard (board) {
+    function convertBoard(board) {
       const newBoard = [[], [], []];
       let col = 0;
       for (const piece of board) {
@@ -49,7 +50,7 @@ class TicTacToe extends Command {
       return newBoard;
     }
 
-    function displayBoard (board) {
+    function displayBoard(board) {
       let str = '';
       for (let i = 0; i < board.length; i++) {
         if (board[i] === 'X') {
@@ -96,7 +97,7 @@ class TicTacToe extends Command {
             ${user}, which side do you pick? Type \`end\` to forfeit.
             ${displayBoard(sides)}
           `);
-          const filter = res => {
+          const filter = (res) => {
             if (res.author.id !== user.id) return false;
             const pick = res.content;
             if (pick.toLowerCase() === 'end') return true;
@@ -105,7 +106,7 @@ class TicTacToe extends Command {
           const turn = await msg.channel.awaitMessages({
             filter,
             max: 1,
-            time: 30000
+            time: 30000,
           });
           if (!turn.size) {
             await msg.channel.send('Sorry, time is up!');

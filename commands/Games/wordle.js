@@ -4,16 +4,16 @@ const { readFileSync } = require('fs');
 const path = require('path');
 
 class Wordle extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'wordle',
       description: 'Play the famous wordle game!',
       usage: 'wordle',
-      category: 'Fun'
+      category: 'Fun',
     });
   }
 
-  async run (msg, args, level) {
+  async run(msg, args, level) {
     let dev = false;
     const current = this.client.games.get(msg.channel.id);
     if (current) return msg.reply(`Please wait until the current game of \`${current.name}\` is finished.`);
@@ -41,7 +41,7 @@ class Wordle extends Command {
     this.client.games.set(msg.channel.id, { name: this.help.name, user: msg.author.id, date: Date.now() });
 
     // Take the guess and the answer and return an array of results (🟩, 🟨, ⬜)
-    function testWord (guess, answer) {
+    function testWord(guess, answer) {
       const results = [];
       for (let i = 0; i < guess.length; i += 1) {
         const char = guess[i];
@@ -54,10 +54,10 @@ class Wordle extends Command {
         }
       }
       return [results];
-    };
+    }
 
     // Dev function to test double letter word without breaking the game
-    function devTestWord (guess, answer) {
+    function devTestWord(guess, answer) {
       const results = [];
       for (let i = 0; i < guess.length; i += 1) {
         const char = guess[i];
@@ -80,7 +80,7 @@ class Wordle extends Command {
     }
 
     // Return the game board as a string
-    function gameBoardToString () {
+    function gameBoardToString() {
       let str = '';
       for (let y = 0; y < HEIGHT; y++) {
         for (let x = 0; x < WIDTH; x++) {
@@ -92,7 +92,7 @@ class Wordle extends Command {
     }
 
     // Check if the game is over, along with the winner and return an embed based on the results
-    function getContent () {
+    function getContent() {
       let embed;
 
       if (gameOver === true) {
@@ -118,7 +118,9 @@ class Wordle extends Command {
           .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL({ dynamic: true }) })
           .setColor(msg.settings.embedColor)
           .setTitle('Wordle (5 Minutes)')
-          .setDescription(`${gameBoardToString()} \nGuess the word! (5 letters)` + (dev ? `\nThe word is: ${theWord}` : ''))
+          .setDescription(
+            `${gameBoardToString()} \nGuess the word! (5 letters)` + (dev ? `\nThe word is: ${theWord}` : ''),
+          )
           .addFields([{ name: 'Turn:', value: (turn + 1).toString() }])
           .setFooter({ text: `Currently Playing: ${msg.author.username}` })
           .setTimestamp();
@@ -131,14 +133,17 @@ class Wordle extends Command {
 
     while (gameOver === false && turn <= 5) {
       const collected = await msg.channel.awaitMessages({
-        filter: m => m.author.id === msg.author.id && m.content.length === 5,
+        filter: (m) => m.author.id === msg.author.id && m.content.length === 5,
         max: 1,
-        time: 300000
+        time: 300000,
       });
 
       const word = collected?.first()?.content.toLowerCase();
       if (!word) gameOver = true;
-      collected.first().delete().catch(() => {});
+      collected
+        .first()
+        .delete()
+        .catch(() => {});
 
       if (!allWords.includes(word)) {
         await error?.delete().catch(() => {});
@@ -171,7 +176,7 @@ class Wordle extends Command {
       }
 
       await message.edit({ embeds: getContent() });
-      turn >= 5 ? gameOver = true : turn += 1;
+      turn >= 5 ? (gameOver = true) : (turn += 1);
       await error?.delete().catch(() => {});
     }
 

@@ -2,7 +2,7 @@ const Command = require('../../base/Command.js');
 const db = require('quick.db');
 
 class ToggleAll extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'toggle-all',
       description: 'Toggle all logs',
@@ -10,12 +10,13 @@ class ToggleAll extends Command {
       category: 'Logging',
       permLevel: 'Moderator',
       aliases: ['ta', 'toggleall'],
-      guildOnly: true
+      guildOnly: true,
     });
   }
 
-  async run (msg) {
-    if (!db.get(`servers.${msg.guild.id}.logs.channel`)) return msg.channel.send(`The log system is not set up! Use \`${msg.settings.prefix}setlogchannel <channel>\``);
+  async run(msg) {
+    if (!db.get(`servers.${msg.guild.id}.logs.channel`))
+      return msg.channel.send(`The log system is not set up! Use \`${msg.settings.prefix}setlogchannel <channel>\``);
 
     const all = db.get(`servers.${msg.guild.id}.logs.logSystem.all`);
     const enable = {
@@ -37,7 +38,7 @@ class ToggleAll extends Command {
       'emoji-created': 'enabled',
       'emoji-deleted': 'enabled',
       'bulk-messages-deleted': 'enabled',
-      all: 'enabled'
+      all: 'enabled',
     };
     const disable = {
       'channel-created': 'disabled',
@@ -58,7 +59,7 @@ class ToggleAll extends Command {
       'emoji-created': 'disabled',
       'emoji-deleted': 'disabled',
       'bulk-messages-deleted': 'disabled',
-      all: 'disabled'
+      all: 'disabled',
     };
 
     if (all === 'enabled') {
@@ -69,7 +70,9 @@ class ToggleAll extends Command {
       return msg.channel.send('Everything has been enabled.');
     }
 
-    return msg.channel.send('An error occurred, this is probably due to the log system not being setup in this server.');
+    return msg.channel.send(
+      'An error occurred, this is probably due to the log system not being setup in this server.',
+    );
   }
 }
 

@@ -5,41 +5,48 @@ require('moment-duration-format');
 const db = require('quick.db');
 
 class Slut extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'slut',
       category: 'Economy',
       description: 'Whip it out, for some quick cash ;)',
       aliases: ['whore', 'escort'],
-      guildOnly: true
+      guildOnly: true,
     });
   }
 
-  run (msg) {
+  run(msg) {
     const type = 'slut';
 
     const cooldown = db.get(`servers.${msg.guild.id}.economy.${type}.cooldown`) || 600;
     let userCooldown = db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.${type}.cooldown`) || {};
 
+    const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
+    const embed = new EmbedBuilder()
+      .setColor(msg.settings.embedErrorColor)
+      .setAuthor({ name: authorName, iconURL: msg.author.displayAvatarURL() });
+
     if (userCooldown.active) {
       const timeleft = userCooldown.time - Date.now();
-      if (timeleft < 0 || timeleft > (cooldown * 1000)) {
+      if (timeleft < 0 || timeleft > cooldown * 1000) {
         // this is to check if the bot restarted before their cooldown was set.
         userCooldown = {};
         userCooldown.active = false;
         db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.${type}.cooldown`, userCooldown);
       } else {
-        const tLeft = moment.duration(timeleft)
+        const tLeft = moment
+          .duration(timeleft)
           .format('y[ years][,] M[ Months]d[ days][,] h[ hours][,] m[ minutes][, and] s[ seconds]'); // format to any format
-        const embed = new EmbedBuilder()
-          .setColor(msg.settings.embedErrorColor)
-          .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
-          .setDescription(`Please wait ${tLeft} to be a slut again.`);
+        embed.setDescription(`Please wait ${tLeft} to be a slut again.`);
         return msg.channel.send({ embeds: [embed] });
       }
     }
 
-    const cash = parseFloat(db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`) || db.get(`servers.${msg.guild.id}.economy.startBalance`) || 0);
+    const cash = parseFloat(
+      db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`) ||
+        db.get(`servers.${msg.guild.id}.economy.startBalance`) ||
+        0,
+    );
     const bank = parseFloat(db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`) || 0);
     const authNet = cash + bank;
 
@@ -76,9 +83,7 @@ class Slut extends Command {
       const num = Math.floor(Math.random() * (crimeFail.length - 1)) + 1;
       const txt = crimeFail[num].replace('csamount', csamount);
 
-      const embed = new EmbedBuilder()
-        .setColor(msg.settings.embedErrorColor)
-        .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
+      embed
         .setDescription(txt)
         .setFooter({ text: `Reply #${num.toLocaleString()}` });
       msg.channel.send({ embeds: [embed] });
@@ -91,9 +96,7 @@ class Slut extends Command {
       const num = Math.floor(Math.random() * (crimeSuccess.length - 1)) + 1;
       const txt = crimeSuccess[num].replace('csamount', csamount);
 
-      const embed = new EmbedBuilder()
-        .setColor(msg.settings.embedSuccessColor)
-        .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
+      embed
         .setDescription(txt)
         .setFooter({ text: `Reply #${num.toLocaleString()}` });
       msg.channel.send({ embeds: [embed] });
@@ -101,7 +104,7 @@ class Slut extends Command {
       db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, amount);
     }
 
-    userCooldown.time = Date.now() + (cooldown * 1000);
+    userCooldown.time = Date.now() + cooldown * 1000;
     userCooldown.active = true;
     db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.${type}.cooldown`, userCooldown);
 
@@ -111,6 +114,6 @@ class Slut extends Command {
       db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.${type}.cooldown`, userCooldown);
     }, cooldown * 1000);
   }
-};
+}
 
 module.exports = Slut;

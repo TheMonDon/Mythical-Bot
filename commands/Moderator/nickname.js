@@ -1,7 +1,7 @@
 const Command = require('../../base/Command.js');
 
 class Nickname extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'nickname',
       description: 'Change the nickname of a member',
@@ -9,12 +9,13 @@ class Nickname extends Command {
       category: 'Moderator',
       permLevel: 'Moderator',
       aliases: ['nick'],
-      guildOnly: true
+      guildOnly: true,
     });
   }
 
-  async run (msg, text) {
-    if (!msg.guild.members.me.permissions.has('ManageNicknames')) return msg.channel.send('The bot doesn\'t have Manage Nicknames permission.');
+  async run(msg, text) {
+    if (!msg.guild.members.me.permissions.has('ManageNicknames'))
+      return msg.channel.send("The bot doesn't have Manage Nicknames permission.");
 
     if (!text[0]) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}Nickname <User> [Nickname]`);
 
@@ -22,8 +23,10 @@ class Nickname extends Command {
     const owner = msg.guild.fetchOwner();
 
     if (!infoMem) return msg.channel.send('That user was not found.');
-    if (infoMem.id === owner.user.id) return msg.channel.send('Only the server owner of the server can change their nickname.');
-    if (infoMem.roles.highest.position > msg.guild.members.me.roles.highest.position - 1) return msg.channel.send('I need my role higher to change that users nickname.');
+    if (infoMem.id === owner.user.id)
+      return msg.channel.send('Only the server owner of the server can change their nickname.');
+    if (infoMem.roles.highest.position > msg.guild.members.me.roles.highest.position - 1)
+      return msg.channel.send('I need my role higher to change that users nickname.');
 
     text.shift();
     const nick = text.join(' ');

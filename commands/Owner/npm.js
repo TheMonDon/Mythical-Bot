@@ -3,18 +3,19 @@ const child = require('child_process');
 const { stripIndents } = require('common-tags');
 
 class NPM extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'npm',
       category: 'Owner',
       memberName: 'npm',
       permLevel: 'Bot Owner',
       description: 'Installs an NPM package and saves it to the package.json',
-      longDescription: '(Owner Only) It will install an npm package, save the package to the package.json and all its dependencies.'
+      longDescription:
+        '(Owner Only) It will install an npm package, save the package to the package.json and all its dependencies.',
     });
   }
 
-  async run (msg, args) {
+  async run(msg, args) {
     const moduleName = args.join(' ');
     const message = await msg.channel.send(`Attempting to install Node Module: ${moduleName}`);
 
@@ -34,6 +35,6 @@ An error was encountered, the module probably doesn't exist in the registry!`);
     }
     return message.edit(`The Node Module ${moduleName} was successfully installed!`);
   }
-};
+}
 
 module.exports = NPM;

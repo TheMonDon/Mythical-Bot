@@ -2,16 +2,16 @@ const Command = require('../../base/Command.js');
 const { letterTrans } = require('custom-translate');
 
 class Cursive extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'cursive',
       description: 'Convert your text into cursive!',
       usage: 'cursive',
-      category: 'Fun'
+      category: 'Fun',
     });
   }
 
-  async run (msg, args) {
+  async run(msg, args) {
     const dictionary = {
       a: '𝒶',
       b: '𝒷',
@@ -74,7 +74,7 @@ class Cursive extends Command {
       7: '𝟩',
       8: '𝟪',
       9: '𝟫',
-      0: '𝟢'
+      0: '𝟢',
     };
 
     if (!args || args.length < 1) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}Cursive <text>`);

@@ -3,17 +3,17 @@ const { EmbedBuilder } = require('discord.js');
 const fetch = require('node-superfetch');
 
 class TodayInHistory extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'today-in-history',
       description: 'Get information about a date in history',
       usage: 'today-in-history [month] [day]',
       category: 'Information',
-      aliases: ['todayinhistory', 'tih']
+      aliases: ['todayinhistory', 'tih'],
     });
   }
 
-  async run (msg, text) {
+  async run(msg, text) {
     let month;
     let day;
 
@@ -28,9 +28,11 @@ class TodayInHistory extends Command {
       day = parseInt(text[1], 10);
     }
 
-    if (isNaN(month) || (month < 1 && month > 12)) return msg.reply(`Please enter a valid month (1-12) \n${msg.settings.prefix}today-in-history [month] [day]`);
+    if (isNaN(month) || (month < 1 && month > 12))
+      return msg.reply(`Please enter a valid month (1-12) \n${msg.settings.prefix}today-in-history [month] [day]`);
 
-    if (isNaN(day) || (day < 1 && day > 31)) return msg.reply(`Please enter a valid day (1-31) \n${msg.settings.prefix}today-in-history [month] [day]`);
+    if (isNaN(day) || (day < 1 && day > 31))
+      return msg.reply(`Please enter a valid day (1-31) \n${msg.settings.prefix}today-in-history [month] [day]`);
 
     // If the month and day are valid, format the date
     const date = month && day ? `/${month}/${day}` : '';
@@ -48,7 +50,12 @@ class TodayInHistory extends Command {
         .setTitle(`On this day (${body.date})...`)
         .setColor(msg.settings.embedColor)
         .setURL(body.url)
-        .addFields([{ name: '❯ See More', value: event.links.map(link => `[${link.title}](${link.link.replace(/\)/g, '%29')})`).join(', ') }])
+        .addFields([
+          {
+            name: '❯ See More',
+            value: event.links.map((link) => `[${link.title}](${link.link.replace(/\)/g, '%29')})`).join(', '),
+          },
+        ])
         .setDescription(`${event.year}: ${event.text}`)
         .setTimestamp();
 

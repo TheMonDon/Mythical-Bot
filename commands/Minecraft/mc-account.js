@@ -4,17 +4,17 @@ const { EmbedBuilder } = require('discord.js');
 const fetch = require('node-superfetch');
 
 class MinecraftAccount extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'mc-account',
       description: 'Find information about a Minecraft account.',
       usage: 'mc-account <username>',
       category: 'Minecraft',
-      aliases: ['mca', 'mcaccount']
+      aliases: ['mca', 'mcaccount'],
     });
   }
 
-  async run (msg, args) {
+  async run(msg, args) {
     const errorColor = msg.settings.embedErrorColor;
     const successColor = msg.settings.embedSuccessColor;
 
@@ -48,7 +48,11 @@ class MinecraftAccount extends Command {
         .setImage(`https://mc-heads.net/body/${id}`)
         .addFields([
           { name: 'UUID', value: id.toString(), inline: false },
-          { name: 'NameMC Link', value: `Click [here](https://es.namemc.com/profile/${id}) to go to their NameMC Profile`, inline: false }
+          {
+            name: 'NameMC Link',
+            value: `Click [here](https://es.namemc.com/profile/${id}) to go to their NameMC Profile`,
+            inline: false,
+          },
         ]);
 
       return msg.channel.send({ embeds: [em] });

@@ -6,7 +6,7 @@ const neko = new NekoLife();
 // Otherwise false is global.
 exports.conf = {
   permLevel: 'User',
-  guildOnly: false
+  guildOnly: false,
 };
 
 exports.commandData = {
@@ -17,10 +17,10 @@ exports.commandData = {
       type: 3,
       name: 'question',
       description: 'The question you want to ask the 8ball.',
-      required: true
-    }
+      required: true,
+    },
   ],
-  dmPermission: true
+  dmPermission: true,
 };
 
 exports.run = async (client, interaction) => {
@@ -34,9 +34,7 @@ exports.run = async (client, interaction) => {
     .setTitle('Eight Ball')
     .setColor(interaction.settings.embedColor)
     .setImage(out.url)
-    .addFields([
-      { name: '__Question:__', value: question, inline: false }
-    ]);
+    .addFields([{ name: '__Question:__', value: question, inline: false }]);
 
   return interaction.editReply({ embeds: [em] });
 };

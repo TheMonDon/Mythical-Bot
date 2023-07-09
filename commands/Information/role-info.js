@@ -4,18 +4,18 @@ const moment = require('moment');
 require('moment-duration-format');
 
 class RoleInfo extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'role-info',
       description: 'Gives some useful role information',
       usage: 'Role-Info <Role Name | Role ID | @role>',
       category: 'Information',
       aliases: ['ri', 'roleinfo'],
-      guildOnly: true
+      guildOnly: true,
     });
   }
 
-  async run (msg, text) {
+  async run(msg, text) {
     const usage = `Incorrect Usage: ${msg.settings.prefix}Role-Info <Role Name | Role Id | @role>`;
 
     if (text?.length < 1) return msg.reply(usage);
@@ -43,7 +43,7 @@ class RoleInfo extends Command {
         { name: 'Position', value: `${infoRole.position}/${msg.guild.roles.cache.size}`, inline: true },
         { name: 'Mentionable', value: infoRole.mentionable.toString(), inline: true },
         { name: 'Managed', value: infoRole.managed.toString(), inline: true },
-        { name: 'Created At', value: `${ca} (${time})`, inline: true }
+        { name: 'Created At', value: `${ca} (${time})`, inline: true },
       ]);
 
     return msg.channel.send({ embeds: [embed] });

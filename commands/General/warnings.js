@@ -4,18 +4,18 @@ const { EmbedBuilder } = require('discord.js');
 const moment = require('moment');
 
 class Warnings extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'warnings',
       description: 'View all your warnings. Moderators can view others warnings.',
       usage: 'Warnings [user]',
       category: 'General',
       aliases: ['warns', 'mywarns', 'mycases'],
-      guildOnly: true
+      guildOnly: true,
     });
   }
 
-  async run (msg, args, level) {
+  async run(msg, args, level) {
     const warns = [];
     let mem;
 
@@ -46,8 +46,10 @@ class Warnings extends Command {
 
       for (const i of otherWarns) {
         const data = db.get(`servers.${msg.guild.id}.warns.warnings.${i.warnID}`);
-        warns.push(`\`${i.warnID}\` - ${data.points} pts - ${this.client.util.limitStringLength(data.reason, 0, 24)} - ` +
-          `${moment(Number(data.timestamp)).format('LLL')}`);
+        warns.push(
+          `\`${i.warnID}\` - ${data.points} pts - ${this.client.util.limitStringLength(data.reason, 0, 24)} - ` +
+            `${moment(Number(data.timestamp)).format('LLL')}`,
+        );
       }
     }
 

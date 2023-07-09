@@ -3,18 +3,18 @@ const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
 
 class BlackJack extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'blackjack',
       category: 'Economy',
       description: 'Play a game of blackjack',
       examples: ['blackjack 100'],
       aliases: ['bj'],
-      guildOnly: true
+      guildOnly: true,
     });
   }
 
-  async run (msg, args) {
+  async run(msg, args) {
     const { Blackjack } = require('blackjack-n-deck');
 
     const usage = `${msg.settings.prefix}blackjack <bet>`;
@@ -74,11 +74,12 @@ class BlackJack extends Command {
       KD: '<:kD:740317914900725802>',
       KS: '<:kS:740317914317586614>',
       KC: '<:kC:740317914590347335>',
-      '?': '<:cardBack:740317913948618793>'
+      '?': '<:cardBack:740317913948618793>',
     };
 
-    function getCards (t, bj) {
-      if (t === 'player') { // player cards
+    function getCards(t, bj) {
+      if (t === 'player') {
+        // player cards
         const obj = bj.player.cards;
         const obj2 = [];
         for (let i = 0; i < obj.length; i++) {
@@ -86,7 +87,8 @@ class BlackJack extends Command {
           obj2.push(cards[card]);
         }
         return obj2.toString().replace(/,/g, ' '); // return the string of emojis in string form
-      } else { // dealer cards
+      } else {
+        // dealer cards
         const obj = bj.dealer.cards;
         const obj2 = [];
         for (let i = 0; i < obj.length; i++) {
@@ -99,14 +101,18 @@ class BlackJack extends Command {
     }
 
     const currencySymbol = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
-    const cash = parseFloat(db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`) || db.get(`servers.${msg.guild.id}.economy.startBalance`) || 0);
+    const cash = parseFloat(
+      db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`) ||
+        db.get(`servers.${msg.guild.id}.economy.startBalance`) ||
+        0,
+    );
 
     const bet = parseFloat(args.join(' ').replace(/,/g, '').replace(currencySymbol, ''), 10);
 
     if (isNaN(bet)) return msg.channel.send('Please enter a number for the bet.');
 
     if (bet < 1) return msg.channel.send(`You can't bet less than ${currencySymbol}1.`);
-    if (bet > cash) return msg.channel.send('You can\'t bet more cash than you have.');
+    if (bet > cash) return msg.channel.send("You can't bet more cash than you have.");
 
     let color = msg.settings.embedColor;
 
@@ -121,7 +127,7 @@ class BlackJack extends Command {
     const successColor = msg.settings.embedSuccessColor;
     const errorColor = msg.settings.embedErrorColor;
 
-    bj.event = event => {
+    bj.event = (event) => {
       switch (event) {
         case 'hit':
           color = '#03A9F4';
@@ -162,7 +168,7 @@ class BlackJack extends Command {
         .setColor(color)
         .addFields([
           { name: '**Your Hand**', value: `${pcards} \n\nScore: Blackjack`, inline: true },
-          { name: '**Dealer Hand**', value: `${dcards} \n\nScore: ${bj.dealer.score}`, inline: true }
+          { name: '**Dealer Hand**', value: `${dcards} \n\nScore: ${bj.dealer.score}`, inline: true },
         ]);
 
       db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bj.bet); // Add the winning money
@@ -175,15 +181,16 @@ class BlackJack extends Command {
       .setColor(color)
       .addFields([
         { name: '**Your Hand**', value: `${pcards} \n\nScore: ${bj.player.score}`, inline: true },
-        { name: '**Dealer Hand**', value: `${dcards} \n\nScore: ${bj.dealer.score}`, inline: true }
+        { name: '**Dealer Hand**', value: `${dcards} \n\nScore: ${bj.dealer.score}`, inline: true },
       ]);
     const mEm = await msg.channel.send({ embeds: [em] });
 
     while (gameOver === false) {
       const collected = await msg.channel.awaitMessages({
-        filter: m => m.author.id === msg.author.id && ['hit', 'stand', 'doubledown'].includes(m.content.toLowerCase()),
+        filter: (m) =>
+          m.author.id === msg.author.id && ['hit', 'stand', 'doubledown'].includes(m.content.toLowerCase()),
         max: 1,
-        time: 60000
+        time: 60000,
       });
       if (!collected || !collected.first()) gameOver = true;
 
@@ -191,15 +198,22 @@ class BlackJack extends Command {
 
       if (selected === 'hit') {
         bj.hit();
-        collected.first().delete().catch(() => {});
-      } else
-      if (selected === 'stand') {
+        collected
+          .first()
+          .delete()
+          .catch(() => {});
+      } else if (selected === 'stand') {
         bj.stand();
-        collected.first().delete().catch(() => {});
-      } else
-      if (selected === 'doubledown') {
+        collected
+          .first()
+          .delete()
+          .catch(() => {});
+      } else if (selected === 'doubledown') {
         bj.doubleDown();
-        collected.first().delete().catch(() => {});
+        collected
+          .first()
+          .delete()
+          .catch(() => {});
       }
 
       if (win) {
@@ -212,7 +226,7 @@ class BlackJack extends Command {
           .setColor(color)
           .addFields([
             { name: '**Your Hand**', value: `${pcards} \n\nScore: ${bj.player.score}`, inline: true },
-            { name: '**Dealer Hand**', value: `${dcards} \n\nScore: ${bj.dealer.score}`, inline: true }
+            { name: '**Dealer Hand**', value: `${dcards} \n\nScore: ${bj.dealer.score}`, inline: true },
           ]);
 
         db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bj.bet); // Add the winning money
@@ -227,7 +241,7 @@ class BlackJack extends Command {
           .setColor(color)
           .addFields([
             { name: '**Your Hand**', value: `${pcards} \n\nScore: ${bj.player.score}`, inline: true },
-            { name: '**Dealer Hand**', value: `${dcards} \n\nScore: ${bj.dealer.score}`, inline: true }
+            { name: '**Dealer Hand**', value: `${dcards} \n\nScore: ${bj.dealer.score}`, inline: true },
           ]);
 
         db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bj.bet); // Add the winning money
@@ -242,7 +256,7 @@ class BlackJack extends Command {
           .setColor(color)
           .addFields([
             { name: '**Your Hand**', value: `${pcards} \n\nScore: ${bj.player.score}`, inline: true },
-            { name: '**Dealer Hand**', value: `${dcards} \n\nScore: ${bj.dealer.score}`, inline: true }
+            { name: '**Dealer Hand**', value: `${dcards} \n\nScore: ${bj.dealer.score}`, inline: true },
           ]);
 
         db.subtract(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bj.bet);
@@ -257,7 +271,7 @@ class BlackJack extends Command {
           .setColor(color)
           .addFields([
             { name: '**Your Hand**', value: `${pcards} \n\nScore: ${bj.player.score}`, inline: true },
-            { name: '**Dealer Hand**', value: `${dcards} \n\nScore: ${bj.dealer.score}`, inline: true }
+            { name: '**Dealer Hand**', value: `${dcards} \n\nScore: ${bj.dealer.score}`, inline: true },
           ]);
 
         return mEm.edit({ embeds: [embed] });
@@ -272,7 +286,7 @@ class BlackJack extends Command {
         .setColor(color)
         .addFields([
           { name: '**Your Hand**', value: `${pcards} \n\nScore: ${bj.player.score}`, inline: true },
-          { name: '**Dealer Hand**', value: `${dcards} \n\nScore: ${bj.dealer.score}`, inline: true }
+          { name: '**Dealer Hand**', value: `${dcards} \n\nScore: ${bj.dealer.score}`, inline: true },
         ]);
 
       mEm.edit({ embeds: [embed] });

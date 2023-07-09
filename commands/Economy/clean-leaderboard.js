@@ -3,7 +3,7 @@ const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
 
 class CleanLeaderboard extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'clean-leaderboard',
       category: 'Economy',
@@ -11,11 +11,11 @@ class CleanLeaderboard extends Command {
       usage: 'clean-leaderboard',
       aliases: ['cl', 'cleanleaderboard', 'clean-lb'],
       permLevel: 'Moderator',
-      guildOnly: true
+      guildOnly: true,
     });
   }
 
-  async run (msg) {
+  async run(msg) {
     const users = db.get(`servers.${msg.guild.id}.users`) || {};
     const toRemove = [];
     const color = msg.settings.embedColor;
@@ -38,12 +38,14 @@ class CleanLeaderboard extends Command {
     }
 
     em.setColor(color);
-    em.setDescription(`This will reset the balance and remove ${toRemove.length} members from the leaderboard. \nDo you wish to continue? (yes/no)`);
+    em.setDescription(
+      `This will reset the balance and remove ${toRemove.length} members from the leaderboard. \nDo you wish to continue? (yes/no)`,
+    );
     await message.edit({ embeds: [em] });
     const verified = await this.client.util.verify(msg.channel, msg.author);
 
     if (verified) {
-      toRemove.forEach(i => {
+      toRemove.forEach((i) => {
         db.delete(`servers.${msg.guild.id}.users.${i}`);
       });
       return msg.channel.send(`${toRemove.length} users have been removed from the leaderboard.`);

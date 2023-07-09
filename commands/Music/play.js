@@ -1,7 +1,7 @@
 const Command = require('../../base/Command.js');
 
 class Play extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'play',
       description: 'Play music or add songs to the queue',
@@ -9,13 +9,14 @@ class Play extends Command {
       category: 'Music',
       usage: 'play <song>',
       aliases: ['p'],
-      guildOnly: true
+      guildOnly: true,
     });
   }
 
-  async run (msg, args) {
+  async run(msg, args) {
     if (!msg.member.voice.channel) return msg.channel.send('You must be in a voice channel to play music.');
-    if (msg.guild.members.me.voice.channel && msg.member.voice.channel.id !== msg.guild.members.me.voice.channel.id) return msg.channel.send('You have to be in the same voice channel as the bot to play music');
+    if (msg.guild.members.me.voice.channel && msg.member.voice.channel.id !== msg.guild.members.me.voice.channel.id)
+      return msg.channel.send('You have to be in the same voice channel as the bot to play music');
 
     const query = args.join(' ').slice(0, 300);
     if (!query) return msg.channel.send('Please enter something to search for.');
@@ -34,8 +35,8 @@ class Play extends Command {
           selfDead: true,
           leaveOnStop: true,
           leaveOnEnd: false,
-          leaveOnEmpty: false
-        }
+          leaveOnEmpty: false,
+        },
       });
     } catch (e) {
       return msg.channel.send(`Something went wrong: ${e}`);

@@ -4,7 +4,7 @@ const { EmbedBuilder } = require('discord.js');
 const { stripIndents } = require('common-tags');
 
 class Warn extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'warn',
       description: 'Warns a member',
@@ -14,11 +14,11 @@ class Warn extends Command {
       usage: 'Warn <User> <Points> <Reason>',
       category: 'Moderator',
       permLevel: 'Moderator',
-      guildOnly: true
+      guildOnly: true,
     });
   }
 
-  async run (msg, args) {
+  async run(msg, args) {
     let mem;
     let member = true;
     let logMessage;
@@ -39,19 +39,20 @@ class Warn extends Command {
       }
     }
 
-    if (member ? mem.user.bot : mem.bot) return msg.channel.send('You can\'t warn a bot.');
+    if (member ? mem.user.bot : mem.bot) return msg.channel.send("You can't warn a bot.");
 
     if (member) {
       const owner = await msg.guild.fetchOwner();
-      if ((mem.roles.highest.position > msg.member.roles.highest.position - 1) || (msg.author.id !== owner.user.id)) {
-        return msg.channel.send('You can\'t warn someone who has a higher role than you.');
+      if (mem.roles.highest.position > msg.member.roles.highest.position - 1 || msg.author.id !== owner.user.id) {
+        return msg.channel.send("You can't warn someone who has a higher role than you.");
       }
     }
 
     // Check if points is a number and is between 0 and 1000
     const points = parseInt(args[1], 10);
     if (isNaN(points)) return msg.channel.send(usage);
-    if (points < 0 || points > 1000) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}warn <member> <0-1000 points> <reason>`);
+    if (points < 0 || points > 1000)
+      return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}warn <member> <0-1000 points> <reason>`);
 
     // Convert shorthand to fullhand for reason
     args.shift();
@@ -71,13 +72,20 @@ class Warn extends Command {
       reason = 'Please do not message many members in a short period of time.';
     } else if (['-massping', '-massmention', '-masstags', '-mping', '-mmention', '-mtag'].includes(reasonTest)) {
       reason = 'Please do not mention users rapidly, or mention many users in a single message.';
-    } else if (['-moderatorhelp', '-moderatormention', '-moderatorsupport', '-modhelp', '-modmention', '-modsupport'].includes(reasonTest)) {
-      reason = 'Please refrain from mentioning members of the Staff Team unless it is something pertaining to a rule being broken.';
+    } else if (
+      ['-moderatorhelp', '-moderatormention', '-moderatorsupport', '-modhelp', '-modmention', '-modsupport'].includes(
+        reasonTest,
+      )
+    ) {
+      reason =
+        'Please refrain from mentioning members of the Staff Team unless it is something pertaining to a rule being broken.';
     } else if (['-raiding', '-raids', '-raid'].includes(reasonTest)) {
       reason = 'User partook in the raiding of the server';
     } else if (['-spam', '-spamming', '-shitposting'].includes(reasonTest)) {
       reason = 'Please do not spam in our server, we like users to be able to talk appropriately within it.';
-    } else if (['-dms', '-unsoliciteddms', '-unsolicteddm', '-unsolicitedmsg', '-privatemessage', '-pm'].includes(reasonTest)) {
+    } else if (
+      ['-dms', '-unsoliciteddms', '-unsolicteddm', '-unsolicitedmsg', '-privatemessage', '-pm'].includes(reasonTest)
+    ) {
       reason = 'Please do not private message users unless they have explicitly agreed to it.';
     } else if (['-mention', '-tag', '-ping', '-mentions', '-tags', '-pings'].includes(reasonTest)) {
       reason = 'Please do not mention users unless they have explicitly agreed to it.';
@@ -113,16 +121,17 @@ class Warn extends Command {
     if (!reason) reason = 'Automated Ban';
     if (!otherCases) otherCases = 'No other cases';
 
+    const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
     // Send the embed to the users DMS
     const userEmbed = new EmbedBuilder()
       .setColor(color)
-      .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
+      .setAuthor({ name: authorName, iconURL: msg.author.displayAvatarURL() })
       .setTitle(`You have been ${status}.`)
       .addFields([
         { name: 'Case ID', value: `\`${warnID}\`` },
         { name: 'Points', value: `${points} points (Total: ${warnAmount} points)` },
         { name: 'Other Cases', value: otherCases },
-        { name: 'Reason', value: reason, inline: false }
+        { name: 'Reason', value: reason, inline: false },
       ])
       .setFooter({ text: `Issued in: ${msg.guild.name}` });
     const userMessage = await mem.send({ embeds: [userEmbed] }).catch(() => null);
@@ -130,15 +139,15 @@ class Warn extends Command {
     // Create the embed for the logs channel
     const logEmbed = new EmbedBuilder()
       .setColor(color)
-      .setFooter({ text: `${msg.author.tag} • User ID: ${mem.id}` })
+      .setFooter({ text: `${authorName} • User ID: ${mem.id}` })
       .setTitle(`User has been ${status}.`)
       .addFields([
         { name: 'User', value: `${mem} (${mem.id})`, inline: true },
-        { name: 'Moderator', value: `${msg.author.tag} (${msg.author.id})`, inline: true },
+        { name: 'Moderator', value: `${authorName} (${msg.author.id})`, inline: true },
         { name: 'Case ID', value: `\`${warnID}\``, inline: true },
         { name: 'Points', value: `${points} points (Total: ${warnAmount} points)`, inline: true },
         { name: 'Other Cases', value: otherCases, inline: true },
-        { name: 'Reason', value: reason, inline: false }
+        { name: 'Reason', value: reason, inline: false },
       ]);
     if (!userMessage) logEmbed.setFooter({ text: 'Failed to send a DM to the user. (User has DMs disabled)' });
 
@@ -146,31 +155,40 @@ class Warn extends Command {
     if (logChan) {
       const channelEmbed = new EmbedBuilder()
         .setColor(color)
-        .setFooter({ text: `${msg.author.tag} • User ID: ${mem.id}` })
+        .setFooter({ text: `${authorName} • User ID: ${mem.id}` })
         .setTitle(`User has been ${status}`)
         .addFields([{ name: 'User', value: `${mem} (${mem.id})` }])
         .setDescription('Full info posted inside the log channel.');
 
       logMessage = await msg.guild.channels.cache.get(logChan).send({ embeds: [logEmbed] });
 
-      msg.channel.send({ embeds: [channelEmbed] })
-        .then(embed => {
-          setTimeout(() => embed.delete(), 30000);
-        });
+      msg.channel.send({ embeds: [channelEmbed] }).then((embed) => {
+        setTimeout(() => embed.delete(), 30000);
+      });
     } else {
       logMessage = await msg.channel.send({ embeds: [logEmbed] });
     }
 
     // Add the warn to the database
-    const opts = { messageURL: logMessage.url, mod: msg.author.id, points, reason, timestamp: Date.now(), user: mem.id, warnID };
+    const opts = {
+      messageURL: logMessage.url,
+      mod: msg.author.id,
+      points,
+      reason,
+      timestamp: Date.now(),
+      user: mem.id,
+      warnID,
+    };
     db.set(`servers.${msg.guild.id}.warns.warnings.${warnID}`, opts);
 
     // Check if they should be banned or kicked
     if (warnAmount >= ba) {
-      if (!msg.guild.members.me.permissions.has('BenMembers')) return msg.channel.send('The bot does not have permission to ban members.');
+      if (!msg.guild.members.me.permissions.has('BenMembers'))
+        return msg.channel.send('The bot does not have permission to ban members.');
       msg.guild.members.ban(mem.id, { reason }).catch(() => null); // Ban wether they are in the guild or not.
     } else if (warnAmount >= ka) {
-      if (!msg.guild.members.me.permissions.has('KickMembers')) return msg.channel.send('The bot does not have permission to kick members.');
+      if (!msg.guild.members.me.permissions.has('KickMembers'))
+        return msg.channel.send('The bot does not have permission to kick members.');
       const member = msg.guild.members.cache.get(mem.id);
       if (member) member.kick(reason).catch(() => null); // Kick them if they are in the guild
     }

@@ -7,17 +7,17 @@ const nums = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', 
 const customEmojiRegex = /^(?:<a?:([a-zA-Z0-9_]+):)?([0-9]+)>?$/;
 
 class Connect4 extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'connect4',
       description: 'Play a game of connect4.',
       usage: 'connect4 <opponent> <color>',
       category: 'Games',
-      aliases: ['connectfour', 'connect-four']
+      aliases: ['connectfour', 'connect-four'],
     });
   }
 
-  async run (msg, args) {
+  async run(msg, args) {
     const colors = {
       red: '🔴',
       yellow: '🟡',
@@ -41,7 +41,7 @@ class Connect4 extends Command {
       cd: '💿',
       dvd: '📀',
       clock: '🕓',
-      coin: '🪙'
+      coin: '🪙',
     };
 
     const current = this.client.games.get(msg.channel.id);
@@ -54,13 +54,19 @@ class Connect4 extends Command {
     if (opponent.id === msg.author.id) return msg.reply('You may not play against yourself.');
 
     args.shift();
-    if (!args || args.length < 1) return msg.channel.send(`${usage} \nThat is not a valid color, either an emoji or one of ${this.client.util.list(Object.keys(colors), 'or')}.`);
+    if (!args || args.length < 1)
+      return msg.channel.send(
+        `${usage} \nThat is not a valid color, either an emoji or one of ${this.client.util.list(
+          Object.keys(colors),
+          'or',
+        )}.`,
+      );
 
-    function checkLine (a, b, c, d) {
-      return (a !== null) && (a === b) && (a === c) && (a === d);
+    function checkLine(a, b, c, d) {
+      return a !== null && a === b && a === c && a === d;
     }
 
-    function verifyWin (bd) {
+    function verifyWin(bd) {
       for (let r = 0; r < 3; r++) {
         for (let c = 0; c < 7; c++) {
           if (checkLine(bd[r][c], bd[r + 1][c], bd[r + 2][c], bd[r + 3][c])) return bd[r][c];
@@ -84,7 +90,7 @@ class Connect4 extends Command {
       return null;
     }
 
-    function generateBoard () {
+    function generateBoard() {
       const arr = [];
       for (let i = 0; i < 6; i++) {
         arr.push([null, null, null, null, null, null, null]);
@@ -92,25 +98,38 @@ class Connect4 extends Command {
       return arr;
     }
 
-    function displayBoard (board, playerOneEmoji, playerTwoEmoji) {
-      return board.map(row => row.map(piece => {
-        if (piece === 'user') return playerOneEmoji;
-        if (piece === 'oppo') return playerTwoEmoji;
-        return blankEmoji;
-      }).join('')).join('\n');
+    function displayBoard(board, playerOneEmoji, playerTwoEmoji) {
+      return board
+        .map((row) =>
+          row
+            .map((piece) => {
+              if (piece === 'user') return playerOneEmoji;
+              if (piece === 'oppo') return playerTwoEmoji;
+              return blankEmoji;
+            })
+            .join(''),
+        )
+        .join('\n');
     }
 
-    function validate (color, msg) {
+    function validate(color, msg) {
       const hasEmoji = new RegExp(`^(?:${emojiRegex().source})$`).test(color);
       const hasCustom = color.match(customEmojiRegex);
       if (hasCustom && !msg.guild) return msg.channel.send('You can only use custom emoji in a server.');
-      if (hasCustom && msg.guild && !msg.guild.emojis.cache.has(hasCustom[2])) return msg.channel.send('You can only use custom emoji from this server.');
-      if (!hasCustom && !hasEmoji && !colors[color.toLowerCase()]) return msg.channel.send(`Sorry that is not valid, please use an emoji or one of the following: ${this.client.util.list(Object.keys(colors), 'or')}.`);
+      if (hasCustom && msg.guild && !msg.guild.emojis.cache.has(hasCustom[2]))
+        return msg.channel.send('You can only use custom emoji from this server.');
+      if (!hasCustom && !hasEmoji && !colors[color.toLowerCase()])
+        return msg.channel.send(
+          `Sorry that is not valid, please use an emoji or one of the following: ${this.client.util.list(
+            Object.keys(colors),
+            'or',
+          )}.`,
+        );
       if (color === blankEmoji) return msg.channel.send('You cannot use that emoji.');
       return true;
     }
 
-    function parse (color, msg) {
+    function parse(color, msg) {
       const hasCustom = color.match(customEmojiRegex);
       if (hasCustom && msg.guild) return msg.guild.emojis.cache.get(hasCustom[2]).toString();
       return colors[color.toLowerCase()] || color;
@@ -123,7 +142,7 @@ class Connect4 extends Command {
     const playerOneEmoji = color;
     let playerTwoEmoji = color === colors.yellow ? colors.red : colors.yellow;
     try {
-      const available = Object.keys(colors).filter(clr => color !== colors[clr]);
+      const available = Object.keys(colors).filter((clr) => color !== colors[clr]);
       if (opponent.user.bot) {
         playerTwoEmoji = colors[available[Math.floor(Math.random() * available.length)]];
       } else {
@@ -136,8 +155,13 @@ class Connect4 extends Command {
         }
 
         // Get opponent's color
-        await msg.channel.send(`${opponent}, what color do you want to be? Either an emoji or one of ${this.client.util.list(available, 'or')}.`);
-        const filter = res => {
+        await msg.channel.send(
+          `${opponent}, what color do you want to be? Either an emoji or one of ${this.client.util.list(
+            available,
+            'or',
+          )}.`,
+        );
+        const filter = (res) => {
           if (res.author.id !== opponent.id) return false;
           if (res.content === blankEmoji) return false;
           const hasEmoji = new RegExp(`^(?:${emojiRegex().source})$`).test(res.content);
@@ -149,13 +173,15 @@ class Connect4 extends Command {
         const p2Color = await msg.channel.awaitMessages({
           filter,
           max: 1,
-          time: 30000
+          time: 30000,
         });
 
         if (p2Color.size) {
           const choice = p2Color.first().content.toLowerCase();
           const hasCustom = choice.match(customEmojiRegex);
-          hasCustom && msg.guild ? playerTwoEmoji = msg.guild.emojis.cache.get(hasCustom[2]).toString() : playerTwoEmoji = colors[choice] || choice;
+          hasCustom && msg.guild
+            ? (playerTwoEmoji = msg.guild.emojis.cache.get(hasCustom[2]).toString())
+            : (playerTwoEmoji = colors[choice] || choice);
         }
       }
 
@@ -170,7 +196,7 @@ class Connect4 extends Command {
       let lastMove = 'None';
       let message = 0;
 
-      while (!winner && board.some(row => row.includes(null))) {
+      while (!winner && board.some((row) => row.includes(null))) {
         const user = userTurn ? msg.author : opponent;
         const sign = userTurn ? 'user' : 'oppo';
         let i = 0;
@@ -201,7 +227,7 @@ class Connect4 extends Command {
           `);
 
           // Filter function
-          const pickFilter = res => {
+          const pickFilter = (res) => {
             if (res.author.id !== user.id) return false;
             const choice = res.content;
             if (choice.toLowerCase() === 'end') return true;
@@ -213,15 +239,14 @@ class Connect4 extends Command {
           const turn = await msg.channel.awaitMessages({
             pickFilter,
             max: 1,
-            time: 60000
+            time: 60000,
           });
 
           const choice = turn.size ? turn.first().content : null;
           if (!choice) {
-            await msg.channel.send('Sorry, time is up! I\'ll pick their move for them.')
-              .then(msg => {
-                setTimeout(() => msg.delete(), 10000);
-              });
+            await msg.channel.send("Sorry, time is up! I'll pick their move for them.").then((msg) => {
+              setTimeout(() => msg.delete(), 10000);
+            });
             i = AIEngine.playAI('hard');
             lastMove = i + 1;
           } else if (choice.toLowerCase() === 'end') {
@@ -235,10 +260,9 @@ class Connect4 extends Command {
             i = Number.parseInt(choice, 10) - 1;
             // Check if the move is valid
             if (!AIEngine.canPlay(i)) {
-              await msg.channel.send('That column is full! I\'ll pick their move for them.')
-                .then(msg => {
-                  setTimeout(() => msg.delete(), 10000);
-                });
+              await msg.channel.send("That column is full! I'll pick their move for them.").then((msg) => {
+                setTimeout(() => msg.delete(), 10000);
+              });
               i = AIEngine.playAI('hard');
             } else {
               AIEngine.play(i);
@@ -261,7 +285,7 @@ class Connect4 extends Command {
       // Announce winner
       if (winner === 'time') return msg.channel.send('Game ended due to inactivity.');
       return msg.channel.send(stripIndents`
-        ${winner ? `Congrats, ${winner}!` : 'Looks like it\'s a draw...'}
+        ${winner ? `Congrats, ${winner}!` : "Looks like it's a draw..."}
         Final Move: **${lastMove}**
         ${displayBoard(board, playerOneEmoji, playerTwoEmoji)}
         ${nums.join('')}

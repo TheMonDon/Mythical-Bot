@@ -4,7 +4,7 @@ const { EmbedBuilder } = require('discord.js');
 const { stripIndents } = require('common-tags');
 
 class SetFailRate extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'set-fail-rate',
       category: 'Economy',
@@ -12,11 +12,11 @@ class SetFailRate extends Command {
       usage: 'set-fail-rate <crime | slut> <percentage>',
       aliases: ['setfailrate', 'setfail'],
       permLevel: 'Moderator',
-      guildOnly: true
+      guildOnly: true,
     });
   }
 
-  run (msg, text) {
+  run(msg, text) {
     const types = ['crime', 'slut'];
     const errorColor = msg.settings.embedErrorColor;
 
@@ -25,11 +25,13 @@ class SetFailRate extends Command {
     const slutFail = db.get(`servers.${msg.guild.id}.economy.slut.failrate`) || 35;
     const crimeFail = db.get(`servers.${msg.guild.id}.economy.crime.failrate`) || 45;
 
+    const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
+    const embed = new EmbedBuilder()
+      .setColor(errorColor)
+      .setAuthor({ name: authorName, iconURL: msg.author.displayAvatarURL() });
+
     if (!text || text.length < 1) {
-      const embed = new EmbedBuilder()
-        .setColor('#04ACF4')
-        .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
-        .setDescription(stripIndents`
+      embed.setColor('#04ACF4').setDescription(stripIndents`
         The current fail rates are: 
         
         \`Crime\` - ${crimeFail}%
@@ -40,24 +42,17 @@ class SetFailRate extends Command {
       return msg.channel.send({ embeds: [embed] });
     }
 
-    const errEmbed = new EmbedBuilder()
-      .setColor(errorColor)
-      .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() });
-
     const type = text[0]?.toLowerCase();
     if (!types.includes(type)) {
-      errEmbed.setDescription(`Incorrect Usage: ${usage}`);
-      return msg.channel.send({ embeds: [errEmbed] });
+      embed.setDescription(`Incorrect Usage: ${usage}`);
+      return msg.channel.send({ embeds: [embed] });
     }
 
     text.shift();
     const percentage = parseInt(text.join('').replace('%', '').replace(/-/g, ''), 10);
 
     if (isNaN(percentage)) {
-      const embed = new EmbedBuilder()
-        .setColor(errorColor)
-        .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
-        .setDescription(stripIndents`
+      embed.setDescription(stripIndents`
           :x: Invalid fail rate. Please provide a valid number.
 
           Usage: ${usage}
@@ -65,24 +60,23 @@ class SetFailRate extends Command {
 
       return msg.channel.send({ embeds: [embed] });
     } else if (percentage > 100) {
-      errEmbed.setDescription(stripIndents`
+      embed.setDescription(stripIndents`
         :x: Invalid fail rate. Percenage can not be greater than 100%.
 
         Usage: ${usage}
       `);
-      return msg.channel.send({ embeds: [errEmbed] });
+      return msg.channel.send({ embeds: [embed] });
     }
 
-    const embed = new EmbedBuilder()
-      .setColor('#64BC6C')
-      .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() });
+    embed.setColor('#64BC6C');
 
     if (type === 'crime') {
       db.set(`servers.${msg.guild.id}.economy.${type}.failrate`, percentage);
       embed.setDescription(`The fail rate for \`Crime\` has been set to ${percentage}%.`);
 
       return msg.channel.send({ embeds: [embed] });
-    } else if (type === 'slut') { // Shoved this in for future proofing :D (Thanks past me!)
+    } else if (type === 'slut') {
+      // Shoved this in for future proofing :D (Thanks past me!)
       db.set(`servers.${msg.guild.id}.economy.slut.failrate`, percentage);
       embed.setDescription(`The fail rate for \`Slut\` has been set to ${percentage}%.`);
     }

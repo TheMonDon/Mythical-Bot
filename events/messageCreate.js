@@ -3,11 +3,11 @@ const { ChannelType } = require('discord.js');
 const { DateTime } = require('luxon');
 
 module.exports = class {
-  constructor (client) {
+  constructor(client) {
     this.client = client;
   }
 
-  async run (message) {
+  async run(message) {
     let bool = false;
     let tag;
 
@@ -50,7 +50,8 @@ module.exports = class {
           content = message.content;
         }
 
-        const output = `${DateTime.now().toLocaleString(DateTime.DATETIME_FULL)} - [${message.author.tag}]: \n${content}`;
+        const authorName = message.author.discriminator === '0' ? message.author.username : message.author.tag;
+        const output = `${DateTime.now().toLocaleString(DateTime.DATETIME_FULL)} - [${authorName}]: \n${content}`;
 
         db.push(`servers.${message.guild.id}.tickets.${message.channel.id}.chatLogs`, output);
         return;
@@ -72,7 +73,7 @@ module.exports = class {
 
       if (userCooldown.active) {
         const timeleft = userCooldown.time - now;
-        if (timeleft < 0 || timeleft > (cooldown * 1000)) {
+        if (timeleft < 0 || timeleft > cooldown * 1000) {
           // this is to check if the bot restarted before their cooldown was set.
           userCooldown = {};
           userCooldown.active = false;
@@ -84,7 +85,7 @@ module.exports = class {
 
       const amount = Math.floor(Math.random() * (max - min + 1) + min);
       db.add(`servers.${server.id}.users.${member.id}.economy.cash`, amount);
-      userCooldown.time = now + (cooldown * 1000);
+      userCooldown.time = now + cooldown * 1000;
       userCooldown.active = true;
       db.set(`servers.${server.id}.users.${member.id}.economy.${type}.cooldown`, userCooldown);
 
@@ -123,21 +124,27 @@ module.exports = class {
     // Check if the member is blacklisted from using commands in this guild.
     if (message.guild) {
       const bl = db.get(`servers.${message.guild.id}.users.${message.member.id}.blacklist`);
-      if (bl && level < 4 && (cmd.help.name !== 'blacklist')) {
-        return message.channel.send(`Sorry ${message.member.displayName}, you are currently blacklisted from using commands in this server.`);
+      if (bl && level < 4 && cmd.help.name !== 'blacklist') {
+        return message.channel.send(
+          `Sorry ${message.member.displayName}, you are currently blacklisted from using commands in this server.`,
+        );
       }
     }
 
-    if (!message.guild && cmd.conf.guildOnly) return message.channel.send('This command is unavailable via private message. Please run this command in a guild.');
+    if (!message.guild && cmd.conf.guildOnly)
+      return message.channel.send(
+        'This command is unavailable via private message. Please run this command in a guild.',
+      );
 
-    if (cmd.conf.nsfw && !message.channel.nsfw) return message.channel.send('This command can only be used in NSFW channels.');
+    if (cmd.conf.nsfw && !message.channel.nsfw)
+      return message.channel.send('This command can only be used in NSFW channels.');
 
     if (!cmd.conf.enabled) return message.channel.send('This command is currently disabled.');
 
     if (level < this.client.levelCache[cmd.conf.permLevel]) {
       if (settings.systemNotice === 'true') {
         return message.channel.send(`You do not have permission to use this command.
-Your permission level is ${level} (${this.client.config.permLevels.find(l => l.level === level).name})
+Your permission level is ${level} (${this.client.config.permLevels.find((l) => l.level === level).name})
 This command requires level ${this.client.levelCache[cmd.conf.permLevel]} (${cmd.conf.permLevel})`);
       } else {
         return;

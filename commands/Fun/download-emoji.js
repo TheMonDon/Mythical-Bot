@@ -3,17 +3,17 @@ const emojiRegex = require('emoji-regex');
 const twemoji = require('twemoji');
 
 class DownloadEmoji extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'download-emoji',
       description: 'Sends the image of the provided emojis',
       usage: 'download-emoji :spinnysheep:',
       category: 'Fun',
-      aliases: ['dl', 'downloademoji', 'dlemoji']
+      aliases: ['dl', 'downloademoji', 'dlemoji'],
     });
   }
 
-  async run (msg, args) {
+  async run(msg, args) {
     if (!args || args.length < 1) return msg.reply('You need to input at least one emoji.');
 
     const content = args.join(' ');
@@ -31,7 +31,7 @@ class DownloadEmoji extends Command {
     // Client Emojis
     let clientEmojis = content.match(/:[_a-zA-Z0-9]*>/g);
     if (clientEmojis) {
-      clientEmojis = clientEmojis.map(e => e.substring(1, e.length - 1));
+      clientEmojis = clientEmojis.map((e) => e.substring(1, e.length - 1));
       clientEmojis.forEach((e) => {
         const e1 = e.replace(/[^\d]/g, '');
         const clientEmoji = this.client.emojis.resolveIdentifier(e1);
@@ -42,8 +42,12 @@ class DownloadEmoji extends Command {
     if (result.length < 1) return msg.reply('You need to input at least one emoji.');
 
     result.forEach((emoji) => {
-      if ((emoji.replace(/[^\d]/g, '')).length > 1) {
-        res.push(`https://cdn.discordapp.com/emojis/${emoji.replace(/[^\d]/g, '')}${emoji.charAt(0) === 'a' ? '.gif' : '.png'}`);
+      if (emoji.replace(/[^\d]/g, '').length > 1) {
+        res.push(
+          `https://cdn.discordapp.com/emojis/${emoji.replace(/[^\d]/g, '')}${
+            emoji.charAt(0) === 'a' ? '.gif' : '.png'
+          }`,
+        );
       } else {
         const out = twemoji.parse(emoji);
         res.push(out.split('src="')[1].replace(/"\/>/g, ''));

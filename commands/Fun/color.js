@@ -9,22 +9,21 @@ const { stripIndent } = require('common-tags');
 const colorNameList = require('color-name-list');
 
 class Color extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'color',
       description: 'Get information about some colors.',
       usage: 'color <hex, rgb, name, imageURL, attachment>',
-      category: 'Fun'
+      category: 'Fun',
     });
   }
 
-  async run (msg, args) {
+  async run(msg, args) {
     let input = args.join(' ');
     let color;
 
     // Create the embed
-    const embed = new EmbedBuilder()
-      .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() });
+    const embed = new EmbedBuilder().setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() });
 
     const rgbRegex = /^rgb[\s+]?\((:?\d+\.?\d?%?)(,|-|\/\|)\s?(:?\d+\.?\d?%?)(,|-|\/\|)\s?(:?\d+\.?\d?%?)\)/i;
     const hexRegex = /(^(#|0x)?([a-fA-F0-9]){6}$)|(^(#|0x)?([a-fA-F0-9]){3}$)/;
@@ -50,9 +49,7 @@ class Color extends Command {
 
     // Test if the input is an RGB color
     if (rgbRegex.test(input)) {
-      input = input.trim()
-        .replace('rgb(', '')
-        .replace(')', '');
+      input = input.trim().replace('rgb(', '').replace(')', '');
       input = input.replace(/\s/g, '');
       input = input.split(',');
 
@@ -62,12 +59,11 @@ class Color extends Command {
           hex: convert.rgb.hex(input),
           hsl: convert.rgb.hsl(input),
           cmyk: convert.rgb.cmyk(input),
-          rgb: input
+          rgb: input,
         };
       } catch (err) {
         const rand = '000000'.replace(/0/g, function () {
-          return (~~(Math.random() * 16))
-            .toString(16);
+          return (~~(Math.random() * 16)).toString(16);
         });
         embed.setTitle('Invalid color, random one assigned:');
 
@@ -76,10 +72,11 @@ class Color extends Command {
           rgb: convert.hex.rgb(rand),
           hsl: convert.hex.hsl(rand),
           cmyk: convert.hex.cmyk(rand),
-          hex: rand
+          hex: rand,
         };
       }
-    } else if (hexRegex.test(input)) { // Test if the input is a hex color
+    } else if (hexRegex.test(input)) {
+      // Test if the input is a hex color
       input = input.toUpperCase();
       if (input.charAt() === '#') {
         input = input.substr(1);
@@ -93,12 +90,11 @@ class Color extends Command {
           rgb: convert.hex.rgb(input),
           hsl: convert.hex.hsl(input),
           cmyk: convert.hex.cmyk(input),
-          hex: input
+          hex: input,
         };
       } catch (err) {
         const rand = '000000'.replace(/0/g, function () {
-          return (~~(Math.random() * 16))
-            .toString(16);
+          return (~~(Math.random() * 16)).toString(16);
         });
         embed.setTitle('Invalid color, random one assigned:');
 
@@ -107,10 +103,11 @@ class Color extends Command {
           rgb: convert.hex.rgb(rand),
           hsl: convert.hex.hsl(rand),
           cmyk: convert.hex.cmyk(rand),
-          hex: rand
+          hex: rand,
         };
       }
-    } else if (cssRegex.test(input)) { // Test if the input is a text color
+    } else if (cssRegex.test(input)) {
+      // Test if the input is a text color
       if (input === 'random') {
         const rand = '000000'.replace(/0/g, function () {
           return (~~(Math.random() * 16)).toString(16);
@@ -122,7 +119,7 @@ class Color extends Command {
           rgb: convert.hex.rgb(rand),
           hsl: convert.hex.hsl(rand),
           cmyk: convert.hex.cmyk(rand),
-          hex: rand
+          hex: rand,
         };
       } else {
         try {
@@ -137,7 +134,7 @@ class Color extends Command {
             rgb: convert.keyword.rgb(input),
             hsl: convert.keyword.hsl(input),
             cmyk: convert.keyword.cmyk(input),
-            css: nearestColor(input).name
+            css: nearestColor(input).name,
           };
         } catch (err) {
           const rand = '000000'.replace(/0/g, function () {
@@ -150,11 +147,12 @@ class Color extends Command {
             rgb: convert.hex.rgb(rand),
             hsl: convert.hex.hsl(rand),
             cmyk: convert.hex.cmyk(rand),
-            hex: rand
+            hex: rand,
           };
         }
       }
-    } else { // If the input is not a color, assign a random color
+    } else {
+      // If the input is not a color, assign a random color
       const rand = '000000'.replace(/0/g, function () {
         return (~~(Math.random() * 16)).toString(16);
       });
@@ -165,34 +163,27 @@ class Color extends Command {
         rgb: convert.hex.rgb(rand),
         hsl: convert.hex.hsl(rand),
         cmyk: convert.hex.cmyk(rand),
-        hex: rand
+        hex: rand,
       };
     }
 
     // Formatting RGB
-    let rgb = JSON.stringify(color.rgb)
-      .slice(1, -1);
-    rgb = rgb.replace(/['"]+/g, '')
-      .split(',')
-      .join(', ');
+    let rgb = JSON.stringify(color.rgb).slice(1, -1);
+    rgb = rgb.replace(/['"]+/g, '').split(',').join(', ');
 
     // Formatting CMYK
-    let cmyk = JSON.stringify(color.cmyk)
-      .slice(1, -1);
-    cmyk = cmyk.split(',')
-      .join('%, ') + '%';
+    let cmyk = JSON.stringify(color.cmyk).slice(1, -1);
+    cmyk = cmyk.split(',').join('%, ') + '%';
 
     // Formatting HSL
-    const str = JSON.stringify(color.hsl)
-      .slice(1, -1);
+    const str = JSON.stringify(color.hsl).slice(1, -1);
     const h = str.split(',')[0];
     const s = str.split(',')[1];
     const l = str.split(',')[2];
     const hsl = h + ', ' + s + '%, ' + l + '%';
 
     // Formatting HEX
-    let hex = JSON.stringify(color.hex)
-      .slice(1, -1);
+    let hex = JSON.stringify(color.hex).slice(1, -1);
     if (hex.length === 3) {
       hex = hex.slice();
       const pos1 = hex[0];
@@ -204,8 +195,7 @@ class Color extends Command {
     }
 
     // Getting originals back
-    const css = JSON.stringify(color.css)
-      .slice(1, -1);
+    const css = JSON.stringify(color.css).slice(1, -1);
 
     // Saving color again
     color = {
@@ -213,7 +203,7 @@ class Color extends Command {
       hex,
       rgb,
       cmyk,
-      hsl
+      hsl,
     };
 
     if (!embed.title) embed.setTitle('Color Information');
@@ -221,13 +211,15 @@ class Color extends Command {
     embed
       .setThumbnail(`https://dummyimage.com/100x100/${color.hex}.png&text=+`)
       .setColor(color.hex)
-      .setDescription(stripIndent(`
+      .setDescription(
+        stripIndent(`
         **Name:** ${this.client.util.toProperCase(color.css)}
         **Hex:** #${color.hex}
         **Rgb:** rgb(${color.rgb})
         **Hsl:** hsl(${color.hsl})
         **Cmyk:** cmyk(${color.cmyk})
-      `));
+      `),
+      );
 
     return msg.channel.send({ embeds: [embed] });
   }

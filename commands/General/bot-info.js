@@ -6,19 +6,21 @@ const db = require('quick.db');
 const { version: botVersion } = require('../../package.json');
 
 class BotInfo extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'bot-info',
       description: 'Gives some useful bot information',
       usage: 'Bot-Info',
       category: 'General',
-      aliases: ['bi', 'botinfo', 'about']
+      aliases: ['bi', 'botinfo', 'about'],
     });
   }
 
-  async run (msg) {
+  async run(msg) {
     await this.client.guilds.cache.forEach((g) => g.available && g.members.fetch());
-    const botuptime = moment.duration(this.client.uptime).format('y[ years][,] M[ months][,] d[ days][,] h[ hours][,] m[ minutes][, and] s[ seconds]');
+    const botuptime = moment
+      .duration(this.client.uptime)
+      .format('y[ years][,] M[ months][,] d[ days][,] h[ hours][,] m[ minutes][, and] s[ seconds]');
 
     const embed = new EmbedBuilder()
       .setColor(msg.settings.embedColor)
@@ -31,10 +33,14 @@ class BotInfo extends Command {
         { name: 'Commands Used', value: db.get('global.commands').toLocaleString(), inline: false },
         { name: 'Discord.js', value: version, inline: true },
         { name: 'Node', value: process.version, inline: true },
-        { name: 'RAM Usage', value: `${Math.floor((process.memoryUsage().heapUsed / 1024) / 1024).toLocaleString()} MB`, inline: true },
+        {
+          name: 'RAM Usage',
+          value: `${Math.floor(process.memoryUsage().heapUsed / 1024 / 1024).toLocaleString()} MB`,
+          inline: true,
+        },
         { name: 'Bot Version', value: botVersion, inline: true },
         { name: 'Invite', value: '[cisn.xyz/mythical](https://cisn.xyz/mythical)', inline: true },
-        { name: 'Source Code', value: '[Source Code](https://github.com/TheMonDon/Mythical-Bot)', inline: true }
+        { name: 'Source Code', value: '[Source Code](https://github.com/TheMonDon/Mythical-Bot)', inline: true },
       ]);
 
     return msg.channel.send({ embeds: [embed] });

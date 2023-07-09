@@ -3,7 +3,7 @@ const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
 
 class ClearWarnings extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'clear-warnings',
       description: 'Clear all the warnings of the specific user.',
@@ -11,11 +11,11 @@ class ClearWarnings extends Command {
       category: 'Administrator',
       permLevel: 'Administrator',
       aliases: ['clearwarns', 'clearwarnings', 'cwarns'],
-      guildOnly: true
+      guildOnly: true,
     });
   }
 
-  async run (msg, args) {
+  async run(msg, args) {
     const usage = `Incorrect Usage: ${msg.settings.prefix}Clear-Warnings <user>`;
     const color = msg.settings.embedColor;
 
@@ -52,14 +52,15 @@ class ClearWarnings extends Command {
     }
 
     const otherCases = otherWarns.map((w) => `\`${w.warnID}\``).join(', ');
+    const username = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
 
     const userEmbed = new EmbedBuilder()
       .setDescription('Warnings Cleared')
       .setColor(color)
       .addFields([
-        { name: 'Moderator', value: `${msg.author.tag} (${msg.author.id})`, inline: true },
+        { name: 'Moderator', value: `${username} (${msg.author.id})`, inline: true },
         { name: 'Cleared Cases', value: otherCases, inline: true },
-        { name: 'Issued In', value: msg.guild.name, inline: true }
+        { name: 'Issued In', value: msg.guild.name, inline: true },
       ]);
     const userMessage = await mem.send({ embeds: [userEmbed] }).catch(() => null);
 
@@ -67,9 +68,9 @@ class ClearWarnings extends Command {
       .setTitle('Warnings Cleared')
       .setColor(color)
       .addFields([
-        { name: 'Moderator', value: `${msg.author.tag} (${msg.author.id})`, inline: true },
+        { name: 'Moderator', value: `${username} (${msg.author.id})`, inline: true },
         { name: 'User', value: `${mem} (${mem.id})`, inline: true },
-        { name: 'Cleared Cases', value: otherCases, inline: true }
+        { name: 'Cleared Cases', value: otherCases, inline: true },
       ]);
     if (!userMessage) logEmbed.setFooter({ text: 'Failed to send a DM to the user. (User has DMs disabled)' });
 
@@ -79,13 +80,12 @@ class ClearWarnings extends Command {
         .setColor(color)
         .addFields([
           { name: 'User', value: `${mem} (${mem.id})` },
-          { name: 'Cleared Cases', value: otherCases }
+          { name: 'Cleared Cases', value: otherCases },
         ]);
 
-      msg.channel.send({ embeds: [channelEmbed] })
-        .then(embed => {
-          setTimeout(() => embed.delete(), 30000);
-        });
+      msg.channel.send({ embeds: [channelEmbed] }).then((embed) => {
+        setTimeout(() => embed.delete(), 30000);
+      });
 
       return msg.guild.channels.cache.get(logChan).send({ embeds: [logEmbed] });
     } else {

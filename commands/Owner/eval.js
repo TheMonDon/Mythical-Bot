@@ -5,28 +5,29 @@ const { inspect } = require('util');
 const Command = require('../../base/Command.js');
 
 class Eval extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'eval',
       description: 'Evaluates arbitrary Javascript.',
       category: 'Owner',
       permLevel: 'Bot Owner',
       usage: 'eval <expression>',
-      aliases: ['ev']
+      aliases: ['ev'],
     });
   }
 
-  async run (msg, args, level) {
+  async run(msg, args, level) {
     const db = require('quick.db');
     const DiscordJS = require('discord.js');
     const util = this.client.util;
     let promise = false;
 
-    const embed = new EmbedBuilder()
-      .setFooter({ text: msg.author.tag, iconURL: msg.author.displayAvatarURL() });
+    const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
+    const embed = new EmbedBuilder().setFooter({ text: authorName, iconURL: msg.author.displayAvatarURL() });
 
     const query = args.join(' ');
-    const code = (lang, code) => (`\`\`\`${lang}\n${String(code).slice(0, 4000) + (code.length >= 4000 ? '...' : '')}\n\`\`\``);
+    const code = (lang, code) =>
+      `\`\`\`${lang}\n${String(code).slice(0, 4000) + (code.length >= 4000 ? '...' : '')}\n\`\`\``;
 
     if (!query) return msg.channel.send('Please, write something so I can evaluate!');
 
@@ -43,19 +44,14 @@ class Eval extends Command {
 
       if (!res || (!evald && evald !== 0)) embed.setColor(msg.settings.embedErrorColor);
       else {
-        embed
-          .addFields([{ name: 'Type', value: code('css', typeof evald) }])
-          .setColor(msg.settings.embedSuccessColor);
+        embed.addFields([{ name: 'Type', value: code('css', typeof evald) }]).setColor(msg.settings.embedSuccessColor);
       }
     } catch (error) {
-      embed
-        .addFields([{ name: 'Error', value: code('js', error) }])
-        .setColor(msg.settings.embedErrorColor);
+      embed.addFields([{ name: 'Error', value: code('js', error) }]).setColor(msg.settings.embedErrorColor);
     } finally {
-      msg.channel.send({ embeds: [embed] })
-        .catch(error => {
-          msg.channel.send(`There was an error while displaying the eval result! ${error.message}`);
-        });
+      msg.channel.send({ embeds: [embed] }).catch((error) => {
+        msg.channel.send(`There was an error while displaying the eval result! ${error.message}`);
+      });
     }
   }
 }

@@ -3,19 +3,20 @@ const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
 
 class Ban extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'ban',
       description: 'Ban a naughty user',
       usage: 'ban <user> <reason>',
       category: 'Moderator',
       permLevel: 'Moderator',
-      guildOnly: true
+      guildOnly: true,
     });
   }
 
-  async run (msg, args) {
-    if (!msg.guild.members.me.permissions.has('BanMembers')) return msg.channel.send('The bot is missing the ban members permission.');
+  async run(msg, args) {
+    if (!msg.guild.members.me.permissions.has('BanMembers'))
+      return msg.channel.send('The bot is missing the ban members permission.');
 
     const successColor = msg.settings.embedSuccessColor;
     const logChan = db.get(`servers.${msg.guild.id}.logs.channel`);
@@ -39,7 +40,7 @@ class Ban extends Command {
       .addFields([
         { name: 'User', value: banMem.toString() },
         { name: 'Banned By', value: msg.member.displayName.toString() },
-        { name: 'Reason', value: reason }
+        { name: 'Reason', value: reason },
       ])
       .setFooter({ text: `User ID: ${banMem.id}` })
       .setTimestamp();

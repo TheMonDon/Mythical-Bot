@@ -5,33 +5,41 @@ const { stripIndents } = require('common-tags');
 const { DateTime } = require('luxon');
 
 class NewTicket extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'new-ticket',
       description: 'Create a new ticket.',
       usage: 'New-Ticket <Reason>',
       category: 'Tickets',
       aliases: ['new', 'nt', 'newticket'],
-      guildOnly: true
+      guildOnly: true,
     });
   }
 
-  async run (msg, args) {
-    if (!db.get(`servers.${msg.guild.id}.tickets`)) return msg.channel.send('The ticket system has not been setup in this server.');
+  async run(msg, args) {
+    if (!db.get(`servers.${msg.guild.id}.tickets`))
+      return msg.channel.send('The ticket system has not been setup in this server.');
     const { catID, logID, roleID } = db.get(`servers.${msg.guild.id}.tickets`);
 
-    if (!msg.guild.channels.cache.get(catID)) return msg.channel.send('Please re-run `Setup`, the ticket category is missing.');
+    if (!msg.guild.channels.cache.get(catID))
+      return msg.channel.send('Please re-run `Setup`, the ticket category is missing.');
 
-    if (!msg.guild.members.me.permissions.has('ManageChannels')) return msg.channel.send('The bot is missing Manage Channels permission.');
-    if (!msg.guild.members.me.permissions.has('ManageRoles')) return msg.channel.send('The bot is missing Manage Roles permission');
-    if (!msg.guild.members.me.permissions.has('ManageMessages')) return msg.channel.send('The bot is missing Manage Messages permission');
+    if (!msg.guild.members.me.permissions.has('ManageChannels'))
+      return msg.channel.send('The bot is missing Manage Channels permission.');
+    if (!msg.guild.members.me.permissions.has('ManageRoles'))
+      return msg.channel.send('The bot is missing Manage Roles permission');
+    if (!msg.guild.members.me.permissions.has('ManageMessages'))
+      return msg.channel.send('The bot is missing Manage Messages permission');
 
-    if (msg.channel.name.startsWith('ticket')) return msg.channel.send('You\'re already in a ticket, silly.');
-    if (!args || args.length < 1) return msg.channel.send(`Please provide a reason. Usage: ${msg.settings.prefix}New-ticket <reason>`);
+    if (msg.channel.name.startsWith('ticket')) return msg.channel.send("You're already in a ticket, silly.");
+    if (!args || args.length < 1)
+      return msg.channel.send(`Please provide a reason. Usage: ${msg.settings.prefix}New-ticket <reason>`);
 
     const tix = this.client.util.getTickets(msg.author.id, msg);
     if (tix.length > 2) {
-      return msg.channel.send(`Sorry ${msg.author}, you already have three or more tickets open. Please close one before making a new one.`);
+      return msg.channel.send(
+        `Sorry ${msg.author}, you already have three or more tickets open. Please close one before making a new one.`,
+      );
     }
 
     const reason = args.join(' ');
@@ -40,20 +48,20 @@ class NewTicket extends Command {
     const perms = [
       {
         id: msg.author.id,
-        allow: ['ViewChannel']
+        allow: ['ViewChannel'],
       },
       {
         id: msg.guild.members.me.id,
-        allow: ['ViewChannel']
+        allow: ['ViewChannel'],
       },
       {
         id: roleID,
-        allow: ['ViewChannel']
+        allow: ['ViewChannel'],
       },
       {
         id: msg.guild.id,
-        deny: ['ViewChannel']
-      }
+        deny: ['ViewChannel'],
+      },
     ];
 
     const count = db.get(`servers.${msg.guild.id}.tickets.count`) || 0;
@@ -70,7 +78,13 @@ class NewTicket extends Command {
 
     str = str.toLowerCase();
     const tName = `ticket-${str}-${count}`;
-    const tixChan = await msg.guild.channels.create({ name: tName, type: ChannelType.GuildText, parent: catID, permissionOverwrites: perms, topic: reason });
+    const tixChan = await msg.guild.channels.create({
+      name: tName,
+      type: ChannelType.GuildText,
+      parent: catID,
+      permissionOverwrites: perms,
+      topic: reason,
+    });
 
     db.set(`servers.${msg.guild.id}.tickets.${tixChan.id}.owner`, msg.author.id);
 
@@ -79,7 +93,7 @@ class NewTicket extends Command {
       .setTitle(`${msg.member.displayName}'s Ticket`)
       .addFields([
         { name: 'Reason', value: reason },
-        { name: 'Channel', value: tixChan.toString() }
+        { name: 'Channel', value: tixChan.toString() },
       ])
       .setFooter({ text: 'Self destructing in 2 minutes.' })
       .setColor('#E65DF4')
@@ -94,7 +108,7 @@ class NewTicket extends Command {
       .addFields([
         { name: 'Author', value: `${msg.author} (${msg.author.id})`, inline: false },
         { name: 'Channel', value: `${tixChan} \n(${tName}: ${tixChan.id})`, inline: false },
-        { name: 'Reason', value: reason, inline: false }
+        { name: 'Reason', value: reason, inline: false },
       ])
       .setColor('#E65DF4')
       .setTimestamp();
@@ -122,10 +136,11 @@ class NewTicket extends Command {
     }
 
     // Logging info
+    const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
     const output = stripIndents`
     Ticket created at: ${DateTime.now().toLocaleString(DateTime.DATETIME_FULL)}
 
-    Author: ${msg.author.id} (${msg.author.tag})
+    Author: ${msg.author.id} (${authorName})
 
     Topic: ${reason}\n
     `;

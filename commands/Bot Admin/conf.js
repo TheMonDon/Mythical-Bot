@@ -8,7 +8,7 @@ your bot. The `del` action removes the key also from every guild, and loses its 
 const Command = require('../../base/Command.js');
 
 class Conf extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'conf',
       description: 'Modify the default configuration for all guilds.',
@@ -16,11 +16,11 @@ class Conf extends Command {
       permLevel: 'Bot Admin',
       usage: 'conf <view/get/edit> <key> <value>',
       aliases: ['defaults'],
-      guildOnly: true
+      guildOnly: true,
     });
   }
 
-  async run (message, [action, key, ...value]) {
+  async run(message, [action, key, ...value]) {
     // Retrieve Default Values from the default settings in the bot.
     const defaults = this.client.settings.get('default');
 
@@ -36,10 +36,10 @@ class Conf extends Command {
       // One the settings is modified, we write it back to the collection
       this.client.settings.set('default', defaults);
       message.reply(`${key} successfully added with the value of ${value.join(' ')}`);
-    } else
+    }
 
     // Changing the default value of a key only modified it for guilds that did not change it to another value.
-    if (action === 'edit') {
+    else if (action === 'edit') {
       if (!key) return message.reply('Please specify a key to edit');
       if (!defaults[key]) return message.reply('This key does not exist in the settings');
       if (value.length < 1) return message.reply('Please specify a new value');
@@ -48,16 +48,19 @@ class Conf extends Command {
 
       this.client.settings.set('default', defaults);
       message.reply(`${key} successfully edited to ${value.join(' ')}`);
-    } else
+    }
 
     // WARNING: DELETING A KEY FROM THE DEFAULTS ALSO REMOVES IT FROM EVERY GUILD
     // MAKE SURE THAT KEY IS REALLY NO LONGER NEEDED!
-    if (action === 'del') {
+    else if (action === 'del') {
       if (!key) return message.reply('Please specify a key to delete.');
       if (!defaults[key]) return message.reply('This key does not exist in the settings');
 
       // Throw the 'are you sure?' text at them.
-      const response = await this.client.awaitReply(message, `Are you sure you want to permanently delete ${key} from all guilds? This **CANNOT** be undone.`);
+      const response = await this.client.awaitReply(
+        message,
+        `Are you sure you want to permanently delete ${key} from all guilds? This **CANNOT** be undone.`,
+      );
 
       // If they respond with y or yes, continue.
       if (['y', 'yes'].includes(response)) {
@@ -73,15 +76,15 @@ class Conf extends Command {
         }
 
         message.reply(`${key} was successfully deleted.`);
-      } else
+      }
       // If they respond with n or no, we inform them that the action has been cancelled.
-      if (['n', 'no', 'cancel'].includes(response)) {
+      else if (['n', 'no', 'cancel'].includes(response)) {
         message.reply('Action cancelled.');
       }
-    } else
+    }
 
     // Display a key's default value
-    if (action === 'get') {
+    else if (action === 'get') {
       if (!key) return message.reply('Please specify a key to view');
       if (!defaults[key]) return message.reply('This key does not exist in the settings');
       message.reply(`The value of ${key} is currently ${defaults[key]}`);

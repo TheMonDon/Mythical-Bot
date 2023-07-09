@@ -2,7 +2,7 @@ const Command = require('../../base/Command.js');
 const db = require('quick.db');
 
 class SetCurrency extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'set-currency',
       category: 'Economy',
@@ -10,15 +10,18 @@ class SetCurrency extends Command {
       usage: 'set-currency $',
       aliases: ['setcurrency', 'sc'],
       permLevel: 'Moderator',
-      guildOnly: true
+      guildOnly: true,
     });
   }
 
-  run (msg, args) {
+  run(msg, args) {
     let symbol = args.join(' ');
     const oldSymbol = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
 
-    if (!symbol) return msg.channel.send(`The currency symbol for this server is: ${oldSymbol} \nUsage: ${msg.settings.prefix}set-currency <symbol>`);
+    if (!symbol)
+      return msg.channel.send(
+        `The currency symbol for this server is: ${oldSymbol} \nUsage: ${msg.settings.prefix}set-currency <symbol>`,
+      );
 
     if (symbol.length > 50) return msg.channel.send('The maximum length for the currency symbol is 50 characters.');
 

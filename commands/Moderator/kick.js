@@ -3,19 +3,20 @@ const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
 
 class Kick extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'kick',
       description: 'Kick a naughty user',
       usage: 'Kick <User> <Reason>',
       category: 'Moderator',
       permLevel: 'Moderator',
-      guildOnly: true
+      guildOnly: true,
     });
   }
 
-  async run (msg, args) {
-    if (!msg.guild.members.me.permissions.has('KickMembers')) return msg.channel.send('The bot is missing the Kick Members permission.');
+  async run(msg, args) {
+    if (!msg.guild.members.me.permissions.has('KickMembers'))
+      return msg.channel.send('The bot is missing the Kick Members permission.');
 
     const logChan = db.get(`servers.${msg.guild.id}.logs.channel`);
 
@@ -39,7 +40,7 @@ class Kick extends Command {
       .addFields([
         { name: 'User', value: kickMem.toString() },
         { name: 'Kicked By', value: msg.member.displayName.toString() },
-        { name: 'Reason', value: reason }
+        { name: 'Reason', value: reason },
       ])
       .setFooter({ text: `User ID: ${kickMem.id}` })
       .setTimestamp();

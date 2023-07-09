@@ -2,11 +2,11 @@ const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
 
 module.exports = class {
-  constructor (client) {
+  constructor(client) {
     this.client = client;
   }
 
-  async run (msg) {
+  async run(msg) {
     if (msg.author.bot) return;
     if (!msg.guild) return;
 
@@ -25,22 +25,24 @@ module.exports = class {
 
     let delby;
     if (msg.guild.members.me.permissions.has('ViewAuditLog')) {
-      msg.guild.fetchAuditLogs()
-        .then(audit => {
+      msg.guild
+        .fetchAuditLogs()
+        .then((audit) => {
           delby = audit.entries.first().executor;
         })
         .catch(console.error);
     }
 
     try {
+      const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
       const embed = new EmbedBuilder()
         .setTitle('Message Deleted')
         .setColor('#FF0000')
-        .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
+        .setAuthor({ name: authorName, iconURL: msg.author.displayAvatarURL() })
         .setThumbnail(msg.author.displayAvatarURL())
         .addFields([
           { name: 'Channel', value: `<#${msg.channel.id}>` },
-          { name: 'Message Author', value: `${msg.author} (${msg.author.tag})` }
+          { name: 'Message Author', value: `${msg.author} (${authorName})` },
         ])
         .setFooter({ text: `Message ID: ${msg.id}` })
         .setTimestamp();
@@ -56,13 +58,19 @@ module.exports = class {
         embed.addFields([{ name: 'Stickers', value: stickerString.join('').slice(0, 1_024) }]);
       }
 
-      if (delby && (msg.author !== delby)) embed.addFields([{ name: 'Deleted By', value: delby }]);
-      if (msg.mentions.users.size >= 1) embed.addFields([{ name: 'Mentioned Users', value: `${[...msg.mentions.users.values()]}` }]);
+      if (delby && msg.author !== delby) embed.addFields([{ name: 'Deleted By', value: delby }]);
+      if (msg.mentions.users.size >= 1)
+        embed.addFields([{ name: 'Mentioned Users', value: `${[...msg.mentions.users.values()]}` }]);
 
-      msg.guild.channels.cache.get(logChan).send({ embeds: [embed] }).catch(() => { });
+      msg.guild.channels.cache
+        .get(logChan)
+        .send({ embeds: [embed] })
+        .catch(() => {});
 
       db.add(`servers.${msg.guild.id}.logs.message-deleted`, 1);
       db.add(`servers.${msg.guild.id}.logs.all`, 1);
-    } catch (err) { console.error(err); }
+    } catch (err) {
+      console.error(err);
+    }
   }
 };

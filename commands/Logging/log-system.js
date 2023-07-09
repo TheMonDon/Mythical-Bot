@@ -3,7 +3,7 @@ const Discord = require('discord.js');
 const db = require('quick.db');
 
 class logSystem extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'log-system',
       description: 'See information about the log system',
@@ -11,12 +11,13 @@ class logSystem extends Command {
       category: 'Logging',
       permLevel: 'Moderator',
       aliases: ['logsystem'],
-      guildOnly: true
+      guildOnly: true,
     });
   }
 
-  async run (msg) {
-    if (!db.get(`servers.${msg.guild.id}.logs.channel`)) return msg.channel.send(`The log system is not set up! Use \`${msg.settings.prefix}Setup Logging <Channel>\``);
+  async run(msg) {
+    if (!db.get(`servers.${msg.guild.id}.logs.channel`))
+      return msg.channel.send(`The log system is not set up! Use \`${msg.settings.prefix}Setup Logging <Channel>\``);
 
     const embed = new Discord.EmbedBuilder()
       .setColor(msg.settings.embedColor)
@@ -42,7 +43,7 @@ class logSystem extends Command {
 **Emoji Deleted:** ${db.get(`servers.${msg.guild.id}.logs.logSystem.emoji-deleted`) || ':x:'}
 **Bulk Messages Deleted:** ${db.get(`servers.${msg.guild.id}.logs.logSystem.bulk-messages-deleted`) || ':x:'}
 `,
-          inline: true
+          inline: true,
         },
         {
           name: 'System Status',
@@ -66,9 +67,9 @@ class logSystem extends Command {
 **Bulk Messages Deleted:** ${db.get(`servers.${msg.guild.id}.logs.bulk-messages-deleted`) || '0'}
 **Total:** ${db.get(`servers.${msg.guild.id}.logs.all`) || '0'}
 `,
-          inline: true
+          inline: true,
         },
-        { name: 'Log Channel', value: `${db.get(`servers.${msg.guild.id}.logs.logSystem.channel`) || ':x:'}` }
+        { name: 'Log Channel', value: `${db.get(`servers.${msg.guild.id}.logs.logSystem.channel`) || ':x:'}` },
       ])
       .setFooter({ text: 'logs.logSystem System V3.2' });
 

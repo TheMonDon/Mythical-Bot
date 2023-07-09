@@ -5,18 +5,18 @@ const ms = require('ms');
 const { stripIndents } = require('common-tags');
 
 class SetCooldown extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'set-cooldown',
       category: 'Economy',
       description: 'Set the cooldown of economy modules',
       usage: 'Set-Cooldown <work | rob | crime | slut> <cooldown>',
       aliases: ['scd', 'setcooldown'],
-      guildOnly: true
+      guildOnly: true,
     });
   }
 
-  run (msg, args) {
+  run(msg, args) {
     let type;
     const errorColor = msg.settings.embedErrorColor;
 
@@ -30,11 +30,13 @@ class SetCooldown extends Command {
     const slutCooldown = db.get(`servers.${msg.guild.id}.economy.slut.cooldown`) || 600;
     const crimeCooldown = db.get(`servers.${msg.guild.id}.economy.crime.cooldown`) || 600;
 
+    const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
+    const embed = new EmbedBuilder()
+      .setColor(errorColor)
+      .setAuthor({ name: authorName, iconURL: msg.author.displayAvatarURL() });
+
     if (!args || args.length < 1) {
-      const embed = new EmbedBuilder()
-        .setColor('#04ACF4')
-        .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
-        .setDescription(stripIndents`
+      embed.setColor('#04ACF4').setDescription(stripIndents`
       The current cooldowns are set to: 
       
       \`Work\`   - ${workCooldown} seconds
@@ -50,10 +52,7 @@ class SetCooldown extends Command {
     } else {
       type = args[0].toLowerCase();
       if (!types.includes(type)) {
-        const embed = new EmbedBuilder()
-          .setColor(errorColor)
-          .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
-          .setDescription(`Incorrect Usage: ${usage}`);
+        embed.setDescription(`Incorrect Usage: ${usage}`);
         return msg.channel.send({ embeds: [embed] });
       }
     }
@@ -64,10 +63,7 @@ class SetCooldown extends Command {
     const properCase = this.client.util.toProperCase(type);
 
     if (cooldown > 1209600000) {
-      const embed = new EmbedBuilder()
-        .setColor(errorColor)
-        .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
-        .setDescription(stripIndents`
+      embed.setDescription(stripIndents`
           :x: Invalid cooldown. Cooldowns can not be longer than 2 weeks.
     
           Usage: ${usage}
@@ -75,10 +71,7 @@ class SetCooldown extends Command {
 
       return msg.channel.send({ embeds: [embed] });
     } else if (cooldown < 30000) {
-      const embed = new EmbedBuilder()
-        .setColor(errorColor)
-        .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
-        .setDescription(stripIndents`
+      embed.setDescription(stripIndents`
           :x: Invalid cooldown. Cooldowns can not be shorter than 30 seconds.
 
           Usage: ${usage}
@@ -86,10 +79,7 @@ class SetCooldown extends Command {
 
       return msg.channel.send({ embeds: [embed] });
     } else if (isNaN(cooldown)) {
-      const embed = new EmbedBuilder()
-        .setColor(errorColor)
-        .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
-        .setDescription(stripIndents`
+      embed.setDescription(stripIndents`
           :x: Invalid cooldown. Please provide a valid cooldown time.
 
           Usage: ${usage}
@@ -101,10 +91,7 @@ class SetCooldown extends Command {
     const cd = cooldown / 1000;
     db.set(`servers.${msg.guild.id}.economy.${type}.cooldown`, cd);
 
-    const embed = new EmbedBuilder()
-      .setColor('#64BC6C')
-      .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
-      .setDescription(`The cooldown of \`${properCase}\` has been set to ${cd} seconds.`);
+    embed.setColor('#64BC6C').setDescription(`The cooldown of \`${properCase}\` has been set to ${cd} seconds.`);
     return msg.channel.send({ embeds: [embed] });
   }
 }

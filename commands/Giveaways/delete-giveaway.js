@@ -2,18 +2,18 @@ const Command = require('../../base/Command.js');
 const { EmbedBuilder } = require('discord.js');
 
 class DeleteGiveaway extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'delete-giveaway',
       description: 'Delete a giveaway',
       usage: 'Delete-Giveaway <Message ID>',
       category: 'Giveaways',
       aliases: ['deletegiveaway', 'delgiveaway', 'gdelete'],
-      guildOnly: true
+      guildOnly: true,
     });
   }
 
-  async run (msg, args) {
+  async run(msg, args) {
     const usage = `Incorrect Usage: ${msg.settings.prefix}Delete-Giveaway <Message ID>`;
     if (!args || args.length < 1) return msg.channel.send(usage);
 
@@ -23,8 +23,9 @@ class DeleteGiveaway extends Command {
 
     const query = args.join(' ');
 
+    const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
     const ErrorEmbed = new EmbedBuilder()
-      .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
+      .setAuthor({ name: authorName, iconURL: msg.author.displayAvatarURL() })
       .setTitle('Invalid Message ID')
       .setColor(msg.settings.embedErrorColor);
 
@@ -33,7 +34,9 @@ class DeleteGiveaway extends Command {
       return msg.channel.send({ embeds: [ErrorEmbed] });
     }
 
-    const giveaway = this.client.giveawaysManager.giveaways.find((g) => g.messageId === query && g.guildId === msg.guild.id);
+    const giveaway = this.client.giveawaysManager.giveaways.find(
+      (g) => g.messageId === query && g.guildId === msg.guild.id,
+    );
 
     // If no giveaway was found
     if (!giveaway) {
@@ -42,7 +45,8 @@ class DeleteGiveaway extends Command {
     }
 
     // Delete the giveaway
-    this.client.giveawaysManager.delete(giveaway.messageId)
+    this.client.giveawaysManager
+      .delete(giveaway.messageId)
       .then(() => {
         // Success message
         msg.channel.send('Giveaway deleted!');

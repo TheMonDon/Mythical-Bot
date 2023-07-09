@@ -7,7 +7,7 @@ const { inspect } = require('util');
 // Otherwise false is global.
 exports.conf = {
   permLevel: 'Bot Owner',
-  guildOnly: false
+  guildOnly: false,
 };
 
 exports.commandData = {
@@ -18,10 +18,10 @@ exports.commandData = {
       type: 3,
       name: 'query',
       description: 'The code you want to evaluate.',
-      required: true
-    }
+      required: true,
+    },
   ],
-  dmPermission: true
+  dmPermission: true,
 };
 
 exports.run = async (client, interaction) => {
@@ -33,10 +33,14 @@ exports.run = async (client, interaction) => {
   const config = client.config;
   let promise = false;
 
-  const embed = new EmbedBuilder()
-    .setFooter({ text: interaction.user.tag, iconURL: interaction.user.displayAvatarURL() });
+  const authorName = interaction.user.discriminator === '0' ? interaction.user.username : interaction.user.tag;
+  const embed = new EmbedBuilder().setFooter({
+    text: authorName,
+    iconURL: interaction.user.displayAvatarURL(),
+  });
 
-  const code = (lang, code) => (`\`\`\`${lang}\n${String(code).slice(0, 4000) + (code.length >= 4000 ? '...' : '')}\n\`\`\``);
+  const code = (lang, code) =>
+    `\`\`\`${lang}\n${String(code).slice(0, 4000) + (code.length >= 4000 ? '...' : '')}\n\`\`\``;
 
   const query = interaction.options.get('query').value;
 
@@ -58,13 +62,10 @@ exports.run = async (client, interaction) => {
         .setColor(interaction.settings.embedSuccessColor);
     }
   } catch (error) {
-    embed
-      .addFields([{ name: 'Error', value: code('js', error) }])
-      .setColor(interaction.settings.embedErrorColor);
+    embed.addFields([{ name: 'Error', value: code('js', error) }]).setColor(interaction.settings.embedErrorColor);
   } finally {
-    interaction.editReply({ embeds: [embed] })
-      .catch(error => {
-        console.error(error);
-      });
+    interaction.editReply({ embeds: [embed] }).catch((error) => {
+      console.error(error);
+    });
   }
 };

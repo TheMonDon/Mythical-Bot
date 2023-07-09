@@ -3,7 +3,7 @@ const { EmbedBuilder } = require('discord.js');
 const db = require('quick.db');
 
 class LogToggle extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'log-toggle',
       description: 'Toggle individual logs',
@@ -11,14 +11,15 @@ class LogToggle extends Command {
       category: 'Logging',
       permLevel: 'Moderator',
       aliases: ['togglelog', 'logtoggle', 'tl', 'lt'],
-      guildOnly: true
+      guildOnly: true,
     });
   }
 
-  async run (msg, args) {
+  async run(msg, args) {
     const query = args.join(' ').toLowerCase();
 
-    if (!db.get(`servers.${msg.guild.id}.logs.channel`)) return msg.channel.send(`The log system is not set up! Use \`${msg.settings.prefix}setlogchannel <channel>\``);
+    if (!db.get(`servers.${msg.guild.id}.logs.channel`))
+      return msg.channel.send(`The log system is not set up! Use \`${msg.settings.prefix}setlogchannel <channel>\``);
 
     // define regex
     const cc = /^(channel[-]?created)/gi;
@@ -42,12 +43,10 @@ class LogToggle extends Command {
     const ed = /^(emoji[-]?deleted)/gi;
     const bmd = /^(bulk[-]?messages[-]?deleted)/gi;
 
-    const errorEmbed = new EmbedBuilder()
-      .setTitle(':x: Invalid parameter.')
-      .addFields([
-        {
-          name: 'Valid Parameters',
-          value: `
+    const errorEmbed = new EmbedBuilder().setTitle(':x: Invalid parameter.').addFields([
+      {
+        name: 'Valid Parameters',
+        value: `
 channel-created
 channel-deleted
 channel-updated
@@ -68,10 +67,14 @@ stage-channel-updated
 emoji-created
 emoji-deleted
 bulk-messages-deleted`,
-          inline: true
-        },
-        { name: 'Other Usage:', value: 'Log-Toggle <Enable/Disable> <Channel> to enable/disable a channel from being logged.', inline: false }
-      ]);
+        inline: true,
+      },
+      {
+        name: 'Other Usage:',
+        value: 'Log-Toggle <Enable/Disable> <Channel> to enable/disable a channel from being logged.',
+        inline: false,
+      },
+    ]);
     if (['enable', 'disable'].includes(args?.[0]?.toLowerCase())) {
       if (args?.[0]?.toLowerCase() === 'enable') {
         // Enable channel
@@ -80,10 +83,11 @@ bulk-messages-deleted`,
         if (!args[1]) {
           chan = msg.channel;
         } else {
-          chan = msg.mentions.channels.first() ||
-            msg.guild.channels.cache.find(c => c.id === `${args[1]}`) ||
-            msg.guild.channels.cache.find(c => c.name.toLowerCase() === `${args[1].toLowerCase()}`) ||
-            msg.guild.channels.cache.find(c => c.name.toLowerCase().includes(`${args[1].toLowerCase()}`));
+          chan =
+            msg.mentions.channels.first() ||
+            msg.guild.channels.cache.find((c) => c.id === `${args[1]}`) ||
+            msg.guild.channels.cache.find((c) => c.name.toLowerCase() === `${args[1].toLowerCase()}`) ||
+            msg.guild.channels.cache.find((c) => c.name.toLowerCase().includes(`${args[1].toLowerCase()}`));
         }
         if (!chan) return msg.channel.send('I could not find a channel with that information.');
 
@@ -106,10 +110,11 @@ bulk-messages-deleted`,
         if (!args[1]) {
           chan = msg.channel;
         } else {
-          chan = msg.mentions.channels.first() ||
-            msg.guild.channels.cache.find(c => c.id === `${args[1]}`) ||
-            msg.guild.channels.cache.find(c => c.name.toLowerCase() === `${args[1].toLowerCase()}`) ||
-            msg.guild.channels.cache.find(c => c.name.toLowerCase().includes(`${args[1].toLowerCase()}`));
+          chan =
+            msg.mentions.channels.first() ||
+            msg.guild.channels.cache.find((c) => c.id === `${args[1]}`) ||
+            msg.guild.channels.cache.find((c) => c.name.toLowerCase() === `${args[1].toLowerCase()}`) ||
+            msg.guild.channels.cache.find((c) => c.name.toLowerCase().includes(`${args[1].toLowerCase()}`));
         }
         if (!chan) return msg.channel.send('I could not find a channel with that information.');
 

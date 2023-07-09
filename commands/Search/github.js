@@ -4,17 +4,17 @@ const fetch = require('node-superfetch');
 const moment = require('moment');
 
 class Github extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'github',
       description: 'View information about a repository on Github',
       usage: 'Github <user> <repository> \nGithub <user/repository>',
       category: 'Search',
-      aliases: ['gh']
+      aliases: ['gh'],
     });
   }
 
-  async run (msg, args) {
+  async run(msg, args) {
     let author;
     let repository;
 
@@ -27,10 +27,14 @@ class Github extends Command {
           author = args[0];
           repository = args[1];
         } else {
-          return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}Github <user> <repository> OR Github <user/repository>`);
+          return msg.channel.send(
+            `Incorrect Usage: ${msg.settings.prefix}Github <user> <repository> OR Github <user/repository>`,
+          );
         }
       } else {
-        return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}Github <user> <repository> OR Github <user/repository>`);
+        return msg.channel.send(
+          `Incorrect Usage: ${msg.settings.prefix}Github <user> <repository> OR Github <user/repository>`,
+        );
       }
     }
 
@@ -58,7 +62,7 @@ class Github extends Command {
           { name: 'Archived', value: body.archived ? 'Yes' : 'No', inline: true },
           { name: 'Size', value: `${(body.size / 1000).toLocaleString()} MB`, inline: true },
           { name: 'Creation Date', value: moment.utc(body.created_at).format('MM/DD/YYYY h:mm A'), inline: true },
-          { name: 'Modification Date', value: moment.utc(body.updated_at).format('MM/DD/YYYY h:mm A'), inline: true }
+          { name: 'Modification Date', value: moment.utc(body.updated_at).format('MM/DD/YYYY h:mm A'), inline: true },
         ]);
 
       return msg.channel.send({ embeds: [embed] });

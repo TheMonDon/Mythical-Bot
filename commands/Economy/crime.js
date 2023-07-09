@@ -5,44 +5,50 @@ require('moment-duration-format');
 const db = require('quick.db');
 
 class Crime extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'crime',
       category: 'Economy',
       description: 'Commit a crime',
       examples: ['crime'],
-      guildOnly: true
+      guildOnly: true,
     });
   }
 
-  run (msg) {
+  run(msg) {
     const type = 'crime';
-    const errorColor = msg.settings.embedErrorColor;
 
     const cooldown = db.get(`servers.${msg.guild.id}.economy.${type}.cooldown`) || 600;
     let userCooldown = db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.${type}.cooldown`) || {};
+    const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
+
+    const embed = new EmbedBuilder()
+      .setColor(msg.settings.embedColor)
+      .setAuthor({ name: authorName, iconURL: msg.author.displayAvatarURL() });
 
     // Check if the user is on cooldown
     if (userCooldown.active) {
       const timeleft = userCooldown.time - Date.now();
-      if (timeleft < 0 || timeleft > (cooldown * 1000)) {
+      if (timeleft < 0 || timeleft > cooldown * 1000) {
         // this is to check if the bot restarted before their cooldown was set.
         userCooldown = {};
         userCooldown.active = false;
         db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.${type}.cooldown`, userCooldown);
       } else {
-        const tLeft = moment.duration(timeleft)
+        const tLeft = moment
+          .duration(timeleft)
           .format('y[ years][,] M[ Months]d[ days][,] h[ hours][,] m[ minutes][, and] s[ seconds]'); // format to any format
-        const embed = new EmbedBuilder()
-          .setColor(msg.settings.embedColor)
-          .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
-          .setDescription(`You cannot commit a crime for ${tLeft}`);
+        embed.setDescription(`You cannot commit a crime for ${tLeft}`);
         return msg.channel.send({ embeds: [embed] });
       }
     }
 
     // Get the user's net worth
-    const cash = parseFloat(db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`) || db.get(`servers.${msg.guild.id}.economy.startBalance`) || 0);
+    const cash = parseFloat(
+      db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`) ||
+        db.get(`servers.${msg.guild.id}.economy.startBalance`) ||
+        0,
+    );
     const bank = parseFloat(db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`) || 0);
     const authNet = cash + bank;
 
@@ -76,12 +82,10 @@ class Crime extends Command {
       }
       const csamount = currencySymbol + fineAmnt.toLocaleString();
       const num = Math.floor(Math.random() * (crimeFail.length - 1)) + 1;
-      const txt = crimeFail[num].replace('csamount', csamount);
 
-      const embed = new EmbedBuilder()
-        .setColor(errorColor)
-        .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
-        .setDescription(txt)
+      embed
+        .setColor(msg.settings.embedErrorColor)
+        .setDescription(crimeFail[num].replace('csamount', csamount))
         .setFooter({ text: `Reply #${num.toLocaleString()}` });
       msg.channel.send({ embeds: [embed] });
 
@@ -89,21 +93,18 @@ class Crime extends Command {
     } else {
       const amount = Math.floor(Math.random() * (max - min + 1) + min);
       const csamount = currencySymbol + amount.toLocaleString();
-
       const num = Math.floor(Math.random() * (crimeSuccess.length - 1)) + 1;
-      const txt = crimeSuccess[num].replace('csamount', csamount);
 
-      const embed = new EmbedBuilder()
+      embed
         .setColor(msg.settings.embedSuccessColor)
-        .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
-        .setDescription(txt)
+        .setDescription(crimeSuccess[num].replace('csamount', csamount))
         .setFooter({ text: `Reply #${num.toLocaleString()}` });
       msg.channel.send({ embeds: [embed] });
 
       db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, amount);
     }
 
-    userCooldown.time = Date.now() + (cooldown * 1000);
+    userCooldown.time = Date.now() + cooldown * 1000;
     userCooldown.active = true;
     db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.${type}.cooldown`, userCooldown);
 
@@ -114,6 +115,6 @@ class Crime extends Command {
       db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.${type}.cooldown`, userCooldown);
     }, cooldown * 1000);
   }
-};
+}
 
 module.exports = Crime;

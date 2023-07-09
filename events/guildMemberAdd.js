@@ -2,12 +2,14 @@ const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
 
 module.exports = class {
-  constructor (client) {
+  constructor(client) {
     this.client = client;
   }
 
-  async run (member) {
-    async function LogSystem (client, member) {
+  async run(member) {
+    const memberName = member.user.discriminator === '0' ? member.user.username : member.user.tag;
+
+    async function LogSystem(client, member) {
       const logChan = db.get(`servers.${member.guild.id}.logs.channel`);
       if (!logChan) return;
 
@@ -18,22 +20,25 @@ module.exports = class {
       const embed = new EmbedBuilder()
         .setTitle('Member Joined')
         .setColor('#3dd0f4')
-        .setAuthor({ name: member.user.tag, iconURL: member.user.displayAvatarURL() })
+        .setAuthor({ name: memberName, iconURL: member.user.displayAvatarURL() })
         .setThumbnail(member.user.displayAvatarURL())
         .addFields([
           { name: 'User', value: member.toString() },
-          { name: 'Member Count', value: member.guild.members.cache.size.toLocaleString() }
+          { name: 'Member Count', value: member.guild.members.cache.size.toLocaleString() },
         ])
         .setFooter({ text: `ID: ${member.user.id}` })
         .setTimestamp();
 
-      member.guild.channels.cache.get(logChan).send({ embeds: [embed] }).catch(() => {});
+      member.guild.channels.cache
+        .get(logChan)
+        .send({ embeds: [embed] })
+        .catch(() => {});
 
       db.add(`servers.${member.guild.id}.logs.member-join`, 1);
       db.add(`servers.${member.guild.id}.logs.all`, 1);
-    };
+    }
 
-    async function AutoRole (client, member) {
+    async function AutoRole(client, member) {
       const toggle = db.get(`servers.${member.guild.id}.proles.system`) || false;
       if (!toggle) return;
 
@@ -49,27 +54,33 @@ module.exports = class {
       }
 
       db.delete(`servers.${member.guild.id}.proles.users.${member.id}`);
-    };
+    }
 
-    function WelcomeSystem (client, member) {
-    // Load the guild's settings
+    function WelcomeSystem(client, member) {
+      // Load the guild's settings
       const settings = client.getSettings(member.guild);
 
       // If welcome is off, don't proceed (don't welcome the user)
       if (settings.welcomeEnabled !== 'true') return;
 
       // Replace the placeholders in the welcome message with actual data
-      const welcomeMessage = settings.welcomeMessage.replace('{{user}}', member.user.tag).replace('{{guild}}', member.guild.name);
+      
+      const welcomeMessage = settings.welcomeMessage
+        .replace('{{user}}', memberName)
+        .replace('{{guild}}', member.guild.name);
 
       const em = new EmbedBuilder()
         .setTitle('Member Joined')
         .setColor(settings.embedColor)
         .setTitle(`Welcome to ${member.guild.name}`)
-        .setAuthor({ name: member.user.tag, iconURL: member.user.displayAvatarURL() })
+        .setAuthor({ name: memberName, iconURL: member.user.displayAvatarURL() })
         .setDescription(welcomeMessage)
         .setTimestamp();
 
-      member.guild.channels.cache.find(c => c.name === settings.welcomeChannel).send({ embeds: [em] }).catch(() => {});
+      member.guild.channels.cache
+        .find((c) => c.name === settings.welcomeChannel)
+        .send({ embeds: [em] })
+        .catch(() => {});
     }
 
     // Run the functions

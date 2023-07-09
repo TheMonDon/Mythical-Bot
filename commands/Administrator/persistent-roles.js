@@ -2,21 +2,23 @@ const Command = require('../../base/Command.js');
 const db = require('quick.db');
 
 class persistentRoles extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'persistent-Roles',
       description: 'Enable/Disable the persistent roles system for your guild.',
-      longDescription: 'When persistent roles is enabled users who leave the guild will have their roles automatically returned when they come back.',
+      longDescription:
+        'When persistent roles is enabled users who leave the guild will have their roles automatically returned when they come back.',
       category: 'Administrator',
       permLevel: 'Administrator',
       usage: 'Persistent-Roles',
       aliases: ['pr', 'proles'],
-      guildOnly: true
+      guildOnly: true,
     });
   }
 
-  async run (msg) {
-    if (!msg.guild.members.me.permissions.has('ManageRoles')) return msg.channel.send('The bot requires the Manage Roles permission for this to work.');
+  async run(msg) {
+    if (!msg.guild.members.me.permissions.has('ManageRoles'))
+      return msg.channel.send('The bot requires the Manage Roles permission for this to work.');
 
     const toggle = db.get(`servers.${msg.guild.id}.proles.system`) || false;
 

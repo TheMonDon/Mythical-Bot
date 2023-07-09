@@ -4,21 +4,23 @@ const { EmbedBuilder } = require('discord.js');
 const { DateTime } = require('luxon');
 
 class AddMember extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'add-member',
       description: 'Add a user to a ticket.',
       usage: 'Add-Member <User>',
       category: 'Tickets',
       aliases: ['addmember', 'add'],
-      guildOnly: true
+      guildOnly: true,
     });
   }
 
-  async run (msg, args) {
-    if (!db.get(`servers.${msg.guild.id}.tickets`)) return msg.channel.send('The ticket system has not been setup in this server.');
+  async run(msg, args) {
+    if (!db.get(`servers.${msg.guild.id}.tickets`))
+      return msg.channel.send('The ticket system has not been setup in this server.');
 
-    if (!msg.channel.name.startsWith('ticket')) return msg.channel.send('You need to be inside the ticket you want to add a user to.');
+    if (!msg.channel.name.startsWith('ticket'))
+      return msg.channel.send('You need to be inside the ticket you want to add a user to.');
 
     if (!args[0]) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}add <user>`);
 
@@ -31,18 +33,22 @@ class AddMember extends Command {
 
     // Do they have the support role or are owner?
     if (owner !== msg.author.id) {
-      if (!msg.member.roles.cache.some(r => r.id === roleID)) {
+      if (!msg.member.roles.cache.some((r) => r.id === roleID)) {
         return msg.channel.send(`You need to be the ticket owner or a member of ${role.name} to add a user.`);
       }
     }
     msg.guild.members.fetch(mem.id);
 
-    if (msg.channel.members.get(mem.id) !== undefined) return msg.channel.send('That person has already been added to this ticket.');
+    if (msg.channel.members.get(mem.id) !== undefined)
+      return msg.channel.send('That person has already been added to this ticket.');
 
     await msg.channel.permissionOverwrites.edit(mem.id, { ViewChannel: true });
 
     // Logging info
-    const output = `${DateTime.now().toLocaleString(DateTime.DATETIME_FULL)} - ${msg.author.tag} has added another member: \n${mem.displayName}.`;
+    const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
+    const output = `${DateTime.now().toLocaleString(
+      DateTime.DATETIME_FULL,
+    )} - ${authorName} has added another member: \n${mem.displayName}.`;
 
     db.push(`servers.${msg.guild.id}.tickets.${msg.channel.id}.chatLogs`, output);
 

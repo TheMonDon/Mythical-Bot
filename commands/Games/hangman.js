@@ -3,16 +3,16 @@ const randomWords = require('random-words');
 const { EmbedBuilder } = require('discord.js');
 
 class Hangman extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'hangman',
       description: 'Play a game of hangman.',
       usage: 'hangman',
-      category: 'Games'
+      category: 'Games',
     });
   }
 
-  async run (msg, args) {
+  async run(msg, args) {
     const current = this.client.games.get(msg.channel.id);
     if (current) return msg.reply(`Please wait until the current game of \`${current.name}\` is finished.`);
     this.client.games.set(msg.channel.id, { name: this.help.name, user: msg.author.id, date: Date.now() });
@@ -39,7 +39,7 @@ class Hangman extends Command {
       'https://imgur.com/bVsUfP3.png',
       'https://imgur.com/Mwzwp6i.png',
       'https://imgur.com/qltUWtL.png',
-      'https://imgur.com/vWoekpB.png'
+      'https://imgur.com/vWoekpB.png',
     ];
 
     const wordToGuess = randomWords(1).toString().toLowerCase();
@@ -52,7 +52,8 @@ class Hangman extends Command {
 
     const mention = await this.client.util.getMember(msg, args.join(' '));
     if (mention && !mention.user.bot) {
-      const mentionplayquestion = lang.hangman_mentionplayquestion.replace('%mention', mention)
+      const mentionplayquestion = lang.hangman_mentionplayquestion
+        .replace('%mention', mention)
         .replace('%author', msg.author);
       const questionMessage = await msg.channel.send(mentionplayquestion);
 
@@ -60,7 +61,7 @@ class Hangman extends Command {
       await questionMessage.react('👎');
 
       const collector = questionMessage.createReactionCollector((reaction, user) => user.id === mention.id, {
-        time: 120000
+        time: 120000,
       });
       collector.on('collect', async (r) => {
         if (r.emoji.name === '👍') {
@@ -93,19 +94,19 @@ class Hangman extends Command {
                 const letterorwordmessage = lang.hangman_letterorwordmessage.replace('%author', msg.author);
                 message = await msg.channel.send(letterorwordmessage);
                 response = await msg.channel.awaitMessages({
-                  filter: msg2 => msg.author.id === msg2.author.id,
+                  filter: (msg2) => msg.author.id === msg2.author.id,
                   max: 1,
                   time: 180000,
-                  errors: ['time']
+                  errors: ['time'],
                 });
               } else {
                 const letterorwordmessage = lang.hangman_letterorwordmessage.replace('%author', mention);
                 message = await msg.channel.send(letterorwordmessage);
                 response = await msg.channel.awaitMessages({
-                  filter: msg2 => mention.id === msg2.author.id,
+                  filter: (msg2) => mention.id === msg2.author.id,
                   max: 1,
                   time: 180000,
-                  errors: ['time']
+                  errors: ['time'],
                 });
               }
 
@@ -113,7 +114,10 @@ class Hangman extends Command {
                 if (!triedLetters.includes(response.first().content.toLowerCase())) {
                   if (response.first().content.length === 1) {
                     if (wordToGuessInArray.includes(response.first().content.toLowerCase())) {
-                      const embedtitlecorrect = lang.hangman_embedtitlecorrect.replace('%author', turn === 1 ? msg.author.tag : mention.tag)
+                      const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
+                      const mentionName = mention.user.discriminator === '0' ? mention.user.username : mention.user.tag;
+                      const embedtitlecorrect = lang.hangman_embedtitlecorrect
+                        .replace('%author', turn === 1 ? authorName : mentionName)
                         .replace('%letter', response.first().content.toLowerCase());
                       firstEmbed.setTitle(embedtitlecorrect);
 
@@ -122,7 +126,8 @@ class Hangman extends Command {
                           newWordString[index2] = response.first().content.toLowerCase();
                         }
                       }
-                      const embeddescriptionwithtried = lang.hangman_embeddescriptionwithtried.replace('%triedletters', triedLetters.join(', '))
+                      const embeddescriptionwithtried = lang.hangman_embeddescriptionwithtried
+                        .replace('%triedletters', triedLetters.join(', '))
                         .replace('%word', `\`\`${newWordString.join(' ')}\`\``);
                       firstEmbed.setDescription(embeddescriptionwithtried);
 
@@ -131,14 +136,16 @@ class Hangman extends Command {
                       turn = turn === 1 ? 2 : 1;
 
                       if (!newWordString.includes('_') && turn === 1) {
-                        const mentiongamewon = lang.hangman_mentiongamewon.replace('%author', msg.author)
+                        const mentiongamewon = lang.hangman_mentiongamewon
+                          .replace('%author', msg.author)
                           .replace('%word', wordToGuess);
                         await message.delete();
                         if (msg.guild.members.me.permissions.has('ManageMessages')) await response.first().delete();
                         return msg.channel.send(mentiongamewon);
                       }
                       if (!newWordString.includes('_') && turn === 2) {
-                        const mentiongamewon = lang.hangman_mentiongamewon.replace('%author', mention)
+                        const mentiongamewon = lang.hangman_mentiongamewon
+                          .replace('%author', mention)
                           .replace('%word', wordToGuess);
                         await message.delete();
                         if (msg.guild.members.me.permissions.has('ManageMessages')) await response.first().delete();
@@ -150,10 +157,14 @@ class Hangman extends Command {
                         triedLetters.push(response.first().content.toLowerCase());
                       }
 
-                      const embedtitlewrong = lang.hangman_embedtitlewrong.replace('%author', turn === 1 ? msg.author.tag : mention.tag)
+                      const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
+                      const mentionName = mention.user.discriminator === '0' ? mention.user.username : mention.user.tag;
+                      const embedtitlewrong = lang.hangman_embedtitlewrong
+                        .replace('%author', turn === 1 ? authorName : mentionName)
                         .replace('%letter', response.first().content.toLowerCase());
 
-                      const embeddescriptionwithtried = lang.hangman_embeddescriptionwithtried.replace('%triedletters', triedLetters.join(', '))
+                      const embeddescriptionwithtried = lang.hangman_embeddescriptionwithtried
+                        .replace('%triedletters', triedLetters.join(', '))
                         .replace('%word', `\`\`${newWordString.join(' ')}\`\``);
                       embedtitlechances = lang.hangman_embedtitlechances.replace('%chances', chances);
                       if (chances > 0) {
@@ -171,7 +182,7 @@ class Hangman extends Command {
                         firstEmbed.setDescription(embeddescriptionwithtried);
                         firstEmbed.setImage(hangmanPictures[15 - chances]);
 
-                        turn === 1 ? turn = 2 : turn = 1;
+                        turn === 1 ? (turn = 2) : (turn = 1);
 
                         hangmanEmbed.edit({ embeds: [firstEmbed] });
                         const mentionnowin = lang.hangman_mentionnowin.replace('%word', wordToGuess);
@@ -184,10 +195,15 @@ class Hangman extends Command {
                   } else {
                     if (wordToGuess.length === response.first().content.length) {
                       if (wordToGuess === response.first().content.toLowerCase()) {
-                        const embeddescriptionwithtried = lang.hangman_embeddescriptionwithtried.replace('%triedletters', triedLetters.join(', '))
+                        const embeddescriptionwithtried = lang.hangman_embeddescriptionwithtried
+                          .replace('%triedletters', triedLetters.join(', '))
                           .replace('%word', `\`\`${newWordString.join(' ')}\`\``);
 
-                        const embedtitlecorrect = lang.hangman_embedtitlecorrectword.replace('%author', turn === 1 ? msg.author.tag : mention.tag)
+                        const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
+                        const mentionName =
+                          mention.user.discriminator === '0' ? mention.user.username : mention.user.tag;
+                        const embedtitlecorrect = lang.hangman_embedtitlecorrectword
+                          .replace('%author', turn === 1 ? authorName : mentionName)
                           .replace('%word', response.first().content.toLowerCase());
                         firstEmbed.setTitle(embedtitlecorrect);
                         firstEmbed.setFooter({ text: embedtitlechances });
@@ -196,14 +212,16 @@ class Hangman extends Command {
                         hangmanEmbed.edit({ embeds: [firstEmbed] });
 
                         if (turn === 1) {
-                          const mentiongamewon = lang.hangman_mentiongamewon.replace('%author', msg.author)
+                          const mentiongamewon = lang.hangman_mentiongamewon
+                            .replace('%author', msg.author)
                             .replace('%word', response.first().content.toLowerCase());
                           this.client.games.delete(msg.channel.id);
                           await message.delete();
                           if (msg.guild.members.me.permissions.has('ManageMessages')) await response.first().delete();
                           return msg.channel.send(mentiongamewon);
                         }
-                        const mentiongamewon = lang.hangman_mentiongamewon.replace('%author', mention)
+                        const mentiongamewon = lang.hangman_mentiongamewon
+                          .replace('%author', mention)
                           .replace('%word', response.first().content.toLowerCase());
                         this.client.games.delete(msg.channel.id);
                         await message.delete();
@@ -213,12 +231,16 @@ class Hangman extends Command {
 
                       chances -= 1;
 
-                      const embedtitlewrong = lang.hangman_embedtitlewrongword.replace('%author', turn === 1 ? msg.author.tag : mention.tag)
+                      const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
+                      const mentionName = mention.user.discriminator === '0' ? mention.user.username : mention.user.tag;
+                      const embedtitlewrong = lang.hangman_embedtitlewrongword
+                        .replace('%author', turn === 1 ? authorName : mentionName)
                         .replace('%word', response.first().content.toLowerCase());
                       firstEmbed.setTitle(embedtitlewrong);
 
                       embedtitlechances = lang.hangman_embedtitlechances.replace('%chances', chances);
-                      const embeddescriptionwithtried = lang.hangman_embeddescriptionwithtried.replace('%triedletters', triedLetters.join(', '))
+                      const embeddescriptionwithtried = lang.hangman_embeddescriptionwithtried
+                        .replace('%triedletters', triedLetters.join(', '))
                         .replace('%word', `\`\`${newWordString.join(' ')}\`\``);
                       firstEmbed.setFooter({ text: embedtitlechances });
                       firstEmbed.setDescription(embeddescriptionwithtried);
@@ -228,7 +250,10 @@ class Hangman extends Command {
 
                       hangmanEmbed.edit({ embeds: [firstEmbed] });
                     } else {
-                      const notwordcharacters = lang.hangman_notwordcharacters.replace('%letterscount', wordToGuess.length);
+                      const notwordcharacters = lang.hangman_notwordcharacters.replace(
+                        '%letterscount',
+                        wordToGuess.length,
+                      );
                       msg.channel.send(notwordcharacters);
                     }
                   }
@@ -239,7 +264,9 @@ class Hangman extends Command {
                 msg.channel.send(lang.hangman_noletter);
               }
             } catch (error) {
-              const noanswermention = lang.hangman_noanswermention.replace('%author', turn === 1 ? msg.author : mention).replace('%mention', turn === 1 ? mention : msg.author);
+              const noanswermention = lang.hangman_noanswermention
+                .replace('%author', turn === 1 ? msg.author : mention)
+                .replace('%mention', turn === 1 ? mention : msg.author);
               msg.channel.send(noanswermention);
             }
           }
@@ -254,7 +281,7 @@ class Hangman extends Command {
         }
       });
 
-      collector.on('end', collected => {
+      collector.on('end', (collected) => {
         if (!collected || collected.size < 1) this.client.games.delete(msg.channel.id);
       });
     } else {
@@ -279,22 +306,27 @@ class Hangman extends Command {
             if (msg.guild.members.me.permissions.has('ManageMessages')) await response.first().delete();
           }
           message = await msg.reply(lang.hangman_letterorwordmessagenomention);
-          response = await msg.channel.awaitMessages({
-            filter: msg2 => msg.author.id === msg2.author.id,
-            max: 1,
-            time: 180000,
-            errors: ['time']
-          }).catch(() => {
-            const noanswer = lang.hangman_noanswer.replace('%word', wordToGuess);
-            this.client.games.delete(msg.channel.id);
-            return msg.channel.send(noanswer);
-          });
+          response = await msg.channel
+            .awaitMessages({
+              filter: (msg2) => msg.author.id === msg2.author.id,
+              max: 1,
+              time: 180000,
+              errors: ['time'],
+            })
+            .catch(() => {
+              const noanswer = lang.hangman_noanswer.replace('%word', wordToGuess);
+              this.client.games.delete(msg.channel.id);
+              return msg.channel.send(noanswer);
+            });
 
           if (response.first().content.toLowerCase().match(/[a-z]/i)) {
             if (!triedLetters.includes(response.first().content.toLowerCase())) {
               if (response.first().content.length === 1) {
                 if (wordToGuessInArray.includes(response.first().content.toLowerCase())) {
-                  const embedtitlecorrectnomention = lang.hangman_embedtitlecorrectnomention.replace('%letter', response.first().content.toLowerCase());
+                  const embedtitlecorrectnomention = lang.hangman_embedtitlecorrectnomention.replace(
+                    '%letter',
+                    response.first().content.toLowerCase(),
+                  );
                   firstEmbed.setTitle(embedtitlecorrectnomention);
 
                   for (let index2 = 0; index2 < wordToGuess.length; index2++) {
@@ -302,7 +334,9 @@ class Hangman extends Command {
                       newWordString[index2] = response.first().content.toLowerCase();
                     }
                   }
-                  const embeddescriptionwithtried = lang.hangman_embeddescriptionwithtried.replace('%triedletters', triedLetters.join(', ')).replace('%word', `\`\`${newWordString.join(' ')}\`\``);
+                  const embeddescriptionwithtried = lang.hangman_embeddescriptionwithtried
+                    .replace('%triedletters', triedLetters.join(', '))
+                    .replace('%word', `\`\`${newWordString.join(' ')}\`\``);
                   firstEmbed.setDescription(embeddescriptionwithtried);
 
                   hangmanEmbed.edit({ embeds: [firstEmbed] });
@@ -320,8 +354,13 @@ class Hangman extends Command {
                     triedLetters.push(response.first().content.toLowerCase());
                   }
 
-                  const embeddescriptionwithtried = lang.hangman_embeddescriptionwithtried.replace('%triedletters', triedLetters.join(', ')).replace('%word', `\`\`${newWordString.join(' ')}\`\``);
-                  const embedtitlewrongnomention = lang.hangman_embedtitlewrongnomention.replace('%letter', response.first().content.toLowerCase());
+                  const embeddescriptionwithtried = lang.hangman_embeddescriptionwithtried
+                    .replace('%triedletters', triedLetters.join(', '))
+                    .replace('%word', `\`\`${newWordString.join(' ')}\`\``);
+                  const embedtitlewrongnomention = lang.hangman_embedtitlewrongnomention.replace(
+                    '%letter',
+                    response.first().content.toLowerCase(),
+                  );
                   embedtitlechances = lang.hangman_embedtitlechances.replace('%chances', chances);
                   if (chances > 0) {
                     firstEmbed.setTitle(embedtitlewrongnomention);
@@ -346,10 +385,13 @@ class Hangman extends Command {
                 }
               } else {
                 if (wordToGuess.length === response.first().content.length) {
-                  const embeddescriptionwithtried = lang.hangman_embeddescriptionwithtried.replace('%triedletters', triedLetters.join(', '))
+                  const embeddescriptionwithtried = lang.hangman_embeddescriptionwithtried
+                    .replace('%triedletters', triedLetters.join(', '))
                     .replace('%word', `\`\`${newWordString.join(' ')}\`\``);
-                  const embedtitlecorrectnomention = lang.hangman_embedtitlecorrectnomentionword.replace('%word', response.first()
-                    .content.toLowerCase());
+                  const embedtitlecorrectnomention = lang.hangman_embedtitlecorrectnomentionword.replace(
+                    '%word',
+                    response.first().content.toLowerCase(),
+                  );
                   embedtitlechances = lang.hangman_embedtitlechances.replace('%chances', chances);
                   if (wordToGuess === response.first().content.toLowerCase()) {
                     firstEmbed.setTitle(embedtitlecorrectnomention);
@@ -366,8 +408,10 @@ class Hangman extends Command {
 
                   chances -= 1;
                   embedtitlechances = lang.hangman_embedtitlechances.replace('%chances', chances);
-                  const embedtitlewrongnomentionword = lang.hangman_embedtitlewrongnomentionword.replace('%word', response.first()
-                    .content.toLowerCase());
+                  const embedtitlewrongnomentionword = lang.hangman_embedtitlewrongnomentionword.replace(
+                    '%word',
+                    response.first().content.toLowerCase(),
+                  );
                   firstEmbed.setTitle(embedtitlewrongnomentionword);
                   firstEmbed.setFooter({ text: embedtitlechances });
                   firstEmbed.setDescription(embeddescriptionwithtried);

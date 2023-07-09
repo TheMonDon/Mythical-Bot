@@ -3,20 +3,19 @@ const fetch = require('node-superfetch');
 const { EmbedBuilder } = require('discord.js');
 
 class Insult extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'insult',
       description: 'Get a random insult.',
       usage: 'insult',
-      category: 'Fun'
+      category: 'Fun',
     });
   }
 
-  async run (msg) {
-    const { body } = await fetch.get('https://evilinsult.com/generate_insult.php?lang=en&type=json')
-      .catch(() => {
-        return msg.channel.send('Something went wrong, please try again in a few moments.');
-      });
+  async run(msg) {
+    const { body } = await fetch.get('https://evilinsult.com/generate_insult.php?lang=en&type=json').catch(() => {
+      return msg.channel.send('Something went wrong, please try again in a few moments.');
+    });
 
     const em = new EmbedBuilder()
       .setTitle(body.insult)

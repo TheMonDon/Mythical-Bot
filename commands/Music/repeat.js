@@ -1,27 +1,29 @@
 const Command = require('../../base/Command.js');
 
 class Repeat extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'repeat',
       description: 'Repeats the current track, queue, or enables autoplay.',
       category: 'Music',
       usage: 'repeat <off | track | queue | autoplay>',
       guildOnly: true,
-      aliases: ['loop']
+      aliases: ['loop'],
     });
   }
 
-  async run (msg, args) {
+  async run(msg, args) {
     const queue = this.client.player.nodes.get(msg.guild.id);
 
     if (!msg.member.voice.channel) return msg.channel.send('You must be in a voice channel to loop music.');
-    if (msg.guild.members.me.voice.channel && msg.member.voice.channel.id !== msg.guild.members.me.voice.channel.id) return msg.channel.send('You must be in the same voice channel as the bot.');
+    if (msg.guild.members.me.voice.channel && msg.member.voice.channel.id !== msg.guild.members.me.voice.channel.id)
+      return msg.channel.send('You must be in the same voice channel as the bot.');
     if (!queue) return msg.channel.send('There is nothing in the queue.');
 
     const opts = ['off', 'track', 'queue', 'autoplay'];
     const text = args.join('').toLowerCase();
-    if (!opts.includes(text)) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}repeat <off | track | queue | autoplay>`);
+    if (!opts.includes(text))
+      return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}repeat <off | track | queue | autoplay>`);
 
     const mode = opts.indexOf(text);
     if (mode === 0) {

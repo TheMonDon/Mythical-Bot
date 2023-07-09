@@ -2,17 +2,17 @@ const Command = require('../../base/Command.js');
 const { EmbedBuilder } = require('discord.js');
 
 class Emojis extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'emojis',
       description: 'Shows all the custom emojis in the server.',
       usage: 'Emojis',
       category: 'Information',
-      guildOnly: true
+      guildOnly: true,
     });
   }
 
-  async run (msg) {
+  async run(msg) {
     const result = [];
 
     // Fetches all the emojis in the server and adds them to the result array

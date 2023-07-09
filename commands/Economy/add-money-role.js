@@ -4,24 +4,26 @@ const { EmbedBuilder } = require('discord.js');
 const { stripIndents } = require('common-tags');
 
 class AddMoneyRole extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'add-money-role',
       category: 'Economy',
-      description: 'Add money to a role\'s members cash or bank balance. \nIf the cash or bank argument isn\'t given, it will be added to the cash part.',
+      description:
+        "Add money to a role's members cash or bank balance. \nIf the cash or bank argument isn't given, it will be added to the cash part.",
       usage: 'add-money-role <cash | bank> <role> <amount>',
       aliases: ['addmoneyrole', 'addbalrole'],
       permLevel: 'Moderator',
-      guildOnly: true
+      guildOnly: true,
     });
   }
 
-  async run (msg, args) {
+  async run(msg, args) {
     const usage = `Incorrect Usage: ${msg.settings.prefix}add-money-role <cash | bank> <role> <amount>`;
 
+    const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
     const errEmbed = new EmbedBuilder()
       .setColor(msg.settings.embedErrorColor)
-      .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() });
+      .setAuthor({ name: authorName, iconURL: msg.author.displayAvatarURL() });
 
     if (!msg.member.permissions.has('ManageGuild')) {
       errEmbed.setDescription('You are missing the **Manage Guild** permission.');
@@ -68,25 +70,33 @@ class AddMoneyRole extends Command {
     const members = [...role.members.values()];
 
     if (type === 'bank') {
-      members.forEach(mem => {
+      members.forEach((mem) => {
         if (!mem.user.bot) {
           const current = parseFloat(db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`) || 0);
-          if ((current + amount) !== Infinity) db.add(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`, amount);
+          if (current + amount !== Infinity) db.add(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`, amount);
         }
       });
     } else {
-      members.forEach(mem => {
+      members.forEach((mem) => {
         if (!mem.user.bot) {
-          const cash = parseFloat(db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`) || db.get(`servers.${msg.guild.id}.economy.startBalance`) || 0);
+          const cash = parseFloat(
+            db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`) ||
+              db.get(`servers.${msg.guild.id}.economy.startBalance`) ||
+              0,
+          );
           const newAmount = cash + amount;
           if (newAmount !== Infinity) db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, newAmount);
         }
       });
     }
     const embed = new EmbedBuilder()
-      .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
+      .setAuthor({ name: authorName, iconURL: msg.author.displayAvatarURL() })
       .setColor(msg.settings.embedColor)
-      .setDescription(`:white_check_mark: Added **${currencySymbol}${amount.toLocaleString()}** to ${type} balance of ${members.length} ${members.length > 1 ? 'members' : 'member'} with the ${role}.`)
+      .setDescription(
+        `:white_check_mark: Added **${currencySymbol}${amount.toLocaleString()}** to ${type} balance of ${
+          members.length
+        } ${members.length > 1 ? 'members' : 'member'} with the ${role}.`,
+      )
       .setTimestamp();
     return msg.channel.send({ embeds: [embed] });
   }

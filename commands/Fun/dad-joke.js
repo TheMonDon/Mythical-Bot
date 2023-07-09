@@ -3,17 +3,17 @@ const request = require('node-superfetch');
 const { EmbedBuilder } = require('discord.js');
 
 class DadJoke extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'dad-joke',
       description: 'Get a random dad joke.',
       usage: 'dad-joke',
       category: 'Fun',
-      aliases: ['dadjoke']
+      aliases: ['dadjoke'],
     });
   }
 
-  async run (msg, args) {
+  async run(msg, args) {
     try {
       const { body } = await request.get('https://icanhazdadjoke.com/').set('Accept', 'application/json');
       const embed = new EmbedBuilder()

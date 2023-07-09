@@ -3,14 +3,14 @@ const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
 
 module.exports = class {
-  constructor (client) {
+  constructor(client) {
     this.client = client;
   }
 
-  async run (oldmsg, newmsg) {
+  async run(oldmsg, newmsg) {
     if (oldmsg.author.bot) return;
 
-    function LogSystem (client, oldmsg, newmsg) {
+    function LogSystem(client, oldmsg, newmsg) {
       if (!newmsg.guild) return;
 
       const logChan = db.get(`servers.${newmsg.guild.id}.logs.channel`);
@@ -29,28 +29,43 @@ module.exports = class {
       const msg2 = newmsg;
       if (msg1.content === msg2.content) return;
 
+      const authorName = msg1.author.discriminator === '0' ? msg1.author.username : msg1.author.tag;
       const embed = new EmbedBuilder()
         .setTitle('Message Edited')
         .setURL(msg2.url)
-        .setAuthor({ name: msg1.author.tag, iconURL: msg1.author.displayAvatarURL() })
+        .setAuthor({ name: authorName, iconURL: msg1.author.displayAvatarURL() })
         .setColor('#EE82EE')
         .setThumbnail(msg1.author.displayAvatarURL())
         .addFields([
-          { name: 'Original Message', value: (msg1.content.length <= 1024) ? msg1.content : `${msg1.content.substring(0, 1020)}...` },
-          { name: 'Edited Message', value: (msg2.content.length <= 1024) ? msg2.content : `${msg2.content.substring(0, 1020)}...` },
+          {
+            name: 'Original Message',
+            value: msg1.content.length <= 1024 ? msg1.content : `${msg1.content.substring(0, 1020)}...`,
+          },
+          {
+            name: 'Edited Message',
+            value: msg2.content.length <= 1024 ? msg2.content : `${msg2.content.substring(0, 1020)}...`,
+          },
           { name: 'Channel', value: msg1.channel.toString() },
-          { name: 'Message Author', value: `${msg1.author} (${msg1.author.tag})` }
+          { name: 'Message Author', value: `${msg1.author} (${authorName})` },
         ])
         .setTimestamp();
 
-      if (msg2.mentions.users.size === 0) embed.addFields([{ name: 'Mentioned Users', value: `Mentioned Member Count: ${[...msg2.mentions.users.values()].length} \nMentioned Users List: \n${[...msg2.mentions.users.values()]}` }]);
+      if (msg2.mentions.users.size === 0)
+        embed.addFields([
+          {
+            name: 'Mentioned Users',
+            value: `Mentioned Member Count: ${[...msg2.mentions.users.values()].length} \nMentioned Users List: \n${[
+              ...msg2.mentions.users.values(),
+            ]}`,
+          },
+        ]);
       newmsg.guild.channels.cache.get(logChan).send({ embeds: [embed] });
 
       db.add(`servers.${newmsg.guild.id}.logs.message-edited`, 1);
       db.add(`servers.${newmsg.guild.id}.logs.all`, 1);
-    };
+    }
 
-    async function CommandUpdate (client, oldmsg, newmsg) {
+    async function CommandUpdate(client, oldmsg, newmsg) {
       let bool;
       let tag;
       const re = /'http'/;
@@ -91,19 +106,25 @@ module.exports = class {
       // Check if the member is blacklisted from using commands in this guild.
       if (newmsg.guild) {
         const bl = db.get(`servers.${newmsg.guild.id}.users.${newmsg.member.id}.blacklist`);
-        if (bl && level < 4 && (cmd.help.name !== 'blacklist')) {
-          return newmsg.channel.send(`Sorry ${newmsg.member.displayName}, you are currently blacklisted from using commands in this server.`);
+        if (bl && level < 4 && cmd.help.name !== 'blacklist') {
+          return newmsg.channel.send(
+            `Sorry ${newmsg.member.displayName}, you are currently blacklisted from using commands in this server.`,
+          );
         }
       }
 
       // Some commands may not be useable in DMs. This check prevents those commands from running
       // and return a friendly error message.
-      if (cmd && !newmsg.guild && cmd.conf.guildOnly) { return newmsg.channel.send('This command is unavailable via private message. Please run this command in a guild.'); }
+      if (cmd && !newmsg.guild && cmd.conf.guildOnly) {
+        return newmsg.channel.send(
+          'This command is unavailable via private message. Please run this command in a guild.',
+        );
+      }
 
       if (level < client.levelCache[cmd.conf.permLevel]) {
         if (settings.systemNotice === 'true') {
           return newmsg.channel.send(`You do not have permission to use this command.
-Your permission level is ${level} (${client.config.permLevels.find(l => l.level === level).name})
+Your permission level is ${level} (${client.config.permLevels.find((l) => l.level === level).name})
 This command requires level ${client.levelCache[cmd.conf.permLevel]} (${cmd.conf.permLevel})`);
         } else {
           return;

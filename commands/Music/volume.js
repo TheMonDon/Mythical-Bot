@@ -2,22 +2,23 @@ const Command = require('../../base/Command.js');
 const { useQueue } = require('discord-player');
 
 class Volume extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'volume',
       description: 'Change the volume of the music',
       category: 'Music',
       usage: 'volume',
       aliases: ['vol', 'v'],
-      guildOnly: true
+      guildOnly: true,
     });
   }
 
-  async run (msg, args) {
+  async run(msg, args) {
     const queue = useQueue(msg.guild.id);
 
     if (!msg.member.voice.channel) return msg.channel.send('You must be in a voice channel to change the volume.');
-    if (msg.guild.members.me.voice.channel && msg.member.voice.channel.id !== msg.guild.members.me.voice.channel.id) return msg.channel.send('You must be in the same voice channel as the bot.');
+    if (msg.guild.members.me.voice.channel && msg.member.voice.channel.id !== msg.guild.members.me.voice.channel.id)
+      return msg.channel.send('You must be in the same voice channel as the bot.');
     if (!queue.node.isPlaying()) return msg.channel.send('There is nothing playing.');
 
     const volume = parseInt(args.join(' '), 10);

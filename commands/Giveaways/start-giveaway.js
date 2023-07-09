@@ -4,18 +4,18 @@ const ms = require('ms');
 const db = require('quick.db');
 
 class StartGiveaway extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'start-giveaway',
       description: 'Start a giveaway',
       usage: 'Start-Giveaway <Duration> <Winners> <Channel> <Prize>',
       category: 'Giveaways',
       aliases: ['gcreate', 'startgiveaway', 'gstart'],
-      guildOnly: true
+      guildOnly: true,
     });
   }
 
-  async run (msg, args) {
+  async run(msg, args) {
     const usage = `Incorrect Usage: ${msg.settings.prefix}Start-Giveaway <Duration> <Winners> <Channel> <Prize>`;
     if (args?.length < 4) return msg.channel.send(usage);
 
@@ -31,8 +31,9 @@ class StartGiveaway extends Command {
     args.shift();
     const prize = args.join(' ');
 
+    const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
     const ErrorEmbed = new EmbedBuilder()
-      .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
+      .setAuthor({ name: authorName, iconURL: msg.author.displayAvatarURL() })
       .setTitle('Incorrect Parameter')
       .setColor(msg.settings.embedErrorColor);
 
@@ -81,9 +82,9 @@ class StartGiveaway extends Command {
         endedAt: 'Ended at',
         winMessage: {
           content: 'Congratulations, {winners}! You won **{this.prize}**!',
-          replyToGiveaway: true
-        }
-      }
+          replyToGiveaway: true,
+        },
+      },
     });
 
     db.add('global.giveaways', 1);

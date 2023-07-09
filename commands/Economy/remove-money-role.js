@@ -4,32 +4,34 @@ const { EmbedBuilder } = require('discord.js');
 const { stripIndents } = require('common-tags');
 
 class RemoveMoneyRole extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'remove-money-role',
       category: 'Economy',
-      description: 'Remove money from a roles members cash or bank balance. \nIf the cash or bank argument isn\'t given, it will be removed from the cash part.',
+      description:
+        "Remove money from a roles members cash or bank balance. \nIf the cash or bank argument isn't given, it will be removed from the cash part.",
       usage: 'remove-money-role <cash | bank> <role> <amount>',
       aliases: ['removemoneyrole', 'removebalrole'],
       permLevel: 'Moderator',
-      guildOnly: true
+      guildOnly: true,
     });
   }
 
-  async run (msg, args) {
+  async run(msg, args) {
     const usage = `Incorrect Usage: ${msg.settings.prefix}remove-money-role <cash | bank> <role> <amount>`;
 
-    const errEmbed = new EmbedBuilder()
+    const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
+    const embed = new EmbedBuilder()
       .setColor(msg.settings.embedErrorColor)
-      .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() });
+      .setAuthor({ name: authorName, iconURL: msg.author.displayAvatarURL() });
 
     let type = 'cash';
     let role;
     let amount;
 
     if (!args || args.length < 2) {
-      errEmbed.setDescription(usage);
-      return msg.channel.send({ embeds: [errEmbed] });
+      embed.setDescription(usage);
+      return msg.channel.send({ embeds: [embed] });
     }
 
     const currencySymbol = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
@@ -47,39 +49,45 @@ class RemoveMoneyRole extends Command {
     }
 
     if (isNaN(amount)) {
-      errEmbed.setDescription(usage);
-      return msg.channel.send({ embeds: [errEmbed] });
+      embed.setDescription(usage);
+      return msg.channel.send({ embeds: [embed] });
     }
 
     if (!role) {
-      errEmbed.setDescription(stripIndents`
+      embed.setDescription(stripIndents`
       :x: Invalid role given.
 
       Usage: ${msg.settings.prefix}remove-money=role <cash | bank> <role> <amount>
       `);
-      return msg.channel.send({ embeds: [errEmbed] });
+      return msg.channel.send({ embeds: [embed] });
     }
 
     const members = [...role.members.values()];
 
     if (type === 'bank') {
-      members.forEach(mem => {
+      members.forEach((mem) => {
         if (!mem.user.bot) db.subtract(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`, amount);
       });
     } else {
-      members.forEach(mem => {
+      members.forEach((mem) => {
         if (!mem.user.bot) {
-          const cash = db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`) || db.get(`servers.${msg.guild.id}.economy.startBalance`) || 0;
+          const cash =
+            db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`) ||
+            db.get(`servers.${msg.guild.id}.economy.startBalance`) ||
+            0;
           const newAmount = cash - amount;
           db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, newAmount);
         }
       });
     }
 
-    const embed = new EmbedBuilder()
-      .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
+    embed
       .setColor(msg.settings.embedColor)
-      .setDescription(`:white_check_mark: Removed **${currencySymbol}${amount.toLocaleString()}** to ${type} balance of ${members.length} ${members.length > 1 ? 'members' : 'member'} with the ${role}.`)
+      .setDescription(
+        `:white_check_mark: Removed **${currencySymbol}${amount.toLocaleString()}** to ${type} balance of ${
+          members.length
+        } ${members.length > 1 ? 'members' : 'member'} with the ${role}.`,
+      )
       .setTimestamp();
     return msg.channel.send({ embeds: [embed] });
   }

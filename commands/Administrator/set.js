@@ -11,7 +11,7 @@ const Command = require('../../base/Command.js');
 const { EmbedBuilder } = require('discord.js');
 
 class Set extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'set',
       description: 'View or change the settings for your guild.',
@@ -20,11 +20,11 @@ class Set extends Command {
       permLevel: 'Administrator',
       usage: 'set <view/get/edit> <key> <value>',
       aliases: ['setting', 'settings'],
-      guildOnly: true
+      guildOnly: true,
     });
   }
 
-  async run (message, [action, key, ...value]) {
+  async run(message, [action, key, ...value]) {
     // First we need to retrieve current guild settings
     const settings = message.settings;
     const defaults = this.client.settings.get('default');
@@ -49,32 +49,35 @@ class Set extends Command {
       // Modify the guild overrides directly.
       this.client.settings.set(message.guild.id, joinedValue, key);
       message.reply(`${key} successfully edited to ${joinedValue}`);
-    } else
+    }
 
     // If a user does `-set del <key>`, let's ask the user if they're sure...
-    if (action === 'del' || action === 'reset') {
+    else if (action === 'del' || action === 'reset') {
       if (!key) return message.reply('Please specify a key to delete (reset).');
       if (!settings[key]) return message.reply('This key does not exist in the settings');
       if (!overrides[key]) return message.reply('This key does not have an override and is already using defaults.');
 
       // Throw the 'are you sure?' text at them.
-      const response = await this.client.util.awaitReply(message, `Are you sure you want to reset \`${key}\` to the default \`${defaults[key]}\`?`);
+      const response = await this.client.util.awaitReply(
+        message,
+        `Are you sure you want to reset \`${key}\` to the default \`${defaults[key]}\`?`,
+      );
 
       // If they respond with y or yes, continue.
       if (['y', 'yes'].includes(response)) {
         // We reset the `key` here.
         this.client.settings.delete(message.guild.id, key);
         message.reply(`${key} was successfully reset to default.`);
-      } else
+      }
 
       // If they respond with n or no, we inform them that the action has been cancelled.
-      if (['n', 'no', 'cancel'].includes(response)) {
+      else if (['n', 'no', 'cancel'].includes(response)) {
         message.reply(`Your setting for \`${key}\` remains at \`${settings[key]}\``);
       }
-    } else
+    }
 
     // Using `-set get <key>` we simply return the current value for the guild.
-    if (action === 'get') {
+    else if (action === 'get') {
       if (!key) return message.reply('Please specify a key to view');
       if (!settings[key]) return message.reply('This key does not exist in the settings');
       message.reply(`The value of ${key} is currently ${settings[key]}`);

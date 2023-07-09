@@ -2,11 +2,11 @@ const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
 
 module.exports = class {
-  constructor (client) {
+  constructor(client) {
     this.client = client;
   }
 
-  async run (channel) {
+  async run(channel) {
     const logChan = db.get(`servers.${channel.guild.id}.logs.channel`);
     if (!logChan) return;
 
@@ -22,12 +22,15 @@ module.exports = class {
       .setColor('#FF0000')
       .addFields([
         { name: 'Name', value: channel.name },
-        { name: 'Category', value: channel.parent?.name || 'None' }
+        { name: 'Category', value: channel.parent?.name || 'None' },
       ])
       .setFooter({ text: `Channel ID: ${channel.id}` })
       .setTimestamp();
 
-    channel.guild.channels.cache.get(logChan).send({ embeds: [embed] }).catch(() => {});
+    channel.guild.channels.cache
+      .get(logChan)
+      .send({ embeds: [embed] })
+      .catch(() => {});
 
     db.add(`servers.${channel.guild.id}.logs.channel-deleted`, 1);
     db.add(`servers.${channel.guild.id}.logs.all`, 1);

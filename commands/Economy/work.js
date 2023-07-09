@@ -4,33 +4,36 @@ const { EmbedBuilder } = require('discord.js');
 const moment = require('moment');
 
 class Work extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'work',
       category: 'Economy',
       description: 'Get money by working',
       usage: 'work',
-      guildOnly: true
+      guildOnly: true,
     });
   }
 
-  run (msg) {
+  run(msg) {
     const cooldown = db.get(`servers.${msg.guild.id}.economy.work.cooldown`) || 300; // get cooldown from database or set to 300 seconds
     let userCooldown = db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.work.cooldown`) || {};
 
+    const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
+    const embed = new EmbedBuilder()
+      .setColor(msg.settings.embedErrorColor)
+      .setAuthor({ name: authorName, iconURL: msg.author.displayAvatarURL() });
+
     if (userCooldown.active) {
       const timeleft = userCooldown.time - Date.now();
-      if (timeleft < 0 || timeleft > (cooldown * 1000)) {
+      if (timeleft < 0 || timeleft > cooldown * 1000) {
         userCooldown = {};
         userCooldown.active = false;
         db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.work.cooldown`, userCooldown);
       } else {
-        const tLeft = moment.duration(timeleft)
+        const tLeft = moment
+          .duration(timeleft)
           .format('y[ years][,] M[ Months]d[ days][,] h[ hours][,] m[ minutes][, and] s[ seconds]');
-        const embed = new EmbedBuilder()
-          .setColor(msg.settings.embedErrorColor)
-          .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
-          .setDescription(`You cannot work for ${tLeft}`);
+        embed.setDescription(`You cannot work for ${tLeft}`);
         return msg.channel.send({ embeds: [embed] });
       }
     }
@@ -48,17 +51,20 @@ class Work extends Command {
     const num = Math.floor(Math.random() * (jobs.length - 1)) + 1;
     const job = jobs[num].replace('csamount', csamount);
 
-    userCooldown.time = Date.now() + (cooldown * 1000);
+    userCooldown.time = Date.now() + cooldown * 1000;
     userCooldown.active = true;
     db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.work.cooldown`, userCooldown);
 
-    const oldBalance = parseFloat(db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`) || db.get(`servers.${msg.guild.id}.economy.startBalance`) || 0);
+    const oldBalance = parseFloat(
+      db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`) ||
+        db.get(`servers.${msg.guild.id}.economy.startBalance`) ||
+        0,
+    );
     const newBalance = oldBalance + amount;
 
     db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newBalance);
 
-    const embed = new EmbedBuilder()
-      .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
+    embed
       .setColor('#64BC6C')
       .setDescription(job)
       .setFooter({ text: `Reply #${num.toLocaleString()}` });

@@ -3,18 +3,18 @@ const { EmbedBuilder } = require('discord.js');
 const { useQueue } = require('discord-player');
 
 class Queue extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'queue',
       description: 'Shows what is in the queue',
       category: 'Music',
       usage: 'queue [page]',
       aliases: ['q'],
-      guildOnly: true
+      guildOnly: true,
     });
   }
 
-  async run (msg, args) {
+  async run(msg, args) {
     let page = args.join(' ');
     page = parseInt(page, 10);
     const queue = useQueue(msg.guild.id);
@@ -25,7 +25,9 @@ class Queue extends Command {
 
     let realPage = page;
     let maxPages = page;
-    let q = queue.tracks.map((track, i) => { return `${i + 1}. ${track.title} : ${track.author}`; });
+    let q = queue.tracks.map((track, i) => {
+      return `${i + 1}. ${track.title} : ${track.author}`;
+    });
     let temp = q.slice(Math.floor((page - 1) * 25), Math.ceil(page * 25));
 
     if (temp.length > 0) {
@@ -38,16 +40,17 @@ class Queue extends Command {
         if (temp.length < 1) {
           realPage = i - 1;
           maxPages = Math.ceil(q.length / 25);
-          q = q.slice(Math.floor(((i - 1) - 1) * 25), Math.ceil((i - 1) * 25));
+          q = q.slice(Math.floor((i - 1 - 1) * 25), Math.ceil((i - 1) * 25));
           break;
         }
       }
     }
 
+    const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
     const embed = new EmbedBuilder()
       .setColor(msg.settings.embedColor)
       .setTitle(`${msg.guild.name}'s Queue`)
-      .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
+      .setAuthor({ name: authorName, iconURL: msg.author.displayAvatarURL() })
       .setDescription(q.join('\n'))
       .setFooter({ text: `Page ${realPage} / ${maxPages}` })
       .setTimestamp();

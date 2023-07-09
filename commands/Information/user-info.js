@@ -4,18 +4,18 @@ const moment = require('moment');
 require('moment-duration-format');
 
 class UserInfo extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'user-info',
       description: 'Gives some useful user information',
       usage: 'user-info [user]',
       category: 'Information',
       aliases: ['ui', 'userinfo'],
-      guildOnly: true
+      guildOnly: true,
     });
   }
 
-  async run (msg, text) {
+  async run(msg, text) {
     let infoMem = msg.member;
 
     // If text is provided, try to get the member
@@ -51,7 +51,7 @@ class UserInfo extends Command {
       VerifiedBot: '<:verified_bot:862241973326839818>',
       OldCertifiedModerator: '<:certifiedModerator:879967930534740008>',
       ActiveDeveloper: '<:ActiveDeveloper:1062978324894330930>',
-      CertifiedModerator: '<:ModeratorProgramsAlumni:1108517824617525308>'
+      CertifiedModerator: '<:ModeratorProgramsAlumni:1108517824617525308>',
     };
 
     // If the user is a guild member
@@ -70,7 +70,7 @@ class UserInfo extends Command {
 
       // Create array of roles
       const roles = infoMem.roles.cache.sort((a, b) => b.position - a.position);
-      const roles1 = [...roles.filter(r => r.id !== msg.guild.id).values()].join(', ');
+      const roles1 = [...roles.filter((r) => r.id !== msg.guild.id).values()].join(', ');
 
       // Create array of user flags / badges
       const userBadges = infoMem.user.flags?.toArray() || '';
@@ -80,22 +80,31 @@ class UserInfo extends Command {
       }
 
       const color = infoMem.user.hexAccentColor?.toString().toUpperCase() || msg.settings.embedColor;
+      const memberName = infoMem.user.discriminator === '0' ? infoMem.user.username : infoMem.user.tag;
       const embed = new EmbedBuilder()
-        .setTitle(`${infoMem.user.username}'s Info`)
+        .setTitle(`${memberName}'s Info`)
         .setColor(color)
         .setThumbnail(infoMem.user.displayAvatarURL({ format: 'png', dynamic: true }))
         .setImage(infoMem.user.bannerURL())
         .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
         .addFields([
-          { name: 'User Tag', value: `${infoMem.user.tag} (${infoMem})`, inline: true },
+          { name: 'Username', value: `${memberName} (${infoMem})`, inline: true },
           { name: 'Nickname', value: infoMem.displayName, inline: true },
           { name: 'User ID', value: infoMem.id, inline: true },
           { name: 'Joined Server', value: `${joinedAtFullDate} \n (${joinedAtDurationFrom})`, inline: true },
           { name: 'Account Created', value: `${createdAtFullDate} \n (${createdAtDurationFrom})`, inline: true },
-          { name: 'Join Position', value: `${Number(joinPosition)?.toLocaleString()}/${msg.guild.memberCount.toLocaleString()}`, inline: true },
+          {
+            name: 'Join Position',
+            value: `${Number(joinPosition)?.toLocaleString()}/${msg.guild.memberCount.toLocaleString()}`,
+            inline: true,
+          },
           { name: 'Account Type', value: infoMem.user.bot ? ':robot: Bot' : ':person_standing: Human', inline: true },
           { name: `Badges [${userBadges?.length || 0}]`, value: badgesArray || 'No Badges', inline: true },
-          { name: 'Accent Color', value: infoMem.user.hexAccentColor?.toString().toUpperCase() || 'None', inline: true }
+          {
+            name: 'Accent Color',
+            value: infoMem.user.hexAccentColor?.toString().toUpperCase() || 'None',
+            inline: true,
+          },
         ]);
 
       if (roles1) embed.addFields({ name: 'Roles', value: roles1, inline: false });
@@ -117,19 +126,20 @@ class UserInfo extends Command {
     }
 
     const color = infoMem.hexAccentColor?.toString().toUpperCase() || msg.settings.embedColor;
+    const userName = infoMem.discriminator === '0' ? infoMem.username : infoMem.tag;
     const embed = new EmbedBuilder()
-      .setTitle(`${infoMem.username}'s Info`)
+      .setTitle(`${userName}'s Info`)
       .setColor(color)
       .setThumbnail(infoMem.displayAvatarURL({ format: 'png', dynamic: true }))
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
       .setImage(infoMem.bannerURL())
       .addFields([
-        { name: 'User Tag', value: `${infoMem.tag} (${infoMem})`, inline: true },
+        { name: 'Username', value: `${userName} (${infoMem})`, inline: true },
         { name: 'User ID', value: infoMem.id.toString(), inline: true },
         { name: `Badges [${userBadges?.length || 0}]`, value: badgesArray || 'No Badges', inline: true },
         { name: 'Account Type', value: infoMem.bot ? ':robot: Bot' : ':person_standing: Human', inline: true },
         { name: 'Account Created', value: createdAt, inline: true },
-        { name: 'Accent Color', value: infoMem.hexAccentColor?.toString().toUpperCase() || 'None', inline: true }
+        { name: 'Accent Color', value: infoMem.hexAccentColor?.toString().toUpperCase() || 'None', inline: true },
       ]);
     return msg.channel.send({ embeds: [embed] });
   }

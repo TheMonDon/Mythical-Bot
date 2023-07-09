@@ -3,25 +3,26 @@ const { EmbedBuilder } = require('discord.js');
 const trev = require('trev');
 
 class Hair extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'hair',
       description: 'Sends a random image of some hair.',
       usage: 'hair',
       category: 'NSFW',
-      nsfw: true
+      nsfw: true,
     });
   }
 
-  async run (msg) {
+  async run(msg) {
     const post = await trev.nsfw.hair();
 
     let image = post.media;
     if (trev.isImgurUpload(post.media)) image = trev.getRawImgur(post.media);
     if (trev.isGfyLink(post.media)) image = trev.gfyIframe(post.media);
 
+    const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
     const em = new EmbedBuilder()
-      .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
+      .setAuthor({ name: authorName, iconURL: msg.author.displayAvatarURL() })
       .setColor(msg.settings.embedColor)
       .setTitle(post.title)
       .setURL(post.permalink)

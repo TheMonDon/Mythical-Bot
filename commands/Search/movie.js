@@ -3,32 +3,31 @@ const { EmbedBuilder } = require('discord.js');
 const fetch = require('node-superfetch');
 
 class Movie extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'movie',
       description: 'View information on a movie from TMDb',
       usage: 'Movie <Movie>',
       category: 'Search',
-      aliases: ['tmdb-movie']
+      aliases: ['tmdb-movie'],
     });
   }
 
-  async run (msg, text) {
+  async run(msg, text) {
     const query = text.join(' ');
 
     if (!query || query.length < 1) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}Movie <Movie>`);
 
     try {
-      const search = await fetch
-        .get('http://api.themoviedb.org/3/search/movie')
-        .query({
-          api_key: this.client.config.TMDb,
-          include_adult: msg.channel.nsfw || false,
-          query
-        });
+      const search = await fetch.get('http://api.themoviedb.org/3/search/movie').query({
+        api_key: this.client.config.TMDb,
+        include_adult: msg.channel.nsfw || false,
+        query,
+      });
 
       if (!search.body.results.length) return msg.say('Could not find any results.');
-      const find = search.body.results.find(m => m.title.toLowerCase() === query.toLowerCase()) || search.body.results[0];
+      const find =
+        search.body.results.find((m) => m.title.toLowerCase() === query.toLowerCase()) || search.body.results[0];
 
       const { body } = await fetch
         .get(`https://api.themoviedb.org/3/movie/${find.id}`)
@@ -46,9 +45,17 @@ class Movie extends Command {
           { name: '❯ Release Date', value: body.release_date || '???', inline: true },
           { name: '❯ Budget', value: body.budget ? `$${body.budget.toLocaleString()}` : '???', inline: true },
           { name: '❯ Revenue', value: body.revenue ? `$${body.revenue.toLocaleString()}` : '???', inline: true },
-          { name: '❯ Genres', value: body.genres.length ? body.genres.map(genre => genre.name).join(', ') : '???', inline: true },
+          {
+            name: '❯ Genres',
+            value: body.genres.length ? body.genres.map((genre) => genre.name).join(', ') : '???',
+            inline: true,
+          },
           { name: '❯ Popularity', value: body.popularity ? body.popularity.toFixed(2) : '???', inline: true },
-          { name: '❯ Production Companies', value: body.production_companies.length ? body.production_companies.map(c => c.name).join(', ') : '???', inline: true }
+          {
+            name: '❯ Production Companies',
+            value: body.production_companies.length ? body.production_companies.map((c) => c.name).join(', ') : '???',
+            inline: true,
+          },
         ]);
 
       return msg.channel.send({ embeds: [embed] });

@@ -3,7 +3,7 @@ const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
 
 class SetStartBalance extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'set-start-balance',
       category: 'Economy',
@@ -11,12 +11,13 @@ class SetStartBalance extends Command {
       usage: 'set-start-balance <amount>',
       aliases: ['setstartbalance', 'ssb'],
       permLevel: 'Moderator',
-      guildOnly: true
+      guildOnly: true,
     });
   }
 
-  run (msg, args) {
-    if (!args || args.length < 1) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}set-start-balance <amount>`);
+  run(msg, args) {
+    if (!args || args.length < 1)
+      return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}set-start-balance <amount>`);
 
     const currencySymbol = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
 
@@ -28,7 +29,11 @@ class SetStartBalance extends Command {
 
     const em = new EmbedBuilder()
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
-      .setDescription(amount > 0 ? `The starting balance for new members has been set to: ${currencySymbol + amount.toLocaleString()}` : 'The starting balance for new members has been disabled.');
+      .setDescription(
+        amount > 0
+          ? `The starting balance for new members has been set to: ${currencySymbol + amount.toLocaleString()}`
+          : 'The starting balance for new members has been disabled.',
+      );
     return msg.channel.send({ embeds: [em] });
   }
 }

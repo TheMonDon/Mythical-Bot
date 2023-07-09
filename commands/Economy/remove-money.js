@@ -4,28 +4,30 @@ const { EmbedBuilder } = require('discord.js');
 const { stripIndents } = require('common-tags');
 
 class RemoveMoney extends Command {
-  constructor (client) {
+  constructor(client) {
     super(client, {
       name: 'remove-money',
       category: 'Economy',
-      description: 'Remove money from a users\'s cash or bank balance. \nIf the cash or bank argument isn\'t given, it will be added to the cash part.',
+      description:
+        "Remove money from a users's cash or bank balance. \nIf the cash or bank argument isn't given, it will be added to the cash part.",
       usage: 'remove-money [cash | bank] <member> <amount>',
       aliases: ['removemoney', 'removebal'],
       permLevel: 'Moderator',
-      guildOnly: true
+      guildOnly: true,
     });
   }
 
-  async run (msg, args) {
+  async run(msg, args) {
     const usage = `Incorrect Usage: ${msg.settings.prefix}remove-money [cash | bank] <member> <amount>`;
 
-    const errEmbed = new EmbedBuilder()
+    const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
+    const embed = new EmbedBuilder()
       .setColor(msg.settings.embedErrorColor)
-      .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() });
+      .setAuthor({ name: authorName, iconURL: msg.author.displayAvatarURL() });
 
     if (!msg.member.permissions.has('ManageGuild')) {
-      errEmbed.setDescription('You are missing the **Manage Guild** permission.');
-      return msg.channel.send({ embeds: [errEmbed] });
+      embed.setDescription('You are missing the **Manage Guild** permission.');
+      return msg.channel.send({ embeds: [embed] });
     }
 
     let type = 'cash';
@@ -33,18 +35,18 @@ class RemoveMoney extends Command {
     let amount;
 
     if (!args || args.length < 2) {
-      errEmbed.setDescription(usage);
-      return msg.channel.send({ embeds: [errEmbed] });
+      embed.setDescription(usage);
+      return msg.channel.send({ embeds: [embed] });
     }
 
     const currencySymbol = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
 
     if (args.length === 2) {
       mem = await this.client.util.getMember(msg, args[0]);
-      amount = parseFloat(args[1].replace(currencySymbol, '').replace(/,/ig, ''));
+      amount = parseFloat(args[1].replace(currencySymbol, '').replace(/,/gi, ''));
     } else {
       mem = await this.client.util.getMember(msg, args[1]);
-      amount = parseFloat(args[2].replace(currencySymbol, '').replace(/,/ig, ''));
+      amount = parseFloat(args[2].replace(currencySymbol, '').replace(/,/gi, ''));
     }
 
     if (['cash', 'bank'].includes(args[0].toLowerCase())) {
@@ -52,36 +54,40 @@ class RemoveMoney extends Command {
     }
 
     if (isNaN(amount)) {
-      errEmbed.setDescription(usage);
-      return msg.channel.send({ embeds: [errEmbed] });
+      embed.setDescription(usage);
+      return msg.channel.send({ embeds: [embed] });
     }
 
     if (!mem) {
-      errEmbed.setDescription(stripIndents`
+      embed.setDescription(stripIndents`
       :x: Invalid member given.
 
       Usage: ${msg.settings.prefix}remove-money <cash | bank> <member> <amount>
       `);
-      return msg.channel.send({ embeds: [errEmbed] });
+      return msg.channel.send({ embeds: [embed] });
     }
 
     if (mem.user.bot) {
-      errEmbed.setDescription('You can\'t add money to bots.');
-      return msg.channel.send({ embeds: [errEmbed] });
+      embed.setDescription("You can't add money to bots.");
+      return msg.channel.send({ embeds: [embed] });
     }
 
     if (type === 'bank') {
       db.subtract(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`, amount);
     } else {
-      const cash = db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`) || db.get(`servers.${msg.guild.id}.economy.startBalance`) || 0;
+      const cash =
+        db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`) ||
+        db.get(`servers.${msg.guild.id}.economy.startBalance`) ||
+        0;
       const newAmount = cash - amount;
       db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, newAmount);
     }
 
-    const embed = new EmbedBuilder()
-      .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
+    embed
       .setColor(msg.settings.embedColor)
-      .setDescription(`:white_check_mark: Removed **${currencySymbol}${amount.toLocaleString()}** from ${mem}'s ${type} balance.`)
+      .setDescription(
+        `:white_check_mark: Removed **${currencySymbol}${amount.toLocaleString()}** from ${mem}'s ${type} balance.`,
+      )
       .setTimestamp();
     return msg.channel.send({ embeds: [embed] });
   }
