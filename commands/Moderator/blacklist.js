@@ -49,7 +49,7 @@ class Blacklist extends Command {
 
     const memberName = mem.user.discriminator === '0' ? mem.user.username : mem.user.tag;
     const embed = new EmbedBuilder()
-    .setAuthor({ name: memberName, iconURL: msg.author.displayAvatarURL() })
+      .setAuthor({ name: memberName, iconURL: msg.author.displayAvatarURL() })
       .setColor(msg.settings.embedColor)
       .setTimestamp();
 

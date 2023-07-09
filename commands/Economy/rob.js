@@ -51,12 +51,10 @@ class Rob extends Command {
     const mem = await this.client.util.getMember(msg, text.join(' '));
 
     if (!mem) {
-      embed
-        .setDescription(`That user was not found. \nUsage: ${msg.settings.prefix}Rob <user>`);
+      embed.setDescription(`That user was not found. \nUsage: ${msg.settings.prefix}Rob <user>`);
       return msg.channel.send({ embeds: [embed] });
     } else if (mem.id === msg.author.id) {
-      embed
-        .setDescription("You can't rob yourself.");
+      embed.setDescription("You can't rob yourself.");
       return msg.channel.send({ embeds: [embed] });
     }
 
@@ -75,8 +73,7 @@ class Rob extends Command {
     );
 
     if (memCash <= 0) {
-      embed
-        .setDescription(`${mem} does not have anything to rob.`);
+      embed.setDescription(`${mem} does not have anything to rob.`);
       return msg.channel.send({ embeds: [embed] });
     }
 
@@ -115,12 +112,11 @@ class Rob extends Command {
     if (ranNum < failRate) {
       db.subtract(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, fineAmnt);
 
-      embed
-        .setDescription(
-          `You were caught attempting to rob ${mem.displayName} and have been fined ${
-            currencySymbol + fineAmnt.toLocaleString()
-          }`,
-        );
+      embed.setDescription(
+        `You were caught attempting to rob ${mem.displayName} and have been fined ${
+          currencySymbol + fineAmnt.toLocaleString()
+        }`,
+      );
       msg.channel.send({ embeds: [embed] });
     } else {
       // Lucky then, give them the money!

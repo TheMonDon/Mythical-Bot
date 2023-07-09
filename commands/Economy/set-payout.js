@@ -37,8 +37,7 @@ class SetPayout extends Command {
       .setAuthor({ name: authorName, iconURL: msg.author.displayAvatarURL() });
 
     if (!text || text.length < 1) {
-      embed.setColor('#04ACF4')
-        .setDescription(stripIndents`
+      embed.setColor('#04ACF4').setDescription(stripIndents`
           The current payout ranges are: 
         
           \`Work\`  - min: ${currencySymbol}${workMin}  | max: ${currencySymbol}${workMax}

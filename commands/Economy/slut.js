@@ -83,9 +83,7 @@ class Slut extends Command {
       const num = Math.floor(Math.random() * (crimeFail.length - 1)) + 1;
       const txt = crimeFail[num].replace('csamount', csamount);
 
-      embed
-        .setDescription(txt)
-        .setFooter({ text: `Reply #${num.toLocaleString()}` });
+      embed.setDescription(txt).setFooter({ text: `Reply #${num.toLocaleString()}` });
       msg.channel.send({ embeds: [embed] });
 
       db.subtract(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, fineAmnt);
@@ -96,9 +94,7 @@ class Slut extends Command {
       const num = Math.floor(Math.random() * (crimeSuccess.length - 1)) + 1;
       const txt = crimeSuccess[num].replace('csamount', csamount);
 
-      embed
-        .setDescription(txt)
-        .setFooter({ text: `Reply #${num.toLocaleString()}` });
+      embed.setDescription(txt).setFooter({ text: `Reply #${num.toLocaleString()}` });
       msg.channel.send({ embeds: [embed] });
 
       db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, amount);

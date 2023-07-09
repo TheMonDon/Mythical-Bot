@@ -64,12 +64,12 @@ module.exports = class {
       if (settings.welcomeEnabled !== 'true') return;
 
       // Replace the placeholders in the welcome message with actual data
-      
+
       const welcomeMessage = settings.welcomeMessage
         .replace('{{user}}', memberName)
         .replace('{{guild}}', member.guild.name);
 
-      const em = new EmbedBuilder()
+      const embed = new EmbedBuilder()
         .setTitle('Member Joined')
         .setColor(settings.embedColor)
         .setTitle(`Welcome to ${member.guild.name}`)
@@ -77,10 +77,9 @@ module.exports = class {
         .setDescription(welcomeMessage)
         .setTimestamp();
 
-      member.guild.channels.cache
-        .find((c) => c.name === settings.welcomeChannel)
-        .send({ embeds: [em] })
-        .catch(() => {});
+      const channel = member.guild.channels.cache.find((c) => c.name === settings.welcomeChannel);
+      if (!channel) return;
+      channel.send({ embeds: [embed] }).catch(() => {});
     }
 
     // Run the functions

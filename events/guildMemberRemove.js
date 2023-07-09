@@ -73,10 +73,9 @@ module.exports = class {
         .setDescription(leaveMessage)
         .setTimestamp();
 
-      member.guild.channels.cache
-        .find((c) => c.name === settings.leaveChannel)
-        .send({ embeds: [em] })
-        .catch(() => {});
+      const channel = member.guild.channels.cache.find((c) => c.name === settings.leaveChannel);
+      if (!channel) return;
+      channel.send({ embeds: [em] }).catch(() => {});
     }
 
     // Run the functions
