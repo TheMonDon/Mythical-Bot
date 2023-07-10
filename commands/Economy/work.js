@@ -38,8 +38,8 @@ class Work extends Command {
       }
     }
 
-    const min = BigInt(db.get(`servers.${msg.guild.id}.economy.work.min`) || 50);
-    const max = BigInt(db.get(`servers.${msg.guild.id}.economy.work.max`) || 500);
+    const min = db.get(`servers.${msg.guild.id}.economy.work.min`) || 50;
+    const max = db.get(`servers.${msg.guild.id}.economy.work.max`) || 500;
 
     const amount = Math.floor(Math.random() * (max - min + 1) + min);
     const currencySymbol = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
@@ -60,8 +60,8 @@ class Work extends Command {
         db.get(`servers.${msg.guild.id}.economy.startBalance`) ||
         0,
     );
-    const newBalance = oldBalance + BigInt(amount);
 
+    const newBalance = oldBalance + BigInt(amount);
     db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newBalance.toString());
 
     embed

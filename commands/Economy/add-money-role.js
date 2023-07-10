@@ -87,7 +87,7 @@ class AddMoneyRole extends Command {
               0,
           );
           const newAmount = cash + amount;
-          if (newAmount !== Infinity) db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, newAmount.toString());
+          db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, newAmount.toString());
         }
       });
     }
