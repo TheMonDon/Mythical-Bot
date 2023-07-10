@@ -36,9 +36,12 @@ class Leaderboard extends Command {
       try {
         const u = await this.client.users.cache.get(i);
         if (u) {
+          const cash = BigInt(stuff[i].economy.cash || 0);
+          const bank = BigInt(stuff[i].economy.bank || 0);
+          const money = (cash + bank);
           lb.push({
             user: u.discriminator === '0' ? u.username : u.tag,
-            money: parseFloat((stuff[i].economy.cash || 0) + (stuff[i].economy.bank || 0)),
+            money,
           });
         }
       } catch (err) {
@@ -48,7 +51,7 @@ class Leaderboard extends Command {
 
     // Sort the leaderboard
     let abc123 = lb
-      .sort((a, b) => b.money - a.money)
+      .sort((a, b) => BigInt(b.money) > BigInt(a.money) ? 1 : -1)
       .map(
         (c) =>
           `**${lb.indexOf(c) + 1}.** ${c.user} - ${currencySymbol}${

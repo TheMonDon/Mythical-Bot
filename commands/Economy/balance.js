@@ -32,12 +32,12 @@ class Balance extends Command {
       return msg.channel.send({ embeds: [embed] });
     }
 
-    const cash = parseFloat(
+    const cash = BigInt(
       db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`) ||
         db.get(`servers.${msg.guild.id}.economy.startBalance`) ||
         0,
     );
-    const bank = parseFloat(db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`) || 0);
+    const bank = BigInt(db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`) || 0);
     const netWorth = cash + bank;
 
     const currencySymbol = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';

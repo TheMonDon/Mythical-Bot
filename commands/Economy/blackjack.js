@@ -101,7 +101,7 @@ class BlackJack extends Command {
     }
 
     const currencySymbol = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
-    const cash = parseFloat(
+    const cash = BigInt(
       db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`) ||
         db.get(`servers.${msg.guild.id}.economy.startBalance`) ||
         0,
@@ -112,9 +112,7 @@ class BlackJack extends Command {
     if (isNaN(bet)) return msg.channel.send('Please enter a number for the bet.');
 
     if (bet < 1) return msg.channel.send(`You can't bet less than ${currencySymbol}1.`);
-    if (bet > cash) return msg.channel.send("You can't bet more cash than you have.");
-
-    let color = msg.settings.embedColor;
+    if (BigInt(bet) > cash) return msg.channel.send("You can't bet more cash than you have.");
 
     const bj = new Blackjack(bet, 1);
     // this function is called every time something happens
@@ -124,6 +122,7 @@ class BlackJack extends Command {
     let push = false;
     let blackjack = false;
     let gameOver = false;
+    let color = msg.settings.embedColor;
     const successColor = msg.settings.embedSuccessColor;
     const errorColor = msg.settings.embedErrorColor;
 
@@ -171,7 +170,9 @@ class BlackJack extends Command {
           { name: '**Dealer Hand**', value: `${dcards} \n\nScore: ${bj.dealer.score}`, inline: true },
         ]);
 
-      db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bj.bet); // Add the winning money
+      const winAmount = BigInt(bj.bet);
+      const newAmount = cash + winAmount;
+      db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAmount.toString()); // Add the winning money
       return msg.channel.send({ embeds: [embed] });
     }
 
@@ -229,7 +230,9 @@ class BlackJack extends Command {
             { name: '**Dealer Hand**', value: `${dcards} \n\nScore: ${bj.dealer.score}`, inline: true },
           ]);
 
-        db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bj.bet); // Add the winning money
+        const winAmount = BigInt(bj.bet);
+        const newAmount = cash + winAmount;
+        db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAmount.toString()); // Add the winning money
         return mEm.edit({ embeds: [embed] });
       } else if (blackjack) {
         pcards = getCards('player', bj);
@@ -244,7 +247,9 @@ class BlackJack extends Command {
             { name: '**Dealer Hand**', value: `${dcards} \n\nScore: ${bj.dealer.score}`, inline: true },
           ]);
 
-        db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bj.bet); // Add the winning money
+        const winAmount = BigInt(bj.bet);
+        const newAmount = cash + winAmount;
+        db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAmount.toString()); // Add the winning money
         return mEm.edit({ embeds: [embed] });
       } else if (bust) {
         pcards = getCards('player', bj);
@@ -259,7 +264,9 @@ class BlackJack extends Command {
             { name: '**Dealer Hand**', value: `${dcards} \n\nScore: ${bj.dealer.score}`, inline: true },
           ]);
 
-        db.subtract(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bj.bet);
+        const winAmount = BigInt(bj.bet);
+        const newAmount = cash - winAmount;
+        db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAmount.toString());
         return mEm.edit({ embeds: [embed] });
       } else if (push) {
         pcards = getCards('player', bj);

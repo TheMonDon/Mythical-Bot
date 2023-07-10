@@ -52,7 +52,7 @@ class AddMoney extends Command {
       type = args[0].toLowerCase();
     }
 
-    if (isNaN(amount) || amount === Infinity) {
+    if (isNaN(amount)) {
       embed.setDescription(usage);
       return msg.channel.send({ embeds: [embed] });
     }
@@ -71,20 +71,19 @@ class AddMoney extends Command {
       return msg.channel.send({ embeds: [embed] });
     }
 
+    amount = BigInt(amount);
     if (type === 'bank') {
-      db.add(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`, amount);
+      const bank = BigInt(db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`));
+      const newAmount = bank + amount;
+      db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`, newAmount.toString());
     } else {
-      const cash = parseFloat(
+      const cash = BigInt(
         db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`) ||
           db.get(`servers.${msg.guild.id}.economy.startBalance`) ||
           0,
       );
       const newAmount = cash + amount;
-      if (isNaN(newAmount) || newAmount === Infinity) {
-        embed.setDescription(`${mem}'s balance would be Infinity if you gave them that much!`);
-        return msg.channel.send({ embeds: [embed] });
-      }
-      db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, newAmount);
+      db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, newAmount.toString());
     }
 
     embed

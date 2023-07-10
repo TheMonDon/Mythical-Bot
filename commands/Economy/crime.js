@@ -35,21 +35,21 @@ class Crime extends Command {
         userCooldown.active = false;
         db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.${type}.cooldown`, userCooldown);
       } else {
-        const tLeft = moment
+        const timeLeft = moment
           .duration(timeleft)
           .format('y[ years][,] M[ Months]d[ days][,] h[ hours][,] m[ minutes][, and] s[ seconds]'); // format to any format
-        embed.setDescription(`You cannot commit a crime for ${tLeft}`);
+        embed.setDescription(`You cannot commit a crime for ${timeLeft}`);
         return msg.channel.send({ embeds: [embed] });
       }
     }
 
     // Get the user's net worth
-    const cash = parseFloat(
+    const cash = BigInt(
       db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`) ||
         db.get(`servers.${msg.guild.id}.economy.startBalance`) ||
         0,
     );
-    const bank = parseFloat(db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`) || 0);
+    const bank = BigInt(db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`) || 0);
     const authNet = cash + bank;
 
     // Get the min and max amounts of money the user can get
@@ -80,7 +80,7 @@ class Crime extends Command {
       if (isNaN(fineAmnt)) {
         return msg.channel.send('You have too much money to be able to be fined.');
       }
-      const csamount = currencySymbol + fineAmnt.toLocaleString();
+      const csamount = `${currencySymbol}${fineAmnt.toLocaleString()}`;
       const num = Math.floor(Math.random() * (crimeFail.length - 1)) + 1;
 
       embed
@@ -91,7 +91,7 @@ class Crime extends Command {
 
       db.subtract(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, fineAmnt);
     } else {
-      const amount = Math.floor(Math.random() * (max - min + 1) + min);
+      const amount = BigInt(Math.floor(Math.random() * (max - min + 1) + min));
       const csamount = currencySymbol + amount.toLocaleString();
       const num = Math.floor(Math.random() * (crimeSuccess.length - 1)) + 1;
 
@@ -101,7 +101,9 @@ class Crime extends Command {
         .setFooter({ text: `Reply #${num.toLocaleString()}` });
       msg.channel.send({ embeds: [embed] });
 
-      db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, amount);
+      const cash = BigInt(db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`));
+      const newAmount = cash + amount;
+      db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAmount);
     }
 
     userCooldown.time = Date.now() + cooldown * 1000;

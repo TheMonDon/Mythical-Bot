@@ -53,7 +53,7 @@ class AddMoneyRole extends Command {
       type = args[0].toLowerCase();
     }
 
-    if (isNaN(amount) || amount === Infinity) {
+    if (isNaN(amount)) {
       errEmbed.setDescription(usage);
       return msg.channel.send({ embeds: [errEmbed] });
     }
@@ -69,26 +69,29 @@ class AddMoneyRole extends Command {
 
     const members = [...role.members.values()];
 
+    amount = BigInt(amount);
     if (type === 'bank') {
       members.forEach((mem) => {
         if (!mem.user.bot) {
-          const current = parseFloat(db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`) || 0);
-          if (current + amount !== Infinity) db.add(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`, amount);
+          const current = BigInt(db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`) || 0);
+          const newAmount = current + amount;
+          db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`, newAmount.toString());
         }
       });
     } else {
       members.forEach((mem) => {
         if (!mem.user.bot) {
-          const cash = parseFloat(
+          const cash = BigInt(
             db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`) ||
               db.get(`servers.${msg.guild.id}.economy.startBalance`) ||
               0,
           );
           const newAmount = cash + amount;
-          if (newAmount !== Infinity) db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, newAmount);
+          if (newAmount !== Infinity) db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, newAmount.toString());
         }
       });
     }
+
     const embed = new EmbedBuilder()
       .setAuthor({ name: authorName, iconURL: msg.author.displayAvatarURL() })
       .setColor(msg.settings.embedColor)
@@ -98,6 +101,7 @@ class AddMoneyRole extends Command {
         } ${members.length > 1 ? 'members' : 'member'} with the ${role}.`,
       )
       .setTimestamp();
+
     return msg.channel.send({ embeds: [embed] });
   }
 }
