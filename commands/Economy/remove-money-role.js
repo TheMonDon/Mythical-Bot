@@ -38,10 +38,10 @@ class RemoveMoneyRole extends Command {
 
     if (args.length === 2) {
       role = this.client.util.getRole(msg, args[0]);
-      amount = parseFloat(args[1].replace(currencySymbol, '').replace(',', ''));
+      amount = args[1].replace(currencySymbol, '').replace(/,/gi, '');
     } else {
       role = this.client.util.getRole(msg, args[1]);
-      amount = parseFloat(args[2].replace(currencySymbol, '').replace(',', ''));
+      amount = args[2].replace(currencySymbol, '').replace(/,/gi, '');
     }
 
     if (['cash', 'bank'].includes(args[0].toLowerCase())) {
@@ -64,11 +64,12 @@ class RemoveMoneyRole extends Command {
 
     const members = [...role.members.values()];
 
+    amount = BigInt(amount);
     if (type === 'bank') {
       members.forEach((mem) => {
         if (!mem.user.bot) {
           const bank = BigInt(db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`));
-          const newAmount = bank - BigInt(amount);
+          const newAmount = bank - amount;
           db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`, newAmount.toString());
         }
       });
@@ -80,7 +81,7 @@ class RemoveMoneyRole extends Command {
               db.get(`servers.${msg.guild.id}.economy.startBalance`) ||
               0,
           );
-          const newAmount = cash - BigInt(amount);
+          const newAmount = cash - amount;
           db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, newAmount.toString());
         }
       });
