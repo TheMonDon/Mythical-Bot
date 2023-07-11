@@ -107,7 +107,7 @@ class BlackJack extends Command {
         0,
     );
 
-    const bet = parseFloat(args.join(' ').replace(/,/g, '').replace(currencySymbol, ''), 10);
+    const bet = args.join(' ').replace(/[^0-9]/g, '');
 
     if (isNaN(bet)) return msg.channel.send('Please enter a number for the bet.');
 

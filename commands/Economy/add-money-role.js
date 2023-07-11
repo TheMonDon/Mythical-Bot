@@ -43,10 +43,10 @@ class AddMoneyRole extends Command {
 
     if (args.length === 2) {
       role = this.client.util.getRole(msg, args[0]);
-      amount = args[1].replace(currencySymbol, '').replace(/,/g, '');
+      amount = args[1].replace(/[^0-9]/g, '');
     } else {
       role = this.client.util.getRole(msg, args[1]);
-      amount = args[2].replace(currencySymbol, '').replace(/,/g, '');
+      amount = args[2].replace(/[^0-9]/g, '');
     }
 
     if (['cash', 'bank'].includes(args[0].toLowerCase())) {

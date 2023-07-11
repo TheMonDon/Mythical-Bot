@@ -66,7 +66,10 @@ class SetPayout extends Command {
 
     text.shift();
     text.shift();
-    const amount = parseInt(text.join('').replace(/,/g, '').replace(currencySymbol, '').replace(/-/g, ''), 10);
+    const amount = text
+      .join('')
+      .replace(/[^0-9\\.]/g, '')
+      .replace(/-/g, '');
 
     if (isNaN(amount)) {
       embed.setDescription(stripIndents`

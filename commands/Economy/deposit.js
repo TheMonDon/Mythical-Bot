@@ -51,7 +51,7 @@ class Deposit extends Command {
         return msg.channel.send({ embeds: [embed] });
       }
     }
-    amount = BigInt(amount);
+    amount = BigInt(amount.replace(/[^0-9\\.]/g, ''));
 
     if (amount < BigInt(0)) return msg.channel.send("You can't deposit negative amounts of money.");
     if (amount > cash)

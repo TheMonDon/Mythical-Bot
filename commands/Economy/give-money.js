@@ -52,9 +52,7 @@ class GiveMoney extends Command {
         0,
     );
 
-    let amount = text[1];
-    amount = amount.replace(/,/g, '');
-    amount = amount.replace(currencySymbol, '');
+    let amount = text[1].replace(/,/g, '').replace(currencySymbol, '');
 
     let csCashAmount = currencySymbol + authCash.toLocaleString();
     csCashAmount = csCashAmount.length > 1024 ? `${csCashAmount.slice(0, 1021) + '...'}` : csCashAmount;
@@ -81,7 +79,7 @@ class GiveMoney extends Command {
         return msg.channel.send({ embeds: [embed] });
       }
     }
-    amount = BigInt(amount);
+    amount = BigInt(amount.replace(/[^0-9\\.]/g, ''));
 
     if (amount > authCash) {
       embed.setDescription(`You don't have that much money to give. You currently have ${csCashAmount}`);
