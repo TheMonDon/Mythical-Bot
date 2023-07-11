@@ -66,27 +66,35 @@ class RemoveMoneyRole extends Command {
 
     if (type === 'bank') {
       members.forEach((mem) => {
-        if (!mem.user.bot) db.subtract(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`, amount);
+        if (!mem.user.bot) {
+          const bank = BigInt(db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`));
+          const newAmount = bank - BigInt(amount);
+          db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`, newAmount.toString());
+        }
       });
     } else {
       members.forEach((mem) => {
         if (!mem.user.bot) {
-          const cash =
+          const cash = BigInt(
             db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`) ||
-            db.get(`servers.${msg.guild.id}.economy.startBalance`) ||
-            0;
-          const newAmount = cash - amount;
-          db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, newAmount);
+              db.get(`servers.${msg.guild.id}.economy.startBalance`) ||
+              0,
+          );
+          const newAmount = cash - BigInt(amount);
+          db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, newAmount.toString());
         }
       });
     }
 
+    let csAmount = currencySymbol + amount.toLocaleString();
+    csAmount = csAmount.length > 1024 ? `${csAmount.slice(0, 1021) + '...'}` : csAmount;
+
     embed
       .setColor(msg.settings.embedColor)
       .setDescription(
-        `:white_check_mark: Removed **${currencySymbol}${amount.toLocaleString()}** to ${type} balance of ${
-          members.length
-        } ${members.length > 1 ? 'members' : 'member'} with the ${role}.`,
+        `:white_check_mark: Removed **${csAmount}** from the ${type} balance of ${members.length} ${
+          members.length > 1 ? 'members' : 'member'
+        } with the ${role}.`,
       )
       .setTimestamp();
     return msg.channel.send({ embeds: [embed] });

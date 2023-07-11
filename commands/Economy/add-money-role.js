@@ -92,13 +92,16 @@ class AddMoneyRole extends Command {
       });
     }
 
+    let csAmount = currencySymbol + amount.toLocaleString();
+    csAmount = csAmount.length > 1024 ? `${csAmount.slice(0, 1021) + '...'}` : csAmount;
+
     const embed = new EmbedBuilder()
       .setAuthor({ name: authorName, iconURL: msg.author.displayAvatarURL() })
       .setColor(msg.settings.embedColor)
       .setDescription(
-        `:white_check_mark: Added **${currencySymbol}${amount.toLocaleString()}** to ${type} balance of ${
-          members.length
-        } ${members.length > 1 ? 'members' : 'member'} with the ${role}.`,
+        `:white_check_mark: Added **${csAmount}** to the ${type} balance of ${members.length} ${
+          members.length > 1 ? 'members' : 'member'
+        } with the ${role}.`,
       )
       .setTimestamp();
 

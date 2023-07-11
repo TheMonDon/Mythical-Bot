@@ -58,50 +58,43 @@ class Rob extends Command {
       return msg.channel.send({ embeds: [embed] });
     }
 
-    const authCash = parseFloat(
+    const authCash = BigInt(
       db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`) ||
         db.get(`servers.${msg.guild.id}.economy.startBalance`) ||
         0,
     );
-    const authBank = parseFloat(db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`) || 0);
+    const authBank = BigInt(db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`) || 0);
     const authNet = authCash + authBank;
 
-    const memCash = parseFloat(
+    const memCash = BigInt(
       db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`) ||
         db.get(`servers.${msg.guild.id}.economy.startBalance`) ||
         0,
     );
 
-    if (memCash <= 0) {
+    if (memCash <= BigInt(0)) {
       embed.setDescription(`${mem} does not have anything to rob.`);
       return msg.channel.send({ embeds: [embed] });
     }
 
-    let failRate;
-    if (authNet >= Number.MAX_VALUE || authNet >= Infinity) {
-      failRate = 101;
-    } else if (memCash + authNet >= Number.MAX_VALUE || memCash + authNet >= Infinity) {
-      failRate = 101;
-    } else if (isNaN(authNet) || isNaN(memCash)) {
-      failRate = 101;
-    } else {
-      failRate = (authNet / (memCash + authNet)) * 100;
-    }
-    const ranNum = Math.random() * 100;
+    const totalAmount = Number(memCash + authNet);
+    const failRate = Math.floor((Number(authNet) / totalAmount) * 100);
+
+    const ranNum = Math.floor(Math.random() * 100);
 
     // Minimum fine is 10% of the amount of money the user has, maximum fine is 30% of the amount of money the user has
     const minFine = 10;
     const maxFine = 30;
 
     // randomFine is a random number between 10 and 30
-    const randomFine = parseInt(Math.round(Math.random() * (maxFine - minFine + 1) + minFine));
+    const randomFine = BigInt(Math.round(Math.random() * (maxFine - minFine + 1) + minFine));
 
-    // fineAmnt is the amount of money the user will lose if they fail the robbery
-    const fineAmnt = parseInt(Math.floor((authNet / 100) * randomFine));
+    // fineAmount is the amount of money the user will lose if they fail the robbery
+    const fineAmount = (authNet / BigInt(100)) * randomFine;
 
     const currencySymbol = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
 
-    if (failRate > 100) {
+    if (failRate > BigInt(100)) {
       embed
         .setColor('#FFA500')
         .setDescription(
@@ -109,37 +102,43 @@ class Rob extends Command {
         );
       return msg.channel.send({ embeds: [embed] });
     }
-    if (ranNum < failRate) {
-      db.subtract(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, fineAmnt);
 
-      embed.setDescription(
-        `You were caught attempting to rob ${mem.displayName} and have been fined ${
-          currencySymbol + fineAmnt.toLocaleString()
-        }`,
-      );
+    if (ranNum <= failRate) {
+      const newAmount = authCash - fineAmount;
+      db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAmount.toString());
+
+      let csFineAmount = currencySymbol + fineAmount.toLocaleString();
+      csFineAmount = csFineAmount.length > 1024 ? `${csFineAmount.slice(0, 1021) + '...'}` : csFineAmount;
+      embed.setDescription(`You were caught attempting to rob ${mem.displayName} and have been fined ${csFineAmount}`);
       msg.channel.send({ embeds: [embed] });
     } else {
-      // Lucky then, give them the money!
-      const amnt = parseInt(Math.floor(Math.random() * memCash) + 1);
+      // Lucky them, give them the money!
+      const amount = BigInt(Math.floor(Math.random() * Number(memCash)) + 1);
 
-      db.subtract(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, amnt);
-      db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, amnt);
+      const newMemCash = memCash - amount;
+      db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, newMemCash.toString());
+
+      const newAuthCash = authCash + amount;
+      db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAuthCash.toString());
+
+      let csAmount = currencySymbol + amount.toLocaleString();
+      csAmount = csAmount.length > 1024 ? `${csAmount.slice(0, 1021) + '...'}` : csAmount;
+      let csAuthCash = currencySymbol + newAuthCash.toLocaleString();
+      csAuthCash = csAuthCash.length > 1024 ? `${csAuthCash.slice(0, 1021) + '...'}` : csAuthCash;
+      let csMemCash = currencySymbol + newMemCash.toLocaleString();
+      csMemCash = csMemCash.length > 1024 ? `${csMemCash.slice(0, 1021) + '...'}` : csMemCash;
 
       embed
         .setColor('#64BC6C')
-        .setDescription(`You successfully robbed ${mem} of ${currencySymbol}${amnt.toLocaleString()}`)
+        .setDescription(`You successfully robbed ${mem} of ${csAmount}`)
         .addFields([
           {
             name: 'Your New Balance',
-            value: `${currencySymbol}${db
-              .get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`)
-              .toLocaleString()}`,
+            value: `${csAuthCash}`,
           },
           {
             name: `${mem.displayName}'s New Balance`,
-            value: `${currencySymbol}${db
-              .get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`)
-              .toLocaleString()}`,
+            value: `${csMemCash}`,
           },
         ]);
       msg.channel.send({ embeds: [embed] });

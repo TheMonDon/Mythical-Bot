@@ -53,23 +53,23 @@ class Crime extends Command {
     const authNet = cash + bank;
 
     // Get the min and max amounts of money the user can get
-    const min = parseFloat(db.get(`servers.${msg.guild.id}.economy.${type}.min`) || 500);
-    const max = parseFloat(db.get(`servers.${msg.guild.id}.economy.${type}.max`) || 2000);
+    const min = db.get(`servers.${msg.guild.id}.economy.${type}.min`) || 500;
+    const max = db.get(`servers.${msg.guild.id}.economy.${type}.max`) || 2000;
 
     // Get the min and max fine percentages
     const minFine = db.get(`servers.${msg.guild.id}.economy.${type}.fine.min`) || 10;
     const maxFine = db.get(`servers.${msg.guild.id}.economy.${type}.fine.max`) || 30;
 
     // randomFine is a random number between the minimum and maximum fail rate
-    const randomFine = Math.round(Math.random() * (maxFine - minFine + 1) + minFine);
+    const randomFine = BigInt(Math.round(Math.random() * (maxFine - minFine + 1) + minFine));
 
-    // fineAmnt is the amount of money the user will lose if they fail the action
-    const fineAmnt = Math.floor((authNet / 100) * randomFine);
+    // fineAmount is the amount of money the user will lose if they fail the action
+    const fineAmount = (authNet / BigInt(100)) * randomFine;
 
     const failRate = db.get(`servers.${msg.guild.id}.economy.${type}.failrate`) || 45;
     const ranNum = Math.random() * 100;
 
-    const currencySymbol = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$'; // get economy symbol
+    const currencySymbol = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
 
     delete require.cache[require.resolve('../../resources/messages/crime_success.json')];
     delete require.cache[require.resolve('../../resources/messages/crime_fail.json')];
@@ -77,10 +77,7 @@ class Crime extends Command {
     const crimeFail = require('../../resources/messages/crime_fail.json');
 
     if (ranNum < failRate) {
-      if (isNaN(fineAmnt)) {
-        return msg.channel.send('You have too much money to be able to be fined.');
-      }
-      const csamount = `${currencySymbol}${fineAmnt.toLocaleString()}`;
+      const csamount = currencySymbol + fineAmount.toLocaleString();
       const num = Math.floor(Math.random() * (crimeFail.length - 1)) + 1;
 
       embed
@@ -89,7 +86,8 @@ class Crime extends Command {
         .setFooter({ text: `Reply #${num.toLocaleString()}` });
       msg.channel.send({ embeds: [embed] });
 
-      db.subtract(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, fineAmnt);
+      const newAmount = cash - fineAmount;
+      db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAmount.toString());
     } else {
       const amount = BigInt(Math.floor(Math.random() * (max - min + 1) + min));
       const csamount = currencySymbol + amount.toLocaleString();
@@ -101,9 +99,8 @@ class Crime extends Command {
         .setFooter({ text: `Reply #${num.toLocaleString()}` });
       msg.channel.send({ embeds: [embed] });
 
-      const cash = BigInt(db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`));
       const newAmount = cash + amount;
-      db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAmount);
+      db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAmount.toString());
     }
 
     userCooldown.time = Date.now() + cooldown * 1000;

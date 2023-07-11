@@ -43,13 +43,23 @@ class Balance extends Command {
     const currencySymbol = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
 
     const memberName = mem.user.discriminator === '0' ? mem.user.username : msg.user.tag;
+
+    let csCashAmount = currencySymbol + cash.toLocaleString();
+    csCashAmount = csCashAmount.length > 1024 ? `${csCashAmount.slice(0, 1021) + '...'}` : csCashAmount;
+
+    let csBankAmount = currencySymbol + bank.toLocaleString();
+    csBankAmount = csBankAmount.length > 1024 ? `${csBankAmount.slice(0, 1021) + '...'}` : csBankAmount;
+
+    let csNetWorthAmount = currencySymbol + netWorth.toLocaleString();
+    csNetWorthAmount = csNetWorthAmount.length > 1024 ? `${csNetWorthAmount.slice(0, 1021) + '...'}` : csNetWorthAmount;
+
     embed
       .setAuthor({ name: memberName, iconURL: mem.user.displayAvatarURL() })
       .setColor(msg.settings.embedColor)
       .addFields([
-        { name: 'Cash:', value: currencySymbol + cash.toLocaleString() },
-        { name: 'Bank:', value: currencySymbol + bank.toLocaleString() },
-        { name: 'Net Worth:', value: currencySymbol + netWorth.toLocaleString() },
+        { name: 'Cash:', value: csCashAmount },
+        { name: 'Bank:', value: csBankAmount },
+        { name: 'Net Worth:', value: csNetWorthAmount },
       ])
       .setTimestamp();
     return msg.channel.send({ embeds: [embed] });

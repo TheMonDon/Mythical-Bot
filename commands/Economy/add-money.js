@@ -73,7 +73,7 @@ class AddMoney extends Command {
 
     amount = BigInt(amount);
     if (type === 'bank') {
-      const bank = BigInt(db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`));
+      const bank = BigInt(db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`) || 0);
       const newAmount = bank + amount;
       db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`, newAmount.toString());
     } else {
@@ -86,11 +86,12 @@ class AddMoney extends Command {
       db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, newAmount.toString());
     }
 
+    let csAmount = currencySymbol + amount.toLocaleString();
+    csAmount = csAmount.length > 1024 ? `${csAmount.slice(0, 1021) + '...'}` : csAmount;
+
     embed
       .setColor(msg.settings.embedColor)
-      .setDescription(
-        `:white_check_mark: Added **${currencySymbol}${amount.toLocaleString()}** to ${mem}'s ${type} balance.`,
-      )
+      .setDescription(`:white_check_mark: Added **${csAmount}** to ${mem}'s ${type} balance.`)
       .setTimestamp();
     return msg.channel.send({ embeds: [embed] });
   }

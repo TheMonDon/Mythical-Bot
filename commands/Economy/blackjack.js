@@ -264,8 +264,8 @@ class BlackJack extends Command {
             { name: '**Dealer Hand**', value: `${dcards} \n\nScore: ${bj.dealer.score}`, inline: true },
           ]);
 
-        const winAmount = BigInt(bj.bet);
-        const newAmount = cash - winAmount;
+        const loseAmount = BigInt(bj.bet);
+        const newAmount = cash - loseAmount;
         db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAmount.toString());
         return mEm.edit({ embeds: [embed] });
       } else if (push) {

@@ -29,19 +29,20 @@ class Withdraw extends Command {
     if (!amount || amount.length < 1) return msg.channel.send({ embeds: [embed] });
 
     const currencySymbol = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
-    const bank = parseFloat(db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`) || 0); // store bank info prior to checking args
-    const cash = parseFloat(db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`) || 0); // same thing but cash
+    const bank = BigInt(db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`) || 0);
+    const cash = BigInt(db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`) || 0);
+
+    let csBankAmount = currencySymbol + bank.toLocaleString();
+    csBankAmount = csBankAmount.length > 1024 ? `${csBankAmount.slice(0, 1021) + '...'}` : csBankAmount;
 
     amount = amount.replace(/,/g, '').replace(currencySymbol, '');
     if (isNaN(amount)) {
       if (amount.toLowerCase() === 'all') {
-        if (bank <= 0) return msg.channel.send("You don't have any money to withdraw.");
-        if (bank + cash > Number.MAX_VALUE) {
-          return msg.channel.send('You have too much cash to be able to withdraw all your bank');
-        }
+        if (bank <= BigInt(0)) return msg.channel.send("You don't have any money to withdraw.");
 
         db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`, 0);
-        db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, bank);
+        const newAmount = bank + cash;
+        db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAmount.toString());
 
         embed.setColor('#04ACF4').setDescription(`Withdrew ${currencySymbol}${bank.toLocaleString()} from your bank!`);
         return msg.channel.send({ embeds: [embed] });
@@ -49,22 +50,24 @@ class Withdraw extends Command {
         return msg.channel.send({ embeds: [embed] });
       }
     }
-    amount = parseFloat(amount);
+    amount = BigInt(amount);
 
-    if (amount < 0) return msg.channel.send("You can't withdraw negative amounts of money.");
+    if (amount < BigInt(0)) return msg.channel.send("You can't withdraw negative amounts of money.");
     if (amount > bank)
       return msg.channel.send(
-        `You don't have that much money to withdraw. You currently have ${currencySymbol}${bank.toLocaleString()} in the bank.`,
+        `You don't have that much money to withdraw. You currently have ${csBankAmount} in the bank.`,
       );
-    if (bank <= 0) return msg.channel.send("You don't have any money to withdraw.");
-    if (cash + amount > Number.MAX_VALUE) {
-      return msg.channel.send('You have too much cash to be able to withdraw that much money.');
-    }
+    if (bank <= BigInt(0)) return msg.channel.send("You don't have any money to withdraw.");
 
-    db.subtract(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`, amount); // take money from bank
-    db.add(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, amount); // set money to cash
+    let csAmount = currencySymbol + amount.toLocaleString();
+    csAmount = csAmount.length > 1024 ? `${csAmount.slice(0, 1021) + '...'}` : csAmount;
 
-    embed.setColor('#04ACF4').setDescription(`Withdrew ${currencySymbol}${amount.toLocaleString()} from your bank!`);
+    const newBankAmount = bank - amount;
+    const newCashAmount = cash + amount;
+    db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`, newBankAmount.toString());
+    db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newCashAmount.toString());
+
+    embed.setColor('#04ACF4').setDescription(`Withdrew ${csAmount} from your bank.`);
     return msg.channel.send({ embeds: [embed] });
   }
 }

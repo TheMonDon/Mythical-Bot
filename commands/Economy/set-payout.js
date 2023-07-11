@@ -9,20 +9,20 @@ class SetPayout extends Command {
       name: 'set-payout',
       category: 'Economy',
       description: 'Sets the payout of the economy commands',
-      usage: 'set-payout <work | crime | slut> <min | max> <amount>',
+      usage: 'set-payout <work | crime | slut | chat> <min | max> <amount>',
       aliases: ['setpayout'],
       guildOnly: true,
     });
   }
 
   run(msg, text) {
-    const types = ['work', 'crime', 'slut'];
+    const types = ['work', 'crime', 'slut', 'chat'];
 
     if (!msg.member.permissions.has('ManageMessages'))
       return msg.channel.send('You are missing **Manage Guild** permission.');
 
     const currencySymbol = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
-    const usage = `${msg.settings.prefix}set-payout <work | crime> <min | max> <amount>`;
+    const usage = `${msg.settings.prefix}set-payout <work | crime | slut | chat> <min | max> <amount>`;
 
     const workMin = db.get(`servers.${msg.guild.id}.economy.work.min`) || 50;
     const workMax = db.get(`servers.${msg.guild.id}.economy.work.max`) || 500;
@@ -30,6 +30,8 @@ class SetPayout extends Command {
     const slutMax = db.get(`servers.${msg.guild.id}.economy.work.max`) || 1000;
     const crimeMin = db.get(`servers.${msg.guild.id}.economy.crime.min`) || 500;
     const crimeMax = db.get(`servers.${msg.guild.id}.economy.crime.max`) || 2000;
+    const chatMin = db.get(`servers.${msg.guild.id}.economy.chat.min`) || 10;
+    const chatMax = db.get(`servers.${msg.guild.id}.economy.chat.max`) || 100;
 
     const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
     const embed = new EmbedBuilder()
@@ -43,6 +45,7 @@ class SetPayout extends Command {
           \`Work\`  - min: ${currencySymbol}${workMin}  | max: ${currencySymbol}${workMax}
           \`Crime\` - min: ${currencySymbol}${crimeMin} | max: ${currencySymbol}${crimeMax}
           \`Slut\`  - min: ${currencySymbol}${slutMin}  | max: ${currencySymbol}${slutMax}
+          \`Chat\`  - min: ${currencySymbol}${chatMin}  | max: ${currencySymbol}${chatMax}
     
           Usage: ${usage}
         `);
@@ -100,13 +103,20 @@ class SetPayout extends Command {
         embed.setDescription(`The maximum amount for \`Crime\` has been changed to ${currencySymbol}${amount}`);
       }
     } else if (type === 'slut') {
-      // Shoved this in for future proofing :D (Thanks past me!)
       if (minMax === 'min') {
         db.set(`servers.${msg.guild.id}.economy.slut.min`, amount);
         embed.setDescription(`The minimum amount for \`Slut\` has been changed to ${currencySymbol}${amount}`);
       } else {
         db.set(`servers.${msg.guild.id}.economy.slut.max`, amount);
         embed.setDescription(`The maximum amount for \`Slut\` has been changed to ${currencySymbol}${amount}`);
+      }
+    } else if (type === 'chat') {
+      if (minMax === 'min') {
+        db.set(`servers.${msg.guild.id}.economy.chat.min`, amount);
+        embed.setDescription(`The minimum amount for \`Chat\` has been changed to ${currencySymbol}${amount}`);
+      } else {
+        db.set(`servers.${msg.guild.id}.economy.chat.max`, amount);
+        embed.setDescription(`The maximum amount for \`Chat\` has been changed to ${currencySymbol}${amount}`);
       }
     }
 

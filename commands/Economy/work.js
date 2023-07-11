@@ -38,8 +38,8 @@ class Work extends Command {
       }
     }
 
-    const min = db.get(`servers.${msg.guild.id}.economy.work.min`) || 50;
-    const max = db.get(`servers.${msg.guild.id}.economy.work.max`) || 500;
+    const min = parseFloat(db.get(`servers.${msg.guild.id}.economy.work.min`) || 50);
+    const max = parseFloat(db.get(`servers.${msg.guild.id}.economy.work.max`) || 500);
 
     const amount = Math.floor(Math.random() * (max - min + 1) + min);
     const currencySymbol = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
