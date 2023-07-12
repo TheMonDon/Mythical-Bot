@@ -113,7 +113,10 @@ class Rob extends Command {
       msg.channel.send({ embeds: [embed] });
     } else {
       // Lucky them, give them the money!
-      const amount = BigInt(Math.floor(Math.random() * Number(memCash)) + 1);
+      let amount = Math.floor(Math.random() * Number(memCash)) + 1;
+
+      if (amount === Infinity) return msg.channel.send('That person has too much money to be able to rob them.');
+      amount = BigInt(amount);
 
       const newMemCash = memCash - amount;
       db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, newMemCash.toString());
