@@ -43,10 +43,10 @@ class RemoveMoney extends Command {
 
     if (args.length === 2) {
       mem = await this.client.util.getMember(msg, args[0]);
-      amount = parseFloat(args[1].replace(currencySymbol, '').replace(/,/gi, ''));
+      amount = args[1].replace(/[^0-9\\.]/g, '');
     } else {
       mem = await this.client.util.getMember(msg, args[1]);
-      amount = parseFloat(args[2].replace(currencySymbol, '').replace(/,/gi, ''));
+      amount = args[2].replace(/[^0-9\\.]/g, '');
     }
 
     if (['cash', 'bank'].includes(args[0].toLowerCase())) {
@@ -62,7 +62,7 @@ class RemoveMoney extends Command {
       embed.setDescription(stripIndents`
       :x: Invalid member given.
 
-      Usage: ${msg.settings.prefix}remove-money <cash | bank> <member> <amount>
+      Usage: ${msg.settings.prefix}remove-money [cash | bank] <member> <amount>
       `);
       return msg.channel.send({ embeds: [embed] });
     }
@@ -73,21 +73,25 @@ class RemoveMoney extends Command {
     }
 
     if (type === 'bank') {
-      db.subtract(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`, amount);
+      const bank = BigInt(db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`) || 0);
+      const newAmount = bank - BigInt(amount);
+      db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`, newAmount.toString());
     } else {
-      const cash =
+      const cash = BigInt(
         db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`) ||
-        db.get(`servers.${msg.guild.id}.economy.startBalance`) ||
-        0;
-      const newAmount = cash - amount;
-      db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, newAmount);
+          db.get(`servers.${msg.guild.id}.economy.startBalance`) ||
+          0,
+      );
+      const newAmount = cash - BigInt(amount);
+      db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, newAmount.toString());
     }
+
+    let csAmount = currencySymbol + amount.toLocaleString();
+    csAmount = csAmount.length > 1024 ? `${csAmount.slice(0, 1021) + '...'}` : csAmount;
 
     embed
       .setColor(msg.settings.embedColor)
-      .setDescription(
-        `:white_check_mark: Removed **${currencySymbol}${amount.toLocaleString()}** from ${mem}'s ${type} balance.`,
-      )
+      .setDescription(`:white_check_mark: Removed **${csAmount}** from ${mem}'s ${type} balance.`)
       .setTimestamp();
     return msg.channel.send({ embeds: [embed] });
   }

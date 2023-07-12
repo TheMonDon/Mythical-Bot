@@ -83,8 +83,11 @@ module.exports = class {
         }
       }
 
-      const amount = Math.floor(Math.random() * (max - min + 1) + min);
-      db.add(`servers.${server.id}.users.${member.id}.economy.cash`, amount);
+      const amount = BigInt(Math.floor(Math.random() * (max - min + 1) + min));
+      const cash = BigInt(db.get(`servers.${server.id}.users.${member.id}.economy.cash`));
+      const newAmount = cash + amount;
+      db.set(`servers.${server.id}.users.${member.id}.economy.cash`, newAmount.toString());
+
       userCooldown.time = now + cooldown * 1000;
       userCooldown.active = true;
       db.set(`servers.${server.id}.users.${member.id}.economy.${type}.cooldown`, userCooldown);

@@ -10,7 +10,7 @@ class SetCooldown extends Command {
       name: 'set-cooldown',
       category: 'Economy',
       description: 'Set the cooldown of economy modules',
-      usage: 'Set-Cooldown <work | rob | crime | slut> <cooldown>',
+      usage: 'Set-Cooldown <work | rob | crime | slut | chat> <cooldown>',
       aliases: ['scd', 'setcooldown'],
       guildOnly: true,
     });
@@ -22,13 +22,14 @@ class SetCooldown extends Command {
 
     const types = ['rob', 'work', 'crime', 'slut'];
 
-    const usage = `${msg.settings.prefix}Set-Cooldown <work | rob | crime | slut> <cooldown> \nExample: ${msg.settings.prefix}Set-Cooldown work 30 seconds`;
+    const usage = `${msg.settings.prefix}Set-Cooldown <work | rob | crime | slut | chat> <cooldown> \nExample: ${msg.settings.prefix}Set-Cooldown work 30 seconds`;
 
     // Get the cooldowns from the database
     const robCooldown = db.get(`servers.${msg.guild.id}.economy.rob.cooldown`) || 600;
     const workCooldown = db.get(`servers.${msg.guild.id}.economy.work.cooldown`) || 300;
     const slutCooldown = db.get(`servers.${msg.guild.id}.economy.slut.cooldown`) || 600;
     const crimeCooldown = db.get(`servers.${msg.guild.id}.economy.crime.cooldown`) || 600;
+    const chatCooldown = db.get(`servers.${msg.guild.id}.economy.chat.cooldown`) || 60;
 
     const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
     const embed = new EmbedBuilder()
@@ -43,6 +44,7 @@ class SetCooldown extends Command {
       \`Rob\`    - ${robCooldown} seconds
       \`Crime\`  - ${crimeCooldown} seconds
       \`Slut\`   - ${slutCooldown} seconds
+      \`Chat\`   - ${chatCooldown} seconds
 
       Manage Guild is required to change values.
       

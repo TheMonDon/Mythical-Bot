@@ -46,65 +46,65 @@ class GiveMoney extends Command {
     }
 
     const currencySymbol = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
-    const authCash = parseFloat(
+    const authCash = BigInt(
       db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`) ||
         db.get(`servers.${msg.guild.id}.economy.startBalance`) ||
         0,
     );
 
-    let amount = text[1];
-    amount = amount.replace(/,/g, '');
-    amount = amount.replace(currencySymbol, '');
+    let amount = text[1].replace(/,/g, '').replace(currencySymbol, '');
+
+    let csCashAmount = currencySymbol + authCash.toLocaleString();
+    csCashAmount = csCashAmount.length > 1024 ? `${csCashAmount.slice(0, 1021) + '...'}` : csCashAmount;
+
     if (isNaN(amount)) {
       if (amount.toLowerCase() === 'all') {
-        amount = authCash;
-
-        if (amount > authCash) {
-          embed.setDescription(
-            `You don't have that much money to give. You currently have ${currencySymbol}${authCash}`,
-          );
-          return msg.channel.send({ embeds: [embed] });
-        } else if (amount < 0) {
+        if (authCash < BigInt(0)) {
           embed.setDescription("You can't give negative amounts of money.");
           return msg.channel.send({ embeds: [embed] });
-        } else if (amount === 0) {
+        } else if (authCash === BigInt(0)) {
           embed.setDescription("You can't give someone nothing.");
           return msg.channel.send({ embeds: [embed] });
         }
 
-        db.subtract(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, amount);
-        db.add(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, amount);
+        db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, 0);
+        const memCash = BigInt(db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`));
+        const newMemCash = memCash + authCash;
+        db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, newMemCash.toString());
 
-        embed
-          .setColor('#04ACF4')
-          .setDescription(`${mem} has received your ${currencySymbol}${amount.toLocaleString()}.`);
+        embed.setColor('#04ACF4').setDescription(`${mem} has received your ${csCashAmount}.`);
         return msg.channel.send({ embeds: [embed] });
       } else {
         const embed = new EmbedBuilder().setColor(errorColor).setDescription(`Incorrect Usage: ${usage}`);
         return msg.channel.send({ embeds: [embed] });
       }
     }
-    amount = parseInt(amount, 10);
+    amount = BigInt(amount.replace(/[^0-9\\.]/g, ''));
 
     if (amount > authCash) {
-      embed.setDescription(
-        `You don't have that much money to give. You currently have ${currencySymbol}${authCash.toLocaleString()}`,
-      );
+      embed.setDescription(`You don't have that much money to give. You currently have ${csCashAmount}`);
       return msg.channel.send({ embeds: [embed] });
-    } else if (amount < 0) {
+    } else if (amount < BigInt(0)) {
       embed.setDescription("You can't give negative amounts of money.");
       return msg.channel.send({ embeds: [embed] });
-    } else if (amount === 0) {
+    } else if (amount === BigInt(0)) {
       embed.setDescription("You can't give someone nothing.");
       return msg.channel.send({ embeds: [embed] });
     }
 
-    db.subtract(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, amount);
-    db.add(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, amount);
+    const newAuthCash = authCash - amount;
+    db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAuthCash.toString());
+    const memCash = BigInt(
+      db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`) ||
+        db.get(`servers.${msg.guild.id}.economy.startBalance`) ||
+        0,
+    );
+    const newMemCash = memCash + amount;
+    db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, newMemCash.toString());
 
-    embed
-      .setColor(msg.settings.embedColor)
-      .setDescription(`${mem} has received your ${currencySymbol}${amount.toLocaleString()}.`);
+    let csAmount = currencySymbol + amount.toLocaleString();
+    csAmount = csAmount.length > 1024 ? `${csAmount.slice(0, 1021) + '...'}` : csAmount;
+    embed.setColor(msg.settings.embedColor).setDescription(`${mem} has received your ${csAmount}.`);
     return msg.channel.send({ embeds: [embed] });
   }
 }

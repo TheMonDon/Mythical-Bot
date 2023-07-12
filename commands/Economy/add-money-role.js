@@ -43,17 +43,17 @@ class AddMoneyRole extends Command {
 
     if (args.length === 2) {
       role = this.client.util.getRole(msg, args[0]);
-      amount = parseInt(args[1].replace(currencySymbol, '').replace(/,/g, ''), 10);
+      amount = args[1].replace(/[^0-9]/g, '');
     } else {
       role = this.client.util.getRole(msg, args[1]);
-      amount = parseInt(args[2].replace(currencySymbol, '').replace(/,/g, ''), 10);
+      amount = args[2].replace(/[^0-9]/g, '');
     }
 
     if (['cash', 'bank'].includes(args[0].toLowerCase())) {
       type = args[0].toLowerCase();
     }
 
-    if (isNaN(amount) || amount === Infinity) {
+    if (isNaN(amount)) {
       errEmbed.setDescription(usage);
       return msg.channel.send({ embeds: [errEmbed] });
     }
@@ -69,35 +69,42 @@ class AddMoneyRole extends Command {
 
     const members = [...role.members.values()];
 
+    amount = BigInt(amount);
     if (type === 'bank') {
       members.forEach((mem) => {
         if (!mem.user.bot) {
-          const current = parseFloat(db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`) || 0);
-          if (current + amount !== Infinity) db.add(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`, amount);
+          const current = BigInt(db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`) || 0);
+          const newAmount = current + amount;
+          db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`, newAmount.toString());
         }
       });
     } else {
       members.forEach((mem) => {
         if (!mem.user.bot) {
-          const cash = parseFloat(
+          const cash = BigInt(
             db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`) ||
               db.get(`servers.${msg.guild.id}.economy.startBalance`) ||
               0,
           );
           const newAmount = cash + amount;
-          if (newAmount !== Infinity) db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, newAmount);
+          db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, newAmount.toString());
         }
       });
     }
+
+    let csAmount = currencySymbol + amount.toLocaleString();
+    csAmount = csAmount.length > 1024 ? `${csAmount.slice(0, 1021) + '...'}` : csAmount;
+
     const embed = new EmbedBuilder()
       .setAuthor({ name: authorName, iconURL: msg.author.displayAvatarURL() })
       .setColor(msg.settings.embedColor)
       .setDescription(
-        `:white_check_mark: Added **${currencySymbol}${amount.toLocaleString()}** to ${type} balance of ${
-          members.length
-        } ${members.length > 1 ? 'members' : 'member'} with the ${role}.`,
+        `:white_check_mark: Added **${csAmount}** to the ${type} balance of ${members.length} ${
+          members.length > 1 ? 'members' : 'member'
+        } with the ${role}.`,
       )
       .setTimestamp();
+
     return msg.channel.send({ embeds: [embed] });
   }
 }
