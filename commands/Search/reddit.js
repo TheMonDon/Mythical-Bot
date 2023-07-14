@@ -16,27 +16,31 @@ class Reddit extends Command {
     if (!args || args.length < 1) return msg.reply(`Incorrect Usage: ${msg.settings.prefix}reddit <subreddit>`);
     const subreddit = args.join('');
 
-    const post = await trev.getCustomSubreddit(subreddit);
+    try {
+      const post = await trev.getCustomSubreddit(subreddit);
 
-    let image = post.media;
-    if (trev.isImgurUpload(post.media)) image = trev.getRawImgur(post.media);
-    if (trev.isGfyLink(post.media)) image = trev.gfyIframe(post.media);
-
-    const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
-    const em = new EmbedBuilder()
-      .setAuthor({ name: authorName, iconURL: msg.author.displayAvatarURL() })
-      .setTitle(post.title)
-      .setURL(post.permalink)
-      .setImage(image)
-      .setTimestamp();
-
-    if (post.over_18 && msg.channel.nsfw === true) {
+      let image = post.media;
+      if (trev.isImgurUpload(post.media)) image = trev.getRawImgur(post.media);
+      if (trev.isGfyLink(post.media)) image = trev.gfyIframe(post.media);
+  
+      const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
+      const em = new EmbedBuilder()
+        .setAuthor({ name: authorName, iconURL: msg.author.displayAvatarURL() })
+        .setTitle(post.title)
+        .setURL(post.permalink)
+        .setImage(image)
+        .setTimestamp();
+  
+      if (post.over_18 && msg.channel.nsfw === true) {
+        return msg.channel.send({ embeds: [em] });
+      } else if (post.over_18 && msg.channel.nsfw === false) {
+        return msg.channel.send('The post from that subreddit is NSFW and could not be sent in this channel.');
+      }
+  
       return msg.channel.send({ embeds: [em] });
-    } else if (post.over_18 && msg.channel.nsfw === false) {
-      return msg.channel.send('The post from that subreddit is NSFW and could not be sent in this channel.');
+    } catch (err) {
+      return msg.channel.send('Could not get an image from that subreddit.');
     }
-
-    return msg.channel.send({ embeds: [em] });
   }
 }
 
