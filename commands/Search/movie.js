@@ -25,7 +25,7 @@ class Movie extends Command {
         query,
       });
 
-      if (!search.body.results.length) return msg.say('Could not find any results.');
+      if (!search.body.results.length) return msg.channel.send('Could not find any results.');
       const find =
         search.body.results.find((m) => m.title.toLowerCase() === query.toLowerCase()) || search.body.results[0];
 
@@ -60,7 +60,7 @@ class Movie extends Command {
 
       return msg.channel.send({ embeds: [embed] });
     } catch (err) {
-      return msg.reply(`Oh no, an error occurred: \`${err.message}\`. Try again later!`);
+      return msg.channel.send(`Oh no, an error occurred: \`${err.message}\`. Try again later!`);
     }
   }
 }
