@@ -84,7 +84,11 @@ module.exports = class {
       }
 
       const amount = BigInt(Math.floor(Math.random() * (max - min + 1) + min));
-      const cash = BigInt(db.get(`servers.${server.id}.users.${member.id}.economy.cash`));
+      const cash = BigInt(
+        db.get(`servers.${server.id}.users.${member.id}.economy.cash`) ||
+          db.get(`servers.${server.id}.economy.startBalance`) ||
+          0,
+      );
       const newAmount = cash + amount;
       db.set(`servers.${server.id}.users.${member.id}.economy.cash`, newAmount.toString());
 
