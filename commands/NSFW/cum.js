@@ -1,6 +1,6 @@
 const Command = require('../../base/Command.js');
 const { EmbedBuilder } = require('discord.js');
-const trev = require('trev');
+const trev = require('trev-reborn');
 
 class Cum extends Command {
   constructor(client) {
