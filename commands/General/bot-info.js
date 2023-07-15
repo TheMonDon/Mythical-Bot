@@ -30,7 +30,6 @@ class BotInfo extends Command {
         { name: 'Uptime', value: botuptime, inline: true },
         { name: 'Ping', value: Math.floor(this.client.ws.ping).toLocaleString(), inline: true },
         { name: 'Guilds', value: this.client.guilds.cache.size.toLocaleString(), inline: true },
-        { name: 'Commands Used', value: db.get('global.commands').toLocaleString(), inline: false },
         { name: 'Discord.js', value: version, inline: true },
         { name: 'Node', value: process.version, inline: true },
         {
@@ -41,6 +40,7 @@ class BotInfo extends Command {
         { name: 'Bot Version', value: botVersion, inline: true },
         { name: 'Invite', value: '[cisn.xyz/mythical](https://cisn.xyz/mythical)', inline: true },
         { name: 'Source Code', value: '[Source Code](https://github.com/TheMonDon/Mythical-Bot)', inline: true },
+        { name: 'Commands Used', value: db.get('global.commands').toLocaleString(), inline: false },
       ]);
 
     return msg.channel.send({ embeds: [embed] });
