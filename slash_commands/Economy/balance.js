@@ -21,7 +21,7 @@ exports.commandData = {
   dmPermission: false,
 };
 
-exports.run = async (client, interaction) => {
+exports.run = async (interaction) => {
   await interaction.deferReply();
   let mem = interaction.options?.get('user')?.member;
   if (!mem) mem = interaction.member;

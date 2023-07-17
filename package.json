@@ -1,6 +1,6 @@
 {
   "name": "mythical",
-  "version": "4.0.0",
+  "version": "4.1.0",
   "description": "Mythical Bot",
   "owner": "themondon",
   "main": "index.js",
@@ -68,7 +68,7 @@
     "sherlockjs": "^1.4.0",
     "superagent": "^8.0.0",
     "tictactoe-minimax-ai": "github:lukechu10/tictactoe-minimax",
-    "trev-reborn": "^1.0.1",
+    "trev-reborn": "^1.1.0",
     "twemoji": "^14.0.2",
     "undici": "^5.19.1",
     "weather-js": "^2.0.0",

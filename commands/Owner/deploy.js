@@ -14,10 +14,10 @@ module.exports = class Deploy extends Command {
   async run(message) {
     // We'll partition the slash commands based on the guildOnly boolean.
     // Separating them into the correct objects defined in the array below.
-    const [guildCmds, globalCmds] = this.client.slashcmds.partition((c) => c.guildOnly);
+    const [guildCmds, globalCmds] = this.client.slashCommands.partition((c) => c.guildOnly);
 
     // Give the user a notification the commands are deploying.
-    await message.channel.send('Deploying commands!');
+    const reply = await message.channel.send('Deploying commands!');
 
     // We'll use set but please keep in mind that `set` is overkill for a singular command.
     // Set the guild commands like this.
@@ -29,6 +29,6 @@ module.exports = class Deploy extends Command {
       .catch((e) => this.client.logger.error(e));
 
     // Reply to the user that the commands have been deployed.
-    await message.channel.send('All commands deployed!');
+    await reply.edit('All commands deployed!');
   }
 };

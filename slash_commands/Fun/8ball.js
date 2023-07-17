@@ -2,8 +2,6 @@ const { EmbedBuilder } = require('discord.js');
 const NekoLife = require('nekos.life');
 const neko = new NekoLife();
 
-// Set guildOnly to true if you want it to be available on guilds only.
-// Otherwise false is global.
 exports.conf = {
   permLevel: 'User',
   guildOnly: false,
@@ -23,7 +21,7 @@ exports.commandData = {
   dmPermission: true,
 };
 
-exports.run = async (client, interaction) => {
+exports.run = async (interaction) => {
   await interaction.deferReply();
 
   const question = interaction.options.get('question').value;

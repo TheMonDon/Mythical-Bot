@@ -18,17 +18,13 @@ class Reddit extends Command {
 
     try {
       const post = await trev.getCustomSubreddit(subreddit);
-
-      let image = post.media;
-      if (trev.isImgurUpload(post.media)) image = trev.getRawImgur(post.media);
-      if (trev.isGfyLink(post.media)) image = trev.gfyIframe(post.media);
   
       const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
       const em = new EmbedBuilder()
         .setAuthor({ name: authorName, iconURL: msg.author.displayAvatarURL() })
         .setTitle(post.title)
         .setURL(post.permalink)
-        .setImage(image)
+        .setImage(post.media)
         .setTimestamp();
   
       if (post.over_18 && msg.channel.nsfw === true) {

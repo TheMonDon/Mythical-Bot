@@ -16,17 +16,13 @@ class GoneWild extends Command {
   async run(msg) {
     const post = await trev.nsfw.gonewild();
 
-    let image = post.media;
-    if (trev.isImgurUpload(post.media)) image = trev.getRawImgur(post.media);
-    if (trev.isGfyLink(post.media)) image = trev.gfyIframe(post.media);
-
     const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
     const em = new EmbedBuilder()
       .setAuthor({ name: authorName, iconURL: msg.author.displayAvatarURL() })
       .setColor(msg.settings.embedColor)
       .setTitle(post.title)
       .setURL(post.permalink)
-      .setImage(image)
+      .setImage(post.media)
       .setTimestamp();
 
     return msg.channel.send({ embeds: [em] });

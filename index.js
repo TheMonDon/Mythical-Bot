@@ -18,7 +18,7 @@ class Bot extends Client {
     this.config = config;
     this.commands = new Collection();
     this.aliases = new Collection();
-    this.slashcmds = new Collection();
+    this.slashCommands = new Collection();
     this.util = require('./util/Util.js');
 
     this.settings = new Enmap({ name: 'settings', cloneLevel: 'deep', fetchAll: false, autoFetch: true });
@@ -282,42 +282,30 @@ const loadMusic = async (loadMusic) => {
 
 loadMusic();
 
-const init = async () => {
-  /*
-  // Now we load any **slash** commands you may have in the ./slash directory.
-  const slashFiles = readdirSync('./slash').filter(file => file.endsWith('.js'));
-  for (const file of slashFiles) {
-    const command = require(`./slash/${file}`);
-
-    // Now set the name of the command with it's properties.
-    client.slashcmds.set(command.commandData.name, command);
-  }
-  */
-
-  // New slash command loader
+const init = function init() {
   function getSlashCommands(dir) {
     const slashFiles = readdirSync(dir);
+
     for (const file of slashFiles) {
       const loc = path.resolve(dir, file);
       const stats = statSync(loc);
+
       if (stats.isDirectory()) {
         getSlashCommands(path.resolve(dir, file));
       } else {
         const command = require(loc);
-        client.slashcmds.set(command.commandData.name, command);
+        client.slashCommands.set(command.commandData.name, command);
       }
     }
   }
 
-  getSlashCommands('./slash');
-
-  // Here we load **commands** into memory, as a collection, so they're accessible
-  // here and everywhere else, sub-folders for days!
   function getCommands(dir) {
     const cmdFile = readdirSync(dir);
+
     for (const file of cmdFile) {
       const loc = path.resolve(dir, file);
       const stats = statSync(loc);
+
       if (stats.isDirectory()) {
         getCommands(path.resolve(dir, file));
       } else {
@@ -327,10 +315,9 @@ const init = async () => {
     }
   }
 
-  // Now let's call the functions to actually load up the commands!
   getCommands('./commands');
+  getSlashCommands('./slash_commands');
 
-  // Then we load events, which will include our message and ready event.
   const eventFiles = readdirSync('./events/').filter((file) => file.endsWith('.js'));
   for (const file of eventFiles) {
     const eventName = file.split('.')[0];
@@ -347,8 +334,6 @@ const init = async () => {
   }
 
   client.login(token);
-
-  // End top-level async/await function.
 };
 
 init();
@@ -385,8 +370,7 @@ client.on('raw', (packet) => {
 });
 
 process.on('uncaughtException', (err) => {
-  // eslint-disable-next-line node/no-path-concat
-  const errorMsg = err.stack.replace(new RegExp(`${__dirname}/`, 'g'), './');
+  const errorMsg = err.stack.replace(new RegExp(__dirname, 'g'), './');
   console.error('Uncaught Exception: ', errorMsg);
   process.exit(1);
 });
