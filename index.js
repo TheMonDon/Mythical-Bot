@@ -59,7 +59,7 @@ class Bot extends Client {
   that unloading happens in a consistent manner across the board.
   */
 
-  async loadInteraction(interactionPath, interactionName) {
+  loadInteraction(interactionPath, interactionName) {
     try {
       const props = require(interactionPath);
       props.conf.location = interactionPath;
@@ -67,7 +67,7 @@ class Bot extends Client {
         props.init(this);
       }
 
-      await this.slashCommands.set(props.commandData.name, props);
+      this.slashCommands.set(props.commandData.name, props);
       return false;
     } catch (e) {
       return console.log(`Unable to load slash command ${interactionName}: ${e}`);
@@ -119,6 +119,16 @@ class Bot extends Client {
     }
     delete require.cache[require.resolve(commandPath)];
     return false;
+  }
+
+  loadEvent(eventPath, eventName) {
+    const event = new (require(eventPath))(client);
+    client.on(eventName, (...args) => event.run(...args));
+    delete require.cache[require.resolve(eventPath)];
+  }
+
+  async unloadEvent(eventPath, eventName) {
+    // Code here
   }
 
   /* SETTINGS FUNCTIONS
@@ -309,7 +319,7 @@ const loadMusic = async (loadMusic) => {
 
 loadMusic();
 
-const init = function init() {
+const init = async function init() {
   function getSlashCommands(dir) {
     const slashFiles = readdirSync(dir);
 
@@ -327,9 +337,9 @@ const init = function init() {
   }
 
   function getCommands(dir) {
-    const cmdFile = readdirSync(dir);
+    const cmdFiles = readdirSync(dir);
 
-    for (const file of cmdFile) {
+    for (const file of cmdFiles) {
       const loc = path.resolve(dir, file);
       const stats = statSync(loc);
 
@@ -342,17 +352,25 @@ const init = function init() {
     }
   }
 
+  function getEvents(dir) {
+    const eventFiles = readdirSync(dir);
+
+    for (const file of eventFiles) {
+      const loc = path.resolve(dir, file);
+      const stats = statSync(loc);
+
+      if (stats.isDirectory()) {
+        getEvents(path.resolve(dir, file));
+      } else {
+        const eventName = file.split('.')[0];
+        client.loadEvent(loc, eventName);
+      }
+    }
+  }
+
   getCommands('./commands');
   getSlashCommands('./slash_commands');
-
-  const eventFiles = readdirSync('./events/').filter((file) => file.endsWith('.js'));
-  for (const file of eventFiles) {
-    const eventName = file.split('.')[0];
-    const event = new (require(`./events/${file}`))(client);
-
-    client.on(eventName, (...args) => event.run(...args));
-    delete require.cache[require.resolve(`./events/${file}`)];
-  }
+  getEvents('./events');
 
   client.levelCache = {};
   for (let i = 0; i < permLevels.length; i++) {

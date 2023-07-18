@@ -1,3 +1,5 @@
+const { EmbedBuilder } = require('discord.js');
+
 module.exports = class {
   constructor(client) {
     this.client = client;
@@ -12,9 +14,25 @@ module.exports = class {
 
       const level = this.client.permlevel(interaction);
       if (level < this.client.levelCache[slashCommand.conf.permLevel]) {
-        return interaction.reply(`You do not have permission to use this command.
-Your permission level is ${level} (${this.client.config.permLevels.find((l) => l.level === level).name})
-This command requires level ${this.client.levelCache[slashCommand.conf.permLevel]} (${slashCommand.conf.permLevel})`);
+        const authorName = interaction.user.discriminator === '0' ? interaction.user.username : interaction.user.tag;
+        const embed = new EmbedBuilder()
+          .setTitle('Missing Permission')
+          .setAuthor({ name: authorName, iconURL: interaction.user.displayAvatarURL() })
+          .setColor(interaction.settings.embedErrorColor)
+          .addFields([
+            {
+              name: 'Your Level',
+              value: `${level} (${this.client.config.permLevels.find((l) => l.level === level).name})`,
+              inline: true,
+            },
+            {
+              name: 'Required Level',
+              value: `${this.client.levelCache[slashCommand.conf.permLevel]} (${slashCommand.conf.permLevel})`,
+              inline: true,
+            },
+          ]);
+
+        return interaction.reply({ embeds: [embed], ephemeral: true });
       }
 
       try {

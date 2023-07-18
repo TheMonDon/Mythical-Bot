@@ -1,5 +1,5 @@
 const db = require('quick.db');
-const { ChannelType } = require('discord.js');
+const { ChannelType, EmbedBuilder } = require('discord.js');
 const { DateTime } = require('luxon');
 
 module.exports = class {
@@ -123,8 +123,7 @@ module.exports = class {
     // Get the user or member's permission level from the elevation
     const level = this.client.permlevel(message);
 
-    // Check whether the command, or alias, exist in the collections defined
-    // in app.js.
+    // Check whether the command, or alias, exist in the collections defined in index.js
     const cmd = this.client.commands.get(command) || this.client.commands.get(this.client.aliases.get(command));
     if (!cmd) return;
 
@@ -150,16 +149,31 @@ module.exports = class {
 
     if (level < this.client.levelCache[cmd.conf.permLevel]) {
       if (settings.systemNotice === 'true') {
-        return message.channel.send(`You do not have permission to use this command.
-Your permission level is ${level} (${this.client.config.permLevels.find((l) => l.level === level).name})
-This command requires level ${this.client.levelCache[cmd.conf.permLevel]} (${cmd.conf.permLevel})`);
+        const authorName = message.author.discriminator === '0' ? message.author.username : message.author.tag;
+        const embed = new EmbedBuilder()
+          .setTitle('Missing Permission')
+          .setAuthor({ name: authorName, iconURL: message.author.displayAvatarURL() })
+          .setColor(message.settings.embedErrorColor)
+          .addFields([
+            {
+              name: 'Your Level',
+              value: `${level} (${this.client.config.permLevels.find((l) => l.level === level).name})`,
+              inline: true,
+            },
+            {
+              name: 'Required Level',
+              value: `${this.client.levelCache[cmd.conf.permLevel]} (${cmd.conf.permLevel})`,
+              inline: true,
+            },
+          ]);
+
+        return message.channel.send({ embeds: [embed] });
       } else {
         return;
       }
     }
 
     // To simplify message arguments, the author's level is now put on level (not member, so it is supported in DMs)
-    // The "level" command module argument will be deprecated in the future.
     message.author.permLevel = level;
 
     // If the command exists, **AND** the user has permission, run it.

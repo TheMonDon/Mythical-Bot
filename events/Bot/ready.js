@@ -1,7 +1,7 @@
 const { EmbedBuilder } = require('discord.js');
 const db = require('quick.db');
 const { scheduleJob } = require('node-schedule');
-const { BotListToken } = require('../config.js');
+const { BotListToken } = require('../../config.js');
 
 module.exports = class {
   constructor(client) {

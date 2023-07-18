@@ -23,9 +23,9 @@ class Purge extends Command {
       \`Purge bots 50\`
       \`Purge human 50\`
       \`Purge images 50\`
-      \`Purge mentions 50\`,
-      \`Purge before <message ID | message link> 50\`,
-      \`Purge after <message ID | message link> 50\'
+      \`Purge mentions 50\`
+      \`Purge before <message ID | message link> 50\`
+      \`Purge after <message ID | message link> 50\`
       `,
       usage: 'Purge <count> [@member]',
       category: 'Moderator',
