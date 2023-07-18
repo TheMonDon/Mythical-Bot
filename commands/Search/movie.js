@@ -6,7 +6,7 @@ class Movie extends Command {
   constructor(client) {
     super(client, {
       name: 'movie',
-      description: 'View information on a movie from TMDb',
+      description: 'View information about a movie from TMDb',
       usage: 'Movie <Movie>',
       category: 'Search',
       aliases: ['tmdb-movie'],

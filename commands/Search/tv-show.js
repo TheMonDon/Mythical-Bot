@@ -6,7 +6,7 @@ class TVShow extends Command {
   constructor(client) {
     super(client, {
       name: 'tv-show',
-      description: 'View information on a tv-show from TMDb',
+      description: 'View information about a tv-show from TMDb',
       usage: 'TV-Show <Show>',
       category: 'Search',
       aliases: ['tvshow', 'tv'],
@@ -25,7 +25,7 @@ class TVShow extends Command {
         query,
       });
 
-      if (!search.body.results.length) return msg.channel.send('Could not find any results.');
+      if (!search.body.results.length) return msg.channel.send('No tv-show with that name was found.');
       const find =
         search.body.results.find((m) => m.name.toLowerCase() === query.toLowerCase()) || search.body.results[0];
 

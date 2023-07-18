@@ -6,7 +6,7 @@ class Steam extends Command {
   constructor(client) {
     super(client, {
       name: 'steam',
-      description: 'Get some information about any steam game or application.',
+      description: 'View information about a steam game or application',
       usage: 'Steam <Game/App>',
       category: 'Search',
     });
@@ -32,7 +32,7 @@ class Steam extends Command {
 
     if (!search.body.items.length) return msg.channel.send(`No results found for **${query}**!`);
 
-    const { id, tinyImage } = search.body.items[0];
+    const { id } = search.body.items[0];
 
     const { body } = await fetch.get('https://store.steampowered.com/api/appdetails').query({
       appids: id,
@@ -40,6 +40,7 @@ class Steam extends Command {
 
     const { data } = body[id.toString()];
 
+    console.log('Steam Data', data);
     const final = data.price_overview?.final_formatted || '$0';
     const initial = data.price_overview?.initial_formatted || '$0';
 
@@ -56,7 +57,7 @@ class Steam extends Command {
       .setAuthor({ name: 'Steam', iconURL: 'https://i.imgur.com/xxr2UBZ.png', url: 'http://store.steampowered.com/' })
       .setTitle(data.name)
       .setURL(`http://store.steampowered.com/app/${data.steam_appid}`)
-      .setImage(tinyImage)
+      .setImage(data.header_image)
       .addFields([
         { name: '❯ Price', value: `•\u2000 ${price}`, inline: true },
         { name: '❯ Metascore', value: `•\u2000 ${data.metacritic ? data.metacritic.score : 'Unknown'}`, inline: true },

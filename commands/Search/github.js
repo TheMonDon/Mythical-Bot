@@ -28,12 +28,12 @@ class Github extends Command {
           repository = args[1];
         } else {
           return msg.channel.send(
-            `Incorrect Usage: ${msg.settings.prefix}Github <user> <repository> OR Github <user/repository>`,
+            `Incorrect Usage: ${msg.settings.prefix}Github <user> <repository> OR ${msg.settings.prefix}Github <user/repository>`,
           );
         }
       } else {
         return msg.channel.send(
-          `Incorrect Usage: ${msg.settings.prefix}Github <user> <repository> OR Github <user/repository>`,
+          `Incorrect Usage: ${msg.settings.prefix}Github <user> <repository> OR ${msg.settings.prefix}Github <user/repository>`,
         );
       }
     }

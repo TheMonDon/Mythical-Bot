@@ -8,12 +8,12 @@ class Reload extends Command {
       category: 'Bot Admin',
       permLevel: 'Bot Admin',
       usage: 'Reload <Command>',
-      aliases: ['r', 'rl'],
+      aliases: ['r'],
     });
   }
 
   async run(message, args) {
-    if (!args || args.length < 1) return message.reply('Must provide a command to reload. Derp.');
+    if (!args || args.length < 1) return message.reply('Must provide a command to reload.');
 
     const commands = this.client.commands.get(args[0]) || this.client.commands.get(this.client.aliases.get(args[0]));
     if (!commands) return message.reply(`The command \`${args[0]}\` does not exist, nor is it an alias.`);

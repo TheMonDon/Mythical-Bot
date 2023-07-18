@@ -161,7 +161,7 @@ Filling starts at the top left corner.`,
         }
 
         const collected = await message.awaitReactions({ filter, max: 1, time: 60000, errors: ['time'] });
-        if (!collected) {
+        if (!collected || !collected.first()) {
           gameOver = true;
           result = 'timeOut';
           this.client.games.delete(msg.channel.id);
@@ -169,7 +169,7 @@ Filling starts at the top left corner.`,
           return message.edit({ embeds: getContent() });
         }
 
-        collected.first().users.remove(msg.author.id);
+        collected.first().users.remove(msg.author.id).catch(() => {});
         selected = collected.first().emoji.name;
         if (selected === '🛑') {
           gameOver = true;

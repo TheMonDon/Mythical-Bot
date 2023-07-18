@@ -59,6 +59,29 @@ class Bot extends Client {
   that unloading happens in a consistent manner across the board.
   */
 
+  loadInteraction(interactionPath, interactionName) {
+    try {
+      const props = new (require(interactionPath))(this);
+      props.conf.location = interactionPath;
+      if (props.init) {
+        props.init(this);
+      }
+
+      this.slashCommands.set(props.commandData.name, props);
+      return false;
+    } catch (e) {
+      return console.log(`Unable to load command ${interactionName}: ${e}`);
+    }
+  }
+
+  unloadInteraction(interactionPath, interactionName) {
+    try {
+      // 
+    } catch (e) {
+      console.log(`Unable to load command ${interactionName}: ${e}`);
+    }
+  }
+
   loadCommand(commandPath, commandName) {
     try {
       const props = new (require(commandPath))(this);

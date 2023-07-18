@@ -12,7 +12,7 @@ module.exports = class {
       if (!logChan) return;
 
       const logSys = db.get(`servers.${member.guild.id}.logs.logSystem.member-leave`);
-      if (logSys !== 'enabled') return;
+      if (!logSys || logSys !== 'enabled') return;
 
       await member.guild.members.fetch();
       const memberName = member.user.discriminator === '0' ? member.user.username : member.user.tag;
@@ -28,10 +28,9 @@ module.exports = class {
         .setFooter({ text: `ID: ${member.user.id}` })
         .setTimestamp();
 
-      member.guild.channels.cache
-        .get(logChan)
-        .send({ embeds: [embed] })
-        .catch(() => {});
+      const channel = member.guild.channels.cache.get(logChan);
+      if (!channel) return;
+      channel.send({ embeds: [embed] });
 
       db.add(`servers.${member.guild.id}.logs.member-leave`, 1);
       db.add(`servers.${member.guild.id}.logs.all`, 1);
