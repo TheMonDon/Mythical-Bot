@@ -140,7 +140,7 @@ exports.run = async (interaction) => {
 
       const { body } = await fetch
         .get(`https://api.themoviedb.org/3/tv/${find.id}`)
-        .query({ api_key: this.client.config.TMDb });
+        .query({ api_key: interaction.client.config.TMDb });
 
       const embed = new EmbedBuilder()
         .setColor(interaction.settings.embedColor)

@@ -59,27 +59,31 @@ class Bot extends Client {
   that unloading happens in a consistent manner across the board.
   */
 
-  loadInteraction(interactionPath, interactionName) {
+  async loadInteraction(interactionPath, interactionName) {
     try {
-      const props = new (require(interactionPath))(this);
+      const props = require(interactionPath);
       props.conf.location = interactionPath;
       if (props.init) {
         props.init(this);
       }
 
-      this.slashCommands.set(props.commandData.name, props);
+      await this.slashCommands.set(props.commandData.name, props);
       return false;
     } catch (e) {
-      return console.log(`Unable to load command ${interactionName}: ${e}`);
+      return console.log(`Unable to load slash command ${interactionName}: ${e}`);
     }
   }
 
-  unloadInteraction(interactionPath, interactionName) {
-    try {
-      // 
-    } catch (e) {
-      console.log(`Unable to load command ${interactionName}: ${e}`);
+  async unloadInteraction(interactionPath, interactionName) {
+    let command;
+    if (this.slashCommands.has(interactionName)) {
+      command = this.slashCommands.get(interactionName);
     }
+    if (!command) return console.log(`The slash command \`${interactionName}\` doesn't seem to exist. Try again!`);
+
+    await delete require.cache[require.resolve(interactionPath)];
+    await this.slashCommands.delete(interactionName);
+    return false;
   }
 
   loadCommand(commandPath, commandName) {
@@ -316,8 +320,8 @@ const init = function init() {
       if (stats.isDirectory()) {
         getSlashCommands(path.resolve(dir, file));
       } else {
-        const command = require(loc);
-        client.slashCommands.set(command.commandData.name, command);
+        const commandName = file.split('.')[0];
+        client.loadInteraction(loc, commandName);
       }
     }
   }

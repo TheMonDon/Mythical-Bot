@@ -219,10 +219,10 @@ module.exports = class Util {
     newText = newText
       .replace(/`/g, '`' + String.fromCharCode(8203))
       .replace(/@/g, '@' + String.fromCharCode(8203))
-      .replace(client.token, 'mfa.VkO_2G4Qv3T--NO--lWetW_tjND--TOKEN--QFTm6YGtzq9PH--4U--tG0');
+      .replace(client.token, '*'.repeat(client.token.length));
 
     const config = client.config;
-    const secrets = [config.token, config.github, config.owlKey, config.OxfordID, config.OxfordKey, config.TMDb];
+    const secrets = [config.token, config.github, config.owlKey, config.OxfordID, config.OxfordKey, config.TMDb, config.BotListToken];
 
     for (let i = 0; i < secrets.length; i++) {
       newText = Util.replaceAll(newText, secrets[i], '*'.repeat(secrets[i].length));
