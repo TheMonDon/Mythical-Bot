@@ -2,6 +2,7 @@
 const { EmbedBuilder, SlashCommandBuilder } = require('discord.js');
 const trev = require('trev-reborn');
 const fetch = require('node-superfetch');
+const moment = require('moment');
 
 exports.conf = {
   permLevel: 'User',
@@ -49,13 +50,13 @@ exports.commandData = new SlashCommandBuilder()
       .addStringOption((option) => option.setName('repo').setDescription('Github repo').setRequired(false)),
   )
   .addSubcommand((subcommand) =>
-  subcommand
-    .setName('npm')
-    .setDescription('View information about a NPM package')
-    .addStringOption((option) =>
-      option.setName('package').setDescription('The package to search for').setRequired(true),
-    ),
-);
+    subcommand
+      .setName('npm')
+      .setDescription('View information about a NPM package')
+      .addStringOption((option) =>
+        option.setName('package').setDescription('The package to search for').setRequired(true),
+      ),
+  );
 
 exports.run = async (interaction) => {
   await interaction.deferReply();
@@ -241,13 +242,110 @@ exports.run = async (interaction) => {
     case 'github': {
       const user = interaction.options.get('user').value;
       const repo = interaction.options.get('repo')?.value;
-      return interaction.editReply(`This is a work in progress. User: ${user}, Repo: ${repo}`);
+
+      const embed = new EmbedBuilder()
+        .setColor(interaction.settings.embedColor)
+        .setAuthor({ name: 'GitHub', iconURL: 'https://i.imgur.com/e4HunUm.png', url: 'https://github.com/' });
+
+      if (user && repo) {
+        try {
+          const { body } = await fetch
+            .get(`https://api.github.com/repos/${user.toLowerCase()}/${repo.toLowerCase()}`)
+            .set({ Authorization: `token ${interaction.client.config.github}` });
+
+          const createdAt = new Date(body.created_at).getTime() / 1000;
+          const updatedAt = new Date(body.updated_at).getTime() / 1000;
+
+          embed
+            .setTitle(body.full_name)
+            .setURL(body.html_url)
+            .setDescription(body.description ? body.description.slice(0, 2000) : 'No description.')
+            .setThumbnail(body.owner.avatar_url)
+            .addFields([
+              { name: 'Stars', value: body.stargazers_count.toLocaleString(), inline: true },
+              { name: 'Forks', value: body.forks.toLocaleString(), inline: true },
+              { name: 'Issues', value: body.open_issues.toLocaleString(), inline: true },
+              { name: 'Language', value: body.language || 'Unknown', inline: true },
+              { name: 'License', value: body.license ? body.license.name : 'None', inline: true },
+              { name: 'Archived', value: body.archived ? 'Yes' : 'No', inline: true },
+              { name: 'Size', value: `${(body.size / 1000).toLocaleString()} MB`, inline: true },
+              { name: 'Creation Date', value: `<t:${createdAt}:f>`, inline: true },
+              {
+                name: 'Modification Date',
+                value: `<t:${updatedAt}:f>`,
+                inline: true,
+              },
+            ]);
+
+          return interaction.editReply({ embeds: [embed] });
+        } catch (err) {
+          if (err.status === 404) return interaction.editReply('No results were found for that repository.');
+          return interaction.editReply(`Oh no, an error occurred: \`${err.message}\`. Try again later!`);
+        }
+      }
+
+      try {
+        const { body } = await fetch
+          .get(`https://api.github.com/users/${user.toLowerCase()}`)
+          .set({ Authorization: `token ${interaction.client.config.github}` });
+
+        const createdAt = new Date(body.created_at).getTime() / 1000;
+        const updatedAt = new Date(body.updated_at).getTime() / 1000;
+
+        embed
+          .setTitle(body.login)
+          .setURL(body.html_url)
+          .setThumbnail(body.avatar_url)
+          .addFields([
+            { name: 'Name', value: body.login, inline: true },
+            { name: 'Company', value: body.company || 'None', inline: true },
+            { name: 'Public Repositories', value: body.public_repos?.toString() || '0', inline: true },
+            { name: 'Private Repositories', value: body.total_private_repos?.toString() || '0', inline: true },
+            { name: 'Creation Date', value: `<t:${createdAt}:f>`, inline: true },
+            { name: 'Modification Date', value: `<t:${updatedAt}:f>`, inline: true },
+            { name: 'Location', value: body.location, inline: true },
+            { name: 'Following', value: body.following.toString(), inline: true },
+            { name: 'Followers', value: body.followers.toString(), inline: true },
+            { name: 'Bio', value: body.bio || 'No Bio', inline: false },
+          ]);
+
+        return interaction.editReply({ embeds: [embed] });
+      } catch (err) {
+        if (err.status === 404) return interaction.editReply('No results were found for that user.');
+        console.log(err);
+        return interaction.editReply(`Oh no, an error occured: \`${err.message}\`. Try again later!`);
+      }
     }
     case 'npm': {
-      return interaction.editReply('This is a work in progress');
-    }
-    default: {
-      return interaction.editReply('How did you get here? Run the command correctly!');
+      const packageName = interaction.options.get('package').value;
+
+      try {
+        const { body } = await fetch.get(`https://registry.npmjs.com/${packageName.toLowerCase()}`);
+
+        const maintainers = body.author?.name || body.maintainers?.map(({ name }) => name).join(', ');
+        const lastPublish = Math.floor(new Date(body.time[body['dist-tags'].latest]).getTime() / 1000);
+
+        const embed = new EmbedBuilder()
+          .setTitle(`${body.name} Package Information`)
+          .setColor(interaction.settings.embedColor)
+          .addFields([
+            { name: 'Version', value: body['dist-tags'].latest, inline: true },
+            { name: 'Description', value: body.description, inline: true },
+            { name: 'License', value: body.license, inline: true },
+            { name: 'Maintainers', value: maintainers, inline: true },
+            { name: 'Keywords', value: body.keywords?.join(', ') || 'None', inline: true },
+            { name: 'Versions', value: Object.keys(body.versions).length.toString(), inline: true },
+            { name: 'Homepage', value: body.homepage || 'None', inline: true },
+            { name: 'Bugs', value: body.bugs?.url || 'None', inline: true },
+            { name: 'Last Publish', value: `<t:${lastPublish}:f>`, inline: true },
+          ]);
+
+        return interaction.editReply({ embeds: [embed] });
+      } catch (err) {
+        if (err.status === 404) return interaction.editReply('No results were found for that package.');
+        console.log(err);
+        return interaction.editReply(`Oh no, an error occured: \`${err.message}\`. Try again later!`);
+      }
     }
   }
 };

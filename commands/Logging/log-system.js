@@ -42,6 +42,8 @@ class logSystem extends Command {
 **Emoji Created:** ${db.get(`servers.${msg.guild.id}.logs.logSystem.emoji-created`) || ':x:'}
 **Emoji Deleted:** ${db.get(`servers.${msg.guild.id}.logs.logSystem.emoji-deleted`) || ':x:'}
 **Bulk Messages Deleted:** ${db.get(`servers.${msg.guild.id}.logs.logSystem.bulk-messages-deleted`) || ':x:'}
+**Sticker Created:** ${db.get(`servers.${msg.guild.id}.logs.logSystem.sticker-created`) || ':x:'}
+**Sticker Deleted:** ${db.get(`servers.${msg.guild.id}.logs.logSystem.sticker-deleted`) || ':x:'}
 `,
           inline: true,
         },
@@ -65,13 +67,15 @@ class logSystem extends Command {
 **Emojis Created:** ${db.get(`servers.${msg.guild.id}.logs.emoji-created`) || '0'}
 **Emojis Deleted:** ${db.get(`servers.${msg.guild.id}.logs.emoji-deleted`) || '0'}
 **Bulk Messages Deleted:** ${db.get(`servers.${msg.guild.id}.logs.bulk-messages-deleted`) || '0'}
+**Stickers Created:** ${db.get(`servers.${msg.guild.id}.logs.sticker-created`) || '0'}
+**Stickers Deleted:** ${db.get(`servers.${msg.guild.id}.logs.sticker-deleted`) || '0'}
 **Total:** ${db.get(`servers.${msg.guild.id}.logs.all`) || '0'}
 `,
           inline: true,
         },
         { name: 'Log Channel', value: `${db.get(`servers.${msg.guild.id}.logs.logSystem.channel`) || ':x:'}` },
       ])
-      .setFooter({ text: 'logs.logSystem System V3.2' });
+      .setFooter({ text: 'Log System V3.3' });
 
     if (msg.guild.members.me.permissions.has('ManageMessages')) msg.delete();
     return msg.channel.send({ embeds: [embed] });

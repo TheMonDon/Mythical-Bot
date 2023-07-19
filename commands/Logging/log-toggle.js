@@ -42,6 +42,8 @@ class LogToggle extends Command {
     const ec = /^(emoji[-]?created)/gi;
     const ed = /^(emoji[-]?deleted)/gi;
     const bmd = /^(bulk[-]?messages[-]?deleted)/gi;
+    const stc = /^(sticker[-]?created)/gi;
+    const std = /^(sticker[-]?deleted)/gi;
 
     const errorEmbed = new EmbedBuilder().setTitle(':x: Invalid parameter.').addFields([
       {
@@ -52,8 +54,8 @@ channel-deleted
 channel-updated
 thread-created
 thread-deleted
-v-channel-created
-v-channel-deleted
+voice-channel-created
+voice-channel-deleted
 member-join
 member-leave
 message-edited
@@ -66,7 +68,9 @@ stage-channel-deleted
 stage-channel-updated
 emoji-created
 emoji-deleted
-bulk-messages-deleted`,
+bulk-messages-deleted
+sticker-created
+sticker-deleted`,
         inline: true,
       },
       {
@@ -286,6 +290,22 @@ bulk-messages-deleted`,
       } else {
         db.set(`servers.${msg.guild.id}.logs.logSystem.thread-deleted`, 'enabled');
         msg.channel.send('Thread-Deleted logs have been enabled');
+      }
+    } else if (stc.test(query)) {
+      if (db.get(`servers.${msg.guild.id}.logs.logSystem.sticker-created`) === 'enabled') {
+        db.set(`servers.${msg.guild.id}.logs.logSystem.sticker-created`, 'disabled');
+        msg.channel.send('Sticker-Created logs has been disabled');
+      } else {
+        db.set(`servers.${msg.guild.id}.logs.logSystem.sticker-created`, 'enabled');
+        msg.channel.send('Sticker-Created logs have been enabled');
+      }
+    } else if (std.test(query)) {
+      if (db.get(`servers.${msg.guild.id}.logs.logSystem.sticker-deleted`) === 'enabled') {
+        db.set(`servers.${msg.guild.id}.logs.logSystem.sticker-deleted`, 'disabled');
+        msg.channel.send('Sticker-Deleted logs has been disabled');
+      } else {
+        db.set(`servers.${msg.guild.id}.logs.logSystem.sticker-deleted`, 'enabled');
+        msg.channel.send('Sticker-Deleted logs have been enabled');
       }
     } else {
       msg.channel.send({ embeds: [errorEmbed] });
