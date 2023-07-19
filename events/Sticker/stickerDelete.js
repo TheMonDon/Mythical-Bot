@@ -7,30 +7,32 @@ module.exports = class {
   }
 
   async run(sticker) {
-    const logChan = db.get(`servers.${sticker.guild.id}.logs.channel`);
+    const guild = this.client.guilds.cache.get(sticker.guildId);
+
+    const logChan = db.get(`servers.${guild.id}.logs.channel`);
     if (!logChan) return;
 
-    const logSys = db.get(`servers.${sticker.guild.id}.logs.logSystem.sticker-deleted`);
+    const logSys = db.get(`servers.${guild.id}.logs.logSystem.sticker`);
     if (logSys !== 'enabled') return;
 
     const embed = new EmbedBuilder()
       .setTitle('Sticker Deleted')
-      .setColor('#ff0000')
+      .setColor(this.client.getSettings(guild).embedErrorColor)
       .setThumbnail(sticker.url)
       .addFields([
         { name: 'Name', value: sticker.name },
-        { name: 'Identifier', value: sticker.identifier },
-        { name: 'Was Animated?', value: sticker.animated },
+        { name: 'Sticker ID', value: sticker.id },
+        { name: 'Description', value: sticker.description },
+        { name: 'Tags', value: sticker.tags },
       ])
-      .setFooter({ text: `sticker ID: ${sticker.id}` })
       .setTimestamp();
 
-    sticker.guild.channels.cache
+    guild.channels.cache
       .get(logChan)
       .send({ embeds: [embed] })
       .catch(() => {});
 
-    db.add(`servers.${sticker.guild.id}.logs.sticker-deleted`, 1);
-    db.add(`servers.${sticker.guild.id}.logs.all`, 1);
+    db.add(`servers.${guild.id}.logs.sticker`, 1);
+    db.add(`servers.${guild.id}.logs.all`, 1);
   }
 };

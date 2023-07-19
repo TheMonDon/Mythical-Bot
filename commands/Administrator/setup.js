@@ -210,8 +210,8 @@ class Setup extends Command {
         'role-updated': 'enabled',
         'v-channel-created': 'enabled',
         'v-channel-deleted': 'enabled',
-        'emoji-created': 'enabled',
-        'emoji-deleted': 'enabled',
+        'emoji': 'enabled',
+        'sticker': 'enabled',
         'bulk-messages-deleted': 'enabled',
         all: 'enabled',
       };
@@ -242,7 +242,7 @@ class Setup extends Command {
           .setThumbnail('https://cdn.discordapp.com/emojis/482184108555108358.png')
           .setDescription(`Everything related to logs will be posted in ${chan} from now on.`)
           .setTimestamp()
-          .setFooter({ text: 'Logs System V3.3' });
+          .setFooter({ text: 'Logs System V4.0' });
         msg.channel.send({ embeds: [embed] });
       } else {
         db.set(`servers.${msg.guild.id}.logs.logSystem`, logSystem);
@@ -252,7 +252,7 @@ class Setup extends Command {
           .setThumbnail('https://cdn.discordapp.com/emojis/482184108555108358.png')
           .setDescription(`Everything related to logs will be posted in ${chan}.`)
           .setTimestamp()
-          .setFooter({ text: 'Logs System V3.3' });
+          .setFooter({ text: 'Logs System V4.0' });
         msg.channel.send({ embeds: [embed] });
       }
       db.set(`servers.${msg.guild.id}.logs.channel`, chan.id);

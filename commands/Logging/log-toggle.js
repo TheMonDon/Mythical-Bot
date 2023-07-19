@@ -10,7 +10,7 @@ class LogToggle extends Command {
       usage: 'Log-Toggle <module>',
       category: 'Logging',
       permLevel: 'Moderator',
-      aliases: ['togglelog', 'logtoggle', 'tl', 'lt'],
+      aliases: ['togglelog', 'logtoggle'],
       guildOnly: true,
     });
   }
@@ -39,19 +39,19 @@ class LogToggle extends Command {
     const sc = /^((stage|s)[-]?channel[-]?created)/gi;
     const sd = /^((stage|s)[-]?channel[-]?deleted)/gi;
     const su = /^((stage|s)[-]?channel[-]?updated)/gi;
-    const ec = /^(emoji[-]?created)/gi;
-    const ed = /^(emoji[-]?deleted)/gi;
+    const emoji = /^(emoji)/gi;
     const bmd = /^(bulk[-]?messages[-]?deleted)/gi;
-    const stc = /^(sticker[-]?created)/gi;
-    const std = /^(sticker[-]?deleted)/gi;
+    const sticker = /^(sticker)/gi;
 
     const errorEmbed = new EmbedBuilder().setTitle(':x: Invalid parameter.').addFields([
       {
         name: 'Valid Parameters',
         value: `
+bulk-messages-deleted
 channel-created
 channel-deleted
 channel-updated
+emoji
 thread-created
 thread-deleted
 voice-channel-created
@@ -66,11 +66,7 @@ role-updated
 stage-channel-created
 stage-channel-deleted
 stage-channel-updated
-emoji-created
-emoji-deleted
-bulk-messages-deleted
-sticker-created
-sticker-deleted`,
+sticker`,
         inline: true,
       },
       {
@@ -251,21 +247,13 @@ sticker-deleted`,
         db.set(`servers.${msg.guild.id}.logs.logSystem.stage-channel-updated`, 'enabled');
         msg.channel.send('Stage-Channel-Updated logs has been enabled');
       }
-    } else if (ec.test(query)) {
-      if (db.get(`servers.${msg.guild.id}.logs.logSystem.emoji-created`) === 'enabled') {
-        db.set(`servers.${msg.guild.id}.logs.logSystem.emoji-created`, 'disabled');
-        msg.channel.send('Emoji-Created logs has been disabled');
+    } else if (emoji.test(query)) {
+      if (db.get(`servers.${msg.guild.id}.logs.logSystem.emoji`) === 'enabled') {
+        db.set(`servers.${msg.guild.id}.logs.logSystem.emoji`, 'disabled');
+        msg.channel.send('Emoji logs has been disabled');
       } else {
-        db.set(`servers.${msg.guild.id}.logs.logSystem.emoji-created`, 'enabled');
-        msg.channel.send('Emoji-Created logs has been enabled');
-      }
-    } else if (ed.test(query)) {
-      if (db.get(`servers.${msg.guild.id}.logs.logSystem.emoji-deleted`) === 'enabled') {
-        db.set(`servers.${msg.guild.id}.logs.logSystem.emoji-deleted`, 'disabled');
-        msg.channel.send('Emoji-Deleted logs has been disabled');
-      } else {
-        db.set(`servers.${msg.guild.id}.logs.logSystem.emoji-deleted`, 'enabled');
-        msg.channel.send('Emoji-Deleted logs has been enabled');
+        db.set(`servers.${msg.guild.id}.logs.logSystem.emoji`, 'enabled');
+        msg.channel.send('Emoji logs has been enabled');
       }
     } else if (bmd.test(query)) {
       if (db.get(`servers.${msg.guild.id}.logs.logSystem.bulk-messages-deleted`) === 'enabled') {
@@ -291,21 +279,13 @@ sticker-deleted`,
         db.set(`servers.${msg.guild.id}.logs.logSystem.thread-deleted`, 'enabled');
         msg.channel.send('Thread-Deleted logs have been enabled');
       }
-    } else if (stc.test(query)) {
-      if (db.get(`servers.${msg.guild.id}.logs.logSystem.sticker-created`) === 'enabled') {
-        db.set(`servers.${msg.guild.id}.logs.logSystem.sticker-created`, 'disabled');
-        msg.channel.send('Sticker-Created logs has been disabled');
+    } else if (sticker.test(query)) {
+      if (db.get(`servers.${msg.guild.id}.logs.logSystem.sticker`) === 'enabled') {
+        db.set(`servers.${msg.guild.id}.logs.logSystem.sticker`, 'disabled');
+        msg.channel.send('Sticker logs has been disabled');
       } else {
-        db.set(`servers.${msg.guild.id}.logs.logSystem.sticker-created`, 'enabled');
-        msg.channel.send('Sticker-Created logs have been enabled');
-      }
-    } else if (std.test(query)) {
-      if (db.get(`servers.${msg.guild.id}.logs.logSystem.sticker-deleted`) === 'enabled') {
-        db.set(`servers.${msg.guild.id}.logs.logSystem.sticker-deleted`, 'disabled');
-        msg.channel.send('Sticker-Deleted logs has been disabled');
-      } else {
-        db.set(`servers.${msg.guild.id}.logs.logSystem.sticker-deleted`, 'enabled');
-        msg.channel.send('Sticker-Deleted logs have been enabled');
+        db.set(`servers.${msg.guild.id}.logs.logSystem.sticker`, 'enabled');
+        msg.channel.send('Sticker logs have been enabled');
       }
     } else {
       msg.channel.send({ embeds: [errorEmbed] });

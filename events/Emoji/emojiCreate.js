@@ -10,26 +10,27 @@ module.exports = class {
     const logChan = db.get(`servers.${emoji.guild.id}.logs.channel`);
     if (!logChan) return;
 
-    const logSys = db.get(`servers.${emoji.guild.id}.logs.logSystem.emoji-created`);
+    const logSys = db.get(`servers.${emoji.guild.id}.logs.logSystem.emoji`);
     if (logSys !== 'enabled') return;
 
     const embed = new EmbedBuilder()
       .setTitle('Emoji Created')
-      .setColor('#20fc3a')
+      .setColor(this.client.getSettings(emoji.guild).embedSuccessColor)
       .setThumbnail(emoji.url)
       .addFields([
         { name: 'Name', value: emoji.name },
         { name: 'Identifier', value: emoji.identifier },
-        { name: 'Is Animated?', value: emoji.animated },
+        { name: 'Emoji ID', value: emoji.id},
+        { name: 'Is Animated?', value: emoji.animated ? 'True' : 'False'},
       ])
-      .setFooter({ text: `ID: ${emoji.id}` })
       .setTimestamp();
+
     emoji.guild.channels.cache
       .get(logChan)
       .send({ embeds: [embed] })
       .catch(() => {});
 
-    db.add(`servers.${emoji.guild.id}.logs.emoji-created`, 1);
+    db.add(`servers.${emoji.guild.id}.logs.emoji`, 1);
     db.add(`servers.${emoji.guild.id}.logs.all`, 1);
   }
 };

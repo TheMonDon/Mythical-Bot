@@ -20,9 +20,11 @@ class ToggleAll extends Command {
 
     const all = db.get(`servers.${msg.guild.id}.logs.logSystem.all`);
     const enable = {
+      'bulk-messages-deleted': 'enabled',
       'channel-created': 'enabled',
       'channel-deleted': 'enabled',
       'channel-updated': 'enabled',
+      'emoji': 'enabled',
       'member-join': 'enabled',
       'member-leave': 'enabled',
       'message-deleted': 'enabled',
@@ -35,15 +37,15 @@ class ToggleAll extends Command {
       'stage-channel-deleted': 'enabled',
       'v-channel-created': 'enabled',
       'v-channel-deleted': 'enabled',
-      'emoji-created': 'enabled',
-      'emoji-deleted': 'enabled',
-      'bulk-messages-deleted': 'enabled',
+      'sticker': 'enabled',
       all: 'enabled',
     };
     const disable = {
+      'bulk-messages-deleted': 'disabled',
       'channel-created': 'disabled',
       'channel-deleted': 'disabled',
       'channel-updated': 'disabled',
+      'emoji': 'disabled',
       'member-join': 'disabled',
       'member-leave': 'disabled',
       'message-deleted': 'disabled',
@@ -56,9 +58,7 @@ class ToggleAll extends Command {
       'stage-channel-deleted': 'disabled',
       'v-channel-created': 'disabled',
       'v-channel-deleted': 'disabled',
-      'emoji-created': 'disabled',
-      'emoji-deleted': 'disabled',
-      'bulk-messages-deleted': 'disabled',
+      'sticker': 'disabled',
       all: 'disabled',
     };
 
