@@ -9,14 +9,16 @@ class Deposit extends Command {
       category: 'Economy',
       description: 'Deposit your money into the bank',
       examples: ['deposit'],
+      usage: 'deposit <amount | all>',
       aliases: ['dep'],
+      requiredArgs: 1,
       guildOnly: true,
     });
   }
 
   run(msg, args) {
     let amount = args.join(' ');
-    const usage = `${msg.settings.prefix}Deposit <amount | all>`;
+    const usage = `${msg.settings.prefix}deposit <amount | all>`;
 
     const currencySymbol = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
 

@@ -6,7 +6,8 @@ class Cursive extends Command {
     super(client, {
       name: 'cursive',
       description: 'Convert your text into cursive!',
-      usage: 'cursive',
+      usage: 'cursive <text>',
+      requiredArgs: 1,
       category: 'Fun',
     });
   }
@@ -76,8 +77,6 @@ class Cursive extends Command {
       9: '𝟫',
       0: '𝟢',
     };
-
-    if (!args || args.length < 1) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}Cursive <text>`);
 
     const string = args.join(' ');
     const lengthLimited = this.client.util.limitStringLength(string);

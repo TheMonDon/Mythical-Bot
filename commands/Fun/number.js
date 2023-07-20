@@ -7,23 +7,22 @@ class Number extends Command {
     super(client, {
       name: 'number',
       description: 'Get a random fact about a number.',
-      usage: 'Number <number>',
+      usage: 'number <number>',
+      requiredArgs: 1,
       category: 'Fun',
       aliases: ['num'],
     });
   }
 
   async run(msg, args) {
-    if (!args || args.length < 1) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}Number <number>`);
-
     const { body } = await fetch.get(`http://numbersapi.com/${args.join(' ')}`).catch(() => {
       return msg.channel.send('I could not find any information about that number.');
     });
     if (!body) return msg.channel.send('I could not find any information about that number.');
 
-    const em = new EmbedBuilder().setTitle(body.toString()).setColor(msg.settings.embedColor);
+    const embed = new EmbedBuilder().setTitle(body.toString()).setColor(msg.settings.embedColor);
 
-    return msg.channel.send({ embeds: [em] });
+    return msg.channel.send({ embeds: [embed] });
   }
 }
 module.exports = Number;

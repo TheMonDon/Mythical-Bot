@@ -8,15 +8,14 @@ class Weather extends Command {
     super(client, {
       name: 'weather',
       description: 'Get the weather information from any city',
-      usage: 'weather <City Name or Zip Code>',
+      usage: 'weather <City Name | Zip Code>',
+      requiredArgs: 1,
       category: 'Information',
     });
   }
 
   async run(msg, text) {
     const city = text.join(' ');
-    if (!city) return msg.channel.send('Incorrect Usage: `weather <City Name or Zip Code>`');
-
     const ZipCode = /^-?\d+\.?\d*$/;
 
     // Set the stuff for the weather api

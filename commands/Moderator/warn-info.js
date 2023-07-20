@@ -12,12 +12,12 @@ class WarnInfo extends Command {
       category: 'Moderator',
       permLevel: 'Moderator',
       aliases: ['case', 'warning', 'caseinfo', 'warninginfo', 'warninfo'],
+      requiredArgs: 1,
       guildOnly: true,
     });
   }
 
   async run(msg, args) {
-    if (!args || args.length < 1) return msg.channel.send('Incorrect Usage: Please supply a caseID');
     const caseID = args.join(' ');
     const warn = db.get(`servers.${msg.guild.id}.warns.warnings.${caseID}`);
 

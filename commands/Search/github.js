@@ -8,9 +8,11 @@ class Github extends Command {
     super(client, {
       name: 'github',
       description: 'View information about a repository on Github',
-      usage: 'Github <user> <repository> \nGithub <user/repository>',
+      usage: 'github <user> <repository> | <user/repository>',
+      examples: ['github themondon mythical-bot', 'github themondon/mythical-bot'], 
       category: 'Search',
       aliases: ['gh'],
+      requiredArgs: 1,
     });
   }
 
@@ -19,6 +21,7 @@ class Github extends Command {
     let repository;
 
     if (!args || args.length < 2) {
+      const usage = `Incorrect Usage:${msg.settings.prefix}github <user> <repository> | <user/repository>`;
       // If there is only one argument, it could be in the format of user/repository
       if (args.length === 1) {
         args = args.join('');
@@ -27,14 +30,10 @@ class Github extends Command {
           author = args[0];
           repository = args[1];
         } else {
-          return msg.channel.send(
-            `Incorrect Usage: ${msg.settings.prefix}Github <user> <repository> OR ${msg.settings.prefix}Github <user/repository>`,
-          );
+          return msg.channel.send(usage);
         }
       } else {
-        return msg.channel.send(
-          `Incorrect Usage: ${msg.settings.prefix}Github <user> <repository> OR ${msg.settings.prefix}Github <user/repository>`,
-        );
+        return msg.channel.send(usage);
       }
     }
 

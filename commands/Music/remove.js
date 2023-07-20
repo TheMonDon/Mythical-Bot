@@ -7,7 +7,8 @@ class Remove extends Command {
       name: 'remove',
       description: 'Remove a track from the queue',
       category: 'Music',
-      usage: 'remove <#>',
+      usage: 'remove <track number>',
+      requiredArgs: 1,
       guildOnly: true,
     });
   }
@@ -20,8 +21,6 @@ class Remove extends Command {
       return msg.channel.send('You must be in the same voice channel as the bot.');
     if (!queue) return msg.channel.send('The queue is empty.');
     if (!queue.isPlaying()) return msg.channel.send('There is nothing playing.');
-
-    if (!args || args.length < 1) return msg.channel.send('Incorrect usage: remove <Queue Track Number>');
 
     const num = parseInt(args.join(' '), 10) - 1;
     if (isNaN(num)) return msg.channel.send('Please supply a valid number.');

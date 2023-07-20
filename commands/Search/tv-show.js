@@ -7,16 +7,15 @@ class TVShow extends Command {
     super(client, {
       name: 'tv-show',
       description: 'View information about a tv-show from TMDb',
-      usage: 'TV-Show <Show>',
+      usage: 'tv-show <Show>',
       category: 'Search',
       aliases: ['tvshow', 'tv'],
+      requiredArgs: 1,
     });
   }
 
   async run(msg, text) {
     const query = text.join(' ');
-
-    if (!query || query.length < 1) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}TV-Show <Show>`);
 
     try {
       const search = await fetch.get('http://api.themoviedb.org/3/search/tv').query({

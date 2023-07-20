@@ -7,9 +7,10 @@ class AddMember extends Command {
     super(client, {
       name: 'add-member',
       description: 'Add a user to a ticket.',
-      usage: 'Add-Member <Member>',
+      usage: 'add-member <Member>',
       category: 'Tickets',
       aliases: ['addmember', 'add'],
+      requiredArgs: 1,
       guildOnly: true,
     });
   }
@@ -20,8 +21,6 @@ class AddMember extends Command {
 
     if (!msg.channel.name.startsWith('ticket'))
       return msg.channel.send('You need to be inside the ticket you want to add a member to.');
-
-    if (!args[0]) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}add-member <Member>`);
 
     const mem = await this.client.util.getMember(msg, args.join(' '));
     if (!mem) return msg.channel.send('That is not a valid user.');

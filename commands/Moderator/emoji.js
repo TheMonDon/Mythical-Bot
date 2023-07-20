@@ -1,5 +1,4 @@
 const Command = require('../../base/Command.js');
-const { stripIndents } = require('common-tags');
 const { EmbedBuilder } = require('discord.js');
 
 class Emoji extends Command {
@@ -7,15 +6,11 @@ class Emoji extends Command {
     super(client, {
       name: 'emoji',
       description: 'Sends the image of the provided emojis',
-      usage: 'emoji <create | delete | info | rename> <name | emoji> [<name | <image | attachment>>]',
+      usage: 'emoji <create | delete | info | rename> <name | emoji> [name | image | attachment]',
       category: 'Moderator',
       permLevel: 'Moderator',
-      longDescription: stripIndents`
-      \`emoji create <name> <image | attachment>\`
-      \`emoji delete <emoji>\`
-      \`emoji info <emoji>\`
-      \`emoji rename <emoji> <name>\`
-    `,
+      examples: ['emoji create <name> <image | attachment>', 'emoji delete <emoji>', 'emoji info <emoji>', 'emoji rename <emoji> <name>'],
+      requiredArgs: 2,
     });
   }
 
@@ -27,7 +22,6 @@ Incorrect Usage:
 \`${msg.settings.prefix}emoji info <emoji>\`
 \`${msg.settings.prefix}emoji rename <emoji> <name>\`
     `;
-    if (!args || args.length < 2) return msg.reply(usage);
 
     const type = args[0].toLowerCase();
 

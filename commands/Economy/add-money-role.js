@@ -10,10 +10,11 @@ class AddMoneyRole extends Command {
       category: 'Economy',
       description:
         "Add money to a role's members cash or bank balance. \nIf the cash or bank argument isn't given, it will be added to the cash part.",
-      usage: 'add-money-role <cash | bank> <role> <amount>',
+      usage: 'add-money-role [cash | bank] <role> <amount>',
       aliases: ['addmoneyrole', 'addbalrole'],
       permLevel: 'Moderator',
       guildOnly: true,
+      requiredargs: 2,
     });
   }
 
@@ -33,11 +34,6 @@ class AddMoneyRole extends Command {
     let type = 'cash';
     let role;
     let amount;
-
-    if (!args || args.length < 2) {
-      errEmbed.setDescription(usage);
-      return msg.channel.send({ embeds: [errEmbed] });
-    }
 
     const currencySymbol = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
 
@@ -62,7 +58,7 @@ class AddMoneyRole extends Command {
       errEmbed.setDescription(stripIndents`
       :x: Invalid role given.
 
-      Usage: ${msg.settings.prefix}add-money-role <cash | bank> <role> <amount>
+      Usage: ${usage}
       `);
       return msg.channel.send({ embeds: [errEmbed] });
     }

@@ -1,5 +1,4 @@
 const Command = require('../../base/Command.js');
-const { EmbedBuilder } = require('discord.js');
 const fs = require('fs');
 
 class Grab extends Command {
@@ -9,27 +8,32 @@ class Grab extends Command {
       description: 'Get the source code of a command.',
       category: 'Owner',
       permLevel: 'Bot Owner',
-      usage: 'grab <commandName>',
+      usage: 'grab [-i] <commandName>',
+      requiredArgs: 1,
     });
   }
 
   async run(msg, args) {
-    const em = new EmbedBuilder();
+    const name = args.join(' ').toLowerCase();
 
-    if (!args || args.length < 1)
-      return (
-        em.setDescription('Must provide a command.').setColor(msg.settings.embedErrorColor) &&
-        msg.reply({ embeds: [em] })
-      );
-    const name = args.join(' ');
+    let command;
 
-    const commands = this.client.commands.get(name) || this.client.commands.get(this.client.aliases.get(name));
-    if (!commands) return msg.channel.send(`The requested command '${name}' does not exist!`);
+    if (args.length === 2 && args[0].toLowerCase() === '-i') {
+      const name = args[1].toLowerCase();
+      command = this.client.slashCommands.get(name);
+    } else {
+      command = this.client.commands.get(name) || this.client.commands.get(this.client.aliases.get(name));
+    }
 
-    fs.readFile(`${commands.conf.location}/${commands.help.name}.js`, 'utf8', function (err, data) {
-      if (err) return this.client.logger.error(err);
+    if (!command) return msg.channel.send(`The requested command '${name}' does not exist!`);
+
+    fs.readFile(command.conf.location, 'utf8', function (err, data) {
+      if (err) {
+        msg.channel.send('There was an error grabbing that command.');
+        return this.client.logger.error(err);
+      }
       const file = Buffer.from(data);
-      return msg.channel.send({ files: [{ name: `${commands.help.name}.js`, attachment: file }] });
+      return msg.channel.send({ files: [{ name: `${command.help.name}.js`, attachment: file }] });
     });
   }
 }

@@ -8,7 +8,8 @@ class TicTacToe extends Command {
     super(client, {
       name: 'tic-tac-toe',
       description: 'Play a game of tic-tac-toe with another user or the AI.',
-      usage: 'Tic-Tac-Toe <User>',
+      usage: 'tic-tac-toe <user>',
+      requiredArgs: 1,
       category: 'Games',
       aliases: ['ttt', 'tictactoe'],
     });
@@ -17,9 +18,6 @@ class TicTacToe extends Command {
   async run(msg, args) {
     const current = this.client.games.get(msg.channel.id);
     if (current) return msg.reply(`Please wait until the current game of \`${current.name}\` is finished.`);
-
-    if (!args || args.length < 1)
-      return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}tic-tac-toe <member>`);
 
     const opponent = await this.client.util.getMember(msg, args.join(' '));
     if (opponent.id === msg.author.id) return msg.reply('You may not play against yourself.');

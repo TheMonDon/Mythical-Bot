@@ -10,7 +10,7 @@ class SetCooldown extends Command {
       name: 'set-cooldown',
       category: 'Economy',
       description: 'Set the cooldown of economy modules',
-      usage: 'Set-Cooldown <work | rob | crime | slut | chat> <cooldown>',
+      usage: 'set-cooldown <work | rob | crime | slut | chat> <cooldown>',
       aliases: ['scd', 'setcooldown'],
       guildOnly: true,
     });

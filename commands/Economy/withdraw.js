@@ -8,8 +8,9 @@ class Withdraw extends Command {
       name: 'withdraw',
       category: 'Economy',
       description: 'Withdraw your money from the bank',
-      usage: 'withdraw <amount>',
+      usage: 'withdraw <amount | all>',
       aliases: ['with'],
+      requiredArgs: 1,
       guildOnly: true,
     });
   }
@@ -18,15 +19,13 @@ class Withdraw extends Command {
     let amount = text.join(' ');
     const errorColor = msg.settings.embedErrorColor;
 
-    const usage = `${msg.settings.prefix}Withdraw <amount | all>`;
+    const usage = `${msg.settings.prefix}withdraw <amount | all>`;
 
     const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
     const embed = new EmbedBuilder()
       .setColor(errorColor)
       .setAuthor({ name: authorName, iconURL: msg.author.displayAvatarURL() })
       .setDescription(`Incorrect Usage: ${usage}`);
-
-    if (!amount || amount.length < 1) return msg.channel.send({ embeds: [embed] });
 
     const currencySymbol = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
     const bank = BigInt(db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`) || 0);

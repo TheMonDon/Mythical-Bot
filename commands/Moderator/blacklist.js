@@ -7,7 +7,8 @@ class Blacklist extends Command {
     super(client, {
       name: 'blacklist',
       description: 'Blacklist someone from using the bot',
-      usage: 'Blacklist <Add | Remove | Check> <User> <Reason>',
+      usage: 'blacklist <Add | Remove | Check> <User> <Reason>',
+      requiredArgs: 1,
       category: 'Moderator',
       permLevel: 'Moderator',
       aliases: ['bl'],
@@ -19,8 +20,6 @@ class Blacklist extends Command {
     let mem;
     let type;
     const usage = `Incorrect Usage:${msg.settings.prefix}Blacklist <Add | Remove | Check> <User> <Reason>`;
-
-    if (text?.length < 1) return msg.reply(usage);
 
     if (text[0] && text[1]) {
       if (!['add', 'remove', 'check'].includes(text[0].toLowerCase())) {

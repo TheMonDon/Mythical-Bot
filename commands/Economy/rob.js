@@ -11,6 +11,7 @@ class Rob extends Command {
       category: 'Economy',
       usage: 'rob <user>',
       aliases: ['robbery'],
+      requiredArgs: 1,
       guildOnly: true,
     });
   }
@@ -41,11 +42,6 @@ class Rob extends Command {
         embed.setDescription(`You cannot rob for ${tLeft}`);
         return msg.channel.send({ embeds: [embed] });
       }
-    }
-
-    if (!text || text.length < 1) {
-      embed.setDescription(`Incorrect Usage: ${msg.settings.prefix}Rob <user>`);
-      return msg.channel.send({ embeds: [embed] });
     }
 
     const mem = await this.client.util.getMember(msg, text.join(' '));

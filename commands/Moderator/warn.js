@@ -11,9 +11,10 @@ class Warn extends Command {
       longDescription: stripIndents`
         Warn system that will kick or ban a user depending on the points they have.
         Users are kicked when they reach 8 points, or banned when they reach 10. (Change with \`setup\` command)`,
-      usage: 'Warn <User> <Points> <Reason>',
+      usage: 'warn <User> <Points> <Reason>',
       category: 'Moderator',
       permLevel: 'Moderator',
+      requiredArgs: 3,
       guildOnly: true,
     });
   }
@@ -25,7 +26,6 @@ class Warn extends Command {
     const usage = `Incorrect Usage: ${msg.settings.prefix}warn <User> <Points Kick:${msg.settings.warnKickPoints} | Ban:${msg.settings.warnBanPoints}> <Reason>`;
 
     await msg.delete();
-    if (!args || args.length < 3) return msg.channel.send(usage);
     mem = await this.client.util.getMember(msg, args[0]);
 
     // Find the user by user ID

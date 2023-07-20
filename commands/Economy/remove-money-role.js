@@ -10,15 +10,16 @@ class RemoveMoneyRole extends Command {
       category: 'Economy',
       description:
         "Remove money from a roles members cash or bank balance. \nIf the cash or bank argument isn't given, it will be removed from the cash part.",
-      usage: 'remove-money-role <cash | bank> <role> <amount>',
+      usage: 'remove-money-role [cash | bank] <role> <amount>',
       aliases: ['removemoneyrole', 'removebalrole'],
       permLevel: 'Moderator',
+      requiredArgs: 2,
       guildOnly: true,
     });
   }
 
   async run(msg, args) {
-    const usage = `Incorrect Usage: ${msg.settings.prefix}remove-money-role <cash | bank> <role> <amount>`;
+    const usage = `Incorrect Usage: ${msg.settings.prefix}remove-money-role [cash | bank] <role> <amount>`;
 
     const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
     const embed = new EmbedBuilder()
@@ -28,11 +29,6 @@ class RemoveMoneyRole extends Command {
     let type = 'cash';
     let role;
     let amount;
-
-    if (!args || args.length < 2) {
-      embed.setDescription(usage);
-      return msg.channel.send({ embeds: [embed] });
-    }
 
     const currencySymbol = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
 

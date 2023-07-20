@@ -7,19 +7,18 @@ class ClearWarnings extends Command {
     super(client, {
       name: 'clear-warnings',
       description: 'Clear all the warnings of the specific user.',
-      usage: 'Clear-Warnings <User>',
+      usage: 'clear-warnings <User>',
       category: 'Administrator',
       permLevel: 'Administrator',
       aliases: ['clearwarns', 'clearwarnings', 'cwarns'],
       guildOnly: true,
+      requiredArgs: 1,
     });
   }
 
   async run(msg, args) {
-    const usage = `Incorrect Usage: ${msg.settings.prefix}Clear-Warnings <user>`;
+    const usage = `Incorrect Usage: ${msg.settings.prefix}clear-warnings <user>`;
     const color = msg.settings.embedColor;
-
-    if (!args || args.length < 1) return msg.reply(usage);
 
     let mem = await this.client.util.getMember(msg, args.join(' '));
 

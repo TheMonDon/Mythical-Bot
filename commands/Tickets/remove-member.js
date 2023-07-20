@@ -7,9 +7,10 @@ class RemoveMember extends Command {
     super(client, {
       name: 'remove-member',
       description: 'Remove a member from a ticket.',
-      usage: 'Remove-Member <Member>',
+      usage: 'remove-member <Member>',
       category: 'Tickets',
       aliases: ['removemember', 'remove'],
+      requiredArgs: 1,
       guildOnly: true,
     });
   }
@@ -20,8 +21,6 @@ class RemoveMember extends Command {
 
     if (!msg.channel.name.startsWith('ticket'))
       return msg.channel.send('You need to be inside the ticket you want to remove a member from.');
-
-    if (!args[0]) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}remove-member <Member>`);
 
     const mem = await this.client.util.getMember(msg, args.join(' '));
     if (!mem) return msg.channel.send('That is not a valid member.');

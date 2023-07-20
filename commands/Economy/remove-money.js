@@ -12,6 +12,7 @@ class RemoveMoney extends Command {
         "Remove money from a users's cash or bank balance. \nIf the cash or bank argument isn't given, it will be added to the cash part.",
       usage: 'remove-money [cash | bank] <member> <amount>',
       aliases: ['removemoney', 'removebal'],
+      requiredArgs: 2,
       permLevel: 'Moderator',
       guildOnly: true,
     });
@@ -33,11 +34,6 @@ class RemoveMoney extends Command {
     let type = 'cash';
     let mem;
     let amount;
-
-    if (!args || args.length < 2) {
-      embed.setDescription(usage);
-      return msg.channel.send({ embeds: [embed] });
-    }
 
     const currencySymbol = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
 

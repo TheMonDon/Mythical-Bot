@@ -7,16 +7,14 @@ class Movie extends Command {
     super(client, {
       name: 'movie',
       description: 'View information about a movie from TMDb',
-      usage: 'Movie <Movie>',
+      usage: 'movie <Movie>',
       category: 'Search',
-      aliases: ['tmdb-movie'],
+      requiredArgs: 1,
     });
   }
 
   async run(msg, text) {
     const query = text.join(' ');
-
-    if (!query || query.length < 1) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}Movie <Movie>`);
 
     try {
       const search = await fetch.get('http://api.themoviedb.org/3/search/movie').query({

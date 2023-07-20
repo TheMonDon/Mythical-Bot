@@ -10,26 +10,27 @@ class Purge extends Command {
       Purge will purge up to the last 1000 messages in the channel.
       Purging messages from a member will purge up to the last 100 messages in the channel.
       The other purge types will also purge up to the last 100 messages in the channel.
-
-      **Types:**
-      \`Purge 150\`
-      \`Purge 50 @member\`
-      \`Purge links 50\`
-      \`Purge invites 50\`
-      \`Purge match ? 50\`
-      \`Purge not ? 50\`
-      \`Purge startswith ? 50\`
-      \`Purge endswith ? 50\`
-      \`Purge bots 50\`
-      \`Purge human 50\`
-      \`Purge images 50\`
-      \`Purge mentions 50\`
-      \`Purge before <message ID | message link> 50\`
-      \`Purge after <message ID | message link> 50\`
       `,
       usage: 'Purge <count> [@member]',
+      examples: [
+        'purge 150',
+        'purge 50 @member',
+        'purge links 50',
+        'purge invites 50',
+        'purge match <string> 50',
+        'purge not <string> 50',
+        'purge startswith <string> 50',
+        'purge endswith <string> 50',
+        'purge bots 50',
+        'purge human 50',
+        'purge images 50',
+        'purge mentions 50',
+        'purge before <Message ID | Message Link>',
+        'purge after <Message ID | Message Link>'
+      ],
       category: 'Moderator',
       permLevel: 'Moderator',
+      requiredArgs: 1,
       guildOnly: true,
     });
   }
@@ -57,8 +58,7 @@ class Purge extends Command {
     let count;
 
     if (!msg.guild.members.me.permissions.has('ManageMessages'))
-      return msg.channel.send('The bot needs `Manage_Messages` permission to use this.');
-    if (!args || args.length < 1) return msg.reply(usage);
+      return msg.channel.send('The bot needs `Manage Messages` permission to use this.');
 
     // Global function to get messages
     // channel: Channel object

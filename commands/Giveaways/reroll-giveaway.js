@@ -6,7 +6,8 @@ class RerollGiveaway extends Command {
     super(client, {
       name: 'reroll-giveaway',
       description: 'Reroll a giveaway',
-      usage: 'Reroll-Giveaway <Message ID>',
+      usage: 'reroll-giveaway <Message ID>',
+      requiredArgs: 1,
       category: 'Giveaways',
       aliases: ['reroll', 'rerollgiveaway', 'greroll'],
       guildOnly: true,
@@ -14,8 +15,7 @@ class RerollGiveaway extends Command {
   }
 
   async run(msg, args) {
-    const usage = `Incorrect Usage: ${msg.settings.prefix}Reroll-Giveaway <Message ID>`;
-    if (!args || args.length < 1) return msg.channel.send(usage);
+    const usage = `Incorrect Usage: ${msg.settings.prefix}reroll-giveaway <Message ID>`;
 
     if (!msg.member.permissions.has('ManageMessages')) {
       return msg.channel.send(':x: You need to have the Manage Messages permissions to reroll giveaways');

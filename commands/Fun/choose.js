@@ -5,15 +5,13 @@ class Choose extends Command {
     super(client, {
       name: 'choose',
       description: 'Make the bot choose something.',
-      usage: 'choose <thing 1, thing2, thing3>',
+      usage: 'choose <one word, two words, ... | word1 word2 word3 ...>',
+      requiredArgs: 2,
       category: 'Fun',
     });
   }
 
   async run(msg, text) {
-    if (!text || text.length < 1)
-      return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}choose (1 1, 2 2, 3 3) or (one two three)`);
-
     const join = text.join(' ');
     const args = /^(.+( ?, ?.+[^,])+)$/i.test(join) ? join.split(',') : join.split(' ');
 

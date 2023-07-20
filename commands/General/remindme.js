@@ -8,22 +8,17 @@ const sherlock = require('sherlockjs');
 class RemindMe extends Command {
   constructor(client) {
     super(client, {
-      name: 'Remind-Me',
+      name: 'remind-me',
       description: 'Gives you a reminder',
-      usage: 'Remind-Me <reminder>',
+      examples: ['remind-me Ban Zeph in 1 year'],
+      usage: 'memind-me <reminder>',
+      requiredArgs: 1,
       category: 'General',
       aliases: ['remind', 'remindme', 'rememberforme'],
     });
   }
 
   async run(msg, args) {
-    const query = args.join(' ');
-
-    if (query?.length < 1)
-      return msg.channel.send(
-        `Incorrect Usage: ${msg.settings.prefix}Remindme <reminder> \nExample: ${msg.settings.prefix}Remindme Ban Zeph in 1 year`,
-      );
-
     const reminders = db.get('global.reminders') || [];
     let remID = this.client.util.randomString(5);
     while (reminders.length > 0 && reminders.includes(remID)) remID = this.client.util.randomString(5);
@@ -44,7 +39,7 @@ class RemindMe extends Command {
     if (numReminders >= maxReminders) return msg.channel.send(`Sorry ${msg.author.username}, but you already have ${numReminders} reminders active. Please wait for that to finish, or you can donate to raise your cap.`);
     */
 
-    const reminder = sherlock.parse(query);
+    const reminder = sherlock.parse(args.join(' '));
     if (!reminder.startDate) return msg.channel.send('Please provide a valid starting time.');
     if (!reminder.eventTitle) return msg.channel.send('Please provide a valid reminder');
 

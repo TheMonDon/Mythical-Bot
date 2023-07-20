@@ -8,7 +8,8 @@ class RoleInfo extends Command {
     super(client, {
       name: 'role-info',
       description: 'Gives some useful role information',
-      usage: 'Role-Info <Role Name | Role ID | @role>',
+      usage: 'role-info <Role Name | Role ID | @role>',
+      requiredArgs: 1,
       category: 'Information',
       aliases: ['ri', 'roleinfo'],
       guildOnly: true,
@@ -17,8 +18,6 @@ class RoleInfo extends Command {
 
   async run(msg, text) {
     const usage = `Incorrect Usage: ${msg.settings.prefix}Role-Info <Role Name | Role Id | @role>`;
-
-    if (text?.length < 1) return msg.reply(usage);
 
     const infoRole = this.client.util.getRole(msg, text.join(' '));
     if (!infoRole) return msg.reply(usage);

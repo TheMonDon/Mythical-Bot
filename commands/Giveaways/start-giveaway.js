@@ -8,7 +8,8 @@ class StartGiveaway extends Command {
     super(client, {
       name: 'start-giveaway',
       description: 'Start a giveaway',
-      usage: 'Start-Giveaway <Duration> <Winners> <Channel> <Prize>',
+      usage: 'start-giveaway <Duration> <Winners> <Channel> <Prize>',
+      requiredArgs: 4,
       category: 'Giveaways',
       aliases: ['gcreate', 'startgiveaway', 'gstart'],
       guildOnly: true,
@@ -17,7 +18,6 @@ class StartGiveaway extends Command {
 
   async run(msg, args) {
     const usage = `Incorrect Usage: ${msg.settings.prefix}Start-Giveaway <Duration> <Winners> <Channel> <Prize>`;
-    if (args?.length < 4) return msg.channel.send(usage);
 
     if (!msg.member.permissions.has('ManageMessages')) {
       return msg.channel.send(':x: You need to have the Manage Messages permissions to start giveaways');

@@ -7,8 +7,7 @@ module.exports = class {
   }
 
   async run(message) {
-    let bool = false;
-    let tag;
+    let bool = true;
 
     if (message.author.bot) return;
     if (message.guild && !message.channel.permissionsFor(this.client.user.id).has('SendMessages')) return;
@@ -16,12 +15,13 @@ module.exports = class {
 
     const settings = this.client.getSettings(message.guild);
     message.settings = settings;
+    let tag = settings.prefix;
 
     const prefixMention = new RegExp(`^(<@!?${this.client.user.id}>)(\\s+)?`);
     if (message.guild && message.content.match(prefixMention)) {
-      bool = true;
       tag = String(message.guild.members.me);
     } else if (message.content.indexOf(settings.prefix) !== 0) {
+      bool = false;
       // Economy chat money event
       if (message.channel.type === ChannelType.DM) return;
 
@@ -62,9 +62,6 @@ module.exports = class {
         userCooldown.active = false;
         db.set(`servers.${message.guild.id}.users.${message.member.id}.economy.chat.cooldown`, userCooldown);
       }, cooldown * 1000);
-    } else {
-      bool = true;
-      tag = settings.prefix;
     }
 
     // Here we separate our "command" name, and our "arguments" for the command.
@@ -132,6 +129,19 @@ module.exports = class {
       } else {
         return;
       }
+    }
+
+    if (cmd.conf.requiredArgs > args.length) {
+      const embed = new EmbedBuilder()
+        .setAuthor({ name: message.author.username, iconURL: message.author.displayAvatarURL() })
+        .setColor(message.settings.embedErrorColor)
+        .setTitle('Missing Command Arguments')
+        .setFooter({ text: '[] = optional, <> = required' })
+        .addFields([
+          { name: 'Incorrect Usage', value: message.settings.prefix + cmd.help.usage },
+          { name: 'Examples', value: cmd.help.examples?.join('\n') || 'None' },
+        ]);
+      return message.channel.send({ embeds: [embed] });
     }
 
     // To simplify message arguments, the author's level is now put on level (not member, so it is supported in DMs)

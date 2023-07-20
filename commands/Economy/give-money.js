@@ -8,17 +8,17 @@ class GiveMoney extends Command {
       name: 'give-money',
       description: 'Pay another user',
       category: 'Economy',
-      usage: 'Give-Money <user> <amount | all>',
+      usage: 'give-money <user> <amount | all>',
       aliases: ['givemoney', 'pay', 'send'],
+      requiredArgs: 2,
       guildOnly: true,
     });
   }
 
   async run(msg, text) {
-    let mem;
     const errorColor = msg.settings.embedErrorColor;
 
-    const usage = `${msg.settings.prefix}Give-Money <user> <amount | all>`;
+    const usage = `${msg.settings.prefix}give-money <user> <amount | all>`;
     const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
     const embed = new EmbedBuilder()
       .setAuthor({
@@ -27,12 +27,8 @@ class GiveMoney extends Command {
       })
       .setColor(errorColor);
 
-    if (!text || text.length < 1) {
-      embed.setDescription(`Incorrect Usage: ${usage}`);
-      return msg.channel.send({ embeds: [embed] });
-    } else {
-      mem = await this.client.util.getMember(msg, text[0]);
-    }
+    const mem = await this.client.util.getMember(msg, text[0]);
+
 
     if (!mem) {
       embed.setDescription(`That user was not found. \nUsage: ${usage}`);

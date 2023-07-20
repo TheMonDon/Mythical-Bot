@@ -7,21 +7,13 @@ class Steam extends Command {
     super(client, {
       name: 'steam',
       description: 'View information about a steam game or application',
-      usage: 'Steam <Game/App>',
+      usage: 'steam <Game/App>',
+      requiredArgs: 1,
       category: 'Search',
     });
   }
 
   async run(msg, text) {
-    if (text?.length < 1) {
-      const em = new EmbedBuilder()
-        .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
-        .setTitle('Please provide something to search for')
-        .setDescription(`Incorrect Usage: ${msg.settings.prefix}steam <game/app>`)
-        .setTimestamp();
-      return msg.channel.send({ embeds: [em] });
-    }
-
     const query = await this.client.util.clean(this.client, text.join(' '));
 
     const search = await fetch.get('https://store.steampowered.com/api/storesearch').query({

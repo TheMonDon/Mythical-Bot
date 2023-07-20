@@ -10,14 +10,15 @@ class AddMoney extends Command {
       category: 'Economy',
       description:
         "Add money to a member's cash or bank balance. \nIf the cash or bank argument isn't given, it will be added to the cash part.",
-      usage: 'add-money <cash | bank> <member> <amount>',
+      usage: 'add-money [cash | bank] <member> <amount>',
       aliases: ['addmoney', 'addbal'],
       guildOnly: true,
+      requiredArgs: 2,
     });
   }
 
   async run(msg, args) {
-    const usage = `Incorrect Usage: ${msg.settings.prefix}add-money <cash | bank> <member> <amount>`;
+    const usage = `Incorrect Usage: ${msg.settings.prefix}add-money [cash | bank] <member> <amount>`;
 
     const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
     const embed = new EmbedBuilder()

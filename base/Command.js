@@ -7,6 +7,7 @@ class Command {
       longDescription = 'No long description provided.',
       category = 'Miscellaneous',
       usage = 'No usage provided.',
+      examples = [],
       enabled = true,
       guildOnly = false,
       aliases = [],
@@ -17,7 +18,7 @@ class Command {
   ) {
     this.client = client;
     this.conf = { enabled, guildOnly, aliases, permLevel, nsfw, requiredArgs };
-    this.help = { name, description, longDescription, category, usage };
+    this.help = { name, description, longDescription, category, usage, examples };
   }
 }
 

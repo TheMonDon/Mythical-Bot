@@ -7,7 +7,8 @@ class Wikipedia extends Command {
     super(client, {
       name: 'wikipedia',
       description: 'Retrieve an article from wikipedia',
-      usage: 'wikipedia',
+      usage: 'wikipedia <wiki search>',
+      requiredArgs: 1,
       category: 'Information',
       aliases: ['wiki'],
     });
@@ -15,8 +16,6 @@ class Wikipedia extends Command {
 
   async run(msg, text) {
     const query = text.join(' ');
-    if (!query || query.length < 1)
-      return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}wiki <wikipedia search>`);
 
     const { body } = await fetch.get('https://en.wikipedia.org/w/api.php').query({
       action: 'query',
@@ -28,7 +27,7 @@ class Wikipedia extends Command {
       redirects: '',
       formatversion: 2,
     });
-    if (body.query.pages[0].missing) return msg.channel.send('No results were found.');
+    if (body.query.pages[0].missing) return msg.channel.send('No results found for that search.');
 
     const str = body.query.pages[0].extract.replace(/[\n]/g, '\n\n');
 

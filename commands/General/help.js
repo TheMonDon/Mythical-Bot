@@ -61,7 +61,7 @@ class Help extends Command {
         { name: 'Current Categories:', value: level >= 8 ? allcats.join(', ') : cats.join(', ') },
         {
           name: 'Quick Bits',
-          value: '[Invite Link](https://cisn.xyz/mythical) \n[Source Code](https://github.com/TheMonDon/Mythical-Bot)',
+          value: '[Invite Link](https://cisn.xyz/mythical) \n[Source Code](https://github.com/TheMonDon/Mythical-Bot) \n[Support Server](https://discord.com/invite/XvHzUNZDdR)',
         },
       ]);
 
@@ -93,6 +93,7 @@ class Help extends Command {
           {
             name: `${msg.settings.prefix}${this.client.util.toProperCase(c.help.name)}`,
             value: `${c.help.description}`,
+            inline: true,
           },
         ]);
       }
@@ -114,13 +115,14 @@ class Help extends Command {
         em.setTitle(`${this.client.util.toProperCase(command.help.name)} Information`)
           .setColor(color)
           .addFields([
-            { name: 'Usage', value: command.help.usage },
-            { name: 'Aliases', value: command.conf.aliases.join(', ') || 'none' },
-            { name: 'Guild Only', value: command.conf.guildOnly.toString() || 'false' },
-            { name: 'NSFW', value: command.conf.nsfw.toString() || 'false' },
-            { name: 'Description', value: command.help.description || 'none' },
-            { name: 'Long Description', value: command.help.longDescription || 'none' },
-            { name: 'Command Disabled', value: res.toString() },
+            { name: 'Usage', value: command.help.usage, inline: true },
+            { name: 'Aliases', value: command.conf.aliases.join(', ') || 'None', inline: true },
+            { name: 'Guild Only', value: command.conf.guildOnly.toString() || 'False', inline: true },
+            { name: 'NSFW', value: command.conf.nsfw.toString() || 'False', inline: true },
+            { name: 'Description', value: command.help.description || 'None', inline: true },
+            { name: 'Long Description', value: command.help.longDescription || 'None', inline: true },
+            { name: 'Command Disabled', value: res.toString(), inline: true },
+            { name: 'Examples', value: command.help.examples?.join('\n') || 'None', inline: true}
           ]);
         return msg.channel.send({ embeds: [em] });
       }

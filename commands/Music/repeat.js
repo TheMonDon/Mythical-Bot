@@ -8,6 +8,7 @@ class Repeat extends Command {
       category: 'Music',
       usage: 'repeat <off | track | queue | autoplay>',
       guildOnly: true,
+      requiredArgs: 1,
       aliases: ['loop'],
     });
   }

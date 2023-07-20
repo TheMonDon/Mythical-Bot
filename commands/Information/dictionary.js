@@ -9,8 +9,9 @@ class Dictionary extends Command {
       name: 'dictionary',
       description: 'Get the definition of a word from Oxford English Dictionary',
       usage: 'dictionary <word>',
+      requiredArgs: 1,
       category: 'Information',
-      aliases: ['dict', 'dic'],
+      aliases: ['dict'],
     });
   }
 
@@ -20,17 +21,16 @@ class Dictionary extends Command {
     let synonyms = '';
 
     const input = args.join(' ').toLowerCase();
-    if (!input || input.length < 1) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}Dictionary <word>`);
 
     const dict = new TheDictionary({ app_id: config.OxfordID, app_key: config.OxfordKey, source_lang: 'en-us' });
     const define = dict.find(input);
 
     define.then(
       (res) => {
-        if (!res) return msg.channel.send('No entry was found for that word.');
+        if (!res) return msg.channel.send('No entry was found for that word. (Plural words do not work)');
 
         const definition = res.results?.[0]?.lexicalEntries?.[0]?.entries?.[0]?.senses?.[0]?.definitions?.[0];
-        if (!definition) return msg.channel.send('No entry was found for that word.');
+        if (!definition) return msg.channel.send('No entry was found for that word. (Plural words do not work)');
 
         const pronunciation = res.results[0]?.lexicalEntries[0]?.entries[0]?.pronunciations[0]?.phoneticSpelling;
         const etymology = res.results[0]?.lexicalEntries[0]?.entries[0]?.etymologies?.[0];

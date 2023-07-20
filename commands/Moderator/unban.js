@@ -5,11 +5,12 @@ const { EmbedBuilder } = require('discord.js');
 class Unban extends Command {
   constructor(client) {
     super(client, {
-      name: 'Unban',
-      description: 'Unban a member',
-      usage: 'Unban <userID> [reason]',
+      name: 'unban',
+      description: 'Unban a user',
+      usage: 'unban <userID> [reason]',
       category: 'Moderator',
       permLevel: 'Moderator',
+      requiredArgs: 1,
       guildOnly: true,
     });
   }
@@ -18,8 +19,6 @@ class Unban extends Command {
     if (!msg.guild.members.me.permissions.has('BanMembers'))
       return msg.channel.send('The bot is missing Ban Members permission.');
 
-    if (!args || args.length < 1)
-      return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}Unban <userID> [reason]`);
     const logChan = db.get(`servers.${msg.guild.id}.logs.channel`);
 
     // Regex to check if the input for userID is a number

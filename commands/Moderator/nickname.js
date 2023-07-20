@@ -5,10 +5,11 @@ class Nickname extends Command {
     super(client, {
       name: 'nickname',
       description: 'Change the nickname of a member',
-      usage: 'Nickname <User> [Nickname]',
+      usage: 'nickname <User> [Nickname]',
       category: 'Moderator',
       permLevel: 'Moderator',
       aliases: ['nick'],
+      requiredArgs: 1,
       guildOnly: true,
     });
   }
@@ -16,8 +17,6 @@ class Nickname extends Command {
   async run(msg, text) {
     if (!msg.guild.members.me.permissions.has('ManageNicknames'))
       return msg.channel.send("The bot doesn't have Manage Nicknames permission.");
-
-    if (!text[0]) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}Nickname <User> [Nickname]`);
 
     const infoMem = await this.client.util.getMember(msg, text[0]);
     const owner = msg.guild.fetchOwner();

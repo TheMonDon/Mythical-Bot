@@ -11,20 +11,13 @@ class MinecraftAccount extends Command {
       usage: 'mc-account <username>',
       category: 'Minecraft',
       aliases: ['mca', 'mcaccount'],
+      requiredArgs: 1,
     });
   }
 
   async run(msg, args) {
     const errorColor = msg.settings.embedErrorColor;
     const successColor = msg.settings.embedSuccessColor;
-
-    if (!args || args.length < 1) {
-      const embed = new EmbedBuilder()
-        .setTitle('Invalid Username')
-        .setColor(errorColor)
-        .setDescription(`Invalid Usage: ${msg.settings.prefix}mc-account <username>`);
-      return msg.channel.send({ embeds: [embed] });
-    }
     const name = args.join(' ').trim();
 
     const nameRegex = new RegExp(/^\w{3,16}$/);

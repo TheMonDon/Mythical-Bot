@@ -8,7 +8,7 @@ class forceClose extends Command {
     super(client, {
       name: 'force-close',
       description: 'Close your or another ticket',
-      usage: 'Force-Close [Ticket Channel ID] [Reason]',
+      usage: 'force-close [Ticket Channel ID] [Reason]',
       category: 'Tickets',
       aliases: ['forceclose'],
       guildOnly: true,

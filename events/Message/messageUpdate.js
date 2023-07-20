@@ -66,32 +66,30 @@ module.exports = class {
     }
 
     async function CommandUpdate(client, oldmsg, newmsg) {
-      let bool;
-      let tag;
+      let bool = true;
       const re = /'http'/;
+
       if (re.test(newmsg.content)) return;
       if (oldmsg.content === newmsg.content || oldmsg === newmsg) return;
       if (newmsg.guild && !newmsg.channel.permissionsFor(newmsg.guild.members.me).missing('SendMessages')) return;
 
       const settings = client.getSettings(newmsg.guild);
       newmsg.settings = settings;
+      let tag = settings.prefix;
 
-      // eslint-disable-next-line no-useless-escape
-      const prefixMention = new RegExp(`^(<@!?${client.user.id}>)(\s+)?`);
+      const prefixMention = new RegExp(`^(<@!?${client.user.id}>)(\\s+)?`);
       if (newmsg.guild && newmsg.content.match(prefixMention)) {
-        bool = true;
-        tag = String(newmsg.guild.me);
+        tag = String(newmsg.guild.members.me);
       } else if (newmsg.content.indexOf(settings.prefix) !== 0) {
+        bool = false;
         return;
-      } else {
-        bool = true;
-        tag = settings.prefix;
       }
 
       if (!bool) return;
+
       const args = newmsg.content.slice(tag.length).trim().split(/\s+/g);
       const command = args.shift().toLowerCase();
-      if (!command && tag === String(newmsg.guild?.me)) {
+      if (!command && tag === String(newmsg.guild?.memers.me)) {
         if (!args || args.length < 1) return newmsg.channel.send(`The current prefix is: ${newmsg.settings.prefix}`);
       }
 
@@ -115,7 +113,7 @@ module.exports = class {
 
       // Some commands may not be useable in DMs. This check prevents those commands from running
       // and return a friendly error message.
-      if (cmd && !newmsg.guild && cmd.conf.guildOnly) {
+      if (!newmsg.guild && cmd.conf.guildOnly) {
         return newmsg.channel.send(
           'This command is unavailable via private message. Please run this command in a guild.',
         );
@@ -123,15 +121,43 @@ module.exports = class {
 
       if (level < client.levelCache[cmd.conf.permLevel]) {
         if (settings.systemNotice === 'true') {
-          return newmsg.channel.send(`You do not have permission to use this command.
-Your permission level is ${level} (${client.config.permLevels.find((l) => l.level === level).name})
-This command requires level ${client.levelCache[cmd.conf.permLevel]} (${cmd.conf.permLevel})`);
+          const authorName = newmsg.author.discriminator === '0' ? newmsg.author.username : newmsg.author.tag;
+          const embed = new EmbedBuilder()
+            .setTitle('Missing Permission')
+            .setAuthor({ name: authorName, iconURL: newmsg.author.displayAvatarURL() })
+            .setColor(newmsg.settings.embedErrorColor)
+            .addFields([
+              {
+                name: 'Your Level',
+                value: `${level} (${this.client.config.permLevels.find((l) => l.level === level).name})`,
+                inline: true,
+              },
+              {
+                name: 'Required Level',
+                value: `${this.client.levelCache[cmd.conf.permLevel]} (${cmd.conf.permLevel})`,
+                inline: true,
+              },
+            ]);
+
+          return newmsg.channel.send({ embeds: [embed] });
         } else {
           return;
         }
       }
       newmsg.author.permLevel = level;
 
+      if (cmd.conf.requiredArgs > args.length) {
+        const embed = new EmbedBuilder()
+          .setAuthor({ name: newmsg.author.username, iconURL: newmsg.author.displayAvatarURL() })
+          .setColor(newmsg.settings.embedErrorColor)
+          .setTitle('Missing Command Arguments')
+          .setFooter({ text: '[] = optional, <> = required'})
+          .addFields([
+            { name: 'Incorrect Usage', value: newmsg.settings.prefix + cmd.help.usage },
+            { name: 'Examples', value: cmd.help.examples?.join('\n') || 'None' }
+          ]);
+        return newmsg.channel.send({ embeds: [embed] });
+      }
       // If the command exists, **AND** the user has permission, run it.
       db.add('global.commands', 1);
       cmd.run(newmsg, args, level);

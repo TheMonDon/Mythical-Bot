@@ -9,18 +9,18 @@ class BlackJack extends Command {
       category: 'Economy',
       description: 'Play a game of blackjack',
       examples: ['blackjack 100'],
+      usage: 'blackjack <bet>',
       aliases: ['bj'],
       guildOnly: true,
+      requiredArgs: 1,
     });
   }
 
   async run(msg, args) {
     const { Blackjack } = require('blackjack-n-deck');
 
-    const usage = `${msg.settings.prefix}blackjack <bet>`;
-    if (!args || args.length < 1) return msg.channel.send(`Incorrect Usage: \n${usage}`);
-
     // array of all my card emojis in my private server
+    // These are also inside the bots files to host yourself!
     const cards = {
       AH: '<:aH:740317914833616976>',
       AD: '<:aD:740317914405666898>',

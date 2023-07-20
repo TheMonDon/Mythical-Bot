@@ -9,8 +9,9 @@ class Topic extends Command {
     super(client, {
       name: 'topic',
       description: 'Change the topic of your ticket',
-      usage: 'Topic <New Topic>',
+      usage: 'topic <New Topic>',
       category: 'Tickets',
+      requiredArgs: 1,
       guildOnly: true,
     });
   }
@@ -23,11 +24,8 @@ class Topic extends Command {
     if (!msg.channel.name.startsWith('ticket'))
       return msg.channel.send('You need to be inside the ticket you want to change the topic of.');
 
-    if (!args) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}Topic <New Topic>`);
-
     let topic = args.join(' ');
     topic = topic.slice(0, 1024);
-    if (topic.length === 0) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}Topic <New Topic>`);
 
     const { roleID } = db.get(`servers.${msg.guild.id}.tickets`);
     const role = msg.guild.roles.cache.get(roleID);

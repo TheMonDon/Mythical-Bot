@@ -7,13 +7,14 @@ class RockPaperScissors extends Command {
     super(client, {
       name: 'rock-paper-scissors',
       description: 'Play a game of rock paper scissors.',
-      usage: 'Rock-Paper-Scissors <User>',
+      usage: 'rock-paper-scissors <user>',
+      requiredArgs: 1,
       category: 'Games',
       aliases: ['rockpaperscissors', 'rps'],
     });
   }
 
-  async run(msg, text) {
+  async run(msg, args) {
     const p1 = msg.author;
     const chan = msg.channel;
     let authReply;
@@ -22,17 +23,13 @@ class RockPaperScissors extends Command {
 
     const current = this.client.games.get(msg.channel.id);
     if (current) return msg.reply(`Please wait until the current game of \`${current.name}\` is finished.`);
-    this.client.games.set(msg.channel.id, { name: this.help.name, user: msg.author.id, date: Date.now() });
 
-    if (!text || text.length < 1) {
-      this.client.games.set(msg.channel.id, '');
-      return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}rps <opponent>`);
-    }
-
-    const mem = await this.client.util.getMember(msg, text.join(' '));
+    const mem = await this.client.util.getMember(msg, args.join(' '));
     if (!mem)
       return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}rps <opponent> (Please enter a valid user)`);
     if (mem.user.id === msg.author.id) return msg.channel.send("You can't play against yourself, silly.");
+
+    this.client.games.set(msg.channel.id, { name: this.help.name, user: msg.author.id, date: Date.now() });
 
     // If the opponent isn't a bot, ask them if they accept the challenge.
     if (!mem.user.bot) {

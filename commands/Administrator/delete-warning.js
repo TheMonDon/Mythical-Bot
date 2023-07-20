@@ -12,13 +12,13 @@ class DeleteWarning extends Command {
       permLevel: 'Administrator',
       aliases: ['delwarn', 'deletecase', 'deletewarn', 'delcase', 'clearcase', 'deletewarning', 'delwarning'],
       guildOnly: true,
+      requiredArgs: 1,
     });
   }
 
   async run(msg, args) {
     let title = 'Case Cleared';
     let color = msg.settings.embedColor;
-    if (!args || args.length < 1) return msg.channel.send('Incorrect Usage: Delete-Warning <CaseID>');
 
     const caseID = args.join(' ');
     const warning = db.get(`servers.${msg.guild.id}.warns.warnings.${caseID}`);

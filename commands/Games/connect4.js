@@ -12,6 +12,7 @@ class Connect4 extends Command {
       name: 'connect4',
       description: 'Play a game of connect4.',
       usage: 'connect4 <opponent> <color>',
+      requiredArgs: 2,
       category: 'Games',
       aliases: ['connectfour', 'connect-four'],
     });
@@ -48,7 +49,6 @@ class Connect4 extends Command {
     if (current) return msg.reply(`Please wait until the current game of \`${current.name}\` is finished.`);
 
     const usage = `Incorrect Usage: ${msg.settings.prefix}connect4 <opponent> <color>`;
-    if (!args || args.length < 2) return msg.reply(usage);
     let opponent = await this.client.util.getMember(msg, args[0]);
     if (!opponent) opponent = msg.guild.members.me;
     if (opponent.id === msg.author.id) return msg.reply('You may not play against yourself.');
