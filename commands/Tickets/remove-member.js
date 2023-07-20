@@ -1,14 +1,13 @@
 const Command = require('../../base/Command.js');
 const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
-const { DateTime } = require('luxon');
 
 class RemoveMember extends Command {
   constructor(client) {
     super(client, {
       name: 'remove-member',
       description: 'Remove a member from a ticket.',
-      usage: 'Remove-Member <user>',
+      usage: 'Remove-Member <Member>',
       category: 'Tickets',
       aliases: ['removemember', 'remove'],
       guildOnly: true,
@@ -20,12 +19,12 @@ class RemoveMember extends Command {
       return msg.channel.send('The ticket system has not been setup in this server.');
 
     if (!msg.channel.name.startsWith('ticket'))
-      return msg.channel.send('You need to be inside the ticket you want to remove a user from.');
+      return msg.channel.send('You need to be inside the ticket you want to remove a member from.');
 
-    if (!args[0]) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}remove <user>`);
+    if (!args[0]) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}remove-member <Member>`);
 
     const mem = await this.client.util.getMember(msg, args.join(' '));
-    if (!mem) return msg.channel.send('That is not a valid user.');
+    if (!mem) return msg.channel.send('That is not a valid member.');
     if (mem.id === msg.author.id)
       return msg.channel.send(`Are you trying to close your ticket? Use \`${msg.settings.prefix}close\` instead`);
 
@@ -43,14 +42,6 @@ class RemoveMember extends Command {
     if (!msg.channel.members.get(mem.id)) return msg.channel.send('That person has not been added to this ticket.');
 
     msg.channel.permissionOverwrites.edit(mem.id, { ViewChannel: null });
-
-    // Logging info
-    const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
-    const output = `${DateTime.now().toLocaleString(DateTime.DATETIME_FULL)} - ${authorName} has removed a member: \n${
-      mem.displayName
-    }.`;
-
-    db.push(`servers.${msg.guild.id}.tickets.${msg.channel.id}.chatLogs`, output);
 
     const em = new EmbedBuilder()
       .setTitle('Member Removed')

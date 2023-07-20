@@ -1,6 +1,5 @@
 const db = require('quick.db');
 const { ChannelType, EmbedBuilder } = require('discord.js');
-const { DateTime } = require('luxon');
 
 module.exports = class {
   constructor(client) {
@@ -12,7 +11,6 @@ module.exports = class {
     let tag;
 
     if (message.author.bot) return;
-
     if (message.guild && !message.channel.permissionsFor(this.client.user.id).has('SendMessages')) return;
     if (message.guild && !message.guild.members.me.permissions.has('SendMessages')) return;
 
@@ -24,52 +22,15 @@ module.exports = class {
       bool = true;
       tag = String(message.guild.members.me);
     } else if (message.content.indexOf(settings.prefix) !== 0) {
-      // Ticket message storage
-
-      if (message.channel.type === ChannelType.GuildText && message.channel.name.startsWith('ticket-')) {
-        if (message.channel.name === 'ticket-logs') return;
-        const tix = db.get(`servers.${message.guild.id}.tickets.${message.channel.id}`);
-        if (!tix) return;
-
-        const attachments = [];
-        const mArray = [...message.attachments?.values()];
-        if (mArray.length > 0) {
-          for (let i = 0; i < mArray.length; i++) {
-            attachments.push(mArray[i].url);
-          }
-        }
-
-        let content;
-        if (!message.content.length > 0 && !attachments.length > 0) {
-          content = 'The bot could not read this message.';
-        } else if (message.content.length > 0 && attachments.length > 0) {
-          content = `${message.content} \nAttachments: ${attachments.join('\n')}`;
-        } else if (!message.content.length > 0 && attachments.length > 0) {
-          content = `Attachments: ${attachments.join('\n')}`;
-        } else {
-          content = message.content;
-        }
-
-        const authorName = message.author.discriminator === '0' ? message.author.username : message.author.tag;
-        const output = `${DateTime.now().toLocaleString(DateTime.DATETIME_FULL)} - [${authorName}]: \n${content}`;
-
-        db.push(`servers.${message.guild.id}.tickets.${message.channel.id}.chatLogs`, output);
-        return;
-      }
-
       // Economy chat money event
       if (message.channel.type === ChannelType.DM) return;
-      const msg = message;
-      const server = msg.guild;
-      const member = msg.member;
-      const type = 'chat';
 
-      const min = db.get(`servers.${server.id}.economy.${type}.min`) || 10;
-      const max = db.get(`servers.${server.id}.economy.${type}.max`) || 100;
+      const min = db.get(`servers.${message.guild.id}.economy.chat.min`) || 10;
+      const max = db.get(`servers.${message.guild.id}.economy.chat.max`) || 100;
 
       const now = Date.now();
-      const cooldown = db.get(`servers.${server.id}.economy.${type}.cooldown`) || 60; // get cooldown from database or set to 60 seconds (1 minute)
-      let userCooldown = db.get(`servers.${server.id}.users.${member.id}.economy.${type}.cooldown`) || {};
+      const cooldown = db.get(`servers.${message.guild.id}.economy.chat.cooldown`) || 60; // get cooldown from database or set to 60 seconds (1 minute)
+      let userCooldown = db.get(`servers.${message.guild.id}.users.${message.member.id}.economy.chat.cooldown`) || {};
 
       if (userCooldown.active) {
         const timeleft = userCooldown.time - now;
@@ -77,7 +38,7 @@ module.exports = class {
           // this is to check if the bot restarted before their cooldown was set.
           userCooldown = {};
           userCooldown.active = false;
-          db.set(`servers.${server.id}.users.${member.id}.economy.${type}.cooldown`, userCooldown);
+          db.set(`servers.${message.guild.id}.users.${message.member.id}.economy.chat.cooldown`, userCooldown);
         } else {
           return;
         }
@@ -85,21 +46,21 @@ module.exports = class {
 
       const amount = BigInt(Math.floor(Math.random() * (max - min + 1) + min));
       const cash = BigInt(
-        db.get(`servers.${server.id}.users.${member.id}.economy.cash`) ||
-          db.get(`servers.${server.id}.economy.startBalance`) ||
+        db.get(`servers.${message.guild.id}.users.${message.member.id}.economy.cash`) ||
+          db.get(`servers.${message.guild.id}.economy.startBalance`) ||
           0,
       );
       const newAmount = cash + amount;
-      db.set(`servers.${server.id}.users.${member.id}.economy.cash`, newAmount.toString());
+      db.set(`servers.${message.guild.id}.users.${message.member.id}.economy.cash`, newAmount.toString());
 
       userCooldown.time = now + cooldown * 1000;
       userCooldown.active = true;
-      db.set(`servers.${server.id}.users.${member.id}.economy.${type}.cooldown`, userCooldown);
+      db.set(`servers.${message.guild.id}.users.${message.member.id}.economy.chat.cooldown`, userCooldown);
 
       return setTimeout(() => {
         userCooldown = {};
         userCooldown.active = false;
-        db.set(`servers.${server.id}.users.${member.id}.economy.${type}.cooldown`, userCooldown);
+        db.set(`servers.${message.guild.id}.users.${message.member.id}.economy.chat.cooldown`, userCooldown);
       }, cooldown * 1000);
     } else {
       bool = true;

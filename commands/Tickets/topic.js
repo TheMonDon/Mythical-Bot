@@ -1,7 +1,6 @@
 const Command = require('../../base/Command.js');
 const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
-const { DateTime } = require('luxon');
 const moment = require('moment');
 require('moment-duration-format');
 
@@ -23,6 +22,22 @@ class Topic extends Command {
 
     if (!msg.channel.name.startsWith('ticket'))
       return msg.channel.send('You need to be inside the ticket you want to change the topic of.');
+
+    if (!args) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}Topic <New Topic>`);
+
+    let topic = args.join(' ');
+    topic = topic.slice(0, 1024);
+    if (topic.length === 0) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}Topic <New Topic>`);
+
+    const { roleID } = db.get(`servers.${msg.guild.id}.tickets`);
+    const role = msg.guild.roles.cache.get(roleID);
+    const owner = db.get(`servers.${msg.guild.id}.tickets.${msg.channel.id}.owner`);
+    // Do they have the support role or are owner?
+    if (owner !== msg.author.id) {
+      if (!msg.member.roles.cache.some((r) => r.id === roleID)) {
+        return msg.channel.send(`You need to be the ticket owner or a member of ${role.name} to change the topic.`);
+      }
+    }
 
     const cooldown = 300; // 5 minutes
     let channelCooldown = db.get(`servers.${server.id}.tickets.${msg.channel.id}.tCooldown`) || {};
@@ -47,21 +62,6 @@ class Topic extends Command {
       }
     }
 
-    if (!args) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}Topic <New Topic>`);
-
-    let topic = args.join(' ');
-    topic = topic.slice(0, 1024);
-    if (topic.length === 0) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}Topic <New Topic>`);
-
-    const owner = db.get(`servers.${msg.guild.id}.tickets.${msg.channel.id}.owner`);
-    if (owner !== msg.author.id) return msg.channel.send('You need to be the owner of the ticket to change the topic.');
-
-    // Logging info
-    const output = `${DateTime.now().toLocaleString(
-      DateTime.DATETIME_FULL,
-    )} - ${authorName} has changed the topic to: \n${topic}.`;
-
-    db.push(`servers.${msg.guild.id}.tickets.${msg.channel.id}.chatLogs`, output);
     await msg.channel.setTopic(topic);
 
     const em = new EmbedBuilder()

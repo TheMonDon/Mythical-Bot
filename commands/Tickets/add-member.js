@@ -1,14 +1,13 @@
 const Command = require('../../base/Command.js');
 const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
-const { DateTime } = require('luxon');
 
 class AddMember extends Command {
   constructor(client) {
     super(client, {
       name: 'add-member',
       description: 'Add a user to a ticket.',
-      usage: 'Add-Member <User>',
+      usage: 'Add-Member <Member>',
       category: 'Tickets',
       aliases: ['addmember', 'add'],
       guildOnly: true,
@@ -20,9 +19,9 @@ class AddMember extends Command {
       return msg.channel.send('The ticket system has not been setup in this server.');
 
     if (!msg.channel.name.startsWith('ticket'))
-      return msg.channel.send('You need to be inside the ticket you want to add a user to.');
+      return msg.channel.send('You need to be inside the ticket you want to add a member to.');
 
-    if (!args[0]) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}add <user>`);
+    if (!args[0]) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}add-member <Member>`);
 
     const mem = await this.client.util.getMember(msg, args.join(' '));
     if (!mem) return msg.channel.send('That is not a valid user.');
@@ -44,18 +43,10 @@ class AddMember extends Command {
 
     await msg.channel.permissionOverwrites.edit(mem.id, { ViewChannel: true });
 
-    // Logging info
-    const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
-    const output = `${DateTime.now().toLocaleString(
-      DateTime.DATETIME_FULL,
-    )} - ${authorName} has added another member: \n${mem.displayName}.`;
-
-    db.push(`servers.${msg.guild.id}.tickets.${msg.channel.id}.chatLogs`, output);
-
     const em = new EmbedBuilder()
       .setTitle('Member Added')
       .setColor('#E65DF4')
-      .setDescription(`${msg.author} has added another member: \n${mem} (${mem.displayName})`);
+      .setDescription(`${msg.author} has added a member: \n${mem} (${mem.displayName})`);
     return msg.channel.send({ embeds: [em] });
   }
 }

@@ -1,8 +1,6 @@
 const Command = require('../../base/Command.js');
 const db = require('quick.db');
 const { EmbedBuilder, ChannelType } = require('discord.js');
-const { stripIndents } = require('common-tags');
-const { DateTime } = require('luxon');
 
 class NewTicket extends Command {
   constructor(client) {
@@ -11,7 +9,7 @@ class NewTicket extends Command {
       description: 'Create a new ticket.',
       usage: 'New-Ticket <Reason>',
       category: 'Tickets',
-      aliases: ['new', 'nt', 'newticket'],
+      aliases: ['new', 'newticket'],
       guildOnly: true,
     });
   }
@@ -128,24 +126,13 @@ class NewTicket extends Command {
       if (!tixChan.permissionsFor(this.client.user.id).has('MentionEveryone')) {
         role.setMentionable(true);
         tixChan.send({ content: role.toString(), embeds: [chanEmbed] });
+        role.setMentionable(false);
       } else {
         tixChan.send({ content: role.toString(), embeds: [chanEmbed] });
       }
     } else {
       tixChan.send({ content: role.toString(), embeds: [chanEmbed] });
     }
-
-    // Logging info
-    const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
-    const output = stripIndents`
-    Ticket created at: ${DateTime.now().toLocaleString(DateTime.DATETIME_FULL)}
-
-    Author: ${msg.author.id} (${authorName})
-
-    Topic: ${reason}\n
-    `;
-
-    db.push(`servers.${msg.guild.id}.tickets.${tixChan.id}.chatLogs`, output);
   }
 }
 

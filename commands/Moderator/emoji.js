@@ -7,11 +7,11 @@ class Emoji extends Command {
     super(client, {
       name: 'emoji',
       description: 'Sends the image of the provided emojis',
-      usage: 'emoji <create | delete | info | rename> <name | emoji> [<name | image>]',
+      usage: 'emoji <create | delete | info | rename> <name | emoji> [<name | <image | attachment>>]',
       category: 'Moderator',
       permLevel: 'Moderator',
       longDescription: stripIndents`
-      \`emoji create <name> <image>\`
+      \`emoji create <name> <image | attachment>\`
       \`emoji delete <emoji>\`
       \`emoji info <emoji>\`
       \`emoji rename <emoji> <name>\`
@@ -36,7 +36,7 @@ Incorrect Usage:
       const image = msg.attachments.first()?.url || args[2];
       if (!image) return msg.reply('Please provide a valid image');
 
-      const emoji = await msg.guild.emojis.create(image, name);
+      const emoji = await msg.guild.emojis.create({ attachment: image, name});
       return msg.reply(`${emoji} has been created.`);
     } else if (type === 'delete') {
       const emoji = args[1];
@@ -81,9 +81,9 @@ Incorrect Usage:
         { name: 'Is Animated?', value: result.animated.toString(), inline: true },
         { name: 'ID', value: result.id.toString(), inline: true },
         { name: 'is Available?', value: result.available.toString(), inline: true },
-        { name: 'Author', value: result.author?.toString() || 'N/A', inline: true },
+        { name: 'Author', value: result.author?.toString() || 'Unknown', inline: true },
         { name: 'is Deleteable?', value: result.deletable.toString(), inline: true },
-        { name: 'Created At', value: result.createdAt.toString() || 'N/A', inline: true },
+        { name: 'Created At', value: result.createdAt.toString() || 'Unknown', inline: true },
       ]);
 
       return msg.channel.send({ embeds: [em] });

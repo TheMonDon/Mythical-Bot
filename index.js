@@ -63,10 +63,6 @@ class Bot extends Client {
     try {
       const props = require(interactionPath);
       props.conf.location = interactionPath;
-      if (props.init) {
-        props.init(this);
-      }
-
       this.slashCommands.set(props.commandData.name, props);
       return false;
     } catch (e) {
@@ -90,10 +86,6 @@ class Bot extends Client {
     try {
       const props = new (require(commandPath))(this);
       props.conf.location = commandPath;
-      if (props.init) {
-        props.init(this);
-      }
-
       this.commands.set(props.help.name, props);
       props.conf.aliases.forEach((alias) => {
         this.aliases.set(alias, props.help.name);
@@ -114,9 +106,6 @@ class Bot extends Client {
     if (!command)
       return console.log(`The command \`${commandName}\` doesn't seem to exist, nor is it an alias. Try again!`);
 
-    if (command.shutdown) {
-      await command.shutdown(this);
-    }
     delete require.cache[require.resolve(commandPath)];
     return false;
   }
