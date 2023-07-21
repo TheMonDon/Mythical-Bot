@@ -5,11 +5,16 @@ class Emoji extends Command {
   constructor(client) {
     super(client, {
       name: 'emoji',
-      description: 'Sends the image of the provided emojis',
+      description: 'Create, edit, or get information about an emoji',
       usage: 'emoji <create | delete | info | rename> <name | emoji> [name | image | attachment]',
       category: 'Moderator',
       permLevel: 'Moderator',
-      examples: ['emoji create <name> <image | attachment>', 'emoji delete <emoji>', 'emoji info <emoji>', 'emoji rename <emoji> <name>'],
+      examples: [
+        'emoji create <name> <image | attachment>',
+        'emoji delete <emoji>',
+        'emoji info <emoji>',
+        'emoji rename <emoji> <name>',
+      ],
       requiredArgs: 2,
     });
   }
@@ -25,90 +30,105 @@ Incorrect Usage:
 
     const type = args[0].toLowerCase();
 
-    if (type === 'create') {
-      const name = args[1];
-      const image = msg.attachments.first()?.url || args[2];
-      if (!image) return msg.reply('Please provide a valid image');
-
-      const emoji = await msg.guild.emojis.create({ attachment: image, name});
-      return msg.reply(`${emoji} has been created.`);
-    } else if (type === 'delete') {
-      const emoji = args[1];
-      let result;
-
-      // Guild emojis
-      let guildEmojis = emoji.match(/:[_a-zA-Z0-9]*>/g);
-      if (guildEmojis) {
-        guildEmojis = guildEmojis.map((e) => e.substring(1, e.length - 1));
-        const guildEmoji = msg.guild.emojis.cache.get(guildEmojis[0]);
-        if (guildEmoji) result = guildEmoji;
-      } else {
-        const guildEmoji = msg.guild.emojis.cache.find((e) => e.name === emoji);
-        if (guildEmoji) result = guildEmoji;
+    if (type !== 'info') {
+      if (!msg.guild.members.me.permissions.has('ManageGuildExpressions')) {
+        return msg.channel.send('The bot is missing Manage Expressions permission');
       }
+    }
 
-      if (!result) return msg.reply('That emoji was not found. Is it from this server?');
-      if (!result.deletable) return msg.reply('That emoji is not deletable.');
+    switch (type) {
+      case 'create': {
+        const name = args[1];
+        const image = msg.attachments.first()?.url || args[2];
+        if (!image) return emojiError(msg, 'Please provide a valid image.');
 
-      result.delete();
-      return msg.reply('The emoji has been successfully deleted.');
-    } else if (type === 'info') {
-      const emoji = args[1];
-      let result;
-
-      // Guild emojis
-      let guildEmojis = emoji.match(/:[_a-zA-Z0-9]*>/g);
-      if (guildEmojis) {
-        guildEmojis = guildEmojis.map((e) => e.substring(1, e.length - 1));
-        const guildEmoji = msg.guild.emojis.cache.get(guildEmojis[0]);
-        if (guildEmoji) result = guildEmoji;
-      } else {
-        const guildEmoji = msg.guild.emojis.cache.find((e) => e.name === emoji);
-        if (guildEmoji) result = guildEmoji;
-      }
-
-      if (!result) return msg.reply('That emoji was not found. Is it from this server?');
-
-      const em = new EmbedBuilder().setTitle('Emoji Information').addFields([
-        { name: 'Emoji', value: result.toString(), inline: true },
-        { name: 'Name', value: result.name, inline: true },
-        { name: 'Is Animated?', value: result.animated.toString(), inline: true },
-        { name: 'ID', value: result.id.toString(), inline: true },
-        { name: 'is Available?', value: result.available.toString(), inline: true },
-        { name: 'Author', value: result.author?.toString() || 'Unknown', inline: true },
-        { name: 'is Deleteable?', value: result.deletable.toString(), inline: true },
-        { name: 'Created At', value: result.createdAt.toString() || 'Unknown', inline: true },
-      ]);
-
-      return msg.channel.send({ embeds: [em] });
-    } else if (type === 'rename') {
-      const emoji = args[1];
-      const name = args[2];
-      let result;
-
-      // Guild emojis
-      let guildEmojis = emoji.match(/:[_a-zA-Z0-9]*>/g);
-      if (guildEmojis) {
-        guildEmojis = guildEmojis.map((e) => e.substring(1, e.length - 1));
-        const guildEmoji = msg.guild.emojis.cache.get(guildEmojis[0]);
-        if (guildEmoji) result = guildEmoji;
-      } else {
-        const guildEmoji = msg.guild.emojis.cache.find((e) => e.name === emoji);
-        if (guildEmoji) result = guildEmoji;
-      }
-
-      if (!result) return msg.reply('That emoji was not found. Is it from this server?');
-
-      result
-        .edit({ name })
-        .then(() => {
-          return msg.reply(`${result} has been renamed to \`${name}\``);
-        })
-        .catch((e) => {
-          return msg.reply(`An error occurred: ${e}`);
+        const emoji = await msg.guild.emojis.create({ attachment: image, name }).catch((error) => {
+          return emojiError(msg, error);
         });
-    } else {
-      return msg.reply(usage);
+        return msg.channel.send(`${emoji} has been created.`);
+      }
+      case 'delete': {
+        const emoji = args[1];
+        const result = guildEmoji(msg, emoji);
+
+        if (!result) return emojiError(msg);
+        if (!result.deletable) return emojiError(msg, 'That emoji is not deleteable by the bot.');
+
+        result.delete();
+        return msg.channel.send('The emoji has been successfully deleted.');
+      }
+      case 'info': {
+        const emoji = args[1];
+        const result = guildEmoji(msg, emoji);
+        if (!result) return emojiError(msg);
+        await result.fetchAuthor();
+
+        const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
+        const em = new EmbedBuilder()
+          .setTitle('Emoji Information')
+          .setAuthor({ name: authorName, iconURL: msg.author.displayAvatarURL() })
+          .setColor(msg.settings.embedColor)
+          .addFields([
+            { name: 'Emoji', value: result.toString(), inline: true },
+            { name: 'Name', value: result.name, inline: true },
+            { name: 'Author', value: result.author?.toString() || 'Unknown', inline: true },
+            { name: 'Is Animated?', value: result.animated ? 'True' : 'False', inline: true },
+            { name: 'is Available?', value: result.available ? 'True' : 'False', inline: true },
+            { name: 'is Deleteable?', value: result.deletable ? 'True' : 'False', inline: true },
+            { name: 'ID', value: result.id.toString(), inline: true },
+            { name: 'Created At', value: result.createdAt.toString() || 'Unknown', inline: true },
+          ]);
+
+        return msg.channel.send({ embeds: [em] });
+      }
+      case 'rename': {
+        const emoji = args[1];
+        const name = args[2];
+        const result = guildEmoji(msg, emoji);
+        if (!result) return emojiError(msg);
+
+        result
+          .edit({ name })
+          .then(() => {
+            return msg.reply(`${result} has been renamed to \`${name}\``);
+          })
+          .catch((error) => {
+            return emojiError(msg, error);
+          });
+        break;
+      }
+      default: {
+        return msg.channel.send(usage);
+      }
+    }
+
+    function guildEmoji(message, emoji) {
+      let result;
+      if (!message || !emoji) return;
+
+      let guildEmojis = emoji.match(/:[_a-zA-Z0-9]*>/g);
+      if (guildEmojis) {
+        guildEmojis = guildEmojis.map((e) => e.substring(1, e.length - 1));
+        const guildEmoji = message.guild.emojis.cache.get(guildEmojis[0]);
+        if (guildEmoji) result = guildEmoji;
+      } else {
+        const guildEmoji = message.guild.emojis.cache.find((e) => e.name === emoji);
+        if (guildEmoji) result = guildEmoji;
+      }
+
+      return result;
+    }
+
+    function emojiError(message, desc = 'That emoji was not found. Is it from this server?') {
+      if (!message) return;
+
+      const authorName = message.author.discriminator === '0' ? message.author.username : message.author.tag;
+      const embed = new EmbedBuilder()
+        .setAuthor({ name: authorName, iconURL: message.author.displayAvatarURL() })
+        .setTitle('Error')
+        .setColor(message.settings.embedErrorColor)
+        .setDescription(desc);
+      return message.channel.send({ embeds: [embed] });
     }
   }
 }

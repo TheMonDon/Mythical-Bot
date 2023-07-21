@@ -1,4 +1,5 @@
 const Command = require('../../base/Command.js');
+const { EmbedBuilder } = require('discord.js');
 
 class MyLevel extends Command {
   constructor(client) {
@@ -7,15 +8,20 @@ class MyLevel extends Command {
       description: 'Displays your permission level',
       usage: 'mylevel',
       category: 'Information',
-      aliases: ['level', 'lvl', 'mylvl'],
+      aliases: ['level'],
       guildOnly: true,
     });
   }
 
-  async run(msg, _args, level) {
-    // Change the level number to a friendly name
+  async run(msg, args, level) {
     const friendly = this.client.config.permLevels.find((l) => l.level === level).name;
-    return msg.reply(`Your permission level is: ${level} - ${friendly}`);
+    const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
+
+    const embed = new EmbedBuilder()
+      .setColor(msg.settings.embedColor)
+      .setAuthor({ name: authorName, iconURL: msg.author.displayAvatarURL() })
+      .addFields([{ name: 'Permission Level', value: `${level} - ${friendly}` }]);
+    return msg.channel.send({ embeds: [embed] });
   }
 }
 

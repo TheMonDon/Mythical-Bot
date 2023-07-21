@@ -39,7 +39,6 @@ class forceClose extends Command {
       tID = args[0];
       args.shift();
       reason = args?.join(' ') || 'No reason specified';
-      // not inside tix channel so need tix ID
     }
 
     const { logID, roleID } = db.get(`servers.${msg.guild.id}.tickets`);
