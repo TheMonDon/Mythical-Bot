@@ -41,7 +41,7 @@ class logSystem extends Command {
 **Role Created:** ${db.get(`servers.${msg.guild.id}.logs.logSystem.role-created`) || ':x:'}
 **Role Deleted:** ${db.get(`servers.${msg.guild.id}.logs.logSystem.role-deleted`) || ':x:'}
 **Role Updated:** ${db.get(`servers.${msg.guild.id}.logs.logSystem.role-updated`) || ':x:'}
-**Stickers:** ${db.get(`servers.${msg.guild.id}.logs.logSystem.sticker-created`) || ':x:'}
+**Stickers:** ${db.get(`servers.${msg.guild.id}.logs.logSystem.sticker`) || ':x:'}
 `,
           inline: true,
         },

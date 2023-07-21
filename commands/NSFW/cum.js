@@ -15,6 +15,7 @@ class Cum extends Command {
 
   async run(msg) {
     const post = await trev.nsfw.cum();
+    if (!post) return this.client.util.embedError(msg, 'Failed to fetch a post from reddit. Please try again');
 
     const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
     const em = new EmbedBuilder()
