@@ -61,7 +61,8 @@ class Help extends Command {
         { name: 'Current Categories:', value: level >= 8 ? allcats.join(', ') : cats.join(', ') },
         {
           name: 'Quick Bits',
-          value: '[Invite Link](https://cisn.xyz/mythical) \n[Source Code](https://github.com/TheMonDon/Mythical-Bot) \n[Support Server](https://discord.com/invite/XvHzUNZDdR)',
+          value:
+            '[Invite Link](https://cisn.xyz/mythical) \n[Source Code](https://github.com/TheMonDon/Mythical-Bot) \n[Support Server](https://discord.com/invite/XvHzUNZDdR)',
         },
       ]);
 
@@ -122,7 +123,7 @@ class Help extends Command {
             { name: 'Description', value: command.help.description || 'None', inline: true },
             { name: 'Long Description', value: command.help.longDescription || 'None', inline: true },
             { name: 'Command Disabled', value: res.toString(), inline: true },
-            { name: 'Examples', value: command.help.examples?.join('\n') || 'None', inline: true}
+            { name: 'Examples', value: command.help.examples?.join('\n') || 'None', inline: true },
           ]);
         return msg.channel.send({ embeds: [em] });
       }

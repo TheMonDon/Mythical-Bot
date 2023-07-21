@@ -17,7 +17,8 @@ class Kick extends Command {
 
   async run(msg, args) {
     if (msg.guild.members.me.permissions.has('ManageMessages')) msg.delete();
-    if (!msg.guild.members.me.permissions.has('KickMembers')) return this.client.util.embedError(msg, 'The bot is missing the Kick Members permission.');
+    if (!msg.guild.members.me.permissions.has('KickMembers'))
+      return this.client.util.embedError(msg, 'The bot is missing the Kick Members permission.');
 
     const logChan = db.get(`servers.${msg.guild.id}.logs.channel`);
     const kickMem = await this.client.util.getMember(msg, args[0]);

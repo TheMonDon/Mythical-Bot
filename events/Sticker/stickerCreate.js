@@ -21,9 +21,9 @@ module.exports = class {
       .setThumbnail(sticker.url)
       .addFields([
         { name: 'Name', value: sticker.name },
-        { name: 'Sticker ID', value: sticker.id},
+        { name: 'Sticker ID', value: sticker.id },
         { name: 'Description', value: sticker.description },
-        { name: 'Tags', value: sticker.tags}
+        { name: 'Tags', value: sticker.tags },
       ])
       .setTimestamp();
 

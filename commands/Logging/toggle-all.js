@@ -24,7 +24,7 @@ class ToggleAll extends Command {
       'channel-created': 'enabled',
       'channel-deleted': 'enabled',
       'channel-updated': 'enabled',
-      'emoji': 'enabled',
+      emoji: 'enabled',
       'member-join': 'enabled',
       'member-leave': 'enabled',
       'message-deleted': 'enabled',
@@ -37,7 +37,7 @@ class ToggleAll extends Command {
       'stage-channel-deleted': 'enabled',
       'v-channel-created': 'enabled',
       'v-channel-deleted': 'enabled',
-      'sticker': 'enabled',
+      sticker: 'enabled',
       all: 'enabled',
     };
     const disable = {
@@ -45,7 +45,7 @@ class ToggleAll extends Command {
       'channel-created': 'disabled',
       'channel-deleted': 'disabled',
       'channel-updated': 'disabled',
-      'emoji': 'disabled',
+      emoji: 'disabled',
       'member-join': 'disabled',
       'member-leave': 'disabled',
       'message-deleted': 'disabled',
@@ -58,7 +58,7 @@ class ToggleAll extends Command {
       'stage-channel-deleted': 'disabled',
       'v-channel-created': 'disabled',
       'v-channel-deleted': 'disabled',
-      'sticker': 'disabled',
+      sticker: 'disabled',
       all: 'disabled',
     };
 

@@ -38,9 +38,13 @@ class BotInfo extends Command {
           inline: true,
         },
         { name: 'Bot Version', value: botVersion, inline: true },
-        { name: 'Invite', value: '[cisn.xyz/mythical](https://cisn.xyz/mythical)', inline: true },
-        { name: 'Source Code', value: '[Source Code](https://github.com/TheMonDon/Mythical-Bot)', inline: true },
-        { name: 'Commands Used', value: db.get('global.commands').toLocaleString(), inline: false },
+        { name: 'Commands Used', value: db.get('global.commands').toLocaleString(), inline: true },
+        {
+          name: 'Quick Bits',
+          value:
+            '[Invite Link](https://cisn.xyz/mythical) \n[Source Code](https://github.com/TheMonDon/Mythical-Bot) \n[Support Server](https://discord.com/invite/XvHzUNZDdR)',
+          inline: true,
+        },
       ]);
 
     return msg.channel.send({ embeds: [embed] });

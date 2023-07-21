@@ -20,7 +20,7 @@ module.exports = class {
       .addFields([
         { name: 'Name', value: emoji.name, inline: true },
         { name: 'Identifier', value: emoji.identifier, inline: true },
-        { name: 'Emoji ID', value: emoji.id, inline: true  },
+        { name: 'Emoji ID', value: emoji.id, inline: true },
         { name: 'Was Animated?', value: emoji.animated ? 'True' : 'False', inline: true },
       ])
       .setTimestamp();

@@ -169,7 +169,10 @@ Filling starts at the top left corner.`,
           return message.edit({ embeds: getContent() });
         }
 
-        collected.first().users.remove(msg.author.id).catch(() => {});
+        collected
+          .first()
+          .users.remove(msg.author.id)
+          .catch(() => {});
         selected = collected.first().emoji.name;
         if (selected === '🛑') {
           gameOver = true;

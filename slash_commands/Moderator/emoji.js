@@ -79,7 +79,8 @@ exports.run = async (interaction) => {
       const emoji = interaction.options.getString('emojidelete');
       const result = guildEmoji(interaction, emoji);
       if (!result) return interaction.client.util.embedError(interaction);
-      if (!result.deletable) return interaction.client.util.embedError(interaction, 'That emoji is not deletable by the bot.');
+      if (!result.deletable)
+        return interaction.client.util.embedError(interaction, 'That emoji is not deletable by the bot.');
 
       result.delete();
       return interaction.editReply('The emoji has been successfully deleted.');

@@ -26,7 +26,7 @@ class Purge extends Command {
         'purge images 50',
         'purge mentions 50',
         'purge before <Message ID | Message Link>',
-        'purge after <Message ID | Message Link>'
+        'purge after <Message ID | Message Link>',
       ],
       category: 'Moderator',
       permLevel: 'Moderator',

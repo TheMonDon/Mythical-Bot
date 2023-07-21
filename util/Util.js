@@ -353,7 +353,7 @@ module.exports = class Util {
       .setColor(context.settings.embedErrorColor)
       .setAuthor({ name: authorName, iconURL: authorAvatar })
       .setDescription(desc);
-    
+
     if (context instanceof Message) {
       return context.channel.send({ embeds: [embed] });
     } else {

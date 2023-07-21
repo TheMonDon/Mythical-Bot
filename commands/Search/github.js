@@ -9,7 +9,7 @@ class Github extends Command {
       name: 'github',
       description: 'View information about a repository on Github',
       usage: 'github <user> <repository> | <user/repository>',
-      examples: ['github themondon mythical-bot', 'github themondon/mythical-bot'], 
+      examples: ['github themondon mythical-bot', 'github themondon/mythical-bot'],
       category: 'Search',
       aliases: ['gh'],
       requiredArgs: 1,

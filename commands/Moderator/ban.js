@@ -16,7 +16,8 @@ class Ban extends Command {
   }
 
   async run(msg, args) {
-    if (!msg.guild.members.me.permissions.has('BanMembers')) return this.client.util.errorEmbed(msg, 'The bot is missing Ban Members permission.');
+    if (!msg.guild.members.me.permissions.has('BanMembers'))
+      return this.client.util.errorEmbed(msg, 'The bot is missing Ban Members permission.');
 
     const successColor = msg.settings.embedSuccessColor;
     const logChan = db.get(`servers.${msg.guild.id}.logs.channel`);

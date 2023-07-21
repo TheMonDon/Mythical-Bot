@@ -29,7 +29,6 @@ class GiveMoney extends Command {
 
     const mem = await this.client.util.getMember(msg, text[0]);
 
-
     if (!mem) {
       embed.setDescription(`That user was not found. \nUsage: ${usage}`);
       return msg.channel.send({ embeds: [embed] });

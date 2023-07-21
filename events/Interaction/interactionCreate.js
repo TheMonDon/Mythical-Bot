@@ -41,11 +41,17 @@ module.exports = class {
         console.error(error);
         if (interaction.replied) {
           interaction
-            .followUp({ content: `There was a problem with your request.\n\`\`\`${error.message}\`\`\``, ephemeral: true })
+            .followUp({
+              content: `There was a problem with your request.\n\`\`\`${error.message}\`\`\``,
+              ephemeral: true,
+            })
             .catch((e) => console.error('An error occurred following up on an error', e));
         } else {
           interaction
-            .editReply({ content: `There was a problem with your request.\n\`\`\`${error.message}\`\`\``, ephemeral: true })
+            .editReply({
+              content: `There was a problem with your request.\n\`\`\`${error.message}\`\`\``,
+              ephemeral: true,
+            })
             .catch((e) => console.error('An error occurred replying on an error', e));
         }
       }
@@ -56,7 +62,7 @@ module.exports = class {
         console.error(`No command matching ${interaction.commandName} was found.`);
         return;
       }
-  
+
       try {
         await slashCommand.autocomplete(interaction);
       } catch (error) {

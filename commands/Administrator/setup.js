@@ -210,8 +210,8 @@ class Setup extends Command {
         'role-updated': 'enabled',
         'v-channel-created': 'enabled',
         'v-channel-deleted': 'enabled',
-        'emoji': 'enabled',
-        'sticker': 'enabled',
+        emoji: 'enabled',
+        sticker: 'enabled',
         'bulk-messages-deleted': 'enabled',
         all: 'enabled',
       };

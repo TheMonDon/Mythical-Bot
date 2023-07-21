@@ -151,10 +151,10 @@ module.exports = class {
           .setAuthor({ name: newmsg.author.username, iconURL: newmsg.author.displayAvatarURL() })
           .setColor(newmsg.settings.embedErrorColor)
           .setTitle('Missing Command Arguments')
-          .setFooter({ text: '[] = optional, <> = required'})
+          .setFooter({ text: '[] = optional, <> = required' })
           .addFields([
             { name: 'Incorrect Usage', value: newmsg.settings.prefix + cmd.help.usage },
-            { name: 'Examples', value: cmd.help.examples?.join('\n') || 'None' }
+            { name: 'Examples', value: cmd.help.examples?.join('\n') || 'None' },
           ]);
         return newmsg.channel.send({ embeds: [embed] });
       }
