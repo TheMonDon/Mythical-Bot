@@ -67,7 +67,7 @@ exports.run = async (interaction) => {
       const subreddit = interaction.options.get('subreddit').value;
 
       const post = await trev.getCustomSubreddit(subreddit);
-      if (!post) return interaction.client.util.embedError(interaction, 'I could not find any image in that subreddit');
+      if (!post) return interaction.client.util.errorEmbed(interaction, 'I could not find any image in that subreddit');
 
       const authorName = interaction.user.discriminator === '0' ? interaction.user.username : interaction.user.tag;
       const embed = new EmbedBuilder()
@@ -93,7 +93,7 @@ exports.run = async (interaction) => {
       });
 
       if (!search.body.results.length)
-        return interaction.client.util.embedError(interaction, 'No movie with that name was found.');
+        return interaction.client.util.errorEmbed(interaction, 'No movie with that name was found.');
       const find =
         search.body.results.find((m) => m.title.toLowerCase() === query.toLowerCase()) || search.body.results[0];
 
@@ -137,7 +137,7 @@ exports.run = async (interaction) => {
       });
 
       if (!search.body.results.length)
-        return interaction.client.util.embedError(interaction, 'No tv-show with that name was found.');
+        return interaction.client.util.errorEmbed(interaction, 'No tv-show with that name was found.');
       const find =
         search.body.results.find((m) => m.name.toLowerCase() === query.toLowerCase()) || search.body.results[0];
 
@@ -190,7 +190,7 @@ exports.run = async (interaction) => {
       });
 
       if (!search.body.items.length)
-        return interaction.client.util.embedError(interaction, `No results found for **${query}**!`);
+        return interaction.client.util.errorEmbed(interaction, `No results found for **${query}**!`);
 
       const { id } = search.body.items[0];
 
@@ -283,7 +283,7 @@ exports.run = async (interaction) => {
           return interaction.editReply({ embeds: [embed] });
         } catch (err) {
           if (err.status === 404)
-            return interaction.client.util.embedError(interaction, 'No results were found for that repository.');
+            return interaction.client.util.errorEmbed(interaction, 'No results were found for that repository.');
           return interaction.editReply(`Oh no, an error occurred: \`${err.message}\`. Try again later!`);
         }
       }
@@ -316,7 +316,7 @@ exports.run = async (interaction) => {
         return interaction.editReply({ embeds: [embed] });
       } catch (err) {
         if (err.status === 404)
-          return interaction.client.util.embedError(interaction, 'No results were found for that user.');
+          return interaction.client.util.errorEmbed(interaction, 'No results were found for that user.');
         return interaction.editReply(`Oh no, an error occured: \`${err.message}\`. Try again later!`);
       }
     }
@@ -347,7 +347,7 @@ exports.run = async (interaction) => {
         return interaction.editReply({ embeds: [embed] });
       } catch (err) {
         if (err.status === 404)
-          return interaction.client.util.embedError(interaction, 'No results were found for that package.');
+          return interaction.client.util.errorEmbed(interaction, 'No results were found for that package.');
         return interaction.editReply(`Oh no, an error occured: \`${err.message}\`. Try again later!`);
       }
     }

@@ -78,9 +78,9 @@ exports.run = async (interaction) => {
     case 'delete': {
       const emoji = interaction.options.getString('emojidelete');
       const result = guildEmoji(interaction, emoji);
-      if (!result) return interaction.client.util.embedError(interaction);
+      if (!result) return interaction.client.util.errorEmbed(interaction);
       if (!result.deletable)
-        return interaction.client.util.embedError(interaction, 'That emoji is not deletable by the bot.');
+        return interaction.client.util.errorEmbed(interaction, 'That emoji is not deletable by the bot.');
 
       result.delete();
       return interaction.editReply('The emoji has been successfully deleted.');
@@ -88,7 +88,7 @@ exports.run = async (interaction) => {
     case 'info': {
       const emoji = interaction.options.getString('infoemoji');
       const result = guildEmoji(interaction, emoji);
-      if (!result) return interaction.client.util.embedError(interaction);
+      if (!result) return interaction.client.util.errorEmbed(interaction);
       await result.fetchAuthor();
 
       const authorName = interaction.user.discriminator === '0' ? interaction.user.username : interaction.user.tag;
@@ -113,7 +113,7 @@ exports.run = async (interaction) => {
       const emoji = interaction.options.getString('emojitorename');
       const name = interaction.options.getString('newname');
       const result = guildEmoji(interaction, emoji);
-      if (!result) return interaction.client.util.embedError(interaction);
+      if (!result) return interaction.client.util.errorEmbed(interaction);
 
       result
         .edit({ name })
@@ -121,7 +121,7 @@ exports.run = async (interaction) => {
           return interaction.editReply(`${result} has been renamed to \`${name}\``);
         })
         .catch((error) => {
-          return interaction.client.util.embedError(interaction, error);
+          return interaction.client.util.errorEmbed(interaction, error);
         });
     }
   }

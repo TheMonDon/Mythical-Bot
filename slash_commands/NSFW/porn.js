@@ -38,7 +38,7 @@ exports.run = async (interaction) => {
   const type = interaction.options.get('type').value;
 
   const post = await trev.nsfw[type]();
-  if (!post) return interaction.client.util.embedError(interaction, 'Failed to fetch a post from reddit. Please try again');
+  if (!post) return interaction.client.util.errorEmbed(interaction, 'Failed to fetch a post from reddit. Please try again');
 
   const authorName = interaction.user.discriminator === '0' ? interaction.user.username : interaction.user.tag;
   const embed = new EmbedBuilder()
