@@ -40,10 +40,10 @@ Incorrect Usage:
       case 'create': {
         const name = args[1];
         const image = msg.attachments.first()?.url || args[2];
-        if (!image) return emojiError(msg, 'Please provide a valid image.');
+        if (!image) return this.client.util.embedError(msg, 'Please provide a valid image.');
 
         const emoji = await msg.guild.emojis.create({ attachment: image, name }).catch((error) => {
-          return emojiError(msg, error);
+          return this.client.util.embedError(msg, error);
         });
         return msg.channel.send(`${emoji} has been created.`);
       }
@@ -51,8 +51,8 @@ Incorrect Usage:
         const emoji = args[1];
         const result = guildEmoji(msg, emoji);
 
-        if (!result) return emojiError(msg);
-        if (!result.deletable) return emojiError(msg, 'That emoji is not deleteable by the bot.');
+        if (!result) return this.client.util.embedError(msg);
+        if (!result.deletable) return this.client.util.embedError(msg, 'That emoji is not deleteable by the bot.');
 
         result.delete();
         return msg.channel.send('The emoji has been successfully deleted.');
@@ -60,7 +60,7 @@ Incorrect Usage:
       case 'info': {
         const emoji = args[1];
         const result = guildEmoji(msg, emoji);
-        if (!result) return emojiError(msg);
+        if (!result) return this.client.util.embedError(msg);
         await result.fetchAuthor();
 
         const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
@@ -85,7 +85,7 @@ Incorrect Usage:
         const emoji = args[1];
         const name = args[2];
         const result = guildEmoji(msg, emoji);
-        if (!result) return emojiError(msg);
+        if (!result) return this.client.util.embedError(msg);
 
         result
           .edit({ name })
@@ -93,7 +93,7 @@ Incorrect Usage:
             return msg.reply(`${result} has been renamed to \`${name}\``);
           })
           .catch((error) => {
-            return emojiError(msg, error);
+            return this.client.util.embedError(msg, error);
           });
         break;
       }
@@ -104,7 +104,6 @@ Incorrect Usage:
 
     function guildEmoji(message, emoji) {
       let result;
-      if (!message || !emoji) return;
 
       let guildEmojis = emoji.match(/:[_a-zA-Z0-9]*>/g);
       if (guildEmojis) {
@@ -117,18 +116,6 @@ Incorrect Usage:
       }
 
       return result;
-    }
-
-    function emojiError(message, desc = 'That emoji was not found. Is it from this server?') {
-      if (!message) return;
-
-      const authorName = message.author.discriminator === '0' ? message.author.username : message.author.tag;
-      const embed = new EmbedBuilder()
-        .setAuthor({ name: authorName, iconURL: message.author.displayAvatarURL() })
-        .setTitle('Error')
-        .setColor(message.settings.embedErrorColor)
-        .setDescription(desc);
-      return message.channel.send({ embeds: [embed] });
     }
   }
 }

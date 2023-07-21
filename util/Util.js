@@ -3,6 +3,7 @@ const yes = ['yes', 'y', 'ye', 'yeah', 'yup', 'yea', 'ya', 'correct', 'sure', 'h
 const no = ['no', 'n', 'nah', 'nope', 'fuck off', 'nada', 'cancel', 'stop'];
 const inviteRegex = /(https?:\/\/)?(www\.|canary\.|ptb\.)?discord(\.gg|(app)?\.com\/invite|\.me)\/([^ ]+)\/?/gi;
 const botInvRegex = /(https?:\/\/)?(www\.|canary\.|ptb\.)?discord(app)?\.com\/(api\/)?oauth2\/authorize\?([^ ]+)\/?/gi;
+const { Message, EmbedBuilder } = require('discord.js');
 
 module.exports = class Util {
   /**
@@ -222,7 +223,15 @@ module.exports = class Util {
       .replace(client.token, '*'.repeat(client.token.length));
 
     const config = client.config;
-    const secrets = [config.token, config.github, config.owlKey, config.OxfordID, config.OxfordKey, config.TMDb, config.BotListToken];
+    const secrets = [
+      config.token,
+      config.github,
+      config.owlKey,
+      config.OxfordID,
+      config.OxfordKey,
+      config.TMDb,
+      config.BotListToken,
+    ];
 
     for (let i = 0; i < secrets.length; i++) {
       newText = Util.replaceAll(newText, secrets[i], '*'.repeat(secrets[i].length));
@@ -305,6 +314,12 @@ module.exports = class Util {
     return userTickets;
   }
 
+  /**
+   *
+   * @param {Message} msg
+   * @param {String} question
+   * @param {Number} limit
+   */
   static async awaitReply(msg, question, limit = 60000) {
     const filter = (m) => m.author.id === msg.author.id;
     await msg.channel.send(question);
@@ -313,6 +328,36 @@ module.exports = class Util {
       return collected.first().content;
     } catch (e) {
       return false;
+    }
+  }
+
+  /**
+   *
+   * @param {*} context The interaction or message object
+   * @param {String} desc The description for the error embed
+   */
+  static errorEmbed(context, desc = 'An error has ocurred.') {
+    let authorName;
+    let authorAvatar;
+
+    if (context instanceof Message) {
+      authorAvatar = context.author.displayAvatarURL();
+      authorName = context.author.discriminator === '0' ? context.author.username : context.author.tag;
+    } else {
+      authorAvatar = context.user.displayAvatarURL();
+      authorName = context.user.discriminator === '0' ? context.user.username : context.user.tag;
+    }
+
+    const embed = new EmbedBuilder()
+      .setTitle('Error')
+      .setColor(context.settings.embedErrorColor)
+      .setAuthor({ name: authorName, iconURL: authorAvatar })
+      .setDescription(desc);
+    
+    if (context instanceof Message) {
+      return context.channel.send({ embeds: [embed] });
+    } else {
+      return context.editReply({ embeds: [embed] });
     }
   }
 };

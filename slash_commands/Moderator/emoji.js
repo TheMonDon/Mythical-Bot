@@ -78,8 +78,8 @@ exports.run = async (interaction) => {
     case 'delete': {
       const emoji = interaction.options.getString('emojidelete');
       const result = guildEmoji(interaction, emoji);
-      if (!result) return emojiError(interaction);
-      if (!result.deletable) return emojiError(interaction, 'That emoji is not deletable by the bot.');
+      if (!result) return interaction.client.util.embedError(interaction);
+      if (!result.deletable) return interaction.client.util.embedError(interaction, 'That emoji is not deletable by the bot.');
 
       result.delete();
       return interaction.editReply('The emoji has been successfully deleted.');
@@ -87,7 +87,7 @@ exports.run = async (interaction) => {
     case 'info': {
       const emoji = interaction.options.getString('infoemoji');
       const result = guildEmoji(interaction, emoji);
-      if (!result) return emojiError(interaction);
+      if (!result) return interaction.client.util.embedError(interaction);
       await result.fetchAuthor();
 
       const authorName = interaction.user.discriminator === '0' ? interaction.user.username : interaction.user.tag;
@@ -112,7 +112,7 @@ exports.run = async (interaction) => {
       const emoji = interaction.options.getString('emojitorename');
       const name = interaction.options.getString('newname');
       const result = guildEmoji(interaction, emoji);
-      if (!result) return emojiError(interaction);
+      if (!result) return interaction.client.util.embedError(interaction);
 
       result
         .edit({ name })
@@ -120,14 +120,13 @@ exports.run = async (interaction) => {
           return interaction.editReply(`${result} has been renamed to \`${name}\``);
         })
         .catch((error) => {
-          return emojiError(interaction, error);
+          return interaction.client.util.embedError(interaction, error);
         });
     }
   }
 
   function guildEmoji(interaction, emoji) {
     let result;
-    if (!interaction || !emoji) return;
 
     let guildEmojis = emoji.match(/:[_a-zA-Z0-9]*>/g);
     if (guildEmojis) {
@@ -140,17 +139,5 @@ exports.run = async (interaction) => {
     }
 
     return result;
-  }
-
-  function emojiError(interaction, desc = 'That emoji was not found. Is it from this server?') {
-    if (!interaction) return;
-
-    const authorName = interaction.user.discriminator === '0' ? interaction.user.username : interaction.user.tag;
-    const embed = new EmbedBuilder()
-      .setAuthor({ name: authorName, iconURL: interaction.user.displayAvatarURL() })
-      .setTitle('Error')
-      .setColor(interaction.settings.embedErrorColor)
-      .setDescription(desc);
-    return interaction.editReply({ embeds: [embed] });
   }
 };

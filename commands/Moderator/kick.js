@@ -7,31 +7,28 @@ class Kick extends Command {
     super(client, {
       name: 'kick',
       description: 'Kick a naughty user',
-      usage: 'Kick <User> <Reason>',
+      usage: 'kick <member> <reason>',
       category: 'Moderator',
       permLevel: 'Moderator',
+      requiredArgs: 2,
       guildOnly: true,
     });
   }
 
   async run(msg, args) {
-    if (!msg.guild.members.me.permissions.has('KickMembers'))
-      return msg.channel.send('The bot is missing the Kick Members permission.');
+    if (msg.guild.members.me.permissions.has('ManageMessages')) msg.delete();
+    if (!msg.guild.members.me.permissions.has('KickMembers')) return this.client.util.embedError(msg, 'The bot is missing the Kick Members permission.');
 
     const logChan = db.get(`servers.${msg.guild.id}.logs.channel`);
-
-    if (!args[0]) return msg.channel.send('Please provide a user and a reason.');
     const kickMem = await this.client.util.getMember(msg, args[0]);
+    if (!kickMem) return this.client.util.embedError(msg, 'Please provide a valid member to kick.');
+    if (!kickMem.kickable) return this.client.util.embedError(msg, 'The member is not kickable by the bot.');
 
     // start reason
     args.shift();
     const reason = args.join(' ');
-    if (!reason) return msg.channel.send('Please provide a reason.');
-    if (msg.guild.members.me.permissions.has('ManageMessages')) msg.delete();
-    if (!kickMem) return msg.channel.send('That user was not found.');
-    if (!kickMem.kickable) return msg.channel.send('That user is not kickable.');
 
-    kickMem.kick({ reason });
+    kickMem.kick(reason);
 
     const em = new EmbedBuilder()
       .setTitle('User Kicked')

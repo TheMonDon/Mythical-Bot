@@ -11,26 +11,29 @@ class Ban extends Command {
       category: 'Moderator',
       permLevel: 'Moderator',
       guildOnly: true,
+      requiredArgs: 2,
     });
   }
 
   async run(msg, args) {
-    if (!msg.guild.members.me.permissions.has('BanMembers'))
-      return msg.channel.send('The bot is missing the ban members permission.');
+    if (!msg.guild.members.me.permissions.has('BanMembers')) return this.client.util.errorEmbed(msg, 'The bot is missing Ban Members permission.');
 
     const successColor = msg.settings.embedSuccessColor;
     const logChan = db.get(`servers.${msg.guild.id}.logs.channel`);
+    const regex = /^\d{17,19}$/;
 
-    if (!args[0]) return msg.channel.send('Please provide a user and a reason.');
     const banMem = await this.client.util.getMember(msg, args[0]);
+    if (!banMem) {
+      if (!regex.test(args[0])) {
+        return this.client.util.errorEmbed(msg, 'Please provide a valid user input.');
+      }
+    }
 
-    // start reason
     args.shift();
     const reason = args.join(' ');
-    if (!reason) return msg.channel.send('Please provide a reason.');
+
     if (msg.guild.members.me.permissions.has('ManageMessages')) msg.delete();
-    if (!banMem) return msg.channel.send('That user was not found.');
-    if (!banMem.bannable) return msg.channel.send('That user is not bannable.');
+    if (!banMem.bannable) return this.client.util.errorEmbed(msg, 'That user is not bannable by the bot.');
 
     // Embed for log channel or reply
     const em = new EmbedBuilder()
@@ -38,14 +41,13 @@ class Ban extends Command {
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
       .setColor(successColor)
       .addFields([
-        { name: 'User', value: banMem.toString() },
+        { name: 'User', value: `${banMem.toString()} (${banMem.id})` },
         { name: 'Banned By', value: msg.member.displayName.toString() },
         { name: 'Reason', value: reason },
       ])
-      .setFooter({ text: `User ID: ${banMem.id}` })
       .setTimestamp();
 
-    msg.guild.ban(banMem, { reason });
+    msg.guild.members.ban(banMem, { reason });
 
     if (logChan) {
       // Embed for reply
