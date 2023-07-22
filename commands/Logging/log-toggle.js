@@ -6,11 +6,12 @@ class LogToggle extends Command {
   constructor(client) {
     super(client, {
       name: 'log-toggle',
-      description: 'Toggle individual logs',
-      usage: 'Log-Toggle <module>',
+      description: 'Toggle individual logs or logging a channel',
+      usage: 'log-toggle <module>',
       category: 'Logging',
       permLevel: 'Moderator',
       aliases: ['togglelog', 'logtoggle'],
+      examples: ['log-toggle channel-created', 'log-toggle disable #logs'],
       guildOnly: true,
     });
   }
@@ -19,7 +20,7 @@ class LogToggle extends Command {
     const query = args.join(' ').toLowerCase();
 
     if (!db.get(`servers.${msg.guild.id}.logs.channel`))
-      return msg.channel.send(`The log system is not set up! Use \`${msg.settings.prefix}setlogchannel <channel>\``);
+      return msg.channel.send(`The log system is not set up! Use \`${msg.settings.prefix}setup logging\``);
 
     // define regex
     const cc = /^(channel[-]?created)/gi;
@@ -70,8 +71,8 @@ sticker`,
         inline: true,
       },
       {
-        name: 'Other Usage:',
-        value: 'Log-Toggle <Enable/Disable> <Channel> to enable/disable a channel from being logged.',
+        name: 'Usage:',
+        value: `${msg.settings.prefix}log-toggle <Enable/Disable> <Channel> \n${msg.settings.prefix}log-toggle <module>`,
         inline: false,
       },
     ]);

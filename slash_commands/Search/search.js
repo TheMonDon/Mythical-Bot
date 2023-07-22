@@ -1,8 +1,6 @@
-/* eslint-disable no-unused-vars */
 const { EmbedBuilder, SlashCommandBuilder } = require('discord.js');
 const trev = require('trev-reborn');
 const fetch = require('node-superfetch');
-const moment = require('moment');
 
 exports.conf = {
   permLevel: 'User',
@@ -67,21 +65,29 @@ exports.run = async (interaction) => {
       const subreddit = interaction.options.get('subreddit').value;
 
       const post = await trev.getCustomSubreddit(subreddit);
-      if (!post) return interaction.client.util.errorEmbed(interaction, 'I could not find any image in that subreddit');
+      if (!post)
+        return interaction.client.util.errorEmbed(interaction, 'Failed to fetch a post from reddit. Please try again');
 
       const authorName = interaction.user.discriminator === '0' ? interaction.user.username : interaction.user.tag;
+      const text = post.text?.length > 4000 ? post.text.slice(0, 4000) + '\nRead more on reddit.' : post.text;
       const embed = new EmbedBuilder()
         .setAuthor({ name: authorName, iconURL: interaction.user.displayAvatarURL() })
         .setTitle(post.title)
+        .setColor(interaction.settings.embedColor)
         .setURL(post.permalink)
         .setImage(post.media)
         .setTimestamp();
+      if (text) embed.setDescription(text);
 
       if (post.over_18 && interaction.channel.nsfw === false) {
         return interaction.editReply('The post from that subreddit is NSFW and could not be sent in this channel.');
       }
 
-      return interaction.editReply({ embeds: [embed] });
+      if (trev.isRedGifsLink(post.media)) {
+        return interaction.editReply(post.media);
+      } else {
+        return interaction.editReply({ embeds: [embed] });
+      }
     }
     case 'movie': {
       const query = interaction.options.get('movie').value;
@@ -212,7 +218,7 @@ exports.run = async (interaction) => {
       if (data.platforms?.linux) platforms.push('Linux');
 
       const embed = new EmbedBuilder()
-        .setColor(0x101d2f)
+        .setColor(interaction.settings.embedColor)
         .setAuthor({ name: 'Steam', iconURL: 'https://i.imgur.com/xxr2UBZ.png', url: 'http://store.steampowered.com/' })
         .setTitle(data.name)
         .setURL(`http://store.steampowered.com/app/${data.steam_appid}`)
@@ -262,7 +268,8 @@ exports.run = async (interaction) => {
           embed
             .setTitle(body.full_name)
             .setURL(body.html_url)
-            .setDescription(body.description ? body.description.slice(0, 2000) : 'No description.')
+            .setDescription(body.description ? body.description.slice(0, 4000) : 'No description.')
+            .setColor(interaction.settings.embedColor)
             .setThumbnail(body.owner.avatar_url)
             .addFields([
               { name: 'Stars', value: body.stargazers_count.toLocaleString(), inline: true },
@@ -299,6 +306,7 @@ exports.run = async (interaction) => {
         embed
           .setTitle(body.login)
           .setURL(body.html_url)
+          .setColor(interaction.settings.embedColor)
           .setThumbnail(body.avatar_url)
           .addFields([
             { name: 'Name', value: body.login, inline: true },

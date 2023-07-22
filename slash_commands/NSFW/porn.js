@@ -28,7 +28,9 @@ exports.commandData = new SlashCommandBuilder()
       { name: 'Men', value: 'men' },
       { name: 'Milf', value: 'milf' },
       { name: 'Pussy', value: 'pussy' },
-      { name: 'Thong', value: 'thong' }, // Currently at 17/25
+      { name: 'Thong', value: 'thong' },
+      { name: 'Large Penis', value: 'largepenis' },
+      { name: 'Positions', value: 'positions' }, // Currently at 19/25
     ),
   );
 
@@ -38,7 +40,8 @@ exports.run = async (interaction) => {
   const type = interaction.options.get('type').value;
 
   const post = await trev.nsfw[type]();
-  if (!post) return interaction.client.util.errorEmbed(interaction, 'Failed to fetch a post from reddit. Please try again');
+  if (!post)
+    return interaction.client.util.errorEmbed(interaction, 'Failed to fetch a post from reddit. Please try again');
 
   const authorName = interaction.user.discriminator === '0' ? interaction.user.username : interaction.user.tag;
   const embed = new EmbedBuilder()
@@ -49,5 +52,9 @@ exports.run = async (interaction) => {
     .setImage(post.media)
     .setTimestamp();
 
-  return interaction.editReply({ embeds: [embed] });
+  if (trev.isRedGifsLink(post.media)) {
+    return interaction.editReply(post.media);
+  } else {
+    return interaction.editReply({ embeds: [embed] });
+  }
 };

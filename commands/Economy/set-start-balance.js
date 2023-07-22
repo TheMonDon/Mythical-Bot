@@ -10,22 +10,18 @@ class SetStartBalance extends Command {
       description: 'Set the starting balance for the server',
       usage: 'set-start-balance <amount>',
       aliases: ['setstartbalance'],
-      requiredArgs: 1,
       permLevel: 'Moderator',
+      requiredArgs: 1,
       guildOnly: true,
     });
   }
 
   run(msg, args) {
-    if (!args || args.length < 1)
-      return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}set-start-balance <amount>`);
-
     const currencySymbol = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
 
     const amount = args
       .join('')
-      .replace(/[^0-9\\.]/g, '')
-      .replace(/-/g, '');
+      .replace(/[^0-9\\.-]|-/g, '');
 
     if (amount > 1000000000000) return msg.channel.send('The max starting balance is one trillion.');
 

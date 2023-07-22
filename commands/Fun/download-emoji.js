@@ -7,15 +7,15 @@ class DownloadEmoji extends Command {
     super(client, {
       name: 'download-emoji',
       description: 'Sends the image of the provided emojis',
-      usage: 'download-emoji :spinnysheep:',
+      usage: 'download-emoji <emoji>',
       category: 'Fun',
-      aliases: ['dl', 'downloademoji', 'dlemoji'],
+      aliases: ['downloademoji'],
+      examples: ['download-emoji :spinnysheep:'],
+      requiredArgs: 1,
     });
   }
 
   async run(msg, args) {
-    if (!args || args.length < 1) return msg.reply('You need to input at least one emoji.');
-
     const content = args.join(' ');
     const result = [];
     const res = [];

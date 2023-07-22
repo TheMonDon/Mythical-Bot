@@ -7,14 +7,13 @@ class Reload extends Command {
       description: 'Reloads a command that has been modified.',
       category: 'Bot Admin',
       permLevel: 'Bot Admin',
-      usage: 'Reload [-i <command>]',
+      usage: 'reload [-i <command>]',
       aliases: ['r'],
+      requiredArgs: 1,
     });
   }
 
   async run(msg, args) {
-    if (!args || args.length < 1) return msg.reply('Must provide a command to reload.');
-
     if (args.length === 1) {
       const command =
         this.client.commands.get(args[0].toLowerCase()) ||

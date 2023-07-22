@@ -27,7 +27,11 @@ class Men extends Command {
       .setImage(post.media)
       .setTimestamp();
 
-    return msg.channel.send({ embeds: [em] });
+    if (trev.isRedGifsLink(post.media)) {
+      return msg.channel.send(post.media);
+    } else {
+      return msg.channel.send({ embeds: [em] });
+    }
   }
 }
 

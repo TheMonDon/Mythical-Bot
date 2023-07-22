@@ -6,12 +6,13 @@ class Clap extends Command {
       name: 'clap',
       description: 'Clappify your text.',
       usage: 'clap <text>',
+      examples: ['clap add emojis to this'],
       category: 'Fun',
+      requiredArgs: 2,
     });
   }
 
   async run(msg, args) {
-    if (!args || args.length < 2) return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}Clap <text>`);
     const lengthLimited = this.client.util.limitStringLength(args.join(' ').replace(/\s/g, ' 👏 '));
     const clap = await this.client.util.clean(this.client, lengthLimited);
 

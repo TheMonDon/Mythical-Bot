@@ -34,11 +34,6 @@ class AddMoney extends Command {
     let mem;
     let amount;
 
-    if (!args || args.length < 2) {
-      embed.setDescription(usage);
-      return msg.channel.send({ embeds: [embed] });
-    }
-
     const currencySymbol = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
 
     if (args.length === 2) {

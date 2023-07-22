@@ -11,6 +11,7 @@ class ServerInfo extends Command {
       usage: 'server-info [server ID]',
       category: 'Information',
       aliases: ['si', 'serverinfo'],
+      examples: ['server-info', 'server-info 579742127676981269']
     });
   }
 
@@ -18,21 +19,16 @@ class ServerInfo extends Command {
     let server;
     const usage = `${msg.settings.prefix}server-info [server ID] (The bot must be in the server you want to get information for)`;
 
-    // Check if the user provided a server ID
     if (!args || args.length < 1) {
-      // If the user didn't provide a server ID, check if the message was sent in a guild
       if (!msg.guild) return msg.channel.send(usage);
-      // If the message was sent in a guild, set the server to the guild
       server = msg.guild;
     } else {
-      // If the user provided a server ID, check if the bot is in the server
       server = this.client.guilds.cache.get(args.join(' '));
     }
 
-    // If the bot isn't in the server, return an error
-    if (!server) return msg.channel.send('I could not find a server with that ID.');
+    if (!server) return this.client.util.errorEmbed(msg, 'The bot is not in that server and cannot provide information on it.');
 
-    if (!server.available) return msg.channel.send('That server is currently unavailable');
+    if (!server.available) return this.client.util.errorEmbed(msg, 'That server is currently unavailable');
 
     await server.members.fetch();
 
