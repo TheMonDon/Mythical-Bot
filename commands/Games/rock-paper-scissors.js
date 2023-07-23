@@ -25,9 +25,8 @@ class RockPaperScissors extends Command {
     if (current) return msg.reply(`Please wait until the current game of \`${current.name}\` is finished.`);
 
     const mem = await this.client.util.getMember(msg, args.join(' '));
-    if (!mem)
-      return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}rps <opponent> (Please enter a valid user)`);
-    if (mem.user.id === msg.author.id) return msg.channel.send("You can't play against yourself, silly.");
+    if (!mem) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid User');
+    if (mem.user.id === msg.author.id) return this.client.util.errorEmbed(msg, 'You can\'t play against yourself, silly.');
 
     this.client.games.set(msg.channel.id, { name: this.help.name, user: msg.author.id, date: Date.now() });
 

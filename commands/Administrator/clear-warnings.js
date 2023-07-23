@@ -17,18 +17,16 @@ class ClearWarnings extends Command {
   }
 
   async run(msg, args) {
-    const usage = `Incorrect Usage: ${msg.settings.prefix}clear-warnings <user>`;
     const color = msg.settings.embedColor;
 
     let mem = await this.client.util.getMember(msg, args.join(' '));
 
-    // Find the user by user ID
     if (!mem) {
-      const ID = args[0].replace('<@', '').replace('>', '');
+      const ID = args[0].replace(/<@|>/g, '');
       try {
         mem = await this.client.users.fetch(ID);
       } catch (err) {
-        return msg.reply(usage);
+        return this.client.util.errorEmbedusage(msg, msg.settings.prefix + this.help.usage, 'Invalid Member');
       }
     }
 
@@ -44,7 +42,7 @@ class ClearWarnings extends Command {
 
     if (previousPoints >= 10) {
       if (!msg.guild.members.me.permissions.has('BanMembers')) {
-        msg.channel.send('The bot does not have BanMembers permission to unban the user.');
+        msg.channel.send('The bot does not have Ban Members permission to unban the user.');
       } else {
         await msg.guild.members.unban(mem.id).catch(() => null);
       }

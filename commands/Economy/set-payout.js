@@ -11,6 +11,7 @@ class SetPayout extends Command {
       description: 'Sets the payout of the economy commands',
       usage: 'set-payout <work | crime | slut | chat> <min | max> <amount>',
       aliases: ['setpayout'],
+      examples: ['set-payout work min 100', 'set-payout crime max 170000'],
       guildOnly: true,
     });
   }
@@ -22,7 +23,6 @@ class SetPayout extends Command {
       return msg.channel.send('You are missing **Manage Guild** permission.');
 
     const currencySymbol = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
-    const usage = `${msg.settings.prefix}set-payout <work | crime | slut | chat> <min | max> <amount>`;
 
     const workMin = db.get(`servers.${msg.guild.id}.economy.work.min`) || 50;
     const workMax = db.get(`servers.${msg.guild.id}.economy.work.max`) || 500;
@@ -47,22 +47,18 @@ class SetPayout extends Command {
           \`Slut\`  - min: ${currencySymbol}${slutMin}  | max: ${currencySymbol}${slutMax}
           \`Chat\`  - min: ${currencySymbol}${chatMin}  | max: ${currencySymbol}${chatMax}
     
-          Usage: ${usage}
+          Usage: ${msg.settings.prefix + this.help.usage}
         `);
       return msg.channel.send({ embeds: [embed] });
     }
 
     const type = text[0]?.toLowerCase();
-    if (!types.includes(type)) {
-      embed.setDescription(`Incorrect Usage: ${usage}`);
-      return msg.channel.send({ embeds: [embed] });
-    }
+    if (!types.includes(type))
+      return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Incorrect Usage');
 
     const minMax = text[1]?.toLowerCase();
-    if (!['min', 'max'].includes(minMax)) {
-      embed.setDescription(`Incorrect Usage: ${usage}`);
-      return msg.channel.send({ embeds: [embed] });
-    }
+    if (!['min', 'max'].includes(minMax))
+      return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Incorrect Usage');
 
     text.shift();
     text.shift();
@@ -71,58 +67,23 @@ class SetPayout extends Command {
       .replace(/[^0-9\\.]/g, '')
       .replace(/-/g, '');
 
-    if (isNaN(amount)) {
-      embed.setDescription(stripIndents`
-        :x: Invalid payout. Please provide a valid number.
-
-        Usage: ${usage}
-      `);
-
-      return msg.channel.send({ embeds: [embed] });
-    }
+    if (isNaN(amount)) return this.client.util.errorEmbed(msg, 'Please provide a valid number', 'Invalid Payout');
 
     if (amount > 1000000000000) {
-      return msg.channel.send('The max amount for payout is one trillion.');
+      return msg.channel.send('The maximum amount for payout is one trillion.');
     } else if (amount < 1) {
-      return msg.channel.send('The min amount for payout is one.');
+      return msg.channel.send('The minimum amount for payout is one.');
     }
 
-    embed.setColor('#64BC6C');
-
-    if (type === 'work') {
-      if (minMax === 'min') {
-        db.set(`servers.${msg.guild.id}.economy.work.min`, amount);
-        embed.setDescription(`The minimum amount for \`Work\` has been changed to ${currencySymbol}${amount}`);
-      } else {
-        db.set(`servers.${msg.guild.id}.economy.work.max`, amount);
-        embed.setDescription(`The maximum amount for \`Work\` has been changed to ${currencySymbol}${amount}`);
-      }
-    } else if (type === 'crime') {
-      if (minMax === 'min') {
-        db.set(`servers.${msg.guild.id}.economy.crime.min`, amount);
-        embed.setDescription(`The minimum amount for \`Crime\` has been changed to ${currencySymbol}${amount}`);
-      } else {
-        db.set(`servers.${msg.guild.id}.economy.crime.max`, amount);
-        embed.setDescription(`The maximum amount for \`Crime\` has been changed to ${currencySymbol}${amount}`);
-      }
-    } else if (type === 'slut') {
-      if (minMax === 'min') {
-        db.set(`servers.${msg.guild.id}.economy.slut.min`, amount);
-        embed.setDescription(`The minimum amount for \`Slut\` has been changed to ${currencySymbol}${amount}`);
-      } else {
-        db.set(`servers.${msg.guild.id}.economy.slut.max`, amount);
-        embed.setDescription(`The maximum amount for \`Slut\` has been changed to ${currencySymbol}${amount}`);
-      }
-    } else if (type === 'chat') {
-      if (minMax === 'min') {
-        db.set(`servers.${msg.guild.id}.economy.chat.min`, amount);
-        embed.setDescription(`The minimum amount for \`Chat\` has been changed to ${currencySymbol}${amount}`);
-      } else {
-        db.set(`servers.${msg.guild.id}.economy.chat.max`, amount);
-        embed.setDescription(`The maximum amount for \`Chat\` has been changed to ${currencySymbol}${amount}`);
-      }
-    }
-
+    db.set(`servers.${msg.guild.id}.economy.${type}.${minMax}`, amount);
+    const longMinMax = minMax === 'min' ? 'minimum' : 'maximum';
+    embed
+      .setDescription(
+        `The ${longMinMax} amount for \`${this.client.util.toProperCase(
+          type,
+        )}\` has been changed to ${currencySymbol}${amount}`,
+      )
+      .setColor('#64BC6C');
     return msg.channel.send({ embeds: [embed] });
   }
 }

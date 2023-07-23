@@ -19,11 +19,10 @@ class Blacklist extends Command {
   async run(msg, text) {
     let mem;
     let type;
-    const usage = `Incorrect Usage:${msg.settings.prefix}Blacklist <Add | Remove | Check> <User> <Reason>`;
 
     if (text[0] && text[1]) {
       if (!['add', 'remove', 'check'].includes(text[0].toLowerCase())) {
-        return msg.reply(usage);
+        return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Incorrect Usage');
       } else {
         type = text[0].toLowerCase();
       }
@@ -31,13 +30,13 @@ class Blacklist extends Command {
       mem = await this.client.util.getMember(msg, text[0]);
       type = 'check';
 
-      if (!mem) return msg.reply(usage);
+      if (!mem) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Incorrect Usage');
     }
 
     if (!mem && text[1]) {
       mem = await this.client.util.getMember(msg, text[1]);
 
-      if (!mem) return msg.reply(`${usage} \nPlease provide a valid server member.`);
+      if (!mem) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Member');
     }
 
     text.shift();
@@ -57,7 +56,7 @@ class Blacklist extends Command {
       if (blacklist) {
         return msg.channel.send('That user is already blacklisted.');
       }
-      if (!reason) return msg.channel.send(`${usage} \nPlease provide a valid reason.`);
+      if (!reason) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Reason');
 
       db.set(`servers.${msg.guild.id}.users.${mem.id}.blacklist`, true);
       db.set(`servers.${msg.guild.id}.users.${mem.id}.blacklistReason`, reason);
@@ -73,7 +72,7 @@ class Blacklist extends Command {
     } else if (type === 'remove') {
       // remove member from blacklist
       if (!blacklist) return msg.channel.send('That user is not blacklisted');
-      if (!reason) return msg.channel.send(`${usage} \nPlease provide a valid reason.`);
+      if (!reason) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Reason');
 
       db.set(`servers.${msg.guild.id}.users.${mem.id}.blacklist`, false);
       db.set(`servers.${msg.guild.id}.users.${mem.id}.blacklistReason`, reason);

@@ -12,9 +12,9 @@ class Connect4 extends Command {
       name: 'connect4',
       description: 'Play a game of connect4.',
       usage: 'connect4 <opponent> <color>',
-      requiredArgs: 2,
       category: 'Games',
       aliases: ['connectfour', 'connect-four'],
+      requiredArgs: 2,
     });
   }
 
@@ -48,7 +48,6 @@ class Connect4 extends Command {
     const current = this.client.games.get(msg.channel.id);
     if (current) return msg.reply(`Please wait until the current game of \`${current.name}\` is finished.`);
 
-    const usage = `Incorrect Usage: ${msg.settings.prefix}connect4 <opponent> <color>`;
     let opponent = await this.client.util.getMember(msg, args[0]);
     if (!opponent) opponent = msg.guild.members.me;
     if (opponent.id === msg.author.id) return msg.reply('You may not play against yourself.');
@@ -56,7 +55,7 @@ class Connect4 extends Command {
     args.shift();
     if (!args || args.length < 1)
       return msg.channel.send(
-        `${usage} \nThat is not a valid color, either an emoji or one of ${this.client.util.list(
+        `${msg.settings.prefix + this.help.usage} \nThat is not a valid color, either an emoji or one of ${this.client.util.list(
           Object.keys(colors),
           'or',
         )}.`,

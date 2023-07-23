@@ -19,8 +19,6 @@ class AddMoneyRole extends Command {
   }
 
   async run(msg, args) {
-    const usage = `Incorrect Usage: ${msg.settings.prefix}add-money-role <cash | bank> <role> <amount>`;
-
     const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
     const errEmbed = new EmbedBuilder()
       .setColor(msg.settings.embedErrorColor)
@@ -49,16 +47,13 @@ class AddMoneyRole extends Command {
       type = args[0].toLowerCase();
     }
 
-    if (isNaN(amount)) {
-      errEmbed.setDescription(usage);
-      return msg.channel.send({ embeds: [errEmbed] });
-    }
+    if (isNaN(amount)) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Incorrect Usage');
 
     if (!role) {
       errEmbed.setDescription(stripIndents`
       :x: Invalid role given.
 
-      Usage: ${usage}
+      Usage: ${msg.settings.prefix + this.help.usage}
       `);
       return msg.channel.send({ embeds: [errEmbed] });
     }

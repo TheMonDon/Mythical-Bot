@@ -11,7 +11,7 @@ class Warn extends Command {
       longDescription: stripIndents`
         Warn system that will kick or ban a user depending on the points they have.
         Users are kicked when they reach 8 points, or banned when they reach 10. (Change with \`setup\` command)`,
-      usage: 'warn <User> <Points> <Reason>',
+      usage: 'warn <User> <0-1000 Points> <Reason>',
       category: 'Moderator',
       permLevel: 'Moderator',
       requiredArgs: 3,
@@ -23,36 +23,33 @@ class Warn extends Command {
     let mem;
     let member = true;
     let logMessage;
-    const usage = `Incorrect Usage: ${msg.settings.prefix}warn <User> <Points Kick:${msg.settings.warnKickPoints} | Ban:${msg.settings.warnBanPoints}> <Reason>`;
 
     await msg.delete();
     mem = await this.client.util.getMember(msg, args[0]);
 
     // Find the user by user ID
     if (!mem) {
-      const ID = args[0].replace('<@', '').replace('>', '');
+      const ID = args[0].replace(/<@|>/g, '');
       try {
         mem = await this.client.users.fetch(ID);
         member = false;
       } catch (err) {
-        return msg.channel.send(usage);
+        return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Member');
       }
     }
 
-    if (member ? mem.user.bot : mem.bot) return msg.channel.send("You can't warn a bot.");
+    if (member ? mem.user.bot : mem.bot) return this.client.util.errorEmbed(msg, "You can't warn a bot.");
 
     if (member) {
       const owner = await msg.guild.fetchOwner();
-      if (mem.roles.highest.position > msg.member.roles.highest.position - 1 || msg.author.id !== owner.user.id) {
-        return msg.channel.send("You can't warn someone who has a higher role than you.");
-      }
+      if (mem.roles.highest.position > msg.member.roles.highest.position - 1 || msg.author.id !== owner.user.id)
+        return this.client.util.errorEmbed(msg, "You can't warn someone with a higher role than you.");
     }
 
     // Check if points is a number and is between 0 and 1000
     const points = parseInt(args[1], 10);
-    if (isNaN(points)) return msg.channel.send(usage);
-    if (points < 0 || points > 1000)
-      return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}warn <member> <0-1000 points> <reason>`);
+    if (isNaN(points) || points < 0 || points > 1000)
+      return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Incorrect Usage');
 
     // Convert shorthand to fullhand for reason
     args.shift();

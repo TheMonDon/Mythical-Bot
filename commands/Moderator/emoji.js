@@ -51,7 +51,7 @@ Incorrect Usage:
         const emoji = args[1];
         const result = guildEmoji(msg, emoji);
 
-        if (!result) return this.client.util.errorEmbed(msg);
+        if (!result) return this.client.util.errorEmbed(msg, 'That emoji was not found.');
         if (!result.deletable) return this.client.util.errorEmbed(msg, 'That emoji is not deleteable by the bot.');
 
         result.delete();
@@ -60,7 +60,7 @@ Incorrect Usage:
       case 'info': {
         const emoji = args[1];
         const result = guildEmoji(msg, emoji);
-        if (!result) return this.client.util.errorEmbed(msg);
+        if (!result) return this.client.util.errorEmbed(msg, 'That emoji was not found.');
         await result.fetchAuthor();
 
         const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
@@ -85,7 +85,7 @@ Incorrect Usage:
         const emoji = args[1];
         const name = args[2];
         const result = guildEmoji(msg, emoji);
-        if (!result) return this.client.util.errorEmbed(msg);
+        if (!result) return this.client.util.errorEmbed(msg, 'That emoji was not found.');
 
         result
           .edit({ name })

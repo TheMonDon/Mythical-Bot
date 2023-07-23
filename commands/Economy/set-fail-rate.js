@@ -12,6 +12,7 @@ class SetFailRate extends Command {
       usage: 'set-fail-rate <crime | slut> <percentage>',
       aliases: ['setfailrate', 'setfail'],
       permLevel: 'Moderator',
+      requiredArgs: 2,
       guildOnly: true,
     });
   }
@@ -19,8 +20,6 @@ class SetFailRate extends Command {
   run(msg, text) {
     const types = ['crime', 'slut'];
     const errorColor = msg.settings.embedErrorColor;
-
-    const usage = `${msg.settings.prefix}set-fail-rate <crime | slut> <percentage>`;
 
     const slutFail = db.get(`servers.${msg.guild.id}.economy.slut.failrate`) || 35;
     const crimeFail = db.get(`servers.${msg.guild.id}.economy.crime.failrate`) || 45;
@@ -37,35 +36,21 @@ class SetFailRate extends Command {
         \`Crime\` - ${crimeFail}%
         \`Slut\`  - ${slutFail}%
     
-        Usage: ${usage}
+        Usage: ${this.help.usage}
         `);
       return msg.channel.send({ embeds: [embed] });
     }
 
     const type = text[0]?.toLowerCase();
-    if (!types.includes(type)) {
-      embed.setDescription(`Incorrect Usage: ${usage}`);
-      return msg.channel.send({ embeds: [embed] });
-    }
+    if (!types.includes(type)) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Incorrect Usage');
 
     text.shift();
     const percentage = parseInt(text.join('').replace('%', '').replace(/-/g, ''), 10);
 
     if (isNaN(percentage)) {
-      embed.setDescription(stripIndents`
-          :x: Invalid fail rate. Please provide a valid number.
-
-          Usage: ${usage}
-        `);
-
-      return msg.channel.send({ embeds: [embed] });
+      return this.client.util.errorEmbed(msg, 'Please provide a valid number.', 'Invalid Fail Rate');
     } else if (percentage > 100) {
-      embed.setDescription(stripIndents`
-        :x: Invalid fail rate. Percenage can not be greater than 100%.
-
-        Usage: ${usage}
-      `);
-      return msg.channel.send({ embeds: [embed] });
+      return this.client.util.errorEmbed(msg, "The percentage can't be greater than 100%.", 'Invalid Fail Rate');
     }
 
     embed.setColor('#64BC6C');

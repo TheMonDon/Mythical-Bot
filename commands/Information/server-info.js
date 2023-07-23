@@ -11,25 +11,27 @@ class ServerInfo extends Command {
       usage: 'server-info [server ID]',
       category: 'Information',
       aliases: ['si', 'serverinfo'],
-      examples: ['server-info', 'server-info 579742127676981269']
+      examples: ['server-info', 'server-info 579742127676981269'],
     });
   }
 
   async run(msg, args) {
     let server;
-    const usage = `${msg.settings.prefix}server-info [server ID] (The bot must be in the server you want to get information for)`;
 
     if (!args || args.length < 1) {
-      if (!msg.guild) return msg.channel.send(usage);
+      if (!msg.guild) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Server');
       server = msg.guild;
     } else {
       server = this.client.guilds.cache.get(args.join(' '));
     }
 
-    if (!server) return this.client.util.errorEmbed(msg, 'The bot is not in that server and cannot provide information on it.');
-
+    if (!server)
+      return this.client.util.errorEmbed(
+        msg,
+        'The bot is not in that server and cannot provide information on it.',
+        'Invalid Server',
+      );
     if (!server.available) return this.client.util.errorEmbed(msg, 'That server is currently unavailable');
-
     await server.members.fetch();
 
     // Get the server's creation date and format it
@@ -38,17 +40,32 @@ class ServerInfo extends Command {
     const ca = then.format('dddd, MMMM Do, YYYY, h:mm a');
 
     // Get the server's roles and format them
-    const roles = server.roles.cache.sort((a, b) => b.position - a.position);
-    const fRoles = roles.filter((r) => r.id !== server.id);
-    let roles1 = [...fRoles.values()].join(', ');
+    let displayedRoles;
+    if (server === msg.guild) {
+      let roles = server.roles.cache.sort((a, b) => b.position - a.position).filter((r) => r.id !== server.id);
+      roles = [...roles.values()].join(', ');
 
-    if (roles1 === undefined || roles1.length === 0) roles1 = 'No Roles';
+      if (roles === undefined || roles.length === 0) roles = 'No Roles';
 
-    // If the roles are too long, trim them
-    if (roles1.length > 1020) {
-      roles1 = roles1.substring(0, 1020).replace(/,[^,]+$/, '');
-      roles1 = roles1 + ' ...';
+      // If the roles are too long, trim them
+      if (roles.length > 1024) {
+        roles = roles.substring(0, 1019).replace(/,[^,]+$/, '') + ', ...';
+      }
+      displayedRoles = roles;
+    } else {
+      let roles = server.roles.cache.sort((a, b) => b.position - a.position).filter((r) => r.id !== server.id);
+      roles = [...roles.values()].map((r) => r.name).join(', ');
+
+      if (roles.length > 1024) {
+        roles = roles.substring(0, 1019).replace(/,[^,]+$/, '') + ', ...';
+      }
+      displayedRoles = roles;
     }
+
+    const displayRolesName =
+      server.roles.cache.size - 1 > displayedRoles.split(',').length
+        ? `Roles (${server.roles.cache.size}/${displayedRoles.split(',').length - 1})`
+        : `Roles (${server.roles.cache.size})`;
 
     const verificationLevel = ['None', 'Low', 'Medium', 'High', 'Very High'];
 
@@ -69,11 +86,7 @@ class ServerInfo extends Command {
         { name: 'Created At', value: `${ca} \n (${time})`, inline: true },
         { name: 'AFK Channel', value: server.afkChannel?.name || 'No AFK Channel', inline: true },
         { name: 'Members', value: server.members.cache.size.toLocaleString(), inline: true },
-        {
-          name: `Roles (${server.roles.cache.size.toLocaleString()})`,
-          value: server === msg.guild ? roles1 : "Can't display roles outside the server",
-          inline: false,
-        },
+        { name: displayRolesName, value: displayedRoles, inline: false },
       ]);
 
     return msg.channel.send({ embeds: [embed] });

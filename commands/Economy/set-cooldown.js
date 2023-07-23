@@ -11,18 +11,15 @@ class SetCooldown extends Command {
       category: 'Economy',
       description: 'Set the cooldown of economy modules',
       usage: 'set-cooldown <work | rob | crime | slut | chat> <cooldown>',
-      aliases: ['scd', 'setcooldown'],
+      aliases: ['setcooldown'],
+      examples: ['set-cooldown work 30 seconds', 'set-cooldown work 2 weeks'],
       guildOnly: true,
     });
   }
 
   run(msg, args) {
     let type;
-    const errorColor = msg.settings.embedErrorColor;
-
     const types = ['rob', 'work', 'crime', 'slut'];
-
-    const usage = `${msg.settings.prefix}Set-Cooldown <work | rob | crime | slut | chat> <cooldown> \nExample: ${msg.settings.prefix}Set-Cooldown work 30 seconds`;
 
     // Get the cooldowns from the database
     const robCooldown = db.get(`servers.${msg.guild.id}.economy.rob.cooldown`) || 600;
@@ -33,7 +30,7 @@ class SetCooldown extends Command {
 
     const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
     const embed = new EmbedBuilder()
-      .setColor(errorColor)
+      .setColor(msg.settings.embedErrorColor)
       .setAuthor({ name: authorName, iconURL: msg.author.displayAvatarURL() });
 
     if (!args || args.length < 1) {
@@ -48,15 +45,15 @@ class SetCooldown extends Command {
 
       Manage Guild is required to change values.
       
-      Usage: ${usage}
+      Usage: ${msg.settings.prefix + this.help.usage}
+      Examples: ${this.help.examples.join('\n')}
+
       `);
       return msg.channel.send({ embeds: [embed] });
     } else {
       type = args[0].toLowerCase();
-      if (!types.includes(type)) {
-        embed.setDescription(`Incorrect Usage: ${usage}`);
-        return msg.channel.send({ embeds: [embed] });
-      }
+      if (!types.includes(type))
+        return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Incorrect Usage');
     }
 
     args.shift();
@@ -65,29 +62,11 @@ class SetCooldown extends Command {
     const properCase = this.client.util.toProperCase(type);
 
     if (cooldown > 1209600000) {
-      embed.setDescription(stripIndents`
-          :x: Invalid cooldown. Cooldowns can not be longer than 2 weeks.
-    
-          Usage: ${usage}
-        `);
-
-      return msg.channel.send({ embeds: [embed] });
+      return this.client.util.errorEmbed(msg, "Cooldowns can't be longer than 2 weeks.", 'Invalid Cooldown');
     } else if (cooldown < 30000) {
-      embed.setDescription(stripIndents`
-          :x: Invalid cooldown. Cooldowns can not be shorter than 30 seconds.
-
-          Usage: ${usage}
-        `);
-
-      return msg.channel.send({ embeds: [embed] });
+      return this.client.util.errorEmbed(msg, "Cooldowns can't be shorter than 30 seconds.", 'Invalid Cooldown');
     } else if (isNaN(cooldown)) {
-      embed.setDescription(stripIndents`
-          :x: Invalid cooldown. Please provide a valid cooldown time.
-
-          Usage: ${usage}
-        `);
-
-      return msg.channel.send({ embeds: [embed] });
+      return this.client.util.errorEmbed(msg, 'Please provide a valid cooldown time.', 'Invalid Cooldown');
     }
 
     const cd = cooldown / 1000;

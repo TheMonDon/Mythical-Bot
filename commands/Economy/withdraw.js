@@ -17,15 +17,10 @@ class Withdraw extends Command {
 
   run(msg, text) {
     let amount = text.join(' ');
-    const errorColor = msg.settings.embedErrorColor;
-
-    const usage = `${msg.settings.prefix}withdraw <amount | all>`;
 
     const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
     const embed = new EmbedBuilder()
-      .setColor(errorColor)
-      .setAuthor({ name: authorName, iconURL: msg.author.displayAvatarURL() })
-      .setDescription(`Incorrect Usage: ${usage}`);
+      .setAuthor({ name: authorName, iconURL: msg.author.displayAvatarURL() });
 
     const currencySymbol = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
     const bank = BigInt(db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`) || 0);
@@ -46,17 +41,19 @@ class Withdraw extends Command {
         embed.setColor('#04ACF4').setDescription(`Withdrew ${currencySymbol}${bank.toLocaleString()} from your bank!`);
         return msg.channel.send({ embeds: [embed] });
       } else {
-        return msg.channel.send({ embeds: [embed] });
+        return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Incorrect Usage');
       }
     }
     amount = BigInt(amount.replace(/[^0-9\\.]/g, ''));
 
-    if (amount < BigInt(0)) return msg.channel.send("You can't withdraw negative amounts of money.");
+    if (amount < BigInt(0)) return this.client.util.errorEmbed(msg, "You can't withdraw negative amounts of money.");
     if (amount > bank)
-      return msg.channel.send(
+      return this.client.util.errorEmbed(
+        msg,
         `You don't have that much money to withdraw. You currently have ${csBankAmount} in the bank.`,
       );
-    if (bank <= BigInt(0)) return msg.channel.send("You don't have any money to withdraw.");
+
+    if (bank <= BigInt(0)) return this.client.util.errorEmbed(msg, "You don't have any money to withdraw.");
 
     let csAmount = currencySymbol + amount.toLocaleString();
     csAmount = csAmount.length > 1024 ? `${csAmount.slice(0, 1021) + '...'}` : csAmount;

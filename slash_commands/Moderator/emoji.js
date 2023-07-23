@@ -78,7 +78,7 @@ exports.run = async (interaction) => {
     case 'delete': {
       const emoji = interaction.options.getString('emojidelete');
       const result = guildEmoji(interaction, emoji);
-      if (!result) return interaction.client.util.errorEmbed(interaction);
+      if (!result) return interaction.client.util.errorEmbed(interaction, 'That emoji was not found.');
       if (!result.deletable)
         return interaction.client.util.errorEmbed(interaction, 'That emoji is not deletable by the bot.');
 
@@ -88,7 +88,7 @@ exports.run = async (interaction) => {
     case 'info': {
       const emoji = interaction.options.getString('infoemoji');
       const result = guildEmoji(interaction, emoji);
-      if (!result) return interaction.client.util.errorEmbed(interaction);
+      if (!result) return interaction.client.util.errorEmbed(interaction, 'That emoji was not found.');
       await result.fetchAuthor();
 
       const authorName = interaction.user.discriminator === '0' ? interaction.user.username : interaction.user.tag;
@@ -113,7 +113,7 @@ exports.run = async (interaction) => {
       const emoji = interaction.options.getString('emojitorename');
       const name = interaction.options.getString('newname');
       const result = guildEmoji(interaction, emoji);
-      if (!result) return interaction.client.util.errorEmbed(interaction);
+      if (!result) return interaction.client.util.errorEmbed(interaction, 'That emoji was not found.');
 
       result
         .edit({ name })

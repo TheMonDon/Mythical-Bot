@@ -26,7 +26,7 @@ class Warnings extends Command {
 
       // Find the user by user ID
       if (!mem) {
-        const ID = args[0].replace('<@', '').replace('>', '');
+        const ID = args[0].replace(/<@|>/g, '');
         try {
           mem = await this.client.users.fetch(ID);
         } catch (err) {

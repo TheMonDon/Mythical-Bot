@@ -9,18 +9,16 @@ class RoleInfo extends Command {
       name: 'role-info',
       description: 'Gives some useful role information',
       usage: 'role-info <Role Name | Role ID | @role>',
-      requiredArgs: 1,
       category: 'Information',
       aliases: ['ri', 'roleinfo'],
+      requiredArgs: 1,
       guildOnly: true,
     });
   }
 
   async run(msg, text) {
-    const usage = `Incorrect Usage: ${msg.settings.prefix}Role-Info <Role Name | Role Id | @role>`;
-
     const infoRole = this.client.util.getRole(msg, text.join(' '));
-    if (!infoRole) return msg.reply(usage);
+    if (!infoRole) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Incorrect Usage');
 
     // Get the role's creation date and format it
     const then = moment(infoRole.createdAt);

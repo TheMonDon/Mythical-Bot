@@ -23,7 +23,7 @@ class UserInfo extends Command {
 
     if (!infoMem) {
       // If no member is found, try to get the user by ID
-      const fid = text.join(' ').toLowerCase().replace('<@', '').replace('>', '');
+      const fid = text.join(' ').toLowerCase().replace(/<@|>/g, '');
       try {
         infoMem = await this.client.users.fetch(fid);
       } catch (err) {

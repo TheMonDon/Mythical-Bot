@@ -263,8 +263,7 @@ class Setup extends Command {
     // Start of warns setup
     if (['warns', 'warn', 'warnings'].includes(type)) {
       if (!args || args.length < 3) {
-        const usage = `Usage: ${msg.settings.prefix}Setup Warns <channel-name> <Points for kick> <Points for ban>`;
-        return msg.reply(usage);
+        return this.client.util.errorEmbed(msg, msg.settings.prefix + 'setup Warns <channel-name> <Points for kick> <Points for ban>', 'Command Usage');
       }
 
       let channel;

@@ -21,7 +21,6 @@ class Github extends Command {
     let repository;
 
     if (!args || args.length < 2) {
-      const usage = `Incorrect Usage:${msg.settings.prefix}github <user> <repository> | <user/repository>`;
       // If there is only one argument, it could be in the format of user/repository
       if (args.length === 1) {
         args = args.join('');
@@ -30,10 +29,10 @@ class Github extends Command {
           author = args[0];
           repository = args[1];
         } else {
-          return msg.channel.send(usage);
+          return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Incorrect Usage');
         }
       } else {
-        return msg.channel.send(usage);
+        return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Incorrect Usage');
       }
     }
 

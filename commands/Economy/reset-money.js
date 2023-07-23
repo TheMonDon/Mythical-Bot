@@ -40,7 +40,7 @@ This command requires level ${this.client.levelCache.Moderator} (Moderator)`);
       let mem = await this.client.util.getMember(msg, text.join(' '));
 
       if (!mem) {
-        const fid = text.join(' ').replace('<@', '').replace('>', '');
+        const fid = text.join(' ').replace(/<@|>/g, '');
         try {
           mem = await this.client.users.fetch(fid);
         } catch (err) {

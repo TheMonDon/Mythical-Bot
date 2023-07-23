@@ -19,8 +19,6 @@ class RemoveMoney extends Command {
   }
 
   async run(msg, args) {
-    const usage = `Incorrect Usage: ${msg.settings.prefix}remove-money [cash | bank] <member> <amount>`;
-
     const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
     const embed = new EmbedBuilder()
       .setColor(msg.settings.embedErrorColor)
@@ -49,10 +47,8 @@ class RemoveMoney extends Command {
       type = args[0].toLowerCase();
     }
 
-    if (isNaN(amount)) {
-      embed.setDescription(usage);
-      return msg.channel.send({ embeds: [embed] });
-    }
+    if (isNaN(amount)) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Amount');
+
 
     if (!mem) {
       embed.setDescription(stripIndents`

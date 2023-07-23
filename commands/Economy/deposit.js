@@ -18,8 +18,6 @@ class Deposit extends Command {
 
   run(msg, args) {
     let amount = args.join(' ');
-    const usage = `${msg.settings.prefix}deposit <amount | all>`;
-
     const currencySymbol = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
 
     const cash = BigInt(
@@ -49,8 +47,7 @@ class Deposit extends Command {
         embed.setDescription(`Deposited ${csCashAmount} to your bank.`);
         return msg.channel.send({ embeds: [embed] });
       } else {
-        embed.setColor(msg.settings.embedErrorColor).setDescription(`Incorrect Usage: ${usage}`);
-        return msg.channel.send({ embeds: [embed] });
+        return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Amount');
       }
     }
     amount = BigInt(amount.replace(/[^0-9\\.]/g, ''));

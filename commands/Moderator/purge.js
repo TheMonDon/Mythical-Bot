@@ -57,8 +57,7 @@ class Purge extends Command {
     let type = 'default';
     let count;
 
-    if (!msg.guild.members.me.permissions.has('ManageMessages'))
-      return msg.channel.send('The bot needs `Manage Messages` permission to use this.');
+    if (!msg.guild.members.me.permissions.has('ManageMessages')) return this.client.util.errorEmbed(msg, 'The bot needs `Manage Messages` permission.', 'Missing Permission');
 
     // Global function to get messages
     // channel: Channel object
@@ -89,7 +88,7 @@ class Purge extends Command {
           return messages.size;
         })
         .catch((err) => {
-          return msg.channel.send(`An error has occurred: ${err}`);
+          return this.client.util.errorEmbed(msg, err);
         });
     }
 
@@ -107,7 +106,7 @@ class Purge extends Command {
     } else if (types.includes(args[0].toLowerCase())) {
       type = args[0].toLowerCase();
     } else {
-      return msg.reply(usage);
+      return this.client.util.errorEmbed(msg, usage);
     }
 
     await msg.delete();

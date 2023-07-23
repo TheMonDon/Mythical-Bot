@@ -15,34 +15,23 @@ class DeleteGiveaway extends Command {
   }
 
   async run(msg, args) {
-    const usage = `Incorrect Usage: ${msg.settings.prefix}delete-giveaway <Message ID>`;
-
-    if (!msg.member.permissions.has('ManageMessages')) {
-      return msg.channel.send(':x: You need to have the Manage Nessages permissions to delete giveaways');
-    }
-
+    if (!msg.member.permissions.has('ManageMessages'))
+      return this.client.util.errorEmbed(msg, 'You need to have the Manage Nessages permission to delete giveaways');
     const query = args.join(' ');
 
     const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
     const ErrorEmbed = new EmbedBuilder()
       .setAuthor({ name: authorName, iconURL: msg.author.displayAvatarURL() })
-      .setTitle('Invalid Message ID')
       .setColor(msg.settings.embedErrorColor);
 
-    if (isNaN(query)) {
-      ErrorEmbed.setDescription(usage);
-      return msg.channel.send({ embeds: [ErrorEmbed] });
-    }
+    if (isNaN(query))
+      return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Message ID');
 
     const giveaway = this.client.giveawaysManager.giveaways.find(
       (g) => g.messageId === query && g.guildId === msg.guild.id,
     );
 
-    // If no giveaway was found
-    if (!giveaway) {
-      ErrorEmbed.setTitle('Unable to find a giveaway for `' + query + '`.');
-      return msg.channel.send(ErrorEmbed);
-    }
+    if (!giveaway) return this.client.util.errorEmbed(msg, `Unable to find a giveaway for \`"${query}"\`.`);
 
     // Delete the giveaway
     this.client.giveawaysManager

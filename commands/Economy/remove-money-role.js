@@ -19,8 +19,6 @@ class RemoveMoneyRole extends Command {
   }
 
   async run(msg, args) {
-    const usage = `Incorrect Usage: ${msg.settings.prefix}remove-money-role [cash | bank] <role> <amount>`;
-
     const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
     const embed = new EmbedBuilder()
       .setColor(msg.settings.embedErrorColor)
@@ -44,10 +42,7 @@ class RemoveMoneyRole extends Command {
       type = args[0].toLowerCase();
     }
 
-    if (isNaN(amount)) {
-      embed.setDescription(usage);
-      return msg.channel.send({ embeds: [embed] });
-    }
+    if (isNaN(amount)) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Amount');
 
     if (!role) {
       embed.setDescription(stripIndents`

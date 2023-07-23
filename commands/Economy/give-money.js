@@ -16,28 +16,22 @@ class GiveMoney extends Command {
   }
 
   async run(msg, text) {
-    const errorColor = msg.settings.embedErrorColor;
-
-    const usage = `${msg.settings.prefix}give-money <user> <amount | all>`;
     const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
     const embed = new EmbedBuilder()
       .setAuthor({
         name: authorName,
         iconURL: msg.author.displayAvatarURL(),
       })
-      .setColor(errorColor);
+      .setColor(msg.settings.embedErrorColor);
 
     const mem = await this.client.util.getMember(msg, text[0]);
 
     if (!mem) {
-      embed.setDescription(`That user was not found. \nUsage: ${usage}`);
-      return msg.channel.send({ embeds: [embed] });
+      return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Member');
     } else if (mem.id === msg.author.id) {
-      embed.setDescription('You cannot trade money with yourself. That would be pointless.');
-      return msg.channel.send({ embeds: [embed] });
+      return this.client.util.errorEmbed(msg, 'You cannot trade money with yourself. That would be pointless.');
     } else if (mem.user.bot) {
-      embed.setDescription("You can't give bots money.");
-      return msg.channel.send({ embeds: [embed] });
+      return this.client.util.errorEmbed(msg, 'You can\'t give bots money.');
     }
 
     const currencySymbol = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
@@ -70,21 +64,17 @@ class GiveMoney extends Command {
         embed.setColor('#04ACF4').setDescription(`${mem} has received your ${csCashAmount}.`);
         return msg.channel.send({ embeds: [embed] });
       } else {
-        const embed = new EmbedBuilder().setColor(errorColor).setDescription(`Incorrect Usage: ${usage}`);
-        return msg.channel.send({ embeds: [embed] });
+        return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Incorrect Usage');
       }
     }
     amount = BigInt(amount.replace(/[^0-9\\.]/g, ''));
 
     if (amount > authCash) {
-      embed.setDescription(`You don't have that much money to give. You currently have ${csCashAmount}`);
-      return msg.channel.send({ embeds: [embed] });
+      return this.client.util.errorEmbed(msg, `You don't have that much money to give. You currently have ${csCashAmount}`);
     } else if (amount < BigInt(0)) {
-      embed.setDescription("You can't give negative amounts of money.");
-      return msg.channel.send({ embeds: [embed] });
+      return this.client.util.errorEmbed(msg, 'You can\'t give negative amounts of money.');
     } else if (amount === BigInt(0)) {
-      embed.setDescription("You can't give someone nothing.");
-      return msg.channel.send({ embeds: [embed] });
+      return this.client.util.errorEMbed(msg, 'You can\'t give someone nothing.');
     }
 
     const newAuthCash = authCash - amount;

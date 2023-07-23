@@ -1,5 +1,4 @@
 const Command = require('../../base/Command.js');
-const { EmbedBuilder } = require('discord.js');
 const ms = require('ms');
 const db = require('quick.db');
 
@@ -17,11 +16,8 @@ class StartGiveaway extends Command {
   }
 
   async run(msg, args) {
-    const usage = `Incorrect Usage: ${msg.settings.prefix}Start-Giveaway <Duration> <Winners> <Channel> <Prize>`;
-
-    if (!msg.member.permissions.has('ManageMessages')) {
-      return msg.channel.send(':x: You need to have the Manage Messages permissions to start giveaways');
-    }
+    if (!msg.member.permissions.has('ManageMessages'))
+      return this.client.util.errorEmbed(msg, 'You need to have the Manage Nessages permission to start giveaways');
 
     const duration = ms(args[0]);
     const winnerCount = parseInt(args[1]);
@@ -31,37 +27,22 @@ class StartGiveaway extends Command {
     args.shift();
     const prize = args.join(' ');
 
-    const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
-    const ErrorEmbed = new EmbedBuilder()
-      .setAuthor({ name: authorName, iconURL: msg.author.displayAvatarURL() })
-      .setTitle('Incorrect Parameter')
-      .setColor(msg.settings.embedErrorColor);
-
-    if (isNaN(winnerCount)) {
-      ErrorEmbed.setDescription(usage);
-      return msg.channel.send({ embeds: [ErrorEmbed] });
-    }
+    if (isNaN(winnerCount))
+      return this.client.util.errorEmbed(msg, 'Winner amount is not a number', 'Invalid Winner Count');
 
     if (winnerCount < 1) {
-      ErrorEmbed.setDescription('Giveaways must have at least 1 winner.');
-      return msg.channel.send({ embeds: [ErrorEmbed] });
+      return this.client.util.errorEmbed(msg, 'Giveaways must have at least 1 winner.', 'Invalid Winner Count');
     } else if (winnerCount > 50) {
-      ErrorEmbed.setDescription('Giveaways can not have more than 50 winners.');
-      return msg.channel.send({ embeds: [ErrorEmbed] });
+      return this.client.util.errorEmbed(msg, 'Giveaways can not have more than 50 winners.', 'Invalid Winner Count');
     }
 
     if (duration < '10s') {
-      ErrorEmbed.setDescription('Giveaways must be at least 10 seconds long.');
-      return msg.channel.send({ embeds: [ErrorEmbed] });
+      return this.client.util.errorEmbed(msg, 'Giveaways must be at least 10 seconds long.', 'Invalid Duration');
     } else if (duration > '42d') {
-      ErrorEmbed.setDescription('Giveaways cannot be longer than 6 weeks (42d).');
-      return msg.channel.send({ embeds: [ErrorEmbed] });
+      return this.client.util.errorEmbed(msg, 'Giveaways cannot be longer than 6 weeks (42d)', 'Invalid Duration');
     }
 
-    if (!channel) {
-      ErrorEmbed.setDescription('I could not find that channel, please try again.');
-      return msg.channel.send({ embeds: [ErrorEmbed] });
-    }
+    if (!channel) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.conf, 'Invalid Channel');
 
     // Start the giveaway
     this.client.giveawaysManager.start(channel, {

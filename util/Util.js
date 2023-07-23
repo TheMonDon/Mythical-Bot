@@ -334,8 +334,9 @@ async function awaitReply(msg, question, limit = 60000) {
  *
  * @param {*} context The interaction or message object
  * @param {String} desc The description for the error embed
+ * @param {String} title The title for the error embed
  */
-function errorEmbed(context, desc = 'An error has ocurred.') {
+function errorEmbed(context, desc = 'An error has ocurred.', title = 'Error') {
   let author;
 
   if (context instanceof Message) {
@@ -346,7 +347,7 @@ function errorEmbed(context, desc = 'An error has ocurred.') {
 
   const authorName = author.discriminator === '0' ? author.username : author.tag;
   const embed = new EmbedBuilder()
-    .setTitle('Error')
+    .setTitle(title)
     .setColor(context.settings.embedErrorColor)
     .setAuthor({ name: authorName, iconURL: author.displayAvatarURL() })
     .setDescription(desc);

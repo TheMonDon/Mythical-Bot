@@ -18,14 +18,13 @@ class Leaderboard extends Command {
   async run(msg, text) {
     let page = text.join(' ');
     page = parseInt(page, 10);
-    const usage = `Incorrect Usage: ${msg.settings.prefix}Leaderboard [page]`;
-    await msg.guild.members.fetch();
 
     // Leaderboard made possible by: legendarylegacy (CoolGuy#9889)
 
     if (!page) page = 1;
-    if (isNaN(page)) return msg.reply(usage);
+    if (isNaN(page)) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Incorrect Usage');
 
+    await msg.guild.members.fetch();
     const currencySymbol = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
     let realPage = page;
     let maxPages = page;
