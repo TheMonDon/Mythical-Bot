@@ -1,7 +1,6 @@
 const Command = require('../../base/Command.js');
 const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
-const { stripIndents } = require('common-tags');
 
 class RemoveMoneyRole extends Command {
   constructor(client) {
@@ -43,15 +42,7 @@ class RemoveMoneyRole extends Command {
     }
 
     if (isNaN(amount)) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Amount');
-
-    if (!role) {
-      embed.setDescription(stripIndents`
-      :x: Invalid role given.
-
-      Usage: ${msg.settings.prefix}remove-money=role <cash | bank> <role> <amount>
-      `);
-      return msg.channel.send({ embeds: [embed] });
-    }
+    if (!role) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Role');
 
     const members = [...role.members.values()];
 

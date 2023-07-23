@@ -38,7 +38,8 @@ class Deposit extends Command {
     amount = amount.replace(/,/g, '').replace(currencySymbol, '');
     if (isNaN(amount) || !amount) {
       if (amount.toLowerCase() === 'all') {
-        if (cash <= BigInt(0)) return msg.channel.send("You don't have any money to deposit.");
+        if (cash <= BigInt(0))
+          return this.client.util.errorEmbed(msg, "You don't have any cash to deposit.", 'Invalid Parameter');
 
         db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, 0);
         const newAmount = bank + cash;
@@ -52,10 +53,16 @@ class Deposit extends Command {
     }
     amount = BigInt(amount.replace(/[^0-9\\.]/g, ''));
 
-    if (amount < BigInt(0)) return msg.channel.send("You can't deposit negative amounts of money.");
+    if (amount < BigInt(0))
+      return this.client.util.errorEmbed(msg, "You can't deposit negative amounts of cash", 'Invalid Parameter');
     if (amount > cash)
-      return msg.channel.send(`You don't have that much money to deposit. You currently have ${csCashAmount} in cash.`);
-    if (cash <= BigInt(0)) return msg.channel.send("You don't have any money to deposit.");
+      return this.client.util.errorEmbed(
+        msg,
+        `You don't have that much money to deposit. You currently have ${csCashAmount} in cash.`,
+        'Invalid Parameter',
+      );
+    if (cash <= BigInt(0))
+      return this.client.util.errorEmbed(msg, "You don't have any cash to deposit", 'Invalid Parameter');
 
     const newCashAmount = cash - amount;
     db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newCashAmount.toString());

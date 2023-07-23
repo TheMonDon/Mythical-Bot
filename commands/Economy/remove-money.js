@@ -1,7 +1,6 @@
 const Command = require('../../base/Command.js');
 const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
-const { stripIndents } = require('common-tags');
 
 class RemoveMoney extends Command {
   constructor(client) {
@@ -12,8 +11,8 @@ class RemoveMoney extends Command {
         "Remove money from a users's cash or bank balance. \nIf the cash or bank argument isn't given, it will be added to the cash part.",
       usage: 'remove-money [cash | bank] <member> <amount>',
       aliases: ['removemoney', 'removebal'],
-      requiredArgs: 2,
       permLevel: 'Moderator',
+      requiredArgs: 2,
       guildOnly: true,
     });
   }
@@ -23,11 +22,6 @@ class RemoveMoney extends Command {
     const embed = new EmbedBuilder()
       .setColor(msg.settings.embedErrorColor)
       .setAuthor({ name: authorName, iconURL: msg.author.displayAvatarURL() });
-
-    if (!msg.member.permissions.has('ManageGuild')) {
-      embed.setDescription('You are missing the **Manage Guild** permission.');
-      return msg.channel.send({ embeds: [embed] });
-    }
 
     let type = 'cash';
     let mem;
@@ -48,21 +42,8 @@ class RemoveMoney extends Command {
     }
 
     if (isNaN(amount)) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Amount');
-
-
-    if (!mem) {
-      embed.setDescription(stripIndents`
-      :x: Invalid member given.
-
-      Usage: ${msg.settings.prefix}remove-money [cash | bank] <member> <amount>
-      `);
-      return msg.channel.send({ embeds: [embed] });
-    }
-
-    if (mem.user.bot) {
-      embed.setDescription("You can't add money to bots.");
-      return msg.channel.send({ embeds: [embed] });
-    }
+    if (!mem) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Member');
+    if (mem.user.bot) return this.client.util.errorEmbed(msg, 'You can\'t add money to bots.');
 
     if (type === 'bank') {
       const bank = BigInt(db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`) || 0);

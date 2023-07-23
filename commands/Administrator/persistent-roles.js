@@ -10,7 +10,7 @@ class persistentRoles extends Command {
         'When persistent roles is enabled users who leave the guild will have their roles automatically returned when they come back.',
       category: 'Administrator',
       permLevel: 'Administrator',
-      usage: 'Persistent-Roles',
+      usage: 'persistent-roles',
       aliases: ['pr', 'proles'],
       guildOnly: true,
     });
@@ -18,7 +18,11 @@ class persistentRoles extends Command {
 
   async run(msg) {
     if (!msg.guild.members.me.permissions.has('ManageRoles'))
-      return msg.channel.send('The bot requires the Manage Roles permission for this to work.');
+      return this.client.util.errorEmbed(
+        msg,
+        'Manage Roles permission is required on the bot to use this.',
+        'Missing Permission',
+      );
 
     const toggle = db.get(`servers.${msg.guild.id}.proles.system`) || false;
 

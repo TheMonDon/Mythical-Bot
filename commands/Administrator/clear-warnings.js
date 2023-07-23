@@ -26,7 +26,7 @@ class ClearWarnings extends Command {
       try {
         mem = await this.client.users.fetch(ID);
       } catch (err) {
-        return this.client.util.errorEmbedusage(msg, msg.settings.prefix + this.help.usage, 'Invalid Member');
+        return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Member');
       }
     }
 
@@ -34,7 +34,7 @@ class ClearWarnings extends Command {
     const previousPoints = this.client.util.getTotalPoints(mem.id, msg);
     const logChan = db.get(`servers.${msg.guild.id}.warns.channel`);
 
-    if (!otherWarns || otherWarns.length < 1) return msg.channel.send('That user has no warnings.');
+    if (!otherWarns || otherWarns.length < 1) return this.client.util.errorEmbed(msg, 'That user has no warnings.');
 
     for (const i of otherWarns) {
       db.delete(`servers.${msg.guild.id}.warns.warnings.${i.warnID}`);
@@ -42,7 +42,7 @@ class ClearWarnings extends Command {
 
     if (previousPoints >= 10) {
       if (!msg.guild.members.me.permissions.has('BanMembers')) {
-        msg.channel.send('The bot does not have Ban Members permission to unban the user.');
+        this.client.util.errorEmbed(msg, 'Please unban the user manually, the bot does not have Ban Members permission.', 'Missing Permission');
       } else {
         await msg.guild.members.unban(mem.id).catch(() => null);
       }

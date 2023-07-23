@@ -46,13 +46,8 @@ class Rob extends Command {
 
     const mem = await this.client.util.getMember(msg, text.join(' '));
 
-    if (!mem) {
-      embed.setDescription(`That user was not found. \nUsage: ${msg.settings.prefix}Rob <user>`);
-      return msg.channel.send({ embeds: [embed] });
-    } else if (mem.id === msg.author.id) {
-      embed.setDescription("You can't rob yourself.");
-      return msg.channel.send({ embeds: [embed] });
-    }
+    if (!mem) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Member');
+    if (mem.id === msg.author.id) return this.client.util.errorEmbed(msg, 'You can\'t rob yourself.', 'Invalid Member');
 
     const authCash = BigInt(
       db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`) ||
@@ -68,10 +63,7 @@ class Rob extends Command {
         0,
     );
 
-    if (memCash <= BigInt(0)) {
-      embed.setDescription(`${mem} does not have anything to rob.`);
-      return msg.channel.send({ embeds: [embed] });
-    }
+    if (memCash <= BigInt(0)) return this.client.util.errorEmbed(msg, `${mem} does not have anything to rob`, 'No Money');
 
     const totalAmount = Number(memCash + authNet);
     const failRate = Math.floor((Number(authNet) / totalAmount) * 100);

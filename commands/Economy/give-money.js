@@ -31,7 +31,7 @@ class GiveMoney extends Command {
     } else if (mem.id === msg.author.id) {
       return this.client.util.errorEmbed(msg, 'You cannot trade money with yourself. That would be pointless.');
     } else if (mem.user.bot) {
-      return this.client.util.errorEmbed(msg, 'You can\'t give bots money.');
+      return this.client.util.errorEmbed(msg, "You can't give bots money.");
     }
 
     const currencySymbol = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
@@ -48,13 +48,8 @@ class GiveMoney extends Command {
 
     if (isNaN(amount)) {
       if (amount.toLowerCase() === 'all') {
-        if (authCash < BigInt(0)) {
-          embed.setDescription("You can't give negative amounts of money.");
-          return msg.channel.send({ embeds: [embed] });
-        } else if (authCash === BigInt(0)) {
-          embed.setDescription("You can't give someone nothing.");
-          return msg.channel.send({ embeds: [embed] });
-        }
+        if (authCash <= BigInt(0))
+          return this.client.util.errorEmbed(msg, "You can't pay someone when you have no money", 'Invalid Parameter');
 
         db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, 0);
         const memCash = BigInt(db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`));
@@ -70,11 +65,15 @@ class GiveMoney extends Command {
     amount = BigInt(amount.replace(/[^0-9\\.]/g, ''));
 
     if (amount > authCash) {
-      return this.client.util.errorEmbed(msg, `You don't have that much money to give. You currently have ${csCashAmount}`);
+      return this.client.util.errorEmbed(
+        msg,
+        `You don't have that much money to give. You currently have ${csCashAmount}`,
+        'Invalid Parameter',
+      );
     } else if (amount < BigInt(0)) {
-      return this.client.util.errorEmbed(msg, 'You can\'t give negative amounts of money.');
+      return this.client.util.errorEmbed(msg, "You can't give negative amounts of money.", 'Invalid Parameter');
     } else if (amount === BigInt(0)) {
-      return this.client.util.errorEMbed(msg, 'You can\'t give someone nothing.');
+      return this.client.util.errorEMbed(msg, "You can't give someone nothing.", 'Invalid Parameter');
     }
 
     const newAuthCash = authCash - amount;

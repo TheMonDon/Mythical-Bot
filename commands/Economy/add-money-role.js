@@ -24,11 +24,6 @@ class AddMoneyRole extends Command {
       .setColor(msg.settings.embedErrorColor)
       .setAuthor({ name: authorName, iconURL: msg.author.displayAvatarURL() });
 
-    if (!msg.member.permissions.has('ManageGuild')) {
-      errEmbed.setDescription('You are missing the **Manage Guild** permission.');
-      return msg.channel.send({ embeds: [errEmbed] });
-    }
-
     let type = 'cash';
     let role;
     let amount;

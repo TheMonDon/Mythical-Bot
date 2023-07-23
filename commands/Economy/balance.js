@@ -1,7 +1,6 @@
 const Command = require('../../base/Command.js');
 const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
-const { stripIndents } = require('common-tags');
 
 class Balance extends Command {
   constructor(client) {
@@ -23,14 +22,7 @@ class Balance extends Command {
     const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
     const embed = new EmbedBuilder().setAuthor({ name: authorName, iconURL: msg.author.displayAvatarURL() });
 
-    if (!mem) {
-      embed.setColor(msg.settings.embedErrorColor).setDescription(stripIndents`
-      :x: Invalid member given.
-
-      Usage: ${msg.settings.prefix}balance [member]
-      `);
-      return msg.channel.send({ embeds: [embed] });
-    }
+    if (!mem) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Member');
 
     const cash = BigInt(
       db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`) ||

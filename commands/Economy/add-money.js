@@ -1,7 +1,6 @@
 const Command = require('../../base/Command.js');
 const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
-const { stripIndents } = require('common-tags');
 
 class AddMoney extends Command {
   constructor(client) {
@@ -12,6 +11,7 @@ class AddMoney extends Command {
         "Add money to a member's cash or bank balance. \nIf the cash or bank argument isn't given, it will be added to the cash part.",
       usage: 'add-money [cash | bank] <member> <amount>',
       aliases: ['addmoney', 'addbal'],
+      permLevel: 'Moderator',
       guildOnly: true,
       requiredArgs: 2,
     });
@@ -22,11 +22,6 @@ class AddMoney extends Command {
     const embed = new EmbedBuilder()
       .setColor(msg.settings.embedErrorColor)
       .setAuthor({ name: authorName, iconURL: msg.author.displayAvatarURL() });
-
-    if (!msg.member.permissions.has('ManageGuild')) {
-      embed.setDescription('You are missing the **Manage Guild** permission.');
-      return msg.channel.send({ embeds: [embed] });
-    }
 
     let type = 'cash';
     let mem;
@@ -47,20 +42,8 @@ class AddMoney extends Command {
     }
 
     if (isNaN(amount)) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Incorrect Usage');
-
-    if (!mem) {
-      embed.setDescription(stripIndents`
-      :x: Invalid member given.
-
-      Usage: ${msg.settings.prefix}add-money <cash | bank> <member> <amount>
-      `);
-      return msg.channel.send({ embeds: [embed] });
-    }
-
-    if (mem.user.bot) {
-      embed.setDescription("You can't add money to a bot.");
-      return msg.channel.send({ embeds: [embed] });
-    }
+    if (!mem) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Member');
+    if (mem.user.bot) return this.client.util.errorEmbed(msg, 'You can\'t add money to bots.');
 
     amount = BigInt(amount);
     if (type === 'bank') {

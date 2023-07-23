@@ -1,6 +1,5 @@
 const Command = require('../../base/Command.js');
 const db = require('quick.db');
-const { EmbedBuilder } = require('discord.js');
 
 class ResetMoney extends Command {
   constructor(client) {
@@ -44,12 +43,7 @@ This command requires level ${this.client.levelCache.Moderator} (Moderator)`);
         try {
           mem = await this.client.users.fetch(fid);
         } catch (err) {
-          const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
-          const embed = new EmbedBuilder()
-            .setColor(msg.settings.embedErrorColor)
-            .setAuthor({ name: authorName, iconURL: msg.author.displayAvatarURL() })
-            .setDescription(`That user was not found. \nUsage: ${msg.settings.prefix}Reset-Money <user>`);
-          return msg.channel.send({ embeds: [embed] });
+          return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid User');
         }
       }
       mem = mem.user ? mem.user : mem;
