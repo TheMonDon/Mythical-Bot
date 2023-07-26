@@ -103,13 +103,13 @@ class Warn extends Command {
 
     // Set the status and color of the embed
     let status = 'warned';
-    let color = ' #FFA500';
+    let color = '#FFA500';
     if (warnAmount === ka) {
       status = 'kicked';
       color = '#FFD700';
     } else if (warnAmount >= ba) {
       status = 'banned';
-      color = ' #FF0000';
+      color = '#FF0000';
     }
 
     // Check if they have other cases
