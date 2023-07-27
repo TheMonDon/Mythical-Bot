@@ -61,10 +61,12 @@ class forceClose extends Command {
           return msg.channel.send(`You need to be the ticket owner or a member of ${role.name} to use force-close.`);
         }
       }
+      if (!owner) return msg.channel.send('That is not a valid ticket. Please try again.');
     }
 
     const channel = await msg.guild.channels.cache.get(tID);
-    if (!channel) return msg.channel.send('That is not a valid ticket, or has already been closed.');
+    const ticketObj = db.get(`servers.${msg.guild.id}.tickets.${tID}`);
+    if (!channel && !ticketObj) return msg.channel.send('That is not a valid ticket, or has already been closed.');
     const attachment = await discordTranscripts.createTranscript(channel);
     let received;
 
@@ -81,7 +83,7 @@ class forceClose extends Command {
       .setTimestamp();
 
     const tOwner = await msg.guild.members.cache.get(owner);
-    await tOwner.send({ embeds: [userEmbed], files: [attachment] }).catch(() => {
+    await tOwner?.send({ embeds: [userEmbed], files: [attachment] }).catch(() => {
       received = 'no';
     });
 
@@ -96,7 +98,7 @@ class forceClose extends Command {
       .setColor('#E65DF4')
       .setTimestamp();
     if (received === 'no') logEmbed.setFooter({ text: 'Could not message author.' });
-    await msg.guild.channels.cache.get(logID).send({ embeds: [logEmbed], files: [attachment] });
+    await msg.guild.channels.cache.get(logID).send({ embeds: [logEmbed], files: [attachment] }).catch(() => { });
 
     db.delete(`servers.${msg.guild.id}.tickets.${tID}`);
     return msg.channel.delete();

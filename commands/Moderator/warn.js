@@ -123,7 +123,7 @@ class Warn extends Command {
     const userEmbed = new EmbedBuilder()
       .setColor(color)
       .setAuthor({ name: authorName, iconURL: msg.author.displayAvatarURL() })
-      .setTitle(`You have been ${status}.`)
+      .setTitle(`You have been ${status}`)
       .addFields([
         { name: 'Case ID', value: `\`${warnID}\`` },
         { name: 'Points', value: `${points} points (Total: ${warnAmount} points)` },
@@ -137,7 +137,7 @@ class Warn extends Command {
     const logEmbed = new EmbedBuilder()
       .setColor(color)
       .setFooter({ text: `${authorName} • User ID: ${mem.id}` })
-      .setTitle(`User has been ${status}.`)
+      .setTitle(`User has been ${status}`)
       .addFields([
         { name: 'User', value: `${mem} (${mem.id})`, inline: true },
         { name: 'Moderator', value: `${authorName} (${msg.author.id})`, inline: true },
@@ -150,14 +150,15 @@ class Warn extends Command {
 
     // Check if the logs channel exists and send the message
     if (logChan) {
+      logMessage = await msg.guild.channels.cache.get(logChan).send({ embeds: [logEmbed] }).catch(() => {});
+
       const channelEmbed = new EmbedBuilder()
         .setColor(color)
         .setFooter({ text: `${authorName} • User ID: ${mem.id}` })
         .setTitle(`User has been ${status}`)
         .addFields([{ name: 'User', value: `${mem} (${mem.id})` }])
+        .setURL(logMessage.url)
         .setDescription('Full info posted inside the log channel.');
-
-      logMessage = await msg.guild.channels.cache.get(logChan).send({ embeds: [logEmbed] });
 
       msg.channel.send({ embeds: [channelEmbed] }).then((embed) => {
         setTimeout(() => embed.delete(), 30000);
