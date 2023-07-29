@@ -69,7 +69,7 @@
     "sherlockjs": "^1.4.0",
     "superagent": "^8.0.0",
     "tictactoe-minimax-ai": "github:lukechu10/tictactoe-minimax",
-    "trev-reborn": "^1.1.4",
+    "trev-reborn": "^1.1.5",
     "twemoji": "^14.0.2",
     "undici": "^5.19.1",
     "weather-js": "^2.0.0",
