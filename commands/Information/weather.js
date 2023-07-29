@@ -31,7 +31,7 @@ class Weather extends Command {
 
     // GetAllWeather returns a JSON object with all the weather information
     weatherApi.getAllWeather(function (err, JSONObj) {
-      if (err) console.error(err);
+      if (err) this.client.logger.error(`Weather error: ${err}`);
 
       if (!JSONObj || JSONObj.length === 0)
         return msg.channel.send(

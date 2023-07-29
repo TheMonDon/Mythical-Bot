@@ -24,7 +24,7 @@ class Bot extends Client {
     this.settings = new Enmap({ name: 'settings', cloneLevel: 'deep', fetchAll: false, autoFetch: true });
     this.games = new Enmap({ name: 'games', cloneLevel: 'deep', fetchAll: false, autoFetch: true });
 
-    this.logger = require('./util/Logger');
+    this.logger = require('./util/Logger.js');
   }
 
   // PERMISSION LEVEL FUNCTION
@@ -66,7 +66,7 @@ class Bot extends Client {
       this.slashCommands.set(props.commandData.name, props);
       return false;
     } catch (e) {
-      return console.log(`Unable to load slash command ${interactionName}: ${e}`);
+      return client.logger.error(`Unable to load slash command ${interactionName}: ${e}`);
     }
   }
 
@@ -75,7 +75,7 @@ class Bot extends Client {
     if (this.slashCommands.has(interactionName)) {
       command = this.slashCommands.get(interactionName);
     }
-    if (!command) return console.log(`The slash command \`${interactionName}\` doesn't seem to exist. Try again!`);
+    if (!command) return client.logger.error(`The slash command \`${interactionName}\` doesn't seem to exist. Try again!`);
 
     await delete require.cache[require.resolve(interactionPath)];
     await this.slashCommands.delete(interactionName);
@@ -92,7 +92,7 @@ class Bot extends Client {
       });
       return false;
     } catch (e) {
-      return console.log(`Unable to load command ${commandName}: ${e}`);
+      return client.logger.error(`Unable to load command ${commandName}: ${e}`);
     }
   }
 
@@ -104,7 +104,7 @@ class Bot extends Client {
       command = this.commands.get(this.aliases.get(commandName));
     }
     if (!command)
-      return console.log(`The command \`${commandName}\` doesn't seem to exist, nor is it an alias. Try again!`);
+      return client.logger.error(`The command \`${commandName}\` doesn't seem to exist, nor is it an alias. Try again!`);
 
     delete require.cache[require.resolve(commandPath)];
     return false;
@@ -373,8 +373,8 @@ const init = async function init() {
 init();
 
 client
-  .on('disconnect', () => client.logger.warn('Bot is disconnecting...'))
-  .on('reconnecting', () => client.logger.log('Bot reconnecting...', 'log'))
+  .on('disconnect', () => client.logger.warn('Bot is disconnecting'))
+  .on('reconnecting', () => client.logger.log('Bot reconnecting'))
   .on('error', (e) => client.logger.error(e))
   .on('warn', (info) => client.logger.warn(info));
 
@@ -404,11 +404,10 @@ client.on('raw', (packet) => {
 });
 
 process.on('uncaughtException', (err) => {
-  const errorMsg = err.stack.replace(new RegExp(__dirname, 'g'), './');
-  console.error('Uncaught Exception: ', errorMsg);
-  process.exit(1);
+  client.logger.error(`Uncaught Exception: ${err}`);
+  return process.exit(1);
 });
 
 process.on('unhandledRejection', (err) => {
-  console.error('Uncaught Promise Error: ', err);
+  return client.logger.error(`Unhandled Rejection: ${err}`);
 });

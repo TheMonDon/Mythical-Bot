@@ -31,8 +31,6 @@ class Steam extends Command {
     });
 
     const { data } = body[id.toString()];
-
-    console.log('Steam Data', data);
     const final = data.price_overview?.final_formatted || '$0';
     const initial = data.price_overview?.initial_formatted || '$0';
 

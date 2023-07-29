@@ -248,7 +248,7 @@ Filling starts at the top left corner.`,
       return msg.channel.send('Something went wrong, please try again later.');
     } catch (err) {
       this.client.games.delete(msg.channel.id);
-      console.error(err);
+      this.client.logger.error(`Flood: ${err}`);
       message.reactions.removeAll();
       gameOver = true;
       result = 'error';

@@ -70,7 +70,7 @@ module.exports = class {
       db.add(`servers.${msg.guild.id}.logs.message-deleted`, 1);
       db.add(`servers.${msg.guild.id}.logs.all`, 1);
     } catch (err) {
-      console.error(err);
+      this.client.logger.error(err);
     }
   }
 };

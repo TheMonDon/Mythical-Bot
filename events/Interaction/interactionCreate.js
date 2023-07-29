@@ -38,35 +38,35 @@ module.exports = class {
       try {
         await slashCommand.run(interaction);
       } catch (error) {
-        console.error(error);
+        this.client.logger.error(error);
         if (interaction.replied) {
           interaction
             .followUp({
               content: `There was a problem with your request.\n\`\`\`${error.message}\`\`\``,
               ephemeral: true,
             })
-            .catch((e) => console.error('An error occurred following up on an error', e));
+            .catch((e) => this.client.logger.error('An error occurred following up on an error', e));
         } else {
           interaction
             .editReply({
               content: `There was a problem with your request.\n\`\`\`${error.message}\`\`\``,
               ephemeral: true,
             })
-            .catch((e) => console.error('An error occurred replying on an error', e));
+            .catch((e) => this.client.logger.error('An error occurred replying on an error', e));
         }
       }
     } else if (interaction.isAutocomplete()) {
       const slashCommand = interaction.client.commands.get(interaction.commandName);
 
       if (!slashCommand) {
-        console.error(`No command matching ${interaction.commandName} was found.`);
+        this.client.logger.error(`No command matching ${interaction.commandName} was found.`);
         return;
       }
 
       try {
         await slashCommand.autocomplete(interaction);
       } catch (error) {
-        console.error(error);
+        this.client.logger.error(error);
       }
     }
   }

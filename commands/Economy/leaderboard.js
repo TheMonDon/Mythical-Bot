@@ -45,7 +45,7 @@ class Leaderboard extends Command {
           });
         }
       } catch (err) {
-        console.error(err);
+        this.client.logger.error(`Leaderboard: ${err}`);
       }
     }
 

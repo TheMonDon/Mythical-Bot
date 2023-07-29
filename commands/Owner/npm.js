@@ -24,7 +24,7 @@ class NPM extends Command {
         child.execSync(`npm install ${moduleName} --save`, { stdio: 'inherit' });
         require.resolve(moduleName);
       } catch (error) {
-        console.error(error);
+        this.client.logger.error(error);
         return message.edit(
           `The Node Module ${moduleName} was probably installed, but too big to require without restarting.`,
         );

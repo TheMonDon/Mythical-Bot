@@ -40,7 +40,7 @@ class Reddit extends Command {
         return msg.channel.send({ embeds: [em] });
       }
     } catch (err) {
-      console.log(err);
+      this.client.logger.error(err);
       return msg.channel.send(`An error ocurred: ${err}`);
     }
   }

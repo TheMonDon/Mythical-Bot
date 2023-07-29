@@ -242,6 +242,7 @@ Filling starts at the top left corner.`,
       }
     } catch (err) {
       this.client.games.delete(msg.channel.id);
+      
       console.error(err);
       gameOver = true;
       result = 'error';
