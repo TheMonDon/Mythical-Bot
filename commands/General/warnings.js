@@ -1,7 +1,8 @@
 const Command = require('../../base/Command.js');
-const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
+const { QuickDB } = require('quick.db');
 const moment = require('moment');
+const db = new QuickDB();
 
 class Warnings extends Command {
   constructor(client) {
@@ -10,7 +11,7 @@ class Warnings extends Command {
       description: 'View all your warnings. Moderators can view others warnings.',
       usage: 'Warnings [user]',
       category: 'General',
-      aliases: ['warns', 'mywarns', 'mycases'],
+      aliases: ['warns'],
       guildOnly: true,
     });
   }
@@ -37,15 +38,15 @@ class Warnings extends Command {
       mem = level > 0 ? mem : msg.author;
     }
 
-    const otherWarns = this.client.util.getWarns(mem.id, msg);
-    const totalPoints = this.client.util.getTotalPoints(mem.id, msg);
+    const otherWarns = await this.client.util.getWarns(mem.id, msg);
+    const totalPoints = await this.client.util.getTotalPoints(mem.id, msg);
 
     if (otherWarns) {
       let otherCases = otherWarns.length > 0 ? otherWarns.map((w) => `\`${w.warnID}\``).join(', ') : 'No other cases.';
       if (!otherCases) otherCases = 'No other Cases';
 
       for (const i of otherWarns) {
-        const data = db.get(`servers.${msg.guild.id}.warns.warnings.${i.warnID}`);
+        const data = await db.get(`servers.${msg.guild.id}.warns.warnings.${i.warnID}`);
         warns.push(
           `\`${i.warnID}\` - ${data.points} pts - ${this.client.util.limitStringLength(data.reason, 0, 24)} - ` +
             `${moment(Number(data.timestamp)).format('LLL')}`,

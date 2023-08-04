@@ -1,8 +1,8 @@
 /* eslint-disable no-eval */
 /* eslint-disable no-unused-vars */
+const Command = require('../../base/Command.js');
 const { EmbedBuilder } = require('discord.js');
 const { inspect } = require('util');
-const Command = require('../../base/Command.js');
 
 class Eval extends Command {
   constructor(client) {
@@ -17,8 +17,9 @@ class Eval extends Command {
   }
 
   async run(msg, args, level) {
-    const db = require('quick.db');
     const DiscordJS = require('discord.js');
+    const { QuickDB } = require('quick.db');
+    const db = new QuickDB();
     const util = this.client.util;
     let promise = false;
 

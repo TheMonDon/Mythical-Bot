@@ -1,5 +1,6 @@
-const db = require('quick.db');
 const { ChannelType, EmbedBuilder } = require('discord.js');
+const { QuickDB } = require('quick.db');
+const db = new QuickDB();
 
 module.exports = class {
   constructor(client) {
@@ -9,14 +10,14 @@ module.exports = class {
   async run(channel) {
     if (channel.type === ChannelType.DM) return;
 
-    const logChannelId = db.get(`servers.${channel.guild.id}.logs.channel`);
+    const logChannelId = await db.get(`servers.${channel.guild.id}.logs.channel`);
     if (!logChannelId) return;
 
-    const logSystem = db.get(`servers.${channel.guild.id}.logs.logSystem.channel-created`);
+    const logSystem = await db.get(`servers.${channel.guild.id}.logs.logSystem.channel-created`);
     if (logSystem !== 'enabled') return;
     if (channel.name.startsWith('ticket-')) return;
 
-    const chans = db.get(`servers.${channel.guild.id}.logs.noLogChans`) || [];
+    const chans = (await db.get(`servers.${channel.guild.id}.logs.noLogChans`)) || [];
     if (chans.includes(channel.id)) return;
 
     const embed = new EmbedBuilder()
@@ -33,7 +34,7 @@ module.exports = class {
       .send({ embeds: [embed] })
       .catch(() => {});
 
-    db.add(`servers.${channel.guild.id}.logs.channel-created`, 1);
-    db.add(`servers.${channel.guild.id}.logs.all`, 1);
+    await db.add(`servers.${channel.guild.id}.logs.channel-created`, 1);
+    await db.add(`servers.${channel.guild.id}.logs.all`, 1);
   }
 };

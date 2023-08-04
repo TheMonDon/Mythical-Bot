@@ -1,6 +1,7 @@
 const Command = require('../../base/Command.js');
 const { EmbedBuilder } = require('discord.js');
-const db = require('quick.db');
+const { QuickDB } = require('quick.db');
+const db = new QuickDB();
 
 class Help extends Command {
   constructor(client) {
@@ -69,7 +70,7 @@ class Help extends Command {
     if (!args || args.length < 1) return msg.channel.send({ embeds: [errEm] });
 
     const category = this.client.util.toProperCase(args.join(' '));
-    const disabled = db.get(`servers.${msg.guild.id}.disabled`) || [];
+    const disabled = (await db.get(`servers.${msg.guild.id}.disabled`)) || [];
 
     const em = new EmbedBuilder()
       .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })

@@ -1,6 +1,7 @@
 const Command = require('../../base/Command.js');
-const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
+const { QuickDB } = require('quick.db');
+const db = new QuickDB();
 
 class RemoveMoneyRole extends Command {
   constructor(client) {
@@ -13,6 +14,11 @@ class RemoveMoneyRole extends Command {
       aliases: ['removemoneyrole', 'removebalrole'],
       permLevel: 'Moderator',
       requiredArgs: 2,
+      examples: [
+        'remove-money-role cash Admin 100',
+        'remove-money-role bank @memberRole1 420',
+        'remove-money Owner 100',
+      ],
       guildOnly: true,
     });
   }
@@ -27,7 +33,7 @@ class RemoveMoneyRole extends Command {
     let role;
     let amount;
 
-    const currencySymbol = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
+    const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
 
     if (args.length === 2) {
       role = this.client.util.getRole(msg, args[0]);
@@ -48,23 +54,23 @@ class RemoveMoneyRole extends Command {
 
     amount = BigInt(amount);
     if (type === 'bank') {
-      members.forEach((mem) => {
+      members.forEach(async (mem) => {
         if (!mem.user.bot) {
           const bank = BigInt(db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`));
           const newAmount = bank - amount;
-          db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`, newAmount.toString());
+          await db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`, newAmount.toString());
         }
       });
     } else {
-      members.forEach((mem) => {
+      members.forEach(async (mem) => {
         if (!mem.user.bot) {
           const cash = BigInt(
-            db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`) ||
-              db.get(`servers.${msg.guild.id}.economy.startBalance`) ||
+            (await db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`)) ||
+              (await db.get(`servers.${msg.guild.id}.economy.startBalance`)) ||
               0,
           );
           const newAmount = cash - amount;
-          db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, newAmount.toString());
+          await db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, newAmount.toString());
         }
       });
     }

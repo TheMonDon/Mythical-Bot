@@ -1,7 +1,8 @@
-const Command = require('../../base/Command.js');
 const { EmbedBuilder, ChannelType } = require('discord.js');
-const db = require('quick.db');
+const Command = require('../../base/Command.js');
 const { stripIndents } = require('common-tags');
+const { QuickDB } = require('quick.db');
+const db = new QuickDB();
 
 class Setup extends Command {
   constructor(client) {
@@ -32,8 +33,8 @@ class Setup extends Command {
         return msg.reply('The bot is missing manage messages permission');
 
       // Check if the system is setup already
-      if (db.get(`servers.${msg.guild.id}.tickets`)) {
-        const { catID } = db.get(`servers.${msg.guild.id}.tickets`);
+      if (await db.get(`servers.${msg.guild.id}.tickets`)) {
+        const { catID } = await db.get(`servers.${msg.guild.id}.tickets`);
         if (catID) {
           // Alert them of what happens
           await msg.channel
@@ -46,7 +47,7 @@ class Setup extends Command {
 
           const collected = await this.client.util.verify(msg.channel, msg.author);
           if (!collected) return collected.first().reply('Got it! Nothing has been changed.');
-          else db.delete(`servers.${msg.guild.id}.tickets`);
+          else await db.delete(`servers.${msg.guild.id}.tickets`);
         }
       }
 
@@ -76,7 +77,7 @@ class Setup extends Command {
         collected.first().reply(`I will create a role named ${response}`);
         role = await msg.guild.roles.create({ name: response, color: 'BLUE', reason: 'Ticket System' });
       }
-      db.set(`servers.${msg.guild.id}.tickets.roleID`, role.id);
+      await db.set(`servers.${msg.guild.id}.tickets.roleID`, role.id);
 
       await msg.channel.send(stripIndents`Do you want to create a new ticket reaction menu? (yes/no)
         You have 60 seconds.
@@ -132,7 +133,7 @@ class Setup extends Command {
         reason: 'Setting up tickets system',
         permissionOverwrites: catPerms,
       });
-      db.set(`servers.${msg.guild.id}.tickets.catID`, category.id);
+      await db.set(`servers.${msg.guild.id}.tickets.catID`, category.id);
 
       const embed = new EmbedBuilder();
       // Create the reaction message stuff
@@ -175,7 +176,7 @@ class Setup extends Command {
         const embed1 = await rchan.send({ embeds: [embed] });
         await embed1.react('📰');
 
-        db.set(`servers.${msg.guild.id}.tickets.reactionID`, embed1.id);
+        await db.set(`servers.${msg.guild.id}.tickets.reactionID`, embed1.id);
       }
 
       // Do the rest of the stuff here after creating embed
@@ -186,7 +187,7 @@ class Setup extends Command {
         permissionOverwrites: logPerms,
       });
 
-      db.set(`servers.${msg.guild.id}.tickets.logID`, tixLog.id);
+      await db.set(`servers.${msg.guild.id}.tickets.logID`, tixLog.id);
 
       return msg.reply('Awesome! Everything has been setup.');
     }
@@ -232,10 +233,10 @@ class Setup extends Command {
         chan = this.client.util.getChannel(msg, text);
       }
 
-      const currentChan = db.get(`servers.${msg.guild.id}.logs.channel`);
+      const currentChan = await db.get(`servers.${msg.guild.id}.logs.channel`);
 
       if (currentChan) {
-        db.set(`servers.${msg.guild.id}.logs.logSystem`, logSystem);
+        await db.set(`servers.${msg.guild.id}.logs.logSystem`, logSystem);
         embed
           .setTitle('Successfully Changed')
           .setColor(successColor)
@@ -245,7 +246,7 @@ class Setup extends Command {
           .setFooter({ text: 'Logs System V4.0' });
         msg.channel.send({ embeds: [embed] });
       } else {
-        db.set(`servers.${msg.guild.id}.logs.logSystem`, logSystem);
+        await db.set(`servers.${msg.guild.id}.logs.logSystem`, logSystem);
         embed
           .setTitle('Successfully Set')
           .setColor(successColor)
@@ -255,7 +256,7 @@ class Setup extends Command {
           .setFooter({ text: 'Logs System V4.0' });
         msg.channel.send({ embeds: [embed] });
       }
-      db.set(`servers.${msg.guild.id}.logs.channel`, chan.id);
+      await db.set(`servers.${msg.guild.id}.logs.channel`, chan.id);
       return;
     }
     // End of logging setup
@@ -281,9 +282,9 @@ class Setup extends Command {
         if (!channel || !channelArg) return msg.reply('The command has been cancelled due invalid channel.');
       }
 
-      db.set(`servers.${msg.guild.id}.warns.kick`, kickAmount);
-      db.set(`servers.${msg.guild.id}.warns.ban`, banAmount);
-      db.set(`servers.${msg.guild.id}.warns.channel`, channel.id);
+      await db.set(`servers.${msg.guild.id}.warns.kick`, kickAmount);
+      await db.set(`servers.${msg.guild.id}.warns.ban`, banAmount);
+      await db.set(`servers.${msg.guild.id}.warns.channel`, channel.id);
 
       const em = new EmbedBuilder()
         .setTitle('Warns System Setup')

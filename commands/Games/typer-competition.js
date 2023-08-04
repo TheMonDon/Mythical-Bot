@@ -1,12 +1,13 @@
-const Command = require('../../base/Command.js');
-const { EmbedBuilder, MessageAttachment } = require('discord.js');
-const https = require('https');
-const fntPath = './resources/fonts/Moms_Typewriter.ttf';
-const fs = require('fs');
 const { registerFont, createCanvas, loadImage } = require('canvas');
-const randomWords = require('random-words');
+const { EmbedBuilder, MessageAttachment } = require('discord.js');
+const fntPath = './resources/fonts/Moms_Typewriter.ttf';
+const Command = require('../../base/Command.js');
 const { stripIndents } = require('common-tags');
-const db = require('quick.db');
+const randomWords = require('random-words');
+const { QuickDB } = require('quick.db');
+const https = require('https');
+const db = new QuickDB();
+const fs = require('fs');
 
 class TyperCompetition extends Command {
   constructor(client) {
@@ -96,7 +97,7 @@ class TyperCompetition extends Command {
               time: 30000,
               errors: ['time'],
             })
-            .then((collected2) => {
+            .then(async (collected2) => {
               getReady.delete();
 
               const t2 = theImage.createdAt;
@@ -106,11 +107,11 @@ class TyperCompetition extends Command {
 
               const winnerName = winner.discriminator === '0' ? winner.username : winner.tag;
               const HS = { score: time, user: winnerName };
-              const oldHS = db.get('global.highScores.typeCompetition') || HS;
+              const oldHS = (await db.get('global.highScores.typeCompetition')) || HS;
               let highScore = oldHS.score;
               let highScoreUser = oldHS.user;
               if (HS.score < oldHS.score) {
-                db.set('global.highScores.typerCompetition', HS);
+                await db.set('global.highScores.typerCompetition', HS);
                 highScore = HS.score;
                 highScoreUser = 'You';
               }

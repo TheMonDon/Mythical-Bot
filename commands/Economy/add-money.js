@@ -1,6 +1,7 @@
 const Command = require('../../base/Command.js');
-const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
+const { QuickDB } = require('quick.db');
+const db = new QuickDB();
 
 class AddMoney extends Command {
   constructor(client) {
@@ -27,7 +28,7 @@ class AddMoney extends Command {
     let mem;
     let amount;
 
-    const currencySymbol = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
+    const currencySymbol = await db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
 
     if (args.length === 2) {
       mem = await this.client.util.getMember(msg, args[0]);
@@ -49,15 +50,15 @@ class AddMoney extends Command {
     if (type === 'bank') {
       const bank = BigInt(db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`) || 0);
       const newAmount = bank + amount;
-      db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`, newAmount.toString());
+      await db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`, newAmount.toString());
     } else {
       const cash = BigInt(
-        db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`) ||
-          db.get(`servers.${msg.guild.id}.economy.startBalance`) ||
+        await db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`) ||
+          await db.get(`servers.${msg.guild.id}.economy.startBalance`) ||
           0,
       );
       const newAmount = cash + amount;
-      db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, newAmount.toString());
+      await db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, newAmount.toString());
     }
 
     let csAmount = currencySymbol + amount.toLocaleString();

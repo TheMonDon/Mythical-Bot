@@ -1,6 +1,7 @@
 const Command = require('../../base/Command.js');
-const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
+const { QuickDB } = require('quick.db');
+const db = new QuickDB();
 
 class Ban extends Command {
   constructor(client) {
@@ -20,7 +21,7 @@ class Ban extends Command {
       return this.client.util.errorEmbed(msg, 'The bot is missing Ban Members permission.');
 
     const successColor = msg.settings.embedSuccessColor;
-    const logChan = db.get(`servers.${msg.guild.id}.logs.channel`);
+    const logChan = await db.get(`servers.${msg.guild.id}.logs.channel`);
     const regex = /^\d{17,19}$/;
 
     const banMem = await this.client.util.getMember(msg, args[0]);

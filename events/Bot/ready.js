@@ -1,7 +1,8 @@
-const { EmbedBuilder } = require('discord.js');
-const db = require('quick.db');
-const { scheduleJob } = require('node-schedule');
 const { BotListToken } = require('../../config.js');
+const { scheduleJob } = require('node-schedule');
+const { EmbedBuilder } = require('discord.js');
+const { QuickDB } = require('quick.db');
+const db = new QuickDB();
 
 module.exports = class {
   constructor(client) {
@@ -43,7 +44,7 @@ module.exports = class {
 
     // Reminder scheduler
     scheduleJob('Reminders', '* * * * *', async () => {
-      const reminders = db.get('global.reminders') || [];
+      const reminders = await db.get('global.reminders') || [];
       if (reminders) {
         for (const { createdAt, triggerOn, reminder, channelID, userID, color, remID } of Object.values(reminders)) {
           const now = Date.now();
@@ -63,7 +64,7 @@ module.exports = class {
               channel
                 ? channel.send({ embeds: [em], content: `<@${userID}>, here's your reminder:` })
                 : user.send({ embeds: [em], content: `${user.username}, here's your reminder:` });
-              db.delete(`global.reminders.${remID}`);
+              await db.delete(`global.reminders.${remID}`);
             } catch (err) {
               console.error(err);
             }

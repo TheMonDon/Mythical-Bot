@@ -1,5 +1,6 @@
-const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
+const { QuickDB } = require('quick.db');
+const db = new QuickDB();
 
 module.exports = class {
   constructor(client) {
@@ -10,10 +11,10 @@ module.exports = class {
     if (rolebefore === roleafter) return;
     if (rolebefore.name === roleafter.name && rolebefore.hexColor === roleafter.hexColor) return;
 
-    const logChan = db.get(`servers.${roleafter.guild.id}.logs.channel`);
+    const logChan = await db.get(`servers.${roleafter.guild.id}.logs.channel`);
     if (!logChan) return;
 
-    const logSystem = db.get(`servers.${roleafter.guild.id}.logs.logSystem.role-updated`);
+    const logSystem = await db.get(`servers.${roleafter.guild.id}.logs.logSystem.role-updated`);
     if (logSystem !== 'enabled') return;
 
     const embed = new EmbedBuilder()
@@ -37,7 +38,7 @@ module.exports = class {
       .send({ embeds: [embed] })
       .catch(() => {});
 
-    db.add(`servers.${roleafter.guild.id}.logs.role-updated`, 1);
-    db.add(`servers.${roleafter.guild.id}.logs.all`, 1);
+    await db.add(`servers.${roleafter.guild.id}.logs.role-updated`, 1);
+    await db.add(`servers.${roleafter.guild.id}.logs.all`, 1);
   }
 };

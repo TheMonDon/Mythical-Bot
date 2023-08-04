@@ -1,7 +1,8 @@
 const Command = require('../../base/Command.js');
-const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
+const { QuickDB } = require('quick.db');
 const moment = require('moment');
+const db = new QuickDB();
 
 class Work extends Command {
   constructor(client) {
@@ -14,9 +15,9 @@ class Work extends Command {
     });
   }
 
-  run(msg) {
-    const cooldown = db.get(`servers.${msg.guild.id}.economy.work.cooldown`) || 300; // get cooldown from database or set to 300 seconds
-    let userCooldown = db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.work.cooldown`) || {};
+  async run(msg) {
+    const cooldown = (await db.get(`servers.${msg.guild.id}.economy.work.cooldown`)) || 300; // get cooldown from database or set to 300 seconds
+    let userCooldown = (await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.work.cooldown`)) || {};
 
     const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
     const embed = new EmbedBuilder()
@@ -28,7 +29,7 @@ class Work extends Command {
       if (timeleft < 0 || timeleft > cooldown * 1000) {
         userCooldown = {};
         userCooldown.active = false;
-        db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.work.cooldown`, userCooldown);
+        await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.work.cooldown`, userCooldown);
       } else {
         const tLeft = moment
           .duration(timeleft)
@@ -38,11 +39,11 @@ class Work extends Command {
       }
     }
 
-    const min = parseFloat(db.get(`servers.${msg.guild.id}.economy.work.min`) || 50);
-    const max = parseFloat(db.get(`servers.${msg.guild.id}.economy.work.max`) || 500);
+    const min = parseFloat((await db.get(`servers.${msg.guild.id}.economy.work.min`)) || 50);
+    const max = parseFloat((await db.get(`servers.${msg.guild.id}.economy.work.max`)) || 500);
 
     const amount = Math.floor(Math.random() * (max - min + 1) + min);
-    const currencySymbol = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
+    const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
     const csamount = currencySymbol + amount.toLocaleString();
 
     delete require.cache[require.resolve('../../resources/messages/work_jobs.json')];
@@ -53,16 +54,16 @@ class Work extends Command {
 
     userCooldown.time = Date.now() + cooldown * 1000;
     userCooldown.active = true;
-    db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.work.cooldown`, userCooldown);
+    await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.work.cooldown`, userCooldown);
 
     const oldBalance = BigInt(
-      db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`) ||
-        db.get(`servers.${msg.guild.id}.economy.startBalance`) ||
+      (await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`)) ||
+        (await db.get(`servers.${msg.guild.id}.economy.startBalance`)) ||
         0,
     );
 
     const newBalance = oldBalance + BigInt(amount);
-    db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newBalance.toString());
+    await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newBalance.toString());
 
     embed
       .setColor('#64BC6C')
@@ -70,10 +71,10 @@ class Work extends Command {
       .setFooter({ text: `Reply #${num.toLocaleString()}` });
     msg.channel.send({ embeds: [embed] });
 
-    setTimeout(() => {
+    setTimeout(async () => {
       userCooldown = {};
       userCooldown.active = false;
-      db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.work.cooldown`, userCooldown);
+      await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.work.cooldown`, userCooldown);
     }, cooldown * 1000);
   }
 }

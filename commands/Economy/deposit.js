@@ -1,6 +1,7 @@
 const Command = require('../../base/Command.js');
 const { EmbedBuilder } = require('discord.js');
-const db = require('quick.db');
+const { QuickDB } = require('quick.db');
+const db = new QuickDB();
 
 class Deposit extends Command {
   constructor(client) {
@@ -16,16 +17,16 @@ class Deposit extends Command {
     });
   }
 
-  run(msg, args) {
+  async run(msg, args) {
     let amount = args.join(' ');
-    const currencySymbol = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
+    const currencySymbol = await db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
 
     const cash = BigInt(
-      db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`) ||
-        db.get(`servers.${msg.guild.id}.economy.startBalance`) ||
+      await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`) ||
+        await db.get(`servers.${msg.guild.id}.economy.startBalance`) ||
         0,
     );
-    const bank = BigInt(db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`) || 0);
+    const bank = BigInt(await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`) || 0);
     const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
 
     const embed = new EmbedBuilder()
@@ -41,9 +42,9 @@ class Deposit extends Command {
         if (cash <= BigInt(0))
           return this.client.util.errorEmbed(msg, "You don't have any cash to deposit.", 'Invalid Parameter');
 
-        db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, 0);
+        await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, 0);
         const newAmount = bank + cash;
-        db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`, newAmount.toString());
+        await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`, newAmount.toString());
 
         embed.setDescription(`Deposited ${csCashAmount} to your bank.`);
         return msg.channel.send({ embeds: [embed] });
@@ -65,9 +66,9 @@ class Deposit extends Command {
       return this.client.util.errorEmbed(msg, "You don't have any cash to deposit", 'Invalid Parameter');
 
     const newCashAmount = cash - amount;
-    db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newCashAmount.toString());
+    await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newCashAmount.toString());
     const newBankAmount = bank + amount;
-    db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`, newBankAmount.toString());
+    await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`, newBankAmount.toString());
 
     let csAmount = currencySymbol + amount.toLocaleString();
     csAmount = csAmount.length > 1024 ? `${csAmount.slice(0, 1021) + '...'}` : csAmount;

@@ -1,5 +1,6 @@
-const db = require('quick.db');
 const { ChannelType, EmbedBuilder } = require('discord.js');
+const { QuickDB } = require('quick.db');
+const db = new QuickDB();
 
 module.exports = class {
   constructor(client) {
@@ -25,12 +26,12 @@ module.exports = class {
       // Economy chat money event
       if (message.channel.type === ChannelType.DM) return;
 
-      const min = db.get(`servers.${message.guild.id}.economy.chat.min`) || 10;
-      const max = db.get(`servers.${message.guild.id}.economy.chat.max`) || 100;
+      const min = await db.get(`servers.${message.guild.id}.economy.chat.min`) || 10;
+      const max = await db.get(`servers.${message.guild.id}.economy.chat.max`) || 100;
 
       const now = Date.now();
-      const cooldown = db.get(`servers.${message.guild.id}.economy.chat.cooldown`) || 60; // get cooldown from database or set to 60 seconds (1 minute)
-      let userCooldown = db.get(`servers.${message.guild.id}.users.${message.member.id}.economy.chat.cooldown`) || {};
+      const cooldown = await db.get(`servers.${message.guild.id}.economy.chat.cooldown`) || 60; // get cooldown from database or set to 60 seconds (1 minute)
+      let userCooldown = await db.get(`servers.${message.guild.id}.users.${message.member.id}.economy.chat.cooldown`) || {};
 
       if (userCooldown.active) {
         const timeleft = userCooldown.time - now;
@@ -38,7 +39,7 @@ module.exports = class {
           // this is to check if the bot restarted before their cooldown was set.
           userCooldown = {};
           userCooldown.active = false;
-          db.set(`servers.${message.guild.id}.users.${message.member.id}.economy.chat.cooldown`, userCooldown);
+          await db.set(`servers.${message.guild.id}.users.${message.member.id}.economy.chat.cooldown`, userCooldown);
         } else {
           return;
         }
@@ -46,21 +47,21 @@ module.exports = class {
 
       const amount = BigInt(Math.floor(Math.random() * (max - min + 1) + min));
       const cash = BigInt(
-        db.get(`servers.${message.guild.id}.users.${message.member.id}.economy.cash`) ||
-          db.get(`servers.${message.guild.id}.economy.startBalance`) ||
+        await db.get(`servers.${message.guild.id}.users.${message.member.id}.economy.cash`) ||
+          await db.get(`servers.${message.guild.id}.economy.startBalance`) ||
           0,
       );
       const newAmount = cash + amount;
-      db.set(`servers.${message.guild.id}.users.${message.member.id}.economy.cash`, newAmount.toString());
+      await db.set(`servers.${message.guild.id}.users.${message.member.id}.economy.cash`, newAmount.toString());
 
       userCooldown.time = now + cooldown * 1000;
       userCooldown.active = true;
-      db.set(`servers.${message.guild.id}.users.${message.member.id}.economy.chat.cooldown`, userCooldown);
+      await db.set(`servers.${message.guild.id}.users.${message.member.id}.economy.chat.cooldown`, userCooldown);
 
-      return setTimeout(() => {
+      return setTimeout(async () => {
         userCooldown = {};
         userCooldown.active = false;
-        db.set(`servers.${message.guild.id}.users.${message.member.id}.economy.chat.cooldown`, userCooldown);
+        await db.set(`servers.${message.guild.id}.users.${message.member.id}.economy.chat.cooldown`, userCooldown);
       }, cooldown * 1000);
     }
 
@@ -87,7 +88,7 @@ module.exports = class {
 
     // Check if the member is blacklisted from using commands in this guild.
     if (message.guild) {
-      const bl = db.get(`servers.${message.guild.id}.users.${message.member.id}.blacklist`);
+      const bl = await db.get(`servers.${message.guild.id}.users.${message.member.id}.blacklist`);
       if (bl && level < 4 && cmd.help.name !== 'blacklist') {
         return message.channel.send(
           `Sorry ${message.member.displayName}, you are currently blacklisted from using commands in this server.`,
@@ -148,7 +149,7 @@ module.exports = class {
     message.author.permLevel = level;
 
     // If the command exists, **AND** the user has permission, run it.
-    db.add('global.commands', 1);
+    await db.add('global.commands', 1);
     cmd.run(message, args, level);
   }
 };

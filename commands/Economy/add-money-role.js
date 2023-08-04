@@ -1,7 +1,8 @@
 const Command = require('../../base/Command.js');
-const db = require('quick.db');
-const { EmbedBuilder } = require('discord.js');
 const { stripIndents } = require('common-tags');
+const { EmbedBuilder } = require('discord.js');
+const { QuickDB } = require('quick.db');
+const db = new QuickDB();
 
 class AddMoneyRole extends Command {
   constructor(client) {
@@ -28,7 +29,7 @@ class AddMoneyRole extends Command {
     let role;
     let amount;
 
-    const currencySymbol = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
+    const currencySymbol = await db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
 
     if (args.length === 2) {
       role = this.client.util.getRole(msg, args[0]);
@@ -57,23 +58,23 @@ class AddMoneyRole extends Command {
 
     amount = BigInt(amount);
     if (type === 'bank') {
-      members.forEach((mem) => {
+      members.forEach(async (mem) => {
         if (!mem.user.bot) {
-          const current = BigInt(db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`) || 0);
+          const current = BigInt(await db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`) || 0);
           const newAmount = current + amount;
-          db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`, newAmount.toString());
+          await db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`, newAmount.toString());
         }
       });
     } else {
-      members.forEach((mem) => {
+      members.forEach(async (mem) => {
         if (!mem.user.bot) {
           const cash = BigInt(
-            db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`) ||
-              db.get(`servers.${msg.guild.id}.economy.startBalance`) ||
+            await db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`) ||
+              await db.get(`servers.${msg.guild.id}.economy.startBalance`) ||
               0,
           );
           const newAmount = cash + amount;
-          db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, newAmount.toString());
+          await db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, newAmount.toString());
         }
       });
     }

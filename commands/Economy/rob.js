@@ -1,7 +1,8 @@
 const Command = require('../../base/Command.js');
-const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
+const { QuickDB } = require('quick.db');
 const moment = require('moment');
+const db = new QuickDB();
 
 class Rob extends Command {
   constructor(client) {
@@ -20,8 +21,8 @@ class Rob extends Command {
     const errorColor = msg.settings.embedErrorColor;
     const type = 'rob';
 
-    const cooldown = db.get(`servers.${msg.guild.id}.economy.${type}.cooldown`) || 600; // get cooldown from database or set to 600 seconds (10 minutes)
-    let userCooldown = db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.${type}.cooldown`) || {};
+    const cooldown = (await db.get(`servers.${msg.guild.id}.economy.${type}.cooldown`)) || 600; // get cooldown from database or set to 600 seconds (10 minutes)
+    let userCooldown = (await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.${type}.cooldown`)) || {};
 
     const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
     const embed = new EmbedBuilder()
@@ -33,7 +34,7 @@ class Rob extends Command {
       if (timeleft < 0 || timeleft > cooldown * 1000) {
         userCooldown = {};
         userCooldown.active = false;
-        db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.${type}.cooldown`, userCooldown);
+        await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.${type}.cooldown`, userCooldown);
       } else {
         const tLeft = moment
           .duration(timeleft)
@@ -47,23 +48,24 @@ class Rob extends Command {
     const mem = await this.client.util.getMember(msg, text.join(' '));
 
     if (!mem) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Member');
-    if (mem.id === msg.author.id) return this.client.util.errorEmbed(msg, 'You can\'t rob yourself.', 'Invalid Member');
+    if (mem.id === msg.author.id) return this.client.util.errorEmbed(msg, "You can't rob yourself.", 'Invalid Member');
 
     const authCash = BigInt(
-      db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`) ||
-        db.get(`servers.${msg.guild.id}.economy.startBalance`) ||
+      (await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`)) ||
+        (await db.get(`servers.${msg.guild.id}.economy.startBalance`)) ||
         0,
     );
     const authBank = BigInt(db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`) || 0);
     const authNet = authCash + authBank;
 
     const memCash = BigInt(
-      db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`) ||
-        db.get(`servers.${msg.guild.id}.economy.startBalance`) ||
+      (await db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`)) ||
+        (await db.get(`servers.${msg.guild.id}.economy.startBalance`)) ||
         0,
     );
 
-    if (memCash <= BigInt(0)) return this.client.util.errorEmbed(msg, `${mem} does not have anything to rob`, 'No Money');
+    if (memCash <= BigInt(0))
+      return this.client.util.errorEmbed(msg, `${mem} does not have anything to rob`, 'No Money');
 
     const totalAmount = Number(memCash + authNet);
     const failRate = Math.floor((Number(authNet) / totalAmount) * 100);
@@ -80,7 +82,7 @@ class Rob extends Command {
     // fineAmount is the amount of money the user will lose if they fail the robbery
     const fineAmount = (authNet / BigInt(100)) * randomFine;
 
-    const currencySymbol = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
+    const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
 
     if (failRate > BigInt(100)) {
       embed
@@ -93,7 +95,7 @@ class Rob extends Command {
 
     if (ranNum <= failRate) {
       const newAmount = authCash - fineAmount;
-      db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAmount.toString());
+      await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAmount.toString());
 
       let csFineAmount = currencySymbol + fineAmount.toLocaleString();
       csFineAmount = csFineAmount.length > 1024 ? `${csFineAmount.slice(0, 1021) + '...'}` : csFineAmount;
@@ -107,10 +109,10 @@ class Rob extends Command {
       amount = BigInt(amount);
 
       const newMemCash = memCash - amount;
-      db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, newMemCash.toString());
+      await db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, newMemCash.toString());
 
       const newAuthCash = authCash + amount;
-      db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAuthCash.toString());
+      await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAuthCash.toString());
 
       let csAmount = currencySymbol + amount.toLocaleString();
       csAmount = csAmount.length > 1024 ? `${csAmount.slice(0, 1021) + '...'}` : csAmount;
@@ -137,12 +139,12 @@ class Rob extends Command {
 
     userCooldown.time = Date.now() + cooldown * 1000;
     userCooldown.active = true;
-    db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.${type}.cooldown`, userCooldown);
+    await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.${type}.cooldown`, userCooldown);
 
-    setTimeout(() => {
+    setTimeout(async () => {
       userCooldown = {};
       userCooldown.active = false;
-      db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.${type}.cooldown`, userCooldown);
+      await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.${type}.cooldown`, userCooldown);
     }, cooldown * 1000);
   }
 }

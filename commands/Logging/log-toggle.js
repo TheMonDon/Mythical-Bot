@@ -1,6 +1,7 @@
 const Command = require('../../base/Command.js');
 const { EmbedBuilder } = require('discord.js');
-const db = require('quick.db');
+const { QuickDB } = require('quick.db');
+const db = new QuickDB();
 
 class LogToggle extends Command {
   constructor(client) {
@@ -19,7 +20,7 @@ class LogToggle extends Command {
   async run(msg, args) {
     const query = args.join(' ').toLowerCase();
 
-    if (!db.get(`servers.${msg.guild.id}.logs.channel`))
+    if (!(await await db.get(`servers.${msg.guild.id}.logs.channel`)))
       return msg.channel.send(`The log system is not set up! Use \`${msg.settings.prefix}setup logging\``);
 
     // define regex
@@ -92,14 +93,14 @@ sticker`,
         }
         if (!chan) return msg.channel.send('I could not find a channel with that information.');
 
-        const chans = db.get(`servers.${msg.guild.id}.logs.noLogChans`);
+        const chans = await db.get(`servers.${msg.guild.id}.logs.noLogChans`);
         if (chans && !chans.includes(chan.id)) return msg.channel.send('That channel is already enabled.');
 
         const indx = chans.indexOf(chan.id);
 
         if (indx > -1) {
           chans.splice(indx, 1);
-          db.set(`servers.${msg.guild.id}.logs.noLogChans`, chans);
+          await db.set(`servers.${msg.guild.id}.logs.noLogChans`, chans);
           return msg.channel.send(`Successfully removed ${chan.id} (${chan.name}) from the channel blacklist.`);
         } else {
           return msg.channel.send('I could not find a channel with that info in the blacklist.');
@@ -119,7 +120,7 @@ sticker`,
         }
         if (!chan) return msg.channel.send('I could not find a channel with that information.');
 
-        const chans = db.get(`servers.${msg.guild.id}.logs.noLogChans`);
+        const chans = await db.get(`servers.${msg.guild.id}.logs.noLogChans`);
         if (chans) {
           if (chans.includes(chan)) return msg.channel.send('That channel is already disabled.');
         }
@@ -129,163 +130,163 @@ sticker`,
         return msg.channel.send(args[1]);
       }
     } else if (cc.test(query)) {
-      if (db.get(`servers.${msg.guild.id}.logs.logSystem.channel-created`) === 'enabled') {
-        db.set(`servers.${msg.guild.id}.logs.logSystem.channel-created`, 'disabled');
+      if ((await db.get(`servers.${msg.guild.id}.logs.logSystem.channel-created`)) === 'enabled') {
+        await db.set(`servers.${msg.guild.id}.logs.logSystem.channel-created`, 'disabled');
         msg.channel.send('Channel-Created logs has been disabled.');
       } else {
-        db.set(`servers.${msg.guild.id}.logs.logSystem.channel-created`, 'enabled');
+        await db.set(`servers.${msg.guild.id}.logs.logSystem.channel-created`, 'enabled');
         msg.channel.send('Channel-Created logs has been enabled.');
       }
     } else if (cd.test(query)) {
-      if (db.get(`servers.${msg.guild.id}.logs.logSystem.channel-deleted`) === 'enabled') {
-        db.set(`servers.${msg.guild.id}.logs.logSystem.channel-deleted`, 'disabled');
+      if ((await db.get(`servers.${msg.guild.id}.logs.logSystem.channel-deleted`)) === 'enabled') {
+        await db.set(`servers.${msg.guild.id}.logs.logSystem.channel-deleted`, 'disabled');
         msg.channel.send('Channel-Deleted logs has been disabled');
       } else {
-        db.set(`servers.${msg.guild.id}.logs.logSystem.channel-deleted`, 'enabled');
+        await db.set(`servers.${msg.guild.id}.logs.logSystem.channel-deleted`, 'enabled');
         msg.channel.send('Channel-Deleted logs has been enabled');
       }
     } else if (cu.test(query)) {
-      if (db.get(`servers.${msg.guild.id}.logs.logSystem.channel-updated`) === 'enabled') {
-        db.set(`servers.${msg.guild.id}.logs.logSystem.channel-updated`, 'disabled');
+      if ((await db.get(`servers.${msg.guild.id}.logs.logSystem.channel-updated`)) === 'enabled') {
+        await db.set(`servers.${msg.guild.id}.logs.logSystem.channel-updated`, 'disabled');
         msg.channel.send('Channel-Updated logs has been disabled');
       } else {
-        db.set(`servers.${msg.guild.id}.logs.logSystem.channel-updated`, 'enabled');
+        await db.set(`servers.${msg.guild.id}.logs.logSystem.channel-updated`, 'enabled');
         msg.channel.send('Channel-Updated logs has been enabled');
       }
     } else if (vcc.test(query)) {
-      if (db.get(`servers.${msg.guild.id}.logs.logSystem.v-channel-created`) === 'enabled') {
-        db.set(`servers.${msg.guild.id}.logs.logSystem.v-channel-created`, 'disabled');
+      if ((await db.get(`servers.${msg.guild.id}.logs.logSystem.v-channel-created`)) === 'enabled') {
+        await db.set(`servers.${msg.guild.id}.logs.logSystem.v-channel-created`, 'disabled');
         msg.channel.send('Voice-Channel-Created logs has been disabled.');
       } else {
-        db.set(`servers.${msg.guild.id}.logs.logSystem.v-channel-created`, 'enabled');
+        await db.set(`servers.${msg.guild.id}.logs.logSystem.v-channel-created`, 'enabled');
         msg.channel.send('Voice-Channel-Created logs has been enabled.');
       }
     } else if (vcd.test(query)) {
-      if (db.get(`servers.${msg.guild.id}.logs.logSystem.v-channel-deleted`) === 'enabled') {
-        db.set(`servers.${msg.guild.id}.logs.logSystem.v-channel-deleted`, 'disabled');
+      if ((await db.get(`servers.${msg.guild.id}.logs.logSystem.v-channel-deleted`)) === 'enabled') {
+        await db.set(`servers.${msg.guild.id}.logs.logSystem.v-channel-deleted`, 'disabled');
         msg.channel.send('Voice-Channel-Deleted logs has been disabled');
       } else {
-        db.set(`servers.${msg.guild.id}.logs.logSystem.v-channel-deleted`, 'enabled');
+        await db.set(`servers.${msg.guild.id}.logs.logSystem.v-channel-deleted`, 'enabled');
         msg.channel.send('Voice-Channel-Deleted logs has been enabled');
       }
     } else if (mj.test(query)) {
-      if (db.get(`servers.${msg.guild.id}.logs.logSystem.member-join`) === 'enabled') {
-        db.set(`servers.${msg.guild.id}.logs.logSystem.member-join`, 'disabled');
+      if ((await db.get(`servers.${msg.guild.id}.logs.logSystem.member-join`)) === 'enabled') {
+        await db.set(`servers.${msg.guild.id}.logs.logSystem.member-join`, 'disabled');
         msg.channel.send('Member-Join logs has been disabled');
       } else {
-        db.set(`servers.${msg.guild.id}.logs.logSystem.member-join`, 'enabled');
+        await db.set(`servers.${msg.guild.id}.logs.logSystem.member-join`, 'enabled');
         msg.channel.send('Member-Join logs has been enabled');
       }
     } else if (ml.test(query)) {
-      if (db.get(`servers.${msg.guild.id}.logs.logSystem.member-leave`) === 'enabled') {
-        db.set(`servers.${msg.guild.id}.logs.logSystem.member-leave`, 'disabled');
+      if ((await db.get(`servers.${msg.guild.id}.logs.logSystem.member-leave`)) === 'enabled') {
+        await db.set(`servers.${msg.guild.id}.logs.logSystem.member-leave`, 'disabled');
         msg.channel.send('Member-Leave logs has been disabled');
       } else {
-        db.set(`servers.${msg.guild.id}.logs.logSystem.member-leave`, 'enabled');
+        await db.set(`servers.${msg.guild.id}.logs.logSystem.member-leave`, 'enabled');
         msg.channel.send('Member-Leave logs has been enabled');
       }
     } else if (me1.test(query)) {
-      if (db.get(`servers.${msg.guild.id}.logs.logSystem.message-edited`) === 'enabled') {
-        db.set(`servers.${msg.guild.id}.logs.logSystem.message-edited`, 'disabled');
+      if ((await db.get(`servers.${msg.guild.id}.logs.logSystem.message-edited`)) === 'enabled') {
+        await db.set(`servers.${msg.guild.id}.logs.logSystem.message-edited`, 'disabled');
         msg.channel.send('Message-Edited logs has been disabled');
       } else {
-        db.set(`servers.${msg.guild.id}.logs.logSystem.message-edited`, 'enabled');
+        await db.set(`servers.${msg.guild.id}.logs.logSystem.message-edited`, 'enabled');
         msg.channel.send('Message-Edited logs has been enabled');
       }
     } else if (md.test(query)) {
-      if (db.get(`servers.${msg.guild.id}.logs.logSystem.message-deleted`) === 'enabled') {
-        db.set(`servers.${msg.guild.id}.logs.logSystem.message-deleted`, 'disabled');
+      if ((await db.get(`servers.${msg.guild.id}.logs.logSystem.message-deleted`)) === 'enabled') {
+        await db.set(`servers.${msg.guild.id}.logs.logSystem.message-deleted`, 'disabled');
         msg.channel.send('Message-Deleted logs has been disabled');
       } else {
-        db.set(`servers.${msg.guild.id}.logs.logSystem.message-deleted`, 'enabled');
+        await db.set(`servers.${msg.guild.id}.logs.logSystem.message-deleted`, 'enabled');
         msg.channel.send('Message-Deleted logs has been enabled');
       }
     } else if (rc.test(query)) {
-      if (db.get(`servers.${msg.guild.id}.logs.logSystem.role-created`) === 'enabled') {
-        db.set(`servers.${msg.guild.id}.logs.logSystem.role-created`, 'disabled');
+      if ((await db.get(`servers.${msg.guild.id}.logs.logSystem.role-created`)) === 'enabled') {
+        await db.set(`servers.${msg.guild.id}.logs.logSystem.role-created`, 'disabled');
         msg.channel.send('Role-Created logs has been disabled');
       } else {
-        db.set(`servers.${msg.guild.id}.logs.logSystem.role-created`, 'enabled');
+        await db.set(`servers.${msg.guild.id}.logs.logSystem.role-created`, 'enabled');
         msg.channel.send('Role-Created logs has been enabled');
       }
     } else if (rd.test(query)) {
-      if (db.get(`servers.${msg.guild.id}.logs.logSystem.role-deleted`) === 'enabled') {
-        db.set(`servers.${msg.guild.id}.logs.logSystem.role-deleted`, 'disabled');
+      if ((await db.get(`servers.${msg.guild.id}.logs.logSystem.role-deleted`)) === 'enabled') {
+        await db.set(`servers.${msg.guild.id}.logs.logSystem.role-deleted`, 'disabled');
         msg.channel.send('Role-Deleted logs has been disabled');
       } else {
-        db.set(`servers.${msg.guild.id}.logs.logSystem.role-deleted`, 'enabled');
+        await db.set(`servers.${msg.guild.id}.logs.logSystem.role-deleted`, 'enabled');
         msg.channel.send('Role-Deleted logs has been enabled');
       }
     } else if (ru.test(query)) {
-      if (db.get(`servers.${msg.guild.id}.logs.logSystem.role-updated`) === 'enabled') {
-        db.set(`servers.${msg.guild.id}.logs.logSystem.role-updated`, 'disabled');
+      if ((await db.get(`servers.${msg.guild.id}.logs.logSystem.role-updated`)) === 'enabled') {
+        await db.set(`servers.${msg.guild.id}.logs.logSystem.role-updated`, 'disabled');
         msg.channel.send('Role-Updated logs has been disabled');
       } else {
-        db.set(`servers.${msg.guild.id}.logs.logSystem.role-updated`, 'enabled');
+        await db.set(`servers.${msg.guild.id}.logs.logSystem.role-updated`, 'enabled');
         msg.channel.send('Role-Updated logs has been enabled');
       }
     } else if (sc.test(query)) {
-      if (db.get(`servers.${msg.guild.id}.logs.logSystem.stage-channel-created`) === 'enabled') {
-        db.set(`servers.${msg.guild.id}.logs.logSystem.stage-channel-created`, 'disabled');
+      if ((await db.get(`servers.${msg.guild.id}.logs.logSystem.stage-channel-created`)) === 'enabled') {
+        await db.set(`servers.${msg.guild.id}.logs.logSystem.stage-channel-created`, 'disabled');
         msg.channel.send('Stage-Channel-Created logs has been disabled');
       } else {
-        db.set(`servers.${msg.guild.id}.logs.logSystem.stage-channel-created`, 'enabled');
+        await db.set(`servers.${msg.guild.id}.logs.logSystem.stage-channel-created`, 'enabled');
         msg.channel.send('Stage-Channel-Created logs has been enabled');
       }
     } else if (sd.test(query)) {
-      if (db.get(`servers.${msg.guild.id}.logs.logSystem.stage-channel-deleted`) === 'enabled') {
-        db.set(`servers.${msg.guild.id}.logs.logSystem.stage-channel-deleted`, 'disabled');
+      if ((await db.get(`servers.${msg.guild.id}.logs.logSystem.stage-channel-deleted`)) === 'enabled') {
+        await db.set(`servers.${msg.guild.id}.logs.logSystem.stage-channel-deleted`, 'disabled');
         msg.channel.send('Stage-Channel-Deleted logs has been disabled');
       } else {
-        db.set(`servers.${msg.guild.id}.logs.logSystem.stage-channel-deleted`, 'enabled');
+        await db.set(`servers.${msg.guild.id}.logs.logSystem.stage-channel-deleted`, 'enabled');
         msg.channel.send('Stage-Channel-Deleted logs has been enabled');
       }
     } else if (su.test(query)) {
-      if (db.get(`servers.${msg.guild.id}.logs.logSystem.stage-channel-updated`) === 'enabled') {
-        db.set(`servers.${msg.guild.id}.logs.logSystem.stage-channel-updated`, 'disabled');
+      if ((await db.get(`servers.${msg.guild.id}.logs.logSystem.stage-channel-updated`)) === 'enabled') {
+        await db.set(`servers.${msg.guild.id}.logs.logSystem.stage-channel-updated`, 'disabled');
         msg.channel.send('Stage-Channel-Updated logs has been disabled');
       } else {
-        db.set(`servers.${msg.guild.id}.logs.logSystem.stage-channel-updated`, 'enabled');
+        await db.set(`servers.${msg.guild.id}.logs.logSystem.stage-channel-updated`, 'enabled');
         msg.channel.send('Stage-Channel-Updated logs has been enabled');
       }
     } else if (emoji.test(query)) {
-      if (db.get(`servers.${msg.guild.id}.logs.logSystem.emoji`) === 'enabled') {
-        db.set(`servers.${msg.guild.id}.logs.logSystem.emoji`, 'disabled');
+      if ((await db.get(`servers.${msg.guild.id}.logs.logSystem.emoji`)) === 'enabled') {
+        await db.set(`servers.${msg.guild.id}.logs.logSystem.emoji`, 'disabled');
         msg.channel.send('Emoji logs has been disabled');
       } else {
-        db.set(`servers.${msg.guild.id}.logs.logSystem.emoji`, 'enabled');
+        await db.set(`servers.${msg.guild.id}.logs.logSystem.emoji`, 'enabled');
         msg.channel.send('Emoji logs has been enabled');
       }
     } else if (bmd.test(query)) {
-      if (db.get(`servers.${msg.guild.id}.logs.logSystem.bulk-messages-deleted`) === 'enabled') {
-        db.set(`servers.${msg.guild.id}.logs.logSystem.bulk-messages-deleted`, 'disabled');
+      if ((await db.get(`servers.${msg.guild.id}.logs.logSystem.bulk-messages-deleted`)) === 'enabled') {
+        await db.set(`servers.${msg.guild.id}.logs.logSystem.bulk-messages-deleted`, 'disabled');
         msg.channel.send('Bulk-Messages-Deleted logs has been disabled');
       } else {
-        db.set(`servers.${msg.guild.id}.logs.logSystem.bulk-messages-deleted`, 'enabled');
+        await db.set(`servers.${msg.guild.id}.logs.logSystem.bulk-messages-deleted`, 'enabled');
         msg.channel.send('Bulk-Messages-Deleted logs has been enabled');
       }
     } else if (tc.test(query)) {
-      if (db.get(`servers.${msg.guild.id}.logs.logSystem.thread-created`) === 'enabled') {
-        db.set(`servers.${msg.guild.id}.logs.logSystem.thread-created`, 'disabled');
+      if ((await db.get(`servers.${msg.guild.id}.logs.logSystem.thread-created`)) === 'enabled') {
+        await db.set(`servers.${msg.guild.id}.logs.logSystem.thread-created`, 'disabled');
         msg.channel.send('Thread-Created logs has been disabled');
       } else {
-        db.set(`servers.${msg.guild.id}.logs.logSystem.thread-created`, 'enabled');
+        await db.set(`servers.${msg.guild.id}.logs.logSystem.thread-created`, 'enabled');
         msg.channel.send('Thread-Created logs have been enabled');
       }
     } else if (td.test(query)) {
-      if (db.get(`servers.${msg.guild.id}.logs.logSystem.thread-deleted`) === 'enabled') {
-        db.set(`servers.${msg.guild.id}.logs.logSystem.thread-deleted`, 'disabled');
+      if ((await db.get(`servers.${msg.guild.id}.logs.logSystem.thread-deleted`)) === 'enabled') {
+        await db.set(`servers.${msg.guild.id}.logs.logSystem.thread-deleted`, 'disabled');
         msg.channel.send('Thread-Deleted logs has been disabled');
       } else {
-        db.set(`servers.${msg.guild.id}.logs.logSystem.thread-deleted`, 'enabled');
+        await db.set(`servers.${msg.guild.id}.logs.logSystem.thread-deleted`, 'enabled');
         msg.channel.send('Thread-Deleted logs have been enabled');
       }
     } else if (sticker.test(query)) {
-      if (db.get(`servers.${msg.guild.id}.logs.logSystem.sticker`) === 'enabled') {
-        db.set(`servers.${msg.guild.id}.logs.logSystem.sticker`, 'disabled');
+      if ((await db.get(`servers.${msg.guild.id}.logs.logSystem.sticker`)) === 'enabled') {
+        await db.set(`servers.${msg.guild.id}.logs.logSystem.sticker`, 'disabled');
         msg.channel.send('Sticker logs has been disabled');
       } else {
-        db.set(`servers.${msg.guild.id}.logs.logSystem.sticker`, 'enabled');
+        await db.set(`servers.${msg.guild.id}.logs.logSystem.sticker`, 'enabled');
         msg.channel.send('Sticker logs have been enabled');
       }
     } else {

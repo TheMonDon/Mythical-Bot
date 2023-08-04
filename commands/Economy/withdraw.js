@@ -1,6 +1,7 @@
 const Command = require('../../base/Command.js');
 const { EmbedBuilder } = require('discord.js');
-const db = require('quick.db');
+const { QuickDB } = require('quick.db');
+const db = new QuickDB();
 
 class Withdraw extends Command {
   constructor(client) {
@@ -15,16 +16,15 @@ class Withdraw extends Command {
     });
   }
 
-  run(msg, text) {
+  async run(msg, text) {
     let amount = text.join(' ');
 
     const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
-    const embed = new EmbedBuilder()
-      .setAuthor({ name: authorName, iconURL: msg.author.displayAvatarURL() });
+    const embed = new EmbedBuilder().setAuthor({ name: authorName, iconURL: msg.author.displayAvatarURL() });
 
-    const currencySymbol = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
-    const bank = BigInt(db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`) || 0);
-    const cash = BigInt(db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`) || 0);
+    const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
+    const bank = BigInt((await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`)) || 0);
+    const cash = BigInt((await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`)) || 0);
 
     let csBankAmount = currencySymbol + bank.toLocaleString();
     csBankAmount = csBankAmount.length > 1024 ? `${csBankAmount.slice(0, 1021) + '...'}` : csBankAmount;
@@ -34,9 +34,9 @@ class Withdraw extends Command {
       if (amount.toLowerCase() === 'all') {
         if (bank <= BigInt(0)) return msg.channel.send("You don't have any money to withdraw.");
 
-        db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`, 0);
+        await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`, 0);
         const newAmount = bank + cash;
-        db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAmount.toString());
+        await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAmount.toString());
 
         embed.setColor('#04ACF4').setDescription(`Withdrew ${currencySymbol}${bank.toLocaleString()} from your bank!`);
         return msg.channel.send({ embeds: [embed] });
@@ -60,8 +60,8 @@ class Withdraw extends Command {
 
     const newBankAmount = bank - amount;
     const newCashAmount = cash + amount;
-    db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`, newBankAmount.toString());
-    db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newCashAmount.toString());
+    await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`, newBankAmount.toString());
+    await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newCashAmount.toString());
 
     embed.setColor('#04ACF4').setDescription(`Withdrew ${csAmount} from your bank.`);
     return msg.channel.send({ embeds: [embed] });

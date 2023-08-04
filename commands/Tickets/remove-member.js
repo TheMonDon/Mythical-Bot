@@ -1,6 +1,7 @@
 const Command = require('../../base/Command.js');
-const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
+const { QuickDB } = require('quick.db');
+const db = new QuickDB();
 
 class RemoveMember extends Command {
   constructor(client) {
@@ -16,7 +17,7 @@ class RemoveMember extends Command {
   }
 
   async run(msg, args) {
-    if (!db.get(`servers.${msg.guild.id}.tickets`))
+    if (!(await db.get(`servers.${msg.guild.id}.tickets`)))
       return msg.channel.send('The ticket system has not been setup in this server.');
 
     if (!msg.channel.name.startsWith('ticket'))
@@ -27,9 +28,9 @@ class RemoveMember extends Command {
     if (mem.id === msg.author.id)
       return msg.channel.send(`Are you trying to close your ticket? Use \`${msg.settings.prefix}close\` instead`);
 
-    const { roleID } = db.get(`servers.${msg.guild.id}.tickets`);
+    const { roleID } = await db.get(`servers.${msg.guild.id}.tickets`);
     const role = msg.guild.roles.cache.get(roleID);
-    const owner = db.get(`servers.${msg.guild.id}.tickets.${msg.channel.id}.owner`);
+    const owner = await db.get(`servers.${msg.guild.id}.tickets.${msg.channel.id}.owner`);
 
     // Do they have the support role or are owner?
     if (owner !== msg.author.id) {

@@ -1,6 +1,7 @@
 const Command = require('../../base/Command.js');
-const db = require('quick.db');
 const { EmbedBuilder, ChannelType } = require('discord.js');
+const { QuickDB } = require('quick.db');
+const db = new QuickDB();
 
 class NewTicket extends Command {
   constructor(client) {
@@ -15,9 +16,9 @@ class NewTicket extends Command {
   }
 
   async run(msg, args) {
-    if (!db.get(`servers.${msg.guild.id}.tickets`))
+    if (!(await db.get(`servers.${msg.guild.id}.tickets`)))
       return msg.channel.send('The ticket system has not been setup in this server.');
-    const { catID, logID, roleID } = db.get(`servers.${msg.guild.id}.tickets`);
+    const { catID, logID, roleID } = await db.get(`servers.${msg.guild.id}.tickets`);
 
     if (!msg.guild.channels.cache.get(catID))
       return msg.channel.send('Please re-run `Setup`, the ticket category is missing.');
@@ -33,7 +34,7 @@ class NewTicket extends Command {
     if (!args || args.length < 1)
       return msg.channel.send(`Please provide a reason. Usage: ${msg.settings.prefix}New-ticket <reason>`);
 
-    const tix = this.client.util.getTickets(msg.author.id, msg);
+    const tix = await this.client.util.getTickets(msg.author.id, msg);
     if (tix.length > 2) {
       return msg.channel.send(
         `Sorry ${msg.author}, you already have three or more tickets open. Please close one before making a new one.`,
@@ -62,8 +63,8 @@ class NewTicket extends Command {
       },
     ];
 
-    const count = db.get(`servers.${msg.guild.id}.tickets.count`) || 0;
-    db.set(`servers.${msg.guild.id}.tickets.count`, count + 1);
+    const count = (await db.get(`servers.${msg.guild.id}.tickets.count`)) || 0;
+    await db.set(`servers.${msg.guild.id}.tickets.count`, count + 1);
 
     let str = msg.member.displayName;
     str = str.replace(/[^a-zA-Z\d:]/g, '');
@@ -84,7 +85,7 @@ class NewTicket extends Command {
       topic: reason,
     });
 
-    db.set(`servers.${msg.guild.id}.tickets.${tixChan.id}.owner`, msg.author.id);
+    await db.set(`servers.${msg.guild.id}.tickets.${tixChan.id}.owner`, msg.author.id);
 
     const userEmbed = new EmbedBuilder()
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })

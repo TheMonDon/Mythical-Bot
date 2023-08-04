@@ -1,7 +1,8 @@
 const Command = require('../../base/Command.js');
-const db = require('quick.db');
-const { EmbedBuilder } = require('discord.js');
 const { stripIndents } = require('common-tags');
+const { EmbedBuilder } = require('discord.js');
+const { QuickDB } = require('quick.db');
+const db = new QuickDB();
 
 class SetFailRate extends Command {
   constructor(client) {
@@ -17,12 +18,12 @@ class SetFailRate extends Command {
     });
   }
 
-  run(msg, text) {
+  async run(msg, text) {
     const types = ['crime', 'slut'];
     const errorColor = msg.settings.embedErrorColor;
 
-    const slutFail = db.get(`servers.${msg.guild.id}.economy.slut.failrate`) || 35;
-    const crimeFail = db.get(`servers.${msg.guild.id}.economy.crime.failrate`) || 45;
+    const slutFail = (await db.get(`servers.${msg.guild.id}.economy.slut.failrate`)) || 35;
+    const crimeFail = (await db.get(`servers.${msg.guild.id}.economy.crime.failrate`)) || 45;
 
     const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
     const embed = new EmbedBuilder()
@@ -42,7 +43,8 @@ class SetFailRate extends Command {
     }
 
     const type = text[0]?.toLowerCase();
-    if (!types.includes(type)) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Incorrect Usage');
+    if (!types.includes(type))
+      return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Incorrect Usage');
 
     text.shift();
     const percentage = parseInt(text.join('').replace('%', '').replace(/-/g, ''), 10);
@@ -56,13 +58,13 @@ class SetFailRate extends Command {
     embed.setColor('#64BC6C');
 
     if (type === 'crime') {
-      db.set(`servers.${msg.guild.id}.economy.${type}.failrate`, percentage);
+      await db.set(`servers.${msg.guild.id}.economy.${type}.failrate`, percentage);
       embed.setDescription(`The fail rate for \`Crime\` has been set to ${percentage}%.`);
 
       return msg.channel.send({ embeds: [embed] });
     } else if (type === 'slut') {
       // Shoved this in for future proofing :D (Thanks past me!)
-      db.set(`servers.${msg.guild.id}.economy.slut.failrate`, percentage);
+      await db.set(`servers.${msg.guild.id}.economy.slut.failrate`, percentage);
       embed.setDescription(`The fail rate for \`Slut\` has been set to ${percentage}%.`);
     }
 

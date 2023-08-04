@@ -1,25 +1,26 @@
-const Command = require('../../base/Command.js');
 const { EmbedBuilder, ChannelType } = require('discord.js');
-const moment = require('moment');
-require('moment-duration-format');
-const db = require('quick.db');
+const Command = require('../../base/Command.js');
+const { QuickDB } = require('quick.db');
 const sherlock = require('sherlockjs');
+require('moment-duration-format');
+const moment = require('moment');
+const db = new QuickDB();
 
 class RemindMe extends Command {
   constructor(client) {
     super(client, {
       name: 'remind-me',
       description: 'Gives you a reminder',
-      examples: ['remind-me Ban Zeph in 1 year'],
-      usage: 'memind-me <reminder>',
+      examples: ['remind-me Ban Zeph in 1 year', 'remind-me in 4 months '],
+      usage: 'remind-me <reminder>',
       requiredArgs: 1,
       category: 'General',
-      aliases: ['remind', 'remindme', 'rememberforme'],
+      aliases: ['remind', 'remindme'],
     });
   }
 
   async run(msg, args) {
-    const reminders = db.get('global.reminders') || [];
+    const reminders = (await db.get('global.reminders')) || [];
     let remID = this.client.util.randomString(5);
     while (reminders.length > 0 && reminders.includes(remID)) remID = this.client.util.randomString(5);
 
@@ -80,7 +81,7 @@ class RemindMe extends Command {
       remID,
     };
 
-    db.set(`global.reminders.${remID}`, obj);
+    await db.set(`global.reminders.${remID}`, obj);
   }
 }
 

@@ -1,8 +1,9 @@
 const Command = require('../../base/Command.js');
 const { EmbedBuilder } = require('discord.js');
-const moment = require('moment');
+const { QuickDB } = require('quick.db');
 require('moment-duration-format');
-const db = require('quick.db');
+const moment = require('moment');
+const db = new QuickDB();
 
 class Reminders extends Command {
   constructor(client) {
@@ -44,7 +45,7 @@ class Reminders extends Command {
     const errorColor = msg.settings.embedErrorColor;
 
     const em = new EmbedBuilder();
-    const reminders = db.get('global.reminders') || [];
+    const reminders = (await db.get('global.reminders')) || [];
 
     if (!args[0]) {
       let i = 1;
@@ -75,7 +76,7 @@ class Reminders extends Command {
     }
 
     const ID = args[0];
-    const reminder = db.get(`global.reminders.${ID}`);
+    const reminder = await db.get(`global.reminders.${ID}`);
 
     if (!ID) {
       em.setColor(errorColor);
@@ -84,7 +85,7 @@ class Reminders extends Command {
       em.setColor(errorColor);
       em.setDescription(`${msg.author.username}, that isn't a valid reminder.`);
     } else {
-      db.delete(`global.reminders.${ID}`);
+      await db.delete(`global.reminders.${ID}`);
 
       em.setColor(msg.settings.embedSuccessColor);
       em.setDescription(`${msg.member.displayName}, you've successfully deleted your reminder.`);

@@ -1,7 +1,8 @@
-const Command = require('../../base/Command.js');
-const db = require('quick.db');
-const { EmbedBuilder } = require('discord.js');
 const discordTranscripts = require('discord-html-transcripts');
+const Command = require('../../base/Command.js');
+const { EmbedBuilder } = require('discord.js');
+const { QuickDB } = require('quick.db');
+const db = new QuickDB();
 
 class forceClose extends Command {
   constructor(client) {
@@ -16,7 +17,7 @@ class forceClose extends Command {
   }
 
   async run(msg, args) {
-    if (!db.get(`servers.${msg.guild.id}.tickets`))
+    if (!(await db.get(`servers.${msg.guild.id}.tickets`)))
       return msg.channel.send('The ticket system has not been setup in this server.');
 
     let tID;
@@ -41,9 +42,9 @@ class forceClose extends Command {
       reason = args?.join(' ') || 'No reason specified';
     }
 
-    const { logID, roleID } = db.get(`servers.${msg.guild.id}.tickets`);
+    const { logID, roleID } = await db.get(`servers.${msg.guild.id}.tickets`);
 
-    const owner = db.get(`servers.${msg.guild.id}.tickets.${tID}.owner`);
+    const owner = await db.get(`servers.${msg.guild.id}.tickets.${tID}.owner`);
     msg.guild.members.fetch(owner);
     const role = msg.guild.roles.cache.get(roleID);
 
@@ -65,7 +66,7 @@ class forceClose extends Command {
     }
 
     const channel = await msg.guild.channels.cache.get(tID);
-    const ticketObj = db.get(`servers.${msg.guild.id}.tickets.${tID}`);
+    const ticketObj = await db.get(`servers.${msg.guild.id}.tickets.${tID}`);
     if (!channel && !ticketObj) return msg.channel.send('That is not a valid ticket, or has already been closed.');
     const attachment = await discordTranscripts.createTranscript(channel);
     let received;
@@ -98,9 +99,13 @@ class forceClose extends Command {
       .setColor('#E65DF4')
       .setTimestamp();
     if (received === 'no') logEmbed.setFooter({ text: 'Could not message author.' });
-    await msg.guild.channels.cache.get(logID).send({ embeds: [logEmbed], files: [attachment] }).catch(() => { });
 
-    db.delete(`servers.${msg.guild.id}.tickets.${tID}`);
+    await msg.guild.channels.cache
+      .get(logID)
+      .send({ embeds: [logEmbed], files: [attachment] })
+      .catch(() => {});
+
+    await db.delete(`servers.${msg.guild.id}.tickets.${tID}`);
     return msg.channel.delete();
   }
 }

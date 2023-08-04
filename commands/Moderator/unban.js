@@ -1,6 +1,7 @@
 const Command = require('../../base/Command.js');
-const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
+const { QuickDB } = require('quick.db');
+const db = new QuickDB();
 
 class Unban extends Command {
   constructor(client) {
@@ -19,7 +20,7 @@ class Unban extends Command {
     if (!msg.guild.members.me.permissions.has('BanMembers'))
       return msg.channel.send('The bot is missing Ban Members permission.');
 
-    const logChan = db.get(`servers.${msg.guild.id}.logs.channel`);
+    const logChan = await db.get(`servers.${msg.guild.id}.logs.channel`);
 
     // Regex to check if the input for userID is a number
     const regex = /\d+/g;

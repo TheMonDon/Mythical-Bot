@@ -1,6 +1,7 @@
 const Command = require('../../base/Command.js');
-const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
+const { QuickDB } = require('quick.db');
+const db = new QuickDB();
 
 class ClearWarnings extends Command {
   constructor(client) {
@@ -30,14 +31,14 @@ class ClearWarnings extends Command {
       }
     }
 
-    const otherWarns = this.client.util.getWarns(mem.id, msg);
-    const previousPoints = this.client.util.getTotalPoints(mem.id, msg);
-    const logChan = db.get(`servers.${msg.guild.id}.warns.channel`);
+    const otherWarns = await this.client.util.getWarns(mem.id, msg);
+    const previousPoints = await this.client.util.getTotalPoints(mem.id, msg);
+    const logChan = await db.get(`servers.${msg.guild.id}.warns.channel`);
 
     if (!otherWarns || otherWarns.length < 1) return this.client.util.errorEmbed(msg, 'That user has no warnings.');
 
     for (const i of otherWarns) {
-      db.delete(`servers.${msg.guild.id}.warns.warnings.${i.warnID}`);
+      await db.delete(`servers.${msg.guild.id}.warns.warnings.${i.warnID}`);
     }
 
     if (previousPoints >= 10) {

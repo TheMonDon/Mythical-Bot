@@ -1,6 +1,7 @@
 const Command = require('../../base/Command.js');
-const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
+const { QuickDB } = require('quick.db');
+const db = new QuickDB();
 
 class RemoveMoney extends Command {
   constructor(client) {
@@ -8,10 +9,11 @@ class RemoveMoney extends Command {
       name: 'remove-money',
       category: 'Economy',
       description:
-        "Remove money from a users's cash or bank balance. \nIf the cash or bank argument isn't given, it will be added to the cash part.",
+        "Remove money from a users's cash or bank balance. \nIf the cash or bank argument isn't given, it will be removed from the cash part.",
       usage: 'remove-money [cash | bank] <member> <amount>',
       aliases: ['removemoney', 'removebal'],
       permLevel: 'Moderator',
+      examples: ['remove-money cash @TheMonDon 1', 'remove-money themondon 1'],
       requiredArgs: 2,
       guildOnly: true,
     });
@@ -27,7 +29,7 @@ class RemoveMoney extends Command {
     let mem;
     let amount;
 
-    const currencySymbol = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
+    const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
 
     if (args.length === 2) {
       mem = await this.client.util.getMember(msg, args[0]);
@@ -43,20 +45,20 @@ class RemoveMoney extends Command {
 
     if (isNaN(amount)) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Amount');
     if (!mem) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Member');
-    if (mem.user.bot) return this.client.util.errorEmbed(msg, 'You can\'t add money to bots.');
+    if (mem.user.bot) return this.client.util.errorEmbed(msg, "You can't add money to bots.");
 
     if (type === 'bank') {
       const bank = BigInt(db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`) || 0);
       const newAmount = bank - BigInt(amount);
-      db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`, newAmount.toString());
+      await db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`, newAmount.toString());
     } else {
       const cash = BigInt(
-        db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`) ||
-          db.get(`servers.${msg.guild.id}.economy.startBalance`) ||
+        (await db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`)) ||
+          (await db.get(`servers.${msg.guild.id}.economy.startBalance`)) ||
           0,
       );
       const newAmount = cash - BigInt(amount);
-      db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, newAmount.toString());
+      await db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, newAmount.toString());
     }
 
     let csAmount = currencySymbol + amount.toLocaleString();

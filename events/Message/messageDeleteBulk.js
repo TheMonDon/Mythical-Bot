@@ -1,6 +1,7 @@
-const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
+const { QuickDB } = require('quick.db');
 const hastebin = require('hastebin');
+const db = new QuickDB();
 
 module.exports = class {
   constructor(client) {
@@ -11,13 +12,13 @@ module.exports = class {
     const server = messages.first().guild;
     const chan = messages.first().channel;
 
-    const logChan = db.get(`servers.${server.id}.logs.channel`);
+    const logChan = await db.get(`servers.${server.id}.logs.channel`);
     if (!logChan) return;
 
-    const logSys = db.get(`servers.${server.id}.logs.logSystem.bulk-messages-deleted`);
+    const logSys = await db.get(`servers.${server.id}.logs.logSystem.bulk-messages-deleted`);
     if (logSys !== 'enabled') return;
 
-    const chans = db.get(`servers.${server.id}.logs.noLogChans`) || [];
+    const chans = (await db.get(`servers.${server.id}.logs.noLogChans`)) || [];
     if (chans.includes(chan.id)) return;
 
     const output = [];
@@ -65,7 +66,7 @@ module.exports = class {
       .send({ embeds: [embed] })
       .catch(() => {});
 
-    db.add(`servers.${server.id}.logs.bulk-messages-deleted`, 1);
-    db.add(`servers.${server.id}.logs.all`, 1);
+    await db.add(`servers.${server.id}.logs.bulk-messages-deleted`, 1);
+    await db.add(`servers.${server.id}.logs.all`, 1);
   }
 };

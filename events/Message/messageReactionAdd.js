@@ -1,7 +1,8 @@
-const db = require('quick.db');
 const { EmbedBuilder, ChannelType } = require('discord.js');
 const { stripIndents } = require('common-tags');
+const { QuickDB } = require('quick.db');
 const { DateTime } = require('luxon');
+const db = new QuickDB();
 
 module.exports = class {
   constructor(client) {
@@ -13,8 +14,8 @@ module.exports = class {
     if (!messageReaction) return;
     const msg = messageReaction.message;
 
-    if (db.get(`servers.${msg.guild.id}.tickets`)) {
-      const { catID, logID, roleID, reactionID } = db.get(`servers.${msg.guild.id}.tickets`);
+    if (await db.get(`servers.${msg.guild.id}.tickets`)) {
+      const { catID, logID, roleID, reactionID } = await db.get(`servers.${msg.guild.id}.tickets`);
       if (!reactionID) return;
 
       if (reactionID !== msg.id) return;
@@ -50,8 +51,8 @@ module.exports = class {
       ];
 
       const reason = 'Ticket has been created from the reaction menu. Use `topic` command to change it.';
-      const count = db.get(`servers.${msg.guild.id}.tickets.count`) || 1;
-      db.set(`servers.${msg.guild.id}.tickets.count`, count + 1);
+      const count = (await db.get(`servers.${msg.guild.id}.tickets.count`)) || 1;
+      await db.set(`servers.${msg.guild.id}.tickets.count`, count + 1);
 
       let str = member.displayName.toLowerCase();
       str = str.replace(/[^a-zA-Z\d:]/g, '');
@@ -70,7 +71,7 @@ module.exports = class {
         topic: reason,
       });
 
-      db.set(`servers.${msg.guild.id}.tickets.${tixChan.id}.owner`, member.id);
+      await db.set(`servers.${msg.guild.id}.tickets.${tixChan.id}.owner`, member.id);
 
       const logEmbed = new EmbedBuilder()
         .setAuthor({ name: member.displayName, iconURL: member.user.displayAvatarURL() })
@@ -115,7 +116,7 @@ module.exports = class {
       Topic: ${reason}\n
       `;
 
-      db.push(`servers.${msg.guild.id}.tickets.${tixChan.id}.chatLogs`, output);
+      await db.push(`servers.${msg.guild.id}.tickets.${tixChan.id}.chatLogs`, output);
     }
   }
 };

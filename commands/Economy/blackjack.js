@@ -1,6 +1,7 @@
 const Command = require('../../base/Command.js');
-const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
+const { QuickDB } = require('quick.db');
+const db = new QuickDB();
 
 class BlackJack extends Command {
   constructor(client) {
@@ -100,10 +101,10 @@ class BlackJack extends Command {
       }
     }
 
-    const currencySymbol = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
+    const currencySymbol = await db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
     const cash = BigInt(
-      db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`) ||
-        db.get(`servers.${msg.guild.id}.economy.startBalance`) ||
+      await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`) ||
+        await db.get(`servers.${msg.guild.id}.economy.startBalance`) ||
         0,
     );
 
@@ -171,7 +172,7 @@ class BlackJack extends Command {
 
       const winAmount = BigInt(bj.bet);
       const newAmount = cash + winAmount;
-      db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAmount.toString()); // Add the winning money
+      await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAmount.toString()); // Add the winning money
       return msg.channel.send({ embeds: [embed] });
     }
 
@@ -231,7 +232,7 @@ class BlackJack extends Command {
 
         const winAmount = BigInt(bj.bet);
         const newAmount = cash + winAmount;
-        db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAmount.toString()); // Add the winning money
+        await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAmount.toString()); // Add the winning money
         return mEm.edit({ embeds: [embed] });
       } else if (blackjack) {
         pcards = getCards('player', bj);
@@ -248,7 +249,7 @@ class BlackJack extends Command {
 
         const winAmount = BigInt(bj.bet);
         const newAmount = cash + winAmount;
-        db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAmount.toString()); // Add the winning money
+        await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAmount.toString()); // Add the winning money
         return mEm.edit({ embeds: [embed] });
       } else if (bust) {
         pcards = getCards('player', bj);
@@ -265,7 +266,7 @@ class BlackJack extends Command {
 
         const loseAmount = BigInt(bj.bet);
         const newAmount = cash - loseAmount;
-        db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAmount.toString());
+        await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAmount.toString());
         return mEm.edit({ embeds: [embed] });
       } else if (push) {
         pcards = getCards('player', bj);

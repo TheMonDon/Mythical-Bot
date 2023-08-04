@@ -1,6 +1,7 @@
 const Command = require('../../base/Command.js');
-const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
+const { QuickDB } = require('quick.db');
+const db = new QuickDB();
 
 class GiveMoney extends Command {
   constructor(client) {
@@ -34,10 +35,10 @@ class GiveMoney extends Command {
       return this.client.util.errorEmbed(msg, "You can't give bots money.");
     }
 
-    const currencySymbol = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
+    const currencySymbol = await db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
     const authCash = BigInt(
-      db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`) ||
-        db.get(`servers.${msg.guild.id}.economy.startBalance`) ||
+      await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`) ||
+        await db.get(`servers.${msg.guild.id}.economy.startBalance`) ||
         0,
     );
 
@@ -51,10 +52,10 @@ class GiveMoney extends Command {
         if (authCash <= BigInt(0))
           return this.client.util.errorEmbed(msg, "You can't pay someone when you have no money", 'Invalid Parameter');
 
-        db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, 0);
+        await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, 0);
         const memCash = BigInt(db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`));
         const newMemCash = memCash + authCash;
-        db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, newMemCash.toString());
+        await db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, newMemCash.toString());
 
         embed.setColor('#04ACF4').setDescription(`${mem} has received your ${csCashAmount}.`);
         return msg.channel.send({ embeds: [embed] });
@@ -77,14 +78,14 @@ class GiveMoney extends Command {
     }
 
     const newAuthCash = authCash - amount;
-    db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAuthCash.toString());
+    await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAuthCash.toString());
     const memCash = BigInt(
-      db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`) ||
-        db.get(`servers.${msg.guild.id}.economy.startBalance`) ||
+      await db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`) ||
+        await db.get(`servers.${msg.guild.id}.economy.startBalance`) ||
         0,
     );
     const newMemCash = memCash + amount;
-    db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, newMemCash.toString());
+    await db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, newMemCash.toString());
 
     let csAmount = currencySymbol + amount.toLocaleString();
     csAmount = csAmount.length > 1024 ? `${csAmount.slice(0, 1021) + '...'}` : csAmount;

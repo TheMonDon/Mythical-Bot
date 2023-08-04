@@ -1,9 +1,10 @@
-const Command = require('../../base/Command.js');
-const { version, EmbedBuilder } = require('discord.js');
-const moment = require('moment');
-require('moment-duration-format');
-const db = require('quick.db');
 const { version: botVersion } = require('../../package.json');
+const { version, EmbedBuilder } = require('discord.js');
+const Command = require('../../base/Command.js');
+const { QuickDB } = require('quick.db');
+require('moment-duration-format');
+const moment = require('moment');
+const db = new QuickDB();
 
 class BotInfo extends Command {
   constructor(client) {
@@ -38,7 +39,7 @@ class BotInfo extends Command {
           inline: true,
         },
         { name: 'Bot Version', value: botVersion, inline: true },
-        { name: 'Commands Used', value: db.get('global.commands').toLocaleString(), inline: true },
+        { name: 'Commands Used', value: await db.get('global.commands').toLocaleString(), inline: true },
         {
           name: 'Quick Bits',
           value:

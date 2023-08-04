@@ -1,5 +1,6 @@
-const db = require('quick.db');
 const { EmbedBuilder, ChannelType } = require('discord.js');
+const { QuickDB } = require('quick.db');
+const db = new QuickDB();
 
 module.exports = class {
   constructor(client) {
@@ -18,14 +19,14 @@ module.exports = class {
       return;
     if (channel.type === ChannelType.DM) return;
 
-    const logChan = db.get(`servers.${channel.guild.id}.logs.channel`);
+    const logChan = await db.get(`servers.${channel.guild.id}.logs.channel`);
     if (!logChan) return;
 
-    const logSys = db.get(`servers.${channel.guild.id}.logs.logSystem.channel-updated`);
+    const logSys = await db.get(`servers.${channel.guild.id}.logs.logSystem.channel-updated`);
     if (logSys !== 'enabled') return;
     if (channel.name.startsWith('ticket-')) return;
 
-    const chans = db.get(`servers.${channel.guild.id}.logs.noLogChans`) || [];
+    const chans = (await db.get(`servers.${channel.guild.id}.logs.noLogChans`)) || [];
     if (chans.includes(channel.id)) return;
 
     let catUp = false;
@@ -33,7 +34,7 @@ module.exports = class {
     if (!channel.parent && newChannel.parent) {
       catUp = true;
       newCategoryName = newChannel.parent.name;
-    } else if ((!channel.parent && !newChannel.parent) || (channel.parent === newChannel.parent) ) {
+    } else if ((!channel.parent && !newChannel.parent) || channel.parent === newChannel.parent) {
       catUp = false;
     } else if (channel.parent && !newChannel.parent) {
       catUp = true;
@@ -72,7 +73,9 @@ module.exports = class {
 
     if (channel.type === ChannelType.GuildText) {
       if (channel.nsfw !== newChannel.nsfw)
-        embed.addFields([{ name: 'NSFW', value: `NSFW has been ${newChannel.nsfw ? 'turned on' : 'turned off'}`, inline: true }]);
+        embed.addFields([
+          { name: 'NSFW', value: `NSFW has been ${newChannel.nsfw ? 'turned on' : 'turned off'}`, inline: true },
+        ]);
     }
 
     if ([ChannelType.GuildVoice, ChannelType.GuildStageVoice].includes(channel.type)) {
@@ -90,7 +93,7 @@ module.exports = class {
       .send({ embeds: [embed] })
       .catch(() => {});
 
-    db.add(`servers.${channel.guild.id}.logs.channel-updated`, 1);
-    db.add(`servers.${channel.guild.id}.logs.all`, 1);
+    await db.add(`servers.${channel.guild.id}.logs.channel-updated`, 1);
+    await db.add(`servers.${channel.guild.id}.logs.all`, 1);
   }
 };

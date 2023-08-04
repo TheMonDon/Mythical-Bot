@@ -1,9 +1,10 @@
-const db = require('quick.db');
 const yes = ['yes', 'y', 'ye', 'yeah', 'yup', 'yea', 'ya', 'correct', 'sure', 'hell yeah'];
 const no = ['no', 'n', 'nah', 'nope', 'fuck off', 'nada', 'cancel', 'stop'];
 const inviteRegex = /(https?:\/\/)?(www\.|canary\.|ptb\.)?discord(\.gg|(app)?\.com\/invite|\.me)\/([^ ]+)\/?/gi;
 const botInvRegex = /(https?:\/\/)?(www\.|canary\.|ptb\.)?discord(app)?\.com\/(api\/)?oauth2\/authorize\?([^ ]+)\/?/gi;
 const { Message, EmbedBuilder } = require('discord.js');
+const { QuickDB } = require('quick.db');
+const db = new QuickDB();
 
 /**
  * Turns an array into a list with defineable ending conjunction
@@ -146,8 +147,8 @@ function getChannel(msg, str) {
  * @param {Message} msg - Message Object
  * @returns {?Array}
  */
-function getWarns(userID, msg) {
-  const warns = db.get(`servers.${msg.guild.id}.warns.warnings`);
+async function getWarns(userID, msg) {
+  const warns = await db.get(`servers.${msg.guild.id}.warns.warnings`);
   const userCases = [];
   if (warns) {
     Object.values(warns).forEach((val) => {
@@ -166,8 +167,8 @@ function getWarns(userID, msg) {
  * @param {Message} msg - Message Object
  * @returns {Number}
  */
-function getTotalPoints(userID, msg) {
-  const warns = this.getWarns(userID, msg);
+async function getTotalPoints(userID, msg) {
+  const warns = await this.getWarns(userID, msg);
   let total = 0;
   if (warns) {
     Object.keys(warns).forEach((c) => {
@@ -299,8 +300,8 @@ function randomString(length) {
  * @param {Message} msg
  * @returns
  */
-function getTickets(userID, msg) {
-  const tickets = db.get(`servers.${msg.guild.id}.tickets`);
+async function getTickets(userID, msg) {
+  const tickets = await db.get(`servers.${msg.guild.id}.tickets`);
   const userTickets = [];
   if (tickets) {
     Object.values(tickets).forEach((val) => {

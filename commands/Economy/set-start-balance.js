@@ -1,6 +1,7 @@
 const Command = require('../../base/Command.js');
-const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
+const { QuickDB } = require('quick.db');
+const db = new QuickDB();
 
 class SetStartBalance extends Command {
   constructor(client) {
@@ -16,16 +17,14 @@ class SetStartBalance extends Command {
     });
   }
 
-  run(msg, args) {
+  async run(msg, args) {
     const currencySymbol = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
 
-    const amount = args
-      .join('')
-      .replace(/[^0-9\\.-]|-/g, '');
+    const amount = args.join('').replace(/[^0-9\\.-]|-/g, '');
 
     if (amount > 1000000000000) return msg.channel.send('The max starting balance is one trillion.');
 
-    db.set(`servers.${msg.guild.id}.economy.startBalance`, amount);
+    await db.set(`servers.${msg.guild.id}.economy.startBalance`, amount);
 
     const em = new EmbedBuilder()
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })

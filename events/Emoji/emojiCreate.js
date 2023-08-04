@@ -1,5 +1,6 @@
-const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
+const { QuickDB } = require('quick.db');
+const db = new QuickDB();
 
 module.exports = class {
   constructor(client) {
@@ -7,10 +8,10 @@ module.exports = class {
   }
 
   async run(emoji) {
-    const logChan = db.get(`servers.${emoji.guild.id}.logs.channel`);
+    const logChan = await db.get(`servers.${emoji.guild.id}.logs.channel`);
     if (!logChan) return;
 
-    const logSys = db.get(`servers.${emoji.guild.id}.logs.logSystem.emoji`);
+    const logSys = await db.get(`servers.${emoji.guild.id}.logs.logSystem.emoji`);
     if (logSys !== 'enabled') return;
 
     const embed = new EmbedBuilder()
@@ -30,7 +31,7 @@ module.exports = class {
       .send({ embeds: [embed] })
       .catch(() => {});
 
-    db.add(`servers.${emoji.guild.id}.logs.emoji`, 1);
-    db.add(`servers.${emoji.guild.id}.logs.all`, 1);
+    await db.add(`servers.${emoji.guild.id}.logs.emoji`, 1);
+    await db.add(`servers.${emoji.guild.id}.logs.all`, 1);
   }
 };

@@ -1,8 +1,7 @@
-const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
+const { QuickDB } = require('quick.db');
+const db = new QuickDB();
 
-// Set guildOnly to true if you want it to be available on guilds only.
-// Otherwise false is global.
 exports.conf = {
   permLevel: 'User',
   guildOnly: true,
@@ -27,14 +26,14 @@ exports.run = async (interaction) => {
   if (!mem) mem = interaction.member;
 
   const cash = parseFloat(
-    db.get(`servers.${interaction.guildId}.users.${mem.id}.economy.cash`) ||
-      db.get(`servers.${interaction.guildId}.economy.startBalance`) ||
+    (await db.get(`servers.${interaction.guildId}.users.${mem.id}.economy.cash`)) ||
+      (await db.get(`servers.${interaction.guildId}.economy.startBalance`)) ||
       0,
   );
-  const bank = parseFloat(db.get(`servers.${interaction.guildId}.users.${mem.id}.economy.bank`) || 0);
+  const bank = parseFloat((await db.get(`servers.${interaction.guildId}.users.${mem.id}.economy.bank`)) || 0);
   const netWorth = cash + bank;
 
-  const currencySymbol = db.get(`servers.${interaction.guildId}.economy.symbol`) || '$';
+  const currencySymbol = (await db.get(`servers.${interaction.guildId}.economy.symbol`)) || '$';
 
   const authorName = mem.user.discriminator === '0' ? mem.user.username : mem.user.tag;
   const embed = new EmbedBuilder()

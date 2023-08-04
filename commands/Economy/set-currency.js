@@ -1,5 +1,6 @@
 const Command = require('../../base/Command.js');
-const db = require('quick.db');
+const { QuickDB } = require('quick.db');
+const db = new QuickDB();
 
 class SetCurrency extends Command {
   constructor(client) {
@@ -14,9 +15,9 @@ class SetCurrency extends Command {
     });
   }
 
-  run(msg, args) {
+  async run(msg, args) {
     let symbol = args.join(' ');
-    const oldSymbol = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
+    const oldSymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
 
     if (!symbol)
       return msg.channel.send(
@@ -29,7 +30,7 @@ class SetCurrency extends Command {
 
     symbol = symbol.trim();
 
-    db.set(`servers.${msg.guild.id}.economy.symbol`, symbol);
+    await db.set(`servers.${msg.guild.id}.economy.symbol`, symbol);
 
     return msg.channel.send(`The currency symbol has been changed to: ${symbol}`);
   }

@@ -1,7 +1,8 @@
 const Command = require('../../base/Command.js');
 const { EmbedBuilder } = require('discord.js');
-const db = require('quick.db');
+const { QuickDB } = require('quick.db');
 const { Duration } = require('luxon');
+const db = new QuickDB();
 
 class Flood extends Command {
   constructor(client) {
@@ -64,7 +65,7 @@ class Flood extends Command {
     }
 
     // Get the content of the embed
-    function getContent() {
+    async function getContent() {
       let embed;
       if (gameOver === true) {
         const gameTimeMillis = gameEnd - gameStart;
@@ -87,23 +88,23 @@ class Flood extends Command {
         if (result === 'winner') {
           const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
           const HS = { score: turn, user: authorName, time: gameTimeSeconds };
-          const oldHS = db.get('global.highScores.flood');
+          const oldHS = await db.get('global.highScores.flood');
           highScore = oldHS?.score || 0;
           highScoreUser = oldHS?.user || 'N/A';
           highScoreTime = oldHS?.time || 0;
           if (HS.score < highScore || !oldHS) {
-            db.set('global.highScores.flood', HS);
+            await db.set('global.highScores.flood', HS);
             highScore = HS.score;
             highScoreUser = 'You';
             highScoreTime = gameTimeSeconds;
           } else if (HS.score === highScore && HS.time <= highScoreTime) {
-            db.set('global.highScores.flood', HS);
+            await db.set('global.highScores.flood', HS);
             highScore = HS.score;
             highScoreUser = 'You';
             highScoreTime = gameTimeSeconds;
           }
         } else {
-          const oldHS = db.get('global.highScores.flood');
+          const oldHS = await db.get('global.highScores.flood');
           highScore = oldHS?.score || 0;
           highScoreUser = oldHS?.user || 'N/A';
           highScoreTime = oldHS?.time || 0;

@@ -1,8 +1,10 @@
 const Command = require('../../base/Command.js');
-const db = require('quick.db');
-const { EmbedBuilder } = require('discord.js');
-const ms = require('ms');
 const { stripIndents } = require('common-tags');
+const { EmbedBuilder } = require('discord.js');
+const { QuickDB } = require('quick.db');
+const db = new QuickDB();
+const ms = require('ms');
+
 
 class SetCooldown extends Command {
   constructor(client) {
@@ -17,16 +19,16 @@ class SetCooldown extends Command {
     });
   }
 
-  run(msg, args) {
+  async run(msg, args) {
     let type;
     const types = ['rob', 'work', 'crime', 'slut'];
 
     // Get the cooldowns from the database
-    const robCooldown = db.get(`servers.${msg.guild.id}.economy.rob.cooldown`) || 600;
-    const workCooldown = db.get(`servers.${msg.guild.id}.economy.work.cooldown`) || 300;
-    const slutCooldown = db.get(`servers.${msg.guild.id}.economy.slut.cooldown`) || 600;
-    const crimeCooldown = db.get(`servers.${msg.guild.id}.economy.crime.cooldown`) || 600;
-    const chatCooldown = db.get(`servers.${msg.guild.id}.economy.chat.cooldown`) || 60;
+    const robCooldown = await db.get(`servers.${msg.guild.id}.economy.rob.cooldown`) || 600;
+    const workCooldown = await db.get(`servers.${msg.guild.id}.economy.work.cooldown`) || 300;
+    const slutCooldown = await db.get(`servers.${msg.guild.id}.economy.slut.cooldown`) || 600;
+    const crimeCooldown = await db.get(`servers.${msg.guild.id}.economy.crime.cooldown`) || 600;
+    const chatCooldown = await db.get(`servers.${msg.guild.id}.economy.chat.cooldown`) || 60;
 
     const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
     const embed = new EmbedBuilder()
@@ -70,7 +72,7 @@ class SetCooldown extends Command {
     }
 
     const cd = cooldown / 1000;
-    db.set(`servers.${msg.guild.id}.economy.${type}.cooldown`, cd);
+    await db.set(`servers.${msg.guild.id}.economy.${type}.cooldown`, cd);
 
     embed.setColor('#64BC6C').setDescription(`The cooldown of \`${properCase}\` has been set to ${cd} seconds.`);
     return msg.channel.send({ embeds: [embed] });

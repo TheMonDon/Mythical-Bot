@@ -1,5 +1,6 @@
 const Command = require('../../base/Command.js');
-const db = require('quick.db');
+const { QuickDB } = require('quick.db');
+const db = new QuickDB();
 
 class persistentRoles extends Command {
   constructor(client) {
@@ -24,14 +25,14 @@ class persistentRoles extends Command {
         'Missing Permission',
       );
 
-    const toggle = db.get(`servers.${msg.guild.id}.proles.system`) || false;
+    const toggle = await db.get(`servers.${msg.guild.id}.proles.system`) || false;
 
     if (toggle === true) {
-      db.set(`servers.${msg.guild.id}.proles.system`, false);
+      await db.set(`servers.${msg.guild.id}.proles.system`, false);
       return msg.channel.send('The persistent role system for this server has been disabled.');
     }
 
-    db.set(`servers.${msg.guild.id}.proles.system`, true);
+    await db.set(`servers.${msg.guild.id}.proles.system`, true);
     return msg.channel.send('The persistent role system for this server has been enabled.');
   }
 }

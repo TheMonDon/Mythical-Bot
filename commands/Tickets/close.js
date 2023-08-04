@@ -1,8 +1,9 @@
-const Command = require('../../base/Command.js');
-const db = require('quick.db');
-const { EmbedBuilder } = require('discord.js');
-const { stripIndents } = require('common-tags');
 const discordTranscripts = require('discord-html-transcripts');
+const Command = require('../../base/Command.js');
+const { stripIndents } = require('common-tags');
+const { EmbedBuilder } = require('discord.js');
+const { QuickDB } = require('quick.db');
+const db = new QuickDB();
 
 class CloseTicket extends Command {
   constructor(client) {
@@ -19,15 +20,15 @@ class CloseTicket extends Command {
   async run(msg, args) {
     const reason = args.join(' ') || 'No reason specified';
 
-    if (!db.get(`servers.${msg.guild.id}.tickets`))
+    if (!await db.get(`servers.${msg.guild.id}.tickets`))
       return msg.channel.send('The ticket system has not been setup in this server.');
-    const { logID } = db.get(`servers.${msg.guild.id}.tickets`);
+    const { logID } = await db.get(`servers.${msg.guild.id}.tickets`);
 
     if (!msg.channel.name.startsWith('ticket'))
       return msg.channel.send('You need to be inside the ticket you want to close.');
 
     const tName = msg.channel.name;
-    const owner = db.get(`servers.${msg.guild.id}.tickets.${msg.channel.id}.owner`);
+    const owner = await db.get(`servers.${msg.guild.id}.tickets.${msg.channel.id}.owner`);
     if (owner !== msg.author.id) return msg.channel.send('You need to be the owner of the ticket to close it.');
 
     const em = new EmbedBuilder().setTitle('Ticket Closed').setColor('#E65DF4')
@@ -79,7 +80,7 @@ class CloseTicket extends Command {
         .send({ embeds: [logEmbed], files: [attachment] })
         .catch((e) => this.client.logger.error(e));
 
-      db.delete(`servers.${msg.guild.id}.tickets.${msg.channel.id}`);
+      await db.delete(`servers.${msg.guild.id}.tickets.${msg.channel.id}`);
       return msg.channel.delete();
     }
 

@@ -1,7 +1,8 @@
-const Command = require('../../base/Command.js');
 const { EmbedBuilder, ActionRowBuilder, ButtonBuilder } = require('discord.js');
-const db = require('quick.db');
+const Command = require('../../base/Command.js');
+const { QuickDB } = require('quick.db');
 const { Duration } = require('luxon');
+const db = new QuickDB();
 
 // I left this alone on December 9th, unable to figure out how to get buttons to work :(
 
@@ -60,7 +61,7 @@ class FloodButtons extends Command {
       return str;
     }
 
-    function getContent() {
+    async function getContent() {
       let embed;
       if (gameOver === true) {
         const gameTimeMillis = gameEnd - gameStart;
@@ -82,23 +83,23 @@ class FloodButtons extends Command {
         let highScoreTime;
         if (result === 'winner') {
           const HS = { score: turn, user: msg.author.tag, time: gameTimeSeconds };
-          const oldHS = db.get('global.highScores.flood');
+          const oldHS = await db.get('global.highScores.flood');
           highScore = oldHS?.score || 0;
           highScoreUser = oldHS?.user || 'N/A';
           highScoreTime = oldHS?.time || 0;
           if (HS.score < highScore || !oldHS) {
-            db.set('global.highScores.flood', HS);
+            await db.set('global.highScores.flood', HS);
             highScore = HS.score;
             highScoreUser = 'You';
             highScoreTime = gameTimeSeconds;
           } else if (HS.score === highScore && HS.time <= highScoreTime) {
-            db.set('global.highScores.flood', HS);
+            await db.set('global.highScores.flood', HS);
             highScore = HS.score;
             highScoreUser = 'You';
             highScoreTime = gameTimeSeconds;
           }
         } else {
-          const oldHS = db.get('global.highScores.flood');
+          const oldHS = await db.get('global.highScores.flood');
           highScore = oldHS?.score || 0;
           highScoreUser = oldHS?.user || 'N/A';
           highScoreTime = oldHS?.time || 0;
@@ -242,7 +243,7 @@ Filling starts at the top left corner.`,
       }
     } catch (err) {
       this.client.games.delete(msg.channel.id);
-      
+
       console.error(err);
       gameOver = true;
       result = 'error';

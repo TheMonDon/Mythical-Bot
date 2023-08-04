@@ -1,5 +1,6 @@
-const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
+const { QuickDB } = require('quick.db');
+const db = new QuickDB();
 
 module.exports = class {
   constructor(client) {
@@ -9,11 +10,11 @@ module.exports = class {
   async run(member) {
     const memberName = member.user.discriminator === '0' ? member.user.username : member.user.tag;
 
-    async function LogSystem(client, member) {
-      const logChan = db.get(`servers.${member.guild.id}.logs.channel`);
+    async function LogSystem(member) {
+      const logChan = await db.get(`servers.${member.guild.id}.logs.channel`);
       if (!logChan) return;
 
-      const logSys = db.get(`servers.${member.guild.id}.logs.logSystem.member-join`);
+      const logSys = await db.get(`servers.${member.guild.id}.logs.logSystem.member-join`);
       if (!logSys || logSys !== 'enabled') return;
 
       await member.guild.members.fetch();
@@ -33,18 +34,18 @@ module.exports = class {
       if (!channel) return;
       channel.send({ embeds: [embed] });
 
-      db.add(`servers.${member.guild.id}.logs.member-join`, 1);
-      db.add(`servers.${member.guild.id}.logs.all`, 1);
+      await db.add(`servers.${member.guild.id}.logs.member-join`, 1);
+      await db.add(`servers.${member.guild.id}.logs.all`, 1);
     }
 
-    async function AutoRole(client, member) {
-      const toggle = db.get(`servers.${member.guild.id}.proles.system`) || false;
+    async function AutoRole(member) {
+      const toggle = (await db.get(`servers.${member.guild.id}.proles.system`)) || false;
       if (!toggle) return;
 
       if (!member.guild.members.me.permissions.has('ManageRoles')) return;
       if (member.user.bot) return;
 
-      const roles = db.get(`servers.${member.guild.id}.proles.users.${member.id}`);
+      const roles = await db.get(`servers.${member.guild.id}.proles.users.${member.id}`);
       if (!roles) return;
 
       for (let i = 0; i < roles.length; i++) {
@@ -52,12 +53,12 @@ module.exports = class {
         await require('util').promisify(setTimeout)(1000);
       }
 
-      db.delete(`servers.${member.guild.id}.proles.users.${member.id}`);
+      await db.delete(`servers.${member.guild.id}.proles.users.${member.id}`);
     }
 
-    function WelcomeSystem(client, member) {
+    function WelcomeSystem(member) {
       // Load the guild's settings
-      const settings = client.getSettings(member.guild);
+      const settings = this.client.getSettings(member.guild);
 
       // If welcome is off, don't proceed (don't welcome the user)
       if (settings.welcomeEnabled !== 'true') return;
@@ -82,8 +83,8 @@ module.exports = class {
     }
 
     // Run the functions
-    LogSystem(this.client, member);
-    AutoRole(this.client, member);
-    WelcomeSystem(this.client, member);
+    LogSystem(member);
+    AutoRole(member);
+    WelcomeSystem.bind(this)(member);
   }
 };

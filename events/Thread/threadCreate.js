@@ -1,5 +1,6 @@
-const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
+const { QuickDB } = require('quick.db');
+const db = new QuickDB();
 
 module.exports = class {
   constructor(client) {
@@ -9,13 +10,13 @@ module.exports = class {
   async run(thread) {
     if (thread.joinable) await thread.join();
 
-    const logChan = db.get(`servers.${thread.guild.id}.logs.channel`);
+    const logChan = await db.get(`servers.${thread.guild.id}.logs.channel`);
     if (!logChan) return;
 
-    const logSys = db.get(`servers.${thread.guild.id}.logs.logSystem.thread-created`);
+    const logSys = await db.get(`servers.${thread.guild.id}.logs.logSystem.thread-created`);
     if (logSys !== 'enabled') return;
 
-    const chans = db.get(`servers.${thread.guild.id}.logs.noLogChans`) || [];
+    const chans = (await db.get(`servers.${thread.guild.id}.logs.noLogChans`)) || [];
     if (chans.includes(thread.id)) return;
 
     const embed = new EmbedBuilder()
@@ -32,7 +33,7 @@ module.exports = class {
       .send({ embeds: [embed] })
       .catch(() => {});
 
-    db.add(`servers.${thread.guild.id}.logs.thread-created`, 1);
-    db.add(`servers.${thread.guild.id}.logs.all`, 1);
+    await db.add(`servers.${thread.guild.id}.logs.thread-created`, 1);
+    await db.add(`servers.${thread.guild.id}.logs.all`, 1);
   }
 };

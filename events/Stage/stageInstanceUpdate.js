@@ -1,5 +1,6 @@
-const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
+const { QuickDB } = require('quick.db');
+const db = new QuickDB();
 
 module.exports = class {
   constructor(client) {
@@ -9,10 +10,10 @@ module.exports = class {
   async run(stage, newStage) {
     if (stage === newStage) return;
 
-    const logChan = db.get(`servers.${stage.guild.id}.logs.channel`);
+    const logChan = await db.get(`servers.${stage.guild.id}.logs.channel`);
     if (!logChan) return;
 
-    const logSys = db.get(`servers.${stage.guild.id}.logs.logSystem.stage-channel-updated`);
+    const logSys = await db.get(`servers.${stage.guild.id}.logs.logSystem.stage-channel-updated`);
     if (logSys !== 'enabled') return;
 
     let catUp = false;
@@ -60,7 +61,7 @@ module.exports = class {
       .send({ embeds: [embed] })
       .catch(() => {});
 
-    db.add(`servers.${stage.guild.id}.logs.stage-channel-updated`, 1);
-    db.add(`servers.${stage.guild.id}.logs.all`, 1);
+    await db.add(`servers.${stage.guild.id}.logs.stage-channel-updated`, 1);
+    await db.add(`servers.${stage.guild.id}.logs.all`, 1);
   }
 };

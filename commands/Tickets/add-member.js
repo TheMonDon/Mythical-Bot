@@ -1,6 +1,7 @@
 const Command = require('../../base/Command.js');
-const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
+const { QuickDB } = require('quick.db');
+const db = new QuickDB();
 
 class AddMember extends Command {
   constructor(client) {
@@ -25,9 +26,9 @@ class AddMember extends Command {
     const mem = await this.client.util.getMember(msg, args.join(' '));
     if (!mem) return msg.channel.send('That is not a valid user.');
 
-    const { roleID } = db.get(`servers.${msg.guild.id}.tickets`);
+    const { roleID } = await db.get(`servers.${msg.guild.id}.tickets`);
     const role = msg.guild.roles.cache.get(roleID);
-    const owner = db.get(`servers.${msg.guild.id}.tickets.${msg.channel.id}.owner`);
+    const owner = await db.get(`servers.${msg.guild.id}.tickets.${msg.channel.id}.owner`);
 
     // Do they have the support role or are owner?
     if (owner !== msg.author.id) {

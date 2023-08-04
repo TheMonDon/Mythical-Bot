@@ -1,24 +1,25 @@
 const Command = require('../../base/Command.js');
-const db = require('quick.db');
+const { QuickDB } = require('quick.db');
+const db = new QuickDB();
 
 class ToggleAll extends Command {
   constructor(client) {
     super(client, {
       name: 'toggle-all',
       description: 'Toggle all logs',
-      usage: 'Toggle-All',
+      usage: 'toggle-all',
       category: 'Logging',
       permLevel: 'Moderator',
-      aliases: ['ta', 'toggleall'],
+      aliases: ['toggleall'],
       guildOnly: true,
     });
   }
 
   async run(msg) {
-    if (!db.get(`servers.${msg.guild.id}.logs.channel`))
+    if (!await db.get(`servers.${msg.guild.id}.logs.channel`))
       return msg.channel.send(`The log system is not set up! Use \`${msg.settings.prefix}setlogchannel <channel>\``);
 
-    const all = db.get(`servers.${msg.guild.id}.logs.logSystem.all`);
+    const all = await db.get(`servers.${msg.guild.id}.logs.logSystem.all`);
     const enable = {
       'bulk-messages-deleted': 'enabled',
       'channel-created': 'enabled',
@@ -63,10 +64,10 @@ class ToggleAll extends Command {
     };
 
     if (all === 'enabled') {
-      db.set(`servers.${msg.guild.id}.logs.logSystem`, disable);
+      await db.set(`servers.${msg.guild.id}.logs.logSystem`, disable);
       return msg.channel.send('Everything has been disabled.');
     } else if (all === 'disabled') {
-      db.set(`servers.${msg.guild.id}.logs.logSystem`, enable);
+      await db.set(`servers.${msg.guild.id}.logs.logSystem`, enable);
       return msg.channel.send('Everything has been enabled.');
     }
 

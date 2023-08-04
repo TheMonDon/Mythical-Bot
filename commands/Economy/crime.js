@@ -1,8 +1,9 @@
 const Command = require('../../base/Command.js');
 const { EmbedBuilder } = require('discord.js');
-const moment = require('moment');
+const { QuickDB } = require('quick.db');
 require('moment-duration-format');
-const db = require('quick.db');
+const moment = require('moment');
+const db = new QuickDB();
 
 class Crime extends Command {
   constructor(client) {
@@ -15,11 +16,11 @@ class Crime extends Command {
     });
   }
 
-  run(msg) {
+  async run(msg) {
     const type = 'crime';
 
-    const cooldown = db.get(`servers.${msg.guild.id}.economy.${type}.cooldown`) || 600;
-    let userCooldown = db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.${type}.cooldown`) || {};
+    const cooldown = await db.get(`servers.${msg.guild.id}.economy.${type}.cooldown`) || 600;
+    let userCooldown = await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.${type}.cooldown`) || {};
     const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
 
     const embed = new EmbedBuilder()
@@ -33,7 +34,7 @@ class Crime extends Command {
         // this is to check if the bot restarted before their cooldown was set.
         userCooldown = {};
         userCooldown.active = false;
-        db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.${type}.cooldown`, userCooldown);
+        await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.${type}.cooldown`, userCooldown);
       } else {
         const timeLeft = moment
           .duration(timeleft)
@@ -45,20 +46,20 @@ class Crime extends Command {
 
     // Get the user's net worth
     const cash = BigInt(
-      db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`) ||
-        db.get(`servers.${msg.guild.id}.economy.startBalance`) ||
+      await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`) ||
+        await db.get(`servers.${msg.guild.id}.economy.startBalance`) ||
         0,
     );
-    const bank = BigInt(db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`) || 0);
+    const bank = BigInt(await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`) || 0);
     const authNet = cash + bank;
 
     // Get the min and max amounts of money the user can get
-    const min = db.get(`servers.${msg.guild.id}.economy.${type}.min`) || 500;
-    const max = db.get(`servers.${msg.guild.id}.economy.${type}.max`) || 2000;
+    const min = await db.get(`servers.${msg.guild.id}.economy.${type}.min`) || 500;
+    const max = await db.get(`servers.${msg.guild.id}.economy.${type}.max`) || 2000;
 
     // Get the min and max fine percentages
-    const minFine = db.get(`servers.${msg.guild.id}.economy.${type}.fine.min`) || 10;
-    const maxFine = db.get(`servers.${msg.guild.id}.economy.${type}.fine.max`) || 30;
+    const minFine = await db.get(`servers.${msg.guild.id}.economy.${type}.fine.min`) || 10;
+    const maxFine = await db.get(`servers.${msg.guild.id}.economy.${type}.fine.max`) || 30;
 
     // randomFine is a random number between the minimum and maximum fail rate
     const randomFine = BigInt(Math.round(Math.random() * (maxFine - minFine + 1) + minFine));
@@ -66,10 +67,10 @@ class Crime extends Command {
     // fineAmount is the amount of money the user will lose if they fail the action
     const fineAmount = (authNet / BigInt(100)) * randomFine;
 
-    const failRate = db.get(`servers.${msg.guild.id}.economy.${type}.failrate`) || 45;
+    const failRate = await db.get(`servers.${msg.guild.id}.economy.${type}.failrate`) || 45;
     const ranNum = Math.random() * 100;
 
-    const currencySymbol = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
+    const currencySymbol = await db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
 
     delete require.cache[require.resolve('../../resources/messages/crime_success.json')];
     delete require.cache[require.resolve('../../resources/messages/crime_fail.json')];
@@ -87,7 +88,7 @@ class Crime extends Command {
       msg.channel.send({ embeds: [embed] });
 
       const newAmount = cash - fineAmount;
-      db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAmount.toString());
+      await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAmount.toString());
     } else {
       const amount = BigInt(Math.floor(Math.random() * (max - min + 1) + min));
       const csamount = currencySymbol + amount.toLocaleString();
@@ -100,18 +101,18 @@ class Crime extends Command {
       msg.channel.send({ embeds: [embed] });
 
       const newAmount = cash + amount;
-      db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAmount.toString());
+      await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAmount.toString());
     }
 
     userCooldown.time = Date.now() + cooldown * 1000;
     userCooldown.active = true;
-    db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.${type}.cooldown`, userCooldown);
+    await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.${type}.cooldown`, userCooldown);
 
     // remove the cooldown after the specified time
-    setTimeout(() => {
+    setTimeout(async () => {
       userCooldown = {};
       userCooldown.active = false;
-      db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.${type}.cooldown`, userCooldown);
+      await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.${type}.cooldown`, userCooldown);
     }, cooldown * 1000);
   }
 }

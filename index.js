@@ -2,14 +2,14 @@ if (Number(process.version.slice(1).split('.')[0]) < '16.9')
   throw new Error('Node 16.9 or higher is required. Update Node on your system.');
 
 const { GatewayIntentBits, Collection, Client, EmbedBuilder, Message } = require('discord.js');
+const { GiveawaysManager } = require('discord-giveaways');
 const { readdirSync, statSync } = require('fs');
-const Enmap = require('enmap');
-const db = require('quick.db');
-const path = require('path');
 const { Player } = require('discord-player');
 const config = require('./config.js');
-const { partials, permLevels, token } = require('./config.js');
-const { GiveawaysManager } = require('discord-giveaways');
+const { QuickDB } = require('quick.db');
+const Enmap = require('enmap');
+const path = require('path');
+const db = new QuickDB();
 
 class Bot extends Client {
   constructor(options) {
@@ -31,7 +31,7 @@ class Bot extends Client {
   permlevel(object) {
     let permlvl = 0;
 
-    const permOrder = permLevels.slice(0).sort((p, c) => (p.level < c.level ? 1 : -1));
+    const permOrder = config.permLevels.slice(0).sort((p, c) => (p.level < c.level ? 1 : -1));
 
     while (permOrder.length) {
       const currentLevel = permOrder.shift();
@@ -75,7 +75,8 @@ class Bot extends Client {
     if (this.slashCommands.has(interactionName)) {
       command = this.slashCommands.get(interactionName);
     }
-    if (!command) return client.logger.error(`The slash command \`${interactionName}\` doesn't seem to exist. Try again!`);
+    if (!command)
+      return client.logger.error(`The slash command \`${interactionName}\` doesn't seem to exist. Try again!`);
 
     await delete require.cache[require.resolve(interactionPath)];
     await this.slashCommands.delete(interactionName);
@@ -104,7 +105,9 @@ class Bot extends Client {
       command = this.commands.get(this.aliases.get(commandName));
     }
     if (!command)
-      return client.logger.error(`The command \`${commandName}\` doesn't seem to exist, nor is it an alias. Try again!`);
+      return client.logger.error(
+        `The command \`${commandName}\` doesn't seem to exist, nor is it an alias. Try again!`,
+      );
 
     delete require.cache[require.resolve(commandPath)];
     return false;
@@ -172,67 +175,69 @@ const client = new Bot({
     GatewayIntentBits.DirectMessageReactions,
     GatewayIntentBits.MessageContent,
   ],
-  partials,
+  partials: config.partials,
 });
 
-if (!Array.isArray(db.get('giveaways'))) db.set('giveaways', []);
+const loadGiveaways = async () => {
+  if (!Array.isArray(await db.get('giveaways'))) await db.set('giveaways', []);
 
-const GiveawayManagerWithOwnDatabase = class extends GiveawaysManager {
-  // This function is called when the manager needs to get all giveaways which are stored in the database.
-  async getAllGiveaways() {
-    // Get all giveaways from the database
-    return db.get('giveaways');
-  }
+  const GiveawayManagerWithOwnDatabase = class extends GiveawaysManager {
+    // This function is called when the manager needs to get all giveaways which are stored in the database.
+    async getAllGiveaways() {
+      // Get all giveaways from the database
+      return await db.get('giveaways');
+    }
 
-  // This function is called when a giveaway needs to be saved in the database.
-  async saveGiveaway(messageId, giveawayData) {
-    // Add the new giveaway to the database
-    db.push('giveaways', giveawayData);
-    // Don't forget to return something!
-    return true;
-  }
+    // This function is called when a giveaway needs to be saved in the database.
+    async saveGiveaway(messageId, giveawayData) {
+      // Add the new giveaway to the database
+      db.push('giveaways', giveawayData);
+      // Don't forget to return something!
+      return true;
+    }
 
-  // This function is called when a giveaway needs to be edited in the database.
-  async editGiveaway(messageId, giveawayData) {
-    // Get all giveaways from the database
-    const giveaways = db.get('giveaways');
-    // Remove the unedited giveaway from the array
-    const newGiveawaysArray = giveaways.filter((giveaway) => giveaway.messageId !== messageId);
-    // Push the edited giveaway into the array
-    newGiveawaysArray.push(giveawayData);
-    // Save the updated array
-    db.set('giveaways', newGiveawaysArray);
-    // Don't forget to return something!
-    return true;
-  }
+    // This function is called when a giveaway needs to be edited in the database.
+    async editGiveaway(messageId, giveawayData) {
+      // Get all giveaways from the database
+      const giveaways = await db.get('giveaways');
+      // Remove the unedited giveaway from the array
+      const newGiveawaysArray = giveaways.filter((giveaway) => giveaway.messageId !== messageId);
+      // Push the edited giveaway into the array
+      newGiveawaysArray.push(giveawayData);
+      // Save the updated array
+      await db.set('giveaways', newGiveawaysArray);
+      // Don't forget to return something!
+      return true;
+    }
 
-  // This function is called when a giveaway needs to be deleted from the database.
-  async deleteGiveaway(messageId) {
-    // Get all giveaways from the database
-    const giveaways = db.get('giveaways');
-    // Remove the giveaway from the array
-    const newGiveawaysArray = giveaways.filter((giveaway) => giveaway.messageId !== messageId);
-    // Save the updated array
-    db.set('giveaways', newGiveawaysArray);
-    // Don't forget to return something!
-    return true;
-  }
+    // This function is called when a giveaway needs to be deleted from the database.
+    async deleteGiveaway(messageId) {
+      // Get all giveaways from the database
+      const giveaways = await db.get('giveaways');
+      // Remove the giveaway from the array
+      const newGiveawaysArray = giveaways.filter((giveaway) => giveaway.messageId !== messageId);
+      // Save the updated array
+      await db.set('giveaways', newGiveawaysArray);
+      // Don't forget to return something!
+      return true;
+    }
+  };
+
+  // Create a new instance of your new class
+  const manager = new GiveawayManagerWithOwnDatabase(client, {
+    default: {
+      botsCanWin: false,
+      embedColor: '#0099CC',
+      embedColorEnd: '#000000',
+      reaction: '🎉',
+    },
+  });
+
+  // We now have a giveawaysManager property to access the manager everywhere!
+  client.giveawaysManager = manager;
 };
 
-// Create a new instance of your new class
-const manager = new GiveawayManagerWithOwnDatabase(client, {
-  default: {
-    botsCanWin: false,
-    embedColor: '#0099CC',
-    embedColorEnd: '#000000',
-    reaction: '🎉',
-  },
-});
-
-// We now have a giveawaysManager property to access the manager everywhere!
-client.giveawaysManager = manager;
-
-const loadMusic = async (loadMusic) => {
+const loadMusic = async () => {
   client.player = new Player(client, {
     autoSelfDeaf: true,
     enableLive: true,
@@ -249,16 +254,16 @@ const loadMusic = async (loadMusic) => {
         .setColor('#0099CC');
       const msg = await queue.metadata.channel.send({ embeds: [em] });
 
-      const oldmsg = db.get(`servers.${queue.metadata.guild.id}.music.lastTrack`) || null;
+      const oldmsg = await db.get(`servers.${queue.metadata.guild.id}.music.lastTrack`) || null;
       if (oldmsg !== null) {
         try {
           await queue.metadata.guild.channels.cache.get(oldmsg.channelId).messages.cache.get(oldmsg.id).delete();
         } catch {
-          db.delete(`servers.${queue.metadata.guild.id}.music.lastTrack`);
+          await db.delete(`servers.${queue.metadata.guild.id}.music.lastTrack`);
         }
       }
 
-      db.set(`servers.${queue.metadata.guild.id}.music.lastTrack`, msg);
+      await db.set(`servers.${queue.metadata.guild.id}.music.lastTrack`, msg);
     })
     .on('audioTrackAdd', (queue, track) => {
       const title = track.title || track.tracks[track.tracks.length - 1].title;
@@ -305,8 +310,6 @@ const loadMusic = async (loadMusic) => {
       }
     });
 };
-
-loadMusic();
 
 const init = async function init() {
   function getSlashCommands(dir) {
@@ -362,14 +365,16 @@ const init = async function init() {
   getEvents('./events');
 
   client.levelCache = {};
-  for (let i = 0; i < permLevels.length; i++) {
-    const thisLevel = permLevels[i];
+  for (let i = 0; i < config.permLevels.length; i++) {
+    const thisLevel = config.permLevels[i];
     client.levelCache[thisLevel.name] = thisLevel.level;
   }
 
-  client.login(token);
+  client.login(config.token);
 };
 
+loadGiveaways();
+loadMusic();
 init();
 
 client

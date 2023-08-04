@@ -1,7 +1,8 @@
 const Command = require('../../base/Command.js');
-const db = require('quick.db');
-const { EmbedBuilder } = require('discord.js');
 const { stripIndents } = require('common-tags');
+const { EmbedBuilder } = require('discord.js');
+const { QuickDB } = require('quick.db');
+const db = new QuickDB();
 
 class SetPayout extends Command {
   constructor(client) {
@@ -16,22 +17,22 @@ class SetPayout extends Command {
     });
   }
 
-  run(msg, text) {
+  async run(msg, text) {
     const types = ['work', 'crime', 'slut', 'chat'];
 
     if (!msg.member.permissions.has('ManageMessages'))
       return msg.channel.send('You are missing **Manage Guild** permission.');
 
-    const currencySymbol = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
+    const currencySymbol = await db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
 
-    const workMin = db.get(`servers.${msg.guild.id}.economy.work.min`) || 50;
-    const workMax = db.get(`servers.${msg.guild.id}.economy.work.max`) || 500;
-    const slutMin = db.get(`servers.${msg.guild.id}.economy.slut.min`) || 100;
-    const slutMax = db.get(`servers.${msg.guild.id}.economy.work.max`) || 1000;
-    const crimeMin = db.get(`servers.${msg.guild.id}.economy.crime.min`) || 500;
-    const crimeMax = db.get(`servers.${msg.guild.id}.economy.crime.max`) || 2000;
-    const chatMin = db.get(`servers.${msg.guild.id}.economy.chat.min`) || 10;
-    const chatMax = db.get(`servers.${msg.guild.id}.economy.chat.max`) || 100;
+    const workMin = await db.get(`servers.${msg.guild.id}.economy.work.min`) || 50;
+    const workMax = await db.get(`servers.${msg.guild.id}.economy.work.max`) || 500;
+    const slutMin = await db.get(`servers.${msg.guild.id}.economy.slut.min`) || 100;
+    const slutMax = await db.get(`servers.${msg.guild.id}.economy.work.max`) || 1000;
+    const crimeMin = await db.get(`servers.${msg.guild.id}.economy.crime.min`) || 500;
+    const crimeMax = await db.get(`servers.${msg.guild.id}.economy.crime.max`) || 2000;
+    const chatMin = await db.get(`servers.${msg.guild.id}.economy.chat.min`) || 10;
+    const chatMax = await db.get(`servers.${msg.guild.id}.economy.chat.max`) || 100;
 
     const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
     const embed = new EmbedBuilder()
@@ -75,7 +76,7 @@ class SetPayout extends Command {
       return msg.channel.send('The minimum amount for payout is one.');
     }
 
-    db.set(`servers.${msg.guild.id}.economy.${type}.${minMax}`, amount);
+    await db.set(`servers.${msg.guild.id}.economy.${type}.${minMax}`, amount);
     const longMinMax = minMax === 'min' ? 'minimum' : 'maximum';
     embed
       .setDescription(

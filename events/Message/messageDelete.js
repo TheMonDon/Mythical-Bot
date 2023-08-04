@@ -1,5 +1,6 @@
-const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
+const { QuickDB } = require('quick.db');
+const db = new QuickDB();
 
 module.exports = class {
   constructor(client) {
@@ -10,13 +11,13 @@ module.exports = class {
     if (msg.author.bot) return;
     if (!msg.guild) return;
 
-    const logChan = db.get(`servers.${msg.guild.id}.logs.channel`);
+    const logChan = await db.get(`servers.${msg.guild.id}.logs.channel`);
     if (!logChan) return;
 
-    const logSys = db.get(`servers.${msg.guild.id}.logs.logSystem.message-deleted`);
+    const logSys = await db.get(`servers.${msg.guild.id}.logs.logSystem.message-deleted`);
     if (logSys !== 'enabled') return;
 
-    const chans = db.get(`servers.${msg.guild.id}.logs.noLogChans`) || [];
+    const chans = (await db.get(`servers.${msg.guild.id}.logs.noLogChans`)) || [];
     if (chans.includes(msg.channel.id)) return;
 
     // Check if a game is being played by message author (hangman, connect4, etc)
@@ -67,8 +68,8 @@ module.exports = class {
         .send({ embeds: [embed] })
         .catch(() => {});
 
-      db.add(`servers.${msg.guild.id}.logs.message-deleted`, 1);
-      db.add(`servers.${msg.guild.id}.logs.all`, 1);
+      await db.add(`servers.${msg.guild.id}.logs.message-deleted`, 1);
+      await db.add(`servers.${msg.guild.id}.logs.all`, 1);
     } catch (err) {
       this.client.logger.error(err);
     }

@@ -1,7 +1,8 @@
 const Command = require('../../base/Command.js');
-const db = require('quick.db');
-const { EmbedBuilder } = require('discord.js');
 const { stripIndents } = require('common-tags');
+const { EmbedBuilder } = require('discord.js');
+const { QuickDB } = require('quick.db');
+const db = new QuickDB();
 
 class Warn extends Command {
   constructor(client) {
@@ -89,17 +90,17 @@ class Warn extends Command {
     }
 
     // Grab the settings for the server
-    const ka = db.get(`servers.${msg.guild.id}.warns.kick`) || 8;
-    const ba = db.get(`servers.${msg.guild.id}.warns.ban`) || 10;
-    const logChan = db.get(`servers.${msg.guild.id}.warns.channel`);
+    const ka = (await db.get(`servers.${msg.guild.id}.warns.kick`)) || 8;
+    const ba = (await db.get(`servers.${msg.guild.id}.warns.ban`)) || 10;
+    const logChan = await db.get(`servers.${msg.guild.id}.warns.channel`);
 
     // Make sure that the ID doesn't exist on that server
     let warnID = this.client.util.randomString(5);
     while (db.has(`servers.${msg.guild.id}.warns.warnings.${warnID}`)) warnID = this.client.util.randomString(5);
 
     // Get the users current warns and total points
-    const otherWarns = this.client.util.getWarns(mem.id, msg);
-    const warnAmount = this.client.util.getTotalPoints(mem.id, msg) + points;
+    const otherWarns = await this.client.util.getWarns(mem.id, msg);
+    const warnAmount = (await this.client.util.getTotalPoints(mem.id, msg)) + points;
 
     // Set the status and color of the embed
     let status = 'warned';
@@ -150,7 +151,10 @@ class Warn extends Command {
 
     // Check if the logs channel exists and send the message
     if (logChan) {
-      logMessage = await msg.guild.channels.cache.get(logChan).send({ embeds: [logEmbed] }).catch(() => {});
+      logMessage = await msg.guild.channels.cache
+        .get(logChan)
+        .send({ embeds: [logEmbed] })
+        .catch(() => {});
 
       const channelEmbed = new EmbedBuilder()
         .setColor(color)
@@ -177,7 +181,7 @@ class Warn extends Command {
       user: mem.id,
       warnID,
     };
-    db.set(`servers.${msg.guild.id}.warns.warnings.${warnID}`, opts);
+    await db.set(`servers.${msg.guild.id}.warns.warnings.${warnID}`, opts);
 
     // Check if they should be banned or kicked
     if (warnAmount >= ba) {

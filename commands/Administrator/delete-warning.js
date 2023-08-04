@@ -1,6 +1,7 @@
 const Command = require('../../base/Command.js');
-const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
+const { QuickDB } = require('quick.db');
+const db = new QuickDB();
 
 class DeleteWarning extends Command {
   constructor(client) {
@@ -21,11 +22,11 @@ class DeleteWarning extends Command {
     let color = msg.settings.embedColor;
 
     const caseID = args.join(' ');
-    const warning = db.get(`servers.${msg.guild.id}.warns.warnings.${caseID}`);
+    const warning = await db.get(`servers.${msg.guild.id}.warns.warnings.${caseID}`);
    
     if (!warning) return this.client.util.errorEmbed(msg, 'No warning case found', 'Invalid Case ID');
 
-    const logChan = db.get(`servers.${msg.guild.id}.warns.channel`);
+    const logChan = await db.get(`servers.${msg.guild.id}.warns.channel`);
     const userID = warning.user;
     const user = await this.client.users.fetch(userID);
     const warnReason = warning.reason || '???';
@@ -33,7 +34,7 @@ class DeleteWarning extends Command {
     if (!user) return this.client.util.errorEmbed(msg, 'User not found', 'Invalid User');
 
     const previousPoints = this.client.util.getTotalPoints(userID, msg);
-    db.delete(`servers.${msg.guild.id}.warns.warnings.${caseID}`);
+    await db.delete(`servers.${msg.guild.id}.warns.warnings.${caseID}`);
     const newerPoints = this.client.util.getTotalPoints(userID, msg);
 
     if (previousPoints >= 10 && newerPoints < 10) {

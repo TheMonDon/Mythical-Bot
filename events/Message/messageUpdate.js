@@ -1,6 +1,7 @@
 /* eslint-disable prefer-regex-literals */
-const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
+const { QuickDB } = require('quick.db');
+const db = new QuickDB();
 
 module.exports = class {
   constructor(client) {
@@ -10,16 +11,16 @@ module.exports = class {
   async run(oldmsg, newmsg) {
     if (oldmsg.author.bot) return;
 
-    function LogSystem(client, oldmsg, newmsg) {
+    async function LogSystem(client, oldmsg, newmsg) {
       if (!newmsg.guild) return;
 
-      const logChan = db.get(`servers.${newmsg.guild.id}.logs.channel`);
+      const logChan = await db.get(`servers.${newmsg.guild.id}.logs.channel`);
       if (!logChan) return;
 
-      const logSys = db.get(`servers.${newmsg.guild.id}.logs.logSystem.message-edited`);
+      const logSys = await db.get(`servers.${newmsg.guild.id}.logs.logSystem.message-edited`);
       if (!logSys || logSys !== 'enabled') return;
 
-      const chans = db.get(`servers.${newmsg.guild.id}.logs.noLogChans`) || [];
+      const chans = (await db.get(`servers.${newmsg.guild.id}.logs.noLogChans`)) || [];
       if (chans.includes(newmsg.channel.id)) return;
 
       const logChannel = newmsg.guild.channels.cache.get(logChan);
@@ -61,8 +62,8 @@ module.exports = class {
         ]);
       newmsg.guild.channels.cache.get(logChan).send({ embeds: [embed] });
 
-      db.add(`servers.${newmsg.guild.id}.logs.message-edited`, 1);
-      db.add(`servers.${newmsg.guild.id}.logs.all`, 1);
+      await db.add(`servers.${newmsg.guild.id}.logs.message-edited`, 1);
+      await db.add(`servers.${newmsg.guild.id}.logs.all`, 1);
     }
 
     async function CommandUpdate(client, oldmsg, newmsg) {
@@ -89,7 +90,7 @@ module.exports = class {
 
       const args = newmsg.content.slice(tag.length).trim().split(/\s+/g);
       const command = args.shift().toLowerCase();
-      if (!command && tag === String(newmsg.guild?.memers.me)) {
+      if (!command && tag === String(newmsg.guild?.members.me)) {
         if (!args || args.length < 1) return newmsg.channel.send(`The current prefix is: ${newmsg.settings.prefix}`);
       }
 
@@ -103,7 +104,7 @@ module.exports = class {
 
       // Check if the member is blacklisted from using commands in this guild.
       if (newmsg.guild) {
-        const bl = db.get(`servers.${newmsg.guild.id}.users.${newmsg.member.id}.blacklist`);
+        const bl = await db.get(`servers.${newmsg.guild.id}.users.${newmsg.member.id}.blacklist`);
         if (bl && level < 4 && cmd.help.name !== 'blacklist') {
           return newmsg.channel.send(
             `Sorry ${newmsg.member.displayName}, you are currently blacklisted from using commands in this server.`,
@@ -159,7 +160,7 @@ module.exports = class {
         return newmsg.channel.send({ embeds: [embed] });
       }
       // If the command exists, **AND** the user has permission, run it.
-      db.add('global.commands', 1);
+      await db.add('global.commands', 1);
       cmd.run(newmsg, args, level);
     }
 

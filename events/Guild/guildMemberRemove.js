@@ -1,5 +1,6 @@
-const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
+const { QuickDB } = require('quick.db');
+const db = new QuickDB();
 
 module.exports = class {
   constructor(client) {
@@ -7,11 +8,11 @@ module.exports = class {
   }
 
   async run(member) {
-    async function LogSystem(client, member) {
-      const logChan = db.get(`servers.${member.guild.id}.logs.channel`);
+    async function LogSystem(member) {
+      const logChan = await db.get(`servers.${member.guild.id}.logs.channel`);
       if (!logChan) return;
 
-      const logSys = db.get(`servers.${member.guild.id}.logs.logSystem.member-leave`);
+      const logSys = await db.get(`servers.${member.guild.id}.logs.logSystem.member-leave`);
       if (!logSys || logSys !== 'enabled') return;
 
       await member.guild.members.fetch();
@@ -32,12 +33,12 @@ module.exports = class {
       if (!channel) return;
       channel.send({ embeds: [embed] });
 
-      db.add(`servers.${member.guild.id}.logs.member-leave`, 1);
-      db.add(`servers.${member.guild.id}.logs.all`, 1);
+      await db.add(`servers.${member.guild.id}.logs.member-leave`, 1);
+      await db.add(`servers.${member.guild.id}.logs.all`, 1);
     }
 
-    async function AutoRole(client, member) {
-      const toggle = db.get(`servers.${member.guild.id}.proles.system`) || false;
+    async function AutoRole(member) {
+      const toggle = (await db.get(`servers.${member.guild.id}.proles.system`)) || false;
       if (!toggle) return;
 
       if (!member.guild.members.me.permissions.has('ManageRoles')) return;
@@ -51,11 +52,11 @@ module.exports = class {
         if (role.id !== member.guild.id) arr.push(role.id);
       });
 
-      db.set(`servers.${member.guild.id}.proles.users.${member.id}`, arr);
+      await db.set(`servers.${member.guild.id}.proles.users.${member.id}`, arr);
     }
 
-    function WelcomeMessage(client, member) {
-      const settings = client.getSettings(member.guild);
+    function WelcomeMessage(member) {
+      const settings = this.client.getSettings(member.guild);
 
       if (settings.leaveEnabled !== 'true') return;
 
@@ -78,8 +79,8 @@ module.exports = class {
     }
 
     // Run the functions
-    LogSystem(this.client, member);
-    AutoRole(this.client, member);
-    WelcomeMessage(this.client, member);
+    LogSystem(member);
+    AutoRole(member);
+    WelcomeMessage.bind(this)(member);
   }
 };

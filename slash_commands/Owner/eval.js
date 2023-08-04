@@ -3,8 +3,6 @@
 const { EmbedBuilder } = require('discord.js');
 const { inspect } = require('util');
 
-// Set guildOnly to true if you want it to be available on guilds only.
-// Otherwise false is global.
 exports.conf = {
   permLevel: 'Bot Owner',
   guildOnly: false,
@@ -27,7 +25,8 @@ exports.commandData = {
 exports.run = async (interaction) => {
   await interaction.deferReply();
 
-  const db = require('quick.db');
+  const { QuickDB } = require('quick.db');
+  const db = new QuickDB();
   const DiscordJS = require('discord.js');
   const util = interaction.client.util;
   const config = interaction.client.config;

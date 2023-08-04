@@ -7,15 +7,16 @@ class Math extends Command {
     super(client, {
       name: 'math',
       description: 'Solve some math equations',
-      usage: 'Math <Equation>',
+      usage: 'math <Equation>',
       category: 'Information',
+      aliases: ['calc', 'calculate'],
+      examples: ['math 1 + 2', 'math 120cm to in'],
+      requiredArgs: 1,
     });
   }
 
   async run(msg, args) {
     const text = args.join(' ');
-    if (!text || text.length < 1)
-      return msg.channel.send(`Please supply a mathematical equation. \n${msg.settings.prefix}Math <Equation>`);
 
     try {
       const solution = math.evaluate(text);
@@ -34,7 +35,7 @@ class Math extends Command {
         .setDescription('Powered by: [math.js](https://mathjs.org/examples/index.html)');
       return msg.channel.send({ embeds: [embed] });
     } catch (err) {
-      return msg.channel.send(`Sorry, I couldn't solve that equation. \`${err}\``);
+      return this.client.util.errorEmbed(msg, err, 'Invalid Equation');
     }
   }
 }

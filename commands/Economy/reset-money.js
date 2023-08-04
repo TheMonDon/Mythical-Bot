@@ -1,5 +1,6 @@
 const Command = require('../../base/Command.js');
-const db = require('quick.db');
+const { QuickDB } = require('quick.db');
+const db = new QuickDB();
 
 class ResetMoney extends Command {
   constructor(client) {
@@ -18,9 +19,9 @@ class ResetMoney extends Command {
       await msg.channel.send('Are you sure you want to reset your money? (yes/no)');
       const verification = await this.client.util.verify(msg.channel, msg.author);
       if (verification) {
-        const amount = db.get(`servers.${msg.guild.id}.economy.startBalance`) || 0;
-        db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, amount);
-        db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`, 0);
+        const amount = (await db.get(`servers.${msg.guild.id}.economy.startBalance`)) || 0;
+        await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, amount);
+        await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`, 0);
         return msg.channel.send('Your money has been reset.');
       } else {
         return msg.channel.send('Cancelled, your money will not be reset.');
@@ -52,9 +53,9 @@ This command requires level ${this.client.levelCache.Moderator} (Moderator)`);
       await msg.channel.send(`Are you sure you want to reset ${memberName}'s money? (yes/no)`);
       const verification = await this.client.util.verify(msg.channel, msg.author);
       if (verification) {
-        const amount = db.get(`servers.${msg.guild.id}.economy.startBalance`) || 0;
-        db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, amount);
-        db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`, 0);
+        const amount = (await db.get(`servers.${msg.guild.id}.economy.startBalance`)) || 0;
+        await db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, amount);
+        await db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`, 0);
         return msg.channel.send(`Successfully reset ${memberName}'s money.`);
       } else {
         return msg.channel.send(`Cancelled, ${memberName}'s money won't be reset.`);

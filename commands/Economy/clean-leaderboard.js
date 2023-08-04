@@ -1,6 +1,7 @@
 const Command = require('../../base/Command.js');
-const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
+const { QuickDB } = require('quick.db');
+const db = new QuickDB();
 
 class CleanLeaderboard extends Command {
   constructor(client) {
@@ -16,7 +17,7 @@ class CleanLeaderboard extends Command {
   }
 
   async run(msg) {
-    const users = db.get(`servers.${msg.guild.id}.users`) || {};
+    const users = await db.get(`servers.${msg.guild.id}.users`) || {};
     const toRemove = [];
     const color = msg.settings.embedColor;
 
@@ -43,8 +44,8 @@ class CleanLeaderboard extends Command {
     const verified = await this.client.util.verify(msg.channel, msg.author);
 
     if (verified) {
-      toRemove.forEach((i) => {
-        db.delete(`servers.${msg.guild.id}.users.${i}`);
+      toRemove.forEach(async (i) => {
+        await db.delete(`servers.${msg.guild.id}.users.${i}`);
       });
       return msg.channel.send(`${toRemove.length} users have been removed from the leaderboard.`);
     } else {

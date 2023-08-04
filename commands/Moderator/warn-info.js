@@ -1,7 +1,8 @@
 const Command = require('../../base/Command.js');
-const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
+const { QuickDB } = require('quick.db');
 const moment = require('moment');
+const db = new QuickDB();
 
 class WarnInfo extends Command {
   constructor(client) {
@@ -19,7 +20,7 @@ class WarnInfo extends Command {
 
   async run(msg, args) {
     const caseID = args.join(' ');
-    const warn = db.get(`servers.${msg.guild.id}.warns.warnings.${caseID}`);
+    const warn = await db.get(`servers.${msg.guild.id}.warns.warnings.${caseID}`);
 
     if (!warn) return msg.channel.send("I couldn't find any case with that ID.");
 

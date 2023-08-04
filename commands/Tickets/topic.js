@@ -1,8 +1,9 @@
 const Command = require('../../base/Command.js');
-const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
-const moment = require('moment');
+const { QuickDB } = require('quick.db');
 require('moment-duration-format');
+const moment = require('moment');
+const db = new QuickDB();
 
 class Topic extends Command {
   constructor(client) {
@@ -18,7 +19,7 @@ class Topic extends Command {
 
   async run(msg, args) {
     const server = msg.guild;
-    if (!db.get(`servers.${msg.guild.id}.tickets`))
+    if (!(await db.get(`servers.${msg.guild.id}.tickets`)))
       return msg.channel.send('The ticket system has not been setup in this server.');
 
     if (!msg.channel.name.startsWith('ticket'))
@@ -27,10 +28,10 @@ class Topic extends Command {
     let topic = args.join(' ');
     topic = topic.slice(0, 1024);
 
-    const { roleID } = db.get(`servers.${msg.guild.id}.tickets`);
+    const { roleID } = await db.get(`servers.${msg.guild.id}.tickets`);
     const role = msg.guild.roles.cache.get(roleID);
-    const owner = db.get(`servers.${msg.guild.id}.tickets.${msg.channel.id}.owner`);
-    // Do they have the support role or are owner?
+    const owner = await db.get(`servers.${msg.guild.id}.tickets.${msg.channel.id}.owner`);
+
     if (owner !== msg.author.id) {
       if (!msg.member.roles.cache.some((r) => r.id === roleID)) {
         return msg.channel.send(`You need to be the ticket owner or a member of ${role.name} to change the topic.`);
@@ -38,7 +39,7 @@ class Topic extends Command {
     }
 
     const cooldown = 300; // 5 minutes
-    let channelCooldown = db.get(`servers.${server.id}.tickets.${msg.channel.id}.tCooldown`) || {};
+    let channelCooldown = (await db.get(`servers.${server.id}.tickets.${msg.channel.id}.tCooldown`)) || {};
     const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
 
     if (channelCooldown.active) {
@@ -47,7 +48,7 @@ class Topic extends Command {
         // this is to check if the bot restarted before their cooldown was set.
         channelCooldown = {};
         channelCooldown.active = false;
-        db.set(`servers.${server.id}.tickets.${msg.channel.id}.tCooldown`, channelCooldown);
+        await db.set(`servers.${server.id}.tickets.${msg.channel.id}.tCooldown`, channelCooldown);
       } else {
         const tLeft = moment
           .duration(timeleft)
@@ -70,11 +71,11 @@ class Topic extends Command {
 
     channelCooldown.time = Date.now() + cooldown * 1000;
     channelCooldown.active = true;
-    db.set(`servers.${server.id}.tickets.${msg.channel.id}.tCooldown`, channelCooldown);
+    await db.set(`servers.${server.id}.tickets.${msg.channel.id}.tCooldown`, channelCooldown);
 
-    setTimeout(() => {
+    setTimeout(async () => {
       channelCooldown = { active: false };
-      db.set(`servers.${server.id}.tickets.${msg.channel.id}.tCooldown`, channelCooldown);
+      await db.set(`servers.${server.id}.tickets.${msg.channel.id}.tCooldown`, channelCooldown);
     }, cooldown * 1000);
   }
 }

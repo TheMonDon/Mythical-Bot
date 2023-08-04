@@ -1,6 +1,7 @@
 const Command = require('../../base/Command.js');
+const { QuickDB } = require('quick.db');
+const db = new QuickDB();
 const ms = require('ms');
-const db = require('quick.db');
 
 class StartGiveaway extends Command {
   constructor(client) {
@@ -17,7 +18,7 @@ class StartGiveaway extends Command {
 
   async run(msg, args) {
     if (!msg.member.permissions.has('ManageMessages'))
-      return this.client.util.errorEmbed(msg, 'You need to have the Manage Nessages permission to start giveaways');
+      return this.client.util.errorEmbed(msg, 'You need to have the Manage Messages permission to start giveaways');
 
     const duration = ms(args[0]);
     const winnerCount = parseInt(args[1]);
@@ -68,7 +69,7 @@ class StartGiveaway extends Command {
       },
     });
 
-    db.add('global.giveaways', 1);
+    await db.add('global.giveaways', 1);
 
     return msg.channel.send(`:tada: Done! The giveaway for ${prize} is starting in ${channel}`);
   }

@@ -1,6 +1,7 @@
 const Command = require('../../base/Command.js');
-const db = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
+const { QuickDB } = require('quick.db');
+const db = new QuickDB();
 
 class Blacklist extends Command {
   constructor(client) {
@@ -43,7 +44,7 @@ class Blacklist extends Command {
     text.shift();
     const reason = text.join(' ') || false;
 
-    const blacklist = db.get(`servers.${msg.guild.id}.users.${mem.id}.blacklist`);
+    const blacklist = await db.get(`servers.${msg.guild.id}.users.${mem.id}.blacklist`);
 
     const memberName = mem.user.discriminator === '0' ? mem.user.username : mem.user.tag;
     const embed = new EmbedBuilder()
@@ -58,8 +59,8 @@ class Blacklist extends Command {
       }
       if (!reason) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Reason');
 
-      db.set(`servers.${msg.guild.id}.users.${mem.id}.blacklist`, true);
-      db.set(`servers.${msg.guild.id}.users.${mem.id}.blacklistReason`, reason);
+      await db.set(`servers.${msg.guild.id}.users.${mem.id}.blacklist`, true);
+      await db.set(`servers.${msg.guild.id}.users.${mem.id}.blacklistReason`, reason);
 
       embed.setTitle(`${memberName} has been added to the blacklist.`).addFields([
         { name: 'Reason:', value: reason },
@@ -74,8 +75,8 @@ class Blacklist extends Command {
       if (!blacklist) return msg.channel.send('That user is not blacklisted');
       if (!reason) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Reason');
 
-      db.set(`servers.${msg.guild.id}.users.${mem.id}.blacklist`, false);
-      db.set(`servers.${msg.guild.id}.users.${mem.id}.blacklistReason`, reason);
+      await db.set(`servers.${msg.guild.id}.users.${mem.id}.blacklist`, false);
+      await db.set(`servers.${msg.guild.id}.users.${mem.id}.blacklistReason`, reason);
 
       embed.setTitle(`${memberName} has been removed to the blacklist.`).addFields([
         { name: 'Reason:', value: reason },
@@ -87,7 +88,7 @@ class Blacklist extends Command {
       return mem.send({ embeds: [embed] });
     } else if (type === 'check') {
       // check if member is blacklisted
-      const reason = db.get(`servers.${msg.guild.id}.users.${mem.id}.blacklistReason`) || false;
+      const reason = await db.get(`servers.${msg.guild.id}.users.${mem.id}.blacklistReason`) || false;
 
       const bl = blacklist ? 'is' : 'is not';
       embed.setTitle(`${memberName} blacklist check`).addFields([
