@@ -105,7 +105,7 @@ module.exports = class {
 
     if (!cmd.conf.enabled) return message.channel.send('This command is currently disabled.');
 
-    if (level < this.client.levelCache[cmd.conf.permLevel]) {
+    if (level < this.client.levelCache[cmd.conf.permLevel] || message.author.id !== message.guild.ownerId) {
       if (settings.systemNotice === 'true') {
         const authorName = message.author.discriminator === '0' ? message.author.username : message.author.tag;
         const embed = new EmbedBuilder()

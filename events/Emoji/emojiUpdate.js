@@ -7,6 +7,8 @@ module.exports = class {
   }
 
   async run(oldEmoji, newEmoji) {
+    if (oldEmoji.name === newEmoji.name && oldEmoji.identifier === newEmoji.identifier) return;
+
     const logChan = db.get(`servers.${oldEmoji.guild.id}.logs.channel`);
     if (!logChan) return;
 
@@ -17,15 +19,23 @@ module.exports = class {
       .setTitle('Emoji Updated')
       .setColor(this.client.getSettings(oldEmoji.guild).embedSuccessColor)
       .setThumbnail(oldEmoji.url)
+      .setTimestamp()
       .addFields([
-        { name: 'Old Name', value: oldEmoji.name, inline: true },
-        { name: 'New Name', value: newEmoji.name, inline: true },
-        { name: 'Old Identifier', value: oldEmoji.identifier, inline: true },
-        { name: 'New Identifier', value: newEmoji.identifier, inline: true },
         { name: 'Emoji ID', value: oldEmoji.id, inline: true },
         { name: 'Is Animated?', value: oldEmoji.animated ? 'True' : 'False', inline: true },
-      ])
-      .setTimestamp();
+      ]);
+
+    if (oldEmoji.name !== newEmoji.name)
+      embed.addFields([
+        { name: 'Old Name', value: oldEmoji.name, inline: true },
+        { name: 'New Name', value: newEmoji.name, inline: true },
+      ]);
+
+    if (oldEmoji.identifier !== newEmoji.identifier)
+      embed.addFields([
+        { name: 'Old Identifier', value: oldEmoji.identifier, inline: true },
+        { name: 'New Identifier', value: newEmoji.identifier, inline: true },
+      ]);
 
     oldEmoji.guild.channels.cache
       .get(logChan)

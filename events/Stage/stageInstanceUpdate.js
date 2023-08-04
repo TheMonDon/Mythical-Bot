@@ -15,38 +15,46 @@ module.exports = class {
     const logSys = db.get(`servers.${stage.guild.id}.logs.logSystem.stage-channel-updated`);
     if (logSys !== 'enabled') return;
 
-    let catUp;
-    if (stage.parent === newStage.parent || (!stage.parent && !newStage.parent)) {
-      catUp = 'Updated: ❌';
-    } else if ((!stage.parent && newStage.parent) || stage.parent !== newStage.parent) {
-      catUp = `Updated: ✅ \nNew Category: ${newStage.parent.name}`;
+    let catUp = false;
+    let newCategoryName = 'None';
+    if (!stage.parent && newStage.parent) {
+      catUp = true;
+      newCategoryName = newStage.parent.name;
+    } else if ((!stage.parent && !newStage.parent) || stage.parent === newStage.parent) {
+      catUp = false;
     } else if (stage.parent && !newStage.parent) {
-      catUp = 'Updated: ✅ \nNew Category: `None`';
+      catUp = true;
+    } else if (stage.parent !== newStage.parent) {
+      catUp = true;
+      newCategoryName = newStage.parent.name;
     }
 
     const embed = new EmbedBuilder()
-      .setTitle(`Stage Channel ${stage.name} Updated`)
+      .setTitle(`Stage Channel "${stage.name}" Updated`)
       .setColor('#EE82EE')
-      .addFields([
-        {
-          name: 'Name',
-          value: stage.name === newStage.name ? 'Updated: ❌' : `Updated: ✅ \nNew Name: ${newStage.name}`,
-          inline: true,
-        },
-        {
-          name: 'Topic',
-          value: stage.topic === newStage.topic ? 'Updated: ❌' : `Updated: ✅ \nNew Topic: ${newStage.topic}`,
-          inline: true,
-        },
-        {
-          name: 'Bitrate',
-          value: stage.bitrate === newStage.bitrate ? 'Updated: ❌' : `Updated: ✅ \nNew Bitrate: ${newStage.bitrate}`,
-          inline: true,
-        },
-        { name: 'Category', value: catUp, inline: true },
-      ])
       .setFooter({ text: `ID: ${newStage.id}` })
       .setTimestamp();
+
+    if (stage.name !== newStage.name) embed.addFields([{ name: 'New Name', value: newStage.name, inline: true }]);
+
+    if (stage.topic !== newStage.topic)
+      embed.addFields([
+        { name: 'Old Topic', value: stage.topic, inline: true },
+        { name: 'New Topic', value: newStage.topic, inline: true },
+      ]);
+
+    if (stage.bitrate !== newStage.bitrate)
+      embed.addFields([
+        { name: 'Old Bitrate', value: stage.bitrate.toLocalerString(), inline: true },
+        { name: 'New Bitrate', value: newStage.bitrate.toLocalerString(), inline: true },
+      ]);
+
+    if (catUp)
+      embed.addFields([
+        { name: 'Old Category', value: stage.parent.name, inline: true },
+        { name: 'New Category', value: newCategoryName, inline: true },
+      ]);
+
     stage.guild.channels.cache
       .get(logChan)
       .send({ embeds: [embed] })

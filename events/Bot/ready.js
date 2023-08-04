@@ -25,19 +25,21 @@ module.exports = class {
     // Log that we're ready to serve, so we know the bot accepts commands.
     this.client.logger.log(`${this.client.user.tag}, ready to serve ${this.client.guilds.cache.size} guilds.`, 'ready');
 
-    // Post server count to botlist.me
-    const BotlistMeClient = require('botlist.me.js');
-    const botlistme = new BotlistMeClient(BotListToken, this.client);
-    botlistme.postStats(this.client.guilds.cache.size);
+    if (BotListToken?.length > 0) {
+      // Post server count to botlist.me
+      const BotlistMeClient = require('botlist.me.js');
+      const botlistme = new BotlistMeClient(BotListToken, this.client);
+      botlistme.postStats(this.client.guilds.cache.size);
 
-    // Optional events for botlist.me
-    botlistme.on('posted', () => {
-      console.log('Server count posted!');
-    });
+      // Optional events for botlist.me
+      botlistme.on('posted', () => {
+        console.log('Server count posted!');
+      });
 
-    botlistme.on('error', (e) => {
-      console.log(`Oops! ${e}`);
-    });
+      botlistme.on('error', (e) => {
+        console.log(`Oops! ${e}`);
+      });
+    }
 
     // Reminder scheduler
     scheduleJob('Reminders', '* * * * *', async () => {

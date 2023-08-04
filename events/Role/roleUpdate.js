@@ -19,21 +19,18 @@ module.exports = class {
     const embed = new EmbedBuilder()
       .setTitle(`Role "${rolebefore.name}" Updated`)
       .setColor(roleafter.hexColor)
-      .addFields([
-        {
-          name: 'Name',
-          value: rolebefore.name === roleafter.name ? 'Updated: ❌' : `Updated: ✅ \nNew Name: ${roleafter.name}`,
-        },
-        {
-          name: 'Color',
-          value:
-            rolebefore.hexColor === roleafter.hexColor
-              ? 'Updated: ❌'
-              : `Updated: ✅ \nOld Color: ${rolebefore.hexColor} \nNew Color: ${roleafter.hexColor}`,
-        },
-      ])
       .setFooter({ text: `ID: ${roleafter.id}` })
       .setTimestamp();
+
+    if (rolebefore.name !== roleafter.name)
+      embed.addFields([{ name: 'New Name', value: roleafter.name, inline: true }]);
+    if (rolebefore.hexColor !== roleafter.hexColor)
+      embed.addFields([
+        { name: 'Old Color', value: rolebefore.hexColor.toString(), inline: true },
+        { name: 'New Color', value: roleafter.hexColor.toString(), inline: true },
+      ]);
+
+    if (embed.fields?.length === 0) return;
 
     roleafter.guild.channels.cache
       .get(logChan)
