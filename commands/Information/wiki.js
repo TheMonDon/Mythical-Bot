@@ -7,7 +7,7 @@ class Wikipedia extends Command {
     super(client, {
       name: 'wikipedia',
       description: 'Retrieve an article from wikipedia',
-      usage: 'wikipedia <wiki search>',
+      usage: 'wikipedia <Search>',
       requiredArgs: 1,
       category: 'Information',
       aliases: ['wiki'],

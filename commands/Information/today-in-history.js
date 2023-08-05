@@ -9,6 +9,7 @@ class TodayInHistory extends Command {
       description: 'Get information about a date in history',
       usage: 'today-in-history [month] [day]',
       category: 'Information',
+      examples: ['today-in-history 1 29', 'today-in-history'],
       aliases: ['todayinhistory', 'tih'],
     });
   }

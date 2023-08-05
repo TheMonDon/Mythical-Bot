@@ -234,7 +234,7 @@ async function clean(client, text) {
   ];
 
   for (let i = 0; i < secrets.length; i++) {
-    newText = this.replaceAll(newText, secrets[i], '*'.repeat(secrets[i].length));
+    newText = this.replaceAll(newText, secrets[i], '*'.repeat(secrets[i]?.length));
   }
 
   return newText;

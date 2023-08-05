@@ -3,6 +3,7 @@
 const Command = require('../../base/Command.js');
 const { EmbedBuilder } = require('discord.js');
 const { inspect } = require('util');
+const { QuickDB } = require('quick.db');
 
 class Eval extends Command {
   constructor(client) {
@@ -18,7 +19,6 @@ class Eval extends Command {
 
   async run(msg, args, level) {
     const DiscordJS = require('discord.js');
-    const { QuickDB } = require('quick.db');
     const db = new QuickDB();
     const util = this.client.util;
     let promise = false;
@@ -48,6 +48,7 @@ class Eval extends Command {
         embed.addFields([{ name: 'Type', value: code('css', typeof evald) }]).setColor(msg.settings.embedSuccessColor);
       }
     } catch (error) {
+      console.log(error);
       embed.addFields([{ name: 'Error', value: code('js', error) }]).setColor(msg.settings.embedErrorColor);
     } finally {
       msg.channel.send({ embeds: [embed] }).catch((error) => {

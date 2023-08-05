@@ -2,14 +2,15 @@ const Command = require('../../base/Command.js');
 const { EmbedBuilder } = require('discord.js');
 const { stripIndents } = require('common-tags');
 
-class Perms extends Command {
+class Permissions extends Command {
   constructor(client) {
     super(client, {
-      name: 'perms',
-      description: 'Figure out what permissions you or another user have.',
-      usage: 'perms [user]',
+      name: 'permissions',
+      description: 'List the permissions that a member or role has.',
+      usage: 'permissions [member | role]',
       category: 'Information',
-      aliases: ['permissions'],
+      aliases: ['perms'],
+      examples: ['permissions @TheMonDon', 'permissions Admin'],
       guildOnly: true,
     });
   }
@@ -23,7 +24,11 @@ class Perms extends Command {
       infoMem = await this.client.util.getMember(msg, args.join(' '));
     }
 
-    if (!infoMem) return msg.channel.send('That user was not found, please try again.');
+    if (!infoMem) {
+      await msg.guild.roles.fetch();
+      infoMem = await this.client.util.getRole(msg, args.join(' '));
+      if (!infoMem) return msg.channel.send('That user or role was not found, please try again.');
+    }
 
     // Emojis to use for the permissions
     const yes = '<:approved:622961998807826432>';
@@ -36,7 +41,6 @@ class Perms extends Command {
 
     const embed = new EmbedBuilder()
       .setColor(msg.settings.embedColor)
-      .setAuthor({ name: infoMem.displayName, iconURL: infoMem.user.displayAvatarURL({ dynamic: true }) })
       .setFooter({ text: `Requested by: ${msg.member.displayName}` })
       .setTimestamp()
       .addFields([
@@ -115,9 +119,16 @@ class Perms extends Command {
           inline: true,
         },
       ]);
+    if (infoMem.displayAvatarURL) {
+      embed
+        .setAuthor({ name: infoMem.displayName, iconURL: infoMem.user.displayAvatarURL({ dynamic: true }) })
+        .setTitle(`${infoMem.displayName}'s Permissions`);
+    } else {
+      embed.setTitle(`${infoMem.name}'s Permissions`);
+    }
 
     return msg.channel.send({ embeds: [embed] });
   }
 }
 
-module.exports = Perms;
+module.exports = Permissions;
