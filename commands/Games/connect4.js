@@ -184,7 +184,7 @@ class Connect4 extends Command {
         }
       }
 
-      this.client.games.set(msg.channel.id, { name: this.help.name, user: msg.author.id, date: Date.now() });
+      this.client.games.set(msg.channel.id, { name: this.help.name, user: msg.author.id });
 
       // Create the game
       const AIEngine = new Connect4AI();

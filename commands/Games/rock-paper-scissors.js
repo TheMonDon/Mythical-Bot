@@ -28,7 +28,7 @@ class RockPaperScissors extends Command {
     if (!mem) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid User');
     if (mem.user.id === msg.author.id) return this.client.util.errorEmbed(msg, 'You can\'t play against yourself, silly.');
 
-    this.client.games.set(msg.channel.id, { name: this.help.name, user: msg.author.id, date: Date.now() });
+    this.client.games.set(msg.channel.id, { name: this.help.name, user: msg.author.id });
 
     // If the opponent isn't a bot, ask them if they accept the challenge.
     if (!mem.user.bot) {

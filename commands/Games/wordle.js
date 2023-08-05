@@ -38,7 +38,7 @@ class Wordle extends Command {
       }
     }
 
-    this.client.games.set(msg.channel.id, { name: this.help.name, user: msg.author.id, date: Date.now() });
+    this.client.games.set(msg.channel.id, { name: this.help.name, user: msg.author.id });
 
     // Take the guess and the answer and return an array of results (🟩, 🟨, ⬜)
     function testWord(guess, answer) {

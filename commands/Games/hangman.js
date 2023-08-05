@@ -15,7 +15,7 @@ class Hangman extends Command {
   async run(msg, args) {
     const current = this.client.games.get(msg.channel.id);
     if (current) return msg.reply(`Please wait until the current game of \`${current.name}\` is finished.`);
-    this.client.games.set(msg.channel.id, { name: this.help.name, user: msg.author.id, date: Date.now() });
+    this.client.games.set(msg.channel.id, { name: this.help.name, user: msg.author.id });
     const color = msg.settings.embedColor;
 
     let chances = 15;

@@ -10,29 +10,24 @@ module.exports = class {
   }
 
   async run() {
-    // Check whether the "Default" guild settings are loaded in the enmap.
-    // If they're not, write them in. This should only happen on first load.
     if (!this.client.settings.has('default')) {
       if (!this.client.config.defaultSettings)
         throw new Error('defaultSettings not preset in config.js or settings database. Bot cannot load.');
       this.client.settings.set('default', this.client.config.defaultSettings);
     }
 
-    // Set the game as the default help command + guild count.
     this.client.user.setActivity(
       `${this.client.settings.get('default').prefix}help | ${this.client.guilds.cache.size} Servers`,
     );
 
-    // Log that we're ready to serve, so we know the bot accepts commands.
+    this.client.games.clear();
     this.client.logger.log(`${this.client.user.tag}, ready to serve ${this.client.guilds.cache.size} guilds.`, 'ready');
 
     if (BotListToken?.length > 0) {
-      // Post server count to botlist.me
       const BotlistMeClient = require('botlist.me.js');
       const botlistme = new BotlistMeClient(BotListToken, this.client);
       botlistme.postStats(this.client.guilds.cache.size);
 
-      // Optional events for botlist.me
       botlistme.on('posted', () => {
         console.log('Server count posted!');
       });
@@ -44,7 +39,7 @@ module.exports = class {
 
     // Reminder scheduler
     scheduleJob('Reminders', '* * * * *', async () => {
-      const reminders = await db.get('global.reminders') || [];
+      const reminders = (await db.get('global.reminders')) || [];
       if (reminders) {
         for (const { createdAt, triggerOn, reminder, channelID, userID, color, remID } of Object.values(reminders)) {
           const now = Date.now();

@@ -22,7 +22,7 @@ class TicTacToe extends Command {
     const opponent = await this.client.util.getMember(msg, args.join(' '));
     if (opponent.id === msg.author.id) return msg.reply('You may not play against yourself.');
 
-    this.client.games.set(msg.channel.id, { name: this.help.name, user: msg.author.id, date: Date.now() });
+    this.client.games.set(msg.channel.id, { name: this.help.name, user: msg.author.id });
 
     function verifyWin(sides, player1, player2) {
       const evaluated = tictactoe.boardEvaluate(convertBoard(sides)).status;
