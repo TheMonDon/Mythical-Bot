@@ -26,12 +26,13 @@ module.exports = class {
       // Economy chat money event
       if (message.channel.type === ChannelType.DM) return;
 
-      const min = await db.get(`servers.${message.guild.id}.economy.chat.min`) || 10;
-      const max = await db.get(`servers.${message.guild.id}.economy.chat.max`) || 100;
+      const min = (await db.get(`servers.${message.guild.id}.economy.chat.min`)) || 10;
+      const max = (await db.get(`servers.${message.guild.id}.economy.chat.max`)) || 100;
 
       const now = Date.now();
-      const cooldown = await db.get(`servers.${message.guild.id}.economy.chat.cooldown`) || 60; // get cooldown from database or set to 60 seconds (1 minute)
-      let userCooldown = await db.get(`servers.${message.guild.id}.users.${message.member.id}.economy.chat.cooldown`) || {};
+      const cooldown = (await db.get(`servers.${message.guild.id}.economy.chat.cooldown`)) || 60; // get cooldown from database or set to 60 seconds (1 minute)
+      let userCooldown =
+        (await db.get(`servers.${message.guild.id}.users.${message.member.id}.economy.chat.cooldown`)) || {};
 
       if (userCooldown.active) {
         const timeleft = userCooldown.time - now;
@@ -47,8 +48,8 @@ module.exports = class {
 
       const amount = BigInt(Math.floor(Math.random() * (max - min + 1) + min));
       const cash = BigInt(
-        await db.get(`servers.${message.guild.id}.users.${message.member.id}.economy.cash`) ||
-          await db.get(`servers.${message.guild.id}.economy.startBalance`) ||
+        (await db.get(`servers.${message.guild.id}.users.${message.member.id}.economy.cash`)) ||
+          (await db.get(`servers.${message.guild.id}.economy.startBalance`)) ||
           0,
       );
       const newAmount = cash + amount;
@@ -106,30 +107,26 @@ module.exports = class {
 
     if (!cmd.conf.enabled) return message.channel.send('This command is currently disabled.');
 
-    if (level < this.client.levelCache[cmd.conf.permLevel] || message.author.id !== message.guild.ownerId) {
-      if (settings.systemNotice === 'true') {
-        const authorName = message.author.discriminator === '0' ? message.author.username : message.author.tag;
-        const embed = new EmbedBuilder()
-          .setTitle('Missing Permission')
-          .setAuthor({ name: authorName, iconURL: message.author.displayAvatarURL() })
-          .setColor(message.settings.embedErrorColor)
-          .addFields([
-            {
-              name: 'Your Level',
-              value: `${level} (${this.client.config.permLevels.find((l) => l.level === level).name})`,
-              inline: true,
-            },
-            {
-              name: 'Required Level',
-              value: `${this.client.levelCache[cmd.conf.permLevel]} (${cmd.conf.permLevel})`,
-              inline: true,
-            },
-          ]);
+    if (level < this.client.levelCache[cmd.conf.permLevel]) {
+      const authorName = message.author.discriminator === '0' ? message.author.username : message.author.tag;
+      const embed = new EmbedBuilder()
+        .setTitle('Missing Permission')
+        .setAuthor({ name: authorName, iconURL: message.author.displayAvatarURL() })
+        .setColor(message.settings.embedErrorColor)
+        .addFields([
+          {
+            name: 'Your Level',
+            value: `${level} (${this.client.config.permLevels.find((l) => l.level === level).name})`,
+            inline: true,
+          },
+          {
+            name: 'Required Level',
+            value: `${this.client.levelCache[cmd.conf.permLevel]} (${cmd.conf.permLevel})`,
+            inline: true,
+          },
+        ]);
 
-        return message.channel.send({ embeds: [embed] });
-      } else {
-        return;
-      }
+      return message.channel.send({ embeds: [embed] });
     }
 
     if (cmd.conf.requiredArgs > args.length) {
