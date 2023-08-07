@@ -23,16 +23,16 @@ class SetPayout extends Command {
     if (!msg.member.permissions.has('ManageMessages'))
       return msg.channel.send('You are missing **Manage Guild** permission.');
 
-    const currencySymbol = await db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
+    const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
 
-    const workMin = await db.get(`servers.${msg.guild.id}.economy.work.min`) || 50;
-    const workMax = await db.get(`servers.${msg.guild.id}.economy.work.max`) || 500;
-    const slutMin = await db.get(`servers.${msg.guild.id}.economy.slut.min`) || 100;
-    const slutMax = await db.get(`servers.${msg.guild.id}.economy.work.max`) || 1000;
-    const crimeMin = await db.get(`servers.${msg.guild.id}.economy.crime.min`) || 500;
-    const crimeMax = await db.get(`servers.${msg.guild.id}.economy.crime.max`) || 2000;
-    const chatMin = await db.get(`servers.${msg.guild.id}.economy.chat.min`) || 10;
-    const chatMax = await db.get(`servers.${msg.guild.id}.economy.chat.max`) || 100;
+    const workMin = (await db.get(`servers.${msg.guild.id}.economy.work.min`)) || 50;
+    const workMax = (await db.get(`servers.${msg.guild.id}.economy.work.max`)) || 500;
+    const slutMin = (await db.get(`servers.${msg.guild.id}.economy.slut.min`)) || 100;
+    const slutMax = (await db.get(`servers.${msg.guild.id}.economy.work.max`)) || 1000;
+    const crimeMin = (await db.get(`servers.${msg.guild.id}.economy.crime.min`)) || 500;
+    const crimeMax = (await db.get(`servers.${msg.guild.id}.economy.crime.max`)) || 2000;
+    const chatMin = (await db.get(`servers.${msg.guild.id}.economy.chat.min`)) || 10;
+    const chatMax = (await db.get(`servers.${msg.guild.id}.economy.chat.max`)) || 100;
 
     const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
     const embed = new EmbedBuilder()

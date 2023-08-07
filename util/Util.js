@@ -90,54 +90,57 @@ function stripInvites(str, { guild = true, bot = true, text = '[redacted invite]
 /**
  *
  * @param {Message} msg - Message object
- * @param {String} str - String to use to find member
+ * @param {String} memberString - memberStringing to use to find the member
  * @returns {?GuildMember} - Returns member object or false
  */
-async function getMember(msg, str) {
-  if (!msg.guild) return false;
+async function getMember(msg, memberString) {
+  if (!msg.guild || !memberString) return false;
   await msg.guild.members.fetch();
+  if (msg.mentions.members.first()) return msg.mentions.members.first();
+
+  memberString = memberString.replace(/[<#&>\s]+/g, '');
   return (
-    msg.mentions.members.first() ||
-    msg.guild.members.cache.find((m) => m.id === str) ||
-    msg.guild.members.cache.find((m) => m.displayName.toUpperCase() === str.toUpperCase()) ||
-    msg.guild.members.cache.find((m) => m.displayName.toUpperCase().includes(str.toUpperCase())) ||
-    msg.guild.members.cache.find((m) => m.user.username.toUpperCase() === str.toUpperCase()) ||
-    msg.guild.members.cache.find((m) => m.user.username.toUpperCase().includes(str.toUpperCase())) ||
-    msg.guild.members.cache.find((m) => m.user.tag === str)
+    msg.guild.members.cache.find((m) => m.id === memberString) ||
+    msg.guild.members.cache.find((m) => m.displayName.toUpperCase() === memberString.toUpperCase()) ||
+    msg.guild.members.cache.find((m) => m.displayName.toUpperCase().includes(memberString.toUpperCase())) ||
+    msg.guild.members.cache.find((m) => m.user.username.toUpperCase() === memberString.toUpperCase()) ||
+    msg.guild.members.cache.find((m) => m.user.username.toUpperCase().includes(memberString.toUpperCase()))
   );
 }
 
 /**
  *
  * @param {Message} msg - Message object
- * @param {String} str - String to use to find role
+ * @param {String} roleString - String to use to find the role
  * @returns {?GuildRole}
  */
-function getRole(msg, str) {
-  if (!msg.guild) return false;
+function getRole(msg, roleString) {
+  if (!msg.guild || !roleString) return false;
+  if (msg.mentions.roles.first()) return msg.mentions.roles.first();
+
+  roleString = roleString.replace(/[<#&>\s]+/g, '');
   return (
-    msg.mentions.roles.first() ||
-    msg.guild.roles.cache.find((r) => r.name === str) ||
-    msg.guild.roles.cache.find((r) => r.id === str) ||
-    msg.guild.roles.cache.find((r) => r.name.toLowerCase() === str.toLowerCase()) ||
-    msg.guild.roles.cache.find((r) => r.id === str.replace('<@&', '').replace('>', ''))
+    msg.guild.roles.cache.find((r) => r.name === roleString) ||
+    msg.guild.roles.cache.find((r) => r.id === roleString) ||
+    msg.guild.roles.cache.find((r) => r.name.toLowerCase() === roleString.toLowerCase())
   );
 }
 
 /**
  *
  * @param {Message} msg - Message object
- * @param {string} str - String to use to find channel
+ * @param {String} channelString - string to use to find the channel
  * @returns {?GuildChannel}
  */
-function getChannel(msg, str) {
-  if (!msg.guild) return false;
-  str = str.replace('#', '').replace(/\s/g, '');
+function getChannel(msg, channelString) {
+  if (!msg.guild || !channelString) return false;
+  if (msg.mentions.channels.first()) return msg.mentions.channels.first();
+
+  channelString = channelString.replace(/[<#&>\s]+/g, '');
   return (
-    msg.mentions.channels.first() ||
-    msg.guild.channels.cache.find((c) => c.id === str) ||
-    msg.guild.channels.cache.find((c) => c.name.toLowerCase() === str.toLowerCase()) ||
-    msg.guild.channels.cache.find((c) => c.name.toLowerCase().includes(str.toLowerCase()))
+    msg.guild.channels.cache.find((c) => c.id === channelString) ||
+    msg.guild.channels.cache.find((c) => c.name.toLowerCase() === channelString.toLowerCase()) ||
+    msg.guild.channels.cache.find((c) => c.name.toLowerCase().includes(channelString.toLowerCase()))
   );
 }
 

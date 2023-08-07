@@ -17,7 +17,7 @@ class CleanLeaderboard extends Command {
   }
 
   async run(msg) {
-    const users = await db.get(`servers.${msg.guild.id}.users`) || {};
+    const users = (await db.get(`servers.${msg.guild.id}.users`)) || {};
     const toRemove = [];
     const color = msg.settings.embedColor;
 

@@ -26,7 +26,8 @@ class RockPaperScissors extends Command {
 
     const mem = await this.client.util.getMember(msg, args.join(' '));
     if (!mem) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid User');
-    if (mem.user.id === msg.author.id) return this.client.util.errorEmbed(msg, 'You can\'t play against yourself, silly.');
+    if (mem.user.id === msg.author.id)
+      return this.client.util.errorEmbed(msg, "You can't play against yourself, silly.");
 
     this.client.games.set(msg.channel.id, { name: this.help.name, user: msg.author.id });
 

@@ -113,10 +113,8 @@ class Bot extends Client {
     return false;
   }
 
-  loadEvent(eventPath, eventName) {
-    const event = new (require(eventPath))(client);
-    client.on(eventName, (...args) => event.run(...args));
-    delete require.cache[require.resolve(eventPath)];
+  async loadEvent(eventModule, eventName) {
+    client.on(eventName, (...args) => eventModule.run(client, ...args));
   }
 
   async unloadEvent(eventPath, eventName) {
@@ -254,7 +252,7 @@ const loadMusic = async () => {
         .setColor('#0099CC');
       const msg = await queue.metadata.channel.send({ embeds: [em] });
 
-      const oldmsg = await db.get(`servers.${queue.metadata.guild.id}.music.lastTrack`) || null;
+      const oldmsg = (await db.get(`servers.${queue.metadata.guild.id}.music.lastTrack`)) || null;
       if (oldmsg !== null) {
         try {
           await queue.metadata.guild.channels.cache.get(oldmsg.channelId).messages.cache.get(oldmsg.id).delete();
@@ -344,7 +342,7 @@ const init = async function init() {
     }
   }
 
-  function getEvents(dir) {
+  async function getEvents(dir) {
     const eventFiles = readdirSync(dir);
 
     for (const file of eventFiles) {
@@ -352,17 +350,18 @@ const init = async function init() {
       const stats = statSync(loc);
 
       if (stats.isDirectory()) {
-        getEvents(path.resolve(dir, file));
+        await getEvents(path.resolve(dir, file));
       } else {
         const eventName = file.split('.')[0];
-        client.loadEvent(loc, eventName);
+        const eventModule = await import(new URL(`file://${loc}`).href); // Use ESM import
+        client.loadEvent(eventModule, eventName); // Access the default export
       }
     }
   }
 
   getCommands('./commands');
   getSlashCommands('./slash_commands');
-  getEvents('./events');
+  await getEvents('./events');
 
   client.levelCache = {};
   for (let i = 0; i < config.permLevels.length; i++) {
@@ -410,7 +409,7 @@ client.on('raw', (packet) => {
 
 process.on('uncaughtException', (err) => {
   client.logger.error(`Uncaught Exception: ${err}`);
-  return process.exit(1);
+  // return process.exit(1);
 });
 
 process.on('unhandledRejection', (err) => {

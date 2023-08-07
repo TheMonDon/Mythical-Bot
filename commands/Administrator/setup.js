@@ -218,19 +218,23 @@ class Setup extends Command {
       };
 
       args.shift();
-      let text = args.join(' ');
+      let text = args.join('');
+      let chan = this.client.util.getChannel(msg, text);
+
       if (!args || args.length < 1) {
         text = await this.client.util.awaitReply(msg, 'What channel do you want to setup logging in?');
         if (!text) return msg.reply('The command has been cancelled due to no reply.');
+        chan = this.client.util.getChannel(msg, text);
       }
 
-      let chan = this.client.util.getChannel(msg, text);
-
-      if (!chan) {
-        msg.reply('That channel was not found, please type a valid server channel.');
-        text = await this.client.util.awaitReply(msg, 'What channel do you want to setup logging in?');
-        if (!text) return msg.reply('The command has been cancelled due invalid channel.');
+      let i = 2;
+      while (!chan) {
+        const str = `That channel was not found, please try again with a valid server channel. Try #${i}`;
+        text = await this.client.util.awaitReply(msg, str);
+        if (!text) return msg.reply('The command has been cancelled due to no reply.');
         chan = this.client.util.getChannel(msg, text);
+
+        i++;
       }
 
       const currentChan = await db.get(`servers.${msg.guild.id}.logs.channel`);
@@ -264,7 +268,11 @@ class Setup extends Command {
     // Start of warns setup
     if (['warns', 'warn', 'warnings'].includes(type)) {
       if (!args || args.length < 3) {
-        return this.client.util.errorEmbed(msg, msg.settings.prefix + 'setup Warns <channel-name> <Points for kick> <Points for ban>', 'Command Usage');
+        return this.client.util.errorEmbed(
+          msg,
+          msg.settings.prefix + 'setup Warns <channel-name> <Points for kick> <Points for ban>',
+          'Command Usage',
+        );
       }
 
       let channel;

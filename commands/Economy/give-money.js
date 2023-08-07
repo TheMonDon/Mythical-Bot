@@ -35,10 +35,10 @@ class GiveMoney extends Command {
       return this.client.util.errorEmbed(msg, "You can't give bots money.");
     }
 
-    const currencySymbol = await db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
+    const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
     const authCash = BigInt(
-      await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`) ||
-        await db.get(`servers.${msg.guild.id}.economy.startBalance`) ||
+      (await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`)) ||
+        (await db.get(`servers.${msg.guild.id}.economy.startBalance`)) ||
         0,
     );
 
@@ -80,8 +80,8 @@ class GiveMoney extends Command {
     const newAuthCash = authCash - amount;
     await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAuthCash.toString());
     const memCash = BigInt(
-      await db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`) ||
-        await db.get(`servers.${msg.guild.id}.economy.startBalance`) ||
+      (await db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`)) ||
+        (await db.get(`servers.${msg.guild.id}.economy.startBalance`)) ||
         0,
     );
     const newMemCash = memCash + amount;

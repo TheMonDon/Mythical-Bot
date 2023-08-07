@@ -25,7 +25,7 @@ class persistentRoles extends Command {
         'Missing Permission',
       );
 
-    const toggle = await db.get(`servers.${msg.guild.id}.proles.system`) || false;
+    const toggle = (await db.get(`servers.${msg.guild.id}.proles.system`)) || false;
 
     if (toggle === true) {
       await db.set(`servers.${msg.guild.id}.proles.system`, false);

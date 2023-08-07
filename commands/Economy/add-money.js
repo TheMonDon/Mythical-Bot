@@ -28,7 +28,7 @@ class AddMoney extends Command {
     let mem;
     let amount;
 
-    const currencySymbol = await db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
+    const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
 
     if (args.length === 2) {
       mem = await this.client.util.getMember(msg, args[0]);
@@ -42,9 +42,10 @@ class AddMoney extends Command {
       type = args[0].toLowerCase();
     }
 
-    if (isNaN(amount)) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Incorrect Usage');
+    if (isNaN(amount))
+      return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Incorrect Usage');
     if (!mem) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Member');
-    if (mem.user.bot) return this.client.util.errorEmbed(msg, 'You can\'t add money to bots.');
+    if (mem.user.bot) return this.client.util.errorEmbed(msg, "You can't add money to bots.");
 
     amount = BigInt(amount);
     if (type === 'bank') {
@@ -53,8 +54,8 @@ class AddMoney extends Command {
       await db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`, newAmount.toString());
     } else {
       const cash = BigInt(
-        await db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`) ||
-          await db.get(`servers.${msg.guild.id}.economy.startBalance`) ||
+        (await db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`)) ||
+          (await db.get(`servers.${msg.guild.id}.economy.startBalance`)) ||
           0,
       );
       const newAmount = cash + amount;

@@ -57,7 +57,8 @@ class Purge extends Command {
     let type = 'default';
     let count;
 
-    if (!msg.guild.members.me.permissions.has('ManageMessages')) return this.client.util.errorEmbed(msg, 'The bot needs `Manage Messages` permission.', 'Missing Permission');
+    if (!msg.guild.members.me.permissions.has('ManageMessages'))
+      return this.client.util.errorEmbed(msg, 'The bot needs `Manage Messages` permission.', 'Missing Permission');
 
     // Global function to get messages
     // channel: Channel object

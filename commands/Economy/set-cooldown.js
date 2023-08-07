@@ -5,7 +5,6 @@ const { QuickDB } = require('quick.db');
 const db = new QuickDB();
 const ms = require('ms');
 
-
 class SetCooldown extends Command {
   constructor(client) {
     super(client, {
@@ -24,11 +23,11 @@ class SetCooldown extends Command {
     const types = ['rob', 'work', 'crime', 'slut'];
 
     // Get the cooldowns from the database
-    const robCooldown = await db.get(`servers.${msg.guild.id}.economy.rob.cooldown`) || 600;
-    const workCooldown = await db.get(`servers.${msg.guild.id}.economy.work.cooldown`) || 300;
-    const slutCooldown = await db.get(`servers.${msg.guild.id}.economy.slut.cooldown`) || 600;
-    const crimeCooldown = await db.get(`servers.${msg.guild.id}.economy.crime.cooldown`) || 600;
-    const chatCooldown = await db.get(`servers.${msg.guild.id}.economy.chat.cooldown`) || 60;
+    const robCooldown = (await db.get(`servers.${msg.guild.id}.economy.rob.cooldown`)) || 600;
+    const workCooldown = (await db.get(`servers.${msg.guild.id}.economy.work.cooldown`)) || 300;
+    const slutCooldown = (await db.get(`servers.${msg.guild.id}.economy.slut.cooldown`)) || 600;
+    const crimeCooldown = (await db.get(`servers.${msg.guild.id}.economy.crime.cooldown`)) || 600;
+    const chatCooldown = (await db.get(`servers.${msg.guild.id}.economy.chat.cooldown`)) || 60;
 
     const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
     const embed = new EmbedBuilder()

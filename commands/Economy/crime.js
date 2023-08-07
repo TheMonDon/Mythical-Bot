@@ -19,8 +19,8 @@ class Crime extends Command {
   async run(msg) {
     const type = 'crime';
 
-    const cooldown = await db.get(`servers.${msg.guild.id}.economy.${type}.cooldown`) || 600;
-    let userCooldown = await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.${type}.cooldown`) || {};
+    const cooldown = (await db.get(`servers.${msg.guild.id}.economy.${type}.cooldown`)) || 600;
+    let userCooldown = (await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.${type}.cooldown`)) || {};
     const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
 
     const embed = new EmbedBuilder()
@@ -46,20 +46,20 @@ class Crime extends Command {
 
     // Get the user's net worth
     const cash = BigInt(
-      await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`) ||
-        await db.get(`servers.${msg.guild.id}.economy.startBalance`) ||
+      (await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`)) ||
+        (await db.get(`servers.${msg.guild.id}.economy.startBalance`)) ||
         0,
     );
-    const bank = BigInt(await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`) || 0);
+    const bank = BigInt((await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`)) || 0);
     const authNet = cash + bank;
 
     // Get the min and max amounts of money the user can get
-    const min = await db.get(`servers.${msg.guild.id}.economy.${type}.min`) || 500;
-    const max = await db.get(`servers.${msg.guild.id}.economy.${type}.max`) || 2000;
+    const min = (await db.get(`servers.${msg.guild.id}.economy.${type}.min`)) || 500;
+    const max = (await db.get(`servers.${msg.guild.id}.economy.${type}.max`)) || 2000;
 
     // Get the min and max fine percentages
-    const minFine = await db.get(`servers.${msg.guild.id}.economy.${type}.fine.min`) || 10;
-    const maxFine = await db.get(`servers.${msg.guild.id}.economy.${type}.fine.max`) || 30;
+    const minFine = (await db.get(`servers.${msg.guild.id}.economy.${type}.fine.min`)) || 10;
+    const maxFine = (await db.get(`servers.${msg.guild.id}.economy.${type}.fine.max`)) || 30;
 
     // randomFine is a random number between the minimum and maximum fail rate
     const randomFine = BigInt(Math.round(Math.random() * (maxFine - minFine + 1) + minFine));
@@ -67,10 +67,10 @@ class Crime extends Command {
     // fineAmount is the amount of money the user will lose if they fail the action
     const fineAmount = (authNet / BigInt(100)) * randomFine;
 
-    const failRate = await db.get(`servers.${msg.guild.id}.economy.${type}.failrate`) || 45;
+    const failRate = (await db.get(`servers.${msg.guild.id}.economy.${type}.failrate`)) || 45;
     const ranNum = Math.random() * 100;
 
-    const currencySymbol = await db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
+    const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
 
     delete require.cache[require.resolve('../../resources/messages/crime_success.json')];
     delete require.cache[require.resolve('../../resources/messages/crime_fail.json')];

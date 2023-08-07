@@ -16,11 +16,11 @@ class ToggleAll extends Command {
   }
 
   async run(msg) {
-    if (!await db.get(`servers.${msg.guild.id}.logs.channel`))
-      return msg.channel.send(`The log system is not set up! Use \`${msg.settings.prefix}setlogchannel <channel>\``);
+    if (!(await db.get(`servers.${msg.guild.id}.logs.channel`)))
+      return msg.channel.send(`The log system is not set up! Use \`${msg.settings.prefix}setup logging <channel>\``);
 
     const all = await db.get(`servers.${msg.guild.id}.logs.logSystem.all`);
-    const enable = {
+    const logSystem = {
       'bulk-messages-deleted': 'enabled',
       'channel-created': 'enabled',
       'channel-deleted': 'enabled',
@@ -41,33 +41,15 @@ class ToggleAll extends Command {
       sticker: 'enabled',
       all: 'enabled',
     };
-    const disable = {
-      'bulk-messages-deleted': 'disabled',
-      'channel-created': 'disabled',
-      'channel-deleted': 'disabled',
-      'channel-updated': 'disabled',
-      emoji: 'disabled',
-      'member-join': 'disabled',
-      'member-leave': 'disabled',
-      'message-deleted': 'disabled',
-      'message-edited': 'disabled',
-      'role-created': 'disabled',
-      'role-deleted': 'disabled',
-      'role-updated': 'disabled',
-      'stage-channel-updated': 'disabled',
-      'stage-channel-created': 'disabled',
-      'stage-channel-deleted': 'disabled',
-      'v-channel-created': 'disabled',
-      'v-channel-deleted': 'disabled',
-      sticker: 'disabled',
-      all: 'disabled',
-    };
 
     if (all === 'enabled') {
-      await db.set(`servers.${msg.guild.id}.logs.logSystem`, disable);
+      Object.keys(logSystem).forEach((key) => {
+        logSystem[key] = 'disabled';
+      });
+      await db.set(`servers.${msg.guild.id}.logs.logSystem`, logSystem);
       return msg.channel.send('Everything has been disabled.');
     } else if (all === 'disabled') {
-      await db.set(`servers.${msg.guild.id}.logs.logSystem`, enable);
+      await db.set(`servers.${msg.guild.id}.logs.logSystem`, logSystem);
       return msg.channel.send('Everything has been enabled.');
     }
 

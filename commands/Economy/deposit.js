@@ -19,14 +19,14 @@ class Deposit extends Command {
 
   async run(msg, args) {
     let amount = args.join(' ');
-    const currencySymbol = await db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
+    const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
 
     const cash = BigInt(
-      await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`) ||
-        await db.get(`servers.${msg.guild.id}.economy.startBalance`) ||
+      (await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`)) ||
+        (await db.get(`servers.${msg.guild.id}.economy.startBalance`)) ||
         0,
     );
-    const bank = BigInt(await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`) || 0);
+    const bank = BigInt((await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`)) || 0);
     const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
 
     const embed = new EmbedBuilder()

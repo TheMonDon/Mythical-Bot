@@ -29,7 +29,7 @@ class AddMoneyRole extends Command {
     let role;
     let amount;
 
-    const currencySymbol = await db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
+    const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
 
     if (args.length === 2) {
       role = this.client.util.getRole(msg, args[0]);
@@ -43,7 +43,8 @@ class AddMoneyRole extends Command {
       type = args[0].toLowerCase();
     }
 
-    if (isNaN(amount)) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Incorrect Usage');
+    if (isNaN(amount))
+      return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Incorrect Usage');
 
     if (!role) {
       errEmbed.setDescription(stripIndents`
@@ -60,7 +61,7 @@ class AddMoneyRole extends Command {
     if (type === 'bank') {
       members.forEach(async (mem) => {
         if (!mem.user.bot) {
-          const current = BigInt(await db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`) || 0);
+          const current = BigInt((await db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`)) || 0);
           const newAmount = current + amount;
           await db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`, newAmount.toString());
         }
@@ -69,8 +70,8 @@ class AddMoneyRole extends Command {
       members.forEach(async (mem) => {
         if (!mem.user.bot) {
           const cash = BigInt(
-            await db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`) ||
-              await db.get(`servers.${msg.guild.id}.economy.startBalance`) ||
+            (await db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`)) ||
+              (await db.get(`servers.${msg.guild.id}.economy.startBalance`)) ||
               0,
           );
           const newAmount = cash + amount;

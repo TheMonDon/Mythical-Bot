@@ -88,7 +88,7 @@ class Blacklist extends Command {
       return mem.send({ embeds: [embed] });
     } else if (type === 'check') {
       // check if member is blacklisted
-      const reason = await db.get(`servers.${msg.guild.id}.users.${mem.id}.blacklistReason`) || false;
+      const reason = (await db.get(`servers.${msg.guild.id}.users.${mem.id}.blacklistReason`)) || false;
 
       const bl = blacklist ? 'is' : 'is not';
       embed.setTitle(`${memberName} blacklist check`).addFields([

@@ -5,7 +5,8 @@ const { WebhookClient, EmbedBuilder } = require('discord.js');
 
 function log(content, type = 'log') {
   const timestamp = `[${moment().format('YYYY-MM-DD HH:mm:ss')}]:`;
-  const logs = new WebhookClient({ url: botLogsWebhookURL });
+  let logs;
+  if (botLogsWebhookURL) logs = new WebhookClient({ url: botLogsWebhookURL });
   const embed = new EmbedBuilder().setDescription(content.toString().substring(0, 4096)).setTimestamp();
   switch (type) {
     case 'log': {
@@ -21,7 +22,6 @@ function log(content, type = 'log') {
     case 'error': {
       embed.setTitle('Error').setColor('#FF0000');
       logs?.send({ embeds: [embed] });
-      if (!logs) console.log('Logging webhook does not exist', logs);
       return console.log(`${timestamp} ${chalk.bgRed(type.toUpperCase())} ${content}`);
     }
     case 'debug': {

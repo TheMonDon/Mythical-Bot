@@ -43,7 +43,11 @@ class ClearWarnings extends Command {
 
     if (previousPoints >= 10) {
       if (!msg.guild.members.me.permissions.has('BanMembers')) {
-        this.client.util.errorEmbed(msg, 'Please unban the user manually, the bot does not have Ban Members permission.', 'Missing Permission');
+        this.client.util.errorEmbed(
+          msg,
+          'Please unban the user manually, the bot does not have Ban Members permission.',
+          'Missing Permission',
+        );
       } else {
         await msg.guild.members.unban(mem.id).catch(() => null);
       }

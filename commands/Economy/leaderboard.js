@@ -26,10 +26,10 @@ class Leaderboard extends Command {
     if (isNaN(page)) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Incorrect Usage');
 
     await msg.guild.members.fetch();
-    const currencySymbol = await db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
+    const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
     let realPage = page;
     let maxPages = page;
-    const usersData = await db.get(`servers.${msg.guild.id}.users`) || {};
+    const usersData = (await db.get(`servers.${msg.guild.id}.users`)) || {};
     const leaderboard = [];
 
     // Cache users and add them to the leaderboard

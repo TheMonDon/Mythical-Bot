@@ -20,7 +20,7 @@ class CloseTicket extends Command {
   async run(msg, args) {
     const reason = args.join(' ') || 'No reason specified';
 
-    if (!await db.get(`servers.${msg.guild.id}.tickets`))
+    if (!(await db.get(`servers.${msg.guild.id}.tickets`)))
       return msg.channel.send('The ticket system has not been setup in this server.');
     const { logID } = await db.get(`servers.${msg.guild.id}.tickets`);
 

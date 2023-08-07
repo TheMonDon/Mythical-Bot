@@ -55,10 +55,9 @@ class Connect4 extends Command {
     args.shift();
     if (!args || args.length < 1)
       return msg.channel.send(
-        `${msg.settings.prefix + this.help.usage} \nThat is not a valid color, either an emoji or one of ${this.client.util.list(
-          Object.keys(colors),
-          'or',
-        )}.`,
+        `${
+          msg.settings.prefix + this.help.usage
+        } \nThat is not a valid color, either an emoji or one of ${this.client.util.list(Object.keys(colors), 'or')}.`,
       );
 
     function checkLine(a, b, c, d) {

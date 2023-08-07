@@ -23,7 +23,7 @@ class DeleteWarning extends Command {
 
     const caseID = args.join(' ');
     const warning = await db.get(`servers.${msg.guild.id}.warns.warnings.${caseID}`);
-   
+
     if (!warning) return this.client.util.errorEmbed(msg, 'No warning case found', 'Invalid Case ID');
 
     const logChan = await db.get(`servers.${msg.guild.id}.warns.channel`);
@@ -39,7 +39,11 @@ class DeleteWarning extends Command {
 
     if (previousPoints >= 10 && newerPoints < 10) {
       if (!msg.guild.members.me.permissions.has('BanMembers')) {
-        this.client.util.errorEmbed(msg, 'Please unban the user manually, the bot does not have Ban Members permission.', 'Missing Permission');
+        this.client.util.errorEmbed(
+          msg,
+          'Please unban the user manually, the bot does not have Ban Members permission.',
+          'Missing Permission',
+        );
       } else {
         await msg.guild.members.unban(userID).catch(() => null);
         title += ' & User Unbanned';

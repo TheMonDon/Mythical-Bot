@@ -26,14 +26,14 @@ class Balance extends Command {
     if (!mem) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Member');
 
     const cash = BigInt(
-      await db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`) ||
-        await db.get(`servers.${msg.guild.id}.economy.startBalance`) ||
+      (await db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`)) ||
+        (await db.get(`servers.${msg.guild.id}.economy.startBalance`)) ||
         0,
     );
-    const bank = BigInt(await db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`) || 0);
+    const bank = BigInt((await db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`)) || 0);
     const netWorth = cash + bank;
 
-    const currencySymbol = await db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
+    const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
 
     const memberName = mem.user.discriminator === '0' ? mem.user.username : msg.user.tag;
 
