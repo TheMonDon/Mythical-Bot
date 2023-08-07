@@ -4,6 +4,12 @@ module.exports = class {
   }
 
   async run(error) {
-    this.client.logger.log(`An error event was sent by Discord.js: \n${JSON.stringify(error)}`, 'error');
+    const string = JSON.stringify(error);
+    if (string.length === 2) {
+      console.log(error);
+      return this.client.logger.error(string);
+    }
+
+    return this.client.logger.error(string);
   }
 };
