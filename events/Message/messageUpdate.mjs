@@ -15,8 +15,8 @@ export async function run(client, oldMessage, newMessage) {
     const logSys = await db.get(`servers.${newMessage.guild.id}.logs.logSystem.message-edited`);
     if (!logSys || logSys !== 'enabled') return;
 
-    const chans = (await db.get(`servers.${newMessage.guild.id}.logs.noLogChans`)) || [];
-    if (chans.includes(newMessage.channel.id)) return;
+    const noLogChans = (await db.get(`servers.${newMessage.guild.id}.logs.noLogChans`)) || [];
+    if (noLogChans.includes(newMessage.channel.id)) return;
 
     const logChannel = newMessage.guild.channels.cache.get(logChan);
     if (!logChannel.permissionsFor(client.user.id).has('SendMessages')) return;

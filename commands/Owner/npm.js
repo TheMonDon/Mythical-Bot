@@ -18,7 +18,7 @@ class NPM extends Command {
     try {
       require.resolve(moduleName);
       return message.edit(`The Node Module ${moduleName} is already installed.`);
-    } catch (notinstalled) {
+    } catch (notInstalled) {
       try {
         await message.edit(`Installing Node Module: ${moduleName}`);
         child.execSync(`npm install ${moduleName} --save`, { stdio: 'inherit' });

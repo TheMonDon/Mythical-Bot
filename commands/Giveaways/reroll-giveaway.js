@@ -16,7 +16,7 @@ class RerollGiveaway extends Command {
 
   async run(msg, args) {
     if (!msg.member.permissions.has('ManageMessages'))
-      return this.client.util.errorEmbed(msg, 'You need to have the Manage Nessages permission to reroll giveaways');
+      return this.client.util.errorEmbed(msg, 'You need to have the Manage Messages permission to reroll giveaways');
     const query = args.join('');
 
     const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;

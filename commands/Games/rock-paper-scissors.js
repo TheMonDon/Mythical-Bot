@@ -71,7 +71,7 @@ class RockPaperScissors extends Command {
               msg.channel.send('Error: You did not reply in time.');
               reply.delete();
               this.client.games.delete(msg.channel.id);
-              return chan.send('The game starter did not reply in time, so the game was forfitted.');
+              return chan.send('The game starter did not reply in time, so the game was forfeited.');
             });
         });
       await mem
@@ -107,7 +107,7 @@ class RockPaperScissors extends Command {
             .catch(() => {
               msg.channel.send('Error: You did not reply in time.');
               reply.delete();
-              return chan.send(`${mem.displayName} did not reply in time, so the game was forfitted.`);
+              return chan.send(`${mem.displayName} did not reply in time, so the game was forfeited.`);
             });
         });
     } else {
@@ -142,7 +142,7 @@ class RockPaperScissors extends Command {
               msg.channel.send('Error: You did not reply in time.');
               reply.delete();
               this.client.games.delete(msg.channel.id);
-              return chan.send('The game starter did not reply in time, so the game was forfitted.');
+              return chan.send('The game starter did not reply in time, so the game was forfeited.');
             });
         });
     }

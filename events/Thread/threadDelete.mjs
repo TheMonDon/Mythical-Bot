@@ -9,8 +9,8 @@ export async function run(client, thread) {
   const logSys = await db.get(`servers.${thread.guild.id}.logs.logSystem.thread-deleted`);
   if (logSys !== 'enabled') return;
 
-  const chans = (await db.get(`servers.${thread.guild.id}.logs.noLogChans`)) || [];
-  if (chans.includes(thread.id)) return;
+  const noLogChans = (await db.get(`servers.${thread.guild.id}.logs.noLogChans`)) || [];
+  if (noLogChans.includes(thread.id)) return;
 
   const embed = new EmbedBuilder()
     .setTitle('Thread Channel Deleted')

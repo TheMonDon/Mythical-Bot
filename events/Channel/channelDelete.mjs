@@ -10,8 +10,8 @@ export async function run(client, channel) {
   if (logSystem !== 'enabled') return;
   if (channel.name.startsWith('ticket-')) return;
 
-  const chans = (await db.get(`servers.${channel.guild.id}.logs.noLogChans`)) || [];
-  if (chans.includes(channel.id)) return;
+  const noLogChans = (await db.get(`servers.${channel.guild.id}.logs.noLogChans`)) || [];
+  if (noLogChans.includes(channel.id)) return;
 
   const embed = new EmbedBuilder()
     .setTitle('Channel Deleted')

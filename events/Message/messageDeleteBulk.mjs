@@ -13,8 +13,8 @@ export async function run(client, messages) {
   const logSys = await db.get(`servers.${server.id}.logs.logSystem.bulk-messages-deleted`);
   if (logSys !== 'enabled') return;
 
-  const chans = (await db.get(`servers.${server.id}.logs.noLogChans`)) || [];
-  if (chans.includes(chan.id)) return;
+  const noLogChans = (await db.get(`servers.${server.id}.logs.noLogChans`)) || [];
+  if (noLogChans.includes(chan.id)) return;
 
   const output = [];
   output.push(`${messages.size} messages deleted in ${chan.name}:`);

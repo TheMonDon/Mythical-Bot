@@ -15,7 +15,7 @@ class Permissions extends Command {
     });
   }
 
-  async run(msg, args) {
+  async run(msg, args, level) {
     let infoMem = msg.member;
 
     // If a user is mentioned, fetch them and set them as the infoMem
@@ -119,10 +119,13 @@ class Permissions extends Command {
           inline: true,
         },
       ]);
+
     if (infoMem.displayAvatarURL) {
+      const friendly = this.client.config.permLevels.find((l) => l.level === infoMem.user.permLevel).name;
       embed
         .setAuthor({ name: infoMem.displayName, iconURL: infoMem.user.displayAvatarURL({ dynamic: true }) })
-        .setTitle(`${infoMem.displayName}'s Permissions`);
+        .setTitle(`${infoMem.displayName}'s Permissions`)
+        .addFields([{ name: '➢ __Bot User Level:__', value: `${infoMem.user.permLevel} - ${friendly}`, inline: true }]);
     } else {
       embed.setTitle(`${infoMem.name}'s Permissions`);
     }

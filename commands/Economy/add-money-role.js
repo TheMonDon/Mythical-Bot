@@ -15,7 +15,7 @@ class AddMoneyRole extends Command {
       aliases: ['addmoneyrole', 'addbalrole'],
       permLevel: 'Moderator',
       guildOnly: true,
-      requiredargs: 2,
+      requiredArgs: 2,
     });
   }
 

@@ -16,7 +16,7 @@ class DeleteGiveaway extends Command {
 
   async run(msg, args) {
     if (!msg.member.permissions.has('ManageMessages'))
-      return this.client.util.errorEmbed(msg, 'You need to have the Manage Nessages permission to delete giveaways');
+      return this.client.util.errorEmbed(msg, 'You need to have the Manage Messages permission to delete giveaways');
     const query = args.join(' ');
 
     const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;

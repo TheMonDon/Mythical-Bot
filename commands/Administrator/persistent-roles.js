@@ -27,13 +27,10 @@ class persistentRoles extends Command {
 
     const toggle = (await db.get(`servers.${msg.guild.id}.proles.system`)) || false;
 
-    if (toggle === true) {
-      await db.set(`servers.${msg.guild.id}.proles.system`, false);
-      return msg.channel.send('The persistent role system for this server has been disabled.');
-    }
-
-    await db.set(`servers.${msg.guild.id}.proles.system`, true);
-    return msg.channel.send('The persistent role system for this server has been enabled.');
+    await db.set(`servers.${msg.guild.id}.proles.system`, toggle !== true);
+    return msg.channel.send(
+      `The persistent role system for this server has been ${toggle !== true ? 'disabled' : 'enabled'}.`,
+    );
   }
 }
 

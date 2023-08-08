@@ -16,7 +16,7 @@ class SetCurrency extends Command {
   }
 
   async run(msg, args) {
-    let symbol = args.join(' ');
+    const symbol = args.join(' ').trim();
     const oldSymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
 
     if (!symbol)
@@ -25,10 +25,7 @@ class SetCurrency extends Command {
       );
 
     if (symbol.length > 50) return msg.channel.send('The maximum length for the currency symbol is 50 characters.');
-
     if (symbol === oldSymbol) return msg.channel.send('That is already the currency symbol.');
-
-    symbol = symbol.trim();
 
     await db.set(`servers.${msg.guild.id}.economy.symbol`, symbol);
 

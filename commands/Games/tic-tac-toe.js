@@ -139,7 +139,7 @@ class TicTacToe extends Command {
       `);
     } catch (err) {
       this.client.games.delete(msg.channel.id);
-      return msg.channel.send(`An error has occured: ${err}`);
+      return msg.channel.send(`An error has occurred: ${err}`);
     }
   }
 }

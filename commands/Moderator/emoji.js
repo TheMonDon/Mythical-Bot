@@ -52,7 +52,7 @@ Incorrect Usage:
         const result = guildEmoji(msg, emoji);
 
         if (!result) return this.client.util.errorEmbed(msg, 'That emoji was not found.');
-        if (!result.deletable) return this.client.util.errorEmbed(msg, 'That emoji is not deleteable by the bot.');
+        if (!result.deletable) return this.client.util.errorEmbed(msg, 'That emoji is not deletable by the bot.');
 
         result.delete();
         return msg.channel.send('The emoji has been successfully deleted.');
@@ -74,7 +74,7 @@ Incorrect Usage:
             { name: 'Author', value: result.author?.toString() || 'Unknown', inline: true },
             { name: 'Is Animated?', value: result.animated ? 'True' : 'False', inline: true },
             { name: 'is Available?', value: result.available ? 'True' : 'False', inline: true },
-            { name: 'is Deleteable?', value: result.deletable ? 'True' : 'False', inline: true },
+            { name: 'is Deletable?', value: result.deletable ? 'True' : 'False', inline: true },
             { name: 'ID', value: result.id.toString(), inline: true },
             { name: 'Created At', value: result.createdAt.toString() || 'Unknown', inline: true },
           ]);

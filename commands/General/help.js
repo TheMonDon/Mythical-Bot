@@ -1,5 +1,7 @@
 const Command = require('../../base/Command.js');
 const { EmbedBuilder } = require('discord.js');
+const { QuickDB } = require('quick.db');
+const db = new QuickDB();
 
 class Help extends Command {
   constructor(client) {
@@ -15,34 +17,35 @@ class Help extends Command {
 
   async run(msg, args, level) {
     const baseCategories = [
-      'Economy',
-      'Fun',
-      'Games',
-      'General',
-      'Giveaways',
-      'Information',
-      'Minecraft',
-      'Music',
-      'NSFW',
-      'Search',
-      'Tickets',
+      'economy',
+      'fun',
+      'games',
+      'general',
+      'giveaways',
+      'information',
+      'minecraft',
+      'music',
+      'nsfw',
+      'search',
+      'tickets',
     ];
-    const modCategories = ['Moderator', 'Logging'];
-    const adminCategories = ['Administrator'];
-    const botSupportCategories = ['Bot Support'];
-    const botAdminCategories = ['Bot Admin'];
-    const botOwnerCategories = ['Owner'];
+    const modCategories = ['moderator', 'logging'];
+    const adminCategories = ['administrator'];
+    const botSupportCategories = ['bot support'];
+    const botAdminCategories = ['bot admin'];
+    const botOwnerCategories = ['owner'];
 
     const shortCategories = {
-      admin: 'Administrator',
-      admins: 'Administrator',
-      eco: 'Economy',
-      gen: 'General',
-      mc: 'Minecraft',
-      mod: 'Moderator',
-      mods: 'Moderator',
-      info: 'Information',
-      ticket: 'Tickets',
+      admin: 'administrator',
+      admins: 'administrator',
+      eco: 'economy',
+      gen: 'general',
+      logs: 'logging',
+      mc: 'minecraft',
+      mod: 'moderator',
+      mods: 'moderator',
+      info: 'information',
+      ticket: 'tickets',
     };
 
     const levelCategories = {
@@ -64,8 +67,18 @@ class Help extends Command {
 
     const categoriesForLevel = levelCategories[level];
     const sortedCategories = categoriesForLevel.sort().join(', ');
-    const itemsPerPage = 25;
+
+    const split = sortedCategories.split(', ');
+    const sortedCategoriesArray = [];
+    for (const category of split) {
+      let properCase = this.client.util.toProperCase(category);
+      if (properCase === 'Nsfw') properCase = 'NSFW';
+      sortedCategoriesArray.push(properCase);
+    }
+
+    const itemsPerPage = 20;
     let pageNumber = 1;
+    const disabled = (await db.get(`servers.${msg.guild.id}.disabled`)) || [];
 
     const errEm = new EmbedBuilder()
       .setColor('#FFA500')
@@ -73,7 +86,7 @@ class Help extends Command {
         `Please select a category to see all available commands. \nUsage: \`${msg.settings.prefix}help <category>\` \nUsage: \`${msg.settings.prefix}help <command>\``,
       )
       .addFields([
-        { name: 'Current Categories:', value: sortedCategories },
+        { name: 'Current Categories:', value: sortedCategoriesArray.join(', ') },
         {
           name: 'Quick Bits',
           value:
@@ -98,22 +111,34 @@ class Help extends Command {
       category = userInput;
     }
 
-    // Normalize category name
-    category = shortCategories[category.toLowerCase()] || this.client.util.toProperCase(category);
+    category = shortCategories[category.toLowerCase()] || category.toLowerCase();
+
     if (!category || !categoriesForLevel.includes(category)) {
       let command = userInput.toLowerCase();
       command = this.client.commands.get(command) || this.client.commands.get(this.client.aliases.get(command));
 
       if (command) {
-        if (level < this.client.levelCache[command.conf.permLevel]) return;
+        if (level < this.client.levelCache[command.conf.permLevel])
+          return msg.reply("You don't have access to that command.");
+        const isDisabled =
+          disabled.includes(command.help.category.toLowerCase()) || disabled.includes(command.help.name.toLowerCase());
         em.setTitle(`${this.client.util.toProperCase(command.help.name)} Information`)
           .setColor(msg.settings.embedColor)
           .addFields([
             { name: 'Usage', value: command.help.usage, inline: true },
             { name: 'Aliases', value: command.conf.aliases.join(', ') || 'None', inline: true },
-            { name: 'Guild Only', value: command.conf.guildOnly.toString() || 'False', inline: true },
-            { name: 'NSFW', value: command.conf.nsfw.toString() || 'False', inline: true },
             { name: 'Description', value: command.help.description || 'None', inline: true },
+            {
+              name: 'Guild Only',
+              value: this.client.util.toProperCase(command.conf.guildOnly.toString()) || 'False',
+              inline: true,
+            },
+            {
+              name: 'NSFW',
+              value: this.client.util.toProperCase(command.conf.nsfw.toString()) || 'False',
+              inline: true,
+            },
+            { name: 'Command Disabled', value: this.client.util.toProperCase(isDisabled.toString()), inline: true },
             { name: 'Long Description', value: command.help.longDescription || 'None', inline: true },
             { name: 'Examples', value: command.help.examples?.join('\n') || 'None', inline: true },
           ]);
@@ -129,7 +154,7 @@ class Help extends Command {
       p.help.category > c.help.category ? 1 : p.help.name > c.help.name && p.help.category === c.help.category ? 1 : -1,
     );
 
-    const commandsToShow = sorted.filter((c) => this.client.util.toProperCase(c.help.category) === category);
+    const commandsToShow = sorted.filter((c) => c.help.category.toLowerCase() === category.toLowerCase());
 
     const totalPages = Math.ceil(commandsToShow.length / itemsPerPage);
     pageNumber = Math.max(1, Math.min(pageNumber, totalPages));
@@ -141,18 +166,22 @@ class Help extends Command {
     const commandsToDisplay = commandsToShow.slice(startIndex, endIndex);
 
     if (commandsToDisplay.length > 0) {
-      em.setTitle(`${category} Commands`);
       commandsToDisplay.forEach((c) => {
         em.addFields([
           {
-            name: `${msg.settings.prefix}${this.client.util.toProperCase(c.help.name)}`,
+            name: `**${msg.settings.prefix}${this.client.util.toProperCase(c.help.name)}**`,
             value: `${c.help.description}`,
             inline: true,
           },
         ]);
       });
 
-      em.setFooter({ text: `Page ${pageNumber}/${totalPages}` });
+      const isDisabled = disabled.includes(category.toLowerCase());
+      let displayedCategory = this.client.util.toProperCase(category);
+      if (displayedCategory === 'Nsfw') displayedCategory = 'NSFW';
+      em.setTitle(`${displayedCategory} Commands`).setFooter({
+        text: `Page ${pageNumber}/${totalPages} | Disabled: ${this.client.util.toProperCase(isDisabled.toString())}`,
+      });
       msg.channel.send({ embeds: [em] });
     } else {
       return msg.channel.send({ embeds: [errEm] });

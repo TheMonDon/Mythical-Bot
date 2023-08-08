@@ -51,9 +51,24 @@ class Reminders extends Command {
       let i = 1;
       for (const { triggerOn, reminder, userID, remID } of Object.values(reminders)) {
         if (userID === msg.author.id) {
+          const numberEmojiArray = [];
+
+          // Check if number is in emoji array
+          if (i in numbers) {
+            numberEmojiArray.push(numbers[i]); // Single emoji representation
+          } else if (i > Object.keys(numbers).length) {
+            // Split digits and add corresponding emojis for numbers greater than available emojis
+            String(i)
+              .split('')
+              .forEach((digit) => numberEmojiArray.push(numbers[digit]));
+          }
+          if (numberEmojiArray.join('')?.length < 1) numberEmojiArray.push(i);
+
           em.addFields([
             {
-              name: `**${numbers[i] || i + '.'}** I'll remind you ${moment(triggerOn).fromNow()} (ID: ${remID})`,
+              name: `**${numberEmojiArray.join('') + '.'}** I'll remind you ${moment(
+                triggerOn,
+              ).fromNow()} (ID: ${remID})`,
               value: reminder.slice(0, 200),
             },
           ]);

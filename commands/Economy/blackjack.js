@@ -158,8 +158,8 @@ class BlackJack extends Command {
 
     bj.init();
 
-    let pcards = getCards('player', bj);
-    let dcards = getCards('dealer', bj);
+    let playerCards = getCards('player', bj);
+    let dealerCards = getCards('dealer', bj);
 
     if (blackjack) {
       const embed = new EmbedBuilder()
@@ -167,8 +167,8 @@ class BlackJack extends Command {
         .setDescription(`Result: You win ${currencySymbol}${bj.bet.toLocaleString()}`)
         .setColor(color)
         .addFields([
-          { name: '**Your Hand**', value: `${pcards} \n\nScore: Blackjack`, inline: true },
-          { name: '**Dealer Hand**', value: `${dcards} \n\nScore: ${bj.dealer.score}`, inline: true },
+          { name: '**Your Hand**', value: `${playerCards} \n\nScore: Blackjack`, inline: true },
+          { name: '**Dealer Hand**', value: `${dealerCards} \n\nScore: ${bj.dealer.score}`, inline: true },
         ]);
 
       const winAmount = BigInt(bj.bet);
@@ -182,8 +182,8 @@ class BlackJack extends Command {
       .setDescription('Type `hit` to draw another card, `stand` to pass, or `doubledown` to double down.')
       .setColor(color)
       .addFields([
-        { name: '**Your Hand**', value: `${pcards} \n\nScore: ${bj.player.score}`, inline: true },
-        { name: '**Dealer Hand**', value: `${dcards} \n\nScore: ${bj.dealer.score}`, inline: true },
+        { name: '**Your Hand**', value: `${playerCards} \n\nScore: ${bj.player.score}`, inline: true },
+        { name: '**Dealer Hand**', value: `${dealerCards} \n\nScore: ${bj.dealer.score}`, inline: true },
       ]);
     const mEm = await msg.channel.send({ embeds: [em] });
 
@@ -219,16 +219,16 @@ class BlackJack extends Command {
       }
 
       if (win) {
-        pcards = getCards('player', bj);
-        dcards = getCards('dealer', bj);
+        playerCards = getCards('player', bj);
+        dealerCards = getCards('dealer', bj);
 
         const embed = new EmbedBuilder()
           .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
           .setDescription(`Result: You win ${currencySymbol}${bj.bet.toLocaleString()}`)
           .setColor(color)
           .addFields([
-            { name: '**Your Hand**', value: `${pcards} \n\nScore: ${bj.player.score}`, inline: true },
-            { name: '**Dealer Hand**', value: `${dcards} \n\nScore: ${bj.dealer.score}`, inline: true },
+            { name: '**Your Hand**', value: `${playerCards} \n\nScore: ${bj.player.score}`, inline: true },
+            { name: '**Dealer Hand**', value: `${dealerCards} \n\nScore: ${bj.dealer.score}`, inline: true },
           ]);
 
         const winAmount = BigInt(bj.bet);
@@ -236,16 +236,16 @@ class BlackJack extends Command {
         await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAmount.toString()); // Add the winning money
         return mEm.edit({ embeds: [embed] });
       } else if (blackjack) {
-        pcards = getCards('player', bj);
-        dcards = getCards('dealer', bj);
+        playerCards = getCards('player', bj);
+        dealerCards = getCards('dealer', bj);
 
         const embed = new EmbedBuilder()
           .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
           .setDescription(`Result: BlackJack, you win ${currencySymbol}${bj.bet.toLocaleString()}`)
           .setColor(color)
           .addFields([
-            { name: '**Your Hand**', value: `${pcards} \n\nScore: ${bj.player.score}`, inline: true },
-            { name: '**Dealer Hand**', value: `${dcards} \n\nScore: ${bj.dealer.score}`, inline: true },
+            { name: '**Your Hand**', value: `${playerCards} \n\nScore: ${bj.player.score}`, inline: true },
+            { name: '**Dealer Hand**', value: `${dealerCards} \n\nScore: ${bj.dealer.score}`, inline: true },
           ]);
 
         const winAmount = BigInt(bj.bet);
@@ -253,16 +253,16 @@ class BlackJack extends Command {
         await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAmount.toString()); // Add the winning money
         return mEm.edit({ embeds: [embed] });
       } else if (bust) {
-        pcards = getCards('player', bj);
-        dcards = getCards('dealer', bj);
+        playerCards = getCards('player', bj);
+        dealerCards = getCards('dealer', bj);
 
         const embed = new EmbedBuilder()
           .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
           .setDescription(`Result: Bust, you lose ${currencySymbol}${bj.bet.toLocaleString()}`)
           .setColor(color)
           .addFields([
-            { name: '**Your Hand**', value: `${pcards} \n\nScore: ${bj.player.score}`, inline: true },
-            { name: '**Dealer Hand**', value: `${dcards} \n\nScore: ${bj.dealer.score}`, inline: true },
+            { name: '**Your Hand**', value: `${playerCards} \n\nScore: ${bj.player.score}`, inline: true },
+            { name: '**Dealer Hand**', value: `${dealerCards} \n\nScore: ${bj.dealer.score}`, inline: true },
           ]);
 
         const loseAmount = BigInt(bj.bet);
@@ -270,31 +270,31 @@ class BlackJack extends Command {
         await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAmount.toString());
         return mEm.edit({ embeds: [embed] });
       } else if (push) {
-        pcards = getCards('player', bj);
-        dcards = getCards('dealer', bj);
+        playerCards = getCards('player', bj);
+        dealerCards = getCards('dealer', bj);
 
         const embed = new EmbedBuilder()
           .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
           .setDescription('Result: Push, money back')
           .setColor(color)
           .addFields([
-            { name: '**Your Hand**', value: `${pcards} \n\nScore: ${bj.player.score}`, inline: true },
-            { name: '**Dealer Hand**', value: `${dcards} \n\nScore: ${bj.dealer.score}`, inline: true },
+            { name: '**Your Hand**', value: `${playerCards} \n\nScore: ${bj.player.score}`, inline: true },
+            { name: '**Dealer Hand**', value: `${dealerCards} \n\nScore: ${bj.dealer.score}`, inline: true },
           ]);
 
         return mEm.edit({ embeds: [embed] });
       }
 
-      pcards = getCards('player', bj);
-      dcards = getCards('dealer', bj);
+      playerCards = getCards('player', bj);
+      dealerCards = getCards('dealer', bj);
 
       const embed = new EmbedBuilder()
         .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
         .setDescription('Type `hit` to draw another card, `stand` to pass, or `doubledown` to double down.')
         .setColor(color)
         .addFields([
-          { name: '**Your Hand**', value: `${pcards} \n\nScore: ${bj.player.score}`, inline: true },
-          { name: '**Dealer Hand**', value: `${dcards} \n\nScore: ${bj.dealer.score}`, inline: true },
+          { name: '**Your Hand**', value: `${playerCards} \n\nScore: ${bj.player.score}`, inline: true },
+          { name: '**Dealer Hand**', value: `${dealerCards} \n\nScore: ${bj.dealer.score}`, inline: true },
         ]);
 
       mEm.edit({ embeds: [embed] });

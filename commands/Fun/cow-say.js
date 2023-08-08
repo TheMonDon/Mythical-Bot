@@ -17,11 +17,11 @@ class CowSay extends Command {
     const text = args.join(' ');
     const lengthLimited = this.client.util.limitStringLength(text);
 
-    const cmsg = cowsay.say({
+    const cowMessage = cowsay.say({
       text: await this.client.util.clean(this.client, lengthLimited),
     });
 
-    return msg.channel.send(`\`\`\`${cmsg}\`\`\``);
+    return msg.channel.send(`\`\`\`${cowMessage}\`\`\``);
   }
 }
 module.exports = CowSay;

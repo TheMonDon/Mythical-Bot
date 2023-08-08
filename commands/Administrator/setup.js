@@ -167,13 +167,13 @@ class Setup extends Command {
 
         const response2 = collected3.first().content.toLowerCase();
         embed.setDescription(response2);
-        const rchan = await msg.guild.channels.create({
+        const reactionChannel = await msg.guild.channels.create({
           name: 'new-ticket',
           type: ChannelType.GuildText,
           parent: category.id,
           permissionOverwrites: reactPerms,
         });
-        const embed1 = await rchan.send({ embeds: [embed] });
+        const embed1 = await reactionChannel.send({ embeds: [embed] });
         await embed1.react('📰');
 
         await db.set(`servers.${msg.guild.id}.tickets.reactionID`, embed1.id);

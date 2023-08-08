@@ -9,18 +9,17 @@ class MinecraftServer extends Command {
       description: 'Get information about a Minecraft server.',
       usage: 'mc-server <IP Address>',
       category: 'Minecraft',
-      aliases: ['mcs', 'mcserver', 'mcstats', 'mcip'],
+      aliases: ['mcs', 'mcserver', 'mcstats'],
     });
   }
 
   async run(msg, text) {
     let query = text.join(' ');
-    if (!query) query = 'mc.crafters-island.com';
+    if (!query) query = 'mc.hypixel.net';
 
     const servers = {
       'crafters-island': 'mc.crafters-island.com',
       hypixel: 'mc.hypixel.net',
-      skycade: 'play.skycade.net',
       mineplex: 'us.mineplex.com',
       '2b2t': '2b2t.org',
       mcprison: 'mcprison.com',

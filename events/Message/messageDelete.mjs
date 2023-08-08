@@ -12,8 +12,8 @@ export async function run(client, message) {
   const logSys = await db.get(`servers.${message.guild.id}.logs.logSystem.message-deleted`);
   if (logSys !== 'enabled') return;
 
-  const chans = (await db.get(`servers.${message.guild.id}.logs.noLogChans`)) || [];
-  if (chans.includes(message.channel.id)) return;
+  const noLogChans = (await db.get(`servers.${message.guild.id}.logs.noLogChans`)) || [];
+  if (noLogChans.includes(message.channel.id)) return;
 
   // Check if a game is being played by message author (hangman, connect4, etc)
   const current = client.games.get(message.channel.id);
