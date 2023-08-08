@@ -1,5 +1,7 @@
 import { EmbedBuilder } from 'discord.js';
 import { QuickDB } from 'quick.db';
+import { promisify } from 'util';
+const setTimeoutPromise = promisify(setTimeout);
 const db = new QuickDB();
 
 export async function run(client, member) {
@@ -45,7 +47,7 @@ export async function run(client, member) {
 
     for (let i = 0; i < roles.length; i++) {
       member.roles.add(roles[i]).catch(console.error);
-      await require('util').promisify(setTimeout)(1000);
+      await setTimeoutPromise(1000);
     }
 
     await db.delete(`servers.${member.guild.id}.proles.users.${member.id}`);

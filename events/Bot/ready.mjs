@@ -2,6 +2,7 @@ import pkg from '../../config.js';
 import { EmbedBuilder } from 'discord.js';
 import { QuickDB } from 'quick.db';
 import { scheduleJob } from 'node-schedule';
+import { BotlistMeClient } from 'botlist.me.js';
 const { BotListToken } = pkg;
 const db = new QuickDB();
 
@@ -18,7 +19,6 @@ export async function run(client) {
   client.logger.log(`${client.user.tag}, ready to serve ${client.guilds.cache.size} guilds.`, 'ready');
 
   if (BotListToken?.length > 0) {
-    const BotlistMeClient = require('botlist.me.js');
     const botlistme = new BotlistMeClient(BotListToken, client);
     botlistme.postStats(client.guilds.cache.size);
 
