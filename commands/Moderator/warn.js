@@ -57,38 +57,6 @@ class Warn extends Command {
     args.shift();
     let reason = args.join(' ');
 
-    const reasonTest = reason.toLowerCase();
-    if (['-ad', '-advertise', '-advertising', '-ads'].includes(reasonTest)) {
-      reason = 'Please do not attempt to advertise in our server.';
-    } else if (['-botcommands', '-botcmds', '-botcmd', '-botchannel', '-botchan'].includes(reasonTest)) {
-      reason = 'Please make sure that you use bot commands in the appropriate channels.';
-    } else if (['-dmad', '-dmads', '-dmadvertise', '-privatead', '-pmad', '-pmads'].includes(reasonTest)) {
-      reason = 'Do not use our server as a platform to advertise to users in their DMs.';
-    } else if (['-drama', '-trouble'].includes(reasonTest)) {
-      reason = 'We do not condone drama in our server, we want our server to be friendly for all users.';
-    } else if (['-massdm', '-massmessage', '-massmsg'].includes(reasonTest)) {
-      reason = 'Please do not message many members in a short period of time.';
-    } else if (['-massping', '-massmention', '-masstags', '-mping', '-mmention', '-mtag'].includes(reasonTest)) {
-      reason = 'Please do not mention users rapidly, or mention many users in a single message.';
-    } else if (
-      ['-moderatorhelp', '-moderatormention', '-moderatorsupport', '-modhelp', '-modmention', '-modsupport'].includes(
-        reasonTest,
-      )
-    ) {
-      reason =
-        'Please refrain from mentioning members of the Staff Team unless it is something pertaining to a rule being broken.';
-    } else if (['-raiding', '-raids', '-raid'].includes(reasonTest)) {
-      reason = 'User partook in the raiding of the server';
-    } else if (['-spam', '-spamming', '-shitposting'].includes(reasonTest)) {
-      reason = 'Please do not spam in our server, we like users to be able to talk appropriately within it.';
-    } else if (
-      ['-dms', '-unsoliciteddms', '-unsolicteddm', '-unsolicitedmsg', '-privatemessage', '-pm'].includes(reasonTest)
-    ) {
-      reason = 'Please do not private message users unless they have explicitly agreed to it.';
-    } else if (['-mention', '-tag', '-ping', '-mentions', '-tags', '-pings'].includes(reasonTest)) {
-      reason = 'Please do not mention users unless they have explicitly agreed to it.';
-    }
-
     // Grab the settings for the server
     const ka = (await db.get(`servers.${msg.guild.id}.warns.kick`)) || 8;
     const ba = (await db.get(`servers.${msg.guild.id}.warns.ban`)) || 10;
