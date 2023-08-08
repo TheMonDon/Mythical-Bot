@@ -2,7 +2,8 @@ import pkg from '../../config.js';
 import { EmbedBuilder } from 'discord.js';
 import { QuickDB } from 'quick.db';
 import { scheduleJob } from 'node-schedule';
-import { BotlistMeClient } from 'botlist.me.js';
+import all from 'botlist.me.js';
+const { BotlistMeClient } = all;
 const { BotListToken } = pkg;
 const db = new QuickDB();
 
