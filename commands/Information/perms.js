@@ -27,7 +27,7 @@ class Permissions extends Command {
     if (!infoMem) {
       await msg.guild.roles.fetch();
       infoMem = await this.client.util.getRole(msg, args.join(' '));
-      if (!infoMem) return msg.channel.send('That user or role was not found, please try again.');
+      if (!infoMem) return msg.channel.send('That member or role was not found, please try again.');
     }
 
     // Emojis to use for the permissions
@@ -120,12 +120,15 @@ class Permissions extends Command {
         },
       ]);
 
-    if (infoMem.displayAvatarURL) {
-      const friendly = this.client.config.permLevels.find((l) => l.level === infoMem.user.permLevel).name;
+    if (infoMem.user?.displayAvatarURL) {
+      const newMsg = { ...msg, member: infoMem, author: infoMem.user, guild: msg.guild };
+      const permLevel = this.client.permlevel(newMsg);
+      const friendly = this.client.config.permLevels.find((l) => l.level === permLevel).name;
+
       embed
         .setAuthor({ name: infoMem.displayName, iconURL: infoMem.user.displayAvatarURL({ dynamic: true }) })
         .setTitle(`${infoMem.displayName}'s Permissions`)
-        .addFields([{ name: '➢ __Bot User Level:__', value: `${infoMem.user.permLevel} - ${friendly}`, inline: true }]);
+        .addFields([{ name: '➢ __Bot User Level:__', value: `${permLevel} - ${friendly}`, inline: true }]);
     } else {
       embed.setTitle(`${infoMem.name}'s Permissions`);
     }

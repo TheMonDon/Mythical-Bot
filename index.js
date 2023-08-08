@@ -1,7 +1,7 @@
 if (Number(process.version.slice(1).split('.')[0]) < '16.9')
   throw new Error('Node 16.9 or higher is required. Update Node on your system.');
 
-const { GatewayIntentBits, Collection, Client, EmbedBuilder, Message } = require('discord.js');
+const { GatewayIntentBits, Collection, Client, EmbedBuilder } = require('discord.js');
 const { GiveawaysManager } = require('discord-giveaways');
 const { readdirSync, statSync } = require('fs');
 const { Player } = require('discord-player');
@@ -36,16 +36,9 @@ class Bot extends Client {
     while (permOrder.length) {
       const currentLevel = permOrder.shift();
       if (object.guild && currentLevel.guildOnly) continue;
-      if (object instanceof Message) {
-        if (currentLevel.check(object)) {
-          permlvl = currentLevel.level;
-          break;
-        }
-      } else {
-        if (currentLevel.checkInteraction(object)) {
-          permlvl = currentLevel.level;
-          break;
-        }
+      if (currentLevel.checkPermissions(object)) {
+        permlvl = currentLevel.level;
+        break;
       }
     }
     return permlvl;

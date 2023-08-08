@@ -1,5 +1,3 @@
-const { ChannelType } = require('discord.js');
-
 const config = {
   // Bot Owner(s), level 10 by default. Array of user ID strings.
   owners: ['ownerId'],
@@ -59,17 +57,13 @@ const config = {
   // PERMISSION LEVEL DEFINITIONS.
 
   permLevels: [
-    // This is the lowest permission level, this is for non-roled users.
     {
       level: 0,
       name: 'User',
       // Don't bother checking, just return true which allows them to execute any command their
       // level allows them to.
-      check: () => true,
-      checkInteraction: () => true,
+      checkPermissions: () => true,
     },
-
-    // This is your permission level, the staff levels should always be above the rest of the roles.
     {
       level: 2,
       // This is the name of the role.
@@ -78,26 +72,14 @@ const config = {
       // Then it checks if the member that authored the message has the role.
       // If they do return true, which will allow them to execute the command in question.
       // If they don't then return false, which will prevent them from executing the command.
-      check: (message) => {
+      checkPermissions: (context) => {
         try {
-          const modRole = message.guild.roles.cache.find(
-            (r) => r.name.toLowerCase() === message.settings.modRole.toLowerCase(),
+          const modRole = context.guild.roles.cache.find(
+            (r) => r.name.toLowerCase() === context.settings.modRole.toLowerCase(),
           );
           if (!modRole) return false;
-          if (message.member.roles.cache.has(modRole.id)) return true;
-          if (message.member.roles.highest.position > modRole.position) return true;
-        } catch (e) {
-          return false;
-        }
-      },
-      checkInteraction: (interaction) => {
-        try {
-          const modRole = interaction.guild.roles.cache.find(
-            (r) => r.name.toLowerCase() === interaction.settings.modRole.toLowerCase(),
-          );
-          if (!modRole) return false;
-          if (interaction.member.roles.cache.has(modRole.id)) return true;
-          if (interaction.member.roles.highest.position > modRole.position) return true;
+          if (context.member.roles.cache.has(modRole.id)) return true;
+          if (context.member.roles.highest.position > modRole.position) return true;
         } catch (e) {
           return false;
         }
@@ -107,28 +89,15 @@ const config = {
     {
       level: 3,
       name: 'Administrator',
-      check: (message) => {
+      checkPermissions: (context) => {
         try {
-          const adminRole = message.guild.roles.cache.find(
-            (r) => r.name.toLowerCase() === message.settings.adminRole.toLowerCase(),
+          const adminRole = context.guild.roles.cache.find(
+            (r) => r.name.toLowerCase() === context.settings.adminRole.toLowerCase(),
           );
-          if (message.member.permissions.has('Administrator')) return true;
+          if (context.member.permissions.has('Administrator')) return true;
           if (!adminRole) return false;
-          if (message.member.roles.cache.has(adminRole.id)) return true;
-          if (message.member.roles.highest.position > adminRole.position) return true;
-        } catch (e) {
-          return false;
-        }
-      },
-      checkInteraction: (interaction) => {
-        try {
-          const adminRole = interaction.guild.roles.cache.find(
-            (r) => r.name.toLowerCase() === interaction.settings.adminRole.toLowerCase(),
-          );
-          if (interaction.member.permissions.has('Administrator')) return true;
-          if (!adminRole) return false;
-          if (interaction.member.roles.cache.has(adminRole.id)) return true;
-          if (interaction.member.roles.highest.position > adminRole.position) return true;
+          if (context.member.roles.cache.has(adminRole.id)) return true;
+          if (context.member.roles.highest.position > adminRole.position) return true;
         } catch (e) {
           return false;
         }
@@ -140,9 +109,13 @@ const config = {
       name: 'Server Owner',
       // Simple check, if the guild owner id matches the message author's ID, then it will return true.
       // Otherwise it will return false.
-      check: (message) =>
-        message.channel.type === ChannelType.GuildText ? message.guild.ownerId === message.author.id : false,
-      checkInteraction: (interaction) => interaction.guild.ownerId === interaction.user.id,
+      checkPermissions: (context) => {
+        try {
+          return context.guild.ownerId === (context.user ? context.user.id : context.author.id);
+        } catch (e) {
+          return false;
+        }
+      },
     },
 
     // Bot Support is a special in between level that has the equivalent of server owner access
@@ -150,18 +123,18 @@ const config = {
     {
       level: 8,
       name: 'Bot Support',
-      // The check is by reading if an ID is part of this array. Yes, this means you need to
-      // change this and reboot the bot to add a support user. Make it better yourself!
-      check: (message) => config.support.includes(message.author.id),
-      checkInteraction: (interaction) => config.support.includes(interaction.user.id),
+      checkPermissions: (context) => {
+        return config.support.includes(context.user ? context.user.id : context.author.id);
+      },
     },
 
     // Bot Admin has some limited access like rebooting the bot or reloading commands.
     {
       level: 9,
       name: 'Bot Admin',
-      check: (message) => config.admins.includes(message.author.id),
-      checkInteraction: (interaction) => config.admins.includes(interaction.user.id),
+      checkPermissions: (context) => {
+        return config.admins.includes(context.user ? context.user.id : context.author.id);
+      },
     },
 
     // This is the bot owner, this should be the highest permission level available.
@@ -171,8 +144,9 @@ const config = {
       level: 10,
       name: 'Bot Owner',
       // Another simple check, compares the message author id to the one stored in the config file.
-      check: (message) => config.owners.includes(message.author.id),
-      checkInteraction: (interaction) => config.owners.includes(interaction.user.id),
+      checkPermissions: (context) => {
+        return config.owners.includes(context.user ? context.user.id : context.author.id);
+      },
     },
   ],
 };
