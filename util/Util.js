@@ -7,7 +7,7 @@ const { QuickDB } = require('quick.db');
 const db = new QuickDB();
 
 /**
- * Turns an array into a list with defineable ending conjunction
+ * Turns an array into a list with definable ending conjunction
  * @param {Array} array - The array to turn to a list
  * @param {String} conj - Conjunction to end with, default 'and'
  */
