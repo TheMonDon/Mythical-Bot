@@ -22,7 +22,8 @@ class Lyrics extends Command {
       if (!msg.guild) return this.client.util.errorEmbed("I can't get the lyrics of nothing.");
       const playing = queue?.currentTrack;
       song = `${playing?.author} ${playing?.title}`;
-      if (!song) return this.client.util.errorEmbed('Nothing is playing, please try again with a song name.');
+      if (!playing || song === ' ')
+        return this.client.util.errorEmbed('Nothing is playing, please try again with a song name.');
     } else {
       song = args.join(' ').slice(0, 300);
     }
