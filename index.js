@@ -232,6 +232,13 @@ const loadMusic = async () => {
   client.player = new Player(client, {
     autoSelfDeaf: true,
     enableLive: true,
+    ytdlOptions: {
+      requestOptions: {
+        headers: {
+          cookie: config.youtubeCookie || '',
+        },
+      },
+    },
   });
 
   await client.player.extractors.loadDefault();
@@ -240,7 +247,7 @@ const loadMusic = async () => {
     .on('playerStart', async (queue, track) => {
       const em = new EmbedBuilder()
         .setTitle('Now Playing')
-        .setDescription(`[${track.title}](${track.url}) \n\nRequested By: ${track.requestedBy}`)
+        .setDescription(`[${track.author} - ${track.title}](${track.url}) \n\nRequested By: ${track.requestedBy}`)
         .setThumbnail(track.thumbnail)
         .setColor('#0099CC');
       const msg = await queue.metadata.channel.send({ embeds: [em] });
@@ -257,20 +264,16 @@ const loadMusic = async () => {
       await db.set(`servers.${queue.metadata.guild.id}.music.lastTrack`, msg);
     })
     .on('audioTrackAdd', (queue, track) => {
-      const title = track.title || track.tracks[track.tracks.length - 1].title;
-      const url = track.url || track.tracks[track.tracks.length - 1].url;
-      const requestedBy = track.requestedBy || track.tracks[track.tracks.length - 1].requestedBy;
-
       const em = new EmbedBuilder()
         .setTitle('Track Added to Queue')
         .setThumbnail(track.thumbnail)
         .setColor('#0099CC')
-        .setDescription(`[${title}](${url}) \n\nRequested By: ${requestedBy}`);
+        .setDescription(`[${track.author} - ${track.title}](${track.url}) \n\nRequested By: ${track.requestedBy}`);
       queue.metadata.channel.send({ embeds: [em] });
     })
     .on('audioTracksAdd', (queue, tracks) => {
       const playlist = tracks[0].playlist;
-      const length = playlist.videos?.length || playlist.tracks?.length || 'N/A';
+      const length = playlist.videos?.length || playlist.tracks?.length || 0;
 
       const em = new EmbedBuilder()
         .setTitle('Playlist Added to Queue')
@@ -281,7 +284,13 @@ const loadMusic = async () => {
       queue.metadata.channel.send({ embeds: [em] });
     })
     .on('noResults', (queue, query) => queue.metadata.channel.send(`No results were found for ${query}.`))
-    .on('emptyQueue', (queue) => queue.metadata.channel.send('Music stopped as there is no more music in the queue.'))
+    .on('emptyQueue', (queue) => {
+      const em = new EmbedBuilder()
+        .setTitle('Queue Ended')
+        .setColor('#0099CC')
+        .setDescription('Music has been stopped since the queue has no more tracks.');
+      queue.metadata.channel.send({ embeds: [em] });
+    })
     .on('error', (queue, error) => {
       switch (error) {
         case 'NotPlaying':

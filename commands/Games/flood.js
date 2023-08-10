@@ -179,7 +179,7 @@ Filling starts at the top left corner.`,
           gameOver = true;
           result = 'earlyEnd';
           this.client.games.delete(msg.channel.id);
-          message.reactions.removeAll();
+          message?.reactions?.removeAll();
           return message.edit({ embeds: getContent() });
         } else if (selected === lastMove) {
           if (error) error.delete();
@@ -233,13 +233,13 @@ Filling starts at the top left corner.`,
 
       if (gameOver === true) {
         this.client.games.delete(msg.channel.id);
-        message.reactions.removeAll();
+        message?.reactions?.removeAll();
         return message.edit({ embeds: getContent() });
       }
 
       if (turn >= 25) {
         this.client.games.delete(msg.channel.id);
-        message.reactions.removeAll();
+        message?.reactions?.removeAll();
         gameOver = true;
         result = 'maxTurns';
         return message.edit({ embeds: getContent() });
@@ -250,7 +250,7 @@ Filling starts at the top left corner.`,
     } catch (err) {
       this.client.games.delete(msg.channel.id);
       this.client.logger.error(`Flood: ${err}`);
-      message.reactions.removeAll();
+      message?.reactions?.removeAll();
       gameOver = true;
       result = 'error';
       return message.edit({ embeds: getContent() });

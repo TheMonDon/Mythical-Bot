@@ -442,7 +442,7 @@ class Hangman extends Command {
 
           chances -= 1;
           firstEmbed
-            .setTitle(`You guessed the word "**${response.first().toLowerCase()}**" wrong!`)
+            .setTitle(`You guessed the word "**${response.first().content.toLowerCase()}**" wrong!`)
             .setFooter({ text: `${chances}/15 chances left` })
             .setDescription(
               `**Wrong letters used:** ${triedLetters.join(', ')} \n\n**Word to guess:**\n\`\`${newWordString.join(
