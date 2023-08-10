@@ -18,7 +18,7 @@ export async function run(client, sticker) {
     .addFields([
       { name: 'Name', value: sticker.name },
       { name: 'Sticker ID', value: sticker.id },
-      { name: 'Description', value: sticker.description },
+      { name: 'Description', value: sticker.description || 'None provided' },
       { name: 'Tags', value: sticker.tags },
     ])
     .setTimestamp();
