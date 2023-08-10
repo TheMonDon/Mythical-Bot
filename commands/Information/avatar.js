@@ -34,11 +34,12 @@ class Avatar extends Command {
 
     await msg.guild.members.fetch();
 
+    infoMem = infoMem.user ? infoMem.user : infoMem;
     const embed = new EmbedBuilder()
-      .setTitle(`${infoMem.user.username}'s Avatar`)
+      .setTitle(`${infoMem.username}'s Avatar`)
       .setColor(msg.settings.embedColor)
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
-      .setImage(infoMem.user.displayAvatarURL({ size: 4096 }));
+      .setImage(infoMem.displayAvatarURL({ size: 4096 }));
 
     return msg.channel.send({ embeds: [embed] });
   }
