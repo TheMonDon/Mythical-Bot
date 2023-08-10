@@ -39,7 +39,7 @@ class Avatar extends Command {
       .setTitle(`${infoMem.username}'s Avatar`)
       .setColor(msg.settings.embedColor)
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
-      .setImage(infoMem.displayAvatarURL({ size: 4096 }));
+      .setImage(infoMem.displayAvatarURL({ size: 4096, extension: 'png' }));
 
     return msg.channel.send({ embeds: [embed] });
   }
