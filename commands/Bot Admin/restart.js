@@ -15,7 +15,14 @@ class Restart extends Command {
   async run(msg) {
     try {
       await msg.reply('Bot is restarting.');
-      await Promise.all(this.client.commands.map((cmd) => this.client.unloadCommand(cmd)));
+      await Promise.all(
+        this.client.commands.map((command) => this.client.unloadCommand(command.conf.location, command.help.name)),
+      );
+      await Promise.all(
+        this.client.slashCommands.map((slashCommand) =>
+          this.client.unloadInteraction(slashCommand.conf.location, slashCommand.commandData.name),
+        ),
+      );
       process.exit(0);
     } catch (e) {
       this.client.logger.error(e);
