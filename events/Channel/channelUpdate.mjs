@@ -46,19 +46,22 @@ export async function run(client, channel, newChannel) {
 
   if (channel.name !== newChannel.name) embed.addFields([{ name: 'New Name', value: newChannel.name, inline: true }]);
 
-  if (channel.topic !== newChannel.topic)
+  if (channel.topic !== newChannel.topic) {
+    const oldTopic = channel.topic?.substring(0, 1020) || 'None';
+    const newTopic = newChannel.topic?.substring(0, 1020) || 'None';
     embed.addFields([
       {
         name: 'Old Topic',
-        value: channel.topic.length > 1024 ? channel.topic.substring(0, 1023) + '...' : channel.topic,
+        value: oldTopic.length === 1020 ? `${oldTopic}...` : oldTopic,
         inline: true,
       },
       {
         name: 'New Topic',
-        value: newChannel.topic.length > 1024 ? newChannel.topic.substring(0, 1023) + '...' : newChannel.topic,
+        value: newTopic.length === 1020 ? `${newTopic}...` : newTopic,
         inline: true,
       },
     ]);
+  }
 
   if (catUp)
     embed.addFields([
