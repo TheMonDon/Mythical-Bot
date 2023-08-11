@@ -84,7 +84,7 @@ export async function run(client, channel, newChannel) {
       ]);
   }
 
-  if (embed.fields?.length === 0) return;
+  if (embed.data.fields?.length === 0) return;
 
   channel.guild.channels.cache
     .get(logChan)
