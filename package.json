@@ -8,7 +8,7 @@
     "node": ">=16.9.0"
   },
   "scripts": {
-    "lint": "eslint --fix --cache commands events slash",
+    "lint": "eslint --fix --cache commands/** events/** slash_commands/**",
     "prettier:check": "prettier **/**.{js,json} --check --ignore-unknown",
     "prettier:fix": "prettier **/**.{js,json} --write --ignore-unknown"
   },
