@@ -23,7 +23,7 @@ class Kick extends Command {
 
     const logChan = await db.get(`servers.${msg.guild.id}.logs.channel`);
     const kickMem = await this.client.util.getMember(msg, args[0]);
-    if (!kickMem) return this.client.util.errorEmbed(msg, 'Please provide a valid member to kick.');
+    if (!kickMem) return this.client.util.errorEmbed(msg, 'Member is either not in server or is invalid.');
     if (!kickMem.kickable) return this.client.util.errorEmbed(msg, 'The member is not kickable by the bot.');
 
     // start reason
