@@ -245,6 +245,7 @@ const loadMusic = async () => {
 
   client.player.events
     .on('playerStart', async (queue, track) => {
+      if (queue.repeatMode === 1) return;
       const em = new EmbedBuilder()
         .setTitle('Now Playing')
         .setDescription(`[${track.author} - ${track.title}](${track.url}) \n\nRequested By: ${track.requestedBy}`)
