@@ -3,6 +3,8 @@ import { QuickDB } from 'quick.db';
 const db = new QuickDB();
 
 export async function run(client, member) {
+  const memberName = member.user.discriminator === '0' ? member.user.username : member.user.tag;
+
   async function LogSystem(member) {
     const logChan = await db.get(`servers.${member.guild.id}.logs.channel`);
     if (!logChan) return;
@@ -10,8 +12,8 @@ export async function run(client, member) {
     const logSys = await db.get(`servers.${member.guild.id}.logs.logSystem.member-leave`);
     if (!logSys || logSys !== 'enabled') return;
 
+    // Fetch all member so member count is correct
     await member.guild.members.fetch();
-    const memberName = member.user.discriminator === '0' ? member.user.username : member.user.tag;
     const embed = new EmbedBuilder()
       .setTitle('Member Left')
       .setColor('#3dd0f4')
@@ -39,15 +41,11 @@ export async function run(client, member) {
     if (!member.guild.members.me.permissions.has('ManageRoles')) return;
     if (member.user.bot) return;
 
-    const roles = [...member.roles?.cache.values()];
+    const roles = [...member.roles.cache.values()];
     if (roles.length === 1) return;
-    const arr = [];
+    const arr = roles.filter((role) => role.id !== member.guild.id).map((role) => role.id);
 
-    roles.forEach((role) => {
-      if (role.id !== member.guild.id) arr.push(role.id);
-    });
-
-    await db.set(`servers.${member.guild.id}.proles.users.${member.id}`, arr);
+    await db.set(`servers.${member.guild.id}.proles.users.${member.user.id}`, arr);
   }
 
   function WelcomeMessage(client, member) {
@@ -55,13 +53,12 @@ export async function run(client, member) {
 
     if (settings.leaveEnabled !== 'true') return;
 
-    // Replace the placeholders in the welcome message with actual data
-    const memberName = member.user.discriminator === '0' ? member.user.username : member.user.tag;
+    // Replace the placeholders in the leave message with actual data
     const leaveMessage = settings.leaveMessage.replace('{{user}}', memberName).replace('{{guild}}', member.guild.name);
 
     const em = new EmbedBuilder()
       .setColor(settings.embedColor)
-      .setTitle('Member left')
+      .setTitle('Member Left')
       .setAuthor({ name: memberName, iconURL: member.user.displayAvatarURL() })
       .setDescription(leaveMessage)
       .setTimestamp();

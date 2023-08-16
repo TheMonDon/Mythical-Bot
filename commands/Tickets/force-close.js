@@ -26,7 +26,7 @@ class forceClose extends Command {
       if (!args[0]) {
         tID = msg.channel.id;
         reason = 'No reason specified';
-      } else if (db.get(`servers.${msg.guild.id}.tickets.${args[0]}`)) {
+      } else if (await db.get(`servers.${msg.guild.id}.tickets.${args[0]}`)) {
         tID = args[0];
         args.shift();
         reason = args?.join(' ') || 'No reason specified';

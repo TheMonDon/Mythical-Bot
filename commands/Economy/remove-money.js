@@ -48,7 +48,7 @@ class RemoveMoney extends Command {
     if (mem.user.bot) return this.client.util.errorEmbed(msg, "You can't add money to bots.");
 
     if (type === 'bank') {
-      const bank = BigInt(db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`) || 0);
+      const bank = BigInt((await db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`)) || 0);
       const newAmount = bank - BigInt(amount);
       await db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`, newAmount.toString());
     } else {

@@ -56,7 +56,7 @@ class RemoveMoneyRole extends Command {
     if (type === 'bank') {
       members.forEach(async (mem) => {
         if (!mem.user.bot) {
-          const bank = BigInt(db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`));
+          const bank = BigInt((await db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`)) || 0);
           const newAmount = bank - amount;
           await db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`, newAmount.toString());
         }

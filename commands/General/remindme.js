@@ -30,7 +30,7 @@ class RemindMe extends Command {
     const numReminders = reminders.length;
 
     let maxReminders = 2;
-    const usertype = db.get(`users.${msg.author.id}.usertype`) || 0;
+    const usertype = await db.get(`users.${msg.author.id}.usertype`) || 0;
     if (usertype === 10) { // Developer.
       maxReminders = 20;
     } else if (usertype === 1) { // Donators?

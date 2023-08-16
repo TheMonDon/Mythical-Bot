@@ -55,7 +55,7 @@ class Rob extends Command {
         (await db.get(`servers.${msg.guild.id}.economy.startBalance`)) ||
         0,
     );
-    const authBank = BigInt(db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`) || 0);
+    const authBank = BigInt((await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`)) || 0);
     const authNet = authCash + authBank;
 
     const memCash = BigInt(

@@ -17,7 +17,7 @@ class AddMember extends Command {
   }
 
   async run(msg, args) {
-    if (!db.get(`servers.${msg.guild.id}.tickets`))
+    if (!(await db.get(`servers.${msg.guild.id}.tickets`)))
       return msg.channel.send('The ticket system has not been setup in this server.');
 
     if (!msg.channel.name.startsWith('ticket'))

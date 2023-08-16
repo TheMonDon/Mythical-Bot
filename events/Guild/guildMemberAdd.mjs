@@ -14,6 +14,7 @@ export async function run(client, member) {
     const logSys = await db.get(`servers.${member.guild.id}.logs.logSystem.member-join`);
     if (!logSys || logSys !== 'enabled') return;
 
+    // Fetch all members so member count is correct
     await member.guild.members.fetch();
     const embed = new EmbedBuilder()
       .setTitle('Member Joined')
@@ -42,7 +43,7 @@ export async function run(client, member) {
     if (!member.guild.members.me.permissions.has('ManageRoles')) return;
     if (member.user.bot) return;
 
-    const roles = await db.get(`servers.${member.guild.id}.proles.users.${member.id}`);
+    const roles = await db.get(`servers.${member.guild.id}.proles.users.${member.user.id}`);
     if (!roles) return;
 
     for (let i = 0; i < roles.length; i++) {
@@ -50,7 +51,7 @@ export async function run(client, member) {
       await setTimeoutPromise(1000);
     }
 
-    await db.delete(`servers.${member.guild.id}.proles.users.${member.id}`);
+    await db.delete(`servers.${member.guild.id}.proles.users.${member.user.id}`);
   }
 
   function WelcomeSystem(client, member) {

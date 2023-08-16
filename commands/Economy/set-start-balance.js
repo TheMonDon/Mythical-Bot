@@ -18,7 +18,7 @@ class SetStartBalance extends Command {
   }
 
   async run(msg, args) {
-    const currencySymbol = db.get(`servers.${msg.guild.id}.economy.symbol`) || '$';
+    const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
 
     const amount = args.join('').replace(/[^0-9\\.-]|-/g, '');
 

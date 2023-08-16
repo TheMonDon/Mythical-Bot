@@ -53,7 +53,7 @@ class GiveMoney extends Command {
           return this.client.util.errorEmbed(msg, "You can't pay someone when you have no money", 'Invalid Parameter');
 
         await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, 0);
-        const memCash = BigInt(db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`));
+        const memCash = BigInt((await db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`)) || 0);
         const newMemCash = memCash + authCash;
         await db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, newMemCash.toString());
 
