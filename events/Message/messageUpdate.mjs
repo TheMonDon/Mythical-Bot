@@ -38,20 +38,38 @@ export async function run(client, oldMessage, newMessage) {
           name: 'Edited Message',
           value: newMessage.content.length <= 1024 ? newMessage.content : `${newMessage.content.substring(0, 1020)}...`,
         },
-        { name: 'Channel', value: oldMessage.channel.toString() },
+        { name: 'Channel', value: oldMessage.channel.toString(), inline: true },
         { name: 'Message Author', value: `${oldMessage.author} (${authorName})` },
       ])
       .setTimestamp();
 
-    if (newMessage.mentions.users.size === 0)
-      embed.addFields([
-        {
-          name: 'Mentioned Users',
-          value: `Mentioned Member Count: ${
-            [...newMessage.mentions.users.values()].length
-          } \nMentioned Users List: \n${[...newMessage.mentions.users.values()]}`,
-        },
-      ]);
+    if (newMessage.mentions.users.size !== 0 || newMessage.mentions.users.size !== oldMessage.mentions.users.size) {
+      if (newMessage.mentions.users.size !== oldMessage.mentions.users.size) {
+        embed.addFields([
+          {
+            name: 'Old Mentioned Users',
+            value: `Mentioned Users Count: ${[...oldMessage.mentions.users.values()].length} \nMentioned Users List: ${[
+              ...oldMessage.mentions.users.values(),
+            ]}`,
+          },
+          {
+            name: 'New Mentioned Users',
+            value: `Mentioned Users Count: ${[...newMessage.mentions.users.values()].length} \nMentioned Users List: ${[
+              ...newMessage.mentions.users.values(),
+            ]}`,
+          },
+        ]);
+      } else if (newMessage.mentions.users.size !== 0) {
+        embed.addFields([
+          {
+            name: 'Mentioned Users',
+            value: `Mentioned Users Count: ${[...newMessage.mentions.users.values()].length} \nMentioned Users List: ${[
+              ...newMessage.mentions.users.values(),
+            ]}`,
+          },
+        ]);
+      }
+    }
     newMessage.guild.channels.cache.get(logChan).send({ embeds: [embed] });
 
     await db.add(`servers.${newMessage.guild.id}.logs.message-edited`, 1);

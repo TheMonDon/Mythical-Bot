@@ -25,7 +25,7 @@ export async function run(client, oldRole, newRole) {
       { name: 'New Color', value: newRole.hexColor.toString(), inline: true },
     ]);
 
-  if (embed.fields?.length === 0) return;
+  if (embed.data.fields?.length === 0) return;
 
   newRole.guild.channels.cache
     .get(logChan)

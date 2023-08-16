@@ -24,10 +24,19 @@ class Ban extends Command {
     const logChan = await db.get(`servers.${msg.guild.id}.logs.channel`);
     const regex = /^\d{17,19}$/;
 
-    const banMem = await this.client.util.getMember(msg, args[0]);
+    let banMem = await this.client.util.getMember(msg, args[0]);
+    let inGuild = true;
     if (!banMem) {
-      if (!regex.test(args[0])) {
+      const id = args[0].replace(/<@|>/g, '');
+      if (!regex.test(id)) {
         return this.client.util.errorEmbed(msg, 'Please provide a valid user input.');
+      } else {
+        try {
+          banMem = await this.client.users.fetch(id);
+          inGuild = false;
+        } catch (err) {
+          return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Member');
+        }
       }
     }
 
@@ -35,7 +44,7 @@ class Ban extends Command {
     const reason = args.join(' ');
 
     if (msg.guild.members.me.permissions.has('ManageMessages')) msg.delete();
-    if (!banMem.bannable) return this.client.util.errorEmbed(msg, 'That user is not bannable by the bot.');
+    if (inGuild && !banMem.bannable) return this.client.util.errorEmbed(msg, 'That user is not bannable by the bot.');
 
     // Embed for log channel or reply
     const em = new EmbedBuilder()
