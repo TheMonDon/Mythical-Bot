@@ -72,16 +72,19 @@ class TicTacToe extends Command {
           return msg.channel.send('Looks like they declined...');
         }
       }
+
       const sides = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
       const taken = [];
       let userTurn = true;
       let winner = null;
       let lastTurnTimeout = false;
       let message = 0;
+
       while (!winner && taken.length < 9) {
         const user = userTurn ? msg.author : opponent;
         const sign = userTurn ? 'X' : 'O';
         let choice;
+
         if (opponent.user.bot && !userTurn) {
           choice = tictactoe.bestMove(convertBoard(sides), { computer: 'o', opponent: 'x' });
         } else {
@@ -91,21 +94,25 @@ class TicTacToe extends Command {
             ${displayBoard(sides)}
           `);
           }
+
           await message.edit(stripIndents`
             ${user}, which side do you pick? Type \`end\` to forfeit.
             ${displayBoard(sides)}
           `);
+
           const filter = (res) => {
             if (res.author.id !== user.id) return false;
             const pick = res.content;
             if (pick.toLowerCase() === 'end') return true;
             return sides.includes(pick) && !taken.includes(pick);
           };
+
           const turn = await msg.channel.awaitMessages({
             filter,
             max: 1,
             time: 30000,
           });
+
           if (!turn.size) {
             await msg.channel.send('Sorry, time is up!');
             if (lastTurnTimeout) {
@@ -124,6 +131,7 @@ class TicTacToe extends Command {
           }
           if (msg.guild.members.me.permissions.has('ManageMessages')) turn.first().delete();
         }
+
         sides[opponent.user.bot && !userTurn ? choice : Number.parseInt(choice, 10) - 1] = sign;
         taken.push(choice);
         const win = verifyWin(sides, msg.author, opponent);
@@ -131,8 +139,10 @@ class TicTacToe extends Command {
         if (lastTurnTimeout) lastTurnTimeout = false;
         userTurn = !userTurn;
       }
+
       this.client.games.delete(msg.channel.id);
       if (winner === 'time') return msg.channel.send('Game ended due to inactivity.');
+
       return message.edit(stripIndents`
         ${winner === 'tie' ? 'Oh... The cat won.' : `Congrats, ${winner}!`}
         ${displayBoard(sides)}
@@ -143,4 +153,5 @@ class TicTacToe extends Command {
     }
   }
 }
+
 module.exports = TicTacToe;

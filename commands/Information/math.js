@@ -35,7 +35,7 @@ class Math extends Command {
         .setDescription('Powered by: [math.js](https://mathjs.org/examples/index.html)');
       return msg.channel.send({ embeds: [embed] });
     } catch (err) {
-      return this.client.util.errorEmbed(msg, err, 'Invalid Equation');
+      return this.client.util.errorEmbed(msg, err.toString(), 'Invalid Equation');
     }
   }
 }

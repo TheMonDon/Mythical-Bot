@@ -175,7 +175,10 @@ class Wordle extends Command {
         winner = true;
       }
 
-      await message.edit({ embeds: getContent() });
+      await message.edit({ embeds: getContent() }).catch(() => {
+        gameOver = true;
+        turn = -2;
+      });
       turn >= 5 ? (gameOver = true) : (turn += 1);
       await error?.delete().catch(() => {});
     }
@@ -186,6 +189,9 @@ class Wordle extends Command {
     }
     if (gameOver && winner) {
       return message.edit({ embeds: getContent() });
+    }
+    if (gameOver && turn === -1) {
+      return msg.channel.send('There was an error editing the game board, please start a new game.');
     }
     return msg.channel.send('You took too long to guess the word!');
   }

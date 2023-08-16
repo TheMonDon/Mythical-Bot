@@ -99,13 +99,14 @@ class Rob extends Command {
 
       let csFineAmount = currencySymbol + fineAmount.toLocaleString();
       csFineAmount = csFineAmount.length > 1024 ? `${csFineAmount.slice(0, 1021) + '...'}` : csFineAmount;
-      embed.setDescription(`You were caught attempting to rob ${mem.displayName} and have been fined ${csFineAmount}`);
+      embed.setDescription(
+        `You were caught attempting to rob ${mem.displayName} and have been fined **${csFineAmount}**`,
+      );
       msg.channel.send({ embeds: [embed] });
     } else {
-      // Lucky them, give them the money!
-      let amount = Math.floor(Math.random() * Number(memCash)) + 1;
-
-      if (amount === Infinity) return msg.channel.send('That person has too much money to be able to rob them.');
+      // Calculate a random amount to rob, without exceeding extremely large values
+      const maxRobAmount = Math.min(Number(memCash), Number.MAX_SAFE_INTEGER);
+      let amount = Math.floor(Math.random() * maxRobAmount) + 1;
       amount = BigInt(amount);
 
       const newMemCash = memCash - amount;

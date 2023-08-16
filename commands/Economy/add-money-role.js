@@ -87,7 +87,7 @@ class AddMoneyRole extends Command {
       .setAuthor({ name: authorName, iconURL: msg.author.displayAvatarURL() })
       .setColor(msg.settings.embedColor)
       .setDescription(
-        `:white_check_mark: Added **${csAmount}** to the ${type} balance of ${members.length} ${
+        `Added **${csAmount}** to the ${type} balance of ${members.length} ${
           members.length > 1 ? 'members' : 'member'
         } with the ${role}.`,
       )

@@ -47,9 +47,10 @@ class RemoveMoney extends Command {
     if (!mem) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Member');
     if (mem.user.bot) return this.client.util.errorEmbed(msg, "You can't add money to bots.");
 
+    amount = BigInt(amount);
     if (type === 'bank') {
       const bank = BigInt((await db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`)) || 0);
-      const newAmount = bank - BigInt(amount);
+      const newAmount = bank - amount;
       await db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`, newAmount.toString());
     } else {
       const cash = BigInt(
@@ -57,16 +58,16 @@ class RemoveMoney extends Command {
           (await db.get(`servers.${msg.guild.id}.economy.startBalance`)) ||
           0,
       );
-      const newAmount = cash - BigInt(amount);
+      const newAmount = cash - amount;
       await db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, newAmount.toString());
     }
 
     let csAmount = currencySymbol + amount.toLocaleString();
-    csAmount = csAmount.length > 1024 ? `${csAmount.slice(0, 1021) + '...'}` : csAmount;
+    csAmount = csAmount.length > 2048 ? `${csAmount.slice(0, 2048) + '...'}` : csAmount;
 
     embed
       .setColor(msg.settings.embedColor)
-      .setDescription(`:white_check_mark: Removed **${csAmount}** from ${mem}'s ${type} balance.`)
+      .setDescription(`Removed **${csAmount}** from ${mem}'s ${type} balance.`)
       .setTimestamp();
     return msg.channel.send({ embeds: [embed] });
   }

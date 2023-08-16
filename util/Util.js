@@ -1,4 +1,4 @@
-const yes = ['yes', 'y', 'ye', 'yeah', 'yup', 'yea', 'ya', 'correct', 'sure', 'hell yeah'];
+const yes = ['yes', 'y', 'ye', 'yeah', 'yup', 'yea', 'ya', 'correct', 'sure', 'hell yeah', 'ok', 'okay'];
 const no = ['no', 'n', 'nah', 'nope', 'fuck off', 'nada', 'cancel', 'stop'];
 const inviteRegex = /(https?:\/\/)?(www\.|canary\.|ptb\.)?discord(\.gg|(app)?\.com\/invite|\.me)\/([^ ]+)\/?/gi;
 const botInvRegex = /(https?:\/\/)?(www\.|canary\.|ptb\.)?discord(app)?\.com\/(api\/)?oauth2\/authorize\?([^ ]+)\/?/gi;

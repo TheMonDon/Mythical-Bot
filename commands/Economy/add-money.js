@@ -42,10 +42,9 @@ class AddMoney extends Command {
       type = args[0].toLowerCase();
     }
 
-    if (isNaN(amount))
-      return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Incorrect Usage');
+    if (isNaN(amount)) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Amount');
     if (!mem) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Member');
-    if (mem.user.bot) return this.client.util.errorEmbed(msg, "You can't add money to bots.");
+    if (mem.user.bot) return this.client.util.errorEmbed(msg, "You can't add money to a bot.");
 
     amount = BigInt(amount);
     if (type === 'bank') {
@@ -63,11 +62,11 @@ class AddMoney extends Command {
     }
 
     let csAmount = currencySymbol + amount.toLocaleString();
-    csAmount = csAmount.length > 1024 ? `${csAmount.slice(0, 1021) + '...'}` : csAmount;
+    csAmount = csAmount.length > 2048 ? `${csAmount.slice(0, 2048) + '...'}` : csAmount;
 
     embed
       .setColor(msg.settings.embedColor)
-      .setDescription(`:white_check_mark: Added **${csAmount}** to ${mem}'s ${type} balance.`)
+      .setDescription(`Added **${csAmount}** to ${mem}'s ${type} balance.`)
       .setTimestamp();
     return msg.channel.send({ embeds: [embed] });
   }

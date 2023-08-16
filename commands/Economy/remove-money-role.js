@@ -53,27 +53,22 @@ class RemoveMoneyRole extends Command {
     const members = [...role.members.values()];
 
     amount = BigInt(amount);
-    if (type === 'bank') {
-      members.forEach(async (mem) => {
-        if (!mem.user.bot) {
-          const bank = BigInt((await db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`)) || 0);
-          const newAmount = bank - amount;
-          await db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`, newAmount.toString());
-        }
-      });
-    } else {
-      members.forEach(async (mem) => {
-        if (!mem.user.bot) {
-          const cash = BigInt(
-            (await db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`)) ||
-              (await db.get(`servers.${msg.guild.id}.economy.startBalance`)) ||
-              0,
-          );
-          const newAmount = cash - amount;
-          await db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, newAmount.toString());
-        }
-      });
-    }
+    members.forEach(async (member) => {
+      if (member.user.bot) return;
+      if (type === 'bank') {
+        const bank = BigInt((await db.get(`servers.${msg.guild.id}.users.${member.id}.economy.bank`)) || 0);
+        const newAmount = bank - amount;
+        await db.set(`servers.${msg.guild.id}.users.${member.id}.economy.bank`, newAmount.toString());
+      } else {
+        const cash = BigInt(
+          (await db.get(`servers.${msg.guild.id}.users.${member.id}.economy.cash`)) ||
+            (await db.get(`servers.${msg.guild.id}.economy.startBalance`)) ||
+            0,
+        );
+        const newAmount = cash - amount;
+        await db.set(`servers.${msg.guild.id}.users.${member.id}.economy.cash`, newAmount.toString());
+      }
+    });
 
     let csAmount = currencySymbol + amount.toLocaleString();
     csAmount = csAmount.length > 1024 ? `${csAmount.slice(0, 1021) + '...'}` : csAmount;
@@ -81,7 +76,7 @@ class RemoveMoneyRole extends Command {
     embed
       .setColor(msg.settings.embedColor)
       .setDescription(
-        `:white_check_mark: Removed **${csAmount}** from the ${type} balance of ${members.length} ${
+        `Removed **${csAmount}** from the ${type} balance of ${members.length} ${
           members.length > 1 ? 'members' : 'member'
         } with the ${role}.`,
       )
