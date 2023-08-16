@@ -48,7 +48,6 @@ class Eval extends Command {
         embed.addFields([{ name: 'Type', value: code('css', typeof evald) }]).setColor(msg.settings.embedSuccessColor);
       }
     } catch (error) {
-      console.log(error);
       embed.addFields([{ name: 'Error', value: code('js', error) }]).setColor(msg.settings.embedErrorColor);
     } finally {
       msg.channel.send({ embeds: [embed] }).catch((error) => {
