@@ -9,7 +9,7 @@ class ShowerThoughts extends Command {
       description: 'Get a random shower thought.',
       usage: 'shower-thoughts',
       category: 'Fun',
-      Aliases: ['showerthoughts', 'showerthought'],
+      aliases: ['showerthoughts', 'showerthought', 'shower-thought'],
     });
   }
 
