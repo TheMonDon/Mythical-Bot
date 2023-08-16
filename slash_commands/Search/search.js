@@ -69,7 +69,6 @@ exports.run = async (interaction) => {
         return interaction.client.util.errorEmbed(interaction, 'Failed to fetch a post from reddit. Please try again');
 
       const authorName = interaction.user.discriminator === '0' ? interaction.user.username : interaction.user.tag;
-      const text = post.text?.length > 4000 ? post.text.slice(0, 4000) + '\nRead more on reddit.' : post.text;
       const embed = new EmbedBuilder()
         .setAuthor({ name: authorName, iconURL: interaction.user.displayAvatarURL() })
         .setTitle(post.title)
@@ -77,7 +76,11 @@ exports.run = async (interaction) => {
         .setURL(post.permalink)
         .setImage(post.media)
         .setTimestamp();
-      if (text) embed.setDescription(text);
+
+      if (post.text) {
+        const text = post.text?.length > 4000 ? post.text.slice(0, 4000) + '\nRead more on reddit.' : post.text;
+        embed.setDescription(text);
+      }
 
       if (post.over_18 && interaction.channel.nsfw === false) {
         return interaction.editReply('The post from that subreddit is NSFW and could not be sent in this channel.');

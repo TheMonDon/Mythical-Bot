@@ -18,9 +18,9 @@ class Reddit extends Command {
 
     try {
       const post = await trev.getCustomSubreddit(subreddit);
+      if (!post) return msg.channel.send('I could not get a post from that subreddit. Please try again.');
 
       const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
-      const text = post.text?.length > 4000 ? post.text.slice(0, 4000) + '\nRead more on reddit.' : post.text;
       const em = new EmbedBuilder()
         .setAuthor({ name: authorName, iconURL: msg.author.displayAvatarURL() })
         .setTitle(post.title)
@@ -28,7 +28,11 @@ class Reddit extends Command {
         .setURL(post.permalink)
         .setImage(post.media)
         .setTimestamp();
-      if (text) em.setDescription(text);
+
+      if (post.text) {
+        const text = post.text?.length > 4000 ? post.text.slice(0, 4000) + '\nRead more on reddit.' : post.text;
+        em.setDescription(text);
+      }
 
       if (post.over_18 && msg.channel.nsfw === false) {
         return msg.channel.send('The post from that subreddit is NSFW and could not be sent in this channel.');
