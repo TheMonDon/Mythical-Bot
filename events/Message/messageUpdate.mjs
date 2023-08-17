@@ -23,6 +23,18 @@ export async function run(client, oldMessage, newMessage) {
     if (oldMessage.content === newMessage.content) return;
 
     const authorName = oldMessage.author.discriminator === '0' ? oldMessage.author.username : oldMessage.author.tag;
+    let oldContent = ' ';
+    let newContent = ' ';
+
+    if (oldMessage.content) {
+      oldContent =
+        oldMessage.content.length <= 1024 ? oldMessage.content : `${oldMessage.content.substring(0, 1020)}...`;
+    }
+    if (newMessage.content) {
+      newContent =
+        newMessage.content.length <= 1024 ? newMessage.content : `${newMessage.content.substring(0, 1020)}...`;
+    }
+
     const embed = new EmbedBuilder()
       .setTitle('Message Edited')
       .setURL(newMessage.url)
@@ -32,11 +44,11 @@ export async function run(client, oldMessage, newMessage) {
       .addFields([
         {
           name: 'Original Message',
-          value: oldMessage.content.length <= 1024 ? oldMessage.content : `${oldMessage.content.substring(0, 1020)}...`,
+          value: oldContent,
         },
         {
           name: 'Edited Message',
-          value: newMessage.content.length <= 1024 ? newMessage.content : `${newMessage.content.substring(0, 1020)}...`,
+          value: newContent,
         },
         { name: 'Channel', value: oldMessage.channel.toString(), inline: true },
         { name: 'Message Author', value: `${oldMessage.author} (${authorName})` },
@@ -70,7 +82,13 @@ export async function run(client, oldMessage, newMessage) {
         ]);
       }
     }
-    newMessage.guild.channels.cache.get(logChan).send({ embeds: [embed] });
+
+    newMessage.guild.channels.cache
+      .get(logChan)
+      .send({ embeds: [embed] })
+      .catch((err) => {
+        client.logger.error(err);
+      });
 
     await db.add(`servers.${newMessage.guild.id}.logs.message-edited`, 1);
     await db.add(`servers.${newMessage.guild.id}.logs.all`, 1);
