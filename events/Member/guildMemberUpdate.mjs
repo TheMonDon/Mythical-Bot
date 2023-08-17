@@ -1,7 +1,5 @@
 import { EmbedBuilder } from 'discord.js';
 import { QuickDB } from 'quick.db';
-import { promisify } from 'util';
-const setTimeoutPromise = promisify(setTimeout);
 const db = new QuickDB();
 
 export async function run(client, oldMember, newMember) {
