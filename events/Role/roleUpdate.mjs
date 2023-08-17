@@ -27,11 +27,8 @@ export async function run(client, oldRole, newRole) {
 
   if (embed.data.fields?.length === 0) return;
 
-  newRole.guild.channels.cache
+  return newRole.guild.channels.cache
     .get(logChan)
     .send({ embeds: [embed] })
     .catch(() => {});
-
-  await db.add(`servers.${newRole.guild.id}.logs.role-updated`, 1);
-  await db.add(`servers.${newRole.guild.id}.logs.all`, 1);
 }

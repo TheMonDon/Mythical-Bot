@@ -83,15 +83,12 @@ export async function run(client, oldMessage, newMessage) {
       }
     }
 
-    newMessage.guild.channels.cache
+    return newMessage.guild.channels.cache
       .get(logChan)
       .send({ embeds: [embed] })
       .catch((err) => {
         client.logger.error(err);
       });
-
-    await db.add(`servers.${newMessage.guild.id}.logs.message-edited`, 1);
-    await db.add(`servers.${newMessage.guild.id}.logs.all`, 1);
   }
 
   async function CommandUpdate(client, oldMessage, newMessage) {
@@ -195,6 +192,6 @@ export async function run(client, oldMessage, newMessage) {
     cmd.run(newMessage, args, level);
   }
 
-  LogSystem(client, oldMessage, newMessage);
-  CommandUpdate(client, oldMessage, newMessage);
+  await LogSystem(client, oldMessage, newMessage);
+  await CommandUpdate(client, oldMessage, newMessage);
 }

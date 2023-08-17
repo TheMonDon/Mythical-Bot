@@ -19,11 +19,8 @@ export async function run(client, stageInstance) {
     .setFooter({ text: `ID: ${stageInstance.id}` })
     .setTimestamp();
 
-  stageInstance.guild.channels.cache
+  return stageInstance.guild.channels.cache
     .get(logChan)
     .send({ embeds: [embed] })
     .catch(() => {});
-
-  await db.add(`servers.${stageInstance.guild.id}.logs.stage-channel-created`, 1);
-  await db.add(`servers.${stageInstance.guild.id}.logs.all`, 1);
 }

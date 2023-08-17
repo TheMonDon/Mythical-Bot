@@ -28,6 +28,7 @@ class ToggleAll extends Command {
       emoji: 'enabled',
       'member-join': 'enabled',
       'member-leave': 'enabled',
+      'member-timeout': 'enabled',
       'message-deleted': 'enabled',
       'message-edited': 'enabled',
       'role-created': 'enabled',
@@ -46,6 +47,7 @@ class ToggleAll extends Command {
       Object.keys(logSystem).forEach((key) => {
         logSystem[key] = 'disabled';
       });
+
       await db.set(`servers.${msg.guild.id}.logs.logSystem`, logSystem);
       return msg.channel.send('Everything has been disabled.');
     } else if (all === 'disabled') {

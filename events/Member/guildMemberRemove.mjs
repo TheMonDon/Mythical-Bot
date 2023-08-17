@@ -69,7 +69,7 @@ export async function run(client, member) {
   }
 
   // Run the functions
-  LogSystem(member);
-  AutoRole(member);
+  await LogSystem(member);
+  await AutoRole(member);
   WelcomeMessage(client, member);
 }

@@ -27,7 +27,4 @@ export async function run(client, channel) {
     .get(logChan)
     .send({ embeds: [embed] })
     .catch(() => {});
-
-  await db.add(`servers.${channel.guild.id}.logs.channel-deleted`, 1);
-  await db.add(`servers.${channel.guild.id}.logs.all`, 1);
 }

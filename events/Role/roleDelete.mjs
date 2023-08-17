@@ -21,11 +21,8 @@ export async function run(client, role) {
 
   if (role.hexColor.toString() !== '#000000') embed.addFields({ name: 'Color', value: role.hexColor.toString() });
 
-  role.guild.channels.cache
+  return role.guild.channels.cache
     .get(logChan)
     .send({ embeds: [embed] })
     .catch(() => {});
-
-  await db.add(`servers.${role.guild.id}.logs.role-deleted`, 1);
-  await db.add(`servers.${role.guild.id}.logs.all`, 1);
 }

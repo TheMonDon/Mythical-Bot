@@ -55,11 +55,8 @@ export async function run(client, oldStageInstance, newStageInstance) {
       { name: 'New Category', value: newCategoryName, inline: true },
     ]);
 
-  oldStageInstance.guild.channels.cache
+  return oldStageInstance.guild.channels.cache
     .get(logChan)
     .send({ embeds: [embed] })
     .catch(() => {});
-
-  await db.add(`servers.${oldStageInstance.guild.id}.logs.stage-channel-updated`, 1);
-  await db.add(`servers.${oldStageInstance.guild.id}.logs.all`, 1);
 }

@@ -31,9 +31,6 @@ export async function run(client, member) {
     const channel = member.guild.channels.cache.get(logChan);
     if (!channel) return;
     channel.send({ embeds: [embed] });
-
-    await db.add(`servers.${member.guild.id}.logs.member-join`, 1);
-    await db.add(`servers.${member.guild.id}.logs.all`, 1);
   }
 
   async function AutoRole(member) {
@@ -81,7 +78,7 @@ export async function run(client, member) {
   }
 
   // Run the functions
-  LogSystem(member);
-  AutoRole(member);
+  await LogSystem(member);
+  await AutoRole(member);
   WelcomeSystem(client, member);
 }

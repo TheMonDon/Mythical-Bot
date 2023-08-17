@@ -25,7 +25,4 @@ export async function run(client, emoji) {
     .get(logChan)
     .send({ embeds: [embed] })
     .catch(() => {});
-
-  await db.add(`servers.${emoji.guild.id}.logs.emoji`, 1);
-  await db.add(`servers.${emoji.guild.id}.logs.all`, 1);
 }

@@ -23,11 +23,8 @@ export async function run(client, sticker) {
     ])
     .setTimestamp();
 
-  guild.channels.cache
+  return guild.channels.cache
     .get(logChan)
     .send({ embeds: [embed] })
     .catch(() => {});
-
-  await db.add(`servers.${guild.id}.logs.sticker`, 1);
-  await db.add(`servers.${guild.id}.logs.all`, 1);
 }

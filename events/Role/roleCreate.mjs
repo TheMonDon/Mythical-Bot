@@ -20,11 +20,8 @@ export async function run(client, role) {
     .setFooter({ text: `ID: ${role.id}` })
     .setTimestamp();
 
-  role.guild.channels.cache
+  return role.guild.channels.cache
     .get(logChan)
     .send({ embeds: [embed] })
     .catch(() => {});
-
-  await db.add(`servers.${role.guild.id}.logs.role-created`, 1);
-  await db.add(`servers.${role.guild.id}.logs.all`, 1);
 }

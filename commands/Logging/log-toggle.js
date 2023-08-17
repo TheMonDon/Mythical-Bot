@@ -33,7 +33,8 @@ class LogToggle extends Command {
     const vcd = /^((voice|v)[-]?channel[-]?deleted)/gi;
     const mj = /^(member[-]?join(ed)?)/gi;
     const ml = /^(member[-]?leave)/gi;
-    const me1 = /^(message[-]?edited)/gi;
+    const mt = /^(member[-]?timeout)/gi;
+    const me = /^(message[-]?edited)/gi;
     const md = /^(message[-]?deleted)/gi;
     const rc = /^(role[-]?created)/gi;
     const rd = /^(role[-]?deleted)/gi;
@@ -60,6 +61,7 @@ voice-channel-created
 voice-channel-deleted
 member-join
 member-leave
+member-timeout
 message-edited
 message-deleted
 role-created
@@ -185,7 +187,15 @@ sticker`,
         await db.set(`servers.${msg.guild.id}.logs.logSystem.member-leave`, 'enabled');
         msg.channel.send('Member-Leave logs has been enabled');
       }
-    } else if (me1.test(query)) {
+    } else if (mt.test(query)) {
+      if ((await db.get(`servers.${msg.guild.id}.logs.logSystem.member-timeout`)) === 'enabled') {
+        await db.set(`servers.${msg.guild.id}.logs.logSystem.member-timeout`, 'disabled');
+        msg.channel.send('Member-Timeout logs has been disabled');
+      } else {
+        await db.set(`servers.${msg.guild.id}.logs.logSystem.member-timeout`, 'enabled');
+        msg.channel.send('Member-Timeout logs has been enabled');
+      }
+    } else if (me.test(query)) {
       if ((await db.get(`servers.${msg.guild.id}.logs.logSystem.message-edited`)) === 'enabled') {
         await db.set(`servers.${msg.guild.id}.logs.logSystem.message-edited`, 'disabled');
         msg.channel.send('Message-Edited logs has been disabled');

@@ -90,7 +90,4 @@ export async function run(client, channel, newChannel) {
     .get(logChan)
     .send({ embeds: [embed] })
     .catch(() => {});
-
-  await db.add(`servers.${channel.guild.id}.logs.channel-updated`, 1);
-  await db.add(`servers.${channel.guild.id}.logs.all`, 1);
 }

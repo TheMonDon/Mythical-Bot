@@ -204,6 +204,7 @@ class Setup extends Command {
         'thread-deleted': 'enabled',
         'member-join': 'enabled',
         'member-leave': 'enabled',
+        'member-timeout': 'enabled',
         'message-deleted': 'enabled',
         'message-edited': 'enabled',
         'role-created': 'enabled',
@@ -247,7 +248,7 @@ class Setup extends Command {
           .setThumbnail('https://cdn.discordapp.com/emojis/482184108555108358.png')
           .setDescription(`Everything related to logs will be posted in ${chan} from now on.`)
           .setTimestamp()
-          .setFooter({ text: 'Logs System V4.0' });
+          .setFooter({ text: 'Logs System V4.1' });
         msg.channel.send({ embeds: [embed] });
       } else {
         await db.set(`servers.${msg.guild.id}.logs.logSystem`, logSystem);
@@ -257,7 +258,7 @@ class Setup extends Command {
           .setThumbnail('https://cdn.discordapp.com/emojis/482184108555108358.png')
           .setDescription(`Everything related to logs will be posted in ${chan}.`)
           .setTimestamp()
-          .setFooter({ text: 'Logs System V4.0' });
+          .setFooter({ text: 'Logs System V4.1' });
         msg.channel.send({ embeds: [embed] });
       }
       await db.set(`servers.${msg.guild.id}.logs.channel`, chan.id);

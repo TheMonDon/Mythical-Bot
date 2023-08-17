@@ -76,11 +76,8 @@ export async function run(client, messages) {
       { name: 'Deleted Amount', value: messages.size.toLocaleString() },
     ]);
 
-  server.channels.cache
+  return server.channels.cache
     .get(logChan)
     .send({ embeds: [embed], files: [attachment] })
     .catch(() => {});
-
-  await db.add(`servers.${server.id}.logs.bulk-messages-deleted`, 1);
-  await db.add(`servers.${server.id}.logs.all`, 1);
 }

@@ -54,17 +54,14 @@ export async function run(client, message) {
       embed.addFields([{ name: 'Stickers', value: stickerString.join('').slice(0, 1_024) }]);
     }
 
-    if (delby && message.author !== delby) embed.addFields([{ name: 'Deleted By', value: delby }]);
+    if (delby && message.author !== delby) embed.addFields([{ name: 'Deleted By', value: delby.toString() }]);
     if (message.mentions.users.size >= 1)
       embed.addFields([{ name: 'Mentioned Users', value: `${[...message.mentions.users.values()]}` }]);
 
-    message.guild.channels.cache
+    return message.guild.channels.cache
       .get(logChan)
       .send({ embeds: [embed] })
       .catch(() => {});
-
-    await db.add(`servers.${message.guild.id}.logs.message-deleted`, 1);
-    await db.add(`servers.${message.guild.id}.logs.all`, 1);
   } catch (err) {
     client.logger.error(err);
   }
