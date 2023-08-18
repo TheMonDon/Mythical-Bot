@@ -9,15 +9,32 @@ class Flood extends Command {
     super(client, {
       name: 'flood',
       description: 'Play a game of flood.',
-      usage: 'flood',
+      usage: 'flood [difficulty]',
       category: 'Games',
-      enabled: 'false',
     });
   }
 
-  async run(msg) {
-    const WIDTH = 13;
-    const HEIGHT = 13;
+  async run(msg, args) {
+    let WIDTH = 13;
+    let HEIGHT = 13;
+    let moves = 25;
+    let difficulty = 'medium';
+
+    if (args && args.length > 0) {
+      difficulty = args.join().toLowerCase();
+      if (!['easy', 'medium', 'hard'].includes(difficulty))
+        return msg.channel.send('Invalid difficulty. Easy, Medium, Hard');
+      if (difficulty === 'easy') {
+        WIDTH = 7;
+        HEIGHT = 7;
+        moves = 13;
+      } else if (difficulty === 'hard') {
+        WIDTH = 18;
+        HEIGHT = 18;
+        moves = 32;
+      }
+    }
+
     const SQUARES = {
       red_square: '🟥',
       blue_square: '🟦',
@@ -92,16 +109,18 @@ class Flood extends Command {
           highScore = oldHS?.score || 0;
           highScoreUser = oldHS?.user || 'N/A';
           highScoreTime = oldHS?.time || 0;
-          if (HS.score < highScore || !oldHS) {
-            await db.set('global.highScores.flood', HS);
-            highScore = HS.score;
-            highScoreUser = 'You';
-            highScoreTime = gameTimeSeconds;
-          } else if (HS.score === highScore && HS.time <= highScoreTime) {
-            await db.set('global.highScores.flood', HS);
-            highScore = HS.score;
-            highScoreUser = 'You';
-            highScoreTime = gameTimeSeconds;
+          if (difficulty === 'medium') {
+            if (HS.score < highScore || !oldHS) {
+              await db.set('global.highScores.flood', HS);
+              highScore = HS.score;
+              highScoreUser = 'You';
+              highScoreTime = gameTimeSeconds;
+            } else if (HS.score === highScore && HS.time <= highScoreTime) {
+              await db.set('global.highScores.flood', HS);
+              highScore = HS.score;
+              highScoreUser = 'You';
+              highScoreTime = gameTimeSeconds;
+            }
           }
         } else {
           const oldHS = await db.get('global.highScores.flood');
@@ -110,12 +129,14 @@ class Flood extends Command {
           highScoreTime = oldHS?.time || 0;
         }
 
-        if (!isNaN(highScoreTime))
+        if (!isNaN(highScoreTime)) {
           highScoreTime = Duration.fromMillis(highScoreTime * 1000)
             .shiftTo('minutes', 'seconds')
             .toHuman();
+        }
+
         embed = new EmbedBuilder()
-          .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL({ dynamic: true }) })
+          .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
           .setColor(color)
           .setTitle('Flood')
           .setDescription(`${gameBoardToString()} \nGame Over! \n${turnResp[result]}`)
@@ -123,12 +144,12 @@ class Flood extends Command {
           .setTimestamp();
       } else {
         embed = new EmbedBuilder()
-          .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL({ dynamic: true }) })
+          .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
           .setColor(color)
           .setTitle('Flood')
           .setDescription(
             `${gameBoardToString()} 
-Fill the entire image with the same color in 25 or fewer flood tiles (turns).
+Fill the entire image with the same color in ${moves} or fewer flood tiles (turns).
 
 Click on the reactions below to fill the area above.
 Filling starts at the top left corner.`,
@@ -138,11 +159,15 @@ Filling starts at the top left corner.`,
           .setTimestamp();
       }
 
-      return [embed];
+      return embed;
     }
 
     try {
-      while (gameOver === false && turn < 25) {
+      const embed = await getContent();
+      message = await msg.channel.send({ embeds: [embed] });
+      ['🟥', '🟦', '🟧', '🟪', '🟩', '🛑'].forEach((s) => message.react(s));
+
+      while (gameOver === false && turn < moves) {
         turn += 1;
         const current = gameBoard[0];
         const queue = [{ x: 0, y: 0 }];
@@ -153,13 +178,8 @@ Filling starts at the top left corner.`,
           return ['🟥', '🟦', '🟧', '🟪', '🟩', '🛑'].includes(reaction.emoji.name) && user.id === msg.author.id;
         };
 
-        // If the message doesn't exist, create it
-        if (!message) {
-          message = await msg.channel.send({ embeds: getContent() });
-          ['🟥', '🟦', '🟧', '🟪', '🟩', '🛑'].forEach((s) => message.react(s));
-        } else {
-          message.edit({ embeds: getContent() });
-        }
+        const embed = await getContent();
+        message.edit({ embeds: [embed] });
 
         const collected = await message.awaitReactions({ filter, max: 1, time: 60000, errors: ['time'] });
         if (!collected || !collected.first()) {
@@ -167,7 +187,8 @@ Filling starts at the top left corner.`,
           result = 'timeOut';
           this.client.games.delete(msg.channel.id);
           message.reactions.removeAll();
-          return message.edit({ embeds: getContent() });
+          const embed = await getContent();
+          return message.edit({ embeds: [embed] });
         }
 
         collected
@@ -175,12 +196,14 @@ Filling starts at the top left corner.`,
           .users.remove(msg.author.id)
           .catch(() => {});
         selected = collected.first().emoji.name;
+
         if (selected === '🛑') {
           gameOver = true;
           result = 'earlyEnd';
           this.client.games.delete(msg.channel.id);
           message?.reactions?.removeAll();
-          return message.edit({ embeds: getContent() });
+          const embed = await getContent();
+          return message.edit({ embeds: [embed] });
         } else if (selected === lastMove) {
           if (error) error.delete();
           error = await msg.channel.send("You can't flood with the same color twice in a row!");
@@ -194,6 +217,7 @@ Filling starts at the top left corner.`,
             continue;
           }
           visited.push(pos);
+
           if (gameBoard[pos.y * WIDTH + pos.x] === current) {
             gameBoard[pos.y * WIDTH + pos.x] = selected;
             const upPos = up(pos);
@@ -234,15 +258,17 @@ Filling starts at the top left corner.`,
       if (gameOver === true) {
         this.client.games.delete(msg.channel.id);
         message?.reactions?.removeAll();
-        return message.edit({ embeds: getContent() });
+        const embed = await getContent();
+        return message.edit({ embeds: [embed] });
       }
 
-      if (turn >= 25) {
+      if (turn >= moves) {
         this.client.games.delete(msg.channel.id);
         message?.reactions?.removeAll();
         gameOver = true;
         result = 'maxTurns';
-        return message.edit({ embeds: getContent() });
+        const embed = await getContent();
+        return message.edit({ embeds: [embed] });
       }
 
       this.client.games.delete(msg.channel.id);
@@ -253,7 +279,9 @@ Filling starts at the top left corner.`,
       message?.reactions?.removeAll();
       gameOver = true;
       result = 'error';
-      return message.edit({ embeds: getContent() });
+      const embed = await getContent();
+
+      return message.edit({ embeds: [embed] });
     }
   }
 }
