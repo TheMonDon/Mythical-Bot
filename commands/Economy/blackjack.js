@@ -1,5 +1,5 @@
+const { EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder } = require('discord.js');
 const Command = require('../../base/Command.js');
-const { EmbedBuilder } = require('discord.js');
 const { QuickDB } = require('quick.db');
 const db = new QuickDB();
 
@@ -158,146 +158,138 @@ class BlackJack extends Command {
 
     bj.init();
 
-    let playerCards = getCards('player', bj);
-    let dealerCards = getCards('dealer', bj);
+    const playerCards = getCards('player', bj);
+    const dealerCards = getCards('dealer', bj);
 
     if (blackjack) {
+      const winAmount = BigInt(bj.bet);
+
       const embed = new EmbedBuilder()
         .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
-        .setDescription(`Result: You win ${currencySymbol}${bj.bet.toLocaleString()}`)
+        .setDescription(`Result: You win ${currencySymbol}${winAmount.toLocaleString()}`)
         .setColor(color)
         .addFields([
           { name: '**Your Hand**', value: `${playerCards} \n\nScore: Blackjack`, inline: true },
           { name: '**Dealer Hand**', value: `${dealerCards} \n\nScore: ${bj.dealer.score}`, inline: true },
         ]);
 
-      const winAmount = BigInt(bj.bet);
       const newAmount = cash + winAmount;
-      await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAmount.toString()); // Add the winning money
+      await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAmount.toString());
       return msg.channel.send({ embeds: [embed] });
     }
 
-    const em = new EmbedBuilder()
-      .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
-      .setDescription('Type `hit` to draw another card, `stand` to pass, or `doubledown` to double down.')
-      .setColor(color)
-      .addFields([
-        { name: '**Your Hand**', value: `${playerCards} \n\nScore: ${bj.player.score}`, inline: true },
-        { name: '**Dealer Hand**', value: `${dealerCards} \n\nScore: ${bj.dealer.score}`, inline: true },
-      ]);
-    const mEm = await msg.channel.send({ embeds: [em] });
-
-    while (gameOver === false) {
-      const collected = await msg.channel.awaitMessages({
-        filter: (m) =>
-          m.author.id === msg.author.id && ['hit', 'stand', 'doubledown'].includes(m.content.toLowerCase()),
-        max: 1,
-        time: 60000,
-      });
-      if (!collected || !collected.first()) gameOver = true;
-
-      const selected = collected.first().content.toLowerCase();
-
-      if (selected === 'hit') {
-        bj.hit();
-        collected
-          .first()
-          .delete()
-          .catch(() => {});
-      } else if (selected === 'stand') {
-        bj.stand();
-        collected
-          .first()
-          .delete()
-          .catch(() => {});
-      } else if (selected === 'doubledown') {
-        bj.doubleDown();
-        collected
-          .first()
-          .delete()
-          .catch(() => {});
-      }
-
-      if (win) {
-        playerCards = getCards('player', bj);
-        dealerCards = getCards('dealer', bj);
-
-        const embed = new EmbedBuilder()
-          .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
-          .setDescription(`Result: You win ${currencySymbol}${bj.bet.toLocaleString()}`)
-          .setColor(color)
-          .addFields([
-            { name: '**Your Hand**', value: `${playerCards} \n\nScore: ${bj.player.score}`, inline: true },
-            { name: '**Dealer Hand**', value: `${dealerCards} \n\nScore: ${bj.dealer.score}`, inline: true },
-          ]);
-
-        const winAmount = BigInt(bj.bet);
-        const newAmount = cash + winAmount;
-        await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAmount.toString()); // Add the winning money
-        return mEm.edit({ embeds: [embed] });
-      } else if (blackjack) {
-        playerCards = getCards('player', bj);
-        dealerCards = getCards('dealer', bj);
-
-        const embed = new EmbedBuilder()
-          .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
-          .setDescription(`Result: BlackJack, you win ${currencySymbol}${bj.bet.toLocaleString()}`)
-          .setColor(color)
-          .addFields([
-            { name: '**Your Hand**', value: `${playerCards} \n\nScore: ${bj.player.score}`, inline: true },
-            { name: '**Dealer Hand**', value: `${dealerCards} \n\nScore: ${bj.dealer.score}`, inline: true },
-          ]);
-
-        const winAmount = BigInt(bj.bet);
-        const newAmount = cash + winAmount;
-        await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAmount.toString()); // Add the winning money
-        return mEm.edit({ embeds: [embed] });
-      } else if (bust) {
-        playerCards = getCards('player', bj);
-        dealerCards = getCards('dealer', bj);
-
-        const embed = new EmbedBuilder()
-          .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
-          .setDescription(`Result: Bust, you lose ${currencySymbol}${bj.bet.toLocaleString()}`)
-          .setColor(color)
-          .addFields([
-            { name: '**Your Hand**', value: `${playerCards} \n\nScore: ${bj.player.score}`, inline: true },
-            { name: '**Dealer Hand**', value: `${dealerCards} \n\nScore: ${bj.dealer.score}`, inline: true },
-          ]);
-
-        const loseAmount = BigInt(bj.bet);
-        const newAmount = cash - loseAmount;
-        await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAmount.toString());
-        return mEm.edit({ embeds: [embed] });
-      } else if (push) {
-        playerCards = getCards('player', bj);
-        dealerCards = getCards('dealer', bj);
-
-        const embed = new EmbedBuilder()
-          .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
-          .setDescription('Result: Push, money back')
-          .setColor(color)
-          .addFields([
-            { name: '**Your Hand**', value: `${playerCards} \n\nScore: ${bj.player.score}`, inline: true },
-            { name: '**Dealer Hand**', value: `${dealerCards} \n\nScore: ${bj.dealer.score}`, inline: true },
-          ]);
-
-        return mEm.edit({ embeds: [embed] });
-      }
-
-      playerCards = getCards('player', bj);
-      dealerCards = getCards('dealer', bj);
+    function cardEmbed(
+      description = 'Type `hit` to draw another card, `stand` to pass, or `doubledown` to double down.',
+    ) {
+      const playerCards = getCards('player', bj);
+      const dealerCards = getCards('dealer', bj);
 
       const embed = new EmbedBuilder()
         .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
-        .setDescription('Type `hit` to draw another card, `stand` to pass, or `doubledown` to double down.')
+        .setDescription(description)
         .setColor(color)
         .addFields([
           { name: '**Your Hand**', value: `${playerCards} \n\nScore: ${bj.player.score}`, inline: true },
           { name: '**Dealer Hand**', value: `${dealerCards} \n\nScore: ${bj.dealer.score}`, inline: true },
         ]);
 
-      mEm.edit({ embeds: [embed] });
+      return embed;
+    }
+
+    async function winCheck(selected) {
+      if (selected === 'hit') {
+        bj.hit();
+      } else if (selected === 'stand') {
+        bj.stand();
+      } else if (selected === 'doubledown') {
+        bj.doubleDown();
+      }
+
+      const amount = BigInt(bj.bet);
+      if (win) {
+        const newAmount = cash + amount;
+        await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAmount.toString());
+
+        return cardEmbed(`Result: You win ${currencySymbol}${amount.toLocaleString()}`);
+      } else if (blackjack) {
+        const newAmount = cash + amount;
+        await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAmount.toString());
+
+        return cardEmbed(`Result: BlackJack, you win ${currencySymbol}${amount.toLocaleString()}`);
+      } else if (bust) {
+        const newAmount = cash - amount;
+        await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAmount.toString());
+
+        return cardEmbed(`Result: Bust, you lose ${currencySymbol}${amount.toLocaleString()}`);
+      } else if (push) {
+        return cardEmbed('Result: Push, money back');
+      }
+
+      return cardEmbed();
+    }
+
+    const hit = new ButtonBuilder().setCustomId('hit').setLabel('Hit').setStyle(ButtonStyle.Primary);
+    const stand = new ButtonBuilder().setCustomId('stand').setLabel('Stand').setStyle(ButtonStyle.Secondary);
+    const doubledown = new ButtonBuilder()
+      .setCustomId('doubledown')
+      .setLabel('DoubleDown')
+      .setStyle(ButtonStyle.Secondary);
+    const row = new ActionRowBuilder().addComponents(hit, stand, doubledown);
+
+    const messageEmbed = await msg.channel.send({ embeds: [cardEmbed()], components: [row] });
+
+    while (!gameOver) {
+      const collected = await Promise.race([
+        msg.channel
+          .awaitMessages({
+            filter: (m) =>
+              m.author.id === msg.author.id && ['hit', 'stand', 'doubledown'].includes(m.content.toLowerCase()),
+            max: 1,
+            time: 60000,
+          })
+          .catch(() => {}),
+
+        messageEmbed
+          .awaitMessageComponent({
+            time: 60_000,
+          })
+          .catch(() => {}),
+      ]);
+
+      if (!collected) gameOver = true;
+
+      let selected;
+      if (collected.customId) {
+        selected = collected.customId;
+
+        const interactionUser = collected.user;
+        if (interactionUser.id !== msg.author.id) {
+          await collected.reply({ content: `These buttons aren't for you!`, ephemeral: true }).catch(() => {});
+          continue;
+        }
+
+        const embed = await winCheck(selected);
+        if (gameOver) {
+          row.components[0].setDisabled(true);
+          row.components[1].setDisabled(true);
+          row.components[2].setDisabled(true);
+        }
+        collected.update({ embeds: [embed], components: [row] });
+      } else {
+        selected = collected.first().content.toLowerCase();
+        collected
+          .first()
+          .delete()
+          .catch(() => {});
+
+        const embed = await winCheck(selected);
+        if (gameOver) {
+          row.components[0].setDisabled(true);
+          row.components[1].setDisabled(true);
+          row.components[2].setDisabled(true);
+        }
+        messageEmbed.edit({ embeds: [embed], components: [row] });
+      }
     }
   }
 }
