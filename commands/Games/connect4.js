@@ -246,11 +246,13 @@ class Connect4 extends Command {
         // This should be currentUser but its not working, opponentUser is the correct user.
         let content = `${opponentEmoji} ${opponentUser}, which column do you pick?`;
         let move = `Previous Move: **${lastMove}**`;
+        let displayName = opponentUser.displayName;
 
         // Replace content and move if the game is over
         if (gameOver) {
           content = winner ? `Congrats, ${winner}!` : "Looks like it's a draw...";
           move = `Final Move: **${lastMove}**`;
+          displayName = currentUser.displayName;
         }
 
         if (opponentUser.bot) {
@@ -259,7 +261,7 @@ class Connect4 extends Command {
         }
 
         const embed = new EmbedBuilder()
-          .setTitle(`${opponentUser.displayName}'s Turn`)
+          .setTitle(`${displayName}'s Turn`)
           .setColor(msg.settings.embedColor)
           .setDescription(
             stripIndents`
@@ -312,7 +314,7 @@ class Connect4 extends Command {
           colLevels[i]--;
 
           // Send updated message
-          const content = await getContent(currentUser, opponentUser, currentEmoji, opponentEmoji);
+          const content = await getContent(currentUser, opponentUser, opponentEmoji, currentEmoji);
           await collected.editReply(content).catch(console.error);
 
           if (verifyWin(board)) {
@@ -339,7 +341,7 @@ class Connect4 extends Command {
           winner = 'time';
           this.client.games.delete(msg.channel.id);
 
-          const content = await getContent(currentUser, opponentUser, currentEmoji, opponentEmoji);
+          const content = await getContent(currentUser, opponentUser, opponentEmoji, currentEmoji);
           return await message.edit(content).catch(console.error);
         }
 
@@ -388,7 +390,7 @@ class Connect4 extends Command {
         }
 
         // Send updated message
-        const content = await getContent(currentUser, opponentUser, currentEmoji, opponentEmoji);
+        const content = await getContent(currentUser, opponentUser, opponentEmoji, currentEmoji);
         await collected.editReply(content).catch(console.error);
 
         // Change turn to the opposite of what it is
@@ -397,7 +399,7 @@ class Connect4 extends Command {
 
       // Delete the game and set content to function rather than pasting it three times
       this.client.games.delete(msg.channel.id);
-      const content = await getContent(currentUser, opponentUser, currentEmoji, opponentEmoji);
+      const content = await getContent(currentUser, opponentUser, opponentEmoji, currentEmoji);
 
       // Announce winner
       if (winner === 'time') {
