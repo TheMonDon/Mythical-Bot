@@ -14,7 +14,7 @@ class Connect4 extends Command {
       description: 'Play a game of connect-four.',
       usage: 'connect-four [opponent] <color>',
       category: 'Games',
-      aliases: ['connectfour', 'connect4'],
+      aliases: ['connectfour', 'connect4', 'c4'],
       requiredArgs: 1,
     });
   }
@@ -49,12 +49,15 @@ class Connect4 extends Command {
     const current = this.client.games.get(msg.channel.id);
     if (current) return msg.reply(`Please wait until the current game of \`${current.name}\` is finished.`);
 
-    let opponent = await this.client.util.getMember(msg, args[0]);
-    if (!opponent) opponent = msg.guild.members.me;
+    let opponent = msg.guild.members.me;
     if (opponent.id === msg.author.id) return msg.reply('You may not play against yourself.');
 
-    if (args && args.length === 2) args.shift();
-    if (!args || args.length < 1) {
+    // Check if they provided user and color, get a user
+    if (args && args.length === 2) {
+      opponent = await this.client.util.getMember(msg, args[0]);
+      if (!opponent) opponent = msg.guild.members.me;
+      args.shift();
+    } else if (!args || args.length < 1) {
       return msg.channel.send(
         `${
           msg.settings.prefix + this.help.usage
@@ -112,6 +115,7 @@ class Connect4 extends Command {
         .join('\n');
     }
 
+    const client = this.client;
     function validate(color, msg) {
       const hasEmoji = new RegExp(`^(?:${emojiRegex().source})$`).test(color);
       const hasCustom = color.match(customEmojiRegex);
@@ -120,7 +124,7 @@ class Connect4 extends Command {
         return msg.channel.send('You can only use custom emojis from this server.');
       if (!hasCustom && !hasEmoji && !colors[color.toLowerCase()]) {
         return msg.channel.send(
-          `Sorry that is not valid, please use an emoji or one of the following: ${this.client.util.list(
+          `Sorry that is not valid, please use an emoji or one of the following: ${client.util.list(
             Object.keys(colors),
             'or',
           )}.`,
@@ -167,7 +171,7 @@ class Connect4 extends Command {
         );
 
         const filter = (res) => {
-          if (res.author.id !== opponent.id) return false;
+          if (res.author.id !== opponent.user.id) return false;
           if (res.content === blankEmoji) return false;
           const hasEmoji = new RegExp(`^(?:${emojiRegex().source})$`).test(res.content);
           const hasCustom = res.content.match(customEmojiRegex);
@@ -195,16 +199,20 @@ class Connect4 extends Command {
       // Create the game
       const colLevels = [5, 5, 5, 5, 5, 5, 5];
       const AIEngine = new Connect4AI();
+      const playerOne = msg.member.user;
+      const playerTwo = opponent.user;
       const board = generateBoard();
-      let emoji = playerOneEmoji;
       let lastMove = 'None';
-      let user = msg.member.user;
       let gameOver = false;
-      let userTurn = true;
       let winner = null;
-      let collected;
 
-      function getButtons() {
+      // Global var for updating the collected interaction
+      let collected;
+      // 1 = playerOne, 2 = playerTwo
+      let turn = 1;
+
+      async function getButtons(gameOver) {
+        // Create buttons for emoji 1-7 and stop playing button
         const one = new ButtonBuilder().setCustomId('1').setEmoji('1️⃣').setStyle(ButtonStyle.Secondary);
         const two = new ButtonBuilder().setCustomId('2').setEmoji('2️⃣').setStyle(ButtonStyle.Secondary);
         const three = new ButtonBuilder().setCustomId('3').setEmoji('3️⃣').setStyle(ButtonStyle.Secondary);
@@ -215,6 +223,7 @@ class Connect4 extends Command {
         const stop = new ButtonBuilder().setCustomId('stop').setEmoji('🛑').setStyle(ButtonStyle.Danger);
 
         if (gameOver) {
+          // If the game ends disable all buttons
           one.setDisabled(true);
           two.setDisabled(true);
           three.setDisabled(true);
@@ -228,40 +237,67 @@ class Connect4 extends Command {
         const row1 = new ActionRowBuilder().addComponents(one, two, three, four, five);
         const row2 = new ActionRowBuilder().addComponents(six, seven, stop);
 
+        // Return the object of both rows, since rows can only have 5 buttons max
         return [row1, row2];
       }
 
-      function getContent() {
-        let content = `${emoji} ${user}, which column do you pick?`;
+      // Function to get the message for user and game board, add in the buttons and return the object for the message
+      async function getContent(currentUser, opponentUser, emoji) {
+        console.log('currentUser getContent: ', currentUser.id);
+        let content = `${emoji} ${currentUser}, which column do you pick?`;
+        let move = `Previous Move: **${lastMove}**`;
 
-        if (gameOver) content = winner ? `Congrats, ${winner}!` : "Looks like it's a draw...";
-
-        let move = opponent.user.bot ? `I placed mine in **${lastMove}**.` : `Previous Move: **${lastMove}**`;
+        // Replace content and move if the game is over
         if (gameOver) {
+          content = winner ? `Congrats, ${winner}!` : "Looks like it's a draw...";
           move = `Final Move: **${lastMove}**`;
         }
+
+        if (currentUser.bot) {
+          content = ' ';
+          move = `I placed mine in **${lastMove}**.`;
+        }
+
         const embed = new EmbedBuilder()
-          .setTitle(`${user.displayName}'s Turn`)
+          .setTitle(`${currentUser.displayName}'s Turn`)
           .setColor(msg.settings.embedColor)
           .setDescription(
             stripIndents`
-        ${move}
-        ${displayBoard(board, playerOneEmoji, playerTwoEmoji)}
-        ${nums.join('')}
-        `,
+              ${move}
+              ${displayBoard(board, playerOneEmoji, playerTwoEmoji)}
+              ${nums.join('')}
+            `,
           );
 
-        return { content, embeds: [embed], components: getButtons() };
+        const buttons = await getButtons(gameOver);
+        return { content, embeds: [embed], components: buttons };
       }
 
-      const message = await msg.channel.send(getContent()).catch(console.error);
+      const originalContent = await getContent(playerOne, playerTwo, playerOneEmoji);
+      const message = await msg.channel.send(originalContent).catch(console.error);
+
+      let currentUser;
+      let opponentUser;
+      let emoji;
 
       while (!gameOver && board.some((row) => row.includes(null))) {
-        user = userTurn ? msg.member.user : opponent.user;
-        const sign = userTurn ? 'user' : 'oppo';
+        let sign;
+        if (turn === 1) {
+          currentUser = playerOne;
+          opponentUser = playerTwo;
+          emoji = playerOneEmoji;
+          sign = 'user';
+        } else {
+          currentUser = playerTwo;
+          opponentUser = playerOne;
+          emoji = playerTwoEmoji;
+          sign = 'oppo';
+        }
         let i = 0;
+        console.log('player', currentUser.id);
 
-        if (opponent.user.bot && !userTurn) {
+        // AI plays anytime the player is playing with a bot.
+        if (currentUser.bot) {
           i = AIEngine.playAI('hard');
           lastMove = i + 1;
 
@@ -270,18 +306,20 @@ class Connect4 extends Command {
           colLevels[i]--;
 
           // Send updated message
-          collected.editReply(getContent()).catch(console.error);
+          const content = await getContent(currentUser, opponentUser, emoji);
+          await collected.editReply(content).catch(console.error);
 
           if (verifyWin(board)) {
-            winner = user;
+            winner = currentUser;
             gameOver = true;
+            break;
           }
-          userTurn = !userTurn;
+          turn === 1 ? (turn = 2) : (turn = 1);
 
           continue;
         }
-        emoji = userTurn ? playerOneEmoji : playerTwoEmoji;
 
+        // Await a player pressing a button for 60 seconds
         collected = await message
           .awaitMessageComponent({
             filter: (i) => i.deferUpdate(),
@@ -290,37 +328,40 @@ class Connect4 extends Command {
           .catch(() => {});
 
         if (!collected) {
+          // They never pressed the button, end the game due to time and edit the message directly since collected doesn't exist
           gameOver = true;
           winner = 'time';
           this.client.games.delete(msg.channel.id);
 
-          return message.edit(getContent()).catch(console.error);
+          const content = await getContent(currentUser, opponentUser, emoji);
+          return await message.edit(content).catch(console.error);
         }
 
         const interactionUser = collected.user;
-        if (interactionUser.id !== user.id) {
-          await collected.followUp({ content: `These buttons aren't for you!`, ephemeral: true }).catch(console.error);
+        if (interactionUser.id !== currentUser.id) {
+          await collected.followUp({ content: "These buttons aren't for you!", ephemeral: true }).catch(console.error);
           continue;
         }
 
-        const choice = collected.customId;
+        const selectedColumn = collected.customId;
 
-        if (!choice) {
+        if (!selectedColumn) {
           await msg.channel.send("Sorry, time is up! I'll pick their move for them.").then((msg1) => {
             setTimeout(() => msg1.delete(), 10000);
           });
           i = AIEngine.playAI('hard');
           lastMove = i + 1;
-        } else if (choice.toLowerCase() === 'stop') {
-          winner = user;
+        } else if (selectedColumn.toLowerCase() === 'stop') {
+          // The player pressed the stop sign, stop the game and let the other person win.
+          winner = opponentUser;
           gameOver = true;
           break;
         } else {
-          i = Number.parseInt(choice, 10) - 1;
+          i = Number.parseInt(selectedColumn, 10) - 1;
           // Check if the move is valid
           if (!AIEngine.canPlay(i)) {
             await collected
-              .editReply({ content: 'That is not a valid move, please try again.', ephemeral: true })
+              .followUp({ content: 'That is not a valid move, please try again.', ephemeral: true })
               .catch(console.error);
             continue;
           } else {
@@ -333,29 +374,37 @@ class Connect4 extends Command {
         board[colLevels[i]][i] = sign;
         colLevels[i]--;
 
-        // Send updated message
-        collected.editReply(getContent()).catch(console.error);
-
+        // Check if the last move made them a winner, stop the game
         if (verifyWin(board)) {
-          winner = user;
+          winner = currentUser;
           gameOver = true;
           break;
         }
-        userTurn = !userTurn;
+
+        // Send updated message
+        const content = await getContent(currentUser, opponentUser, emoji);
+        await collected.editReply(content).catch(console.error);
+
+        // Change turn to the opposite of what it is
+        turn === 1 ? (turn = 2) : (turn = 1);
       }
 
+      // Delete the game and set content to function rather than pasting it three times
       this.client.games.delete(msg.channel.id);
+      const content = await getContent(currentUser, opponentUser, emoji);
 
       // Announce winner
       if (winner === 'time') {
-        collected.editReply(getContent()).catch(console.error);
+        await collected.editReply(content).catch(console.error);
         return msg.channel.send('Game ended due to inactivity.');
       }
-      if (collected) {
-        return collected.editReply(getContent()).catch(console.error);
-      }
-      return message.edit(getContent()).catch(console.error);
+
+      // Check if the game ever played so we can edit the interaction, or just edit the message
+      if (collected) return collected.editReply(content).catch(console.error);
+
+      return message.edit(content).catch(console.error);
     } catch (err) {
+      // An error occurred, delete the game and send the error to chat.
       this.client.games.delete(msg.channel.id);
       msg.channel.send(err).catch(console.error);
     }

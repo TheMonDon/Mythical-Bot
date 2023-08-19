@@ -13,7 +13,7 @@ class BotInfo extends Command {
       description: 'Gives some useful bot information',
       usage: 'Bot-Info',
       category: 'General',
-      aliases: ['bi', 'botinfo', 'about'],
+      aliases: ['bi', 'botinfo', 'about', 'info'],
     });
   }
 
@@ -23,6 +23,7 @@ class BotInfo extends Command {
       .duration(this.client.uptime)
       .format('y[ years][,] M[ months][,] d[ days][,] h[ hours][,] m[ minutes][, and] s[ seconds]');
 
+    const commands = await db.get('global.commands');
     const embed = new EmbedBuilder()
       .setColor(msg.settings.embedColor)
       .setAuthor({ name: this.client.user.username, iconURL: this.client.user.displayAvatarURL() })
@@ -39,7 +40,7 @@ class BotInfo extends Command {
           inline: true,
         },
         { name: 'Bot Version', value: botVersion, inline: true },
-        { name: 'Commands Used', value: await db.get('global.commands').toLocaleString(), inline: true },
+        { name: 'Commands Used', value: commands.toLocaleString(), inline: true },
         {
           name: 'Quick Bits',
           value:
