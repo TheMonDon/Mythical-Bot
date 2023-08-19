@@ -9,31 +9,15 @@ class Flood extends Command {
     super(client, {
       name: 'flood',
       description: 'Play a game of flood.',
-      usage: 'flood [difficulty]',
+      usage: 'flood',
       category: 'Games',
     });
   }
 
-  async run(msg, args) {
-    let WIDTH = 13;
-    let HEIGHT = 13;
-    let moves = 25;
-    let difficulty = 'medium';
-
-    if (args && args.length > 0) {
-      difficulty = args.join().toLowerCase();
-      if (!['easy', 'medium', 'hard'].includes(difficulty))
-        return msg.channel.send('Invalid difficulty. Easy, Medium, Hard');
-      if (difficulty === 'easy') {
-        WIDTH = 7;
-        HEIGHT = 7;
-        moves = 13;
-      } else if (difficulty === 'hard') {
-        WIDTH = 18;
-        HEIGHT = 18;
-        moves = 32;
-      }
-    }
+  async run(msg) {
+    const WIDTH = 13;
+    const HEIGHT = 13;
+    const moves = 25;
 
     const SQUARES = {
       red_square: '🟥',
@@ -109,18 +93,16 @@ class Flood extends Command {
           highScore = oldHS?.score || 0;
           highScoreUser = oldHS?.user || 'N/A';
           highScoreTime = oldHS?.time || 0;
-          if (difficulty === 'medium') {
-            if (HS.score < highScore || !oldHS) {
-              await db.set('global.highScores.flood', HS);
-              highScore = HS.score;
-              highScoreUser = 'You';
-              highScoreTime = gameTimeSeconds;
-            } else if (HS.score === highScore && HS.time <= highScoreTime) {
-              await db.set('global.highScores.flood', HS);
-              highScore = HS.score;
-              highScoreUser = 'You';
-              highScoreTime = gameTimeSeconds;
-            }
+          if (HS.score < highScore || !oldHS) {
+            await db.set('global.highScores.flood', HS);
+            highScore = HS.score;
+            highScoreUser = 'You';
+            highScoreTime = gameTimeSeconds;
+          } else if (HS.score === highScore && HS.time <= highScoreTime) {
+            await db.set('global.highScores.flood', HS);
+            highScore = HS.score;
+            highScoreUser = 'You';
+            highScoreTime = gameTimeSeconds;
           }
         } else {
           const oldHS = await db.get('global.highScores.flood');
