@@ -1,20 +1,21 @@
+const { EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder } = require('discord.js');
+const customEmojiRegex = /^(?:<a?:([a-zA-Z0-9_]+):)?([0-9]+)>?$/;
+const nums = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣'];
 const Command = require('../../base/Command.js');
-const { Connect4AI } = require('connect4-ai');
 const { stripIndents } = require('common-tags');
+const { Connect4AI } = require('connect4-ai');
 const emojiRegex = require('emoji-regex');
 const blankEmoji = '⚪';
-const nums = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣'];
-const customEmojiRegex = /^(?:<a?:([a-zA-Z0-9_]+):)?([0-9]+)>?$/;
 
 class Connect4 extends Command {
   constructor(client) {
     super(client, {
-      name: 'connect4',
-      description: 'Play a game of connect4.',
-      usage: 'connect4 <opponent> <color>',
+      name: 'connect-four',
+      description: 'Play a game of connect-four.',
+      usage: 'connect-four [opponent] <color>',
       category: 'Games',
-      aliases: ['connectfour', 'connect-four'],
-      requiredArgs: 2,
+      aliases: ['connectfour', 'connect4'],
+      requiredArgs: 1,
     });
   }
 
@@ -52,13 +53,14 @@ class Connect4 extends Command {
     if (!opponent) opponent = msg.guild.members.me;
     if (opponent.id === msg.author.id) return msg.reply('You may not play against yourself.');
 
-    args.shift();
-    if (!args || args.length < 1)
+    if (args && args.length === 2) args.shift();
+    if (!args || args.length < 1) {
       return msg.channel.send(
         `${
           msg.settings.prefix + this.help.usage
         } \nThat is not a valid color, either an emoji or one of ${this.client.util.list(Object.keys(colors), 'or')}.`,
       );
+    }
 
     function checkLine(a, b, c, d) {
       return a !== null && a === b && a === c && a === d;
@@ -113,16 +115,17 @@ class Connect4 extends Command {
     function validate(color, msg) {
       const hasEmoji = new RegExp(`^(?:${emojiRegex().source})$`).test(color);
       const hasCustom = color.match(customEmojiRegex);
-      if (hasCustom && !msg.guild) return msg.channel.send('You can only use custom emoji in a server.');
+      if (hasCustom && !msg.guild) return msg.channel.send('You can only use custom emojis in a server.');
       if (hasCustom && msg.guild && !msg.guild.emojis.cache.has(hasCustom[2]))
-        return msg.channel.send('You can only use custom emoji from this server.');
-      if (!hasCustom && !hasEmoji && !colors[color.toLowerCase()])
+        return msg.channel.send('You can only use custom emojis from this server.');
+      if (!hasCustom && !hasEmoji && !colors[color.toLowerCase()]) {
         return msg.channel.send(
           `Sorry that is not valid, please use an emoji or one of the following: ${this.client.util.list(
             Object.keys(colors),
             'or',
           )}.`,
         );
+      }
       if (color === blankEmoji) return msg.channel.send('You cannot use that emoji.');
       return true;
     }
@@ -138,9 +141,12 @@ class Connect4 extends Command {
     color = parse(color, msg);
 
     const playerOneEmoji = color;
-    let playerTwoEmoji = color === colors.yellow ? colors.red : colors.yellow;
+    let playerTwoEmoji = colors.yellow;
+    if (color === colors.yellow) playerTwoEmoji = colors.red;
+
     try {
       const available = Object.keys(colors).filter((clr) => color !== colors[clr]);
+
       if (opponent.user.bot) {
         playerTwoEmoji = colors[available[Math.floor(Math.random() * available.length)]];
       } else {
@@ -159,6 +165,7 @@ class Connect4 extends Command {
             'or',
           )}.`,
         );
+
         const filter = (res) => {
           if (res.author.id !== opponent.id) return false;
           if (res.content === blankEmoji) return false;
@@ -186,111 +193,171 @@ class Connect4 extends Command {
       this.client.games.set(msg.channel.id, { name: this.help.name, user: msg.author.id });
 
       // Create the game
+      const colLevels = [5, 5, 5, 5, 5, 5, 5];
       const AIEngine = new Connect4AI();
       const board = generateBoard();
+      let emoji = playerOneEmoji;
+      let lastMove = 'None';
+      let user = msg.member.user;
+      let gameOver = false;
       let userTurn = true;
       let winner = null;
-      const colLevels = [5, 5, 5, 5, 5, 5, 5];
-      let lastMove = 'None';
-      let message = 0;
+      let collected;
 
-      while (!winner && board.some((row) => row.includes(null))) {
-        const user = userTurn ? msg.author : opponent;
+      function getButtons() {
+        const one = new ButtonBuilder().setCustomId('1').setEmoji('1️⃣').setStyle(ButtonStyle.Secondary);
+        const two = new ButtonBuilder().setCustomId('2').setEmoji('2️⃣').setStyle(ButtonStyle.Secondary);
+        const three = new ButtonBuilder().setCustomId('3').setEmoji('3️⃣').setStyle(ButtonStyle.Secondary);
+        const four = new ButtonBuilder().setCustomId('4').setEmoji('4️⃣').setStyle(ButtonStyle.Secondary);
+        const five = new ButtonBuilder().setCustomId('5').setEmoji('5️⃣').setStyle(ButtonStyle.Secondary);
+        const six = new ButtonBuilder().setCustomId('6').setEmoji('6️⃣').setStyle(ButtonStyle.Secondary);
+        const seven = new ButtonBuilder().setCustomId('7').setEmoji('7️⃣').setStyle(ButtonStyle.Secondary);
+        const stop = new ButtonBuilder().setCustomId('stop').setEmoji('🛑').setStyle(ButtonStyle.Danger);
+
+        if (gameOver) {
+          one.setDisabled(true);
+          two.setDisabled(true);
+          three.setDisabled(true);
+          four.setDisabled(true);
+          five.setDisabled(true);
+          six.setDisabled(true);
+          seven.setDisabled(true);
+          stop.setDisabled(true);
+        }
+
+        const row1 = new ActionRowBuilder().addComponents(one, two, three, four, five);
+        const row2 = new ActionRowBuilder().addComponents(six, seven, stop);
+
+        return [row1, row2];
+      }
+
+      function getContent() {
+        let content = `${emoji} ${user}, which column do you pick?`;
+
+        if (gameOver) content = winner ? `Congrats, ${winner}!` : "Looks like it's a draw...";
+
+        let move = opponent.user.bot ? `I placed mine in **${lastMove}**.` : `Previous Move: **${lastMove}**`;
+        if (gameOver) {
+          move = `Final Move: **${lastMove}**`;
+        }
+        const embed = new EmbedBuilder()
+          .setTitle(`${user.displayName}'s Turn`)
+          .setColor(msg.settings.embedColor)
+          .setDescription(
+            stripIndents`
+        ${move}
+        ${displayBoard(board, playerOneEmoji, playerTwoEmoji)}
+        ${nums.join('')}
+        `,
+          );
+
+        return { content, embeds: [embed], components: getButtons() };
+      }
+
+      const message = await msg.channel.send(getContent()).catch(console.error);
+
+      while (!gameOver && board.some((row) => row.includes(null))) {
+        user = userTurn ? msg.member.user : opponent.user;
         const sign = userTurn ? 'user' : 'oppo';
         let i = 0;
 
         if (opponent.user.bot && !userTurn) {
           i = AIEngine.playAI('hard');
           lastMove = i + 1;
-        } else {
-          const emoji = userTurn ? playerOneEmoji : playerTwoEmoji;
-          // Send original message
-          if (message === 0) {
-            message = await msg.channel.send(stripIndents`
-            ${emoji} ${user}, which column do you pick? Type \`end\` to forfeit.
-            Can't think of a move? Use \`play for me\`.
-            ${opponent.user.bot ? `I placed mine in **${lastMove}**.` : `Previous Move: **${lastMove}**`}
-            ${displayBoard(board, playerOneEmoji, playerTwoEmoji)}
-            ${nums.join('')}
-          `);
-          }
+
+          // Update board
+          board[colLevels[i]][i] = sign;
+          colLevels[i]--;
 
           // Send updated message
-          await message.edit(stripIndents`
-            ${emoji} ${user}, which column do you pick? Type \`end\` to forfeit.
-            Can't think of a move? Use \`play for me\`.
-            ${opponent.user.bot ? `I placed mine in **${lastMove}**.` : `Previous Move: **${lastMove}**`}
-            ${displayBoard(board, playerOneEmoji, playerTwoEmoji)}
-            ${nums.join('')}
-          `);
+          collected.editReply(getContent()).catch(console.error);
 
-          // Filter function
-          const pickFilter = (res) => {
-            if (res.author.id !== user.id) return false;
-            const choice = res.content;
-            if (choice.toLowerCase() === 'end') return true;
-            if (choice.toLowerCase() === 'play for me') return true;
-            const j = Number.parseInt(choice, 10) - 1;
-            return board[colLevels[j]] && board[colLevels[j]][j] !== undefined;
-          };
-
-          const turn = await msg.channel.awaitMessages({
-            pickFilter,
-            max: 1,
-            time: 60000,
-          });
-
-          const choice = turn.size ? turn.first().content : null;
-          if (!choice) {
-            await msg.channel.send("Sorry, time is up! I'll pick their move for them.").then((msg) => {
-              setTimeout(() => msg.delete(), 10000);
-            });
-            i = AIEngine.playAI('hard');
-            lastMove = i + 1;
-          } else if (choice.toLowerCase() === 'end') {
-            winner = userTurn ? opponent : msg.author;
-            break;
-          } else if (choice.toLowerCase() === 'play for me') {
-            i = AIEngine.playAI('hard');
-            lastMove = i + 1;
-            if (msg.guild.members.me.permissions.has('ManageMessages')) turn.first().delete();
-          } else {
-            i = Number.parseInt(choice, 10) - 1;
-            // Check if the move is valid
-            if (!AIEngine.canPlay(i)) {
-              await msg.channel.send("That column is full! I'll pick their move for them.").then((msg) => {
-                setTimeout(() => msg.delete(), 10000);
-              });
-              i = AIEngine.playAI('hard');
-            } else {
-              AIEngine.play(i);
-            }
-            lastMove = i + 1;
-            if (msg.guild.members.me.permissions.has('ManageMessages')) turn.first().delete();
+          if (verifyWin(board)) {
+            winner = user;
+            gameOver = true;
           }
+          userTurn = !userTurn;
+
+          continue;
+        }
+        emoji = userTurn ? playerOneEmoji : playerTwoEmoji;
+
+        collected = await message
+          .awaitMessageComponent({
+            filter: (i) => i.deferUpdate(),
+            time: 60_000,
+          })
+          .catch(() => {});
+
+        if (!collected) {
+          gameOver = true;
+          winner = 'time';
+          this.client.games.delete(msg.channel.id);
+
+          return message.edit(getContent()).catch(console.error);
+        }
+
+        const interactionUser = collected.user;
+        if (interactionUser.id !== user.id) {
+          await collected.followUp({ content: `These buttons aren't for you!`, ephemeral: true }).catch(console.error);
+          continue;
+        }
+
+        const choice = collected.customId;
+
+        if (!choice) {
+          await msg.channel.send("Sorry, time is up! I'll pick their move for them.").then((msg1) => {
+            setTimeout(() => msg1.delete(), 10000);
+          });
+          i = AIEngine.playAI('hard');
+          lastMove = i + 1;
+        } else if (choice.toLowerCase() === 'stop') {
+          winner = user;
+          gameOver = true;
+          break;
+        } else {
+          i = Number.parseInt(choice, 10) - 1;
+          // Check if the move is valid
+          if (!AIEngine.canPlay(i)) {
+            await collected
+              .editReply({ content: 'That is not a valid move, please try again.', ephemeral: true })
+              .catch(console.error);
+            continue;
+          } else {
+            AIEngine.play(i);
+          }
+          lastMove = i + 1;
         }
 
         // Update board
         board[colLevels[i]][i] = sign;
         colLevels[i]--;
-        if (verifyWin(board)) winner = userTurn ? msg.author : opponent;
+
+        // Send updated message
+        collected.editReply(getContent()).catch(console.error);
+
+        if (verifyWin(board)) {
+          winner = user;
+          gameOver = true;
+          break;
+        }
         userTurn = !userTurn;
       }
 
       this.client.games.delete(msg.channel.id);
-      message.delete();
 
       // Announce winner
-      if (winner === 'time') return msg.channel.send('Game ended due to inactivity.');
-      return msg.channel.send(stripIndents`
-        ${winner ? `Congrats, ${winner}!` : "Looks like it's a draw..."}
-        Final Move: **${lastMove}**
-        ${displayBoard(board, playerOneEmoji, playerTwoEmoji)}
-        ${nums.join('')}
-      `);
+      if (winner === 'time') {
+        collected.editReply(getContent()).catch(console.error);
+        return msg.channel.send('Game ended due to inactivity.');
+      }
+      if (collected) {
+        return collected.editReply(getContent()).catch(console.error);
+      }
+      return message.edit(getContent()).catch(console.error);
     } catch (err) {
       this.client.games.delete(msg.channel.id);
-      msg.channel.send(err);
+      msg.channel.send(err).catch(console.error);
     }
   }
 }

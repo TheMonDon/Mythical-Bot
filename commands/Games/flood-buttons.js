@@ -155,42 +155,36 @@ Filling starts at the top left corner.`,
     }
 
     function getButtons(gameOver) {
-      const redSquare = new ButtonBuilder()
-        .setCustomId(':red_square:')
-        .setLabel('Red')
-        .setEmoji('🟥')
-        .setStyle(ButtonStyle.Secondary);
-      if (gameOver) redSquare.setDisabled(true);
+      const redSquare = new ButtonBuilder().setCustomId(':red_square:').setEmoji('🟥').setStyle(ButtonStyle.Secondary);
       const blueSquare = new ButtonBuilder()
         .setCustomId(':blue_square:')
-        .setLabel('Blue')
         .setEmoji('🟦')
         .setStyle(ButtonStyle.Secondary);
-      if (gameOver) blueSquare.setDisabled(true);
       const orangeSquare = new ButtonBuilder()
         .setCustomId(':orange_square:')
-        .setLabel('Orange')
         .setEmoji('🟧')
         .setStyle(ButtonStyle.Secondary);
-      if (gameOver) orangeSquare.setDisabled(true);
       const purpleSquare = new ButtonBuilder()
         .setCustomId(':purple_square:')
-        .setLabel('Purple')
         .setEmoji('🟪')
         .setStyle(ButtonStyle.Secondary);
-      if (gameOver) purpleSquare.setDisabled(true);
       const greenSquare = new ButtonBuilder()
         .setCustomId(':green_square:')
-        .setLabel('Green')
         .setEmoji('🟩')
         .setStyle(ButtonStyle.Secondary);
-      if (gameOver) greenSquare.setDisabled(true);
       const octagonalSign = new ButtonBuilder()
         .setCustomId(':octagonal_sign:')
-        .setLabel('Stop')
         .setEmoji('🛑')
         .setStyle(ButtonStyle.Secondary);
-      if (gameOver) octagonalSign.setDisabled(true);
+
+      if (gameOver) {
+        redSquare.setDisabled(true);
+        blueSquare.setDisabled(true);
+        orangeSquare.setDisabled(true);
+        purpleSquare.setDisabled(true);
+        greenSquare.setDisabled(true);
+        octagonalSign.setDisabled(true);
+      }
 
       const row1 = new ActionRowBuilder().addComponents(redSquare, blueSquare, orangeSquare, purpleSquare, greenSquare);
       const row2 = new ActionRowBuilder().addComponents(octagonalSign);
