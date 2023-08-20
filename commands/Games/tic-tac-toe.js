@@ -1,5 +1,5 @@
-const Command = require('../../base/Command.js');
 const tictactoe = require('tictactoe-minimax-ai');
+const Command = require('../../base/Command.js');
 const { stripIndents } = require('common-tags');
 const nums = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣'];
 
@@ -78,42 +78,48 @@ class TicTacToe extends Command {
       let userTurn = true;
       let winner = null;
       let lastTurnTimeout = false;
-      let message = 0;
+
+      let currentUser = msg.author;
+      let turn = 1;
+
+      const message = await msg.channel.send(stripIndents`
+        ${currentUser}, which side do you pick? Type \`end\` to forfeit.
+        ${displayBoard(sides)}
+      `);
 
       while (!winner && taken.length < 9) {
-        const user = userTurn ? msg.author : opponent;
-        const sign = userTurn ? 'X' : 'O';
-        let choice;
+        let sign, choice;
+
+        if (turn === 1) {
+          currentUser = msg.author;
+          sign = 'X';
+        } else {
+          currentUser = opponent;
+          sign = 'O';
+        }
 
         if (opponent.user.bot && !userTurn) {
           choice = tictactoe.bestMove(convertBoard(sides), { computer: 'o', opponent: 'x' });
         } else {
-          if (message === 0) {
-            message = await msg.channel.send(stripIndents`
-            ${user}, which side do you pick? Type \`end\` to forfeit.
-            ${displayBoard(sides)}
-          `);
-          }
-
           await message.edit(stripIndents`
-            ${user}, which side do you pick? Type \`end\` to forfeit.
+            ${currentUser}, which side do you pick? Type \`end\` to forfeit.
             ${displayBoard(sides)}
           `);
 
           const filter = (res) => {
-            if (res.author.id !== user.id) return false;
+            if (res.author.id !== currentUser.id) return false;
             const pick = res.content;
             if (pick.toLowerCase() === 'end') return true;
             return sides.includes(pick) && !taken.includes(pick);
           };
 
-          const turn = await msg.channel.awaitMessages({
+          const collected = await msg.channel.awaitMessages({
             filter,
             max: 1,
             time: 30000,
           });
 
-          if (!turn.size) {
+          if (!collected.size) {
             await msg.channel.send('Sorry, time is up!');
             if (lastTurnTimeout) {
               winner = 'time';
@@ -124,12 +130,13 @@ class TicTacToe extends Command {
               continue;
             }
           }
-          choice = turn.first().content;
+
+          choice = collected.first().content;
           if (choice.toLowerCase() === 'end') {
             winner = userTurn ? opponent : msg.author;
             break;
           }
-          if (msg.guild.members.me.permissions.has('ManageMessages')) turn.first().delete();
+          if (msg.guild.members.me.permissions.has('ManageMessages')) collected.first().delete();
         }
 
         sides[opponent.user.bot && !userTurn ? choice : Number.parseInt(choice, 10) - 1] = sign;
@@ -138,6 +145,8 @@ class TicTacToe extends Command {
         if (win) winner = win;
         if (lastTurnTimeout) lastTurnTimeout = false;
         userTurn = !userTurn;
+
+        turn === 1 ? (turn = 2) : (turn = 1);
       }
 
       this.client.games.delete(msg.channel.id);
