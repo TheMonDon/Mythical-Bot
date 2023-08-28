@@ -86,9 +86,7 @@ export async function run(client, oldMessage, newMessage) {
     return newMessage.guild.channels.cache
       .get(logChan)
       .send({ embeds: [embed] })
-      .catch((err) => {
-        client.logger.error(err);
-      });
+      .catch(() => {});
   }
 
   async function CommandUpdate(client, oldMessage, newMessage) {
