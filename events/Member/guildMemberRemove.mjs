@@ -29,12 +29,11 @@ export async function run(client, member) {
     const channel = member.guild.channels.cache.get(logChan);
     if (!channel) return;
     channel.send({ embeds: [embed] });
-
-    await db.add(`servers.${member.guild.id}.logs.member-leave`, 1);
-    await db.add(`servers.${member.guild.id}.logs.all`, 1);
   }
 
   async function AutoRole(member) {
+    if (!member.guild) return;
+
     const toggle = (await db.get(`servers.${member.guild.id}.proles.system`)) || false;
     if (!toggle) return;
 
@@ -43,7 +42,10 @@ export async function run(client, member) {
 
     const roles = [...member.roles.cache.values()];
     if (roles.length === 1) return;
-    const arr = roles.filter((role) => role.id !== member.guild.id).map((role) => role.id);
+    const arr = roles
+      .filter((role) => role.id !== member.guild.id)
+      .map((role) => role.id)
+      .catch(console.error);
 
     await db.set(`servers.${member.guild.id}.proles.users.${member.user.id}`, arr);
   }

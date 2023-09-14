@@ -17,7 +17,6 @@ class Weather extends Command {
   async run(msg, text) {
     const city = text.join(' ');
     const ZipCode = /^-?\d+\.?\d*$/;
-    const client = this.client;
 
     // Set the stuff for the weather api
     weatherApi.setLang('en');
@@ -32,9 +31,7 @@ class Weather extends Command {
 
     // GetAllWeather returns a JSON object with all the weather information
     weatherApi.getAllWeather(function (err, JSONObj) {
-      if (err) client.logger.error(`Weather error: ${err}`);
-
-      if (!JSONObj || JSONObj.length === 0)
+      if (err || !JSONObj || JSONObj.length === 0)
         return msg.channel.send(
           `No data was available for the location \`${
             String(city).length > 1959 ? String(city).substring(0, 1956) + '...' : city
