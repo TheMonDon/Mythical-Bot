@@ -30,7 +30,7 @@ export async function run(client, member) {
 
     const channel = member.guild.channels.cache.get(logChan);
     if (!channel) return;
-    channel.send({ embeds: [embed] });
+    channel.send({ embeds: [embed] }).catch(() => {});
   }
 
   async function AutoRole(member) {

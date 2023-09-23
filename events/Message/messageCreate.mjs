@@ -8,6 +8,7 @@ export async function run(client, message) {
   if (message.author.bot) return;
   if (message.guild && !message.channel.permissionsFor(client.user.id).has('SendMessages')) return;
   if (message.guild && !message.guild.members.me.permissions.has('SendMessages')) return;
+  if (message.guild && message.guild.members.me.isCommunicationDisabled()) return;
 
   const settings = client.getSettings(message.guild);
   message.settings = settings;

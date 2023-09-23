@@ -77,7 +77,7 @@ export async function run(client, messageReaction, user) {
       .setColor('#E65DF4')
       .setTimestamp();
     const logChan = msg.guild.channels.cache.get(logID);
-    await logChan.send({ embeds: [logEmbed] });
+    await logChan.send({ embeds: [logEmbed] }).catch(() => {});
 
     const chanEmbed = new EmbedBuilder()
       .setAuthor({ name: member.displayName, iconURL: member.user.displayAvatarURL() })
@@ -91,12 +91,12 @@ export async function run(client, messageReaction, user) {
     if (!role.mentionable) {
       if (!tixChan.permissionsFor(client.user.id).has('MentionEveryone')) {
         role.setMentionable(true);
-        tixChan.send({ content: role.toString(), embeds: [chanEmbed] });
+        tixChan.send({ content: role.toString(), embeds: [chanEmbed] }).catch(() => {});
       } else {
-        tixChan.send({ content: role.toString(), embeds: [chanEmbed] });
+        tixChan.send({ content: role.toString(), embeds: [chanEmbed] }).catch(() => {});
       }
     } else {
-      tixChan.send({ content: role.toString(), embeds: [chanEmbed] });
+      tixChan.send({ content: role.toString(), embeds: [chanEmbed] }).catch(() => {});
     }
   }
 }

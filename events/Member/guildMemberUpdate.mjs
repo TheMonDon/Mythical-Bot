@@ -51,7 +51,7 @@ export async function run(client, oldMember, newMember) {
 
     const channel = oldMember.guild.channels.cache.get(logChan);
     if (!channel) return;
-    channel.send({ embeds: [embed] });
+    channel.send({ embeds: [embed] }).catch(() => {});
   }
 
   await TimeoutLogs(oldMember, newMember);

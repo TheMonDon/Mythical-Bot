@@ -97,6 +97,7 @@ export async function run(client, oldMessage, newMessage) {
     if (oldMessage.content === newMessage.content || oldMessage === newMessage) return;
     if (newMessage.guild && !newMessage.channel.permissionsFor(newMessage.guild.members.me).missing('SendMessages'))
       return;
+    if (newMessage.guild && newMessage.guild.members.me.isCommunicationDisabled()) return;
 
     const settings = client.getSettings(newMessage.guild);
     newMessage.settings = settings;
