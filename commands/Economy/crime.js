@@ -24,7 +24,7 @@ class Crime extends Command {
     const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
 
     const embed = new EmbedBuilder()
-      .setColor(msg.settings.embedColor)
+      .setColor(msg.settings.embedErrorColor)
       .setAuthor({ name: authorName, iconURL: msg.author.displayAvatarURL() });
 
     // Check if the user is on cooldown
