@@ -13,7 +13,7 @@ class DadJoke extends Command {
     });
   }
 
-  async run(msg, args) {
+  async run(msg) {
     try {
       const { body } = await request.get('https://icanhazdadjoke.com/').set('Accept', 'application/json');
       const embed = new EmbedBuilder()
