@@ -112,6 +112,8 @@ class BlackJack extends Command {
 
     if (isNaN(bet)) return this.client.util.errorEmbed(msg, 'Bet amount must be a number', 'Invalid Bet');
     if (bet < 1) return this.client.util.errorEmbed(msg, `You can't bet less than ${currencySymbol}1`, 'Invalid Bet');
+    if (bet > 1000000000000)
+      return this.client.util.errorEmbed(msg, `You can't bet more than 1 Trillion.`, 'Invalid Bet');
     if (BigInt(bet) > cash)
       return this.client.util.errorEmbed(msg, "You can't bet more cash than you have", 'Invalid Bet');
 

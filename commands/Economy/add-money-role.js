@@ -45,6 +45,8 @@ class AddMoneyRole extends Command {
 
     if (isNaN(amount))
       return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Incorrect Usage');
+    if (amount > 1000000000000)
+      return this.client.util.errorEmbed(msg, `You can't add more than 1 Trillion to a role.`, 'Invalid Amount');
 
     if (!role) {
       errEmbed.setDescription(stripIndents`
