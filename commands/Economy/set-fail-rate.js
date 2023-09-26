@@ -13,7 +13,6 @@ class SetFailRate extends Command {
       usage: 'set-fail-rate <crime | slut> <percentage>',
       aliases: ['setfailrate', 'setfail'],
       permLevel: 'Moderator',
-      requiredArgs: 2,
       guildOnly: true,
     });
   }

@@ -76,7 +76,7 @@ class Help extends Command {
       sortedCategoriesArray.push(properCase);
     }
 
-    const itemsPerPage = 20;
+    const itemsPerPage = 21;
     let pageNumber = 1;
     const disabled = (await db.get(`servers.${msg.guild.id}.disabled`)) || [];
 
@@ -179,10 +179,13 @@ class Help extends Command {
       const isDisabled = disabled.includes(category.toLowerCase());
       let displayedCategory = this.client.util.toProperCase(category);
       if (displayedCategory === 'Nsfw') displayedCategory = 'NSFW';
+
+      const pageFooter = totalPages === 1 ? '' : `Page ${pageNumber}/${totalPages} | `;
       em.setTitle(`${displayedCategory} Commands`).setFooter({
-        text: `Page ${pageNumber}/${totalPages} | Disabled: ${this.client.util.toProperCase(isDisabled.toString())}`,
+        text: `${pageFooter}Disabled: ${this.client.util.toProperCase(isDisabled.toString())}`,
       });
-      msg.channel.send({ embeds: [em] });
+
+      return msg.channel.send({ embeds: [em] });
     } else {
       return msg.channel.send({ embeds: [errEm] });
     }

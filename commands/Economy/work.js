@@ -42,7 +42,7 @@ class Work extends Command {
     const min = parseFloat((await db.get(`servers.${msg.guild.id}.economy.work.min`)) || 50);
     const max = parseFloat((await db.get(`servers.${msg.guild.id}.economy.work.max`)) || 500);
 
-    const amount = Math.floor(Math.random() * (max - min + 1) + min);
+    const amount = Math.abs(Math.floor(Math.random() * (max - min + 1) + min));
     const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
     const csamount = currencySymbol + amount.toLocaleString();
 

@@ -67,8 +67,11 @@ class Rob extends Command {
     if (memCash <= BigInt(0))
       return this.client.util.errorEmbed(msg, `${mem} does not have anything to rob`, 'No Money');
 
+    const minRate = 20;
+    const maxRate = 80;
+
     const totalAmount = Number(memCash + authNet);
-    const failRate = Math.floor((Number(authNet) / totalAmount) * 100);
+    const failRate = Math.floor((Number(authNet) / totalAmount) * (maxRate - minRate + 1) + minRate);
 
     const ranNum = Math.floor(Math.random() * 100);
 
@@ -106,7 +109,7 @@ class Rob extends Command {
     } else {
       // Calculate a random amount to rob, without exceeding extremely large values
       const maxRobAmount = Math.min(Number(memCash), Number.MAX_SAFE_INTEGER);
-      let amount = Math.floor(Math.random() * maxRobAmount) + 1;
+      let amount = Math.floor((failRate / 100) * maxRobAmount);
       amount = BigInt(amount);
 
       const newMemCash = memCash - amount;

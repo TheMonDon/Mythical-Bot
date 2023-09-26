@@ -59,7 +59,7 @@ class Slut extends Command {
     const maxFine = (await db.get(`servers.${msg.guild.id}.economy.${type}.fine.max`)) || 30;
 
     // randomFine is a random number between the minimum and maximum fail rate
-    const randomFine = BigInt(Math.round(Math.random() * (maxFine - minFine + 1) + minFine));
+    const randomFine = BigInt(Math.abs(Math.round(Math.random() * (maxFine - minFine + 1) + minFine)));
 
     // fineAmount is the amount of money the user will lose if they fail the action
     const fineAmount = (authNet / BigInt(100)) * randomFine;
@@ -86,7 +86,7 @@ class Slut extends Command {
       const newAmount = cash - fineAmount;
       await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAmount.toString());
     } else {
-      const amount = BigInt(Math.floor(Math.random() * (max - min + 1) + min));
+      const amount = BigInt(Math.abs(Math.floor(Math.random() * (max - min + 1) + min)));
       const csamount = currencySymbol + amount.toLocaleString();
 
       const num = Math.floor(Math.random() * (crimeSuccess.length - 1)) + 1;

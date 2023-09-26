@@ -18,25 +18,20 @@ class Exec extends Command {
 
     const { exec } = require('child_process');
     exec(code, (err, stdout, stderr) => {
-      if (err) {
-        msg.channel.send(err, {
-          code: 'xl',
-          split: 2000,
-        });
+      let text;
+      if (err) text = err;
+      if (stderr) text = stderr;
+      if (stdout) text = stdout;
+
+      if (!text) text = 'Code executed! No output was given.';
+      const maxLength = 1980;
+
+      while (text.length > 0) {
+        const content = text.substring(0, maxLength);
+        text = text.substring(maxLength);
+
+        msg.channel.send(`\`\`\`bash\n${content}\n\`\`\``);
       }
-      if (stderr) {
-        msg.channel.send(stderr, {
-          code: 'xl',
-          split: 2000,
-        });
-      }
-      if (stdout) {
-        msg.channel.send(stdout, {
-          code: 'xl',
-          split: 2000,
-        });
-      }
-      if (!stderr && !stdout) msg.channel.send('Code executed! There is no output.');
     });
   }
 }
