@@ -72,7 +72,11 @@ export async function run(client, member) {
   }
 
   // Run the functions
-  await LogSystem(member);
-  await AutoRole(member);
-  WelcomeMessage(client, member);
+  try {
+    await LogSystem(member);
+    await AutoRole(member);
+    WelcomeMessage(client, member);
+  } catch (err) {
+    return client.logger.error(err);
+  }
 }

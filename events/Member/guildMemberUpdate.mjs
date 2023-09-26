@@ -54,5 +54,9 @@ export async function run(client, oldMember, newMember) {
     channel.send({ embeds: [embed] }).catch(() => {});
   }
 
-  await TimeoutLogs(oldMember, newMember);
+  try {
+    await TimeoutLogs(oldMember, newMember);
+  } catch (err) {
+    return client.logger.error(err);
+  }
 }
