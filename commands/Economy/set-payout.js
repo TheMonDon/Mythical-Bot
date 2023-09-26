@@ -28,7 +28,7 @@ class SetPayout extends Command {
     const workMin = (await db.get(`servers.${msg.guild.id}.economy.work.min`)) || 50;
     const workMax = (await db.get(`servers.${msg.guild.id}.economy.work.max`)) || 500;
     const slutMin = (await db.get(`servers.${msg.guild.id}.economy.slut.min`)) || 100;
-    const slutMax = (await db.get(`servers.${msg.guild.id}.economy.work.max`)) || 1000;
+    const slutMax = (await db.get(`servers.${msg.guild.id}.economy.slut.max`)) || 1000;
     const crimeMin = (await db.get(`servers.${msg.guild.id}.economy.crime.min`)) || 500;
     const crimeMax = (await db.get(`servers.${msg.guild.id}.economy.crime.max`)) || 2000;
     const chatMin = (await db.get(`servers.${msg.guild.id}.economy.chat.min`)) || 10;
