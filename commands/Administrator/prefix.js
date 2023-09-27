@@ -8,7 +8,6 @@ class Prefix extends Command {
       category: 'Administrator',
       permLevel: 'Administrator',
       usage: 'prefix [New Prefix]',
-      aliases: ['p'],
     });
   }
 
