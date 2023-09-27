@@ -245,30 +245,34 @@ const loadMusic = async () => {
 
   client.player.events
     .on('playerStart', async (queue, track) => {
-      if (queue.repeatMode === 1) return;
+      try {
+        if (queue.repeatMode === 1) return;
 
-      const em = new EmbedBuilder()
-        .setTitle('Now Playing')
-        .setDescription(`[${track.author} - ${track.title}](${track.url}) \n\nRequested By: ${track.requestedBy}`)
-        .setThumbnail(track.thumbnail)
-        .setColor('#0099CC');
+        const em = new EmbedBuilder()
+          .setTitle('Now Playing')
+          .setDescription(`[${track.author} - ${track.title}](${track.url}) \n\nRequested By: ${track.requestedBy}`)
+          .setThumbnail(track.thumbnail)
+          .setColor('#0099CC');
 
-      const msg = await queue.metadata.channel.send({ embeds: [em] });
+        const msg = await queue.metadata.channel.send({ embeds: [em] }).catch(() => {});
 
-      const oldmsg = (await db.get(`servers.${queue.metadata.guild.id}.music.lastTrack`)) || null;
-      if (oldmsg !== null) {
-        try {
-          await queue.metadata.guild.channels.cache
-            .get(oldmsg.channelId)
-            .messages.cache.get(oldmsg.id)
-            .delete()
-            .catch(() => {});
-        } catch {
-          await db.delete(`servers.${queue.metadata.guild.id}.music.lastTrack`);
+        const oldmsg = (await db.get(`servers.${queue.metadata.guild.id}.music.lastTrack`)) || null;
+        if (oldmsg !== null) {
+          try {
+            await queue.metadata.guild.channels.cache
+              .get(oldmsg.channelId)
+              .messages.cache.get(oldmsg.id)
+              .delete()
+              .catch(() => {});
+          } catch {
+            await db.delete(`servers.${queue.metadata.guild.id}.music.lastTrack`);
+          }
         }
-      }
 
-      await db.set(`servers.${queue.metadata.guild.id}.music.lastTrack`, msg);
+        await db.set(`servers.${queue.metadata.guild.id}.music.lastTrack`, msg);
+      } catch (error) {
+        client.logger.error(error);
+      }
     })
     .on('audioTrackAdd', (queue, track) => {
       const em = new EmbedBuilder()
