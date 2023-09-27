@@ -429,5 +429,6 @@ process.on('uncaughtException', (err) => {
 });
 
 process.on('unhandledRejection', (err) => {
+  console.log(err);
   return client.logger.error(`Unhandled Rejection: ${err}`);
 });
