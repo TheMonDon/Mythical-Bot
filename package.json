@@ -59,7 +59,7 @@
     "node-html-parser": "^5.4.2-0",
     "node-schedule": "^2.1.0",
     "node-superfetch": "^0.2.3",
-    "npm": "^9.8.0",
+    "npm": "^10.1.0",
     "openweather-apis": "^4.4.2",
     "opusscript": "^0.0.8",
     "owlbot-js": "^2.0.3",
