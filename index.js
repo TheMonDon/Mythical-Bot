@@ -246,17 +246,23 @@ const loadMusic = async () => {
   client.player.events
     .on('playerStart', async (queue, track) => {
       if (queue.repeatMode === 1) return;
+
       const em = new EmbedBuilder()
         .setTitle('Now Playing')
         .setDescription(`[${track.author} - ${track.title}](${track.url}) \n\nRequested By: ${track.requestedBy}`)
         .setThumbnail(track.thumbnail)
         .setColor('#0099CC');
+
       const msg = await queue.metadata.channel.send({ embeds: [em] });
 
       const oldmsg = (await db.get(`servers.${queue.metadata.guild.id}.music.lastTrack`)) || null;
       if (oldmsg !== null) {
         try {
-          await queue.metadata.guild.channels.cache.get(oldmsg.channelId).messages.cache.get(oldmsg.id).delete();
+          await queue.metadata.guild.channels.cache
+            .get(oldmsg.channelId)
+            .messages.cache.get(oldmsg.id)
+            .delete()
+            .catch(() => {});
         } catch {
           await db.delete(`servers.${queue.metadata.guild.id}.music.lastTrack`);
         }
@@ -270,7 +276,8 @@ const loadMusic = async () => {
         .setThumbnail(track.thumbnail)
         .setColor('#0099CC')
         .setDescription(`[${track.author} - ${track.title}](${track.url}) \n\nRequested By: ${track.requestedBy}`);
-      queue.metadata.channel.send({ embeds: [em] });
+
+      queue.metadata.channel.send({ embeds: [em] }).catch(() => {});
     })
     .on('audioTracksAdd', (queue, tracks) => {
       const playlist = tracks[0].playlist;
@@ -282,7 +289,8 @@ const loadMusic = async () => {
         .setColor('#0099CC')
         .setDescription(`[${playlist.title}](${playlist.url}) \n\nRequested By: ${tracks[0].requestedBy}`)
         .addFields([{ name: 'Playlist Length', value: length.toString(), inline: true }]);
-      queue.metadata.channel.send({ embeds: [em] });
+
+      queue.metadata.channel.send({ embeds: [em] }).catch(() => {});
     })
     .on('noResults', (queue, query) => queue.metadata.channel.send(`No results were found for ${query}.`))
     .on('emptyQueue', (queue) => {
@@ -290,7 +298,8 @@ const loadMusic = async () => {
         .setTitle('Queue Ended')
         .setColor('#0099CC')
         .setDescription('Music has been stopped since the queue has no more tracks.');
-      queue.metadata.channel.send({ embeds: [em] });
+
+      queue.metadata.channel.send({ embeds: [em] }).catch(() => {});
     })
     .on('error', (queue, error) => {
       switch (error) {

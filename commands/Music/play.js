@@ -21,14 +21,14 @@ class Play extends Command {
     const query = args.join(' ').slice(0, 300);
     if (!query) return msg.channel.send('Please enter something to search for.');
 
-    const searchResult = await this.client.player.search(query, { requestedBy: msg.author });
-
-    if (!searchResult.hasTracks()) {
-      // If player didn't find any songs for this query
-      return msg.channel.send(`We couldn't find any tracks for ${query}!`);
-    }
-
     try {
+      const searchResult = await this.client.player.search(query, { requestedBy: msg.author });
+
+      if (!searchResult.hasTracks()) {
+        // If player didn't find any songs for this query
+        return msg.channel.send(`We couldn't find any tracks for ${query}!`);
+      }
+
       await this.client.player.play(msg.member.voice.channel, searchResult, {
         nodeOptions: {
           metadata: msg,

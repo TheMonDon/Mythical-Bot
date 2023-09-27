@@ -21,7 +21,9 @@ class Stop extends Command {
 
     if (!queue) return msg.channel.send('There was nothing playing.');
 
-    return queue.delete();
+    queue.delete();
+
+    return msg.channel.send('All music has been stopped.');
   }
 }
 
