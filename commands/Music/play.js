@@ -24,6 +24,7 @@ class Play extends Command {
     try {
       const searchResult = await this.client.player.search(query, { requestedBy: msg.author });
 
+      if (!searchResult) return msg.channel.send('I could not find that song.');
       if (!searchResult.hasTracks()) {
         // If player didn't find any songs for this query
         return msg.channel.send(`We couldn't find any tracks for ${query}!`);

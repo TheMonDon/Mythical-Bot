@@ -51,6 +51,7 @@
     "luxon": "^3.1.1",
     "lyrics-finder": "^21.7.0",
     "mathjs": "^11.0.1",
+    "mediaplex": "^0.0.8",
     "moment": "^2.29.4",
     "moment-duration-format": "^2.3.2",
     "mysql2": "^2.2.5",
