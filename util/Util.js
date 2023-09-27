@@ -229,11 +229,13 @@ async function clean(client, text) {
   const secrets = [
     config.token,
     config.github,
-    config.owlKey,
     config.OxfordID,
     config.OxfordKey,
     config.TMDb,
     config.BotListToken,
+    config.OpenWeather,
+    config.botLogsWebhookURL,
+    config.youtubeCookie,
   ];
 
   for (let i = 0; i < secrets.length; i++) {

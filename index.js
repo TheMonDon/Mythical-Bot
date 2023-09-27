@@ -424,6 +424,7 @@ client.on('raw', (packet) => {
 });
 
 process.on('uncaughtException', (err) => {
+  console.error(err);
   client.logger.error(`Uncaught Exception: ${err}`);
   // return process.exit(1);
 });

@@ -18,9 +18,6 @@ const config = {
   OxfordID: '',
   OxfordKey: '',
 
-  // OwlBot API key
-  owlKey: '',
-
   // Github API Token
   github: '',
 
@@ -32,6 +29,9 @@ const config = {
 
   // Discord webhook to send bot logs to
   botLogsWebhookURL: '',
+
+  // YouTube cookie for discord-player
+  youtubeCookie: ''
 
   // Default per-server settings. These settings are entered in a database on first load, 
   // And are then completely ignored from this file. To modify default settings, use the `conf` command.
