@@ -1,9 +1,7 @@
 const { EmbedBuilder, ChannelType } = require('discord.js');
 const Command = require('../../base/Command.js');
 const { QuickDB } = require('quick.db');
-const sherlock = require('sherlockjs');
-require('moment-duration-format');
-const moment = require('moment');
+const chrono = require('chrono-node');
 const db = new QuickDB();
 
 class RemindMe extends Command {
@@ -11,7 +9,7 @@ class RemindMe extends Command {
     super(client, {
       name: 'remind-me',
       description: 'Gives you a reminder',
-      examples: ['remind-me Ban Zeph in 1 year', 'remind-me in 4 months '],
+      examples: ['remind-me Ban Zeph in 1 year', 'in 69 minutes'],
       usage: 'remind-me <reminder>',
       requiredArgs: 1,
       category: 'General',
@@ -20,41 +18,36 @@ class RemindMe extends Command {
   }
 
   async run(msg, args) {
+    // Set the maximum reminders a person can have
+    const maxReminders = 5;
+
+    // Get the reminders from the global database and check generate an ID. If the ID exists, regen it.
     const reminders = (await db.get('global.reminders')) || [];
     let remID = this.client.util.randomString(5);
     while (reminders.length > 0 && reminders.includes(remID)) remID = this.client.util.randomString(5);
 
-    /* this is all old.
-    // Want to find a way to put this back in at some point.
-
-    const numReminders = reminders.length;
-
-    let maxReminders = 2;
-    const usertype = await db.get(`users.${msg.author.id}.usertype`) || 0;
-    if (usertype === 10) { // Developer.
-      maxReminders = 20;
-    } else if (usertype === 1) { // Donators?
-      maxReminders = 4;
+    // Filter reminders by the ones an individual user has and check if it's greater than or equal to maxReminders
+    const userReminders = Object.values(reminders).filter((obj) => obj.userID === msg.author.id);
+    if (userReminders.length >= maxReminders && msg.author.id !== '318592718832140289') {
+      // The user has reached the maximum number of reminders
+      return this.client.util.errorEmbed(msg, 'You have reached the maximum number of reminders.');
     }
 
-    if (numReminders >= maxReminders) return msg.channel.send(`Sorry ${msg.author.username}, but you already have ${numReminders} reminders active. Please wait for that to finish, or you can donate to raise your cap.`);
-    */
+    // Clean the string from the user, and parse the results
+    const cleanedArgs = await this.client.util.clean(this.client, args.join(' '));
+    const results = chrono.parse(cleanedArgs);
 
-    const reminder = sherlock.parse(args.join(' '));
-    if (!reminder.startDate) return msg.channel.send('Please provide a valid starting time.');
-    if (!reminder.eventTitle) return msg.channel.send('Please provide a valid reminder');
+    // Check if the parser correctly understood the input
+    if (!results?.[0]?.start) return msg.channel.send('Please provide a valid starting time.');
 
+    // Conversions and dates
     const now = new Date();
-    const start = reminder.startDate.getTime();
-    const message = reminder.eventTitle;
-
-    const startTime = moment(start);
-    const now1 = moment();
-    const timeString = moment.duration(startTime.diff(now1)).format();
+    const start = results[0].start.date().getTime();
+    const message = cleanedArgs;
 
     if (start <= now) return msg.channel.send('Please make sure your reminder is not part of back to the future.');
-    if (message.length > 200) return msg.channel.send('Please keep your reminder under 200 characters.');
     if (isNaN(start) || !isFinite(start)) return msg.channel.send('Please provide a valid starting time.');
+    if (message.length > 256) return msg.channel.send('Please keep your reminder under 256 characters.');
 
     const rand = '000000'.replace(/0/g, function () {
       return (~~(Math.random() * 16)).toString(16);
@@ -63,20 +56,20 @@ class RemindMe extends Command {
     const embed = new EmbedBuilder()
       .setColor(rand)
       .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
-      .addFields([
-        { name: 'I will remind you to:', value: `\`\`\`${message}\`\`\`` },
-        { name: 'in:', value: `\`\`\`${timeString}\`\`\`` },
-      ])
-      .setFooter({ text: `ID: ${remID} | Got it! I'll remind you on:` })
-      .setTimestamp(start);
-    msg.channel.send({ embeds: [embed] });
+      .addFields([{ name: '**I will remind you to:**', value: `\`\`\`${message}\`\`\`` }])
+      .setDescription(`**I will remind you on:** \n<t:${Math.floor(start / 1000)}:F>`)
+      .setFooter({ text: `ID: ${remID}` });
+
+    const originalMessage = await msg.channel.send({ embeds: [embed] }).catch(() => {});
 
     const obj = {
-      createdAt: now.getTime(),
-      triggerOn: start,
-      reminder: message,
       channelID: msg.channel.type === ChannelType.DM ? null : msg.channel.id,
+      createdAt: now.getTime(),
       userID: msg.author.id,
+      guild: msg.guild.id,
+      reminder: message,
+      triggerOn: start,
+      originalMessage,
       color: rand,
       remID,
     };
