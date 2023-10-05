@@ -65,34 +65,6 @@ class Connect4 extends Command {
       );
     }
 
-    function checkLine(a, b, c, d) {
-      return a !== null && a === b && a === c && a === d;
-    }
-
-    function verifyWin(bd) {
-      for (let r = 0; r < 3; r++) {
-        for (let c = 0; c < 7; c++) {
-          if (checkLine(bd[r][c], bd[r + 1][c], bd[r + 2][c], bd[r + 3][c])) return bd[r][c];
-        }
-      }
-      for (let r = 0; r < 6; r++) {
-        for (let c = 0; c < 4; c++) {
-          if (checkLine(bd[r][c], bd[r][c + 1], bd[r][c + 2], bd[r][c + 3])) return bd[r][c];
-        }
-      }
-      for (let r = 0; r < 3; r++) {
-        for (let c = 0; c < 4; c++) {
-          if (checkLine(bd[r][c], bd[r + 1][c + 1], bd[r + 2][c + 2], bd[r + 3][c + 3])) return bd[r][c];
-        }
-      }
-      for (let r = 3; r < 6; r++) {
-        for (let c = 0; c < 4; c++) {
-          if (checkLine(bd[r][c], bd[r - 1][c + 1], bd[r - 2][c + 2], bd[r - 3][c + 3])) return bd[r][c];
-        }
-      }
-      return null;
-    }
-
     function generateBoard() {
       const arr = [];
       for (let i = 0; i < 6; i++) {
@@ -314,13 +286,8 @@ class Connect4 extends Command {
           const content = await getContent(currentUser, opponentUser, opponentEmoji, currentEmoji);
           await collected.editReply(content).catch(console.error);
 
-          if (AIEngine.winner) console.log(`The winner is ${AIEngine.winner}`);
-          if (verifyWin(board)) {
-            console.log('verifiyWin');
+          if (AIEngine.winner) {
             winner = currentUser;
-            AIEngine.gameOver = true;
-            // Log this to see what I can use
-            console.log(AIEngine);
             break;
           }
           turn === 1 ? (turn = 2) : (turn = 1);
@@ -384,9 +351,8 @@ class Connect4 extends Command {
         colLevels[i]--;
 
         // Check if the last move made them a winner, stop the game
-        if (verifyWin(board)) {
+        if (AIEngine.winner) {
           winner = currentUser;
-          AIEngine.gameOver = true;
           break;
         }
 
@@ -397,7 +363,6 @@ class Connect4 extends Command {
         // Change turn to the opposite of what it is
         turn === 1 ? (turn = 2) : (turn = 1);
       }
-      console.log('game over');
 
       // Delete the game and set content to function rather than pasting it three times
       this.client.games.delete(msg.channel.id);
@@ -412,7 +377,6 @@ class Connect4 extends Command {
       // Check if the game ever played so we can edit the interaction, or just edit the message
       if (collected) return collected.editReply(content).catch(console.error);
 
-      console.log('finished');
       return message.edit(content).catch(console.error);
     } catch (err) {
       // An error occurred, delete the game and send the error to chat.
