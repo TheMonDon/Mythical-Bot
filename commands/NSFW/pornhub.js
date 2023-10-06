@@ -1,6 +1,4 @@
 const Command = require('../../base/Command.js');
-const cheerio = require('cheerio');
-const fetch = require('node-superfetch');
 const pornhub = require('@justalk/pornhub-api');
 
 class PornHub extends Command {
