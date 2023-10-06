@@ -17,6 +17,7 @@
     "@discord-player/extractor": "^4.4.1",
     "@discordjs/opus": "^0.8.0",
     "@discordjs/voice": "^0.16.0",
+    "@justalk/pornhub-api": "^3.5.0",
     "@mapbox/node-pre-gyp": "^1.0.9",
     "better-sqlite3": "^7.4.1",
     "big-integer": "^1.6.51",

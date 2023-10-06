@@ -13,7 +13,7 @@ class Purge extends Command {
       `,
       usage: 'Purge <count> [@member]',
       examples: [
-        'purge 150',
+        'purge 250',
         'purge 50 @member',
         'purge links 50',
         'purge invites 50',
@@ -116,7 +116,7 @@ class Purge extends Command {
       let total = Number(count);
       let purged = 0;
       const progress = count > 100;
-      const user = args[1] ? this.client.util.getMember(msg, args.slice(1).join(' ')) : null;
+      const user = args[1] ? await this.client.util.getMember(msg, args.slice(1).join(' ')) : null;
 
       if (count > 1000) {
         count = 1000;
@@ -129,7 +129,7 @@ class Purge extends Command {
         count = checkCount(count);
 
         const filter = function (element) {
-          return element.author === user || element.member === user;
+          return element.author.id === user.id;
         };
         const messages = await getMessages(msg.channel, count, filter);
 
