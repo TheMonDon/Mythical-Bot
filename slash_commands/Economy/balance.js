@@ -1,4 +1,4 @@
-const { EmbedBuilder } = require('discord.js');
+const { EmbedBuilder, SlashCommandBuilder } = require('discord.js');
 const { QuickDB } = require('quick.db');
 const db = new QuickDB();
 
@@ -7,22 +7,14 @@ exports.conf = {
   guildOnly: true,
 };
 
-exports.commandData = {
-  name: 'balance',
-  description: 'Check your balance',
-  options: [
-    {
-      type: 6,
-      name: 'user',
-      description: 'Check the balance of another user',
-    },
-  ],
-  dmPermission: false,
-};
+exports.commandData = new SlashCommandBuilder()
+  .setName('balance')
+  .setDescription('Check your balance')
+  .addUserOption((option) => option.setName('member').setDescription('Check the balance of another member'));
 
 exports.run = async (interaction) => {
   await interaction.deferReply();
-  let mem = interaction.options?.get('user')?.member;
+  let mem = interaction.options?.get('member')?.member;
   if (!mem) mem = interaction.member;
 
   const cash = parseFloat(

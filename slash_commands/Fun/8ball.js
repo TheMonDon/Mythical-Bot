@@ -1,4 +1,4 @@
-const { EmbedBuilder } = require('discord.js');
+const { EmbedBuilder, SlashCommandBuilder } = require('discord.js');
 const NekoLife = require('nekos.life');
 const neko = new NekoLife();
 
@@ -7,19 +7,12 @@ exports.conf = {
   guildOnly: false,
 };
 
-exports.commandData = {
-  name: '8ball',
-  description: 'Ask the 8ball a question.',
-  options: [
-    {
-      type: 3,
-      name: 'question',
-      description: 'The question you want to ask the 8ball.',
-      required: true,
-    },
-  ],
-  dmPermission: true,
-};
+exports.commandData = new SlashCommandBuilder()
+  .setName('8ball')
+  .setDescription('Ask the 8ball a question')
+  .addStringOption((option) =>
+    option.setName('question').setDescription('The question to ask the 8ball').setRequired(true),
+  );
 
 exports.run = async (interaction) => {
   await interaction.deferReply();

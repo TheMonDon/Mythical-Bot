@@ -1,6 +1,6 @@
 /* eslint-disable no-eval */
 /* eslint-disable no-unused-vars */
-const { EmbedBuilder } = require('discord.js');
+const { EmbedBuilder, SlashCommandBuilder } = require('discord.js');
 const { inspect } = require('util');
 
 exports.conf = {
@@ -8,19 +8,12 @@ exports.conf = {
   guildOnly: false,
 };
 
-exports.commandData = {
-  name: 'eval',
-  description: 'Evaluate arbitrary JavaScript.',
-  options: [
-    {
-      type: 3,
-      name: 'query',
-      description: 'The code you want to evaluate.',
-      required: true,
-    },
-  ],
-  dmPermission: true,
-};
+exports.commandData = new SlashCommandBuilder()
+  .setName('eval')
+  .setDescription('Evaluate arbitrary JavaScript')
+  .addStringOption((option) =>
+    option.setName('query').setDescription('The code you want to evaluate').setRequired(true),
+  );
 
 exports.run = async (interaction) => {
   await interaction.deferReply();

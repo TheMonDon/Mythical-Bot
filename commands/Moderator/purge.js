@@ -11,10 +11,10 @@ class Purge extends Command {
       Purging messages from a member will purge up to the last 100 messages in the channel.
       The other purge types will also purge up to the last 100 messages in the channel.
       `,
-      usage: 'Purge <count> [@member]',
+      usage: 'Purge <count> [user]',
       examples: [
         'purge 250',
-        'purge 50 @member',
+        'purge 50 [user]',
         'purge links 50',
         'purge invites 50',
         'purge match <string> 50',
