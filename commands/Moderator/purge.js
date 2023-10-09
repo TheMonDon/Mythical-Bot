@@ -209,10 +209,10 @@ class Purge extends Command {
       let match;
       if (args.length >= 2 && !isNaN(args[args.length - 1])) {
         count = checkCount(args.pop());
-        match = args.join('').split('|');
+        match = args.join(' ').split('|');
       } else {
         count = 100;
-        match = args.join('').split('|');
+        match = args.join(' ').split('|');
       }
 
       const filter = function (m) {
@@ -237,10 +237,10 @@ class Purge extends Command {
       let match;
       if (args.length >= 2 && !isNaN(args[args.length - 1])) {
         count = checkCount(args.pop());
-        match = args.join('').split('|');
+        match = args.join(' ').split('|');
       } else {
         count = 100;
-        match = args.join('').split('|');
+        match = args.join(' ').split('|');
       }
 
       const filter = function (m) {
@@ -265,10 +265,10 @@ class Purge extends Command {
       let match;
       if (args.length >= 2 && !isNaN(args[args.length - 1])) {
         count = checkCount(args.pop());
-        match = args.join('').split('|');
+        match = args.join(' ').split('|');
       } else {
         count = 100;
-        match = args.join('').split('|');
+        match = args.join(' ').split('|');
       }
 
       const filter = function (m) {
@@ -293,10 +293,10 @@ class Purge extends Command {
       let match;
       if (args.length >= 2 && !isNaN(args[args.length - 1])) {
         count = checkCount(args.pop());
-        match = args.join('').split('|');
+        match = args.join(' ').split('|');
       } else {
         count = 100;
-        match = args.join('').split('|');
+        match = args.join(' ').split('|');
       }
 
       const filter = function (m) {
