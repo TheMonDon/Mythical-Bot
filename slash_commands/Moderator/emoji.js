@@ -104,7 +104,7 @@ exports.run = async (interaction) => {
           { name: 'Author', value: result.author?.toString() || 'Unknown', inline: true },
           { name: 'Is Animated?', value: result.animated ? 'True' : 'False', inline: true },
           { name: 'is Available?', value: result.available ? 'True' : 'False', inline: true },
-          { name: 'is Deleteable?', value: result.deletable ? 'True' : 'False', inline: true },
+          { name: 'is Deletable?', value: result.deletable ? 'True' : 'False', inline: true },
           { name: 'ID', value: result.id.toString(), inline: true },
           { name: 'Created At', value: result.createdAt.toString() || 'Unknown', inline: true },
         ]);
