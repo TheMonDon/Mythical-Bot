@@ -146,7 +146,7 @@ exports.run = async (interaction) => {
   const linkRegex = /https?:\/\/[\w\d-_]/gi;
 
   if (!interaction.guild.members.me.permissions.has('ManageMessages'))
-    return this.client.util.errorEmbed(
+    return interaction.client.util.errorEmbed(
       interaction,
       'The bot needs `Manage Messages` permission.',
       'Missing Permission',
@@ -181,7 +181,7 @@ exports.run = async (interaction) => {
         return messages.size;
       })
       .catch((err) => {
-        return this.client.util.errorEmbed(interaction, err);
+        return interaction.client.util.errorEmbed(interaction, err);
       });
   }
 
@@ -220,7 +220,7 @@ exports.run = async (interaction) => {
         if (progress) purgeMsg.edit(`Purging messages... ${Math.ceil((purged / total) * 100)}%`).catch(() => false);
         if (!messages.size) count = 0;
 
-        await this.client.util.wait(1100);
+        await interaction.client.util.wait(1100);
         count -= Math.min(count, 100);
       }
 
