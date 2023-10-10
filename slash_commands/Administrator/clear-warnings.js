@@ -14,7 +14,7 @@ exports.commandData = new SlashCommandBuilder()
   .setDMPermission(false);
 
 exports.run = async (interaction) => {
-  await interaction.deferReply();
+  await interaction.deferReply({ ephemeral: true });
   const mem = interaction.options.getUser('user');
   const color = interaction.settings.embedColor;
 
@@ -22,7 +22,8 @@ exports.run = async (interaction) => {
   const previousPoints = await interaction.client.util.getTotalPoints(mem.id, interaction);
   const logChan = await db.get(`servers.${interaction.guild.id}.warns.channel`);
 
-  if (!otherWarns || otherWarns.length < 1) return interaction.client.util.errorEmbed(interaction, 'That user has no warnings.');
+  if (!otherWarns || otherWarns.length < 1)
+    return interaction.client.util.errorEmbed(interaction, 'That user has no warnings.');
 
   for (const i of otherWarns) {
     await db.delete(`servers.${interaction.guild.id}.warns.warnings.${i.warnID}`);

@@ -32,12 +32,12 @@ class WarnInfo extends Command {
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
       .setColor(msg.settings.embedColor)
       .addFields([
-        { name: 'Case ID', value: caseID.toString() },
-        { name: 'User', value: victim.toString() },
-        { name: 'Points', value: points.toString() },
-        { name: 'Moderator', value: moderator.toString() },
-        { name: 'Warned on', value: moment(timestamp).format('LLL') },
-        { name: 'Message URL', value: messageURL },
+        { name: 'Case ID', value: caseID.toString(), inline: true },
+        { name: 'User', value: victim.toString(), inline: true },
+        { name: 'Points', value: points.toString(), inline: true },
+        { name: 'Moderator', value: moderator.toString(), inline: true },
+        { name: 'Warned on', value: moment(timestamp).format('LLL'), inline: true },
+        { name: 'Message URL', value: messageURL, inline: true },
         { name: 'Reason', value: reason, inline: false },
       ]);
     return msg.channel.send({ embeds: [em] });

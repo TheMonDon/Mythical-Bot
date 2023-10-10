@@ -89,22 +89,25 @@ function stripInvites(str, { guild = true, bot = true, text = '[redacted invite]
 
 /**
  *
- * @param {Message} msg - Message object
+ * @param {Message} context - Message or Interaction object
  * @param {String} memberString - memberStringing to use to find the member
  * @returns {?GuildMember} - Returns member object or false
  */
-async function getMember(msg, memberString) {
-  if (!msg.guild || !memberString) return false;
-  await msg.guild.members.fetch();
-  if (msg.mentions.members.first()) return msg.mentions.members.first();
+async function getMember(context, memberString) {
+  if (!context.guild || !memberString) return false;
+  await context.guild.members.fetch();
+
+  if (context instanceof Message) {
+    if (context.mentions.members.first()) return context.mentions.members.first();
+  }
 
   memberString = memberString.replace(/[<#&>\s]+/g, '');
   return (
-    msg.guild.members.cache.find((m) => m.id === memberString) ||
-    msg.guild.members.cache.find((m) => m.displayName.toUpperCase() === memberString.toUpperCase()) ||
-    msg.guild.members.cache.find((m) => m.displayName.toUpperCase().includes(memberString.toUpperCase())) ||
-    msg.guild.members.cache.find((m) => m.user.username.toUpperCase() === memberString.toUpperCase()) ||
-    msg.guild.members.cache.find((m) => m.user.username.toUpperCase().includes(memberString.toUpperCase()))
+    context.guild.members.cache.find((m) => m.id === memberString) ||
+    context.guild.members.cache.find((m) => m.displayName.toUpperCase() === memberString.toUpperCase()) ||
+    context.guild.members.cache.find((m) => m.displayName.toUpperCase().includes(memberString.toUpperCase())) ||
+    context.guild.members.cache.find((m) => m.user.username.toUpperCase() === memberString.toUpperCase()) ||
+    context.guild.members.cache.find((m) => m.user.username.toUpperCase().includes(memberString.toUpperCase()))
   );
 }
 
@@ -128,19 +131,22 @@ function getRole(msg, roleString) {
 
 /**
  *
- * @param {Message} msg - Message object
+ * @param {Message} context - Message or Interaction object
  * @param {String} channelString - string to use to find the channel
  * @returns {?GuildChannel}
  */
-function getChannel(msg, channelString) {
-  if (!msg.guild || !channelString) return false;
-  if (msg.mentions.channels.first()) return msg.mentions.channels.first();
+function getChannel(context, channelString) {
+  if (!context.guild || !channelString) return false;
+
+  if (context instanceof Message) {
+    if (context.mentions.channels.first()) return context.mentions.channels.first();
+  }
 
   channelString = channelString.replace(/[<#&>\s]+/g, '');
   return (
-    msg.guild.channels.cache.find((c) => c.id === channelString) ||
-    msg.guild.channels.cache.find((c) => c.name.toLowerCase() === channelString.toLowerCase()) ||
-    msg.guild.channels.cache.find((c) => c.name.toLowerCase().includes(channelString.toLowerCase()))
+    context.guild.channels.cache.find((c) => c.id === channelString) ||
+    context.guild.channels.cache.find((c) => c.name.toLowerCase() === channelString.toLowerCase()) ||
+    context.guild.channels.cache.find((c) => c.name.toLowerCase().includes(channelString.toLowerCase()))
   );
 }
 

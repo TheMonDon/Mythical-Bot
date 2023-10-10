@@ -14,7 +14,7 @@ exports.commandData = new SlashCommandBuilder()
   .setDMPermission(false);
 
 exports.run = async (interaction) => {
-  await interaction.deferReply();
+  await interaction.deferReply({ ephemeral: true });
   let title = 'Case Cleared';
   let color = interaction.settings.embedColor;
 
