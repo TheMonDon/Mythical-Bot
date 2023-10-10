@@ -64,7 +64,9 @@ class Warn extends Command {
 
     // Make sure that the ID doesn't exist on that server
     let warnID = this.client.util.randomString(5);
-    while (db.has(`servers.${msg.guild.id}.warns.warnings.${warnID}`)) warnID = this.client.util.randomString(5);
+    while (await db.has(`servers.${msg.guild.id}.warns.warnings.${warnID}`)) {
+      warnID = this.client.util.randomString(5);
+    }
 
     // Get the users current warns and total points
     const otherWarns = await this.client.util.getWarns(mem.id, msg);
