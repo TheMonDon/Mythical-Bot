@@ -1,4 +1,4 @@
-const { EmbedBuilder, ChannelType } = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const Command = require('../../base/Command.js');
 const { QuickDB } = require('quick.db');
 const chrono = require('chrono-node');
@@ -63,10 +63,10 @@ class RemindMe extends Command {
     const originalMessage = await msg.channel.send({ embeds: [embed] }).catch(() => {});
 
     const obj = {
-      channelID: msg.channel.type === ChannelType.DM ? null : msg.channel.id,
+      channelID: msg.channel.id || null,
       createdAt: now.getTime(),
       userID: msg.author.id,
-      guild: msg.guild.id,
+      guildID: msg.guild.id,
       reminder: message,
       triggerOn: start,
       originalMessage,

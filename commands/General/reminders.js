@@ -76,7 +76,9 @@ class Reminders extends Command {
         }
       }
 
-      em.setTitle(`To delete a reminder, use **\`${msg.settings.prefix}reminders <ID>\`**`);
+      em.setTitle(`To delete a reminder, use **\`${msg.settings.prefix}reminders <ID>\`**`).setColor(
+        msg.settings.embedColor,
+      );
 
       if (em?.data?.fields?.length !== 0) {
         em.setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() });
@@ -85,7 +87,6 @@ class Reminders extends Command {
           `${msg.author.username}, you don't have any reminders, use the **remindme** command to create a new one!`,
         );
       }
-      em.setColor(msg.settings.embedColor);
 
       return msg.channel.send({ embeds: [em] });
     }
@@ -94,16 +95,15 @@ class Reminders extends Command {
     const reminder = await db.get(`global.reminders.${ID}`);
 
     if (!ID) {
-      em.setColor(errorColor);
-      em.setDescription(`${msg.author.username}, that isn't a valid reminder.`);
+      em.setColor(errorColor).setDescription(`${msg.author.username}, that isn't a valid reminder.`);
     } else if (!reminder || reminder.userID !== msg.author.id) {
-      em.setColor(errorColor);
-      em.setDescription(`${msg.author.username}, that isn't a valid reminder.`);
+      em.setColor(errorColor).setDescription(`${msg.author.username}, that isn't a valid reminder.`);
     } else {
       await db.delete(`global.reminders.${ID}`);
 
-      em.setColor(msg.settings.embedSuccessColor);
-      em.setDescription(`${msg.member.displayName}, you've successfully deleted your reminder.`);
+      em.setColor(msg.settings.embedSuccessColor).setDescription(
+        `${msg.member.displayName}, you've successfully deleted your reminder.`,
+      );
     }
     return msg.channel.send({ embeds: [em] });
   }

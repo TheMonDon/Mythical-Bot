@@ -54,6 +54,7 @@ export async function run(client) {
             channel
               ? channel.send({ embeds: [em], content: `<@${userID}>, here's your reminder:` })
               : user.send({ embeds: [em], content: `${user.username}, here's your reminder:` });
+
             await db.delete(`global.reminders.${remID}`);
           } catch (err) {
             console.error(err);

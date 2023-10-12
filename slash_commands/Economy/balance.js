@@ -10,7 +10,8 @@ exports.conf = {
 exports.commandData = new SlashCommandBuilder()
   .setName('balance')
   .setDescription('Check your balance')
-  .addUserOption((option) => option.setName('member').setDescription('Check the balance of another member'));
+  .addUserOption((option) => option.setName('member').setDescription('Check the balance of another member'))
+  .setDMPermission(false);
 
 exports.run = async (interaction) => {
   await interaction.deferReply();
