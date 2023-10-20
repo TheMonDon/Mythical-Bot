@@ -141,8 +141,8 @@ class Wordle extends Command {
       const word = collected?.first()?.content.toLowerCase();
       if (!word) gameOver = true;
       collected
-        .first()
-        .delete()
+        ?.first()
+        ?.delete()
         .catch(() => {});
 
       if (!allWords.includes(word)) {
