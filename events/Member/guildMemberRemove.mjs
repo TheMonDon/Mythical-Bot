@@ -3,7 +3,6 @@ import { QuickDB } from 'quick.db';
 const db = new QuickDB();
 
 export async function run(client, member) {
-  console.log('GuildMemberRemove', member);
   const memberName = member.user.discriminator === '0' ? member.user.username : member.user.tag;
 
   async function LogSystem(member) {

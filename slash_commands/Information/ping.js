@@ -1,14 +1,11 @@
+const { SlashCommandBuilder } = require('discord.js');
+
 exports.conf = {
   permLevel: 'User',
   guildOnly: false,
 };
 
-exports.commandData = {
-  name: 'ping',
-  description: 'Pongs when pinged.',
-  options: [],
-  dmPermission: true,
-};
+exports.commandData = new SlashCommandBuilder().setName('ping').setDescription('Check the ping of the bot');
 
 exports.run = async (interaction) => {
   await interaction.deferReply();

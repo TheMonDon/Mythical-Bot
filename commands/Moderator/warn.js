@@ -64,7 +64,9 @@ class Warn extends Command {
 
     // Make sure that the ID doesn't exist on that server
     let warnID = this.client.util.randomString(5);
-    while (db.has(`servers.${msg.guild.id}.warns.warnings.${warnID}`)) warnID = this.client.util.randomString(5);
+    while (await db.has(`servers.${msg.guild.id}.warns.warnings.${warnID}`)) {
+      warnID = this.client.util.randomString(5);
+    }
 
     // Get the users current warns and total points
     const otherWarns = await this.client.util.getWarns(mem.id, msg);
@@ -153,7 +155,7 @@ class Warn extends Command {
 
     // Check if they should be banned or kicked
     if (warnAmount >= ba) {
-      if (!msg.guild.members.me.permissions.has('BenMembers'))
+      if (!msg.guild.members.me.permissions.has('BanMembers'))
         return msg.channel.send('The bot does not have permission to ban members.');
       msg.guild.members.ban(mem.id, { reason }).catch(() => null); // Ban wether they are in the guild or not.
     } else if (warnAmount >= ka) {

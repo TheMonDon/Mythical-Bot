@@ -75,6 +75,7 @@ exports.run = async (interaction) => {
       });
       return interaction.editReply(`${emoji} has been created.`);
     }
+
     case 'delete': {
       const emoji = interaction.options.getString('emojidelete');
       const result = guildEmoji(interaction, emoji);
@@ -85,6 +86,7 @@ exports.run = async (interaction) => {
       result.delete();
       return interaction.editReply('The emoji has been successfully deleted.');
     }
+
     case 'info': {
       const emoji = interaction.options.getString('infoemoji');
       const result = guildEmoji(interaction, emoji);
@@ -102,13 +104,14 @@ exports.run = async (interaction) => {
           { name: 'Author', value: result.author?.toString() || 'Unknown', inline: true },
           { name: 'Is Animated?', value: result.animated ? 'True' : 'False', inline: true },
           { name: 'is Available?', value: result.available ? 'True' : 'False', inline: true },
-          { name: 'is Deleteable?', value: result.deletable ? 'True' : 'False', inline: true },
+          { name: 'is Deletable?', value: result.deletable ? 'True' : 'False', inline: true },
           { name: 'ID', value: result.id.toString(), inline: true },
           { name: 'Created At', value: result.createdAt.toString() || 'Unknown', inline: true },
         ]);
 
       return interaction.editReply({ embeds: [em] });
     }
+
     case 'rename': {
       const emoji = interaction.options.getString('emojitorename');
       const name = interaction.options.getString('newname');

@@ -1,4 +1,6 @@
 import { EmbedBuilder } from 'discord.js';
+import { QuickDB } from 'quick.db';
+const db = new QuickDB();
 
 export async function run(client, interaction) {
   if (interaction.isCommand()) {
@@ -32,6 +34,7 @@ export async function run(client, interaction) {
 
     try {
       await slashCommand.run(interaction);
+      await db.add('global.commands', 1);
     } catch (error) {
       client.logger.error(error);
       if (interaction.replied) {
@@ -60,6 +63,7 @@ export async function run(client, interaction) {
 
     try {
       await slashCommand.autocomplete(interaction);
+      await db.add('global.commands', 1);
     } catch (error) {
       client.logger.error(error);
     }

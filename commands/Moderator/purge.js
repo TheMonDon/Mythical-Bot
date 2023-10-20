@@ -11,10 +11,10 @@ class Purge extends Command {
       Purging messages from a member will purge up to the last 100 messages in the channel.
       The other purge types will also purge up to the last 100 messages in the channel.
       `,
-      usage: 'Purge <count> [@member]',
+      usage: 'Purge <count> [user]',
       examples: [
-        'purge 150',
-        'purge 50 @member',
+        'purge 250',
+        'purge 50 [user]',
         'purge links 50',
         'purge invites 50',
         'purge match <string> 50',
@@ -112,291 +112,294 @@ class Purge extends Command {
 
     await msg.delete();
 
-    if (type === 'default') {
-      let total = Number(count);
-      let purged = 0;
-      const progress = count > 100;
-      const user = args[1] ? this.client.util.getMember(msg, args.slice(1).join(' ')) : null;
+    switch (type) {
+      case 'default': {
+        let total = Number(count);
+        let purged = 0;
+        const progress = count > 100;
+        const user = args[1] ? await this.client.util.getMember(msg, args.slice(1).join(' ')) : null;
 
-      if (count > 1000) {
-        count = 1000;
-        total = Number(count);
+        if (count > 1000) {
+          count = 1000;
+          total = Number(count);
+        }
+
+        if (isNaN(count)) return msg.channel.send(`\`${count}\` is not a valid number, please input another number.`);
+
+        if (user) {
+          count = checkCount(count);
+
+          const filter = function (element) {
+            return element.author.id === user.id;
+          };
+          const messages = await getMessages(msg.channel, count, filter);
+
+          if (!messages || messages.size < 1) return msg.channel.send('No messages found from that member.');
+
+          const size = await deleteMessages(msg.channel, messages);
+          const authorName = user.user.discriminator === '0' ? user.user.username : user.user.tag;
+          return msg.channel.send(`Successfully deleted ${size} messages from ${authorName}.`);
+        }
+
+        if (count < 100) {
+          const filter = function (element) {
+            return !element.pinned;
+          };
+          const messages = await getMessages(msg.channel, count, filter);
+          const size = await deleteMessages(msg.channel, messages);
+          return msg.channel.send(`Successfully deleted ${size} messages in current channel.`);
+        }
+
+        const purgeText = progress ? 'Purging messages... 0%' : 'Purging messages...';
+        const purgeMsg = await msg.channel.send(purgeText);
+
+        while (count > 0) {
+          let messages = [];
+
+          try {
+            messages = await getMessages(msg.channel, Math.min(count, 100), (m) => !m.pinned, msg.id);
+          } catch (e) {
+            return this.error('Unable to get messages.');
+          }
+
+          await deleteMessages(msg.channel, messages);
+
+          purged += messages.size;
+
+          if (progress) purgeMsg.edit(`Purging messages... ${Math.ceil((purged / total) * 100)}%`).catch(() => false);
+
+          if (!messages.size) count = 0;
+
+          await this.client.util.wait(1100);
+          count -= Math.min(count, 100);
+        }
+
+        purgeMsg.edit(`Purged ${purged} messages.`).catch(() => false);
+        setTimeout(() => purgeMsg.delete().catch(() => false), 9000);
+        break;
       }
 
-      if (isNaN(count)) return msg.channel.send(`\`${count}\` is not a valid number, please input another number.`);
-
-      if (user) {
-        count = checkCount(count);
-
+      case 'links': {
+        const count = args[1] || 100;
         const filter = function (element) {
-          return element.author === user || element.member === user;
+          return element.content.match(linkRegex);
         };
         const messages = await getMessages(msg.channel, count, filter);
 
-        if (!messages || messages.size < 1) return msg.channel.send('No messages found from that member.');
+        if (!messages || messages.size < 1) return msg.channel.send('No messages found containing links.');
 
         const size = await deleteMessages(msg.channel, messages);
-        const authorName = user.user.discriminator === '0' ? user.user.username : user.user.tag;
-        return msg.channel.send(`Successfully deleted ${size} messages from ${authorName}.`);
+        return msg.channel.send(`Successfully deleted ${size} messages containing links.`);
       }
 
-      if (count < 100) {
+      case 'invites': {
+        const count = checkCount(args[1]);
         const filter = function (element) {
-          return !element.pinned;
+          return element.content.match(inviteRegex);
         };
         const messages = await getMessages(msg.channel, count, filter);
+
+        if (!messages || messages.size < 1) return msg.channel.send('No messages found containing invites.');
+
         const size = await deleteMessages(msg.channel, messages);
-        return msg.channel.send(`Successfully deleted ${size} messages in current channel.`);
+        return msg.channel.send(`Successfully deleted ${size} messages containing invites.`);
       }
 
-      const purgeText = progress ? 'Purging messages... 0%' : 'Purging messages...';
-      const purgeMsg = await msg.channel.send(purgeText);
-
-      while (count > 0) {
-        let messages = [];
-
-        try {
-          messages = await getMessages(msg.channel, Math.min(count, 100), (m) => !m.pinned, msg.id);
-        } catch (e) {
-          return this.error('Unable to get messages.');
+      case 'match': {
+        args.shift();
+        let count;
+        let match;
+        if (args.length >= 2 && !isNaN(args[args.length - 1])) {
+          count = checkCount(args.pop());
+          match = args.join(' ').split('|');
+        } else {
+          count = 100;
+          match = args.join(' ').split('|');
         }
 
-        await deleteMessages(msg.channel, messages);
+        const filter = function (m) {
+          const content = m.content.toLowerCase();
+          for (const text of match) {
+            if (content.includes(text.toLowerCase())) return true;
+          }
+          return false;
+        };
 
-        purged += messages.size;
+        const messages = await getMessages(msg.channel, count, filter);
 
-        if (progress) purgeMsg.edit(`Purging messages... ${Math.ceil((purged / total) * 100)}%`).catch(() => false);
+        if (!messages || messages.size < 1) return msg.channel.send(`No messages found containing \`${match}\`.`);
 
-        if (!messages.size) count = 0;
-
-        await this.client.util.wait(1100);
-        count -= Math.min(count, 100);
+        const size = await deleteMessages(msg.channel, messages);
+        return msg.channel.send(`Successfully deleted ${size} messages containing \`${match}\`.`);
       }
 
-      purgeMsg.edit(`Purged ${purged} messages.`).catch(() => false);
-      setTimeout(() => purgeMsg.delete().catch(() => false), 9000);
-    }
-
-    if (type === 'links') {
-      const count = args[1] || 100;
-      const filter = function (element) {
-        return element.content.match(linkRegex);
-      };
-      const messages = await getMessages(msg.channel, count, filter);
-
-      if (!messages || messages.size < 1) return msg.channel.send('No messages found containing links.');
-
-      const size = await deleteMessages(msg.channel, messages);
-      return msg.channel.send(`Successfully deleted ${size} messages containing links.`);
-    }
-
-    if (type === 'invites') {
-      const count = checkCount(args[1]);
-      const filter = function (element) {
-        return element.content.match(inviteRegex);
-      };
-      const messages = await getMessages(msg.channel, count, filter);
-
-      if (!messages || messages.size < 1) return msg.channel.send('No messages found containing invites.');
-
-      const size = await deleteMessages(msg.channel, messages);
-      return msg.channel.send(`Successfully deleted ${size} messages containing invites.`);
-    }
-
-    if (type === 'match') {
-      args.shift();
-      let count;
-      let match;
-      if (args.length >= 2 && !isNaN(args[args.length - 1])) {
-        count = checkCount(args.pop());
-        match = args.join('').split('|');
-      } else {
-        count = 100;
-        match = args.join('').split('|');
-      }
-
-      const filter = function (m) {
-        const content = m.content.toLowerCase();
-        for (const text of match) {
-          if (content.includes(text.toLowerCase())) return true;
+      case 'not': {
+        args.shift();
+        let count;
+        let match;
+        if (args.length >= 2 && !isNaN(args[args.length - 1])) {
+          count = checkCount(args.pop());
+          match = args.join(' ').split('|');
+        } else {
+          count = 100;
+          match = args.join(' ').split('|');
         }
-        return false;
-      };
 
-      const messages = await getMessages(msg.channel, count, filter);
+        const filter = function (m) {
+          const content = m.content.toLowerCase();
+          for (const text of match) {
+            if (!content.includes(text.toLowerCase())) return true;
+          }
+          return false;
+        };
 
-      if (!messages || messages.size < 1) return msg.channel.send(`No messages found containing \`${match}\`.`);
+        const messages = await getMessages(msg.channel, count, filter);
 
-      const size = await deleteMessages(msg.channel, messages);
-      return msg.channel.send(`Successfully deleted ${size} messages containing \`${match}\`.`);
-    }
+        if (!messages || messages.size < 1) return msg.channel.send(`No messages found not containing \`${match}\`.`);
 
-    if (type === 'not') {
-      args.shift();
-      let count;
-      let match;
-      if (args.length >= 2 && !isNaN(args[args.length - 1])) {
-        count = checkCount(args.pop());
-        match = args.join('').split('|');
-      } else {
-        count = 100;
-        match = args.join('').split('|');
+        const size = await deleteMessages(msg.channel, messages);
+        return msg.channel.send(`Successfully deleted ${size} messages not containing \`${match}\`.`);
       }
 
-      const filter = function (m) {
-        const content = m.content.toLowerCase();
-        for (const text of match) {
-          if (!content.includes(text.toLowerCase())) return true;
+      case 'startswith': {
+        args.shift();
+        let count;
+        let match;
+        if (args.length >= 2 && !isNaN(args[args.length - 1])) {
+          count = checkCount(args.pop());
+          match = args.join(' ').split('|');
+        } else {
+          count = 100;
+          match = args.join(' ').split('|');
         }
-        return false;
-      };
 
-      const messages = await getMessages(msg.channel, count, filter);
+        const filter = function (m) {
+          const content = m.content.toLowerCase();
+          for (const text of match) {
+            if (content.startsWith(text.toLowerCase())) return true;
+          }
+          return false;
+        };
 
-      if (!messages || messages.size < 1) return msg.channel.send(`No messages found not containing \`${match}\`.`);
+        const messages = await getMessages(msg.channel, count, filter);
 
-      const size = await deleteMessages(msg.channel, messages);
-      return msg.channel.send(`Successfully deleted ${size} messages not containing \`${match}\`.`);
-    }
+        if (!messages || messages.size < 1) return msg.channel.send(`No messages found starting with \`${match}\`.`);
 
-    if (type === 'startswith') {
-      args.shift();
-      let count;
-      let match;
-      if (args.length >= 2 && !isNaN(args[args.length - 1])) {
-        count = checkCount(args.pop());
-        match = args.join('').split('|');
-      } else {
-        count = 100;
-        match = args.join('').split('|');
+        const size = await deleteMessages(msg.channel, messages);
+        return msg.channel.send(`Successfully deleted ${size} messages starting with \`${match}\`.`);
       }
 
-      const filter = function (m) {
-        const content = m.content.toLowerCase();
-        for (const text of match) {
-          if (content.startsWith(text.toLowerCase())) return true;
+      case 'endswith': {
+        args.shift();
+        let count;
+        let match;
+        if (args.length >= 2 && !isNaN(args[args.length - 1])) {
+          count = checkCount(args.pop());
+          match = args.join(' ').split('|');
+        } else {
+          count = 100;
+          match = args.join(' ').split('|');
         }
-        return false;
-      };
 
-      const messages = await getMessages(msg.channel, count, filter);
+        const filter = function (m) {
+          const content = m.content.toLowerCase();
+          for (const text of match) {
+            if (content.endsWith(text.toLowerCase())) return true;
+          }
+          return false;
+        };
 
-      if (!messages || messages.size < 1) return msg.channel.send(`No messages found starting with \`${match}\`.`);
+        const messages = await getMessages(msg.channel, count, filter);
 
-      const size = await deleteMessages(msg.channel, messages);
-      return msg.channel.send(`Successfully deleted ${size} messages starting with \`${match}\`.`);
-    }
+        if (!messages || messages.size < 1) return msg.channel.send(`No messages found ending with \`${match}\`.`);
 
-    if (type === 'endswith') {
-      args.shift();
-      let count;
-      let match;
-      if (args.length >= 2 && !isNaN(args[args.length - 1])) {
-        count = checkCount(args.pop());
-        match = args.join('').split('|');
-      } else {
-        count = 100;
-        match = args.join('').split('|');
+        const size = await deleteMessages(msg.channel, messages);
+        return msg.channel.send(`Successfully deleted ${size} messages ending with \`${match}\`.`);
       }
 
-      const filter = function (m) {
-        const content = m.content.toLowerCase();
-        for (const text of match) {
-          if (content.endsWith(text.toLowerCase())) return true;
-        }
-        return false;
-      };
+      case 'bots': {
+        const count = checkCount(args[1]);
+        const filter = function (element) {
+          return element.author.bot;
+        };
+        const messages = await getMessages(msg.channel, count, filter);
 
-      const messages = await getMessages(msg.channel, count, filter);
+        if (!messages || messages.size < 1) return msg.channel.send('No messages found from bots.');
 
-      if (!messages || messages.size < 1) return msg.channel.send(`No messages found ending with \`${match}\`.`);
+        const size = await deleteMessages(msg.channel, messages);
+        return msg.channel.send(`Successfully deleted ${size} messages from bots.`);
+      }
 
-      const size = await deleteMessages(msg.channel, messages);
-      return msg.channel.send(`Successfully deleted ${size} messages ending with \`${match}\`.`);
-    }
+      case 'human': {
+        const count = checkCount(args[1]);
+        const filter = function (element) {
+          return !element.author.bot;
+        };
+        const messages = await getMessages(msg.channel, count, filter);
 
-    if (type === 'bots') {
-      const count = checkCount(args[1]);
-      const filter = function (element) {
-        return element.author.bot;
-      };
-      const messages = await getMessages(msg.channel, count, filter);
+        if (!messages || messages.size < 1) return msg.channel.send('No messages found from humans.');
 
-      if (!messages || messages.size < 1) return msg.channel.send('No messages found from bots.');
+        const size = await deleteMessages(msg.channel, messages);
+        return msg.channel.send(`Successfully deleted ${size} messages from humans.`);
+      }
 
-      const size = await deleteMessages(msg.channel, messages);
-      return msg.channel.send(`Successfully deleted ${size} messages from bots.`);
-    }
+      case 'images': {
+        const count = checkCount(args[1]);
+        const filter = function (element) {
+          return element.attachments?.size || element.embeds?.size;
+        };
+        const messages = await getMessages(msg.channel, count, filter);
 
-    if (type === 'human') {
-      const count = checkCount(args[1]);
-      const filter = function (element) {
-        return !element.author.bot;
-      };
-      const messages = await getMessages(msg.channel, count, filter);
+        if (!messages || messages.size < 1) return msg.channel.send('No messages found with images.');
 
-      if (!messages || messages.size < 1) return msg.channel.send('No messages found from humans.');
+        const size = await deleteMessages(msg.channel, messages);
+        return msg.channel.send(`Successfully deleted ${size} messages with images.`);
+      }
 
-      const size = await deleteMessages(msg.channel, messages);
-      return msg.channel.send(`Successfully deleted ${size} messages from humans.`);
-    }
+      case 'mentions': {
+        const count = checkCount(args[1]);
+        const filter = function (element) {
+          return element.mentions.members.size || element.mentions.roles.size;
+        };
+        const messages = await getMessages(msg.channel, count, filter);
 
-    if (type === 'images') {
-      const count = checkCount(args[1]);
-      const filter = function (element) {
-        return element.attachments?.size || element.embeds?.size;
-      };
-      const messages = await getMessages(msg.channel, count, filter);
+        if (!messages || messages.size < 1) return msg.channel.send('No messages found with mentions.');
 
-      if (!messages || messages.size < 1) return msg.channel.send('No messages found with images.');
+        const size = await deleteMessages(msg.channel, messages);
+        return msg.channel.send(`Successfully deleted ${size} messages with mentions.`);
+      }
 
-      const size = await deleteMessages(msg.channel, messages);
-      return msg.channel.send(`Successfully deleted ${size} messages with images.`);
-    }
+      case 'before': {
+        const message = await msg.channel.messages.fetch(args[1]);
+        if (!message) return msg.channel.send('Message not found.');
 
-    if (type === 'mentions') {
-      const count = checkCount(args[1]);
-      const filter = function (element) {
-        return element.mentions.members.size || element.mentions.roles.size;
-      };
-      const messages = await getMessages(msg.channel, count, filter);
+        const count = checkCount(args[2]);
+        const filter = function (element) {
+          return element.createdTimestamp < message.createdTimestamp;
+        };
+        const messages = await getMessages(msg.channel, count, filter);
 
-      if (!messages || messages.size < 1) return msg.channel.send('No messages found with mentions.');
+        if (!messages || messages.size < 1) return msg.channel.send('No messages found before the message.');
 
-      const size = await deleteMessages(msg.channel, messages);
-      return msg.channel.send(`Successfully deleted ${size} messages with mentions.`);
-    }
+        const size = await deleteMessages(msg.channel, messages);
+        return msg.channel.send(`Successfully deleted ${size} messages before the message.`);
+      }
 
-    if (type === 'before') {
-      const message = await msg.channel.messages.fetch(args[1]);
-      if (!message) return msg.channel.send('Message not found.');
+      case 'after': {
+        const message = await msg.channel.messages.fetch(args[1]);
+        if (!message) return msg.channel.send('Message not found.');
 
-      const count = checkCount(args[2]);
-      const filter = function (element) {
-        return element.createdTimestamp < message.createdTimestamp;
-      };
-      const messages = await getMessages(msg.channel, count, filter);
+        const count = checkCount(args[2]);
+        const filter = function (element) {
+          return element.createdTimestamp > message.createdTimestamp;
+        };
+        const messages = await getMessages(msg.channel, count, filter);
 
-      if (!messages || messages.size < 1) return msg.channel.send('No messages found before the message.');
+        if (!messages || messages.size < 1) return msg.channel.send('No messages found after the message.');
 
-      const size = await deleteMessages(msg.channel, messages);
-      return msg.channel.send(`Successfully deleted ${size} messages before the message.`);
-    }
-
-    if (type === 'after') {
-      const message = await msg.channel.messages.fetch(args[1]);
-      if (!message) return msg.channel.send('Message not found.');
-
-      const count = checkCount(args[2]);
-      const filter = function (element) {
-        return element.createdTimestamp > message.createdTimestamp;
-      };
-      const messages = await getMessages(msg.channel, count, filter);
-
-      if (!messages || messages.size < 1) return msg.channel.send('No messages found after the message.');
-
-      const size = await deleteMessages(msg.channel, messages);
-      return msg.channel.send(`Successfully deleted ${size} messages after the message.`);
+        const size = await deleteMessages(msg.channel, messages);
+        return msg.channel.send(`Successfully deleted ${size} messages after the message.`);
+      }
     }
   }
 }

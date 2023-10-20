@@ -59,7 +59,7 @@ class Bot extends Client {
       this.slashCommands.set(props.commandData.name, props);
       return false;
     } catch (e) {
-      return client.logger.error(`Unable to load slash command ${interactionName}: ${e}`);
+      return console.log(`Unable to load slash command ${interactionName}:`, e);
     }
   }
 
@@ -71,8 +71,8 @@ class Bot extends Client {
     if (!command)
       return client.logger.error(`The slash command \`${interactionName}\` doesn't seem to exist. Try again!`);
 
-    await delete require.cache[require.resolve(interactionPath)];
-    await this.slashCommands.delete(interactionName);
+    delete require.cache[require.resolve(interactionPath)];
+    this.slashCommands.delete(interactionName);
     return false;
   }
 
@@ -86,7 +86,7 @@ class Bot extends Client {
       });
       return false;
     } catch (e) {
-      return client.logger.error(`Unable to load command ${commandName}: ${e}`);
+      return console.log(`Unable to load command ${commandName}:`, e);
     }
   }
 

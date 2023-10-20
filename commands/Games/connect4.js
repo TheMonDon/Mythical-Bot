@@ -65,34 +65,6 @@ class Connect4 extends Command {
       );
     }
 
-    function checkLine(a, b, c, d) {
-      return a !== null && a === b && a === c && a === d;
-    }
-
-    function verifyWin(bd) {
-      for (let r = 0; r < 3; r++) {
-        for (let c = 0; c < 7; c++) {
-          if (checkLine(bd[r][c], bd[r + 1][c], bd[r + 2][c], bd[r + 3][c])) return bd[r][c];
-        }
-      }
-      for (let r = 0; r < 6; r++) {
-        for (let c = 0; c < 4; c++) {
-          if (checkLine(bd[r][c], bd[r][c + 1], bd[r][c + 2], bd[r][c + 3])) return bd[r][c];
-        }
-      }
-      for (let r = 0; r < 3; r++) {
-        for (let c = 0; c < 4; c++) {
-          if (checkLine(bd[r][c], bd[r + 1][c + 1], bd[r + 2][c + 2], bd[r + 3][c + 3])) return bd[r][c];
-        }
-      }
-      for (let r = 3; r < 6; r++) {
-        for (let c = 0; c < 4; c++) {
-          if (checkLine(bd[r][c], bd[r - 1][c + 1], bd[r - 2][c + 2], bd[r - 3][c + 3])) return bd[r][c];
-        }
-      }
-      return null;
-    }
-
     function generateBoard() {
       const arr = [];
       for (let i = 0; i < 6; i++) {
@@ -203,7 +175,6 @@ class Connect4 extends Command {
       const playerTwo = opponent.user;
       const board = generateBoard();
       let lastMove = 'None';
-      let gameOver = false;
       let winner = null;
 
       // Global var for updating the collected interaction
@@ -249,13 +220,11 @@ class Connect4 extends Command {
         let displayName = opponentUser.displayName;
 
         // Replace content and move if the game is over
-        if (gameOver) {
+        if (AIEngine.gameStatus().gameOver) {
           content = winner ? `Congrats, ${winner}!` : "Looks like it's a draw...";
           move = `Final Move: **${lastMove}**`;
           displayName = currentUser.displayName;
-        }
-
-        if (opponentUser.bot) {
+        } else if (opponentUser.bot) {
           content = '';
           move = `I placed mine in **${lastMove}**.`;
         }
@@ -271,7 +240,7 @@ class Connect4 extends Command {
             `,
           );
 
-        const buttons = await getButtons(gameOver);
+        const buttons = await getButtons(AIEngine.gameStatus().gameOver);
 
         // Return an object without content built in so it doesn't edit a space
         if (!content) return { embeds: [embed], components: buttons };
@@ -287,7 +256,7 @@ class Connect4 extends Command {
       let currentEmoji;
       let opponentEmoji;
 
-      while (!gameOver && board.some((row) => row.includes(null))) {
+      while (!AIEngine.gameStatus().gameOver && board.some((row) => row.includes(null))) {
         let sign;
         if (turn === 1) {
           currentUser = playerOne;
@@ -317,9 +286,8 @@ class Connect4 extends Command {
           const content = await getContent(currentUser, opponentUser, opponentEmoji, currentEmoji);
           await collected.editReply(content).catch(console.error);
 
-          if (verifyWin(board)) {
+          if (AIEngine.winner) {
             winner = currentUser;
-            gameOver = true;
             break;
           }
           turn === 1 ? (turn = 2) : (turn = 1);
@@ -337,7 +305,7 @@ class Connect4 extends Command {
 
         if (!collected) {
           // They never pressed the button, end the game due to time and edit the message directly since collected doesn't exist
-          gameOver = true;
+          AIEngine.gameOver = true;
           winner = 'time';
           this.client.games.delete(msg.channel.id);
 
@@ -362,7 +330,7 @@ class Connect4 extends Command {
         } else if (selectedColumn.toLowerCase() === 'stop') {
           // The player pressed the stop sign, stop the game and let the other person win.
           winner = opponentUser;
-          gameOver = true;
+          AIEngine.gameOver = true;
           break;
         } else {
           i = Number.parseInt(selectedColumn, 10) - 1;
@@ -383,9 +351,8 @@ class Connect4 extends Command {
         colLevels[i]--;
 
         // Check if the last move made them a winner, stop the game
-        if (verifyWin(board)) {
+        if (AIEngine.winner) {
           winner = currentUser;
-          gameOver = true;
           break;
         }
 

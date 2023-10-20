@@ -28,7 +28,7 @@ export async function run(client, message) {
     const now = Date.now();
     const cooldown = (await db.get(`servers.${message.guild.id}.economy.chat.cooldown`)) || 60; // get cooldown from database or set to 60 seconds (1 minute)
     let userCooldown =
-      (await db.get(`servers.${message.guild.id}.users.${message.member.id}.economy.chat.cooldown`)) || {};
+      (await db.get(`servers.${message.guild.id}.users.${message.author.id}.economy.chat.cooldown`)) || {};
 
     if (userCooldown.active) {
       const timeleft = userCooldown.time - now;
@@ -36,7 +36,7 @@ export async function run(client, message) {
         // this is to check if the bot restarted before their cooldown was set.
         userCooldown = {};
         userCooldown.active = false;
-        await db.set(`servers.${message.guild.id}.users.${message.member.id}.economy.chat.cooldown`, userCooldown);
+        await db.set(`servers.${message.guild.id}.users.${message.author.id}.economy.chat.cooldown`, userCooldown);
       } else {
         return;
       }
@@ -44,21 +44,21 @@ export async function run(client, message) {
 
     const amount = BigInt(Math.floor(Math.random() * (max - min + 1) + min));
     const cash = BigInt(
-      (await db.get(`servers.${message.guild.id}.users.${message.member.id}.economy.cash`)) ||
+      (await db.get(`servers.${message.guild.id}.users.${message.author.id}.economy.cash`)) ||
         (await db.get(`servers.${message.guild.id}.economy.startBalance`)) ||
         0,
     );
     const newAmount = cash + amount;
-    await db.set(`servers.${message.guild.id}.users.${message.member.id}.economy.cash`, newAmount.toString());
+    await db.set(`servers.${message.guild.id}.users.${message.author.id}.economy.cash`, newAmount.toString());
 
     userCooldown.time = now + cooldown * 1000;
     userCooldown.active = true;
-    await db.set(`servers.${message.guild.id}.users.${message.member.id}.economy.chat.cooldown`, userCooldown);
+    await db.set(`servers.${message.guild.id}.users.${message.author.id}.economy.chat.cooldown`, userCooldown);
 
     return setTimeout(async () => {
       userCooldown = {};
       userCooldown.active = false;
-      await db.set(`servers.${message.guild.id}.users.${message.member.id}.economy.chat.cooldown`, userCooldown);
+      await db.set(`servers.${message.guild.id}.users.${message.author.id}.economy.chat.cooldown`, userCooldown);
     }, cooldown * 1000);
   }
 
