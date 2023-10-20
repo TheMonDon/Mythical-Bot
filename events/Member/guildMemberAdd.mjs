@@ -33,22 +33,26 @@ export async function run(client, member) {
     channel.send({ embeds: [embed] }).catch(() => {});
   }
 
-  async function AutoRole(member) {
-    const toggle = (await db.get(`servers.${member.guild.id}.proles.system`)) || false;
-    if (!toggle) return;
+  async function AutoRole(client, member) {
+    try {
+      const toggle = (await db.get(`servers.${member.guild.id}.proles.system`)) || false;
+      if (!toggle) return;
 
-    if (!member.guild.members.me.permissions.has('ManageRoles')) return;
-    if (member.user.bot) return;
+      if (!member.guild.members.me.permissions.has('ManageRoles')) return;
+      if (member.user.bot) return;
 
-    const roles = await db.get(`servers.${member.guild.id}.proles.users.${member.user.id}`);
-    if (!roles) return;
+      const roles = await db.get(`servers.${member.guild.id}.proles.users.${member.user.id}`);
+      if (!roles) return;
 
-    for (let i = 0; i < roles.length; i++) {
-      member.roles.add(roles[i]).catch(console.error);
-      await setTimeoutPromise(1000);
+      for (let i = 0; i < roles.length; i++) {
+        member.roles.add(roles[i]);
+        await setTimeoutPromise(1000);
+      }
+
+      await db.delete(`servers.${member.guild.id}.proles.users.${member.user.id}`);
+    } catch (error) {
+      console.error(error);
     }
-
-    await db.delete(`servers.${member.guild.id}.proles.users.${member.user.id}`);
   }
 
   function WelcomeSystem(client, member) {

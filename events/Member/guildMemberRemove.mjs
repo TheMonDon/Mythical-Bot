@@ -32,23 +32,25 @@ export async function run(client, member) {
     channel.send({ embeds: [embed] }).catch(() => {});
   }
 
-  async function AutoRole(member) {
-    if (!member.guild) return;
+  async function AutoRole(client, member) {
+    try {
+      if (!member.guild) return;
 
-    const toggle = (await db.get(`servers.${member.guild.id}.proles.system`)) || false;
-    if (!toggle) return;
+      const toggle = (await db.get(`servers.${member.guild.id}.proles.system`)) || false;
+      if (!toggle) return;
 
-    if (!member.guild.members.me.permissions.has('ManageRoles')) return;
-    if (member.user.bot) return;
+      if (!member.guild.members.me.permissions.has('ManageRoles')) return;
+      if (member.user.bot) return;
 
-    const roles = [...member.roles.cache.values()];
-    if (roles.length === 1) return;
-    const arr = roles
-      .filter((role) => role.id !== member.guild.id)
-      .map((role) => role.id)
-      .catch(console.error);
+      const roles = [...member.roles.cache.values()];
+      if (roles.length === 1) return;
+      const arr = roles.filter((role) => role.id !== member.guild.id).map((role) => role.id);
 
-    await db.set(`servers.${member.guild.id}.proles.users.${member.user.id}`, arr);
+      await db.set(`servers.${member.guild.id}.proles.users.${member.user.id}`, arr);
+    } catch (error) {
+      client.logger.error(error);
+      console.error(error);
+    }
   }
 
   function WelcomeMessage(client, member) {
@@ -72,11 +74,7 @@ export async function run(client, member) {
   }
 
   // Run the functions
-  try {
-    await LogSystem(member);
-    await AutoRole(member);
-    WelcomeMessage(client, member);
-  } catch (err) {
-    return client.logger.error(err);
-  }
+  await LogSystem(member);
+  await AutoRole(client, member);
+  WelcomeMessage(client, member);
 }

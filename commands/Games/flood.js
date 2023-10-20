@@ -187,7 +187,7 @@ Filling starts at the top left corner.`,
           const embed = await getContent();
           return message.edit({ embeds: [embed] });
         } else if (selected === lastMove) {
-          if (error) error.delete();
+          if (error) error.delete().catch(() => {});
           error = await msg.channel.send("You can't flood with the same color twice in a row!");
           continue;
         }
@@ -234,7 +234,7 @@ Filling starts at the top left corner.`,
           }
         }
 
-        if (error) error.delete();
+        if (error) error.delete().catch(() => {});
       }
 
       if (gameOver === true) {
