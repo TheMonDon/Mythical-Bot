@@ -34,6 +34,7 @@ export async function run(client, member) {
   }
 
   async function AutoRole(client, member) {
+    if (!member || !member.guild) return;
     try {
       const toggle = (await db.get(`servers.${member.guild.id}.proles.system`)) || false;
       if (!toggle) return;
