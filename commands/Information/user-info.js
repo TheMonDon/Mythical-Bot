@@ -17,6 +17,7 @@ class UserInfo extends Command {
 
   async run(msg, text) {
     let infoMem = msg.member;
+    let fetchedUser;
 
     // If text is provided, try to get the member
     if (text?.length > 0) infoMem = await this.client.util.getMember(msg, text.join(' ').toLowerCase());
@@ -25,15 +26,15 @@ class UserInfo extends Command {
       // If no member is found, try to get the user by ID
       const fid = text.join(' ').toLowerCase().replace(/<@|>/g, '');
       try {
-        infoMem = await this.client.users.fetch(fid);
+        infoMem = await this.client.users.fetch(fid, { force: true });
       } catch (err) {
         // If no user is found, use the author
         infoMem = msg.member;
-        infoMem.user.fetch();
+        fetchedUser = await infoMem.user.fetch();
       }
     } else {
       // If a member is found, fetch the user
-      infoMem.user.fetch();
+      fetchedUser = await infoMem.user.fetch();
     }
 
     // User Flags / Badges
@@ -79,13 +80,13 @@ class UserInfo extends Command {
         badgesArray += flags[userBadges[i]];
       }
 
-      const color = infoMem.user.hexAccentColor?.toString().toUpperCase() || msg.settings.embedColor;
+      const color = fetchedUser.hexAccentColor?.toString().toUpperCase() || msg.settings.embedColor;
       const memberName = infoMem.user.discriminator === '0' ? infoMem.user.username : infoMem.user.tag;
       const embed = new EmbedBuilder()
         .setTitle(`${memberName}'s Info`)
         .setColor(color)
-        .setThumbnail(infoMem.user.displayAvatarURL({ format: 'png', dynamic: true }))
-        .setImage(infoMem.user.bannerURL())
+        .setThumbnail(infoMem.user.displayAvatarURL({ size: 4096, extension: 'png' }))
+        .setImage(fetchedUser.bannerURL({ size: 1024, extension: 'png' }))
         .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
         .addFields([
           { name: 'Username', value: `${memberName} (${infoMem})`, inline: true },
@@ -102,7 +103,7 @@ class UserInfo extends Command {
           { name: `Badges [${userBadges?.length || 0}]`, value: badgesArray || 'No Badges', inline: true },
           {
             name: 'Accent Color',
-            value: infoMem.user.hexAccentColor?.toString().toUpperCase() || 'None',
+            value: fetchedUser.hexAccentColor?.toString().toUpperCase() || 'None',
             inline: true,
           },
         ]);
@@ -130,9 +131,9 @@ class UserInfo extends Command {
     const embed = new EmbedBuilder()
       .setTitle(`${userName}'s Info`)
       .setColor(color)
-      .setThumbnail(infoMem.displayAvatarURL({ format: 'png', dynamic: true }))
+      .setThumbnail(infoMem.displayAvatarURL({ extension: 'png', size: 4096 }))
+      .setImage(infoMem.bannerURL({ extension: 'png', size: 1024 }))
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
-      .setImage(infoMem.bannerURL())
       .addFields([
         { name: 'Username', value: `${userName} (${infoMem})`, inline: true },
         { name: 'User ID', value: infoMem.id.toString(), inline: true },
