@@ -121,7 +121,7 @@ function getRole(msg, roleString) {
   if (!msg.guild || !roleString) return false;
   if (msg.mentions.roles.first()) return msg.mentions.roles.first();
 
-  roleString = roleString.replace(/[<#&>\s]+/g, '');
+  roleString = roleString.replace(/[<#&>]+/g, '');
   return (
     msg.guild.roles.cache.find((r) => r.name === roleString) ||
     msg.guild.roles.cache.find((r) => r.id === roleString) ||
