@@ -128,6 +128,7 @@ class UserInfo extends Command {
 
     const color = infoMem.hexAccentColor?.toString().toUpperCase() || msg.settings.embedColor;
     const userName = infoMem.discriminator === '0' ? infoMem.username : infoMem.tag;
+
     const embed = new EmbedBuilder()
       .setTitle(`${userName}'s Info`)
       .setColor(color)

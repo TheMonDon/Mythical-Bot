@@ -14,16 +14,19 @@ export async function run(client, member) {
     const logSys = await db.get(`servers.${member.guild.id}.logs.logSystem.member-join`);
     if (!logSys || logSys !== 'enabled') return;
 
-    // Fetch all members so member count is correct
-    await member.guild.members.fetch();
     const embed = new EmbedBuilder()
       .setTitle('Member Joined')
       .setColor('#3dd0f4')
       .setAuthor({ name: memberName, iconURL: member.user.displayAvatarURL() })
       .setThumbnail(member.user.displayAvatarURL())
       .addFields([
-        { name: 'User', value: member.toString() },
-        { name: 'Member Count', value: member.guild.members.cache.size.toLocaleString() },
+        {
+          name: 'User',
+          value: `${member.toString()} \`${
+            member.user.discriminator === '0' ? member.user.username : member.user.tag
+          }\` `,
+        },
+        { name: 'Member Count', value: member.guild.memberCount.toString() },
       ])
       .setFooter({ text: `ID: ${member.user.id}` })
       .setTimestamp();
@@ -74,6 +77,7 @@ export async function run(client, member) {
       .setColor(settings.embedColor)
       .setTitle(`Welcome to ${member.guild.name}`)
       .setAuthor({ name: memberName, iconURL: member.user.displayAvatarURL() })
+      .setThumbnail(member.user.displayAvatarURL())
       .setDescription(welcomeMessage)
       .setTimestamp();
 
@@ -83,7 +87,7 @@ export async function run(client, member) {
   }
 
   // Run the functions
+  WelcomeSystem(client, member);
   await LogSystem(member);
   await AutoRole(member);
-  WelcomeSystem(client, member);
 }

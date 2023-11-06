@@ -12,16 +12,26 @@ export async function run(client, member) {
     const logSys = await db.get(`servers.${member.guild.id}.logs.logSystem.member-leave`);
     if (!logSys || logSys !== 'enabled') return;
 
-    // Fetch all member so member count is correct
-    await member.guild.members.fetch();
+    const roles = [...member.roles.cache.values()];
+    const roleString = roles
+      .sort((a, b) => a.position - b.position)
+      .map((role) => role.name)
+      .join(', ');
+
     const embed = new EmbedBuilder()
       .setTitle('Member Left')
       .setColor('#3dd0f4')
       .setAuthor({ name: memberName, iconURL: member.user.displayAvatarURL() })
       .setThumbnail(member.user.displayAvatarURL())
       .addFields([
-        { name: 'User', value: member.toString() },
-        { name: 'Member Count', value: member.guild.members.cache.size.toLocaleString() },
+        {
+          name: 'User',
+          value: `${member.toString()} \`${
+            member.user.discriminator === '0' ? member.user.username : member.user.tag
+          }\` `,
+        },
+        { name: 'Member Count', value: member.guild.memberCount.toString() },
+        { name: 'Roles', value: roleString },
       ])
       .setFooter({ text: `ID: ${member.user.id}` })
       .setTimestamp();
@@ -53,7 +63,7 @@ export async function run(client, member) {
     }
   }
 
-  function WelcomeMessage(client, member) {
+  function LeaveSystem(client, member) {
     const settings = client.getSettings(member.guild);
 
     if (settings.leaveEnabled !== 'true') return;
@@ -65,6 +75,7 @@ export async function run(client, member) {
       .setColor(settings.embedColor)
       .setTitle('Member Left')
       .setAuthor({ name: memberName, iconURL: member.user.displayAvatarURL() })
+      .setThumbnail(member.user.displayAvatarURL())
       .setDescription(leaveMessage)
       .setTimestamp();
 
@@ -74,7 +85,7 @@ export async function run(client, member) {
   }
 
   // Run the functions
+  LeaveSystem(client, member);
   await LogSystem(member);
   await AutoRole(client, member);
-  WelcomeMessage(client, member);
 }
