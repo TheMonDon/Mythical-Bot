@@ -328,7 +328,7 @@ exports.run = async (interaction) => {
       } catch (err) {
         if (err.status === 404)
           return interaction.client.util.errorEmbed(interaction, 'No results were found for that user.');
-        return interaction.editReply(`Oh no, an error occured: \`${err.message}\`. Try again later!`);
+        return interaction.editReply(`Oh no, an error occurred: \`${err.message}\`. Try again later!`);
       }
     }
     case 'npm': {
@@ -343,6 +343,7 @@ exports.run = async (interaction) => {
         const embed = new EmbedBuilder()
           .setTitle(`${body.name} Package Information`)
           .setColor(interaction.settings.embedColor)
+          .setURL(`https://www.npmjs.com/package/${body.name}`)
           .addFields([
             { name: 'Version', value: body['dist-tags'].latest, inline: true },
             { name: 'Description', value: body.description, inline: true },
@@ -359,7 +360,7 @@ exports.run = async (interaction) => {
       } catch (err) {
         if (err.status === 404)
           return interaction.client.util.errorEmbed(interaction, 'No results were found for that package.');
-        return interaction.editReply(`Oh no, an error occured: \`${err.message}\`. Try again later!`);
+        return interaction.editReply(`Oh no, an error occurred: \`${err.message}\`. Try again later!`);
       }
     }
   }
