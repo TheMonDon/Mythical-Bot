@@ -17,7 +17,7 @@ class NowPlaying extends Command {
 
   async run(msg) {
     const queue = useQueue(msg.guild.id);
-    const song = queue.currentTrack;
+    const song = queue?.currentTrack;
 
     if (!song) return msg.channel.send('There is nothing playing.');
 

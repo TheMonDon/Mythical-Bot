@@ -78,7 +78,7 @@
     "twemoji": "^14.0.2",
     "undici": "^5.19.1",
     "weather-js": "^2.0.0",
-    "youtube-ext": "^1.1.14",
+    "youtube-ext": "^1.1.16",
     "youtube-sr": "^4.3.4"
   },
   "devDependencies": {

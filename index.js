@@ -306,26 +306,10 @@ const loadMusic = async () => {
       queue.metadata.channel.send({ embeds: [em] }).catch(() => {});
     })
     .on('playerError', (queue, error) => {
-      if (error.startsWith('ERR_NO_RESULT')) return;
-      return queue.metadata.channel.send(`Something went wrong: ${error}`);
+      queue.metadata.channel.send(`Something went wrong: ${error}`);
     })
     .on('error', (queue, error) => {
-      switch (error) {
-        case 'NotPlaying':
-          queue.metadata.channel.send('There is no music being played on this server!');
-          break;
-        case 'NotConnected':
-          queue.metadata.channel.send('You are not connected to a voice channel!');
-          break;
-        case 'UnableToJoin':
-          queue.metadata.channel.send('I am not able to join your voice channel, please check my permissions!');
-          break;
-        case 'DestroyedQueue':
-          break;
-        default:
-          queue.metadata.channel.send(`Something went wrong... ${error}`);
-          break;
-      }
+      queue.metadata.channel.send(`Something went wrong: ${error}`);
     });
 };
 
