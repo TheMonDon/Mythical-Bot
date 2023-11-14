@@ -43,7 +43,7 @@ exports.commandData = new SlashCommandBuilder()
   .addSubcommand((subcommand) =>
     subcommand
       .setName('github')
-      .setDescription('View information about a steam game or application')
+      .setDescription('View information about a user or a repository')
       .addStringOption((option) => option.setName('user').setDescription('Github username').setRequired(true))
       .addStringOption((option) => option.setName('repo').setDescription('Github repo').setRequired(false)),
   )
@@ -92,6 +92,7 @@ exports.run = async (interaction) => {
         return interaction.editReply({ embeds: [embed] });
       }
     }
+
     case 'movie': {
       const query = interaction.options.get('movie').value;
 
@@ -137,6 +138,7 @@ exports.run = async (interaction) => {
 
       return interaction.editReply({ embeds: [embed] });
     }
+
     case 'tv-show': {
       const query = interaction.options.get('tv-show').value;
       const search = await fetch.get('http://api.themoviedb.org/3/search/tv').query({
@@ -188,6 +190,7 @@ exports.run = async (interaction) => {
 
       return interaction.editReply({ embeds: [embed] });
     }
+
     case 'steam': {
       const game = interaction.options.get('game').value;
       const query = await interaction.client.util.clean(interaction.client, game);
@@ -251,6 +254,7 @@ exports.run = async (interaction) => {
 
       return interaction.editReply({ embeds: [embed] });
     }
+
     case 'github': {
       const user = interaction.options.get('user').value;
       const repo = interaction.options.get('repo')?.value;
@@ -331,6 +335,7 @@ exports.run = async (interaction) => {
         return interaction.editReply(`Oh no, an error occurred: \`${err.message}\`. Try again later!`);
       }
     }
+
     case 'npm': {
       const packageName = interaction.options.get('package').value;
 

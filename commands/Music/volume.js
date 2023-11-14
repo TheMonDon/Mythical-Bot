@@ -7,7 +7,7 @@ class Volume extends Command {
       name: 'volume',
       description: 'Change the volume of the music',
       category: 'Music',
-      usage: 'volume',
+      usage: 'volume <1-100>',
       aliases: ['vol', 'v'],
       guildOnly: true,
     });

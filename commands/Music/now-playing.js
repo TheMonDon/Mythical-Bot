@@ -24,11 +24,11 @@ class NowPlaying extends Command {
     const em = new EmbedBuilder()
       .setDescription(
         stripIndents`
-        Currently ${queue.node.isPlaying() ? 'Playing' : 'Paused'} ♪: [${song.title}](${song.url})
+          Currently ${queue.node.isPlaying() ? 'Playing' : 'Paused'} ♪: [${song.title}](${song.url})
 
-        ${queue.node.createProgressBar({ timecodes: true })}
+          ${queue.node.createProgressBar({ timecodes: true })}
 
-        Requested By: ${song.requestedBy}
+          Requested By: ${song.requestedBy}
       `,
       )
       .setColor(msg.settings.embedColor)

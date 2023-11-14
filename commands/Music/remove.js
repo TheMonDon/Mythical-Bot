@@ -31,6 +31,7 @@ class Remove extends Command {
     const tracks = queue.tracks.toArray();
     const song = tracks[num];
     queue.removeTrack(num);
+
     return msg.channel.send(`\`${song.title}\` has been removed from the queue.`);
   }
 }

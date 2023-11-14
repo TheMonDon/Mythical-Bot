@@ -18,7 +18,7 @@ class Set extends Command {
       longDescription: 'Example: `-set edit welcomeEnabled true` will enable the welcome message.',
       category: 'Administrator',
       permLevel: 'Administrator',
-      usage: 'set <view/get/edit> <key> <value>',
+      usage: 'set <view/get/edit/del> <key> <value>',
       aliases: ['setting', 'settings'],
       guildOnly: true,
     });

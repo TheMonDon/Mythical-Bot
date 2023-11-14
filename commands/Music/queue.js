@@ -6,7 +6,7 @@ class Queue extends Command {
   constructor(client) {
     super(client, {
       name: 'queue',
-      description: 'Shows what is in the queue',
+      description: 'See what songs are in the queue',
       category: 'Music',
       usage: 'queue [page]',
       aliases: ['q'],

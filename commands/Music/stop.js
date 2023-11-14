@@ -5,7 +5,7 @@ class Stop extends Command {
   constructor(client) {
     super(client, {
       name: 'stop',
-      description: 'Stops the music',
+      description: 'Stop playing amd clear the queue',
       category: 'Music',
       usage: 'stop',
       guildOnly: true,
