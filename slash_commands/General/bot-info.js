@@ -7,7 +7,6 @@ const db = new QuickDB();
 
 exports.conf = {
   permLevel: 'User',
-  guildOnly: false,
 };
 
 exports.commandData = new SlashCommandBuilder().setName('bot-info').setDescription('View information about the bot');

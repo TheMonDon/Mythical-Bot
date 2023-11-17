@@ -1,5 +1,6 @@
 const Command = require('../../base/Command.js');
 const { useQueue } = require('discord-player');
+const { EmbedBuilder } = require('discord.js');
 
 class Stop extends Command {
   constructor(client) {
@@ -23,7 +24,12 @@ class Stop extends Command {
 
     queue.delete();
 
-    return msg.channel.send('All music has been stopped.');
+    const em = new EmbedBuilder()
+      .setColor(msg.settings.embedSuccessColor)
+      .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
+      .setDescription('All music has been stopped.');
+
+    return msg.channel.send({ embeds: [em] });
   }
 }
 

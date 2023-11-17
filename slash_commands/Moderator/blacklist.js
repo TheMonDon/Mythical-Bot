@@ -4,11 +4,11 @@ const db = new QuickDB();
 
 exports.conf = {
   permLevel: 'Moderator',
-  guildOnly: false,
 };
 
 exports.commandData = new SlashCommandBuilder()
   .setName('blacklist')
+  .setDMPermission(false)
   .setDescription('Add/remove/check users blacklisted from the bot')
   .addSubcommand((subcommand) =>
     subcommand

@@ -3,35 +3,39 @@ const trev = require('trev-reborn');
 
 exports.conf = {
   permLevel: 'User',
-  guildOnly: false,
 };
 
 exports.commandData = new SlashCommandBuilder()
   .setName('porn')
   .setDescription('Get porn images from reddit')
   .setNSFW(true)
-  .addStringOption((option) =>
-    option.setName('type').setDescription('The type of porn').setRequired(true).addChoices(
-      { name: 'Ass', value: 'ass' },
-      { name: 'BDSM', value: 'bdsm' },
-      { name: 'Bikinis', value: 'bikinis' },
-      { name: 'Boobs', value: 'boobs' },
-      { name: 'Cuck', value: 'cuck' },
-      { name: 'Cum', value: 'cum' },
-      { name: 'Dildo', value: 'dildo' },
-      { name: 'Feet', value: 'feet' },
-      { name: 'Ginger', value: 'ginger' },
-      { name: 'Gonewild', value: 'gonewild' },
-      { name: 'Hair', value: 'hair' },
-      { name: 'Hentai', value: 'hentai' },
-      { name: 'Lesbian', value: 'lesbian' },
-      { name: 'Men', value: 'men' },
-      { name: 'Milf', value: 'milf' },
-      { name: 'Pussy', value: 'pussy' },
-      { name: 'Thong', value: 'thong' },
-      { name: 'Large Penis', value: 'largepenis' },
-      { name: 'Positions', value: 'positions' }, // Currently at 19/25
-    ),
+  .addStringOption(
+    (option) =>
+      option
+        .setName('type')
+        .setDescription('The type of porn')
+        .setRequired(true)
+        .addChoices(
+          { name: 'Ass', value: 'ass' },
+          { name: 'BDSM', value: 'bdsm' },
+          { name: 'Bikinis', value: 'bikinis' },
+          { name: 'Boobs', value: 'boobs' },
+          { name: 'Cuck', value: 'cuck' },
+          { name: 'Cum', value: 'cum' },
+          { name: 'Dildo', value: 'dildo' },
+          { name: 'Feet', value: 'feet' },
+          { name: 'Ginger', value: 'ginger' },
+          { name: 'Gonewild', value: 'gonewild' },
+          { name: 'Hair', value: 'hair' },
+          { name: 'Hentai', value: 'hentai' },
+          { name: 'Large Penis', value: 'largepenis' },
+          { name: 'Lesbian', value: 'lesbian' },
+          { name: 'Men', value: 'men' },
+          { name: 'Milf', value: 'milf' },
+          { name: 'Positions', value: 'positions' },
+          { name: 'Pussy', value: 'pussy' },
+          { name: 'Thong', value: 'thong' },
+        ), // Currently at 19/25
   );
 
 exports.run = async (interaction) => {

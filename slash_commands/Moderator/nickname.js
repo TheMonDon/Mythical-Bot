@@ -7,6 +7,7 @@ exports.conf = {
 
 exports.commandData = new SlashCommandBuilder()
   .setName('nickname')
+  .setDMPermission(false)
   .setDescription('Change a users nickname')
   .addUserOption((option) =>
     option.setName('user').setDescription('The user you want to change the nickname of').setRequired(true),

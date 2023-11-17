@@ -5,11 +5,11 @@ const db = new QuickDB();
 
 exports.conf = {
   permLevel: 'Moderator',
-  guildOnly: false,
 };
 
 exports.commandData = new SlashCommandBuilder()
   .setName('warn-info')
+  .setDMPermission(false)
   .setDescription('View the information of a specific case.')
   .addStringOption((option) =>
     option.setName('case_id').setDescription('The specific warning to get information on').setRequired(true),

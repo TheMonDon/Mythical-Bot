@@ -4,7 +4,6 @@ const neko = new NekoLife();
 
 exports.conf = {
   permLevel: 'User',
-  guildOnly: false,
 };
 
 exports.commandData = new SlashCommandBuilder()

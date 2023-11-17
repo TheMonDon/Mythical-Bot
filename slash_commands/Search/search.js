@@ -4,7 +4,6 @@ const fetch = require('node-superfetch');
 
 exports.conf = {
   permLevel: 'User',
-  guildOnly: true,
 };
 
 exports.commandData = new SlashCommandBuilder()

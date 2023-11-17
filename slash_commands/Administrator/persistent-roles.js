@@ -4,7 +4,6 @@ const db = new QuickDB();
 
 exports.conf = {
   permLevel: 'Administrator',
-  guildOnly: true,
 };
 
 exports.commandData = new SlashCommandBuilder()

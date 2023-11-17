@@ -4,11 +4,11 @@ const db = new QuickDB();
 
 exports.conf = {
   permLevel: 'User',
-  guildOnly: true,
 };
 
 exports.commandData = new SlashCommandBuilder()
   .setName('balance')
+  .setDMPermission(false)
   .setDescription('Check your balance')
   .addUserOption((option) => option.setName('member').setDescription('Check the balance of another member'))
   .setDMPermission(false);

@@ -27,6 +27,7 @@ class Repeat extends Command {
       return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}repeat <off | track | queue | autoplay>`);
 
     const mode = opts.indexOf(text);
+
     if (mode === 0) {
       // Mode: off
       queue.setRepeatMode(0);

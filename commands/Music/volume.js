@@ -1,5 +1,6 @@
 const Command = require('../../base/Command.js');
 const { useQueue } = require('discord-player');
+const { EmbedBuilder } = require('discord.js');
 
 class Volume extends Command {
   constructor(client) {
@@ -28,7 +29,12 @@ class Volume extends Command {
     if (volume < 1 || volume > 100) return msg.channel.send('The volume must be between 1 and 100.');
     queue.node.setVolume(volume);
 
-    return msg.channel.send(`The volume has been set to: ${volume}`);
+    const em = new EmbedBuilder()
+      .setColor(msg.settings.embedSuccessColor)
+      .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
+      .setDescription(`The volume has been set to: ${volume}`);
+
+    return msg.channel.send({ embeds: [em] });
   }
 }
 

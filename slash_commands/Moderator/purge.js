@@ -4,11 +4,11 @@ const delText = 'The text to delete';
 
 exports.conf = {
   permLevel: 'Moderator',
-  guildOnly: false,
 };
 
 exports.commandData = new SlashCommandBuilder()
   .setName('purge')
+  .setDMPermission(false)
   .setDescription('Purge messages')
   .addSubcommand((subcommand) =>
     subcommand
@@ -145,7 +145,7 @@ exports.run = async (interaction) => {
   const inviteRegex = /discord.(gg|me)\s?\//gi;
   const linkRegex = /https?:\/\/[\w\d-_]/gi;
 
-  if (!interaction.guild.members.me.permissions.has('ManageMessages'))
+  if (interaction.guild && !interaction.guild.members.me.permissions.has('ManageMessages'))
     return interaction.client.util.errorEmbed(
       interaction,
       'The bot needs `Manage Messages` permission.',

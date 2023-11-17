@@ -5,7 +5,6 @@ const { inspect } = require('util');
 
 exports.conf = {
   permLevel: 'Bot Owner',
-  guildOnly: false,
 };
 
 exports.commandData = new SlashCommandBuilder()

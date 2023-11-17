@@ -4,11 +4,11 @@ const db = new QuickDB();
 
 exports.conf = {
   permLevel: 'Moderator',
-  guildOnly: false,
 };
 
 exports.commandData = new SlashCommandBuilder()
   .setName('warn')
+  .setDMPermission(false)
   .setDescription('Warns a user, by default members are kicked at 8 and banned at 10 points.')
   .addUserOption((option) => option.setName('user').setDescription('The user you want to warn').setRequired(true))
   .addIntegerOption((option) =>

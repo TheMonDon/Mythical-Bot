@@ -2,11 +2,11 @@ const { EmbedBuilder, SlashCommandBuilder } = require('discord.js');
 
 exports.conf = {
   permLevel: 'Moderator',
-  guildOnly: false,
 };
 
 exports.commandData = new SlashCommandBuilder()
   .setName('emoji')
+  .setDMPermission(false)
   .setDescription('Create, edit, or get information about an emoji')
   .addSubcommand((subcommand) =>
     subcommand
@@ -79,6 +79,7 @@ exports.run = async (interaction) => {
     case 'delete': {
       const emoji = interaction.options.getString('emojidelete');
       const result = guildEmoji(interaction, emoji);
+
       if (!result) return interaction.client.util.errorEmbed(interaction, 'That emoji was not found.');
       if (!result.deletable)
         return interaction.client.util.errorEmbed(interaction, 'That emoji is not deletable by the bot.');

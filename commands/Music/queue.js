@@ -46,11 +46,10 @@ class Queue extends Command {
       }
     }
 
-    const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
     const embed = new EmbedBuilder()
       .setColor(msg.settings.embedColor)
       .setTitle(`${msg.guild.name}'s Queue`)
-      .setAuthor({ name: authorName, iconURL: msg.author.displayAvatarURL() })
+      .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
       .setDescription(q.join('\n'))
       .setFooter({ text: `Page ${realPage} / ${maxPages}` })
       .setTimestamp();

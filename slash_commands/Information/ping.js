@@ -2,7 +2,6 @@ const { SlashCommandBuilder } = require('discord.js');
 
 exports.conf = {
   permLevel: 'User',
-  guildOnly: false,
 };
 
 exports.commandData = new SlashCommandBuilder().setName('ping').setDescription('Check the ping of the bot');

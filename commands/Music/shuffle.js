@@ -1,5 +1,6 @@
 const Command = require('../../base/Command.js');
 const { useQueue } = require('discord-player');
+const { EmbedBuilder } = require('discord.js');
 
 class Shuffle extends Command {
   constructor(client) {
@@ -22,7 +23,13 @@ class Shuffle extends Command {
     if (!queue) return msg.channel.send('There is nothing in the queue.');
 
     queue.tracks.shuffle();
-    return msg.channel.send('The queue has been shuffled.');
+
+    const em = new EmbedBuilder()
+      .setColor(msg.settings.embedSuccessColor)
+      .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
+      .setDescription('The queue has been shuffled.');
+
+    return msg.channel.send({ embeds: [em] });
   }
 }
 

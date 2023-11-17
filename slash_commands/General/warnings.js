@@ -5,7 +5,6 @@ const db = new QuickDB();
 
 exports.conf = {
   permLevel: 'User',
-  guildOnly: false,
 };
 
 exports.commandData = new SlashCommandBuilder()

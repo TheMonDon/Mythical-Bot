@@ -3,7 +3,6 @@ const pornhub = require('@justalk/pornhub-api');
 
 exports.conf = {
   permLevel: 'User',
-  guildOnly: false,
 };
 
 exports.commandData = new SlashCommandBuilder()

@@ -6,12 +6,12 @@ const lyricsFinder = lyricsExtractor();
 
 exports.conf = {
   permLevel: 'User',
-  guildOnly: true,
 };
 
 exports.commandData = new SlashCommandBuilder()
   .setName('music')
   .setDescription('Control the music')
+  .setDMPermission(false)
   .addSubcommand((subcommand) => subcommand.setName('back').setDescription('Go back to the last song.'))
   .addSubcommand((subcommand) => subcommand.setName('clear-queue').setDescription('Clears all songs from the queue'))
   .addSubcommand((subcommand) =>
@@ -185,7 +185,13 @@ exports.run = async (interaction) => {
         return interaction.editReply('You must be in the same voice channel as the bot.');
 
       queue.node.setPaused(!queue.node.isPaused());
-      return interaction.editReply(`Music has been ${queue.node.isPaused() ? 'paused' : 'resumed'}`);
+
+      const em = new EmbedBuilder()
+        .setColor(interaction.settings.embedSuccessColor)
+        .setAuthor({ name: interaction.member.displayName, iconURL: interaction.user.displayAvatarURL() })
+        .setDescription(`Music has been ${queue.node.isPaused() ? 'paused' : 'resumed'}`);
+
+      return interaction.editReply({ embeds: [em] });
     }
 
     case 'play': {
@@ -256,14 +262,14 @@ exports.run = async (interaction) => {
         }
       }
 
-      const authorName = interaction.user.discriminator === '0' ? interaction.user.username : interaction.user.tag;
       const embed = new EmbedBuilder()
         .setColor(interaction.settings.embedColor)
         .setTitle(`${interaction.guild.name}'s Queue`)
-        .setAuthor({ name: authorName, iconURL: interaction.user.displayAvatarURL() })
+        .setAuthor({ name: interaction.member.displayName, iconURL: interaction.user.displayAvatarURL() })
         .setDescription(q.join('\n'))
         .setFooter({ text: `Page ${realPage} / ${maxPages}` })
         .setTimestamp();
+
       return interaction.editReply({ embeds: [embed] });
     }
 
@@ -291,7 +297,12 @@ exports.run = async (interaction) => {
       const song = tracks[num];
       queue.removeTrack(num);
 
-      return interaction.editReply(`\`${song.title}\` has been removed from the queue.`);
+      const em = new EmbedBuilder()
+        .setColor(interaction.settings.embedSuccessColor)
+        .setAuthor({ name: interaction.member.displayName, iconURL: interaction.user.displayAvatarURL() })
+        .setDescription(`\`${song.title}\` has been removed from the queue.`);
+
+      return interaction.editReply({ embeds: [em] });
     }
 
     case 'repeat': {
@@ -341,7 +352,13 @@ exports.run = async (interaction) => {
         return interaction.editReply('You must be in the same voice channel as the bot.');
 
       queue.node.setPaused(!queue.node.isPaused());
-      return interaction.editReply(`Music has been ${queue.node.isPaused() ? 'paused' : 'resumed'}`);
+
+      const em = new EmbedBuilder()
+        .setColor(interaction.settings.embedSuccessColor)
+        .setAuthor({ name: interaction.member.displayName, iconURL: interaction.user.displayAvatarURL() })
+        .setDescription(`Music has been ${queue.node.isPaused() ? 'paused' : 'resumed'}`);
+
+      return interaction.editReply({ embeds: [em] });
     }
 
     case 'shuffle': {
@@ -356,7 +373,13 @@ exports.run = async (interaction) => {
       if (!queue) return interaction.editReply('There is nothing in the queue.');
 
       queue.tracks.shuffle();
-      return interaction.editReply('The queue has been shuffled.');
+
+      const em = new EmbedBuilder()
+        .setColor(interaction.settings.embedSuccessColor)
+        .setAuthor({ name: interaction.member.displayName, iconURL: interaction.user.displayAvatarURL() })
+        .setDescription('The queue has been shuffled.');
+
+      return interaction.editReply({ embeds: [em] });
     }
 
     case 'skip': {
@@ -393,7 +416,12 @@ exports.run = async (interaction) => {
 
       queue.delete();
 
-      return interaction.editReply('All music has been stopped.');
+      const em = new EmbedBuilder()
+        .setColor(interaction.settings.embedSuccessColor)
+        .setAuthor({ name: interaction.member.displayName, iconURL: interaction.user.displayAvatarURL() })
+        .setDescription('All music has been stopped.');
+
+      return interaction.editReply({ embeds: [em] });
     }
 
     case 'volume': {
@@ -409,7 +437,12 @@ exports.run = async (interaction) => {
       const volume = interaction.options.get('level').value;
       queue.node.setVolume(volume);
 
-      return interaction.editReply(`The volume has been set to: ${volume}`);
+      const em = new EmbedBuilder()
+        .setColor(interaction.settings.embedSuccessColor)
+        .setAuthor({ name: interaction.member.displayName, iconURL: interaction.user.displayAvatarURL() })
+        .setDescription(`The volume has been set to: ${volume}`);
+
+      return interaction.editReply({ embeds: [em] });
     }
   }
 };

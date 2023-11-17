@@ -4,11 +4,11 @@ const db = new QuickDB();
 
 exports.conf = {
   permLevel: 'Moderator',
-  guildOnly: false,
 };
 
 exports.commandData = new SlashCommandBuilder()
   .setName('unban')
+  .setDMPermission(false)
   .setDescription('Unban a user from the server')
   .addStringOption((option) =>
     option.setName('user_id').setDescription('The User ID of the person to unban').setRequired(true),
