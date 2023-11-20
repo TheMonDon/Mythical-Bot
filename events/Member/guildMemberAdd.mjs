@@ -65,11 +65,11 @@ export async function run(client, member) {
     // Replace the placeholders in the welcome message with actual data
 
     const welcomeMessage = settings.welcomeMessage
-      .replace('{{user}}'.toLowerCase(), member.user.tag)
-      .replace('{{userName}}'.toLowerCase(), member.user.tag)
-      .replace('{{globalName}}'.toLowerCase(), member.user.globalName)
-      .replace('{{guild}}'.toLowerCase(), member.guild.name)
-      .replace('{{guildName}}'.toLowerCase(), member.guild.name);
+      .replace('{{user}}', member.user.tag)
+      .replace('{{userName}}', member.user.tag)
+      .replace('{{globalName}}', member.user.globalName)
+      .replace('{{guild}}', member.guild.name)
+      .replace('{{guildName}}', member.guild.name);
 
     const embed = new EmbedBuilder()
       .setTitle('Member Joined')
