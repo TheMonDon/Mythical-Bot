@@ -357,11 +357,10 @@ function errorEmbed(context, desc = 'An error has ocurred.', title = 'Error') {
     author = context.user;
   }
 
-  const authorName = author.discriminator === '0' ? author.username : author.tag;
   const embed = new EmbedBuilder()
     .setTitle(title)
     .setColor(context.settings.embedErrorColor)
-    .setAuthor({ name: authorName, iconURL: author.displayAvatarURL() })
+    .setAuthor({ name: author.tag, iconURL: author.displayAvatarURL() })
     .setDescription(desc);
 
   if (context instanceof Message) {

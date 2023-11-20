@@ -46,9 +46,8 @@ class Blacklist extends Command {
 
     const blacklist = await db.get(`servers.${msg.guild.id}.users.${mem.id}.blacklist`);
 
-    const memberName = mem.user.discriminator === '0' ? mem.user.username : mem.user.tag;
     const embed = new EmbedBuilder()
-      .setAuthor({ name: memberName, iconURL: msg.author.displayAvatarURL() })
+      .setAuthor({ name: mem.user.tag, iconURL: msg.author.displayAvatarURL() })
       .setColor(msg.settings.embedColor)
       .setTimestamp();
 
@@ -63,7 +62,7 @@ class Blacklist extends Command {
         await db.set(`servers.${msg.guild.id}.users.${mem.id}.blacklist`, true);
         await db.set(`servers.${msg.guild.id}.users.${mem.id}.blacklistReason`, reason);
 
-        embed.setTitle(`${memberName} has been added to the blacklist.`).addFields([
+        embed.setTitle(`${mem.user.tag} has been added to the blacklist.`).addFields([
           { name: 'Reason:', value: reason },
           { name: 'Member:', value: `${mem.displayName} \n(${mem.id})` },
           { name: 'Server:', value: `${msg.guild.name} \n(${msg.guild.id})` },
@@ -81,7 +80,7 @@ class Blacklist extends Command {
         await db.set(`servers.${msg.guild.id}.users.${mem.id}.blacklist`, false);
         await db.set(`servers.${msg.guild.id}.users.${mem.id}.blacklistReason`, reason);
 
-        embed.setTitle(`${memberName} has been removed to the blacklist.`).addFields([
+        embed.setTitle(`${mem.user.tag} has been removed to the blacklist.`).addFields([
           { name: 'Reason:', value: reason },
           { name: 'Member:', value: `${mem.displayName} \n(${mem.id})` },
           { name: 'Server:', value: `${msg.guild.name} \n(${msg.guild.id})` },
@@ -96,8 +95,8 @@ class Blacklist extends Command {
         const reason = (await db.get(`servers.${msg.guild.id}.users.${mem.id}.blacklistReason`)) || false;
 
         const bl = blacklist ? 'is' : 'is not';
-        embed.setTitle(`${memberName} blacklist check`).addFields([
-          { name: 'Member:', value: `${memberName} (${mem.id})`, inline: true },
+        embed.setTitle(`${mem.user.tag} blacklist check`).addFields([
+          { name: 'Member:', value: `${mem.user.tag} (${mem.id})`, inline: true },
           { name: 'Is Blacklisted?', value: `That user ${bl} blacklisted.` },
         ]);
         if (reason) embed.addFields([{ name: 'reason', value: reason, inline: true }]);

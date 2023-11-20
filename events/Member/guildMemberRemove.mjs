@@ -3,8 +3,6 @@ import { QuickDB } from 'quick.db';
 const db = new QuickDB();
 
 export async function run(client, member) {
-  const memberName = member.user.discriminator === '0' ? member.user.username : member.user.tag;
-
   async function LogSystem(member) {
     const logChan = await db.get(`servers.${member.guild.id}.logs.channel`);
     if (!logChan) return;
@@ -21,14 +19,12 @@ export async function run(client, member) {
     const embed = new EmbedBuilder()
       .setTitle('Member Left')
       .setColor('#3dd0f4')
-      .setAuthor({ name: memberName, iconURL: member.user.displayAvatarURL() })
+      .setAuthor({ name: member.user.tag, iconURL: member.user.displayAvatarURL() })
       .setThumbnail(member.user.displayAvatarURL())
       .addFields([
         {
           name: 'User',
-          value: `${member.toString()} \`${
-            member.user.discriminator === '0' ? member.user.username : member.user.tag
-          }\` `,
+          value: `${member.toString()} \`${member.user.tag}\` `,
         },
         { name: 'Member Count', value: member.guild.memberCount.toString() },
         { name: 'Roles', value: roleString },
@@ -69,12 +65,17 @@ export async function run(client, member) {
     if (settings.leaveEnabled !== 'true') return;
 
     // Replace the placeholders in the leave message with actual data
-    const leaveMessage = settings.leaveMessage.replace('{{user}}', memberName).replace('{{guild}}', member.guild.name);
+    const leaveMessage = settings.leaveMessage
+      .replace('{{user}}'.toLowerCase(), member.user.tag)
+      .replace('{{userName}}'.toLowerCase(), member.user.tag)
+      .replace('{{globalName}}'.toLowerCase(), member.user.globalName)
+      .replace('{{guild}}'.toLowerCase(), member.guild.name)
+      .replace('{{guildName}}'.toLowerCase(), member.guild.name);
 
     const em = new EmbedBuilder()
       .setColor(settings.embedColor)
       .setTitle('Member Left')
-      .setAuthor({ name: memberName, iconURL: member.user.displayAvatarURL() })
+      .setAuthor({ name: member.user.tag, iconURL: member.user.displayAvatarURL() })
       .setThumbnail(member.user.displayAvatarURL())
       .setDescription(leaveMessage)
       .setTimestamp();

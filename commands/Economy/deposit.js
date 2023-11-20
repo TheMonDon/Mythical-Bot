@@ -27,11 +27,10 @@ class Deposit extends Command {
         0,
     );
     const bank = BigInt((await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`)) || 0);
-    const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
 
     const embed = new EmbedBuilder()
       .setColor('#04ACF4')
-      .setAuthor({ name: authorName, iconURL: msg.author.displayAvatarURL() });
+      .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() });
 
     let csCashAmount = currencySymbol + cash.toLocaleString();
     csCashAmount = csCashAmount.length > 1024 ? `${csCashAmount.slice(0, 1021) + '...'}` : csCashAmount;

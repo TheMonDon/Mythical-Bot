@@ -83,11 +83,10 @@ exports.run = async (interaction) => {
   if (!reason) reason = 'Automated Ban';
   if (!otherCases) otherCases = 'No other cases';
 
-  const authorName = interaction.user.discriminator === '0' ? interaction.user.username : interaction.user.tag;
   // Send the embed to the users DMS
   const userEmbed = new EmbedBuilder()
     .setColor(color)
-    .setAuthor({ name: authorName, iconURL: interaction.user.displayAvatarURL() })
+    .setAuthor({ name: interaction.user.tag, iconURL: interaction.user.displayAvatarURL() })
     .setTitle(`You have been ${status}`)
     .addFields([
       { name: 'Case ID', value: `\`${warnID}\`` },
@@ -101,11 +100,11 @@ exports.run = async (interaction) => {
   // Create the embed for the logs channel
   const logEmbed = new EmbedBuilder()
     .setColor(color)
-    .setFooter({ text: `${authorName} • User ID: ${mem.id}` })
+    .setFooter({ text: `${interaction.user.tag} • User ID: ${mem.id}` })
     .setTitle(`User has been ${status}`)
     .addFields([
       { name: 'User', value: `${mem} (${mem.id})`, inline: true },
-      { name: 'Moderator', value: `${authorName} (${interaction.user.id})`, inline: true },
+      { name: 'Moderator', value: `${interaction.user.tag} (${interaction.user.id})`, inline: true },
       { name: 'Case ID', value: `\`${warnID}\``, inline: true },
       { name: 'Points', value: `${points} points (Total: ${warnAmount} points)`, inline: true },
       { name: 'Other Cases', value: otherCases, inline: true },
@@ -122,7 +121,7 @@ exports.run = async (interaction) => {
 
     const channelEmbed = new EmbedBuilder()
       .setColor(color)
-      .setFooter({ text: `${authorName} • User ID: ${mem.id}` })
+      .setFooter({ text: `${interaction.user.tag} • User ID: ${mem.id}` })
       .setTitle(`User has been ${status}`)
       .addFields([{ name: 'User', value: `${mem} (${mem.id})` }])
       .setURL(logMessage.url)

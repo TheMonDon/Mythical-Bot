@@ -1,6 +1,6 @@
 {
   "name": "mythical",
-  "version": "5.1.0",
+  "version": "5.2.0",
   "description": "Mythical Bot",
   "owner": "themondon",
   "main": "index.js",
@@ -8,7 +8,7 @@
     "node": ">=16.9.0"
   },
   "scripts": {
-    "lint": "eslint --fix --cache commands/** events/** slash_commands/**",
+    "lint": "eslint --fix --cache commands/** events/** slash_commands/** base/** util/**",
     "prettier:check": "prettier **/**.{js,json} --check --ignore-unknown",
     "prettier:fix": "prettier **/**.{js,json} --write --ignore-unknown"
   },
@@ -82,12 +82,12 @@
     "youtube-sr": "^4.3.4"
   },
   "devDependencies": {
-    "eslint": "^7.32.0",
-    "eslint-config-prettier": "^8.8.0",
-    "eslint-config-standard": "^16.0.3",
-    "eslint-plugin-import": "^2.26.0",
+    "eslint": "^8.54.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-config-standard": "^17.1.0",
+    "eslint-plugin-import": "^2.29.0",
     "eslint-plugin-node": "^11.1.0",
-    "eslint-plugin-promise": "^5.1.0",
-    "prettier": "3.0.0"
+    "eslint-plugin-promise": "^6.1.1",
+    "prettier": "^3.1.0"
   }
 }

@@ -24,10 +24,9 @@ class SetFailRate extends Command {
     const slutFail = (await db.get(`servers.${msg.guild.id}.economy.slut.failrate`)) || 35;
     const crimeFail = (await db.get(`servers.${msg.guild.id}.economy.crime.failrate`)) || 45;
 
-    const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
     const embed = new EmbedBuilder()
       .setColor(errorColor)
-      .setAuthor({ name: authorName, iconURL: msg.author.displayAvatarURL() });
+      .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() });
 
     if (!text || text.length < 1) {
       embed.setColor('#04ACF4').setDescription(stripIndents`

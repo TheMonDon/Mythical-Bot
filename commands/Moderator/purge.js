@@ -137,8 +137,7 @@ class Purge extends Command {
           if (!messages || messages.size < 1) return msg.channel.send('No messages found from that member.');
 
           const size = await deleteMessages(msg.channel, messages);
-          const authorName = user.user.discriminator === '0' ? user.user.username : user.user.tag;
-          return msg.channel.send(`Successfully deleted ${size} messages from ${authorName}.`);
+          return msg.channel.send(`Successfully deleted ${size} messages from ${user.user.tag}.`);
         }
 
         if (count < 100) {

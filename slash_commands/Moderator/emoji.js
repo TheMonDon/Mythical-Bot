@@ -94,10 +94,9 @@ exports.run = async (interaction) => {
       if (!result) return interaction.client.util.errorEmbed(interaction, 'That emoji was not found.');
       await result.fetchAuthor();
 
-      const authorName = interaction.user.discriminator === '0' ? interaction.user.username : interaction.user.tag;
       const em = new EmbedBuilder()
         .setTitle('Emoji Information')
-        .setAuthor({ name: authorName, iconURL: interaction.user.displayAvatarURL() })
+        .setAuthor({ name: interaction.user.tag, iconURL: interaction.user.displayAvatarURL() })
         .setColor(interaction.settings.embedColor)
         .addFields([
           { name: 'Emoji', value: result.toString(), inline: true },

@@ -28,9 +28,8 @@ exports.run = async (interaction) => {
 
   const currencySymbol = (await db.get(`servers.${interaction.guildId}.economy.symbol`)) || '$';
 
-  const authorName = mem.user.discriminator === '0' ? mem.user.username : mem.user.tag;
   const embed = new EmbedBuilder()
-    .setAuthor({ name: authorName, iconURL: mem.user.displayAvatarURL() })
+    .setAuthor({ name: mem.user.tag, iconURL: mem.user.displayAvatarURL() })
     .setColor(interaction.settings.embedColor)
     .addFields([
       { name: 'Cash:', value: currencySymbol + cash.toLocaleString() },

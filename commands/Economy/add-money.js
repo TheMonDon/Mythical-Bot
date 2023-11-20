@@ -19,10 +19,9 @@ class AddMoney extends Command {
   }
 
   async run(msg, args) {
-    const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
     const embed = new EmbedBuilder()
       .setColor(msg.settings.embedErrorColor)
-      .setAuthor({ name: authorName, iconURL: msg.author.displayAvatarURL() });
+      .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() });
 
     let type = 'cash';
     let mem;

@@ -17,12 +17,8 @@ class GiveMoney extends Command {
   }
 
   async run(msg, text) {
-    const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
     const embed = new EmbedBuilder()
-      .setAuthor({
-        name: authorName,
-        iconURL: msg.author.displayAvatarURL(),
-      })
+      .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
       .setColor(msg.settings.embedErrorColor);
 
     const mem = await this.client.util.getMember(msg, text[0]);

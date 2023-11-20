@@ -89,11 +89,10 @@ class Warn extends Command {
     if (!reason) reason = 'Automated Ban';
     if (!otherCases) otherCases = 'No other cases';
 
-    const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
     // Send the embed to the users DMS
     const userEmbed = new EmbedBuilder()
       .setColor(color)
-      .setAuthor({ name: authorName, iconURL: msg.author.displayAvatarURL() })
+      .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
       .setTitle(`You have been ${status}`)
       .addFields([
         { name: 'Case ID', value: `\`${warnID}\`` },
@@ -107,11 +106,11 @@ class Warn extends Command {
     // Create the embed for the logs channel
     const logEmbed = new EmbedBuilder()
       .setColor(color)
-      .setFooter({ text: `${authorName} • User ID: ${mem.id}` })
+      .setFooter({ text: `${msg.author.tag} • User ID: ${mem.id}` })
       .setTitle(`User has been ${status}`)
       .addFields([
         { name: 'User', value: `${mem} (${mem.id})`, inline: true },
-        { name: 'Moderator', value: `${authorName} (${msg.author.id})`, inline: true },
+        { name: 'Moderator', value: `${msg.author.tag} (${msg.author.id})`, inline: true },
         { name: 'Case ID', value: `\`${warnID}\``, inline: true },
         { name: 'Points', value: `${points} points (Total: ${warnAmount} points)`, inline: true },
         { name: 'Other Cases', value: otherCases, inline: true },
@@ -128,7 +127,7 @@ class Warn extends Command {
 
       const channelEmbed = new EmbedBuilder()
         .setColor(color)
-        .setFooter({ text: `${authorName} • User ID: ${mem.id}` })
+        .setFooter({ text: `${msg.author.tag} • User ID: ${mem.id}` })
         .setTitle(`User has been ${status}`)
         .addFields([{ name: 'User', value: `${mem} (${mem.id})` }])
         .setURL(logMessage.url)

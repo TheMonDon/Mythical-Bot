@@ -34,10 +34,9 @@ class SetPayout extends Command {
     const chatMin = (await db.get(`servers.${msg.guild.id}.economy.chat.min`)) || 10;
     const chatMax = (await db.get(`servers.${msg.guild.id}.economy.chat.max`)) || 100;
 
-    const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
     const embed = new EmbedBuilder()
       .setColor(msg.settings.embedErrorColor)
-      .setAuthor({ name: authorName, iconURL: msg.author.displayAvatarURL() });
+      .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() });
 
     if (!text || text.length < 1) {
       embed.setColor('#04ACF4').setDescription(stripIndents`

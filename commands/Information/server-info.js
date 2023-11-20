@@ -69,18 +69,16 @@ class ServerInfo extends Command {
 
     const verificationLevel = ['None', 'Low', 'Medium', 'High', 'Very High'];
 
-    const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
     const owner = server.members.cache.get(server.ownerId).user;
-    const ownerName = owner.discriminator === '0' ? owner.username : owner.tag;
     const embed = new EmbedBuilder()
       .setTitle(`${server.name}'s Information`)
       .setColor(msg.settings.embedColor)
       .setThumbnail(msg.guild.iconURL())
-      .setAuthor({ name: authorName, iconURL: msg.author.displayAvatarURL() })
+      .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
       .setFields([
         { name: 'Name', value: server.name, inline: true },
         { name: 'ID', value: server.id.toString(), inline: true },
-        { name: 'Owner', value: ownerName, inline: true },
+        { name: 'Owner', value: owner.tag, inline: true },
         { name: 'Verification Level', value: verificationLevel[server.verificationLevel], inline: true },
         { name: 'Channels', value: server.channels.cache.size.toLocaleString(), inline: true },
         { name: 'Created At', value: `${ca} \n (${time})`, inline: true },

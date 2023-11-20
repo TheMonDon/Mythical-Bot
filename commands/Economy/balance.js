@@ -19,9 +19,7 @@ class Balance extends Command {
     let mem = msg.member;
 
     if (args && args.length > 0) mem = await this.client.util.getMember(msg, args.join(' '));
-
-    const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
-    const embed = new EmbedBuilder().setAuthor({ name: authorName, iconURL: msg.author.displayAvatarURL() });
+    const embed = new EmbedBuilder().setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() });
 
     if (!mem) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Member');
 
@@ -35,8 +33,6 @@ class Balance extends Command {
 
     const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
 
-    const memberName = mem.user.discriminator === '0' ? mem.user.username : msg.user.tag;
-
     let csCashAmount = currencySymbol + cash.toLocaleString();
     csCashAmount = csCashAmount.length > 1024 ? `${csCashAmount.slice(0, 1021) + '...'}` : csCashAmount;
 
@@ -47,7 +43,7 @@ class Balance extends Command {
     csNetWorthAmount = csNetWorthAmount.length > 1024 ? `${csNetWorthAmount.slice(0, 1021) + '...'}` : csNetWorthAmount;
 
     embed
-      .setAuthor({ name: memberName, iconURL: mem.user.displayAvatarURL() })
+      .setAuthor({ name: mem.user.tag, iconURL: mem.user.displayAvatarURL() })
       .setColor(msg.settings.embedColor)
       .addFields([
         { name: 'Cash:', value: csCashAmount },

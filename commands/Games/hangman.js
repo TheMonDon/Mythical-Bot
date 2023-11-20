@@ -126,10 +126,8 @@ class Hangman extends Command {
 
             if (response.first().content.length === 1) {
               if (wordToGuessInArray.includes(response.first().content.toLowerCase())) {
-                const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
-                const mentionName = mention.user.discriminator === '0' ? mention.user.username : mention.user.tag;
                 firstEmbed.setTitle(
-                  `${turn === 1 ? authorName : mentionName} guessed the letter "**${response
+                  `${turn === 1 ? msg.author.tag : mention.user.tag} guessed the letter "**${response
                     .first()
                     .content.toLowerCase()}**" correctly!`,
                 );
@@ -165,13 +163,10 @@ class Hangman extends Command {
                   triedLetters.push(response.first().content.toLowerCase());
                 }
 
-                const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
-                const mentionName = mention.user.discriminator === '0' ? mention.user.username : mention.user.tag;
-
                 if (chances > 0) {
                   firstEmbed
                     .setTitle(
-                      `${turn === 1 ? authorName : mentionName} guessed the letter "**${response
+                      `${turn === 1 ? msg.author.tag : mention.user.tag} guessed the letter "**${response
                         .first()
                         .content.toLowerCase()}**" wrong!`,
                     )
@@ -188,7 +183,7 @@ class Hangman extends Command {
                 } else {
                   firstEmbed
                     .setTitle(
-                      `${turn === 1 ? authorName : mentionName} guessed the letter "**${response
+                      `${turn === 1 ? msg.author.tag : mention.user.tag} guessed the letter "**${response
                         .first()
                         .content.toLowerCase()}**" wrong!`,
                     )
@@ -214,12 +209,9 @@ class Hangman extends Command {
                 continue;
               }
               if (wordToGuess === response.first().content.toLowerCase()) {
-                const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
-                const mentionName = mention.user.discriminator === '0' ? mention.user.username : mention.user.tag;
-
                 firstEmbed
                   .setTitle(
-                    `${turn === 1 ? authorName : mentionName} guessed the word "**${response
+                    `${turn === 1 ? msg.author.tag : mention.user.tag} guessed the word "**${response
                       .first()
                       .content.toLowerCase()}**" correctly!`,
                   )
@@ -244,12 +236,9 @@ class Hangman extends Command {
 
               chances -= 1;
 
-              const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
-              const mentionName = mention.user.discriminator === '0' ? mention.user.username : mention.user.tag;
-
               firstEmbed
                 .setTitle(
-                  `${turn === 1 ? authorName : mentionName} guessed the letter "**${response
+                  `${turn === 1 ? msg.author.tag : mention.user.tag} guessed the letter "**${response
                     .first()
                     .content.toLowerCase()}**" wrong!`,
                 )

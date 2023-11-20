@@ -102,10 +102,9 @@ export async function run(client, message) {
   if (!cmd.conf.enabled) return message.channel.send('This command is currently disabled.');
 
   if (level < client.levelCache[cmd.conf.permLevel]) {
-    const authorName = message.author.discriminator === '0' ? message.author.username : message.author.tag;
     const embed = new EmbedBuilder()
       .setTitle('Missing Permission')
-      .setAuthor({ name: authorName, iconURL: message.author.displayAvatarURL() })
+      .setAuthor({ name: message.author.tag, iconURL: message.author.displayAvatarURL() })
       .setColor(message.settings.embedErrorColor)
       .addFields([
         {

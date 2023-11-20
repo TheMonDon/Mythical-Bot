@@ -19,12 +19,11 @@ class Eval extends Command {
 
   async run(msg, args, level) {
     const DiscordJS = require('discord.js');
-    const db = new QuickDB();
     const util = this.client.util;
+    const db = new QuickDB();
     let promise = false;
 
-    const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
-    const embed = new EmbedBuilder().setFooter({ text: authorName, iconURL: msg.author.displayAvatarURL() });
+    const embed = new EmbedBuilder().setFooter({ text: msg.author.tag, iconURL: msg.author.displayAvatarURL() });
 
     const query = args.join(' ');
     const code = (lang, code) =>

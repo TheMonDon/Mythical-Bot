@@ -63,10 +63,9 @@ Incorrect Usage:
         if (!result) return this.client.util.errorEmbed(msg, 'That emoji was not found.');
         await result.fetchAuthor();
 
-        const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
         const em = new EmbedBuilder()
           .setTitle('Emoji Information')
-          .setAuthor({ name: authorName, iconURL: msg.author.displayAvatarURL() })
+          .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
           .setColor(msg.settings.embedColor)
           .addFields([
             { name: 'Emoji', value: result.toString(), inline: true },

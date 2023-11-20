@@ -21,11 +21,10 @@ class Crime extends Command {
 
     const cooldown = (await db.get(`servers.${msg.guild.id}.economy.${type}.cooldown`)) || 600;
     let userCooldown = (await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.${type}.cooldown`)) || {};
-    const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
 
     const embed = new EmbedBuilder()
       .setColor(msg.settings.embedErrorColor)
-      .setAuthor({ name: authorName, iconURL: msg.author.displayAvatarURL() });
+      .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() });
 
     // Check if the user is on cooldown
     if (userCooldown.active) {

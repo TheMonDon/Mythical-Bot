@@ -19,10 +19,9 @@ class Work extends Command {
     const cooldown = (await db.get(`servers.${msg.guild.id}.economy.work.cooldown`)) || 300; // get cooldown from database or set to 300 seconds
     let userCooldown = (await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.work.cooldown`)) || {};
 
-    const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
     const embed = new EmbedBuilder()
       .setColor(msg.settings.embedErrorColor)
-      .setAuthor({ name: authorName, iconURL: msg.author.displayAvatarURL() });
+      .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() });
 
     if (userCooldown.active) {
       const timeleft = userCooldown.time - Date.now();

@@ -67,9 +67,8 @@ exports.run = async (interaction) => {
       if (!post)
         return interaction.client.util.errorEmbed(interaction, 'Failed to fetch a post from reddit. Please try again');
 
-      const authorName = interaction.user.discriminator === '0' ? interaction.user.username : interaction.user.tag;
       const embed = new EmbedBuilder()
-        .setAuthor({ name: authorName, iconURL: interaction.user.displayAvatarURL() })
+        .setAuthor({ name: interaction.user.tag, iconURL: interaction.user.displayAvatarURL() })
         .setTitle(post.title)
         .setColor(interaction.settings.embedColor)
         .setURL(post.permalink)

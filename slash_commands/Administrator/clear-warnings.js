@@ -41,13 +41,12 @@ exports.run = async (interaction) => {
   }
 
   const otherCases = otherWarns.map((w) => `\`${w.warnID}\``).join(', ');
-  const username = interaction.user.discriminator === '0' ? interaction.user.username : interaction.user.tag;
 
   const userEmbed = new EmbedBuilder()
     .setDescription('Warnings Cleared')
     .setColor(color)
     .addFields([
-      { name: 'Moderator', value: `${username} (${interaction.user.id})`, inline: true },
+      { name: 'Moderator', value: `${interaction.user.tag} (${interaction.user.id})`, inline: true },
       { name: 'Cleared Cases', value: otherCases, inline: true },
       { name: 'Issued In', value: interaction.guild.name, inline: true },
     ]);
@@ -57,7 +56,7 @@ exports.run = async (interaction) => {
     .setTitle('Warnings Cleared')
     .setColor(color)
     .addFields([
-      { name: 'Moderator', value: `${username} (${interaction.user.id})`, inline: true },
+      { name: 'Moderator', value: `${interaction.user.tag} (${interaction.user.id})`, inline: true },
       { name: 'User', value: `${mem} (${mem.id})`, inline: true },
       { name: 'Cleared Cases', value: otherCases, inline: true },
     ]);

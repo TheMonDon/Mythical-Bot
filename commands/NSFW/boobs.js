@@ -18,9 +18,8 @@ class Boobs extends Command {
     const post = await trev.nsfw.boobs();
     if (!post) return this.client.util.errorEmbed(msg, 'Failed to fetch a post from reddit. Please try again');
 
-    const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
     const em = new EmbedBuilder()
-      .setAuthor({ name: authorName, iconURL: msg.author.displayAvatarURL() })
+      .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
       .setColor(msg.settings.embedColor)
       .setTitle(post.title)
       .setURL(post.permalink)

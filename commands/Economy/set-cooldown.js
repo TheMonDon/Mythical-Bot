@@ -29,10 +29,9 @@ class SetCooldown extends Command {
     const crimeCooldown = (await db.get(`servers.${msg.guild.id}.economy.crime.cooldown`)) || 600;
     const chatCooldown = (await db.get(`servers.${msg.guild.id}.economy.chat.cooldown`)) || 60;
 
-    const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
     const embed = new EmbedBuilder()
       .setColor(msg.settings.embedErrorColor)
-      .setAuthor({ name: authorName, iconURL: msg.author.displayAvatarURL() });
+      .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() });
 
     if (!args || args.length < 1) {
       embed.setColor('#04ACF4').setDescription(stripIndents`

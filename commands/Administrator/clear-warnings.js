@@ -54,13 +54,12 @@ class ClearWarnings extends Command {
     }
 
     const otherCases = otherWarns.map((w) => `\`${w.warnID}\``).join(', ');
-    const username = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
 
     const userEmbed = new EmbedBuilder()
       .setDescription('Warnings Cleared')
       .setColor(color)
       .addFields([
-        { name: 'Moderator', value: `${username} (${msg.author.id})`, inline: true },
+        { name: 'Moderator', value: `${msg.author.tag} (${msg.author.id})`, inline: true },
         { name: 'Cleared Cases', value: otherCases, inline: true },
         { name: 'Issued In', value: msg.guild.name, inline: true },
       ]);
@@ -70,7 +69,7 @@ class ClearWarnings extends Command {
       .setTitle('Warnings Cleared')
       .setColor(color)
       .addFields([
-        { name: 'Moderator', value: `${username} (${msg.author.id})`, inline: true },
+        { name: 'Moderator', value: `${msg.author.tag} (${msg.author.id})`, inline: true },
         { name: 'User', value: `${mem} (${mem.id})`, inline: true },
         { name: 'Cleared Cases', value: otherCases, inline: true },
       ]);

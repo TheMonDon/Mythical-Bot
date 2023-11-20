@@ -24,9 +24,8 @@ exports.run = async (interaction) => {
   const config = interaction.client.config;
   let promise = false;
 
-  const authorName = interaction.user.discriminator === '0' ? interaction.user.username : interaction.user.tag;
   const embed = new EmbedBuilder().setFooter({
-    text: authorName,
+    text: interaction.user.tag,
     iconURL: interaction.user.displayAvatarURL(),
   });
 

@@ -105,8 +105,7 @@ class TyperCompetition extends Command {
               const winner = collected2.first().author;
               const time = (t1 - t2) / 1000;
 
-              const winnerName = winner.discriminator === '0' ? winner.username : winner.tag;
-              const HS = { score: time, user: winnerName };
+              const HS = { score: time, user: winner.tag };
               const oldHS = (await db.get('global.highScores.typeCompetition')) || HS;
               let highScore = oldHS.score;
               let highScoreUser = oldHS.user;

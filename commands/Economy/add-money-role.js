@@ -20,10 +20,9 @@ class AddMoneyRole extends Command {
   }
 
   async run(msg, args) {
-    const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
     const errEmbed = new EmbedBuilder()
       .setColor(msg.settings.embedErrorColor)
-      .setAuthor({ name: authorName, iconURL: msg.author.displayAvatarURL() });
+      .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() });
 
     let type = 'cash';
     let role;
@@ -86,7 +85,7 @@ class AddMoneyRole extends Command {
     csAmount = csAmount.length > 1024 ? `${csAmount.slice(0, 1021) + '...'}` : csAmount;
 
     const embed = new EmbedBuilder()
-      .setAuthor({ name: authorName, iconURL: msg.author.displayAvatarURL() })
+      .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
       .setColor(msg.settings.embedColor)
       .setDescription(
         `Added **${csAmount}** to the ${type} balance of ${members.length} ${

@@ -18,9 +18,8 @@ class ShowerThoughts extends Command {
       const post = await trev.getCustomSubreddit('Showerthoughts');
       if (!post) return msg.channel.send("I couldn't think of a shower thought right now. Please try again.");
 
-      const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
       const em = new EmbedBuilder()
-        .setAuthor({ name: authorName, iconURL: msg.author.displayAvatarURL() })
+        .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
         .setTitle(post.title)
         .setColor(msg.settings.embedColor)
         .setURL(post.permalink)

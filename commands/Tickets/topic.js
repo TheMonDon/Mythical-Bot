@@ -40,7 +40,6 @@ class Topic extends Command {
 
     const cooldown = 300; // 5 minutes
     let channelCooldown = (await db.get(`servers.${server.id}.tickets.${msg.channel.id}.tCooldown`)) || {};
-    const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
 
     if (channelCooldown.active) {
       const timeleft = channelCooldown.time - Date.now();
@@ -55,7 +54,7 @@ class Topic extends Command {
           .format('y[ years][,] M[ Months]d[ days][,] h[ hours][,] m[ minutes][, and] s[ seconds]'); // format to any format
         const embed = new EmbedBuilder()
           .setColor(msg.settings.embedErrorColor)
-          .setAuthor({ name: authorName, iconURL: msg.author.displayAvatarURL() })
+          .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
           .setDescription(`You can't change the topic for another ${tLeft}`);
         return msg.channel.send({ embeds: [embed] });
       }

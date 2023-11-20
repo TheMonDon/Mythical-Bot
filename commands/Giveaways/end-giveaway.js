@@ -20,9 +20,8 @@ class EndGiveaway extends Command {
 
     const query = args.join(' ');
 
-    const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
     const ErrorEmbed = new EmbedBuilder()
-      .setAuthor({ name: authorName, iconURL: msg.author.displayAvatarURL() })
+      .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
       .setColor(msg.settings.embedErrorColor);
 
     if (isNaN(query)) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Incorrect Usage');

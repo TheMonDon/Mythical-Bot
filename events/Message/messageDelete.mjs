@@ -30,15 +30,14 @@ export async function run(client, message) {
   }
 
   try {
-    const authorName = message.author.discriminator === '0' ? message.author.username : message.author.tag;
     const embed = new EmbedBuilder()
       .setTitle('Message Deleted')
       .setColor('#FF0000')
-      .setAuthor({ name: authorName, iconURL: message.author.displayAvatarURL() })
+      .setAuthor({ name: message.author.tag, iconURL: message.author.displayAvatarURL() })
       .setThumbnail(message.author.displayAvatarURL())
       .addFields([
         { name: 'Channel', value: `<#${message.channel.id}>` },
-        { name: 'Message Author', value: `${message.author} (${authorName})` },
+        { name: 'Message Author', value: `${message.author} (${message.author.tag})` },
       ])
       .setFooter({ text: `Message ID: ${message.id}` })
       .setTimestamp();

@@ -87,8 +87,7 @@ class Flood extends Command {
         let highScoreUser;
         let highScoreTime;
         if (result === 'winner') {
-          const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
-          const HS = { score: turn, user: authorName, time: gameTimeSeconds };
+          const HS = { score: turn, user: msg.author.tag, time: gameTimeSeconds };
           const oldHS = await db.get('global.highScores.flood');
           highScore = oldHS?.score || 0;
           highScoreUser = oldHS?.user || 'N/A';

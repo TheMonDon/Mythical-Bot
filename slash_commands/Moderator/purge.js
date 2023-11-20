@@ -239,8 +239,7 @@ exports.run = async (interaction) => {
       if (!messages || messages.size < 1) return interaction.editReply('No messages found from that member.');
 
       const size = await deleteMessages(interaction.channel, messages);
-      const authorName = user.user.discriminator === '0' ? user.user.username : user.user.tag;
-      return interaction.editReply(`Successfully deleted ${size} messages from ${authorName}.`);
+      return interaction.editReply(`Successfully deleted ${size} messages from ${user.user.tag}.`);
     }
 
     case 'links': {

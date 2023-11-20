@@ -9,7 +9,7 @@ class ResetMoney extends Command {
       description: 'Reset the money of a user.',
       category: 'Economy',
       usage: 'Reset-Money [user]',
-      aliases: ['resetmoney', 'rm'],
+      aliases: ['resetmoney'],
       guildOnly: true,
     });
   }
@@ -48,17 +48,16 @@ This command requires level ${this.client.levelCache.Moderator} (Moderator)`);
         }
       }
       mem = mem.user ? mem.user : mem;
-      const memberName = mem.discriminator === '0' ? mem.username : mem.tag;
 
-      await msg.channel.send(`Are you sure you want to reset ${memberName}'s money? (yes/no)`);
+      await msg.channel.send(`Are you sure you want to reset ${mem.tag}'s money? (yes/no)`);
       const verification = await this.client.util.verify(msg.channel, msg.author);
       if (verification) {
         const amount = (await db.get(`servers.${msg.guild.id}.economy.startBalance`)) || 0;
         await db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, amount);
         await db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`, 0);
-        return msg.channel.send(`Successfully reset ${memberName}'s money.`);
+        return msg.channel.send(`Successfully reset ${mem.tag}'s money.`);
       } else {
-        return msg.channel.send(`Cancelled, ${memberName}'s money won't be reset.`);
+        return msg.channel.send(`Cancelled, ${mem.tag}'s money won't be reset.`);
       }
     }
   }

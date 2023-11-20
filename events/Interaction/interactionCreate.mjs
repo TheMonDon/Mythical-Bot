@@ -11,10 +11,9 @@ export async function run(client, interaction) {
 
     const level = client.permlevel(interaction);
     if (level < client.levelCache[slashCommand.conf.permLevel]) {
-      const authorName = interaction.user.discriminator === '0' ? interaction.user.username : interaction.user.tag;
       const embed = new EmbedBuilder()
         .setTitle('Missing Permission')
-        .setAuthor({ name: authorName, iconURL: interaction.user.displayAvatarURL() })
+        .setAuthor({ name: interaction.user.tag, iconURL: interaction.user.displayAvatarURL() })
         .setColor(interaction.settings.embedErrorColor)
         .addFields([
           {

@@ -40,10 +40,7 @@ class Leaderboard extends Command {
           const cash = BigInt(usersData[userId].economy.cash || 0);
           const bank = BigInt(usersData[userId].economy.bank || 0);
           const money = cash + bank;
-          leaderboard.push({
-            user: user.discriminator === '0' ? user.username : user.tag,
-            money,
-          });
+          leaderboard.push({ user: user.tag, money });
         }
       } catch (err) {
         this.client.logger.error(`Leaderboard: ${err}`);
@@ -81,11 +78,10 @@ class Leaderboard extends Command {
     }
 
     // Send the leaderboard
-    const authorName = msg.author.discriminator === '0' ? msg.author.username : msg.author.tag;
     const embed = new EmbedBuilder()
       .setColor(msg.settings.embedColor)
       .setTitle(`${msg.guild.name}'s Leaderboard`)
-      .setAuthor({ name: authorName, iconURL: msg.author.displayAvatarURL() })
+      .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
       .setDescription(displayedLeaderboard.join('\n') || 'None')
       .setFooter({ text: `Page ${realPage} / ${maxPages}` })
       .setTimestamp();

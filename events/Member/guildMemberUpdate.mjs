@@ -3,8 +3,6 @@ import { QuickDB } from 'quick.db';
 const db = new QuickDB();
 
 export async function run(client, oldMember, newMember) {
-  const memberName = oldMember.user.discriminator === '0' ? oldMember.user.username : oldMember.user.tag;
-
   async function TimeoutLogs(oldMember, newMember) {
     const logChan = await db.get(`servers.${oldMember.guild.id}.logs.channel`);
     if (!logChan) return;
@@ -30,7 +28,7 @@ export async function run(client, oldMember, newMember) {
 
     const embed = new EmbedBuilder()
       .setColor(client.getSettings(oldMember.guild).embedSuccessColor)
-      .setAuthor({ name: memberName, iconURL: oldMember.user.displayAvatarURL() })
+      .setAuthor({ name: oldMember.user.tag, iconURL: oldMember.user.displayAvatarURL() })
       .setThumbnail(oldMember.user.displayAvatarURL())
       .setTimestamp();
 

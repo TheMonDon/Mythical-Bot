@@ -22,7 +22,6 @@ export async function run(client, oldMessage, newMessage) {
     if (!logChannel.permissionsFor(client.user.id).has('SendMessages')) return;
     if (oldMessage.content === newMessage.content) return;
 
-    const authorName = oldMessage.author.discriminator === '0' ? oldMessage.author.username : oldMessage.author.tag;
     let oldContent = ' ';
     let newContent = ' ';
 
@@ -38,7 +37,7 @@ export async function run(client, oldMessage, newMessage) {
     const embed = new EmbedBuilder()
       .setTitle('Message Edited')
       .setURL(newMessage.url)
-      .setAuthor({ name: authorName, iconURL: oldMessage.author.displayAvatarURL() })
+      .setAuthor({ name: oldMessage.author.tag, iconURL: oldMessage.author.displayAvatarURL() })
       .setColor('#EE82EE')
       .setThumbnail(oldMessage.author.displayAvatarURL())
       .addFields([
@@ -51,7 +50,7 @@ export async function run(client, oldMessage, newMessage) {
           value: newContent,
         },
         { name: 'Channel', value: oldMessage.channel.toString(), inline: true },
-        { name: 'Message Author', value: `${oldMessage.author} (${authorName})` },
+        { name: 'Message Author', value: `${oldMessage.author} (${oldMessage.author.tag})` },
       ])
       .setTimestamp();
 
@@ -148,10 +147,9 @@ export async function run(client, oldMessage, newMessage) {
 
     if (level < client.levelCache[cmd.conf.permLevel]) {
       if (settings.systemNotice === 'true') {
-        const authorName = newMessage.author.discriminator === '0' ? newMessage.author.username : newMessage.author.tag;
         const embed = new EmbedBuilder()
           .setTitle('Missing Permission')
-          .setAuthor({ name: authorName, iconURL: newMessage.author.displayAvatarURL() })
+          .setAuthor({ name: newMessage.author.tag, iconURL: newMessage.author.displayAvatarURL() })
           .setColor(newMessage.settings.embedErrorColor)
           .addFields([
             {

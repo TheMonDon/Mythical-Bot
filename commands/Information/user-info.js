@@ -81,15 +81,14 @@ class UserInfo extends Command {
       }
 
       const color = fetchedUser.hexAccentColor?.toString().toUpperCase() || msg.settings.embedColor;
-      const memberName = infoMem.user.discriminator === '0' ? infoMem.user.username : infoMem.user.tag;
       const embed = new EmbedBuilder()
-        .setTitle(`${memberName}'s Info`)
+        .setTitle(`${infoMem.user.tag}'s Info`)
         .setColor(color)
         .setThumbnail(infoMem.user.displayAvatarURL({ size: 4096, extension: 'png' }))
         .setImage(fetchedUser.bannerURL({ size: 1024, extension: 'png' }))
         .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
         .addFields([
-          { name: 'Username', value: `${memberName} (${infoMem})`, inline: true },
+          { name: 'Username', value: `${infoMem.user.tag} (${infoMem})`, inline: true },
           { name: 'Nickname', value: infoMem.displayName, inline: true },
           { name: 'User ID', value: infoMem.id, inline: true },
           { name: 'Joined Server', value: `${joinedAtFullDate} \n (${joinedAtDurationFrom})`, inline: true },
@@ -127,16 +126,15 @@ class UserInfo extends Command {
     }
 
     const color = infoMem.hexAccentColor?.toString().toUpperCase() || msg.settings.embedColor;
-    const userName = infoMem.discriminator === '0' ? infoMem.username : infoMem.tag;
 
     const embed = new EmbedBuilder()
-      .setTitle(`${userName}'s Info`)
+      .setTitle(`${infoMem.tag}'s Info`)
       .setColor(color)
       .setThumbnail(infoMem.displayAvatarURL({ extension: 'png', size: 4096 }))
       .setImage(infoMem.bannerURL({ extension: 'png', size: 1024 }))
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
       .addFields([
-        { name: 'Username', value: `${userName} (${infoMem})`, inline: true },
+        { name: 'Username', value: `${infoMem.tag} (${infoMem})`, inline: true },
         { name: 'User ID', value: infoMem.id.toString(), inline: true },
         { name: `Badges [${userBadges?.length || 0}]`, value: badgesArray || 'No Badges', inline: true },
         { name: 'Account Type', value: infoMem.bot ? ':robot: Bot' : ':person_standing: Human', inline: true },
