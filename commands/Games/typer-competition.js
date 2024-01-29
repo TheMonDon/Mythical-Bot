@@ -1,6 +1,5 @@
 const { registerFont, createCanvas, loadImage } = require('canvas');
-const { EmbedBuilder, MessageAttachment } = require('discord.js');
-const fntPath = './resources/fonts/Moms_Typewriter.ttf';
+const { EmbedBuilder, AttachmentBuilder } = require('discord.js');
 const Command = require('../../base/Command.js');
 const { stripIndents } = require('common-tags');
 const randomWords = require('random-words');
@@ -29,16 +28,7 @@ class TyperCompetition extends Command {
 
     const randWord = randomWords(1).toString();
 
-    // Check if font file exists
-    if (!fs.existsSync(fntPath)) {
-      const file = fs.createWriteStream(fntPath);
-      https.get('https://raw.githubusercontent.com/TheMonDon/storage/master/Moms_Typewriter.ttf', function (response) {
-        response.pipe(file);
-      });
-      this.client.logger.log('Downloaded file to: ' + fntPath);
-    }
-
-    registerFont(fntPath, {
+    registerFont('./resources/fonts/Moms_Typewriter.ttf', {
       family: 'Moms Typewriter',
     });
 
@@ -71,7 +61,7 @@ class TyperCompetition extends Command {
           ctx.drawImage(image, 0, 0, 290, 80);
           ctx.fillText(randWord, 90, 45);
 
-          const attachment = new MessageAttachment(canvas.toBuffer(), 'type-race.png');
+          const attachment = new AttachmentBuilder(canvas.toBuffer(), { name: 'type-race.png' });
 
           let getReady;
           let theImage;
@@ -90,6 +80,7 @@ class TyperCompetition extends Command {
           const filter2 = (message) => {
             return message.content.toLowerCase() === randWord.toLowerCase();
           };
+
           msg.channel
             .awaitMessages({
               filter2,
