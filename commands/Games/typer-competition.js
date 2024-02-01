@@ -4,9 +4,7 @@ const Command = require('../../base/Command.js');
 const { stripIndents } = require('common-tags');
 const randomWords = require('random-words');
 const { QuickDB } = require('quick.db');
-const https = require('https');
 const db = new QuickDB();
-const fs = require('fs');
 
 class TyperCompetition extends Command {
   constructor(client) {
@@ -63,17 +61,14 @@ class TyperCompetition extends Command {
 
           const attachment = new AttachmentBuilder(canvas.toBuffer(), { name: 'type-race.png' });
 
-          let getReady;
-          let theImage;
-
-          getReady = await msg.channel.send('Are you ready? \n3');
+          const getReady = await msg.channel.send('Are you ready? \n3');
           await this.client.util.wait(1000);
           getReady.edit('Are you ready? \n2');
           await this.client.util.wait(1000);
           getReady.edit('Are you ready? \n1');
           await this.client.util.wait(1000);
           getReady.edit('Go!');
-          theImage = await msg.channel.send({ files: [attachment] });
+          const theImage = await msg.channel.send({ files: [attachment] });
           if (getReady) getReady.delete().catch(() => {});
 
           const filter2 = (message) => {
