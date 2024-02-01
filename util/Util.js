@@ -27,7 +27,7 @@ function list(array, conj = 'and') {
  * @param {Array} extraNo - Optional extra words to detect as No
  * @returns {String} - Returns true or false
  */
-async function verify(channel, user, { time = 30000, extraYes = [], extraNo = [] } = {}) {
+async function verify(channel, user, { time = 120000, extraYes = [], extraNo = [] } = {}) {
   if (!channel || !user) return false;
 
   const filter = (res) => {

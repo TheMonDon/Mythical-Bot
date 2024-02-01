@@ -40,7 +40,7 @@ class TyperCompetition extends Command {
 
     const em = new EmbedBuilder().setTitle('Typer Competition').setColor(color).setDescription(stripIndents`
       Who is the fastest? I will send a word, the person who types it the quickest wins!
-      To start, 2 or more people must react with 🏁`);
+      To start, two or more people must react with 🏁`);
 
     const embed1 = await msg.channel.send({ embeds: [em] });
     await embed1.react('🏁');
@@ -56,8 +56,8 @@ class TyperCompetition extends Command {
         time: 60000,
         errors: ['time'],
       })
-      .then(() => {
-        loadImage('./resources/captcha-background-image.jpg').then((image) => {
+      .then(async () => {
+        loadImage('./resources/captcha-background-image.jpg').then(async (image) => {
           ctx.drawImage(image, 0, 0, 290, 80);
           ctx.fillText(randWord, 90, 45);
 
@@ -66,63 +66,59 @@ class TyperCompetition extends Command {
           let getReady;
           let theImage;
 
-          (async () => {
-            getReady = await msg.channel.send('Are you ready? \n3');
-            await this.client.util.wait(1000);
-            getReady.edit('Are you ready? \n2');
-            await this.client.util.wait(1000);
-            getReady.edit('Are you ready? \n1');
-            await this.client.util.wait(1000);
-            getReady.edit('Go!');
-            theImage = await msg.channel.send(attachment);
-          })();
+          getReady = await msg.channel.send('Are you ready? \n3');
+          await this.client.util.wait(1000);
+          getReady.edit('Are you ready? \n2');
+          await this.client.util.wait(1000);
+          getReady.edit('Are you ready? \n1');
+          await this.client.util.wait(1000);
+          getReady.edit('Go!');
+          theImage = await msg.channel.send({ files: [attachment] });
+          if (getReady) getReady.delete().catch(() => {});
 
           const filter2 = (message) => {
             return message.content.toLowerCase() === randWord.toLowerCase();
           };
 
-          msg.channel
-            .awaitMessages({
-              filter2,
-              max: 1,
-              time: 30000,
-              errors: ['time'],
-            })
-            .then(async (collected2) => {
-              getReady.delete();
+          const collected2 = await msg.channel.awaitMessages({
+            filter: filter2,
+            max: 1,
+            time: 30000,
+            errors: ['time'],
+          });
 
-              const t2 = theImage.createdAt;
-              const t1 = collected2.first().createdAt;
-              const winner = collected2.first().author;
-              const time = (t1 - t2) / 1000;
+          if (!collected2) {
+            if (getReady) getReady.delete().catch(() => {});
+            this.client.games.delete(msg.channel.id);
+            return msg.channel.send('No one guessed the correct word in time.');
+          }
 
-              const HS = { score: time, user: winner.tag };
-              const oldHS = (await db.get('global.highScores.typeCompetition')) || HS;
-              let highScore = oldHS.score;
-              let highScoreUser = oldHS.user;
-              if (HS.score < oldHS.score) {
-                await db.set('global.highScores.typerCompetition', HS);
-                highScore = HS.score;
-                highScoreUser = 'You';
-              }
+          const t2 = theImage.createdAt;
+          const t1 = collected2.first().createdAt;
+          const winner = collected2.first().author;
+          const time = (t1 - t2) / 1000;
 
-              const em1 = new EmbedBuilder()
-                .setTitle('Winner!')
-                .setColor(color)
-                .setDescription(
-                  stripIndents`
+          const HS = { score: time, user: winner.tag };
+          const oldHS = (await db.get('global.highScores.typeCompetition')) || HS;
+          let highScore = oldHS.score;
+          let highScoreUser = oldHS.user;
+          if (HS.score < oldHS.score) {
+            await db.set('global.highScores.typerCompetition', HS);
+            highScore = HS.score;
+            highScoreUser = winner.tag;
+          }
+
+          const em1 = new EmbedBuilder()
+            .setTitle('Winner!')
+            .setColor(color)
+            .setDescription(
+              stripIndents`
                   ${winner} won! :tada:
-                  Time: ${time}s`,
-                )
-                .addFields([{ name: 'High Score', value: `${highScore}s by ${highScoreUser}` }]);
-              this.client.games.delete(msg.channel.id);
-              return msg.channel.send(em1);
-            })
-            .catch(() => {
-              getReady.delete();
-              this.client.games.delete(msg.channel.id);
-              return msg.channel.send('No one guessed the correct word in time.');
-            });
+                  Time: ${time} seconds`,
+            )
+            .addFields([{ name: 'High Score', value: `${highScore} seconds by ${highScoreUser}` }]);
+          this.client.games.delete(msg.channel.id);
+          return msg.channel.send({ embeds: [em1] });
         });
       })
       .catch(() => {
