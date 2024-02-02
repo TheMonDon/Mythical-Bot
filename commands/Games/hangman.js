@@ -410,7 +410,7 @@ class Hangman extends Command {
         if (wordToGuess.length === response.first().content.length) {
           if (wordToGuess === response.first().content.toLowerCase()) {
             firstEmbed
-              .setTitle(`You guessed the letter "**${response.first().content.toLowerCase()}**" correctly! `)
+              .setTitle(`You guessed the word "**${response.first().content.toLowerCase()}**" correctly! `)
               .setFooter({ text: `${chances}/15 chances left` })
               .setDescription(
                 `**Wrong letters used:** ${triedLetters.join(', ')} \n\n**Word to guess:**\n\`\`${newWordString.join(
