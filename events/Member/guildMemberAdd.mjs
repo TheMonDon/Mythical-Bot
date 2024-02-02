@@ -67,7 +67,7 @@ export async function run(client, member) {
     const welcomeMessage = settings.welcomeMessage
       .replace('{{user}}', member.user.tag)
       .replace('{{userName}}', member.user.tag)
-      .replace('{{globalName}}', member.user.globalName)
+      .replace('{{globalName}}', member.user.globalName || member.user.id)
       .replace('{{guild}}', member.guild.name)
       .replace('{{guildName}}', member.guild.name);
 
