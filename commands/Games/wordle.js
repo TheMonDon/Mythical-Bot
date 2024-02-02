@@ -9,7 +9,7 @@ class Wordle extends Command {
       name: 'wordle',
       description: 'Play the famous wordle game!',
       usage: 'wordle',
-      category: 'Fun',
+      category: 'Games',
     });
   }
 
@@ -33,7 +33,7 @@ class Wordle extends Command {
     // Allow the owner to use the dev test function
     if (args?.length > 0) {
       if (args[0] === 'dev') {
-        if (level < 2) return msg.reply('You are not a developer, re-run this command without arguments.');
+        if (level < 8) return msg.reply('You are not a developer, re-run this command without arguments.');
         dev = true;
       }
     }
