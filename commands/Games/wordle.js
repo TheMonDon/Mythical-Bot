@@ -151,7 +151,7 @@ class Wordle extends Command {
         ?.delete()
         .catch(() => {});
 
-      if (!allWords.includes(word) && !gameOver) {
+      if (!allWords.includes(word)) {
         await error?.delete().catch(() => {});
         error = await msg.channel.send('That word is not in the dictionary!');
         continue;

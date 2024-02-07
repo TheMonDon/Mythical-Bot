@@ -31,7 +31,7 @@ const config = {
   botLogsWebhookURL: '',
 
   // YouTube cookie for discord-player
-  youtubeCookie: ''
+  youtubeCookie: '',
 
   // Default per-server settings. These settings are entered in a database on first load, 
   // And are then completely ignored from this file. To modify default settings, use the `conf` command.
