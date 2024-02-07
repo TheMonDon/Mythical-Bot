@@ -1,5 +1,6 @@
 const Command = require('../../base/Command.js');
 const { EmbedBuilder } = require('discord.js');
+const randomWords = require('random-words');
 const { readFileSync } = require('fs');
 const path = require('path');
 
@@ -23,18 +24,23 @@ class Wordle extends Command {
     let turn = 0;
     let error;
     const usedWords = [];
-    const WIDTH = 5;
-    const HEIGHT = 6;
     const gameBoard = [];
-    const allWords = readFileSync(path.join(__dirname, '/../../resources/sgb-words.txt'), 'utf8');
+    const allWords = readFileSync(path.join(__dirname, '/../../resources/word-list.txt'), 'utf8');
     const wordArray = allWords.split('\n');
-    const theWord = wordArray[Math.floor(Math.random() * wordArray.length)];
+    let filteredWords = wordArray.filter((word) => word.length === 5);
+    let theWord = filteredWords[Math.floor(Math.random() * filteredWords.length)];
+    let WIDTH = theWord.length;
+    const HEIGHT = 6;
 
     // Allow the owner to use the dev test function
     if (args?.length > 0) {
       if (args[0] === 'dev') {
-        if (level < 8) return msg.reply('You are not a developer, re-run this command without arguments.');
+        if (level < 8) return msg.reply('You are not a developer!');
         dev = true;
+      } else if (args[0] === 'hard') {
+        filteredWords = wordArray.filter((word) => word.length >= 6);
+        theWord = filteredWords[Math.floor(Math.random() * filteredWords.length)];
+        WIDTH = theWord.length;
       }
     }
 
@@ -119,7 +125,8 @@ class Wordle extends Command {
           .setColor(msg.settings.embedColor)
           .setTitle('Wordle (5 Minutes)')
           .setDescription(
-            `${gameBoardToString()} \nGuess the word! (5 letters)` + (dev ? `\nThe word is: ${theWord}` : ''),
+            `${gameBoardToString()} \nGuess the word! (${theWord.length} letters)` +
+              (dev ? `\nThe word is: ${theWord}` : ''),
           )
           .addFields([{ name: 'Turn:', value: (turn + 1).toString() }])
           .setFooter({ text: `Currently Playing: ${msg.author.username}` })
@@ -133,7 +140,7 @@ class Wordle extends Command {
 
     while (gameOver === false && turn <= 5) {
       const collected = await msg.channel.awaitMessages({
-        filter: (m) => m.author.id === msg.author.id && m.content.length === 5,
+        filter: (m) => m.author.id === msg.author.id && m.content.length === theWord.length,
         max: 1,
         time: 300000,
       });
@@ -179,7 +186,10 @@ class Wordle extends Command {
         gameOver = true;
         turn = -2;
       });
-      turn >= 5 ? (gameOver = true) : (turn += 1);
+
+      if (!gameOver) {
+        turn >= 5 ? (gameOver = true) : (turn += 1);
+      }
       await error?.delete().catch(() => {});
     }
 
