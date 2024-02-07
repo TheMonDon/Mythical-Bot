@@ -1,6 +1,5 @@
 const Command = require('../../base/Command.js');
 const { EmbedBuilder } = require('discord.js');
-const randomWords = require('random-words');
 const { readFileSync } = require('fs');
 const path = require('path');
 
@@ -152,7 +151,7 @@ class Wordle extends Command {
         ?.delete()
         .catch(() => {});
 
-      if (!allWords.includes(word)) {
+      if (!allWords.includes(word) && !gameOver) {
         await error?.delete().catch(() => {});
         error = await msg.channel.send('That word is not in the dictionary!');
         continue;
