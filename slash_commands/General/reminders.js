@@ -10,11 +10,11 @@ exports.conf = {
 exports.commandData = new SlashCommandBuilder()
   .setName('reminders')
   .setDescription('View or delete your reminders')
-  .addIntegerOption((option) => option.setName('reminder_id').setDescription('The reminder to delete'));
+  .addStringOption((option) => option.setName('reminder_id').setDescription('The reminder to delete'));
 
 exports.run = async (interaction) => {
   await interaction.deferReply();
-  const reminderID = interaction.options.getInteger('reminder_id');
+  const reminderID = interaction.options.getString('reminder_id');
 
   const emoji = {
     0: '0⃣',
