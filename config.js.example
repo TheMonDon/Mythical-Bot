@@ -3,13 +3,13 @@ const config = {
   owners: ['ownerId'],
 
   // Bot Admins, level 9 by default. Array of user ID strings.
-  "admins": ['adminId'],
+  admins: ['adminId'],
 
   // Bot Support, level 8 by default. Array of user ID strings
-  "support": ['supportId'],
+  support: ['supportId'],
 
   // Your Bots Token. Available on https://discordapp.com/developers/applications/me
-  "token": '',
+  token: '',
 
   // Auth token for BotList.me
   BotListToken: '',
