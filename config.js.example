@@ -39,7 +39,6 @@ const config = {
   
   defaultSettings: {
     prefix: '*',
-    modLogChannel: 'mod-log',
     modRole: 'Moderator',
     adminRole: 'Administrator',
     systemNotice: 'true',
