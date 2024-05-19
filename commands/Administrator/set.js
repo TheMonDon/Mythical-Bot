@@ -87,7 +87,7 @@ class Set extends Command {
       const embed = new EmbedBuilder()
         .setTitle('Current Guild Setting')
         .setDescription(`\`\`\`asciidoc\n${array.join('\n')}\`\`\``)
-        .setFooter({ text: 'For help use `-help set`' });
+        .setFooter({ text: `For help use \`${message.settings.prefix}help set\`` });
       await message.channel.send({ embeds: [embed] });
     }
   }
