@@ -1,10 +1,11 @@
 import pkg from '../../config.js';
-import { EmbedBuilder } from 'discord.js';
+import { EmbedBuilder, ChannelType } from 'discord.js';
 import { QuickDB } from 'quick.db';
 import { scheduleJob } from 'node-schedule';
+import { Client } from 'botpanel.js';
 import * as botlistmePackage from 'botlist.me.js';
 const BotlistMe = botlistmePackage.default || botlistmePackage;
-const { BotListToken } = pkg;
+const { BotListToken, BotPanelID, BotPanelSecret } = pkg;
 const db = new QuickDB();
 
 export async function run(client) {
@@ -18,6 +19,61 @@ export async function run(client) {
 
   client.games.clear();
   client.logger.log(`${client.user.tag}, ready to serve ${client.guilds.cache.size} guilds.`, 'ready');
+
+  if (BotPanelID?.length > 0 && BotPanelSecret?.length > 0) {
+    const BotPanelClient = new Client({ id: BotPanelID, secret: BotPanelSecret });
+
+    BotPanelClient.on('GUILD_INTERACTION', async (interaction) => {
+      const isBotInGuild = client.guilds.cache.has(interaction.guildId);
+      let guildData = {}, textChannels = [], voiceChannels = [], categories = [], roles = [];
+
+      if (isBotInGuild) {
+        const possibleChannels = ["textChannels", "voiceChannels", "categories"];
+        const channelTypes = {
+          [ChannelType.GuildText]: textChannels,
+          [ChannelType.GuildVoice]: voiceChannels,
+          [ChannelType.GuildCategory]: categories,
+        }
+
+        const settings = await client.settings.get(interaction.guildId);
+        guildData = (settings && Object.keys(settings).length > 0) ? settings : await client.settings.get('default');
+        interaction.requestedElements.some(i => possibleChannels.includes(i)) ? client.channels.cache.filter((c) => c.guild.id === interaction.guildId).forEach(({ id, name, position, type }) => {
+          const data = { id, name, position };
+          const channelType = channelTypes[type];
+          if (channelType) channelType.push(data);
+        }) : [];
+
+        roles = interaction.requestedElements.includes("roles") ? client.guilds.cache.get(interaction.guildId).roles.cache.map(({ id, name, position, managed }) => { return { id, name, position, managed }}) : [];
+      }
+
+      interaction.send({
+        inGuild: isBotInGuild,
+        data: guildData || {},
+        textChannels,
+        voiceChannels,
+        categories,
+        roles,
+      })
+    });
+
+    BotPanelClient.on('MODIFY_GUILD_DATA', async (interaction) => {
+      const { guildId, input: { name, value } } = interaction;
+      const defaultSettings = await client.settings.get('default');
+      const guildSettings = await client.settings.get(guildId);
+
+      if (!defaultSettings[name]) return interaction.acknowledge({ success: false, message: 'Invalid setting name.' });
+      if (value.length < 1) return interaction.acknowledge({ success: false, message: 'Please provide a value.' });
+      if (!guildSettings) {
+        await client.settings.set(guildId, {...defaultSettings, [name]: value});
+      } else {
+        await client.settings.set(guildId, { ...guildSettings, [name]: value });
+      }
+
+      interaction.acknowledge({ success: true, message: `Successfully set ${name} to ${value}` });
+    });
+
+    BotPanelClient.login();
+  }
 
   if (BotListToken?.length > 0) {
     const botlistme = new BotlistMe(BotListToken, client);
