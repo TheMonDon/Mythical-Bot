@@ -23,7 +23,7 @@
     "big-integer": "^1.6.51",
     "blackjack-n-deck": "^1.0.1",
     "botlist.me.js": "^1.0.2",
-    "botpanel.js": "^1.2.0",
+    "botpanel.js": "^1.2.8",
     "canvas": "^2.11.2",
     "chalk": "^4.1.1",
     "chrono-node": "^2.7.0",
