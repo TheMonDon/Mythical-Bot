@@ -24,7 +24,7 @@ exports.run = async (interaction) => {
 
   if (userCooldown.active) {
     const timeleft = userCooldown.time - Date.now();
-    if (timeleft < 0 || timeleft > cooldown * 1000) {
+    if (timeleft < 1 || timeleft > cooldown * 1000) {
       userCooldown = {};
       userCooldown.active = false;
       await db.set(

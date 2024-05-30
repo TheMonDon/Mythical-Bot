@@ -10,7 +10,7 @@ class Crime extends Command {
     super(client, {
       name: 'crime',
       category: 'Economy',
-      description: 'Commit a crime',
+      description: 'Commit a crime for a chance at some extra money',
       examples: ['crime'],
       guildOnly: true,
     });
@@ -29,7 +29,7 @@ class Crime extends Command {
     // Check if the user is on cooldown
     if (userCooldown.active) {
       const timeleft = userCooldown.time - Date.now();
-      if (timeleft < 0 || timeleft > cooldown * 1000) {
+      if (timeleft < 1 || timeleft > cooldown * 1000) {
         // this is to check if the bot restarted before their cooldown was set.
         userCooldown = {};
         userCooldown.active = false;

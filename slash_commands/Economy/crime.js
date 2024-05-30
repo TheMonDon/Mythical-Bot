@@ -8,13 +8,13 @@ exports.conf = {
 };
 
 exports.commandData = new SlashCommandBuilder()
-  .setName('slut')
+  .setName('crime')
   .setDMPermission(false)
-  .setDescription('Whip it out, for some quick cash ;)');
+  .setDescription('Commit a crime for a chance at some extra money');
 
 exports.run = async (interaction) => {
   await interaction.deferReply();
-  const type = 'slut';
+  const type = 'crime';
 
   const cooldown = (await db.get(`servers.${interaction.guild.id}.economy.${type}.cooldown`)) || 600;
   let userCooldown =
@@ -24,6 +24,7 @@ exports.run = async (interaction) => {
     .setColor(interaction.settings.embedErrorColor)
     .setAuthor({ name: interaction.user.tag, iconURL: interaction.user.displayAvatarURL() });
 
+  // Check if the user is on cooldown
   if (userCooldown.active) {
     const timeleft = userCooldown.time - Date.now();
     if (timeleft < 1 || timeleft > cooldown * 1000) {
@@ -35,14 +36,15 @@ exports.run = async (interaction) => {
         userCooldown,
       );
     } else {
-      const tLeft = moment
+      const timeLeft = moment
         .duration(timeleft)
         .format('y[ years][,] M[ Months]d[ days][,] h[ hours][,] m[ minutes][, and] s[ seconds]'); // format to any format
-      embed.setDescription(`Please wait ${tLeft} to be a slut again.`);
+      embed.setDescription(`You cannot commit a crime for ${timeLeft}`);
       return interaction.editReply({ embeds: [embed] });
     }
   }
 
+  // Get the user's net worth
   const cash = BigInt(
     (await db.get(`servers.${interaction.guild.id}.users.${interaction.member.id}.economy.cash`)) ||
       (await db.get(`servers.${interaction.guild.id}.economy.startBalance`)) ||
@@ -53,6 +55,7 @@ exports.run = async (interaction) => {
   );
   const authNet = cash + bank;
 
+  // Get the min and max amounts of money the user can get
   const min = (await db.get(`servers.${interaction.guild.id}.economy.${type}.min`)) || 500;
   const max = (await db.get(`servers.${interaction.guild.id}.economy.${type}.max`)) || 2000;
 
@@ -66,23 +69,24 @@ exports.run = async (interaction) => {
   // fineAmount is the amount of money the user will lose if they fail the action
   const fineAmount = (authNet / BigInt(100)) * randomFine;
 
-  // failRate is the percentage chance of the user failing the action
-  const failRate = (await db.get(`servers.${interaction.guild.id}.economy.${type}.failrate`)) || 35;
+  const failRate = (await db.get(`servers.${interaction.guild.id}.economy.${type}.failrate`)) || 45;
   const ranNum = Math.random() * 100;
 
   const currencySymbol = (await db.get(`servers.${interaction.guild.id}.economy.symbol`)) || '$';
 
-  delete require.cache[require.resolve('../../resources/messages/slut_success.json')];
-  delete require.cache[require.resolve('../../resources/messages/slut_fail.json')];
-  const crimeSuccess = require('../../resources/messages/slut_success.json');
-  const crimeFail = require('../../resources/messages/slut_fail.json');
+  delete require.cache[require.resolve('../../resources/messages/crime_success.json')];
+  delete require.cache[require.resolve('../../resources/messages/crime_fail.json')];
+  const crimeSuccess = require('../../resources/messages/crime_success.json');
+  const crimeFail = require('../../resources/messages/crime_fail.json');
 
   if (ranNum < failRate) {
     const csamount = currencySymbol + fineAmount.toLocaleString();
     const num = Math.floor(Math.random() * (crimeFail.length - 1)) + 1;
-    const txt = crimeFail[num].replace('csamount', csamount);
 
-    embed.setDescription(txt).setFooter({ text: `Reply #${num.toLocaleString()}` });
+    embed
+      .setColor(interaction.settings.embedErrorColor)
+      .setDescription(crimeFail[num].replace('csamount', csamount))
+      .setFooter({ text: `Reply #${num.toLocaleString()}` });
     interaction.editReply({ embeds: [embed] });
 
     const newAmount = cash - fineAmount;
@@ -90,13 +94,11 @@ exports.run = async (interaction) => {
   } else {
     const amount = BigInt(Math.abs(Math.floor(Math.random() * (max - min + 1) + min)));
     const csamount = currencySymbol + amount.toLocaleString();
-
     const num = Math.floor(Math.random() * (crimeSuccess.length - 1)) + 1;
-    const txt = crimeSuccess[num].replace('csamount', csamount);
 
     embed
-      .setDescription(txt)
-      .setColor('#64BC6C')
+      .setColor(interaction.settings.embedSuccessColor)
+      .setDescription(crimeSuccess[num].replace('csamount', csamount))
       .setFooter({ text: `Reply #${num.toLocaleString()}` });
     interaction.editReply({ embeds: [embed] });
 
@@ -108,6 +110,7 @@ exports.run = async (interaction) => {
   userCooldown.active = true;
   await db.set(`servers.${interaction.guild.id}.users.${interaction.member.id}.economy.${type}.cooldown`, userCooldown);
 
+  // remove the cooldown after the specified time
   setTimeout(async () => {
     userCooldown = {};
     userCooldown.active = false;
