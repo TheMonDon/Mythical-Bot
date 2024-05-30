@@ -14,7 +14,8 @@ exports.commandData = new SlashCommandBuilder()
 
 exports.run = async (interaction) => {
   await interaction.deferReply();
-  const mem = interaction.options?.get('user')?.member || interaction.options?.get('user')?.user;
+  let mem = interaction.options?.get('user')?.member || interaction.options?.get('user')?.user;
+  if (!mem) mem = interaction.user;
 
   const cash = parseFloat(
     (await db.get(`servers.${interaction.guildId}.users.${mem.id}.economy.cash`)) ||

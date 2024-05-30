@@ -7,16 +7,16 @@ exports.conf = {
 };
 
 exports.commandData = new SlashCommandBuilder()
-  .setName('add-money')
+  .setName('remove-money')
   .setDMPermission(false)
-  .setDescription("Add money to a member's cash or bank balance.")
+  .setDescription("Remove money to a member's cash or bank balance.")
   .addMentionableOption((option) =>
-    option.setName('target').setDescription('The member or role to add money to').setRequired(true),
+    option.setName('target').setDescription('The member or role to remove money to').setRequired(true),
   )
   .addIntegerOption((option) =>
     option
       .setName('amount')
-      .setDescription('The amount of money to add')
+      .setDescription('The amount of money to take')
       .setMinValue(1)
       .setMaxValue(1000000000000)
       .setRequired(true),
@@ -24,7 +24,7 @@ exports.commandData = new SlashCommandBuilder()
   .addStringOption((option) =>
     option
       .setName('destination')
-      .setDescription('Where the money should go')
+      .setDescription('Where the money should come from')
       .addChoices({ name: 'Bank', value: 'bank' }, { name: 'Cash', value: 'cash' }),
   );
 
@@ -49,12 +49,12 @@ exports.run = async (interaction) => {
 
   if (target.user) {
     if (!target.user) return interaction.client.util.errorEmbed(interaction, 'Invalid Member');
-    if (target.user.bot) return interaction.client.util.errorEmbed(interaction, "You can't add money to a bot.");
+    if (target.user.bot) return interaction.client.util.errorEmbed(interaction, "You can't remove money from a bot.");
 
     amount = BigInt(amount);
     if (type === 'bank') {
       const bank = BigInt((await db.get(`servers.${interaction.guild.id}.users.${target.user.id}.economy.bank`)) || 0);
-      const newAmount = bank + amount;
+      const newAmount = bank - amount;
       await db.set(`servers.${interaction.guild.id}.users.${target.user.id}.economy.bank`, newAmount.toString());
     } else {
       const cash = BigInt(
@@ -62,7 +62,7 @@ exports.run = async (interaction) => {
           (await db.get(`servers.${interaction.guild.id}.economy.startBalance`)) ||
           0,
       );
-      const newAmount = cash + amount;
+      const newAmount = cash - amount;
       await db.set(`servers.${interaction.guild.id}.users.${target.user.id}.economy.cash`, newAmount.toString());
     }
 
@@ -71,7 +71,7 @@ exports.run = async (interaction) => {
 
     embed
       .setColor(interaction.settings.embedColor)
-      .setDescription(`Added **${csAmount}** to ${target.user}'s ${type} balance.`)
+      .setDescription(`Removed **${csAmount}** from ${target.user}'s ${type} balance.`)
       .setTimestamp();
     return interaction.editReply({ embeds: [embed] });
   } else {
@@ -80,12 +80,6 @@ exports.run = async (interaction) => {
     const currencySymbol = (await db.get(`servers.${interaction.guild.id}.economy.symbol`)) || '$';
 
     if (isNaN(amount)) return interaction.client.util.errorEmbed(interaction, 'Incorrect Usage');
-    if (amount > 1000000000000)
-      return interaction.client.util.errorEmbed(
-        interaction,
-        `You can't add more than 1 Trillion to a role.`,
-        'Invalid Amount',
-      );
 
     const members = [...role.members.values()];
 
@@ -94,7 +88,7 @@ exports.run = async (interaction) => {
       members.forEach(async (mem) => {
         if (!mem.user.bot) {
           const current = BigInt((await db.get(`servers.${interaction.guild.id}.users.${mem.id}.economy.bank`)) || 0);
-          const newAmount = current + amount;
+          const newAmount = current - amount;
           await db.set(`servers.${interaction.guild.id}.users.${mem.id}.economy.bank`, newAmount.toString());
         }
       });
@@ -106,7 +100,7 @@ exports.run = async (interaction) => {
               (await db.get(`servers.${interaction.guild.id}.economy.startBalance`)) ||
               0,
           );
-          const newAmount = cash + amount;
+          const newAmount = cash - amount;
           await db.set(`servers.${interaction.guild.id}.users.${mem.id}.economy.cash`, newAmount.toString());
         }
       });
@@ -119,7 +113,7 @@ exports.run = async (interaction) => {
       .setAuthor({ name: interaction.user.tag, iconURL: interaction.user.displayAvatarURL() })
       .setColor(interaction.settings.embedColor)
       .setDescription(
-        `Added **${csAmount}** to the ${type} balance of ${members.length} ${
+        `Removed **${csAmount}** from the ${type} balance of ${members.length} ${
           members.length > 1 ? 'members' : 'member'
         } with the ${role} role.`,
       )

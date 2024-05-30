@@ -44,7 +44,7 @@ class RemoveMoney extends Command {
 
     if (isNaN(amount)) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Amount');
     if (!mem) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Member');
-    if (mem.user.bot) return this.client.util.errorEmbed(msg, "You can't add money to bots.");
+    if (mem.user.bot) return this.client.util.errorEmbed(msg, "You can't remove money from bots.");
 
     amount = BigInt(amount);
     if (type === 'bank') {

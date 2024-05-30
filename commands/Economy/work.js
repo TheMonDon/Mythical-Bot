@@ -9,7 +9,7 @@ class Work extends Command {
     super(client, {
       name: 'work',
       category: 'Economy',
-      description: 'Get money by working',
+      description: 'Work for some extra money',
       usage: 'work',
       guildOnly: true,
     });
