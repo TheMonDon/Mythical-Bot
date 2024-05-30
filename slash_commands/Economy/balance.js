@@ -10,13 +10,11 @@ exports.commandData = new SlashCommandBuilder()
   .setName('balance')
   .setDMPermission(false)
   .setDescription('Check your balance')
-  .addUserOption((option) => option.setName('member').setDescription('Check the balance of another member'))
-  .setDMPermission(false);
+  .addUserOption((option) => option.setName('user').setDescription('Check the balance of another user'));
 
 exports.run = async (interaction) => {
   await interaction.deferReply();
-  let mem = interaction.options?.get('member')?.member;
-  if (!mem) mem = interaction.member;
+  const mem = interaction.options?.get('user')?.member || interaction.options?.get('user')?.user;
 
   const cash = parseFloat(
     (await db.get(`servers.${interaction.guildId}.users.${mem.id}.economy.cash`)) ||
@@ -29,7 +27,7 @@ exports.run = async (interaction) => {
   const currencySymbol = (await db.get(`servers.${interaction.guildId}.economy.symbol`)) || '$';
 
   const embed = new EmbedBuilder()
-    .setAuthor({ name: mem.user.tag, iconURL: mem.user.displayAvatarURL() })
+    .setAuthor({ name: mem.user?.tag || mem.username, iconURL: mem.user?.displayAvatarURL() || mem.displayAvatarURL() })
     .setColor(interaction.settings.embedColor)
     .addFields([
       { name: 'Cash:', value: currencySymbol + cash.toLocaleString() },

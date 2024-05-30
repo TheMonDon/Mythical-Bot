@@ -90,7 +90,7 @@ class AddMoneyRole extends Command {
       .setDescription(
         `Added **${csAmount}** to the ${type} balance of ${members.length} ${
           members.length > 1 ? 'members' : 'member'
-        } with the ${role}.`,
+        } with the ${role} role.`,
       )
       .setTimestamp();
 

@@ -16,9 +16,22 @@ class Balance extends Command {
   }
 
   async run(msg, args) {
-    let mem = msg.member;
+    let mem = msg.author;
 
-    if (args && args.length > 0) mem = await this.client.util.getMember(msg, args.join(' '));
+    if (args && args.length > 0) {
+      mem = await this.client.util.getMember(msg, args.join(' '));
+
+      if (!mem) {
+        const fid = args.join(' ').replace(/<@|>/g, '');
+        try {
+          mem = await this.client.users.fetch(fid);
+        } catch (err) {
+          return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid User');
+        }
+      }
+      mem = mem.user ? mem.user : mem;
+    }
+
     const embed = new EmbedBuilder().setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() });
 
     if (!mem) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Member');
@@ -43,7 +56,7 @@ class Balance extends Command {
     csNetWorthAmount = csNetWorthAmount.length > 1024 ? `${csNetWorthAmount.slice(0, 1021) + '...'}` : csNetWorthAmount;
 
     embed
-      .setAuthor({ name: mem.user.tag, iconURL: mem.user.displayAvatarURL() })
+      .setAuthor({ name: mem.username, iconURL: mem.displayAvatarURL() })
       .setColor(msg.settings.embedColor)
       .addFields([
         { name: 'Cash:', value: csCashAmount },
