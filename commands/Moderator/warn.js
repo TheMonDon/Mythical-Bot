@@ -39,8 +39,6 @@ class Warn extends Command {
       }
     }
 
-    if (member ? mem.user.bot : mem.bot) return this.client.util.errorEmbed(msg, "You can't warn a bot.");
-
     if (member) {
       const owner = await msg.guild.fetchOwner();
       if (mem.roles.highest.position > msg.member.roles.highest.position - 1 && msg.author.id !== owner.user.id)

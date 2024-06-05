@@ -37,8 +37,6 @@ exports.run = async (interaction) => {
     member = false;
   }
 
-  if (member ? mem.user.bot : mem.bot) return interaction.client.util.errorEmbed(interaction, "You can't warn a bot.");
-
   if (member) {
     const owner = await interaction.guild.fetchOwner();
     if (
