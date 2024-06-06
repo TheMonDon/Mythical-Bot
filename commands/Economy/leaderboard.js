@@ -50,14 +50,16 @@ class Leaderboard extends Command {
     // Sort the leaderboard
     const sortedLeaderboard = leaderboard
       .sort((a, b) => (BigInt(b.money) > BigInt(a.money) ? 1 : -1))
-      .map(
-        (c) =>
-          `**${leaderboard.indexOf(c) + 1}.** ${c.user} - ${currencySymbol}${
-            c.money.toLocaleString().length > 156
-              ? `${c.money.toLocaleString().slice(0, 153) + '...'}`
-              : `${c.money.toLocaleString()}`
-          }`,
-      );
+      .map((c) => {
+        const neg = BigInt(c.money) < 0n;
+        const money = neg ? BigInt(c.money) * -1n : BigInt(c.money);
+        return `**${leaderboard.indexOf(c) + 1}.** ${c.user}: ${neg ? '-' : ''}${currencySymbol}${
+          money.toLocaleString().length > 156
+            ? `${money.toLocaleString().slice(0, 153) + '...'}`
+            : `${money.toLocaleString()}`
+        }`;
+      });
+
     let displayedLeaderboard = sortedLeaderboard.slice(Math.floor((page - 1) * 10), Math.ceil(page * 10));
 
     // Create the pages

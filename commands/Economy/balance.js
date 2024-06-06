@@ -46,13 +46,20 @@ class Balance extends Command {
 
     const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
 
-    let csCashAmount = currencySymbol + cash.toLocaleString();
+    function formatCurrency(amount, symbol) {
+      if (amount < 0) {
+        return '-' + symbol + (-amount).toLocaleString();
+      }
+      return symbol + amount.toLocaleString();
+    }
+
+    let csCashAmount = formatCurrency(cash, currencySymbol);
     csCashAmount = csCashAmount.length > 1024 ? `${csCashAmount.slice(0, 1021) + '...'}` : csCashAmount;
 
-    let csBankAmount = currencySymbol + bank.toLocaleString();
+    let csBankAmount = formatCurrency(bank, currencySymbol);
     csBankAmount = csBankAmount.length > 1024 ? `${csBankAmount.slice(0, 1021) + '...'}` : csBankAmount;
 
-    let csNetWorthAmount = currencySymbol + netWorth.toLocaleString();
+    let csNetWorthAmount = formatCurrency(netWorth, currencySymbol);
     csNetWorthAmount = csNetWorthAmount.length > 1024 ? `${csNetWorthAmount.slice(0, 1021) + '...'}` : csNetWorthAmount;
 
     embed
