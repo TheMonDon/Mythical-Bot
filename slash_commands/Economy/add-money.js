@@ -31,7 +31,7 @@ exports.commandData = new SlashCommandBuilder()
 exports.run = async (interaction) => {
   await interaction.deferReply();
   const target = interaction.options.getMentionable('target');
-  const type = interaction.options.getString('type')?.value || 'cash';
+  const destination = interaction.options.getString('destination') || 'cash';
   let amount = interaction.options.getInteger('amount');
   const currencySymbol = (await db.get(`servers.${interaction.guild.id}.economy.symbol`)) || '$';
 
@@ -52,7 +52,7 @@ exports.run = async (interaction) => {
     if (target.user.bot) return interaction.client.util.errorEmbed(interaction, "You can't add money to a bot.");
 
     amount = BigInt(amount);
-    if (type === 'bank') {
+    if (destination === 'bank') {
       const bank = BigInt((await db.get(`servers.${interaction.guild.id}.users.${target.user.id}.economy.bank`)) || 0);
       const newAmount = bank + amount;
       await db.set(`servers.${interaction.guild.id}.users.${target.user.id}.economy.bank`, newAmount.toString());
@@ -71,11 +71,10 @@ exports.run = async (interaction) => {
 
     embed
       .setColor(interaction.settings.embedColor)
-      .setDescription(`Added **${csAmount}** to ${target.user}'s ${type} balance.`)
+      .setDescription(`Added **${csAmount}** to ${target.user}'s ${destination} balance.`)
       .setTimestamp();
     return interaction.editReply({ embeds: [embed] });
   } else {
-    const type = interaction.options.getString('type')?.value || 'cash';
     const role = target;
     const currencySymbol = (await db.get(`servers.${interaction.guild.id}.economy.symbol`)) || '$';
 
@@ -90,7 +89,7 @@ exports.run = async (interaction) => {
     const members = [...role.members.values()];
 
     amount = BigInt(amount);
-    if (type === 'bank') {
+    if (destination === 'bank') {
       members.forEach(async (mem) => {
         if (!mem.user.bot) {
           const current = BigInt((await db.get(`servers.${interaction.guild.id}.users.${mem.id}.economy.bank`)) || 0);
@@ -119,7 +118,7 @@ exports.run = async (interaction) => {
       .setAuthor({ name: interaction.user.tag, iconURL: interaction.user.displayAvatarURL() })
       .setColor(interaction.settings.embedColor)
       .setDescription(
-        `Added **${csAmount}** to the ${type} balance of ${members.length} ${
+        `Added **${csAmount}** to the ${destination} balance of ${members.length} ${
           members.length > 1 ? 'members' : 'member'
         } with the ${role} role.`,
       )
