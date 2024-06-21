@@ -14,12 +14,7 @@ exports.commandData = new SlashCommandBuilder()
     option.setName('target').setDescription('The member or role to remove money from').setRequired(true),
   )
   .addIntegerOption((option) =>
-    option
-      .setName('amount')
-      .setDescription('The amount of money to take')
-      .setMinValue(1)
-      .setMaxValue(1000000000000)
-      .setRequired(true),
+    option.setName('amount').setDescription('The amount of money to take').setMinValue(1).setRequired(true),
   )
   .addStringOption((option) =>
     option
