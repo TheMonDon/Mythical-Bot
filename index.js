@@ -110,7 +110,7 @@ class Bot extends Client {
     client.on(eventName, (...args) => eventModule.run(client, ...args));
   }
 
-  async unloadEvent(eventPath, eventName) {
+  async unloadEvent(_eventPath, _eventName) {
     // Code here
   }
 
@@ -180,7 +180,7 @@ const loadGiveaways = async () => {
     }
 
     // This function is called when a giveaway needs to be saved in the database.
-    async saveGiveaway(messageId, giveawayData) {
+    async saveGiveaway(_messageId, giveawayData) {
       // Add the new giveaway to the database
       db.push('giveaways', giveawayData);
       // Don't forget to return something!
@@ -311,6 +311,7 @@ const loadMusic = async () => {
     .on('error', (queue, error) => {
       queue.metadata.channel.send(`Something went wrong: ${error}`);
     });
+  // .on('debug', (queue, message) => console.log(`[DEBUG ${queue.guild.id}] ${message}`));
 };
 
 const init = async function init() {

@@ -37,12 +37,11 @@
     "custom-translate": "^2.2.8",
     "discord-giveaways": "^6.0.0",
     "discord-html-transcripts": "^3.1.4",
-    "discord-player": "^6.6.8",
+    "discord-player": "^6.6.10",
     "discord.js": "^14.13.0",
     "emoji-regex": "^10.1.0",
     "enmap": "^5.8.6",
     "fetch": "^1.1.0",
-    "ffmpeg-static": "^5.1.0",
     "fluent-ffmpeg": "^2.1.2",
     "hastebin": "github:TheMonDon/hastebin",
     "http-cache-semantics": "^4.1.1",
@@ -54,7 +53,7 @@
     "luxon": "^3.1.1",
     "lyrics-finder": "^21.7.0",
     "mathjs": "^11.0.1",
-    "mediaplex": "^0.0.8",
+    "mediaplex": "^0.0.9",
     "moment": "^2.29.4",
     "moment-duration-format": "^2.3.2",
     "mysql2": "^2.2.5",
@@ -80,7 +79,7 @@
     "undici": "^5.19.1",
     "weather-js": "^2.0.0",
     "youtube-sr": "^4.3.4",
-    "yt-stream": "^1.4.14"
+    "ytdl-core": "^4.11.5"
   },
   "devDependencies": {
     "eslint": "^8.54.0",
