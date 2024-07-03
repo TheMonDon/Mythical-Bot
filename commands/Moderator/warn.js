@@ -42,7 +42,7 @@ class Warn extends Command {
     if (member) {
       const owner = await msg.guild.fetchOwner();
       if (mem.roles.highest.position > msg.member.roles.highest.position - 1 && msg.author.id !== owner.user.id)
-        return this.client.util.errorEmbed(msg, "You can't warn someone with a higher role than you.");
+        return this.client.util.errorEmbed(msg, "You can't warn someone with an equal or higher role than you.");
     }
 
     // Check if points is a number and is between 0 and 1000

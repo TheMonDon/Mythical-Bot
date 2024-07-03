@@ -43,7 +43,10 @@ exports.run = async (interaction) => {
       mem.roles.highest.position > interaction.member.roles.highest.position - 1 &&
       interaction.user.id !== owner.user.id
     )
-      return interaction.client.util.errorEmbed(interaction, "You can't warn someone with a higher role than you.");
+      return interaction.client.util.errorEmbed(
+        interaction,
+        "You can't warn someone with an equal higher role than you.",
+      );
   }
 
   const points = interaction.options.getInteger('amount');
