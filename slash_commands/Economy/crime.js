@@ -70,8 +70,8 @@ exports.run = async (interaction) => {
   let fineAmount = Math.abs((authNet / BigInt(100)) * randomFine);
 
   // Prevent negative fine or fine greater than user's cash
-  if (authNet < BigInt(0) || fineAmount > cash) {
-    fineAmount = BigInt(0);
+  if (authNet < BigInt(0) || BigInt(fineAmount) > cash) {
+    fineAmount = 0;
   }
 
   const failRate = (await db.get(`servers.${interaction.guild.id}.economy.${type}.failrate`)) || 45;
