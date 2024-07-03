@@ -82,7 +82,7 @@ class Rob extends Command {
     const randomFine = BigInt(Math.round(Math.random() * (maxFine - minFine + 1) + minFine));
 
     // fineAmount is the amount of money the user will lose if they fail the robbery
-    const fineAmount = (authNet / BigInt(100)) * randomFine;
+    const fineAmount = bigIntAbs((authNet / BigInt(100)) * randomFine);
 
     const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
 
@@ -150,6 +150,11 @@ class Rob extends Command {
       await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.${type}.cooldown`, userCooldown);
     }, cooldown * 1000);
   }
+}
+
+// Custom BigInt absolute function
+function bigIntAbs(value) {
+  return value < 0n ? -value : value;
 }
 
 module.exports = Rob;
