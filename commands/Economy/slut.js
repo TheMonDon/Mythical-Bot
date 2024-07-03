@@ -61,7 +61,7 @@ class Slut extends Command {
     const randomFine = BigInt(Math.abs(Math.round(Math.random() * (maxFine - minFine + 1) + minFine)));
 
     // fineAmount is the amount of money the user will lose if they fail the action
-    const fineAmount = (authNet / BigInt(100)) * randomFine;
+    const fineAmount = Math.abs((authNet / BigInt(100)) * randomFine);
 
     // failRate is the percentage chance of the user failing the action
     const failRate = (await db.get(`servers.${msg.guild.id}.economy.${type}.failrate`)) || 35;

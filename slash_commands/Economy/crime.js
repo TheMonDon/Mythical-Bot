@@ -67,7 +67,7 @@ exports.run = async (interaction) => {
   const randomFine = BigInt(Math.abs(Math.round(Math.random() * (maxFine - minFine + 1) + minFine)));
 
   // fineAmount is the amount of money the user will lose if they fail the action
-  const fineAmount = (authNet / BigInt(100)) * randomFine;
+  const fineAmount = Math.abs((authNet / BigInt(100)) * randomFine);
 
   const failRate = (await db.get(`servers.${interaction.guild.id}.economy.${type}.failrate`)) || 45;
   const ranNum = Math.random() * 100;
