@@ -67,7 +67,7 @@ exports.run = async (interaction) => {
   let fineAmount = Math.abs((authNet / BigInt(100)) * randomFine);
 
   // Prevent negative fine or fine greater than user's cash
-  if (authNet < 0 || fineAmount > cash) {
+  if (authNet < BigInt(0) || fineAmount > cash) {
     fineAmount = BigInt(0);
   }
 
