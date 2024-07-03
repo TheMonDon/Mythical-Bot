@@ -64,7 +64,12 @@ class Crime extends Command {
     const randomFine = BigInt(Math.abs(Math.round(Math.random() * (maxFine - minFine + 1) + minFine)));
 
     // fineAmount is the amount of money the user will lose if they fail the action
-    const fineAmount = Math.abs((authNet / BigInt(100)) * randomFine);
+    let fineAmount = Math.abs((authNet / BigInt(100)) * randomFine);
+
+    // Prevent negative fine or fine greater than user's cash
+    if (authNet < 0 || fineAmount > cash) {
+      fineAmount = BigInt(0);
+    }
 
     const failRate = (await db.get(`servers.${msg.guild.id}.economy.${type}.failrate`)) || 45;
     const ranNum = Math.random() * 100;
