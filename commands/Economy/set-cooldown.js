@@ -20,7 +20,7 @@ class SetCooldown extends Command {
 
   async run(msg, args) {
     let type;
-    const types = ['rob', 'work', 'crime', 'slut'];
+    const types = ['rob', 'work', 'crime', 'slut', 'chat'];
 
     // Get the cooldowns from the database
     const robCooldown = (await db.get(`servers.${msg.guild.id}.economy.rob.cooldown`)) || 600;
