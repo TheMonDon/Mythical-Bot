@@ -101,9 +101,7 @@ class Rob extends Command {
 
       let csFineAmount = currencySymbol + fineAmount.toLocaleString();
       csFineAmount = csFineAmount.length > 1024 ? `${csFineAmount.slice(0, 1021) + '...'}` : csFineAmount;
-      embed.setDescription(
-        `You were caught attempting to rob ${mem.displayName} and have been fined **${csFineAmount}**`,
-      );
+      embed.setDescription(`You were caught attempting to rob ${mem} and have been fined **${csFineAmount}**`);
       msg.channel.send({ embeds: [embed] });
     } else {
       // Calculate a random amount to rob, without exceeding extremely large values
