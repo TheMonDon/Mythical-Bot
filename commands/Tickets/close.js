@@ -22,14 +22,19 @@ class CloseTicket extends Command {
 
     if (!(await db.get(`servers.${msg.guild.id}.tickets`)))
       return msg.channel.send('The ticket system has not been setup in this server.');
-    const { logID } = await db.get(`servers.${msg.guild.id}.tickets`);
+    const { logID, roleID } = await db.get(`servers.${msg.guild.id}.tickets`);
 
     if (!msg.channel.name.startsWith('ticket'))
       return msg.channel.send('You need to be inside the ticket you want to close.');
 
     const tName = msg.channel.name;
+    const role = msg.guild.roles.cache.get(roleID);
     const owner = await db.get(`servers.${msg.guild.id}.tickets.${msg.channel.id}.owner`);
-    if (owner !== msg.author.id) return msg.channel.send('You need to be the owner of the ticket to close it.');
+    if (owner !== msg.author.id) {
+      if (!msg.member.roles.cache.some((r) => r.id === roleID)) {
+        return msg.channel.send(`You need to be the ticket owner or a member of ${role.name} to use force-close.`);
+      }
+    }
 
     const em = new EmbedBuilder().setTitle('Ticket Closed').setColor('#E65DF4')
       .setDescription(stripIndents`${msg.author} has requested to close this ticket.
