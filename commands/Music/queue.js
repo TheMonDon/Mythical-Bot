@@ -25,7 +25,6 @@ class Queue extends Command {
 
     let realPage = page;
     let q = queue.tracks.map((track, i) => `**${i + 1}.** ${track.title} - ${track.author}`);
-    console.log(queue.tracks);
     const maxPages = Math.max(Math.ceil(q.length / 25), 1); // Ensure maxPages is at least 1
 
     let temp = q.slice((page - 1) * 25, page * 25);
