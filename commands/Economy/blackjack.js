@@ -108,12 +108,18 @@ class BlackJack extends Command {
         0,
     );
 
-    const bet = args.join(' ').replace(/[^0-9]/g, '');
+    const Arguments = args.join(' ').toLowerCase();
+    let bet;
 
-    if (isNaN(bet)) return this.client.util.errorEmbed(msg, 'Bet amount must be a number', 'Invalid Bet');
-    if (bet < 1) return this.client.util.errorEmbed(msg, `You can't bet less than ${currencySymbol}1`, 'Invalid Bet');
-    if (BigInt(bet) > cash)
-      return this.client.util.errorEmbed(msg, "You can't bet more cash than you have", 'Invalid Bet');
+    if (Arguments === 'all') {
+      bet = cash;
+    } else {
+      bet = Arguments.replace(/[^0-9]/g, '');
+      if (isNaN(bet)) return this.client.util.errorEmbed(msg, 'Bet amount must be a number', 'Invalid Bet');
+      if (bet < 1) return this.client.util.errorEmbed(msg, `You can't bet less than ${currencySymbol}1`, 'Invalid Bet');
+      if (BigInt(bet) > cash)
+        return this.client.util.errorEmbed(msg, "You can't bet more cash than you have", 'Invalid Bet');
+    }
 
     const bj = new Blackjack(bet, 1);
     // this function is called every time something happens
