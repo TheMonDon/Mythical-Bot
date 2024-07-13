@@ -19,7 +19,7 @@ class RemindMe extends Command {
 
   async run(msg, args) {
     // Set the maximum reminders a person can have
-    const maxReminders = 5;
+    const maxReminders = 10;
 
     // Get the reminders from the global database and check generate an ID. If the ID exists, regen it.
     const reminders = (await db.get('global.reminders')) || [];
