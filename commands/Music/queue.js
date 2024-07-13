@@ -24,23 +24,19 @@ class Queue extends Command {
     if (isNaN(page)) return msg.channel.send('Please input a valid number.');
 
     let realPage = page;
-    let maxPages = page;
-    let q = queue.tracks.map((track, i) => {
-      return `${i + 1}. ${track.title} : ${track.author}`;
-    });
-    let temp = q.slice(Math.floor((page - 1) * 25), Math.ceil(page * 25));
+    let q = queue.tracks.map((track, i) => `**${i + 1}.** ${track.title} - ${track.author}`);
+    const maxPages = Math.max(Math.ceil(q.length / 25), 1); // Ensure maxPages is at least 1
+
+    let temp = q.slice((page - 1) * 25, page * 25);
 
     if (temp.length > 0) {
-      realPage = page;
-      maxPages = Math.ceil((q.length + 1) / 25);
       q = temp;
     } else {
       for (let i = 1; i <= page; i++) {
-        temp = q.slice(Math.floor((i - 1) * 25), Math.ceil(i * 25));
+        temp = q.slice((i - 1) * 25, i * 25);
         if (temp.length < 1) {
-          realPage = i - 1;
-          maxPages = Math.ceil(q.length / 25);
-          q = q.slice(Math.floor((i - 1 - 1) * 25), Math.ceil((i - 1) * 25));
+          realPage = Math.max(i - 1, 1); // Ensure realPage is at least 1
+          q = q.slice((realPage - 1) * 25, realPage * 25);
           break;
         }
       }
