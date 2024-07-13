@@ -25,7 +25,7 @@ class Work extends Command {
 
     if (userCooldown.active) {
       const timeleft = userCooldown.time - Date.now();
-      if (timeleft < 1 || timeleft > cooldown * 1000) {
+      if (timeleft <= 1 || timeleft > cooldown * 1000) {
         userCooldown = {};
         userCooldown.active = false;
         await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.work.cooldown`, userCooldown);

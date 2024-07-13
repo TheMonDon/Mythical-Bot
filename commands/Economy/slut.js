@@ -28,7 +28,7 @@ class Slut extends Command {
 
     if (userCooldown.active) {
       const timeleft = userCooldown.time - Date.now();
-      if (timeleft < 1 || timeleft > cooldown * 1000) {
+      if (timeleft <= 1 || timeleft > cooldown * 1000) {
         // this is to check if the bot restarted before their cooldown was set.
         userCooldown = {};
         userCooldown.active = false;

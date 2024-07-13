@@ -22,9 +22,10 @@ exports.run = async (interaction) => {
     .setColor(interaction.settings.embedErrorColor)
     .setAuthor({ name: interaction.user.tag, iconURL: interaction.user.displayAvatarURL() });
 
+  // Check if the user is on cooldown
   if (userCooldown.active) {
     const timeleft = userCooldown.time - Date.now();
-    if (timeleft < 1 || timeleft > cooldown * 1000) {
+    if (timeleft <= 1 || timeleft > cooldown * 1000) {
       userCooldown = {};
       userCooldown.active = false;
       await db.set(

@@ -28,9 +28,10 @@ class Rob extends Command {
       .setColor(errorColor)
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() });
 
+    // Check if the user is on cooldown
     if (userCooldown.active) {
       const timeleft = userCooldown.time - Date.now();
-      if (timeleft < 0 || timeleft > cooldown * 1000) {
+      if (timeleft <= 1 || timeleft > cooldown * 1000) {
         userCooldown = {};
         userCooldown.active = false;
         await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.${type}.cooldown`, userCooldown);
