@@ -9,7 +9,7 @@ class RemindMe extends Command {
     super(client, {
       name: 'remind-me',
       description: 'Gives you a reminder',
-      examples: ['remind-me Ban Zeph in 1 year', 'in 69 minutes'],
+      examples: ['remind-me Ban Zeph in 1 year', 'remind-me eat breakfast in 69 minutes'],
       usage: 'remind-me <reminder>',
       requiredArgs: 1,
       category: 'General',
@@ -20,16 +20,26 @@ class RemindMe extends Command {
   async run(msg, args, level) {
     // Set the maximum reminders a person can have
     const maxReminders = 10;
+    const maxDonorReminders = 64;
+    const donatorStatus = (await db.get(`users.${msg.author.id}.donator`)) || false;
 
     // Get the reminders from the global database and check generate an ID. If the ID exists, regen it.
-    const reminders = (await db.get('global.reminders')) || [];
+    let reminders = await db.get('global.reminders');
+    if (!Array.isArray(reminders)) {
+      reminders = Object.values(reminders || {});
+    }
+
     let remID = this.client.util.randomString(5);
-    while (reminders.length > 0 && reminders.includes(remID)) remID = this.client.util.randomString(5);
+    while (reminders.some((reminder) => reminder.remID === remID)) {
+      remID = this.client.util.randomString(5);
+    }
 
     // Filter reminders by the ones an individual user has and check if it's greater than or equal to maxReminders
-    const userReminders = Object.values(reminders).filter((obj) => obj.userID === msg.author.id);
-    if (userReminders.length >= maxReminders && level < 8) {
-      // The user has reached the maximum number of reminders
+    const userReminders = reminders.filter((obj) => obj.userID === msg.author.id);
+
+    if (donatorStatus && userReminders.length >= maxDonorReminders) {
+      return this.client.util.errorEmbed(msg, 'You have reached the maximum number of reminders.');
+    } else if (userReminders.length >= maxReminders && !donatorStatus) {
       return this.client.util.errorEmbed(msg, 'You have reached the maximum number of reminders.');
     }
 

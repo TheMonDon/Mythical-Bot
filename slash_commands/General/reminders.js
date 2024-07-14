@@ -1,4 +1,11 @@
-const { EmbedBuilder, SlashCommandBuilder } = require('discord.js');
+const {
+  EmbedBuilder,
+  SlashCommandBuilder,
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  ComponentType,
+} = require('discord.js');
 const { QuickDB } = require('quick.db');
 const moment = require('moment');
 const db = new QuickDB();
@@ -44,27 +51,35 @@ exports.run = async (interaction) => {
   ];
   const errorColor = interaction.settings.embedErrorColor;
 
-  const em = new EmbedBuilder();
-  const reminders = (await db.get('global.reminders')) || [];
+  let reminders = await db.get('global.reminders');
+  if (!Array.isArray(reminders)) {
+    reminders = Object.values(reminders || {});
+  }
 
   if (!reminderID) {
+    const userReminders = reminders.filter((rem) => rem.userID === interaction.user.id);
+    const pages = [];
     let i = 1;
-    for (const { triggerOn, reminder, userID, remID } of Object.values(reminders)) {
-      if (userID === interaction.user.id) {
+
+    while (userReminders.length) {
+      const embed = new EmbedBuilder()
+        .setTitle(`To delete a reminder, use **\`/reminders <ID>\`**`)
+        .setColor(interaction.settings.embedColor)
+        .setAuthor({ name: interaction.user.username, iconURL: interaction.user.displayAvatarURL() });
+
+      userReminders.splice(0, 25).forEach(({ triggerOn, reminder, remID }) => {
         const numberEmojiArray = [];
 
-        // Check if number is in emoji array
         if (i in numbers) {
-          numberEmojiArray.push(numbers[i]); // Single emoji representation
+          numberEmojiArray.push(numbers[i]);
         } else if (i > Object.keys(numbers).length) {
-          // Split digits and add corresponding emojis for numbers greater than available emojis
           String(i)
             .split('')
             .forEach((digit) => numberEmojiArray.push(numbers[digit]));
         }
         if (numberEmojiArray.join('')?.length < 1) numberEmojiArray.push(i);
 
-        em.addFields([
+        embed.addFields([
           {
             name: `**${numberEmojiArray.join('') + '.'}** I'll remind you ${moment(
               triggerOn,
@@ -73,34 +88,89 @@ exports.run = async (interaction) => {
           },
         ]);
         i += 1;
+      });
+
+      pages.push(embed);
+    }
+
+    if (pages.length === 0) {
+      const noReminderEmbed = new EmbedBuilder()
+        .setColor(errorColor)
+        .setDescription(
+          `${interaction.user.username}, you don't have any reminders, use the **remindme** command to create a new one!`,
+        );
+      return interaction.editReply({ embeds: [noReminderEmbed] });
+    }
+
+    let currentPage = 0;
+
+    const row = new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setCustomId('prev')
+        .setLabel('Previous')
+        .setStyle(ButtonStyle.Primary)
+        .setDisabled(currentPage === 0),
+      new ButtonBuilder()
+        .setCustomId('next')
+        .setLabel('Next')
+        .setStyle(ButtonStyle.Primary)
+        .setDisabled(currentPage === pages.length - 1),
+    );
+
+    const message = await interaction.editReply({ embeds: [pages[currentPage]], components: [row] });
+
+    const filter = (i) => i.user.id === interaction.user.id;
+    const collector = message.createMessageComponentCollector({
+      filter,
+      componentType: ComponentType.Button,
+      time: 60000,
+    });
+
+    collector.on('collect', async (btnInteraction) => {
+      if (btnInteraction.customId === 'prev') {
+        currentPage -= 1;
+      } else if (btnInteraction.customId === 'next') {
+        currentPage += 1;
       }
-    }
 
-    em.setTitle(`To delete a reminder, use **\`/reminders <ID>\`**`).setColor(interaction.settings.embedColor);
+      await btnInteraction.update({
+        embeds: [pages[currentPage]],
+        components: [
+          new ActionRowBuilder().addComponents(
+            new ButtonBuilder()
+              .setCustomId('prev')
+              .setLabel('Previous')
+              .setStyle(ButtonStyle.Primary)
+              .setDisabled(currentPage === 0),
+            new ButtonBuilder()
+              .setCustomId('next')
+              .setLabel('Next')
+              .setStyle(ButtonStyle.Primary)
+              .setDisabled(currentPage === pages.length - 1),
+          ),
+        ],
+      });
+    });
 
-    if (em?.data?.fields?.length !== 0) {
-      em.setAuthor({ name: interaction.user.username, iconURL: interaction.user.displayAvatarURL() });
-    } else {
-      em.setDescription(
-        `${interaction.user.username}, you don't have any reminders, use the **remindme** command to create a new one!`,
-      );
-    }
+    collector.on('end', () => {
+      interaction.editReply({ components: [] });
+    });
 
-    return interaction.editReply({ embeds: [em] });
+    return;
   }
 
   const reminder = await db.get(`global.reminders.${reminderID}`);
 
-  if (!reminderID) {
-    em.setColor(errorColor).setDescription(`${interaction.user.username}, that isn't a valid reminder.`);
-  } else if (!reminder || reminder.userID !== interaction.user.id) {
+  const em = new EmbedBuilder();
+
+  if (!reminderID || !reminder || reminder.userID !== interaction.user.id) {
     em.setColor(errorColor).setDescription(`${interaction.user.username}, that isn't a valid reminder.`);
   } else {
     await db.delete(`global.reminders.${reminderID}`);
-
     em.setColor(interaction.settings.embedSuccessColor).setDescription(
       `${interaction.user.username}, you've successfully deleted your reminder.`,
     );
   }
+
   return interaction.editReply({ embeds: [em] });
 };

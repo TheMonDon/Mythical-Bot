@@ -19,6 +19,8 @@ exports.run = async (interaction, level) => {
 
   // Set the maximum reminders a person can have
   const maxReminders = 10;
+  const maxDonorReminders = 64;
+  const donatorStatus = (await db.get(`users.${interaction.user.id}.donator`)) || false;
 
   // Get the reminders from the global database and check generate an ID. If the ID exists, regen it.
   const reminders = (await db.get('global.reminders')) || [];
@@ -27,8 +29,9 @@ exports.run = async (interaction, level) => {
 
   // Filter reminders by the ones an individual user has and check if it's greater than or equal to maxReminders
   const userReminders = Object.values(reminders).filter((obj) => obj.userID === interaction.user.id);
-  if (userReminders.length >= maxReminders && level < 8) {
-    // The user has reached the maximum number of reminders
+  if (donatorStatus && userReminders.length >= maxDonorReminders) {
+    return interaction.client.util.errorEmbed(interaction, 'You have reached the maximum number of reminders.');
+  } else if (userReminders.length >= maxReminders && !donatorStatus) {
     return interaction.client.util.errorEmbed(interaction, 'You have reached the maximum number of reminders.');
   }
 
