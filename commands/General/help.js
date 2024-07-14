@@ -107,7 +107,7 @@ class Help extends Command {
 
       const row = new ActionRowBuilder().addComponents(selectMenu);
 
-      await msg.channel.send({
+      const message = await msg.channel.send({
         embeds: [errEm],
         components: [row],
       });
@@ -122,11 +122,54 @@ class Help extends Command {
         if (!interaction.isSelectMenu()) return;
         const selectedCategory = interaction.values[0];
 
-        await interaction.update({
-          components: [],
-        });
+        await interaction.deferUpdate();
 
-        return this.run(msg, [selectedCategory], level);
+        const em = new EmbedBuilder()
+          .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
+          .setColor(msg.settings.embedColor);
+
+        const commandsToShow = this.client.commands.filter(
+          (cmd) =>
+            this.client.levelCache[cmd.conf.permLevel] <= level && cmd.help.category.toLowerCase() === selectedCategory,
+        );
+
+        const commandsArray = Array.from(commandsToShow.values());
+        const totalPages = Math.ceil(commandsArray.length / itemsPerPage);
+        const startIndex = (pageNumber - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+
+        const commandsToDisplay = commandsArray.slice(startIndex, endIndex);
+
+        if (commandsToDisplay.length > 0) {
+          commandsToDisplay.forEach((c) => {
+            em.addFields([
+              {
+                name: `**${msg.settings.prefix}${this.client.util.toProperCase(c.help.name)}**`,
+                value: `${c.help.description}`,
+                inline: true,
+              },
+            ]);
+          });
+
+          const isDisabled = disabled.includes(selectedCategory.toLowerCase());
+          let displayedCategory = this.client.util.toProperCase(selectedCategory);
+          if (displayedCategory === 'Nsfw') displayedCategory = 'NSFW';
+
+          const pageFooter = totalPages === 1 ? '' : `Page ${pageNumber}/${totalPages} | `;
+          em.setTitle(`${displayedCategory} Commands`).setFooter({
+            text: `${pageFooter}Disabled: ${this.client.util.toProperCase(isDisabled.toString())}`,
+          });
+
+          await interaction.editReply({
+            embeds: [em],
+            components: [row],
+          });
+        } else {
+          await interaction.editReply({
+            embeds: [errEm],
+            components: [row],
+          });
+        }
       });
 
       return;
@@ -192,14 +235,15 @@ class Help extends Command {
 
     const commandsToShow = sorted.filter((c) => c.help.category.toLowerCase() === category.toLowerCase());
 
-    const totalPages = Math.ceil(commandsToShow.length / itemsPerPage);
+    const commandsArray = Array.from(commandsToShow);
+    const totalPages = Math.ceil(commandsArray.length / itemsPerPage);
     pageNumber = Math.max(1, Math.min(pageNumber, totalPages));
     if (pageNumber > totalPages) pageNumber = totalPages;
 
     const startIndex = (pageNumber - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
 
-    const commandsToDisplay = commandsToShow.slice(startIndex, endIndex);
+    const commandsToDisplay = commandsArray.slice(startIndex, endIndex);
 
     if (commandsToDisplay.length > 0) {
       commandsToDisplay.forEach((c) => {
