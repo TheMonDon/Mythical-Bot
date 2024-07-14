@@ -39,7 +39,7 @@ class RemindMe extends Command {
 
     if (donatorStatus && userReminders.length >= maxDonorReminders) {
       return this.client.util.errorEmbed(msg, 'You have reached the maximum number of reminders.');
-    } else if (userReminders.length >= maxReminders && !donatorStatus) {
+    } else if (userReminders.length >= maxReminders && !donatorStatus && level < 8) {
       return this.client.util.errorEmbed(msg, 'You have reached the maximum number of reminders.');
     }
 

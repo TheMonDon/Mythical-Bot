@@ -31,7 +31,7 @@ exports.run = async (interaction, level) => {
   const userReminders = Object.values(reminders).filter((obj) => obj.userID === interaction.user.id);
   if (donatorStatus && userReminders.length >= maxDonorReminders) {
     return interaction.client.util.errorEmbed(interaction, 'You have reached the maximum number of reminders.');
-  } else if (userReminders.length >= maxReminders && !donatorStatus) {
+  } else if (userReminders.length >= maxReminders && !donatorStatus && level < 8) {
     return interaction.client.util.errorEmbed(interaction, 'You have reached the maximum number of reminders.');
   }
 

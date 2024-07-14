@@ -72,7 +72,7 @@ exports.run = async (interaction) => {
 
         if (i in numbers) {
           numberEmojiArray.push(numbers[i]);
-        } else if (i > Object.keys(numbers).length) {
+        } else if (i >= Object.keys(numbers).length) {
           String(i)
             .split('')
             .forEach((digit) => numberEmojiArray.push(numbers[digit]));
