@@ -107,7 +107,7 @@ class Help extends Command {
 
       const row = new ActionRowBuilder().addComponents(selectMenu);
 
-      const message = await msg.channel.send({
+      await msg.channel.send({
         embeds: [errEm],
         components: [row],
       });

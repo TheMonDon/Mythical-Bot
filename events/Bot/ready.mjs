@@ -25,11 +25,11 @@ export async function run(client) {
 
     BotPanelClient.on('GUILD_INTERACTION', async (interaction) => {
       const isBotInGuild = client.guilds.cache.has(interaction.guildId);
-      let guildData = {},
-        textChannels = [],
-        voiceChannels = [],
-        categories = [],
-        roles = [];
+      let guildData = {};
+      const textChannels = [];
+      const voiceChannels = [];
+      const categories = [];
+      let roles = [];
 
       if (isBotInGuild) {
         const possibleChannels = ['textChannels', 'voiceChannels', 'categories'];
@@ -41,7 +41,7 @@ export async function run(client) {
 
         const settings = (await client.settings.get(interaction.guildId)) || {};
         const defaults = await client.settings.get('default');
-        if (Object.keys(settings).length != Object.keys(defaults).length) {
+        if (Object.keys(settings).length !== Object.keys(defaults).length) {
           for (const key in defaults) {
             if (!settings[key]) settings[key] = defaults[key];
           }
@@ -49,6 +49,7 @@ export async function run(client) {
 
         guildData = settings;
 
+        // eslint-disable-next-line no-unused-expressions
         interaction.requestedElements.some((i) => possibleChannels.includes(i))
           ? client.channels.cache
               .filter((c) => c.guild.id === interaction.guildId)
