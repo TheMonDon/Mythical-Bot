@@ -17,7 +17,7 @@ class RemindMe extends Command {
     });
   }
 
-  async run(msg, args) {
+  async run(msg, args, level) {
     // Set the maximum reminders a person can have
     const maxReminders = 10;
 
@@ -28,7 +28,7 @@ class RemindMe extends Command {
 
     // Filter reminders by the ones an individual user has and check if it's greater than or equal to maxReminders
     const userReminders = Object.values(reminders).filter((obj) => obj.userID === msg.author.id);
-    if (userReminders.length >= maxReminders && msg.author.id !== '318592718832140289') {
+    if (userReminders.length >= maxReminders && level < 8) {
       // The user has reached the maximum number of reminders
       return this.client.util.errorEmbed(msg, 'You have reached the maximum number of reminders.');
     }

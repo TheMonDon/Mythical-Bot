@@ -32,7 +32,7 @@ export async function run(client, interaction) {
     }
 
     try {
-      await slashCommand.run(interaction);
+      await slashCommand.run(interaction, level);
       await db.add('global.commands', 1);
     } catch (error) {
       client.logger.error(error);

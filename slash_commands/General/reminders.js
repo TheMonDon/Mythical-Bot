@@ -99,7 +99,7 @@ exports.run = async (interaction) => {
     await db.delete(`global.reminders.${reminderID}`);
 
     em.setColor(interaction.settings.embedSuccessColor).setDescription(
-      `${interaction.member.displayName}, you've successfully deleted your reminder.`,
+      `${interaction.user.username}, you've successfully deleted your reminder.`,
     );
   }
   return interaction.editReply({ embeds: [em] });

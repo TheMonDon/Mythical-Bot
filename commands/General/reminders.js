@@ -102,7 +102,7 @@ class Reminders extends Command {
       await db.delete(`global.reminders.${ID}`);
 
       em.setColor(msg.settings.embedSuccessColor).setDescription(
-        `${msg.member.displayName}, you've successfully deleted your reminder.`,
+        `${msg.author.username}, you've successfully deleted your reminder.`,
       );
     }
     return msg.channel.send({ embeds: [em] });

@@ -14,7 +14,7 @@ exports.commandData = new SlashCommandBuilder()
     option.setName('reminder').setDescription('ex: Remind me in 12 hours to eat breakfast').setRequired(true),
   );
 
-exports.run = async (interaction) => {
+exports.run = async (interaction, level) => {
   await interaction.deferReply();
 
   // Set the maximum reminders a person can have
@@ -27,7 +27,7 @@ exports.run = async (interaction) => {
 
   // Filter reminders by the ones an individual user has and check if it's greater than or equal to maxReminders
   const userReminders = Object.values(reminders).filter((obj) => obj.userID === interaction.user.id);
-  if (userReminders.length >= maxReminders && interaction.user.id !== '318592718832140289') {
+  if (userReminders.length >= maxReminders && level < 8) {
     // The user has reached the maximum number of reminders
     return interaction.client.util.errorEmbed(interaction, 'You have reached the maximum number of reminders.');
   }
