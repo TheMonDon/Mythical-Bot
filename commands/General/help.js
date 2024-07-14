@@ -1,5 +1,5 @@
 const Command = require('../../base/Command.js');
-const { EmbedBuilder } = require('discord.js');
+const { EmbedBuilder, ActionRowBuilder, SelectMenuBuilder } = require('discord.js');
 const { QuickDB } = require('quick.db');
 const db = new QuickDB();
 
@@ -94,7 +94,43 @@ class Help extends Command {
         },
       ]);
 
-    if (!args || args.length < 1) return msg.channel.send({ embeds: [errEm] });
+    if (!args || args.length < 1) {
+      const selectMenu = new SelectMenuBuilder()
+        .setCustomId('select')
+        .setPlaceholder('Choose a category')
+        .addOptions(
+          sortedCategoriesArray.map((category) => ({
+            label: category,
+            value: category.toLowerCase(),
+          })),
+        );
+
+      const row = new ActionRowBuilder().addComponents(selectMenu);
+
+      await msg.channel.send({
+        embeds: [errEm],
+        components: [row],
+      });
+
+      const filter = (interaction) => interaction.user.id === msg.author.id;
+      const collector = msg.channel.createMessageComponentCollector({
+        filter,
+        time: 60000,
+      });
+
+      collector.on('collect', async (interaction) => {
+        if (!interaction.isSelectMenu()) return;
+        const selectedCategory = interaction.values[0];
+
+        await interaction.update({
+          components: [],
+        });
+
+        return this.run(msg, [selectedCategory], level);
+      });
+
+      return;
+    }
 
     const em = new EmbedBuilder()
       .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
