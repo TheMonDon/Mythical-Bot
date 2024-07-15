@@ -1,5 +1,5 @@
 const Command = require('../../base/Command.js');
-const { EmbedBuilder, ActionRowBuilder, SelectMenuBuilder } = require('discord.js');
+const { EmbedBuilder, ActionRowBuilder, StringSelectMenuBuilder } = require('discord.js');
 const { QuickDB } = require('quick.db');
 const db = new QuickDB();
 
@@ -95,7 +95,7 @@ class Help extends Command {
       ]);
 
     if (!args || args.length < 1) {
-      const selectMenu = new SelectMenuBuilder()
+      const selectMenu = new StringSelectMenuBuilder()
         .setCustomId('select')
         .setPlaceholder('Choose a category')
         .addOptions(
@@ -119,7 +119,7 @@ class Help extends Command {
       });
 
       collector.on('collect', async (interaction) => {
-        if (!interaction.isSelectMenu()) return;
+        if (!interaction.isStringSelectMenu()) return;
         const selectedCategory = interaction.values[0];
 
         await interaction.deferUpdate();
