@@ -40,7 +40,7 @@ class Leaderboard extends Command {
           const cash = BigInt(usersData[userId].economy.cash || 0);
           const bank = BigInt(usersData[userId].economy.bank || 0);
           const money = cash + bank;
-          leaderboard.push({ user: user.tag, money });
+          leaderboard.push({ user: user.tag, userId: user.id, money });
         }
       } catch (err) {
         this.client.logger.error(`Leaderboard: ${err}`);
@@ -50,30 +50,46 @@ class Leaderboard extends Command {
     // Sort the leaderboard
     const sortedLeaderboard = leaderboard
       .sort((a, b) => (BigInt(b.money) > BigInt(a.money) ? 1 : -1))
-      .map((c) => {
+      .map((c, index) => {
         const neg = BigInt(c.money) < 0n;
         const money = neg ? BigInt(c.money) * -1n : BigInt(c.money);
-        return `**${leaderboard.indexOf(c) + 1}.** ${c.user}: ${neg ? '-' : ''}${currencySymbol}${
-          money.toLocaleString().length > 156
-            ? `${money.toLocaleString().slice(0, 153) + '...'}`
-            : `${money.toLocaleString()}`
-        }`;
+        return {
+          rank: index + 1,
+          user: c.user,
+          userId: c.userId,
+          display: `**${index + 1}.** ${c.user}: ${neg ? '-' : ''}${currencySymbol}${
+            money.toLocaleString().length > 156
+              ? `${money.toLocaleString().slice(0, 153) + '...'}`
+              : `${money.toLocaleString()}`
+          }`,
+        };
       });
 
-    let displayedLeaderboard = sortedLeaderboard.slice(Math.floor((page - 1) * 10), Math.ceil(page * 10));
+    function getOrdinalSuffix(n) {
+      const s = ['th', 'st', 'nd', 'rd'];
+      const v = n % 100;
+      return n + (s[(v - 20) % 10] || s[v] || s[0]);
+    }
+    // Find the user's rank
+    const userRank = sortedLeaderboard.find((entry) => entry.userId === msg.author.id);
+    const userRankDisplay = userRank
+      ? `Your leaderboard rank: ${getOrdinalSuffix(userRank.rank)}`
+      : 'You are not on the leaderboard';
+
+    let displayedLeaderboard = sortedLeaderboard.slice((page - 1) * 10, page * 10);
 
     // Create the pages
     if (displayedLeaderboard.length > 0) {
       realPage = page;
       maxPages = Math.ceil((sortedLeaderboard.length + 1) / 10);
-      displayedLeaderboard = sortedLeaderboard.slice(Math.floor((page - 1) * 10), Math.ceil(page * 10));
+      displayedLeaderboard = sortedLeaderboard.slice((page - 1) * 10, page * 10);
     } else {
       for (let i = 1; i <= page; i++) {
-        displayedLeaderboard = sortedLeaderboard.slice(Math.floor((i - 1) * 10), Math.ceil(i * 10));
+        displayedLeaderboard = sortedLeaderboard.slice((i - 1) * 10, i * 10);
         if (displayedLeaderboard?.length < 1) {
           realPage = i - 1;
           maxPages = Math.ceil(sortedLeaderboard.length / 10);
-          displayedLeaderboard = sortedLeaderboard.slice(Math.floor((i - 1 - 1) * 10), Math.ceil((i - 1) * 10));
+          displayedLeaderboard = sortedLeaderboard.slice((i - 2) * 10, (i - 1) * 10);
           break;
         }
       }
@@ -84,9 +100,10 @@ class Leaderboard extends Command {
       .setColor(msg.settings.embedColor)
       .setTitle(`${msg.guild.name}'s Leaderboard`)
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
-      .setDescription(displayedLeaderboard.join('\n') || 'None')
-      .setFooter({ text: `Page ${realPage} / ${maxPages}` })
+      .setDescription(`${displayedLeaderboard.map((entry) => entry.display).join('\n') || 'None'}`)
+      .setFooter({ text: `Page ${realPage} / ${maxPages} • ${userRankDisplay}` })
       .setTimestamp();
+
     return msg.channel.send({ embeds: [embed] });
   }
 }

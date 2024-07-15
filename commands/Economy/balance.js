@@ -53,6 +53,12 @@ class Balance extends Command {
       return symbol + amount.toLocaleString();
     }
 
+    function getOrdinalSuffix(n) {
+      const s = ['th', 'st', 'nd', 'rd'];
+      const v = n % 100;
+      return n + (s[(v - 20) % 10] || s[v] || s[0]);
+    }
+
     let csCashAmount = formatCurrency(cash, currencySymbol);
     csCashAmount = csCashAmount.length > 1024 ? `${csCashAmount.slice(0, 1021) + '...'}` : csCashAmount;
 
@@ -62,9 +68,37 @@ class Balance extends Command {
     let csNetWorthAmount = formatCurrency(netWorth, currencySymbol);
     csNetWorthAmount = csNetWorthAmount.length > 1024 ? `${csNetWorthAmount.slice(0, 1021) + '...'}` : csNetWorthAmount;
 
+    // Fetch all users data to find the rank
+    const usersData = (await db.get(`servers.${msg.guild.id}.users`)) || {};
+    const leaderboard = [];
+
+    // Cache users and add them to the leaderboard
+    for (const userId in usersData) {
+      try {
+        const user = await this.client.users.cache.get(userId);
+        if (user) {
+          const userCash = BigInt(usersData[userId].economy.cash || 0);
+          const userBank = BigInt(usersData[userId].economy.bank || 0);
+          const userMoney = userCash + userBank;
+          leaderboard.push({ user: user.tag, userId: user.id, money: userMoney });
+        }
+      } catch (err) {
+        this.client.logger.error(`Leaderboard: ${err}`);
+      }
+    }
+
+    // Sort the leaderboard
+    const sortedLeaderboard = leaderboard.sort((a, b) => (BigInt(b.money) > BigInt(a.money) ? 1 : -1));
+
+    // Find the user's rank
+    const userRank = sortedLeaderboard.findIndex((entry) => entry.userId === mem.id) + 1;
+    const userRankDisplay =
+      userRank > 0 ? `Your Rank: ${getOrdinalSuffix(userRank)}` : 'You are not on the leaderboard';
+
     embed
       .setAuthor({ name: mem.username, iconURL: mem.displayAvatarURL() })
       .setColor(msg.settings.embedColor)
+      .setDescription(userRankDisplay)
       .addFields([
         { name: 'Cash:', value: csCashAmount },
         { name: 'Bank:', value: csBankAmount },
