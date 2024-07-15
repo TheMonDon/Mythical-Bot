@@ -1,12 +1,13 @@
-const Command = require('../../base/Command.js');
-const { EmbedBuilder } = require('discord.js');
-const isImageURL = require('is-image-url');
-const isURL = require('is-url');
-const rgbHex = require('rgb-hex');
-const convert = require('color-convert');
+const { EmbedBuilder, AttachmentBuilder } = require('discord.js');
 const { getColorFromURL } = require('color-thief-node');
-const { stripIndent } = require('common-tags');
+const Command = require('../../base/Command.js');
 const colorNameList = require('color-name-list');
+const { stripIndent } = require('common-tags');
+const { createCanvas } = require('canvas');
+const isImageURL = require('is-image-url');
+const convert = require('color-convert');
+const rgbHex = require('rgb-hex');
+const isURL = require('is-url');
 
 class Color extends Command {
   constructor(client) {
@@ -207,9 +208,17 @@ class Color extends Command {
     };
 
     if (!embed.title) embed.setTitle('Color Information');
+    const canvas = createCanvas(100, 100);
+    const context = canvas.getContext('2d');
+
+    context.fillStyle = `#${color.hex}`;
+    context.fillRect(0, 0, 100, 100);
+
+    const buffer = canvas.toBuffer('image/png');
+    const attachment = new AttachmentBuilder(buffer, { name: 'image.png' });
 
     embed
-      .setThumbnail(`https://dummyimage.com/100x100/${color.hex}.png&text=+`)
+      .setThumbnail(`attachment://image.png`)
       .setColor(color.hex)
       .setDescription(
         stripIndent(`
@@ -221,7 +230,7 @@ class Color extends Command {
       `),
       );
 
-    return msg.channel.send({ embeds: [embed] });
+    return msg.channel.send({ embeds: [embed], files: [attachment] });
   }
 }
 
