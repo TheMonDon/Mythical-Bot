@@ -92,8 +92,7 @@ class Balance extends Command {
 
     // Find the user's rank
     const userRank = sortedLeaderboard.findIndex((entry) => entry.userId === mem.id) + 1;
-    const userRankDisplay =
-      userRank > 0 ? `Your Rank: ${getOrdinalSuffix(userRank)}` : 'You are not on the leaderboard';
+    const userRankDisplay = userRank > 0 ? `Leaderboard Rank: ${getOrdinalSuffix(userRank)}` : 'Not on Leaderboard';
 
     embed
       .setAuthor({ name: mem.username, iconURL: mem.displayAvatarURL() })
