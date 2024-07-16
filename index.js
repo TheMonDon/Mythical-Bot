@@ -1,7 +1,7 @@
 if (Number(process.version.slice(1).split('.')[0]) < '16.9')
   throw new Error('Node 16.9 or higher is required. Update Node on your system.');
 
-const { GatewayIntentBits, Collection, Client, EmbedBuilder } = require('discord.js');
+const { GatewayIntentBits, Collection, Client, EmbedBuilder, Partials } = require('discord.js');
 const { GiveawaysManager } = require('discord-giveaways');
 const { readdirSync, statSync } = require('fs');
 const { Player } = require('discord-player');
@@ -166,7 +166,7 @@ const client = new Bot({
     GatewayIntentBits.DirectMessageReactions,
     GatewayIntentBits.MessageContent,
   ],
-  partials: config.partials,
+  partials: [Partials.Message, Partials.Channel],
 });
 
 const loadGiveaways = async () => {

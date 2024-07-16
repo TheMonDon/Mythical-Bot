@@ -1,7 +1,5 @@
 const Command = require('../../base/Command.js');
 const { EmbedBuilder, ActionRowBuilder, StringSelectMenuBuilder } = require('discord.js');
-const { QuickDB } = require('quick.db');
-const db = new QuickDB();
 
 class Help extends Command {
   constructor(client) {
@@ -78,9 +76,8 @@ class Help extends Command {
 
     const itemsPerPage = 21;
     let pageNumber = 1;
-    const disabled = (await db.get(`servers.${msg.guild.id}.disabled`)) || [];
 
-    const errEm = new EmbedBuilder()
+    const errorEmbed = new EmbedBuilder()
       .setColor('#FFA500')
       .setDescription(
         `Please select a category to see all available commands. \nUsage: \`${msg.settings.prefix}help <category>\` \nUsage: \`${msg.settings.prefix}help <command>\``,
@@ -108,7 +105,7 @@ class Help extends Command {
       const row = new ActionRowBuilder().addComponents(selectMenu);
 
       await msg.channel.send({
-        embeds: [errEm],
+        embeds: [errorEmbed],
         components: [row],
       });
 
@@ -151,13 +148,12 @@ class Help extends Command {
             ]);
           });
 
-          const isDisabled = disabled.includes(selectedCategory.toLowerCase());
           let displayedCategory = this.client.util.toProperCase(selectedCategory);
           if (displayedCategory === 'Nsfw') displayedCategory = 'NSFW';
 
           const pageFooter = totalPages === 1 ? '' : `Page ${pageNumber}/${totalPages} | `;
           em.setTitle(`${displayedCategory} Commands`).setFooter({
-            text: `${pageFooter}Disabled: ${this.client.util.toProperCase(isDisabled.toString())}`,
+            text: `${pageFooter}}`,
           });
 
           await interaction.editReply({
@@ -166,7 +162,7 @@ class Help extends Command {
           });
         } else {
           await interaction.editReply({
-            embeds: [errEm],
+            embeds: [errorEmbed],
             components: [row],
           });
         }
@@ -199,8 +195,7 @@ class Help extends Command {
       if (command) {
         if (level < this.client.levelCache[command.conf.permLevel])
           return msg.reply("You don't have access to that command.");
-        const isDisabled =
-          disabled.includes(command.help.category.toLowerCase()) || disabled.includes(command.help.name.toLowerCase());
+
         em.setTitle(`${this.client.util.toProperCase(command.help.name)} Information`)
           .setColor(msg.settings.embedColor)
           .addFields([
@@ -217,13 +212,12 @@ class Help extends Command {
               value: this.client.util.toProperCase(command.conf.nsfw.toString()) || 'False',
               inline: true,
             },
-            { name: 'Command Disabled', value: this.client.util.toProperCase(isDisabled.toString()), inline: true },
             { name: 'Long Description', value: command.help.longDescription || 'None', inline: true },
             { name: 'Examples', value: command.help.examples?.join('\n') || 'None', inline: true },
           ]);
         return msg.channel.send({ embeds: [em] });
       } else {
-        return msg.channel.send({ embeds: [errEm] });
+        return msg.channel.send({ embeds: [errorEmbed] });
       }
     }
 
@@ -256,18 +250,17 @@ class Help extends Command {
         ]);
       });
 
-      const isDisabled = disabled.includes(category.toLowerCase());
       let displayedCategory = this.client.util.toProperCase(category);
       if (displayedCategory === 'Nsfw') displayedCategory = 'NSFW';
 
       const pageFooter = totalPages === 1 ? '' : `Page ${pageNumber}/${totalPages} | `;
       em.setTitle(`${displayedCategory} Commands`).setFooter({
-        text: `${pageFooter}Disabled: ${this.client.util.toProperCase(isDisabled.toString())}`,
+        text: pageFooter,
       });
 
       return msg.channel.send({ embeds: [em] });
     } else {
-      return msg.channel.send({ embeds: [errEm] });
+      return msg.channel.send({ embeds: [errorEmbed] });
     }
   }
 }
