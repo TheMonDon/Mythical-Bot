@@ -75,7 +75,7 @@
     "tictactoe-minimax-ai": "github:lukechu10/tictactoe-minimax",
     "trev-reborn": "^1.1.5",
     "twemoji": "^14.0.2",
-    "undici": "^5.19.1",
+    "undici": "^5.28.4",
     "weather-js": "^2.0.0",
     "youtube-sr": "^4.3.4"
   },
