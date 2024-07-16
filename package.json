@@ -56,7 +56,7 @@
     "mediaplex": "^0.0.9",
     "moment": "^2.29.4",
     "moment-duration-format": "^2.3.2",
-    "mysql2": "^2.2.5",
+    "mysql2": "^3.9.8",
     "nearest-color": "^0.4.4",
     "nekos.life": "^3.0.0",
     "node-html-parser": "^5.4.2-0",
