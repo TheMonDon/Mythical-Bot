@@ -152,9 +152,13 @@ class Help extends Command {
           if (displayedCategory === 'Nsfw') displayedCategory = 'NSFW';
 
           const pageFooter = totalPages === 1 ? '' : `Page ${pageNumber}/${totalPages} | `;
-          em.setTitle(`${displayedCategory} Commands`).setFooter({
-            text: `${pageFooter}}`,
-          });
+          em.setTitle(`${displayedCategory} Commands`);
+
+          if (pageFooter) {
+            em.setFooter({
+              text: pageFooter,
+            });
+          }
 
           await interaction.editReply({
             embeds: [em],
@@ -254,9 +258,13 @@ class Help extends Command {
       if (displayedCategory === 'Nsfw') displayedCategory = 'NSFW';
 
       const pageFooter = totalPages === 1 ? '' : `Page ${pageNumber}/${totalPages} | `;
-      em.setTitle(`${displayedCategory} Commands`).setFooter({
-        text: pageFooter,
-      });
+      em.setTitle(`${displayedCategory} Commands`);
+
+      if (pageFooter) {
+        em.setFooter({
+          text: pageFooter,
+        });
+      }
 
       return msg.channel.send({ embeds: [em] });
     } else {
