@@ -94,7 +94,6 @@ class Leaderboard extends Command {
       }
     }
 
-    // Send the leaderboard
     const embed = new EmbedBuilder()
       .setColor(msg.settings.embedColor)
       .setTitle(`${msg.guild.name}'s Leaderboard`)
