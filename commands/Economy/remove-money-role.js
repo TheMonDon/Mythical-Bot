@@ -46,7 +46,9 @@ class RemoveMoneyRole extends Command {
       type = args[0].toLowerCase();
     }
 
-    if (isNaN(amount)) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Amount');
+    if (isNaN(amount) || amount === Infinity) {
+      return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Amount');
+    }
     if (!role) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Role');
 
     const members = [...role.members.values()];

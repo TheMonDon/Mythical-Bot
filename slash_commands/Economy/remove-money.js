@@ -34,13 +34,7 @@ exports.run = async (interaction) => {
     .setColor(interaction.settings.embedErrorColor)
     .setAuthor({ name: interaction.user.tag, iconURL: interaction.user.displayAvatarURL() });
 
-  if (isNaN(amount)) return interaction.client.util.errorEmbed(interaction, 'Invalid Amount');
-  if (amount > 1000000000000)
-    return interaction.client.util.errorEmbed(
-      interaction,
-      "You can't add more than 1 Trillion to a member",
-      'Invalid Amount',
-    );
+  if (isNaN(amount) || amount === Infinity) return interaction.client.util.errorEmbed(interaction, 'Invalid Amount');
 
   if (target.user) {
     if (!target.user) return interaction.client.util.errorEmbed(interaction, 'Invalid Member');
