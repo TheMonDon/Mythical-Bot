@@ -123,7 +123,7 @@ exports.run = async (interaction) => {
     const collector = message.createMessageComponentCollector({
       filter,
       componentType: ComponentType.Button,
-      time: 60000,
+      time: 2147483647,
     });
 
     collector.on('collect', async (btnInteraction) => {

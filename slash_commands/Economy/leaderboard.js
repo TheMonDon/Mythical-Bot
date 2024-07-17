@@ -1,4 +1,11 @@
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const {
+  SlashCommandBuilder,
+  EmbedBuilder,
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  ComponentType,
+} = require('discord.js');
 const { QuickDB } = require('quick.db');
 const db = new QuickDB();
 
@@ -92,5 +99,69 @@ exports.run = async (interaction) => {
     .setFooter({ text: `Page ${realPage} / ${maxPages} • ${userRankDisplay}` })
     .setTimestamp();
 
-  return interaction.editReply({ embeds: [embed] });
+  const row = new ActionRowBuilder().addComponents(
+    new ButtonBuilder()
+      .setCustomId('prev')
+      .setLabel('Previous')
+      .setStyle(ButtonStyle.Primary)
+      .setDisabled(realPage === 1),
+    new ButtonBuilder()
+      .setCustomId('next')
+      .setLabel('Next')
+      .setStyle(ButtonStyle.Primary)
+      .setDisabled(realPage === maxPages),
+  );
+
+  const message = await interaction.editReply({ embeds: [embed], components: [row] });
+
+  const filter = (i) => i.user.id === interaction.user.id;
+  const collector = message.createMessageComponentCollector({
+    filter,
+    componentType: ComponentType.Button,
+    time: 2147483647,
+  });
+
+  collector.on('collect', async (i) => {
+    if (i.customId === 'prev') {
+      realPage -= 1;
+    } else if (i.customId === 'next') {
+      realPage += 1;
+    }
+
+    displayedLeaderboard = sortedLeaderboard.slice((realPage - 1) * 10, realPage * 10);
+
+    const updatedEmbed = new EmbedBuilder()
+      .setColor(interaction.settings.embedColor)
+      .setTitle(`${interaction.guild.name}'s Leaderboard`)
+      .setAuthor({ name: interaction.user.tag, iconURL: interaction.user.displayAvatarURL() })
+      .setDescription(`${displayedLeaderboard.map((entry) => entry.display).join('\n') || 'None'}`)
+      .setFooter({ text: `Page ${realPage} / ${maxPages} • ${userRankDisplay}` })
+      .setTimestamp();
+
+    await i.update({
+      embeds: [updatedEmbed],
+      components: [
+        new ActionRowBuilder().addComponents(
+          new ButtonBuilder()
+            .setCustomId('prev')
+            .setLabel('Previous')
+            .setStyle(ButtonStyle.Primary)
+            .setDisabled(realPage === 1),
+          new ButtonBuilder()
+            .setCustomId('next')
+            .setLabel('Next')
+            .setStyle(ButtonStyle.Primary)
+            .setDisabled(realPage === maxPages),
+        ),
+      ],
+    });
+  });
+
+  collector.on('end', () => {
+    const disabledRow = new ActionRowBuilder().addComponents(
+      new ButtonBuilder().setCustomId('prev').setLabel('Previous').setStyle(ButtonStyle.Primary).setDisabled(true),
+      new ButtonBuilder().setCustomId('next').setLabel('Next').setStyle(ButtonStyle.Primary).setDisabled(true),
+    );
+    message.edit({ components: [disabledRow] });
+  });
 };

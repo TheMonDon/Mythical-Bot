@@ -116,7 +116,7 @@ class Reminders extends Command {
       const collector = message.createMessageComponentCollector({
         filter,
         componentType: ComponentType.Button,
-        time: 60000,
+        time: 180000,
       });
 
       collector.on('collect', async (interaction) => {
@@ -146,7 +146,11 @@ class Reminders extends Command {
       });
 
       collector.on('end', () => {
-        message.edit({ components: [] });
+        const disabledRow = new ActionRowBuilder().addComponents(
+          new ButtonBuilder().setCustomId('prev').setLabel('Previous').setStyle(ButtonStyle.Primary).setDisabled(true),
+          new ButtonBuilder().setCustomId('next').setLabel('Next').setStyle(ButtonStyle.Primary).setDisabled(true),
+        );
+        message.edit({ components: [disabledRow] });
       });
 
       return;
