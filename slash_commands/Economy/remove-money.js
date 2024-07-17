@@ -46,7 +46,7 @@ exports.run = async (interaction) => {
     if (!target.user) return interaction.client.util.errorEmbed(interaction, 'Invalid Member');
     if (target.user.bot) return interaction.client.util.errorEmbed(interaction, "You can't remove money from a bot.");
 
-    amount = BigInt(amount);
+    amount = BigInt(parseInt(amount));
     if (destination === 'bank') {
       const bank = BigInt((await db.get(`servers.${interaction.guild.id}.users.${target.user.id}.economy.bank`)) || 0);
       const newAmount = bank - amount;

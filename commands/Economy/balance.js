@@ -37,11 +37,14 @@ class Balance extends Command {
     if (!mem) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Member');
 
     const cash = BigInt(
-      (await db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`)) ||
-        (await db.get(`servers.${msg.guild.id}.economy.startBalance`)) ||
-        0,
+      parseInt(
+        (await db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`)) ||
+          (await db.get(`servers.${msg.guild.id}.economy.startBalance`)) ||
+          0,
+        10,
+      ),
     );
-    const bank = BigInt((await db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`)) || 0);
+    const bank = BigInt(parseInt((await db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`)) || 0, 10));
     const netWorth = cash + bank;
 
     const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
@@ -77,8 +80,8 @@ class Balance extends Command {
       try {
         const user = await this.client.users.cache.get(userId);
         if (user) {
-          const userCash = BigInt(usersData[userId].economy.cash || 0);
-          const userBank = BigInt(usersData[userId].economy.bank || 0);
+          const userCash = BigInt(parseInt(usersData[userId].economy.cash || 0, 10));
+          const userBank = BigInt(parseInt(usersData[userId].economy.bank || 0, 10));
           const userMoney = userCash + userBank;
           leaderboard.push({ user: user.tag, userId: user.id, money: userMoney });
         }
@@ -88,7 +91,7 @@ class Balance extends Command {
     }
 
     // Sort the leaderboard
-    const sortedLeaderboard = leaderboard.sort((a, b) => (BigInt(b.money) > BigInt(a.money) ? 1 : -1));
+    const sortedLeaderboard = leaderboard.sort((a, b) => (b.money > a.money ? 1 : -1));
 
     // Find the user's rank
     const userRank = sortedLeaderboard.findIndex((entry) => entry.userId === mem.id) + 1;
