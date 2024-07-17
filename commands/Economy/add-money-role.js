@@ -58,7 +58,7 @@ class AddMoneyRole extends Command {
 
     const members = [...role.members.values()];
 
-    amount = BigInt(amount);
+    amount = BigInt(parseInt(amount));
     if (type === 'bank') {
       members.forEach(async (mem) => {
         if (!mem.user.bot) {

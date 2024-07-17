@@ -51,7 +51,7 @@ class RemoveMoneyRole extends Command {
 
     const members = [...role.members.values()];
 
-    amount = BigInt(amount);
+    amount = BigInt(parseInt(amount));
     members.forEach(async (member) => {
       if (member.user.bot) return;
       if (type === 'bank') {

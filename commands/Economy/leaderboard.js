@@ -20,8 +20,6 @@ class Leaderboard extends Command {
     let page = text.join(' ');
     page = parseInt(page, 10);
 
-    // Leaderboard made possible by: legendarylegacy (CoolGuy#9889)
-
     if (!page) page = 1;
     if (isNaN(page)) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Incorrect Usage');
 
@@ -37,9 +35,9 @@ class Leaderboard extends Command {
       try {
         const user = await this.client.users.cache.get(userId);
         if (user) {
-          const cash = BigInt(usersData[userId].economy.cash || 0);
-          const bank = BigInt(usersData[userId].economy.bank || 0);
-          const money = cash + bank;
+          const cash = parseInt(usersData[userId].economy.cash || 0, 10);
+          const bank = parseInt(usersData[userId].economy.bank || 0, 10);
+          const money = BigInt(cash) + BigInt(bank);
           leaderboard.push({ user: user.tag, userId: user.id, money });
         }
       } catch (err) {
@@ -49,10 +47,10 @@ class Leaderboard extends Command {
 
     // Sort the leaderboard
     const sortedLeaderboard = leaderboard
-      .sort((a, b) => (BigInt(b.money) > BigInt(a.money) ? 1 : -1))
+      .sort((a, b) => (b.money > a.money ? 1 : -1))
       .map((c, index) => {
-        const neg = BigInt(c.money) < 0n;
-        const money = neg ? BigInt(c.money) * -1n : BigInt(c.money);
+        const neg = c.money < 0n;
+        const money = neg ? c.money * -1n : c.money;
         return {
           rank: index + 1,
           user: c.user,
@@ -70,6 +68,7 @@ class Leaderboard extends Command {
       const v = n % 100;
       return n + (s[(v - 20) % 10] || s[v] || s[0]);
     }
+
     // Find the user's rank
     const userRank = sortedLeaderboard.find((entry) => entry.userId === msg.author.id);
     const userRankDisplay = userRank

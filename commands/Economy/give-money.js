@@ -59,7 +59,7 @@ class GiveMoney extends Command {
         return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Incorrect Usage');
       }
     }
-    amount = BigInt(amount.replace(/[^0-9\\.]/g, ''));
+    amount = BigInt(parseInt(amount.replace(/[^0-9\\.]/g, '')));
 
     if (amount > authCash) {
       return this.client.util.errorEmbed(

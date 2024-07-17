@@ -4,10 +4,11 @@ import { QuickDB } from 'quick.db';
 const db = new QuickDB();
 
 export async function run(client, oldMessage, newMessage) {
-  if (oldMessage.author.bot) return;
+  if (oldMessage.author?.bot) return;
 
   async function LogSystem(client, oldMessage, newMessage) {
     if (!newMessage.guild) return;
+    if (!oldMessage.author) return;
 
     const logChan = await db.get(`servers.${newMessage.guild.id}.logs.channel`);
     if (!logChan) return;
