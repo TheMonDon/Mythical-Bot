@@ -50,17 +50,15 @@ exports.run = async (interaction) => {
   const sortedLeaderboard = leaderboard
     .sort((a, b) => (b.money > a.money ? 1 : -1))
     .map((c, index) => {
-      const neg = c.money < 0n;
-      const money = neg ? c.money * -1n : c.money;
+      let moneyStr = `${Math.abs(Number(c.money)).toLocaleString()}`;
+      if (moneyStr.length > 150) {
+        moneyStr = moneyStr.slice(0, 147) + '...';
+      }
       return {
         rank: index + 1,
         user: c.user,
         userId: c.userId,
-        display: `**${index + 1}.** ${c.user}: ${neg ? '-' : ''}${currencySymbol}${
-          money.toLocaleString().length > 156
-            ? `${money.toLocaleString().slice(0, 153) + '...'}`
-            : `${money.toLocaleString()}`
-        }`,
+        display: `**${index + 1}.** ${c.user}: ${c.money < 0n ? '-' : ''}${currencySymbol}${moneyStr}`,
       };
     });
 

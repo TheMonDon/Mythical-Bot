@@ -42,16 +42,18 @@ class Leaderboard extends Command {
 
     const sortedLeaderboard = leaderboard
       .sort((a, b) => (b.money > a.money ? 1 : -1))
-      .map((c, index) => ({
-        rank: index + 1,
-        user: c.user,
-        userId: c.userId,
-        display: `**${index + 1}.** ${c.user}: ${c.money < 0n ? '-' : ''}${currencySymbol}${
-          c.money.toLocaleString().length > 156
-            ? `${c.money.toLocaleString().slice(0, 153) + '...'}`
-            : `${c.money.toLocaleString()}`
-        }`,
-      }));
+      .map((c, index) => {
+        let moneyStr = `${Math.abs(Number(c.money)).toLocaleString()}`;
+        if (moneyStr.length > 150) {
+          moneyStr = moneyStr.slice(0, 147) + '...';
+        }
+        return {
+          rank: index + 1,
+          user: c.user,
+          userId: c.userId,
+          display: `**${index + 1}.** ${c.user}: ${c.money < 0n ? '-' : ''}${currencySymbol}${moneyStr}`,
+        };
+      });
 
     function getOrdinalSuffix(n) {
       const s = ['th', 'st', 'nd', 'rd'];
