@@ -3,7 +3,7 @@ import { QuickDB } from 'quick.db';
 const db = new QuickDB();
 
 export async function run(client, message) {
-  if (message.author.bot) return;
+  if (message.author?.bot) return;
   if (!message.guild) return;
 
   const logChan = await db.get(`servers.${message.guild.id}.logs.channel`);
