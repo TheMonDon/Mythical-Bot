@@ -16,13 +16,16 @@ export async function run(client, messages) {
   const noLogChans = (await db.get(`servers.${server.id}.logs.noLogChans`)) || [];
   if (noLogChans.includes(channel.id)) return;
 
-  const attachment = await generateFromMessages(messages, channel);
+  // Filter out messages with no author
+  const filteredMessages = messages.filter((message) => message.author);
+
+  const attachment = await generateFromMessages(filteredMessages, channel);
   const embed = new EmbedBuilder()
     .setTitle('Bulk Messages Deleted')
     .setColor('#FF0000')
     .addFields([
       { name: 'Deleted Messages', value: `Bulk deleted messages from ${channel} are available in the attached file.` },
-      { name: 'Deleted Amount', value: messages.size.toLocaleString() },
+      { name: 'Deleted Amount', value: filteredMessages.size.toLocaleString() },
     ]);
 
   return server.channels.cache
