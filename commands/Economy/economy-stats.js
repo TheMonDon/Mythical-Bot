@@ -1,0 +1,55 @@
+const Command = require('../../base/Command.js');
+const { EmbedBuilder } = require('discord.js');
+const { QuickDB } = require('quick.db');
+const db = new QuickDB();
+
+class EconomyStats extends Command {
+  constructor(client) {
+    super(client, {
+      name: 'economy-stats',
+      description: 'Get the total cash, bank, and balance of the entire economy',
+      category: 'Economy',
+      examples: ['economystats'],
+      aliases: ['etotal', 'econtotal', 'economystats', 'ecostats'],
+      usage: 'economy-stats',
+      guildOnly: true,
+    });
+  }
+
+  async run(msg, text) {
+    await msg.guild.members.fetch();
+    const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
+    const usersData = (await db.get(`servers.${msg.guild.id}.users`)) || {};
+
+    let totalCash = 0n;
+    let totalBank = 0n;
+
+    for (const userId in usersData) {
+      const user = await this.client.users.cache.get(userId);
+      if (user) {
+        const cash = BigInt(usersData[userId].economy.cash || 0);
+        const bank = BigInt(usersData[userId].economy.bank || 0);
+        totalCash += cash;
+        totalBank += bank;
+      }
+    }
+
+    const totalBalance = totalCash + totalBank;
+
+    const embed = new EmbedBuilder()
+      .setColor(msg.settings.embedColor)
+      .setTitle(`${msg.guild.name}'s Economy Total`)
+      .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
+      .setDescription(`Here are the totals for the entire economy:`)
+      .addFields(
+        { name: 'Total Cash', value: `${currencySymbol}${totalCash.toLocaleString()}`, inline: false },
+        { name: 'Total Bank', value: `${currencySymbol}${totalBank.toLocaleString()}`, inline: false },
+        { name: 'Total Balance', value: `${currencySymbol}${totalBalance.toLocaleString()}`, inline: false },
+      )
+      .setTimestamp();
+
+    await msg.channel.send({ embeds: [embed] });
+  }
+}
+
+module.exports = EconomyStats;
