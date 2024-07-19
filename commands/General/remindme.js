@@ -55,7 +55,7 @@ class RemindMe extends Command {
     const start = results[0].start.date().getTime();
     const message = cleanedArgs;
 
-    if (start <= now) return msg.channel.send('Please make sure your reminder is not part of back to the future.');
+    if (start <= now) return msg.channel.send('Please make sure your reminder is not part of Back to the Future.');
     if (isNaN(start) || !isFinite(start)) return msg.channel.send('Please provide a valid starting time.');
     if (message.length > 256) return msg.channel.send('Please keep your reminder under 256 characters.');
 

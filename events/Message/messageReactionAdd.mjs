@@ -43,7 +43,9 @@ export async function run(client, messageReaction, user) {
       },
     ];
 
-    const reason = 'Ticket has been created from the reaction menu. Use `topic` command to change it.';
+    const reason = `Ticket has been created from the reaction menu. Use \`${
+      client.getSettings(msg.guild).prefix
+    }topic\` command to change it.`;
     const count = (await db.get(`servers.${msg.guild.id}.tickets.count`)) || 1;
     await db.set(`servers.${msg.guild.id}.tickets.count`, count + 1);
 
@@ -90,13 +92,12 @@ export async function run(client, messageReaction, user) {
 
     if (!role.mentionable) {
       if (!tixChan.permissionsFor(client.user.id).has('MentionEveryone')) {
-        role.setMentionable(true);
-        tixChan.send({ content: role.toString(), embeds: [chanEmbed] }).catch(() => {});
-      } else {
-        tixChan.send({ content: role.toString(), embeds: [chanEmbed] }).catch(() => {});
+        await role.setMentionable(true);
+        await tixChan.send({ content: role.toString(), embeds: [chanEmbed] }).catch(() => {});
+        return await role.setMentionable(false);
       }
-    } else {
-      tixChan.send({ content: role.toString(), embeds: [chanEmbed] }).catch(() => {});
     }
+
+    return tixChan.send({ content: role.toString(), embeds: [chanEmbed] }).catch(() => {});
   }
 }

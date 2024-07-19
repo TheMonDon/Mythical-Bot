@@ -151,7 +151,7 @@ class Help extends Command {
           let displayedCategory = this.client.util.toProperCase(selectedCategory);
           if (displayedCategory === 'Nsfw') displayedCategory = 'NSFW';
 
-          const pageFooter = totalPages === 1 ? '' : `Page ${pageNumber}/${totalPages} | `;
+          const pageFooter = totalPages === 1 ? '' : `Page ${pageNumber}/${totalPages}`;
           em.setTitle(`${displayedCategory} Commands`);
 
           if (pageFooter) {
@@ -257,7 +257,7 @@ class Help extends Command {
       let displayedCategory = this.client.util.toProperCase(category);
       if (displayedCategory === 'Nsfw') displayedCategory = 'NSFW';
 
-      const pageFooter = totalPages === 1 ? '' : `Page ${pageNumber}/${totalPages} | `;
+      const pageFooter = totalPages === 1 ? '' : `Page ${pageNumber}/${totalPages}`;
       em.setTitle(`${displayedCategory} Commands`);
 
       if (pageFooter) {

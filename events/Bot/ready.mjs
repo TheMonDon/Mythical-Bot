@@ -147,7 +147,9 @@ export async function run(client) {
               .setFooter({ text: 'You created this reminder @' })
               .setTimestamp(createdAt);
             channel
-              ? channel.send({ embeds: [em], content: `<@${userID}>, here's your reminder:` })
+              ? channel.send({ embeds: [em], content: `<@${userID}>, here's your reminder:` }).catch((_error) => {
+                  user.send({ embeds: [em], content: `${user.username}, here's your reminder:` });
+                })
               : user.send({ embeds: [em], content: `${user.username}, here's your reminder:` });
 
             await db.delete(`global.reminders.${remID}`);

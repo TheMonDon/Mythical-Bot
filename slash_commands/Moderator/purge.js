@@ -150,10 +150,15 @@ exports.run = async (interaction) => {
     return interaction.editReply('The bot needs `Manage Messages` permission.');
   }
 
+  // Fetch the original interaction message
+  const originalMessage = await interaction.fetchReply();
+
   async function getMessages(channel, limit, filter, before, after) {
-    return channel.messages
-      .fetch({ limit, before, after })
-      .then((messages) => (filter ? messages.filter(filter) : messages));
+    return channel.messages.fetch({ limit, before, after }).then((messages) => {
+      // Filter out the original interaction message
+      const filteredMessages = messages.filter((m) => m.id !== originalMessage.id);
+      return filter ? filteredMessages.filter(filter) : filteredMessages;
+    });
   }
 
   async function deleteMessages(channel, messages) {
@@ -168,11 +173,13 @@ exports.run = async (interaction) => {
       });
   }
 
+  let resultMessage = '';
   switch (subcommand) {
     case 'any': {
       const messages = await getMessages(interaction.channel, amount, (m) => !m.pinned);
       const size = await deleteMessages(interaction.channel, messages);
-      return interaction.editReply(`Successfully deleted ${size} messages.`);
+      resultMessage = `Successfully deleted ${size} messages.`;
+      break;
     }
 
     case 'user': {
@@ -180,95 +187,108 @@ exports.run = async (interaction) => {
       const filter = (m) => m.author.id === user.id;
       const messages = await getMessages(interaction.channel, amount, filter);
       const size = await deleteMessages(interaction.channel, messages);
-      return interaction.editReply(`Successfully deleted ${size} messages from ${user.tag}.`);
+      resultMessage = `Successfully deleted ${size} messages from ${user.tag}.`;
+      break;
     }
 
     case 'links': {
       const filter = (m) => linkRegex.test(m.content);
       const messages = await getMessages(interaction.channel, amount, filter);
       const size = await deleteMessages(interaction.channel, messages);
-      return interaction.editReply(`Successfully deleted ${size} messages containing links.`);
+      resultMessage = `Successfully deleted ${size} messages containing links.`;
+      break;
     }
 
     case 'invites': {
       const filter = (m) => inviteRegex.test(m.content);
       const messages = await getMessages(interaction.channel, amount, filter);
       const size = await deleteMessages(interaction.channel, messages);
-      return interaction.editReply(`Successfully deleted ${size} messages containing invites.`);
+      resultMessage = `Successfully deleted ${size} messages containing invites.`;
+      break;
     }
 
     case 'match': {
       const filter = (m) => m.content.toLowerCase().includes(text.toLowerCase());
       const messages = await getMessages(interaction.channel, amount, filter);
       const size = await deleteMessages(interaction.channel, messages);
-      return interaction.editReply(`Successfully deleted ${size} messages containing "${text}".`);
+      resultMessage = `Successfully deleted ${size} messages containing "${text}".`;
+      break;
     }
 
     case 'not': {
       const filter = (m) => !m.content.toLowerCase().includes(text.toLowerCase());
       const messages = await getMessages(interaction.channel, amount, filter);
       const size = await deleteMessages(interaction.channel, messages);
-      return interaction.editReply(`Successfully deleted ${size} messages not containing "${text}".`);
+      resultMessage = `Successfully deleted ${size} messages not containing "${text}".`;
+      break;
     }
 
     case 'startswith': {
       const filter = (m) => m.content.toLowerCase().startsWith(text.toLowerCase());
       const messages = await getMessages(interaction.channel, amount, filter);
       const size = await deleteMessages(interaction.channel, messages);
-      return interaction.editReply(`Successfully deleted ${size} messages starting with "${text}".`);
+      resultMessage = `Successfully deleted ${size} messages starting with "${text}".`;
+      break;
     }
 
     case 'endswith': {
       const filter = (m) => m.content.toLowerCase().endsWith(text.toLowerCase());
       const messages = await getMessages(interaction.channel, amount, filter);
       const size = await deleteMessages(interaction.channel, messages);
-      return interaction.editReply(`Successfully deleted ${size} messages ending with "${text}".`);
+      resultMessage = `Successfully deleted ${size} messages ending with "${text}".`;
+      break;
     }
 
     case 'bots': {
       const filter = (m) => m.author.bot;
-      console.log('after fiter');
       const messages = await getMessages(interaction.channel, amount, filter);
-      console.log('fetched messaged');
       const size = await deleteMessages(interaction.channel, messages);
-      console.log('deleted messages');
-      return interaction.editReply(`Successfully deleted ${size} messages from bots.`);
+      resultMessage = `Successfully deleted ${size} messages from bots.`;
+      break;
     }
 
     case 'humans': {
       const filter = (m) => !m.author.bot;
       const messages = await getMessages(interaction.channel, amount, filter);
       const size = await deleteMessages(interaction.channel, messages);
-      return interaction.editReply(`Successfully deleted ${size} messages from humans.`);
+      resultMessage = `Successfully deleted ${size} messages from humans.`;
+      break;
     }
 
     case 'images': {
       const filter = (m) => m.attachments.size > 0;
       const messages = await getMessages(interaction.channel, amount, filter);
       const size = await deleteMessages(interaction.channel, messages);
-      return interaction.editReply(`Successfully deleted ${size} messages containing images.`);
+      resultMessage = `Successfully deleted ${size} messages containing images.`;
+      break;
     }
 
     case 'after': {
       const messages = await getMessages(interaction.channel, amount, null, null, messageId);
       const size = await deleteMessages(interaction.channel, messages);
-      return interaction.editReply(`Successfully deleted ${size} messages after ${messageId}.`);
+      resultMessage = `Successfully deleted ${size} messages after ${messageId}.`;
+      break;
     }
 
     case 'before': {
       const messages = await getMessages(interaction.channel, amount, null, messageId);
       const size = await deleteMessages(interaction.channel, messages);
-      return interaction.editReply(`Successfully deleted ${size} messages before ${messageId}.`);
+      resultMessage = `Successfully deleted ${size} messages before ${messageId}.`;
+      break;
     }
 
     case 'mentions': {
       const filter = (m) => m.mentions.users.size > 0;
       const messages = await getMessages(interaction.channel, amount, filter);
       const size = await deleteMessages(interaction.channel, messages);
-      return interaction.editReply(`Successfully deleted ${size} messages containing mentions.`);
+      resultMessage = `Successfully deleted ${size} messages containing mentions.`;
+      break;
     }
 
     default:
-      return interaction.editReply('Invalid subcommand.');
+      resultMessage = 'Invalid subcommand.';
+      break;
   }
+
+  await interaction.editReply(resultMessage);
 };
