@@ -13,8 +13,8 @@ class Steam extends Command {
     });
   }
 
-  async run(msg, text) {
-    const query = await this.client.util.clean(this.client, text.join(' '));
+  async run(msg, args) {
+    const query = await this.client.util.clean(this.client, args.join(' '));
 
     const search = await fetch.get('https://store.steampowered.com/api/storesearch').query({
       cc: 'us',

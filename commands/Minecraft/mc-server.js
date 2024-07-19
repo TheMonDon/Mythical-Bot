@@ -13,8 +13,8 @@ class MinecraftServer extends Command {
     });
   }
 
-  async run(msg, text) {
-    let query = text.join(' ');
+  async run(msg, args) {
+    let query = args.join(' ');
     if (!query) query = 'mc.hypixel.net';
 
     const servers = {

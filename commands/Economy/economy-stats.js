@@ -16,7 +16,7 @@ class EconomyStats extends Command {
     });
   }
 
-  async run(msg, text) {
+  async run(msg, _args) {
     await msg.guild.members.fetch();
     const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
     const usersData = (await db.get(`servers.${msg.guild.id}.users`)) || {};

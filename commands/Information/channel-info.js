@@ -15,10 +15,10 @@ class ChannelInfo extends Command {
     });
   }
 
-  async run(msg, text) {
+  async run(msg, args) {
     let infoChan = msg.channel;
 
-    if (text?.length > 0) infoChan = this.client.util.getChannel(msg, text.join(' '));
+    if (args?.length > 0) infoChan = this.client.util.getChannel(msg, args.join(' '));
     if (!infoChan) return msg.reply('That is not a valid channel.');
 
     // Get the time since the channel was created

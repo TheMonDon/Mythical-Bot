@@ -11,15 +11,14 @@ class Avatar extends Command {
     });
   }
 
-  async run(msg, text) {
+  async run(msg, args) {
     let infoMem = msg.member;
 
-    // If text is provided, try to get the member
-    if (text?.length > 0) infoMem = await this.client.util.getMember(msg, text.join(' ').toLowerCase());
+    if (args?.length > 0) infoMem = await this.client.util.getMember(msg, args.join(' ').toLowerCase());
 
     if (!infoMem) {
       // If no member is found, try to get the user by ID
-      const fid = text.join(' ').toLowerCase().replace(/<@|>/g, '');
+      const fid = args.join(' ').toLowerCase().replace(/<@|>/g, '');
       try {
         infoMem = await this.client.users.fetch(fid);
       } catch (err) {

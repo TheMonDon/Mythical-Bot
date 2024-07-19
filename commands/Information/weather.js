@@ -14,8 +14,8 @@ class Weather extends Command {
     });
   }
 
-  async run(msg, text) {
-    const city = text.join(' ');
+  async run(msg, args) {
+    const city = args.join(' ');
     const ZipCode = /^-?\d+\.?\d*$/;
 
     // Set the stuff for the weather api

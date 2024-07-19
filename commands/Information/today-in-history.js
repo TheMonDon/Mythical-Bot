@@ -14,19 +14,19 @@ class TodayInHistory extends Command {
     });
   }
 
-  async run(msg, text) {
+  async run(msg, args) {
     let month;
     let day;
 
     // If no text is provided, use the current date
-    if (!text || text.length < 1) {
+    if (!args || args.length < 1) {
       const date = new Date();
       month = date.getUTCMonth() + 1;
       day = date.getUTCDate();
     } else {
       // Otherwise, parse the text
-      month = parseInt(text[0], 10);
-      day = parseInt(text[1], 10);
+      month = parseInt(args[0], 10);
+      day = parseInt(args[1], 10);
     }
 
     if (isNaN(month) || (month < 1 && month > 12))

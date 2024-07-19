@@ -14,8 +14,8 @@ class Wikipedia extends Command {
     });
   }
 
-  async run(msg, text) {
-    const query = text.join(' ');
+  async run(msg, args) {
+    const query = args.join(' ');
 
     const { body } = await fetch.get('https://en.wikipedia.org/w/api.php').query({
       action: 'query',

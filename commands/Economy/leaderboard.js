@@ -16,8 +16,8 @@ class Leaderboard extends Command {
     });
   }
 
-  async run(msg, text) {
-    let page = parseInt(text.join(' '), 10) || 1;
+  async run(msg, args) {
+    let page = parseInt(args.join(' '), 10) || 1;
 
     if (isNaN(page)) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Incorrect Usage');
 

@@ -17,7 +17,7 @@ class Rob extends Command {
     });
   }
 
-  async run(msg, text) {
+  async run(msg, args) {
     const errorColor = msg.settings.embedErrorColor;
     const type = 'rob';
 
@@ -45,7 +45,7 @@ class Rob extends Command {
       }
     }
 
-    const mem = await this.client.util.getMember(msg, text.join(' '));
+    const mem = await this.client.util.getMember(msg, args.join(' '));
 
     if (!mem) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Member');
     if (mem.id === msg.author.id) return this.client.util.errorEmbed(msg, "You can't rob yourself.", 'Invalid Member');

@@ -17,7 +17,7 @@ class SetPayout extends Command {
     });
   }
 
-  async run(msg, text) {
+  async run(msg, args) {
     const types = ['work', 'crime', 'slut', 'chat'];
 
     if (!msg.member.permissions.has('ManageMessages'))
@@ -27,7 +27,7 @@ class SetPayout extends Command {
 
     const workMin = (await db.get(`servers.${msg.guild.id}.economy.work.min`)) || 50;
     const workMax = (await db.get(`servers.${msg.guild.id}.economy.work.max`)) || 500;
-    const slutMin = (await db.get(`servers.${msg.guild.id}.economy.slut.min`)) || 100;
+    const slutMin = (await db.get(`servers.${msg.guild.id}.economy.slut.min`)) || 500;
     const slutMax = (await db.get(`servers.${msg.guild.id}.economy.slut.max`)) || 2000;
     const crimeMin = (await db.get(`servers.${msg.guild.id}.economy.crime.min`)) || 500;
     const crimeMax = (await db.get(`servers.${msg.guild.id}.economy.crime.max`)) || 2000;
@@ -38,7 +38,7 @@ class SetPayout extends Command {
       .setColor(msg.settings.embedErrorColor)
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() });
 
-    if (!text || text.length < 1) {
+    if (!args|| args.length < 1) {
       embed.setColor('#04ACF4').setDescription(stripIndents`
           The current payout ranges are: 
         
@@ -52,17 +52,17 @@ class SetPayout extends Command {
       return msg.channel.send({ embeds: [embed] });
     }
 
-    const type = text[0]?.toLowerCase();
+    const type = args[0]?.toLowerCase();
     if (!types.includes(type))
       return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Incorrect Usage');
 
-    const minMax = text[1]?.toLowerCase();
+    const minMax = args[1]?.toLowerCase();
     if (!['min', 'max'].includes(minMax))
       return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Incorrect Usage');
 
-    text.shift();
-    text.shift();
-    const amount = text
+    args.shift();
+    args.shift();
+    const amount = args
       .join('')
       .replace(/[^0-9\\.]/g, '')
       .replace(/-/g, '');

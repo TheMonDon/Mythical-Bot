@@ -16,12 +16,12 @@ class GiveMoney extends Command {
     });
   }
 
-  async run(msg, text) {
+  async run(msg, args) {
     const embed = new EmbedBuilder()
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
       .setColor(msg.settings.embedErrorColor);
 
-    const mem = await this.client.util.getMember(msg, text[0]);
+    const mem = await this.client.util.getMember(msg, args[0]);
 
     if (!mem) {
       return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Member');
@@ -38,15 +38,16 @@ class GiveMoney extends Command {
         0,
     );
 
-    let amount = text[1].replace(/,/g, '').replace(currencySymbol, '');
+    let amount = args[1].replace(/,/g, '').replace(currencySymbol, '');
 
     let csCashAmount = currencySymbol + authCash.toLocaleString();
     csCashAmount = csCashAmount.length > 1024 ? `${csCashAmount.slice(0, 1021) + '...'}` : csCashAmount;
 
     if (isNaN(amount)) {
       if (amount.toLowerCase() === 'all') {
-        if (authCash <= BigInt(0))
+        if (authCash <= BigInt(0)) {
           return this.client.util.errorEmbed(msg, "You can't pay someone when you have no money", 'Invalid Parameter');
+        }
 
         await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, 0);
         const memCash = BigInt((await db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`)) || 0);

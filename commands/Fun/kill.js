@@ -12,17 +12,17 @@ class Kill extends Command {
     });
   }
 
-  async run(msg, text) {
+  async run(msg, args) {
     delete require.cache[require.resolve('../../resources/messages/deaths.json')];
     const deaths = require('../../resources/messages/deaths.json');
     let mem;
     let random = false;
 
-    if (text?.length < 1) {
+    if (args?.length < 1) {
       mem = msg.guild.members.cache.filter((m) => m.id !== msg.author.id).random();
       random = true;
     } else {
-      mem = await this.client.util.getMember(msg, text.join(' '));
+      mem = await this.client.util.getMember(msg, args.join(' '));
       if (!mem) return msg.channel.send('Please provide a valid user.');
     }
 

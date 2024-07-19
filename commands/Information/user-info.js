@@ -15,16 +15,16 @@ class UserInfo extends Command {
     });
   }
 
-  async run(msg, text) {
+  async run(msg, args) {
     let infoMem = msg.member;
     let fetchedUser;
 
     // If text is provided, try to get the member
-    if (text?.length > 0) infoMem = await this.client.util.getMember(msg, text.join(' ').toLowerCase());
+    if (args?.length > 0) infoMem = await this.client.util.getMember(msg, args.join(' ').toLowerCase());
 
     if (!infoMem) {
       // If no member is found, try to get the user by ID
-      const findId = text.join(' ').toLowerCase().replace(/<@|>/g, '');
+      const findId = args.join(' ').toLowerCase().replace(/<@|>/g, '');
       try {
         infoMem = await this.client.users.fetch(findId, { force: true });
       } catch (err) {

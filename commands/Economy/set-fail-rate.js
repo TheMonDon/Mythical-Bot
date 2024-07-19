@@ -17,7 +17,7 @@ class SetFailRate extends Command {
     });
   }
 
-  async run(msg, text) {
+  async run(msg, args) {
     const types = ['crime', 'slut'];
     const errorColor = msg.settings.embedErrorColor;
 
@@ -28,7 +28,7 @@ class SetFailRate extends Command {
       .setColor(errorColor)
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() });
 
-    if (!text || text.length < 1) {
+    if (!args || args.length < 1) {
       embed.setColor('#04ACF4').setDescription(stripIndents`
         The current fail rates are: 
         
@@ -40,12 +40,12 @@ class SetFailRate extends Command {
       return msg.channel.send({ embeds: [embed] });
     }
 
-    const type = text[0]?.toLowerCase();
+    const type = args[0]?.toLowerCase();
     if (!types.includes(type))
       return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Incorrect Usage');
 
-    text.shift();
-    const percentage = parseInt(text.join('').replace('%', '').replace(/-/g, ''), 10);
+    args.shift();
+    const percentage = parseInt(args.join('').replace('%', '').replace(/-/g, ''), 10);
 
     if (isNaN(percentage)) {
       return this.client.util.errorEmbed(msg, 'Please provide a valid number.', 'Invalid Fail Rate');

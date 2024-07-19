@@ -17,32 +17,32 @@ class Blacklist extends Command {
     });
   }
 
-  async run(msg, text) {
+  async run(msg, args) {
     let mem;
     let type;
 
-    if (text[0] && text[1]) {
-      if (!['add', 'remove', 'check'].includes(text[0].toLowerCase())) {
+    if (args[0] && args[1]) {
+      if (!['add', 'remove', 'check'].includes(args[0].toLowerCase())) {
         return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Incorrect Usage');
       } else {
-        type = text[0].toLowerCase();
+        type = args[0].toLowerCase();
       }
-    } else if (text[0]) {
-      mem = await this.client.util.getMember(msg, text[0]);
+    } else if (args[0]) {
+      mem = await this.client.util.getMember(msg, args[0]);
       type = 'check';
 
       if (!mem) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Incorrect Usage');
     }
 
-    if (!mem && text[1]) {
-      mem = await this.client.util.getMember(msg, text[1]);
+    if (!mem && args[1]) {
+      mem = await this.client.util.getMember(msg, args[1]);
 
       if (!mem) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Member');
     }
 
-    text.shift();
-    text.shift();
-    const reason = text.join(' ') || false;
+    args.shift();
+    args.shift();
+    const reason = args.join(' ') || false;
 
     const blacklist = await db.get(`servers.${msg.guild.id}.users.${mem.id}.blacklist`);
 

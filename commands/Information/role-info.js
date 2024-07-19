@@ -16,8 +16,8 @@ class RoleInfo extends Command {
     });
   }
 
-  async run(msg, text) {
-    const infoRole = this.client.util.getRole(msg, text.join(' '));
+  async run(msg, args) {
+    const infoRole = this.client.util.getRole(msg, args.join(' '));
     if (!infoRole) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Incorrect Usage');
 
     // Get the role's creation date and format it

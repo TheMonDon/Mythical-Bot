@@ -13,8 +13,8 @@ class Movie extends Command {
     });
   }
 
-  async run(msg, text) {
-    const query = text.join(' ');
+  async run(msg, args) {
+    const query = args.join(' ');
 
     try {
       const search = await fetch.get('http://api.themoviedb.org/3/search/movie').query({
