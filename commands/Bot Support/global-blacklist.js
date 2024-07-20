@@ -10,8 +10,8 @@ class GlobalBlacklist extends Command {
       description: 'Blacklist someone from using the bot',
       usage: 'global-blacklist <Add | Remove | Check> <User> <Reason>',
       requiredArgs: 1,
-      category: 'Bot Admin',
-      permLevel: 'Bot Admin',
+      category: 'Bot Support',
+      permLevel: 'Bot Support',
       aliases: ['gbl', 'g-blacklist', 'gblacklist'],
       guildOnly: true,
     });
