@@ -3,11 +3,35 @@ import { QuickDB } from 'quick.db';
 const db = new QuickDB();
 
 export async function run(client, interaction) {
+  interaction.settings = client.getSettings(interaction.guild);
+
+  const globalBlacklisted = db.get(`users.${interaction.user.id}.blacklist`);
+  if (globalBlacklisted) {
+    const embed = new EmbedBuilder()
+      .setTitle('Blacklisted')
+      .setAuthor({ name: interaction.user.tag, iconURL: interaction.user.displayAvatarURL() })
+      .setColor(interaction.settings.embedErrorColor)
+      .setDescription(`Sorry ${interaction.user.username}, you are currently blacklisted from using commands.`);
+    return interaction.reply({ embeds: [embed], ephemeral: true });
+  }
+
+  if (interaction.guild) {
+    const blacklisted = db.get(`servers.${interaction.guild.id}.users.${interaction.user.id}.blacklist`);
+    if (blacklisted) {
+      const embed = new EmbedBuilder()
+        .setTitle('Blacklisted')
+        .setAuthor({ name: interaction.user.tag, iconURL: interaction.user.displayAvatarURL() })
+        .setColor(interaction.settings.embedErrorColor)
+        .setDescription(
+          `Sorry ${interaction.user.username}, you are currently blacklisted from using commands in this server.`,
+        );
+      return interaction.reply({ embeds: [embed], ephemeral: true });
+    }
+  }
+
   if (interaction.isCommand()) {
     const slashCommand = client.slashCommands.get(interaction.commandName);
     if (!slashCommand) return;
-
-    interaction.settings = client.getSettings(interaction.guild);
 
     const level = client.permlevel(interaction);
     if (level < client.levelCache[slashCommand.conf.permLevel]) {

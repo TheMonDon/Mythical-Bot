@@ -138,6 +138,13 @@ export async function run(client, oldMessage, newMessage) {
       }
     }
 
+    const globalBlacklisted = await db.get(`users.${newMessage.member.id}.blacklist`);
+    if (globalBlacklisted) {
+      return newMessage.channel.send(
+        `Sorry ${newMessage.author.username}, you are currently blacklisted from using commands.`,
+      );
+    }
+
     // Some commands may not be useable in DMs. This check prevents those commands from running
     // and return a friendly error message.
     if (!newMessage.guild && cmd.conf.guildOnly) {

@@ -6,13 +6,13 @@ const db = new QuickDB();
 class Blacklist extends Command {
   constructor(client) {
     super(client, {
-      name: 'blacklist',
-      description: 'Blacklist someone from using the bot in your server',
-      usage: 'blacklist <Add | Remove | Check> <User> <Reason>',
+      name: 'global-blacklist',
+      description: 'Blacklist someone from using the bot',
+      usage: 'global-blacklist <Add | Remove | Check> <User> <Reason>',
       requiredArgs: 1,
-      category: 'Moderator',
-      permLevel: 'Moderator',
-      aliases: ['bl'],
+      category: 'Bot Admin',
+      permLevel: 'Bot Admin',
+      aliases: ['gbl', 'g-blacklist', 'gblacklist'],
       guildOnly: true,
     });
   }
@@ -44,7 +44,7 @@ class Blacklist extends Command {
     args.shift();
     const reason = args.join(' ') || false;
 
-    const blacklist = await db.get(`servers.${msg.guild.id}.users.${mem.id}.blacklist`);
+    const blacklist = await db.get(`users.${mem.id}.blacklist`);
 
     const embed = new EmbedBuilder()
       .setAuthor({ name: mem.user.tag, iconURL: msg.author.displayAvatarURL() })
@@ -58,10 +58,10 @@ class Blacklist extends Command {
         }
         if (!reason) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Reason');
 
-        await db.set(`servers.${msg.guild.id}.users.${mem.id}.blacklist`, true);
-        await db.set(`servers.${msg.guild.id}.users.${mem.id}.blacklistReason`, reason);
+        await db.set(`users.${mem.id}.blacklist`, true);
+        await db.set(`users.${mem.id}.blacklistReason`, reason);
 
-        embed.setTitle(`${mem.user.tag} has been added to the blacklist.`).addFields([
+        embed.setTitle(`${mem.user.tag} has been added to the global blacklist.`).addFields([
           { name: 'Reason:', value: reason },
           { name: 'Member:', value: `${mem.displayName} \n(${mem.id})` },
           { name: 'Server:', value: `${msg.guild.name} \n(${msg.guild.id})` },
@@ -75,10 +75,10 @@ class Blacklist extends Command {
         if (!blacklist) return msg.channel.send('That user is not blacklisted');
         if (!reason) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Reason');
 
-        await db.set(`servers.${msg.guild.id}.users.${mem.id}.blacklist`, false);
-        await db.set(`servers.${msg.guild.id}.users.${mem.id}.blacklistReason`, reason);
+        await db.set(`users.${mem.id}.blacklist`, false);
+        await db.set(`users.${mem.id}.blacklistReason`, reason);
 
-        embed.setTitle(`${mem.user.tag} has been removed from the blacklist.`).addFields([
+        embed.setTitle(`${mem.user.tag} has been removed from the global blacklist.`).addFields([
           { name: 'Reason:', value: reason },
           { name: 'Member:', value: `${mem.displayName} \n(${mem.id})` },
           { name: 'Server:', value: `${msg.guild.name} \n(${msg.guild.id})` },
@@ -89,7 +89,7 @@ class Blacklist extends Command {
       }
 
       case 'check': {
-        const reason = (await db.get(`servers.${msg.guild.id}.users.${mem.id}.blacklistReason`)) || false;
+        const reason = (await db.get(`users.${mem.id}.blacklistReason`)) || false;
 
         embed.setTitle(`${mem.user.tag} blacklist check`).addFields([
           { name: 'Member:', value: `${mem.user.tag} (${mem.id})`, inline: true },

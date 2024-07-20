@@ -14,7 +14,7 @@ class ResetMoney extends Command {
     });
   }
 
-  async run(msg, text, level) {
+  async run(msg, args, level) {
     async function resetBalance(msg, mem) {
       const amount = (await db.get(`servers.${msg.guild.id}.economy.startBalance`)) || 0;
       await db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, amount);
@@ -22,7 +22,7 @@ class ResetMoney extends Command {
       return true;
     }
 
-    if (!text || text.length < 1) {
+    if (!args || args.length < 1) {
       await msg.channel.send('Are you sure you want to reset your money? (yes/no)');
       const verification = await this.client.util.verify(msg.channel, msg.author);
       if (verification) {
@@ -42,10 +42,10 @@ This command requires level ${this.client.levelCache.Moderator} (Moderator)`);
         }
       }
 
-      let mem = await this.client.util.getMember(msg, text.join(' '));
+      let mem = await this.client.util.getMember(msg, args.join(' '));
 
       if (!mem) {
-        const fid = text.join(' ').replace(/<@|>/g, '');
+        const fid = args.join(' ').replace(/<@|>/g, '');
         try {
           mem = await this.client.users.fetch(fid);
         } catch (err) {

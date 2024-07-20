@@ -80,13 +80,13 @@ class Balance extends Command {
       try {
         const user = await this.client.users.cache.get(userId);
         if (user) {
-          const userCash = BigInt(parseInt(usersData[userId].economy.cash || 0, 10));
-          const userBank = BigInt(parseInt(usersData[userId].economy.bank || 0, 10));
+          const userCash = BigInt(parseInt(usersData[userId]?.economy?.cash || 0, 10));
+          const userBank = BigInt(parseInt(usersData[userId]?.economy?.bank || 0, 10));
           const userMoney = userCash + userBank;
           leaderboard.push({ user: user.tag, userId: user.id, money: userMoney });
         }
       } catch (err) {
-        this.client.logger.error(`Leaderboard: ${err}`);
+        this.client.logger.error(`Balance Leaderboard: ${err}`);
       }
     }
 

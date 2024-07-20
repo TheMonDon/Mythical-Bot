@@ -32,8 +32,6 @@ class RemoveMoneyRole extends Command {
     let role;
     let amount;
 
-    const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
-
     if (args.length === 2) {
       role = this.client.util.getRole(msg, args[0]);
       amount = args[1].replace(/[^0-9\\.]/g, '');
@@ -71,6 +69,7 @@ class RemoveMoneyRole extends Command {
       }
     });
 
+    const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
     let csAmount = currencySymbol + amount.toLocaleString();
     csAmount = csAmount.length > 1024 ? `${csAmount.slice(0, 1021) + '...'}` : csAmount;
 

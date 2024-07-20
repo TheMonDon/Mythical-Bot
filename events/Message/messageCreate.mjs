@@ -73,11 +73,16 @@ export async function run(client, message) {
 
   if (message.guild) {
     const isBlacklisted = await db.get(`servers.${message.guild.id}.users.${message.member.id}.blacklist`);
-    if (isBlacklisted && level < 4 && command.help.name !== 'blacklist') {
+    if (isBlacklisted && level < 4 && (command.help.name !== 'blacklist' || command.help.name !== 'global-blacklist')) {
       return message.channel.send(
         `Sorry ${message.member.displayName}, you are currently blacklisted from using commands in this server.`,
       );
     }
+  }
+
+  const globalBlacklisted = await db.get(`users.${message.member.id}.blacklist`);
+  if (globalBlacklisted) {
+    return message.channel.send(`Sorry ${message.author.username}, you are currently blacklisted from using commands.`);
   }
 
   if (!message.guild && command.conf.guildOnly) {

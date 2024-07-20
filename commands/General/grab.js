@@ -6,8 +6,7 @@ class Grab extends Command {
     super(client, {
       name: 'grab',
       description: 'Get the source code of a command.',
-      category: 'Owner',
-      permLevel: 'Bot Owner',
+      category: 'General',
       usage: 'grab [-i] <commandName>',
       requiredArgs: 1,
     });

@@ -45,7 +45,7 @@ class CleanLeaderboard extends Command {
 
     if (verified) {
       toRemove.forEach(async (i) => {
-        await db.delete(`servers.${msg.guild.id}.users.${i}`);
+        await db.delete(`servers.${msg.guild.id}.users.${i}.economy`);
       });
       return msg.channel.send(`${toRemove.length} users have been removed from the leaderboard.`);
     } else {
