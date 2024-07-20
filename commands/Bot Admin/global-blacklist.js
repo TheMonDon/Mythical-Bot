@@ -3,7 +3,7 @@ const { EmbedBuilder } = require('discord.js');
 const { QuickDB } = require('quick.db');
 const db = new QuickDB();
 
-class Blacklist extends Command {
+class GlobalBlacklist extends Command {
   constructor(client) {
     super(client, {
       name: 'global-blacklist',
@@ -28,16 +28,36 @@ class Blacklist extends Command {
         type = args[0].toLowerCase();
       }
     } else if (args[0]) {
-      mem = await this.client.util.getMember(msg, args[0]);
-      type = 'check';
-
-      if (!mem) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Incorrect Usage');
+      // Check if the first argument is a user mention
+      if (args[0].match(/^<@!?(\d+)>$/)) {
+        const userId = args[0].replace(/[<@!>]/g, ''); // Extract user ID from mention
+        try {
+          mem = await this.client.users.fetch(userId); // Fetch the user by ID
+        } catch (err) {
+          // If no user is found, return error
+          return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'User not found');
+        }
+      } else {
+        // Otherwise, try to get member from guild
+        mem = await this.client.util.getMember(msg, args[0]);
+        type = 'check'; // Default to check if no action specified
+      }
     }
 
+    // If a user ID is provided directly in the second argument
     if (!mem && args[1]) {
-      mem = await this.client.util.getMember(msg, args[1]);
+      const userId = args[1].replace(/[<@!>]/g, ''); // Extract user ID from mention
+      try {
+        mem = await this.client.users.fetch(userId); // Fetch the user by ID
+      } catch (err) {
+        // If no user is found, return error
+        return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'User not found');
+      }
+    }
 
-      if (!mem) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Member');
+    // If no member or user is found
+    if (!mem) {
+      return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'User not found');
     }
 
     args.shift();
@@ -47,7 +67,7 @@ class Blacklist extends Command {
     const blacklist = await db.get(`users.${mem.id}.blacklist`);
 
     const embed = new EmbedBuilder()
-      .setAuthor({ name: mem.user.tag, iconURL: msg.author.displayAvatarURL() })
+      .setAuthor({ name: mem.tag, iconURL: mem.displayAvatarURL() })
       .setColor(msg.settings.embedColor)
       .setTimestamp();
 
@@ -56,51 +76,63 @@ class Blacklist extends Command {
         if (blacklist) {
           return msg.channel.send('That user is already blacklisted.');
         }
-        if (!reason) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Reason');
+        if (!reason) {
+          return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Reason');
+        }
 
         await db.set(`users.${mem.id}.blacklist`, true);
         await db.set(`users.${mem.id}.blacklistReason`, reason);
 
-        embed.setTitle(`${mem.user.tag} has been added to the global blacklist.`).addFields([
+        embed.setTitle(`${mem.tag} has been added to the global blacklist.`).addFields([
           { name: 'Reason:', value: reason },
-          { name: 'Member:', value: `${mem.displayName} \n(${mem.id})` },
-          { name: 'Server:', value: `${msg.guild.name} \n(${msg.guild.id})` },
+          { name: 'User:', value: `${mem.tag} \n(${mem.id})` },
         ]);
 
         msg.channel.send({ embeds: [embed] });
-        return mem.send({ embeds: [embed] });
+        mem.send({ embeds: [embed] }).catch(() => {});
+        break;
       }
 
       case 'remove': {
-        if (!blacklist) return msg.channel.send('That user is not blacklisted');
-        if (!reason) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Reason');
+        if (!blacklist) {
+          return msg.channel.send('That user is not blacklisted');
+        }
+        if (!reason) {
+          return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Reason');
+        }
 
         await db.set(`users.${mem.id}.blacklist`, false);
         await db.set(`users.${mem.id}.blacklistReason`, reason);
 
-        embed.setTitle(`${mem.user.tag} has been removed from the global blacklist.`).addFields([
+        embed.setTitle(`${mem.tag} has been removed from the global blacklist.`).addFields([
           { name: 'Reason:', value: reason },
-          { name: 'Member:', value: `${mem.displayName} \n(${mem.id})` },
-          { name: 'Server:', value: `${msg.guild.name} \n(${msg.guild.id})` },
+          { name: 'User:', value: `${mem.tag} \n(${mem.id})` },
         ]);
 
         msg.channel.send({ embeds: [embed] });
-        return mem.send({ embeds: [embed] });
+        mem.send({ embeds: [embed] }).catch(() => {});
+        break;
       }
 
       case 'check': {
-        const reason = (await db.get(`users.${mem.id}.blacklistReason`)) || false;
+        const reason = (await db.get(`users.${mem.id}.blacklistReason`)) || 'No reason specified';
 
-        embed.setTitle(`${mem.user.tag} blacklist check`).addFields([
-          { name: 'Member:', value: `${mem.user.tag} (${mem.id})`, inline: true },
-          { name: 'Is Blacklisted?', value: blacklist ? 'True' : 'False' },
-        ]);
-        if (reason) embed.addFields([{ name: 'Reason', value: reason, inline: true }]);
+        embed
+          .setTitle(`${mem.tag} blacklist check`)
+          .addFields([
+            { name: 'User:', value: `${mem.tag} (${mem.id})`, inline: true },
+            { name: 'Is Blacklisted?', value: blacklist ? 'True' : 'False', inline: true },
+          ])
+          .addField('Reason:', reason);
 
-        return msg.channel.send({ embeds: [embed] });
+        msg.channel.send({ embeds: [embed] });
+        break;
       }
+
+      default:
+        return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Incorrect Usage');
     }
   }
 }
 
-module.exports = Blacklist;
+module.exports = GlobalBlacklist;

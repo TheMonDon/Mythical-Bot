@@ -22,7 +22,7 @@ class Rob extends Command {
     const type = 'rob';
 
     const cooldown = (await db.get(`servers.${msg.guild.id}.economy.${type}.cooldown`)) || 600; // get cooldown from database or set to 600 seconds (10 minutes)
-    let userCooldown = (await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.${type}.cooldown`)) || {};
+    let userCooldown = (await db.get(`servers.${msg.guild.id}.users.${msg.author.id}.economy.${type}.cooldown`)) || {};
 
     const embed = new EmbedBuilder()
       .setColor(errorColor)
@@ -34,7 +34,7 @@ class Rob extends Command {
       if (timeleft <= 1 || timeleft > cooldown * 1000) {
         userCooldown = {};
         userCooldown.active = false;
-        await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.${type}.cooldown`, userCooldown);
+        await db.set(`servers.${msg.guild.id}.users.${msg.author.id}.economy.${type}.cooldown`, userCooldown);
       } else {
         const tLeft = moment
           .duration(timeleft)
@@ -45,7 +45,19 @@ class Rob extends Command {
       }
     }
 
-    const mem = await this.client.util.getMember(msg, args.join(' '));
+    let mem = await this.client.util.getMember(msg, args.join(' '));
+
+    if (!mem) {
+      // If no member is found, try to get the user by ID
+      const findId = args.join(' ').toLowerCase().replace(/<@|>/g, '');
+      try {
+        mem = await this.client.users.fetch(findId, { force: true });
+      } catch (err) {
+        // If no user is found, use the author
+        mem = msg.member;
+        mem = await mem.user.fetch();
+      }
+    }
 
     if (!mem) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Member');
     if (mem.id === msg.author.id) return this.client.util.errorEmbed(msg, "You can't rob yourself.", 'Invalid Member');
