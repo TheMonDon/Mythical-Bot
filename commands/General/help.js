@@ -1,5 +1,5 @@
 const Command = require('../../base/Command.js');
-const { EmbedBuilder, ActionRowBuilder, StringSelectMenuBuilder } = require('discord.js');
+const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder } = require('discord.js');
 
 class Help extends Command {
   constructor(client) {
@@ -74,8 +74,12 @@ class Help extends Command {
       sortedCategoriesArray.push(properCase);
     }
 
-    const itemsPerPage = 21;
+    const itemsPerPage = 10;
     let pageNumber = 1;
+
+    const em = new EmbedBuilder()
+      .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
+      .setColor(msg.settings.embedColor);
 
     const errorEmbed = new EmbedBuilder()
       .setColor('#FFA500')
@@ -104,7 +108,7 @@ class Help extends Command {
 
       const row = new ActionRowBuilder().addComponents(selectMenu);
 
-      await msg.channel.send({
+      const message = await msg.channel.send({
         embeds: [errorEmbed],
         components: [row],
       });
@@ -115,15 +119,13 @@ class Help extends Command {
         time: 60000,
       });
 
+      let currentButtonCollector = null;
+
       collector.on('collect', async (interaction) => {
         if (!interaction.isStringSelectMenu()) return;
         const selectedCategory = interaction.values[0];
 
         await interaction.deferUpdate();
-
-        const em = new EmbedBuilder()
-          .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
-          .setColor(msg.settings.embedColor);
 
         const commandsToShow = this.client.commands.filter(
           (cmd) =>
@@ -132,12 +134,14 @@ class Help extends Command {
 
         const commandsArray = Array.from(commandsToShow.values());
         const totalPages = Math.ceil(commandsArray.length / itemsPerPage);
-        const startIndex = (pageNumber - 1) * itemsPerPage;
-        const endIndex = startIndex + itemsPerPage;
+        let pageNumber = 1;
 
-        const commandsToDisplay = commandsArray.slice(startIndex, endIndex);
+        const updateEmbed = (pageNumber) => {
+          const startIndex = (pageNumber - 1) * itemsPerPage;
+          const endIndex = startIndex + itemsPerPage;
+          const commandsToDisplay = commandsArray.slice(startIndex, endIndex);
 
-        if (commandsToDisplay.length > 0) {
+          em.setFields([]);
           commandsToDisplay.forEach((c) => {
             em.addFields([
               {
@@ -160,24 +164,52 @@ class Help extends Command {
             });
           }
 
-          await interaction.editReply({
-            embeds: [em],
-            components: [row],
-          });
-        } else {
-          await interaction.editReply({
-            embeds: [errorEmbed],
-            components: [row],
-          });
+          const prevButton = new ButtonBuilder()
+            .setCustomId('prev_page')
+            .setLabel('Previous')
+            .setStyle(ButtonStyle.Primary)
+            .setDisabled(pageNumber === 1);
+          const nextButton = new ButtonBuilder()
+            .setCustomId('next_page')
+            .setLabel('Next')
+            .setStyle(ButtonStyle.Primary)
+            .setDisabled(pageNumber === totalPages || totalPages === 0);
+
+          const rowWithButtons = new ActionRowBuilder().addComponents(prevButton, nextButton);
+
+          return { embeds: [em], components: [row, rowWithButtons] };
+        };
+
+        await interaction.editReply(updateEmbed(pageNumber));
+
+        if (currentButtonCollector) {
+          currentButtonCollector.stop();
+          currentButtonCollector = null;
         }
+
+        currentButtonCollector = message.createMessageComponentCollector({
+          filter: (btnInteraction) => btnInteraction.user.id === msg.author.id,
+          time: 60000,
+        });
+
+        currentButtonCollector.on('collect', async (btnInteraction) => {
+          if (!btnInteraction.isButton()) return;
+          if (btnInteraction.customId === 'prev_page' && pageNumber > 1) {
+            pageNumber--;
+          } else if (btnInteraction.customId === 'next_page' && pageNumber < totalPages) {
+            pageNumber++;
+          }
+
+          await btnInteraction.update(updateEmbed(pageNumber));
+        });
+
+        currentButtonCollector.on('end', () => {
+          currentButtonCollector = null;
+        });
       });
 
       return;
     }
-
-    const em = new EmbedBuilder()
-      .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
-      .setColor(msg.settings.embedColor);
 
     const userInput = args.join(' ');
     let category = '';
@@ -243,6 +275,19 @@ class Help extends Command {
 
     const commandsToDisplay = commandsArray.slice(startIndex, endIndex);
 
+    const prevButton = new ButtonBuilder()
+      .setCustomId('prev_page')
+      .setLabel('Previous')
+      .setStyle(ButtonStyle.Primary)
+      .setDisabled(pageNumber === 1);
+    const nextButton = new ButtonBuilder()
+      .setCustomId('next_page')
+      .setLabel('Next')
+      .setStyle(ButtonStyle.Primary)
+      .setDisabled(pageNumber === totalPages || totalPages === 0);
+
+    const rowWithButtons = new ActionRowBuilder().addComponents(prevButton, nextButton);
+
     if (commandsToDisplay.length > 0) {
       commandsToDisplay.forEach((c) => {
         em.addFields([
@@ -266,7 +311,62 @@ class Help extends Command {
         });
       }
 
-      return msg.channel.send({ embeds: [em] });
+      const message = await msg.channel.send({ embeds: [em], components: [rowWithButtons] });
+
+      const buttonCollector = message.createMessageComponentCollector({
+        filter: (btnInteraction) => btnInteraction.user.id === msg.author.id,
+        time: 60000,
+      });
+
+      buttonCollector.on('collect', async (btnInteraction) => {
+        if (btnInteraction.customId === 'prev_page') {
+          pageNumber--;
+        } else if (btnInteraction.customId === 'next_page') {
+          pageNumber++;
+        }
+
+        const startIndex = (pageNumber - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        const commandsToDisplay = commandsArray.slice(startIndex, endIndex);
+
+        em.setFields([]);
+        commandsToDisplay.forEach((c) => {
+          em.addFields([
+            {
+              name: `**${msg.settings.prefix}${this.client.util.toProperCase(c.help.name)}**`,
+              value: `${c.help.description}`,
+              inline: true,
+            },
+          ]);
+        });
+
+        let displayedCategory = this.client.util.toProperCase(category);
+        if (displayedCategory === 'Nsfw') displayedCategory = 'NSFW';
+
+        const pageFooter = totalPages === 1 ? '' : `Page ${pageNumber}/${totalPages}`;
+        em.setTitle(`${displayedCategory} Commands`);
+
+        if (pageFooter) {
+          em.setFooter({
+            text: pageFooter,
+          });
+        }
+
+        const prevButton = new ButtonBuilder()
+          .setCustomId('prev_page')
+          .setLabel('Previous')
+          .setStyle(ButtonStyle.Primary)
+          .setDisabled(pageNumber === 1);
+        const nextButton = new ButtonBuilder()
+          .setCustomId('next_page')
+          .setLabel('Next')
+          .setStyle(ButtonStyle.Primary)
+          .setDisabled(pageNumber === totalPages);
+
+        const rowWithButtons = new ActionRowBuilder().addComponents(prevButton, nextButton);
+
+        await btnInteraction.update({ embeds: [em], components: [rowWithButtons] });
+      });
     } else {
       return msg.channel.send({ embeds: [errorEmbed] });
     }

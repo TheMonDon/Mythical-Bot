@@ -138,7 +138,7 @@ export async function run(client, oldMessage, newMessage) {
       }
     }
 
-    const globalBlacklisted = await db.get(`users.${newMessage.member.id}.blacklist`);
+    const globalBlacklisted = await db.get(`users.${newMessage.author.id}.blacklist`);
     if (globalBlacklisted) {
       return newMessage.channel.send(
         `Sorry ${newMessage.author.username}, you are currently blacklisted from using commands.`,

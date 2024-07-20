@@ -8,6 +8,7 @@ module.exports = class Deploy extends Command {
       category: 'Owner',
       permLevel: 'Bot Owner',
       usage: 'deploy',
+      guildOnly: true,
     });
   }
 

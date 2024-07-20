@@ -5,7 +5,7 @@ const db = new QuickDB();
 export async function run(client, interaction) {
   interaction.settings = client.getSettings(interaction.guild);
 
-  const globalBlacklisted = db.get(`users.${interaction.user.id}.blacklist`);
+  const globalBlacklisted = (await db.get(`users.${interaction.user.id}.blacklist`)) || false;
   if (globalBlacklisted) {
     const embed = new EmbedBuilder()
       .setTitle('Blacklisted')
@@ -16,7 +16,8 @@ export async function run(client, interaction) {
   }
 
   if (interaction.guild) {
-    const blacklisted = db.get(`servers.${interaction.guild.id}.users.${interaction.user.id}.blacklist`);
+    const blacklisted =
+      (await db.get(`servers.${interaction.guild.id}.users.${interaction.user.id}.blacklist`)) || false;
     if (blacklisted) {
       const embed = new EmbedBuilder()
         .setTitle('Blacklisted')
