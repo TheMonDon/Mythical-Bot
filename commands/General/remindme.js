@@ -73,10 +73,10 @@ class RemindMe extends Command {
     const originalMessage = await msg.channel.send({ embeds: [embed] }).catch(() => {});
 
     const obj = {
-      channelID: msg.channel.id || null,
+      channelID: msg.channel?.id || null,
       createdAt: now.getTime(),
       userID: msg.author.id,
-      guildID: msg.guild.id,
+      guildID: msg.guild?.id || null,
       reminder: message,
       triggerOn: start,
       originalMessage,
