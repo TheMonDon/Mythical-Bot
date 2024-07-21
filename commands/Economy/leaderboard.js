@@ -30,9 +30,9 @@ class Leaderboard extends Command {
       try {
         const user = await this.client.users.cache.get(userId);
         if (user) {
-          const cash = parseInt(usersData[userId]?.economy?.cash || 0, 10);
-          const bank = parseInt(usersData[userId]?.economy?.bank || 0, 10);
-          const money = BigInt(cash) + BigInt(bank);
+          const cash = BigInt(usersData[userId]?.economy?.cash || 0);
+          const bank = BigInt(usersData[userId]?.economy?.bank || 0);
+          const money = cash + bank;
           leaderboard.push({ user: user.tag, userId: user.id, money });
         }
       } catch (err) {

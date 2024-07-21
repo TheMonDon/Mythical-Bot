@@ -37,14 +37,11 @@ class Balance extends Command {
     if (!mem) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Member');
 
     const cash = BigInt(
-      parseInt(
-        (await db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`)) ||
-          (await db.get(`servers.${msg.guild.id}.economy.startBalance`)) ||
-          0,
-        10,
-      ),
+      (await db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`)) ||
+        (await db.get(`servers.${msg.guild.id}.economy.startBalance`)) ||
+        0,
     );
-    const bank = BigInt(parseInt((await db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`)) || 0, 10));
+    const bank = BigInt((await db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`)) || 0);
     const netWorth = cash + bank;
 
     const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
@@ -80,8 +77,8 @@ class Balance extends Command {
       try {
         const user = await this.client.users.cache.get(userId);
         if (user) {
-          const userCash = BigInt(parseInt(usersData[userId]?.economy?.cash || 0, 10));
-          const userBank = BigInt(parseInt(usersData[userId]?.economy?.bank || 0, 10));
+          const userCash = BigInt(usersData[userId]?.economy?.cash || 0);
+          const userBank = BigInt(usersData[userId]?.economy?.bank || 0);
           const userMoney = userCash + userBank;
           leaderboard.push({ user: user.tag, userId: user.id, money: userMoney });
         }
