@@ -31,23 +31,26 @@ class AddMoney extends Command {
 
     if (args.length === 2) {
       mem = await this.client.util.getMember(msg, args[0]);
-      amount = args[1].replace(/[^0-9\\.]/g, '');
+      amount = parseInt(args[1].replace(/[^0-9\\.]/g, ''));
     } else {
       mem = await this.client.util.getMember(msg, args[1]);
-      amount = args[2].replace(/[^0-9\\.]/g, '');
+      amount = parseInt(args[2].replace(/[^0-9\\.]/g, ''));
     }
 
     if (['cash', 'bank'].includes(args[0].toLowerCase())) {
       type = args[0].toLowerCase();
     }
 
-    if (isNaN(amount)) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Amount');
-    if (amount > 1000000000000)
+    if (isNaN(amount)) {
+      return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Amount');
+    }
+    if (amount > 1000000000000) {
       return this.client.util.errorEmbed(msg, `You can't add more than 1 Trillion to a member`, 'Invalid Amount');
+    }
     if (!mem) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Member');
     if (mem.user.bot) return this.client.util.errorEmbed(msg, "You can't add money to a bot.");
 
-    amount = BigInt(parseInt(amount));
+    amount = BigInt(amount);
     if (type === 'bank') {
       const bank = BigInt((await db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`)) || 0);
       const newAmount = bank + amount;
