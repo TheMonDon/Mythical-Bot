@@ -82,9 +82,17 @@ class Rob extends Command {
     const minRate = 20;
     const maxRate = 80;
 
-    const totalAmount = Number(memCash + authNet);
-    const failRate = Math.floor((Number(authNet) / totalAmount) * (maxRate - minRate + 1) + minRate);
+    let totalAmount = Number(memCash + authNet);
+    if (!Number.isFinite(totalAmount)) {
+      totalAmount = Number.MAX_SAFE_INTEGER;
+    }
 
+    let authNetAmount = Number(authNet);
+    if (!Number.isFinite(authNetAmount)) {
+      authNetAmount = Number.MAX_SAFE_INTEGER;
+    }
+
+    const failRate = Math.floor((authNetAmount / totalAmount) * (maxRate - minRate + 1) + minRate);
     const ranNum = Math.floor(Math.random() * 100);
 
     // Minimum fine is 10% of the amount of money the user has, maximum fine is 30% of the amount of money the user has
@@ -98,15 +106,6 @@ class Rob extends Command {
     const fineAmount = bigIntAbs((authNet / BigInt(100)) * randomFine);
 
     const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
-
-    if (failRate > BigInt(100)) {
-      embed
-        .setColor('#FFA500')
-        .setDescription(
-          'You networth is either too high, or the person you are trying to rob networth is too high. You cannot rob them.',
-        );
-      return msg.channel.send({ embeds: [embed] });
-    }
 
     if (ranNum <= failRate) {
       const newAmount = authCash - fineAmount;

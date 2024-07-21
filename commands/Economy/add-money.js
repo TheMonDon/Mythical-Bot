@@ -44,8 +44,8 @@ class AddMoney extends Command {
     if (isNaN(amount)) {
       return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Amount');
     }
-    if (amount > 1000000000000) {
-      return this.client.util.errorEmbed(msg, `You can't add more than 1 Trillion to a member`, 'Invalid Amount');
+    if (amount === Infinity) {
+      return this.client.util.errorEmbed(msg, "You can't add Infinity to a member", 'Invalid Amount');
     }
     if (!mem) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Member');
     if (mem.user.bot) return this.client.util.errorEmbed(msg, "You can't add money to a bot.");
