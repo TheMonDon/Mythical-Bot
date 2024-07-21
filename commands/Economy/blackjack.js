@@ -216,17 +216,23 @@ class BlackJack extends Command {
         const newAmount = cash + amount;
         await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAmount.toString());
 
-        return cardEmbed(`Result: You win ${currencySymbol}${amount.toLocaleString()}`);
+        let csAmount = currencySymbol + newAmount.toLocaleString();
+        csAmount = csAmount.length > 1024 ? csAmount.slice(0, 1021) + '...' : csAmount;
+        return cardEmbed(`Result: You win ${csAmount}`);
       } else if (blackjack) {
         const newAmount = cash + amount;
         await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAmount.toString());
 
-        return cardEmbed(`Result: BlackJack, you win ${currencySymbol}${amount.toLocaleString()}`);
+        let csAmount = currencySymbol + newAmount.toLocaleString();
+        csAmount = csAmount.length > 1024 ? csAmount.slice(0, 1021) + '...' : csAmount;
+        return cardEmbed(`Result: BlackJack, you win ${csAmount}`);
       } else if (bust) {
         const newAmount = cash - amount;
         await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAmount.toString());
 
-        return cardEmbed(`Result: Bust, you lose ${currencySymbol}${amount.toLocaleString()}`);
+        let csAmount = currencySymbol + newAmount.toLocaleString();
+        csAmount = csAmount.length > 1024 ? csAmount.slice(0, 1021) + '...' : csAmount;
+        return cardEmbed(`Result: Bust, you lose ${csAmount}`);
       } else if (push) {
         return cardEmbed('Result: Push, money back');
       }
