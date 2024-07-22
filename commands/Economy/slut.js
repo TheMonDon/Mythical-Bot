@@ -50,9 +50,6 @@ class Slut extends Command {
     const bank = BigInt((await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`)) || 0);
     const authNet = cash + bank;
 
-    const min = (await db.get(`servers.${msg.guild.id}.economy.${type}.min`)) || 500;
-    const max = (await db.get(`servers.${msg.guild.id}.economy.${type}.max`)) || 2000;
-
     // Get the min and max fine percentages
     const minFine = (await db.get(`servers.${msg.guild.id}.economy.${type}.fine.min`)) || 10;
     const maxFine = (await db.get(`servers.${msg.guild.id}.economy.${type}.fine.max`)) || 30;
@@ -75,9 +72,11 @@ class Slut extends Command {
     const crimeFail = require('../../resources/messages/slut_fail.json');
 
     if (ranNum < failRate) {
-      const csamount = currencySymbol + fineAmount.toLocaleString();
+      let csAmount = currencySymbol + fineAmount.toLocaleString();
+      csAmount = csAmount.length > 1024 ? csAmount.slice(0, 1021) + '...' : csAmount;
+
       const num = Math.floor(Math.random() * (crimeFail.length - 1)) + 1;
-      const txt = crimeFail[num].replace('csamount', csamount);
+      const txt = crimeFail[num].replace('csamount', csAmount);
 
       embed.setDescription(txt).setFooter({ text: `Reply #${num.toLocaleString()}` });
       msg.channel.send({ embeds: [embed] });
@@ -85,11 +84,16 @@ class Slut extends Command {
       const newAmount = cash - fineAmount;
       await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAmount.toString());
     } else {
-      const amount = BigInt(Math.abs(Math.floor(Math.random() * (max - min + 1) + min)));
-      const csamount = currencySymbol + amount.toLocaleString();
+      const min = Number(await db.get(`servers.${msg.guild.id}.economy.${type}.min`)) || 500;
+      const max = Number(await db.get(`servers.${msg.guild.id}.economy.${type}.max`)) || 2000;
+
+      const amount = BigInt(Math.floor(Math.random() * (max - min + 1) + min));
+
+      let csAmount = currencySymbol + amount.toLocaleString();
+      csAmount = csAmount.length > 1024 ? csAmount.slice(0, 1021) + '...' : csAmount;
 
       const num = Math.floor(Math.random() * (crimeSuccess.length - 1)) + 1;
-      const txt = crimeSuccess[num].replace('csamount', csamount);
+      const txt = crimeSuccess[num].replace('csamount', csAmount);
 
       embed
         .setDescription(txt)

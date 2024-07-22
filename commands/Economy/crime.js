@@ -52,12 +52,12 @@ class Crime extends Command {
     const authNet = cash + bank;
 
     // Get the min and max amounts of money the user can get
-    const min = (await db.get(`servers.${msg.guild.id}.economy.${type}.min`)) || 500;
-    const max = (await db.get(`servers.${msg.guild.id}.economy.${type}.max`)) || 2000;
+    const min = Number(await db.get(`servers.${msg.guild.id}.economy.${type}.min`)) || 500;
+    const max = Number(await db.get(`servers.${msg.guild.id}.economy.${type}.max`)) || 2000;
 
     // Get the min and max fine percentages
-    const minFine = (await db.get(`servers.${msg.guild.id}.economy.${type}.fine.min`)) || 10;
-    const maxFine = (await db.get(`servers.${msg.guild.id}.economy.${type}.fine.max`)) || 30;
+    const minFine = Number(await db.get(`servers.${msg.guild.id}.economy.${type}.fine.min`)) || 10;
+    const maxFine = Number(await db.get(`servers.${msg.guild.id}.economy.${type}.fine.max`)) || 30;
 
     // randomFine is a random number between the minimum and maximum fail rate
     const randomFine = BigInt(Math.abs(Math.round(Math.random() * (maxFine - minFine + 1) + minFine)));
