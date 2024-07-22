@@ -79,12 +79,8 @@ exports.run = async (interaction) => {
     const currencySymbol = (await db.get(`servers.${interaction.guild.id}.economy.symbol`)) || '$';
 
     if (isNaN(amount)) return interaction.client.util.errorEmbed(interaction, 'Incorrect Usage');
-    if (amount > 1000000000000)
-      return interaction.client.util.errorEmbed(
-        interaction,
-        `You can't add more than 1 Trillion to a role.`,
-        'Invalid Amount',
-      );
+    if (amount === Infinity)
+      return interaction.client.util.errorEmbed(interaction, "You can't add Infinity to a member", 'Invalid Amount');
 
     const members = [...role.members.values()];
 

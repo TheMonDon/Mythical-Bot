@@ -110,10 +110,6 @@ class Bot extends Client {
     client.on(eventName, (...args) => eventModule.run(client, ...args));
   }
 
-  async unloadEvent(_eventPath, _eventName) {
-    // Code here
-  }
-
   /* SETTINGS FUNCTIONS
   These functions are used by any and all location in the bot that wants to either
   read the current *complete* guild settings (default + overrides, merged) or that
