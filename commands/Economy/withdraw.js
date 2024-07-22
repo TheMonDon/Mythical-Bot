@@ -36,7 +36,7 @@ class Withdraw extends Command {
         const newAmount = bank + cash;
         await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAmount.toString());
 
-        embed.setColor('#04ACF4').setDescription(`Withdrew ${currencySymbol}${csBankAmount} from your bank!`);
+        embed.setColor('#04ACF4').setDescription(`Withdrew ${csBankAmount} from your bank!`);
         return msg.channel.send({ embeds: [embed] });
       } else {
         return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Incorrect Usage');
