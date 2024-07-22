@@ -1,7 +1,7 @@
-const chalk = require('chalk');
-const moment = require('moment');
-const { botLogsWebhookURL } = require('../config.js');
 const { WebhookClient, EmbedBuilder } = require('discord.js');
+const { botLogsWebhookURL } = require('../config.js');
+const moment = require('moment');
+const chalk = require('chalk');
 
 function log(content, type = 'log') {
   const timestamp = `[${moment().format('YYYY-MM-DD HH:mm:ss')}]:`;
