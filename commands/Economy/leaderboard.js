@@ -43,7 +43,7 @@ class Leaderboard extends Command {
     const sortedLeaderboard = leaderboard
       .sort((a, b) => (b.money > a.money ? 1 : -1))
       .map((c, index) => {
-        let moneyStr = `${Math.abs(Number(c.money)).toLocaleString()}`;
+        let moneyStr = `${c.money.toLocaleString()}`;
         if (moneyStr.length > 150) {
           moneyStr = moneyStr.slice(0, 147) + '...';
         }
