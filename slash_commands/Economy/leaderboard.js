@@ -50,9 +50,7 @@ exports.run = async (interaction) => {
   const sortedLeaderboard = leaderboard
     .sort((a, b) => (b.money > a.money ? 1 : -1))
     .map((c, index) => {
-      const bigMoney = BigInt(c.money);
-      const money = bigMoney < 0n ? -bigMoney : bigMoney;
-      let moneyStr = `${money.toLocaleString()}`;
+      let moneyStr = `${Math.abs(Number(c.money)).toLocaleString()}`;
       if (moneyStr.length > 150) {
         moneyStr = moneyStr.slice(0, 147) + '...';
       }
