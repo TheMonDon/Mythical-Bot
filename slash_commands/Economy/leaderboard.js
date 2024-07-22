@@ -36,8 +36,8 @@ exports.run = async (interaction) => {
     try {
       const user = await interaction.client.users.fetch(userId);
       if (user) {
-        const cash = BigInt(parseInt(usersData[userId].economy.cash || 0, 10));
-        const bank = BigInt(parseInt(usersData[userId].economy.bank || 0, 10));
+        const cash = BigInt(usersData[userId].economy.cash || 0);
+        const bank = BigInt(usersData[userId].economy.bank || 0);
         const money = cash + bank;
         leaderboard.push({ user: user.tag, userId: user.id, money });
       }
@@ -50,7 +50,10 @@ exports.run = async (interaction) => {
   const sortedLeaderboard = leaderboard
     .sort((a, b) => (b.money > a.money ? 1 : -1))
     .map((c, index) => {
-      let moneyStr = `${Math.abs(Number(c.money)).toLocaleString()}`;
+      const bigMoney = BigInt(c.money);
+      const neg = bigMoney < 0n;
+      const money = neg ? -bigMoney : bigMoney;
+      let moneyStr = `${money.toLocaleString()}`;
       if (moneyStr.length > 150) {
         moneyStr = moneyStr.slice(0, 147) + '...';
       }
@@ -58,7 +61,7 @@ exports.run = async (interaction) => {
         rank: index + 1,
         user: c.user,
         userId: c.userId,
-        display: `**${index + 1}.** ${c.user}: ${c.money < 0n ? '-' : ''}${currencySymbol}${moneyStr}`,
+        display: `**${index + 1}.** ${c.user}: ${bigMoney < 0n ? '-' : ''}${currencySymbol}${moneyStr}`,
       };
     });
 

@@ -28,7 +28,7 @@ class Leaderboard extends Command {
 
     for (const userId in usersData) {
       try {
-        const user = await this.client.users.cache.get(userId);
+        const user = await this.client.users.fetch(userId);
         if (user) {
           const cash = BigInt(usersData[userId]?.economy?.cash || 0);
           const bank = BigInt(usersData[userId]?.economy?.bank || 0);
@@ -43,7 +43,10 @@ class Leaderboard extends Command {
     const sortedLeaderboard = leaderboard
       .sort((a, b) => (b.money > a.money ? 1 : -1))
       .map((c, index) => {
-        let moneyStr = `${c.money.toLocaleString()}`;
+        const bigMoney = BigInt(c.money);
+        const neg = bigMoney < 0n;
+        const money = neg ? -bigMoney : bigMoney;
+        let moneyStr = `${money.toLocaleString()}`;
         if (moneyStr.length > 150) {
           moneyStr = moneyStr.slice(0, 147) + '...';
         }
@@ -51,7 +54,7 @@ class Leaderboard extends Command {
           rank: index + 1,
           user: c.user,
           userId: c.userId,
-          display: `**${index + 1}.** ${c.user}: ${c.money < 0n ? '-' : ''}${currencySymbol}${moneyStr}`,
+          display: `**${index + 1}.** ${c.user}: ${bigMoney < 0n ? '-' : ''}${currencySymbol}${moneyStr}`,
         };
       });
 
