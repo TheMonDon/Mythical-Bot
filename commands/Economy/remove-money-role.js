@@ -11,13 +11,13 @@ class RemoveMoneyRole extends Command {
       description:
         "Remove money from a roles members cash or bank balance. \nIf the cash or bank argument isn't given, it will be removed from the cash part.",
       usage: 'remove-money-role [cash | bank] <role> <amount>',
-      aliases: ['removemoneyrole', 'removebalrole'],
-      permLevel: 'Moderator',
+      aliases: ['removemoneyrole', 'removebalrole', 'rmrole'],
+      permLevel: 'Administrator',
       requiredArgs: 2,
       examples: [
         'remove-money-role cash Admin 100',
         'remove-money-role bank @memberRole1 420',
-        'remove-money Owner 100',
+        'remove-money-role Owner 100',
       ],
       guildOnly: true,
     });

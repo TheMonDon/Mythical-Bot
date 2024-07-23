@@ -13,7 +13,7 @@ class AddMoneyRole extends Command {
         "Add money to a role's members cash or bank balance. \nIf the cash or bank argument isn't given, it will be added to the cash part.",
       usage: 'add-money-role [cash | bank] <role> <amount>',
       aliases: ['addmoneyrole', 'addbalrole'],
-      permLevel: 'Moderator',
+      permLevel: 'Administrator',
       guildOnly: true,
       requiredArgs: 2,
     });

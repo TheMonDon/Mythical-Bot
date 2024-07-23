@@ -32,14 +32,10 @@ class ResetMoney extends Command {
         return msg.channel.send('Cancelled, your money will not be reset.');
       }
     } else {
-      if (level < this.client.levelCache.Moderator) {
-        if (this.client.settings.systemNotice === 'true') {
-          return msg.channel.send(`You do not have permission to use this command.
+      if (level < this.client.levelCache.Administrator) {
+        return msg.channel.send(`You do not have permission to use this command.
 Your permission level is ${level} (${this.client.config.permLevels.find((l) => l.level === level).name})
-This command requires level ${this.client.levelCache.Moderator} (Moderator)`);
-        } else {
-          return;
-        }
+This command requires level ${this.client.levelCache.Administrator} (Administrator)`);
       }
 
       let mem = await this.client.util.getMember(msg, args.join(' '));

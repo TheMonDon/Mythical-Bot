@@ -12,7 +12,7 @@ class SetFailRate extends Command {
       description: 'Sets the fail rate of economy commands',
       usage: 'set-fail-rate <crime | slut> <percentage>',
       aliases: ['setfailrate', 'setfail'],
-      permLevel: 'Moderator',
+      permLevel: 'Administrator',
       guildOnly: true,
     });
   }

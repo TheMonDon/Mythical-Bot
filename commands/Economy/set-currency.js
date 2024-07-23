@@ -10,7 +10,7 @@ class SetCurrency extends Command {
       description: 'Sets the currency symbol',
       usage: 'set-currency <currency symbol>',
       aliases: ['setcurrency'],
-      permLevel: 'Moderator',
+      permLevel: 'Administrator',
       guildOnly: true,
     });
   }

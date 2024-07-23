@@ -11,7 +11,7 @@ class CleanLeaderboard extends Command {
       description: 'Clean the leaderboard of users no longer in the guild.',
       usage: 'clean-leaderboard',
       aliases: ['cl', 'cleanleaderboard', 'clean-lb'],
-      permLevel: 'Moderator',
+      permLevel: 'Administrator',
       guildOnly: true,
     });
   }

@@ -13,16 +13,13 @@ class SetPayout extends Command {
       usage: 'set-payout <work | crime | slut | chat> <min | max> <amount>',
       aliases: ['setpayout'],
       examples: ['set-payout work min 100', 'set-payout crime max 170000'],
+      permLevel: 'Administrator',
       guildOnly: true,
     });
   }
 
   async run(msg, args) {
     const types = ['work', 'crime', 'slut', 'chat'];
-
-    if (!msg.member.permissions.has('ManageMessages'))
-      return msg.channel.send('You are missing **Manage Guild** permission.');
-
     const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
 
     const workMin = (await db.get(`servers.${msg.guild.id}.economy.work.min`)) || 50;
@@ -38,7 +35,7 @@ class SetPayout extends Command {
       .setColor(msg.settings.embedErrorColor)
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() });
 
-    if (!args|| args.length < 1) {
+    if (!args || args.length < 1) {
       embed.setColor('#04ACF4').setDescription(stripIndents`
           The current payout ranges are: 
         

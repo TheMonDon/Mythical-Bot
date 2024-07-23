@@ -12,7 +12,7 @@ class RemoveMoney extends Command {
         "Remove money from a users's cash or bank balance. \nIf the cash or bank argument isn't given, it will be removed from the cash part.",
       usage: 'remove-money [cash | bank] <member> <amount>',
       aliases: ['removemoney', 'removebal'],
-      permLevel: 'Moderator',
+      permLevel: 'Administrator',
       examples: ['remove-money cash @TheMonDon 1', 'remove-money themondon 1'],
       requiredArgs: 2,
       guildOnly: true,

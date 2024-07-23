@@ -14,11 +14,12 @@ class SetCooldown extends Command {
       usage: 'set-cooldown <work | rob | crime | slut | chat> <cooldown>',
       aliases: ['setcooldown'],
       examples: ['set-cooldown work 30 seconds', 'set-cooldown work 2 weeks'],
+      permLevel: 'Administrator',
       guildOnly: true,
     });
   }
 
-  async run(msg, args) {
+  async run(msg, args, level) {
     let type;
     const types = ['rob', 'work', 'crime', 'slut', 'chat'];
 
@@ -42,8 +43,6 @@ class SetCooldown extends Command {
       \`Crime\`  - ${crimeCooldown} seconds
       \`Slut\`   - ${slutCooldown} seconds
       \`Chat\`   - ${chatCooldown} seconds
-
-      Manage Guild is required to change values.
       
       Usage: ${msg.settings.prefix + this.help.usage}
       Examples: ${this.help.examples.join('\n')}
@@ -52,8 +51,9 @@ class SetCooldown extends Command {
       return msg.channel.send({ embeds: [embed] });
     } else {
       type = args[0].toLowerCase();
-      if (!types.includes(type))
+      if (!types.includes(type)) {
         return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Incorrect Usage');
+      }
     }
 
     args.shift();
