@@ -77,8 +77,8 @@ exports.run = async (interaction) => {
     ? `Your leaderboard rank: ${getOrdinalSuffix(userRank.rank)}`
     : 'You are not on the leaderboard';
 
-  let realPage = page;
   const maxPages = Math.ceil((sortedLeaderboard.length + 1) / 10);
+  let realPage = Math.max(1, Math.min(page, maxPages));
   let displayedLeaderboard = sortedLeaderboard.slice((page - 1) * 10, page * 10);
 
   // Create the pages
@@ -94,7 +94,7 @@ exports.run = async (interaction) => {
 
   const embed = new EmbedBuilder()
     .setColor(interaction.settings.embedColor)
-    .setTitle(`${interaction.guild.name}'s Leaderboard`)
+    .setTitle(`${interaction.guild.name} Leaderboard`)
     .setAuthor({ name: interaction.user.tag, iconURL: interaction.user.displayAvatarURL() })
     .setDescription(`${displayedLeaderboard.map((entry) => entry.display).join('\n') || 'None'}`)
     .setFooter({ text: `Page ${realPage} / ${maxPages} • ${userRankDisplay}` })
@@ -133,7 +133,7 @@ exports.run = async (interaction) => {
 
     const updatedEmbed = new EmbedBuilder()
       .setColor(interaction.settings.embedColor)
-      .setTitle(`${interaction.guild.name}'s Leaderboard`)
+      .setTitle(`${interaction.guild.name} Leaderboard`)
       .setAuthor({ name: interaction.user.tag, iconURL: interaction.user.displayAvatarURL() })
       .setDescription(`${displayedLeaderboard.map((entry) => entry.display).join('\n') || 'None'}`)
       .setFooter({ text: `Page ${realPage} / ${maxPages} • ${userRankDisplay}` })

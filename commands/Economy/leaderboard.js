@@ -69,12 +69,14 @@ class Leaderboard extends Command {
       ? `Your leaderboard rank: ${getOrdinalSuffix(userRank.rank)}`
       : 'You are not on the leaderboard';
 
-    let displayedLeaderboard = sortedLeaderboard.slice((page - 1) * 10, page * 10);
     const maxPages = Math.ceil(sortedLeaderboard.length / 10);
+    // Ensure page is within valid range
+    page = Math.max(1, Math.min(page, maxPages));
+    let displayedLeaderboard = sortedLeaderboard.slice((page - 1) * 10, page * 10);
 
     const embed = new EmbedBuilder()
       .setColor(msg.settings.embedColor)
-      .setTitle(`${msg.guild.name}'s Leaderboard`)
+      .setTitle(`${msg.guild.name} Leaderboard`)
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
       .setDescription(`${displayedLeaderboard.map((entry) => entry.display).join('\n') || 'None'}`)
       .setFooter({ text: `Page ${page} / ${maxPages} • ${userRankDisplay}` })
@@ -109,7 +111,7 @@ class Leaderboard extends Command {
 
       const updatedEmbed = new EmbedBuilder()
         .setColor(msg.settings.embedColor)
-        .setTitle(`${msg.guild.name}'s Leaderboard`)
+        .setTitle(`${msg.guild.name} Leaderboard`)
         .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
         .setDescription(`${displayedLeaderboard.map((entry) => entry.display).join('\n') || 'None'}`)
         .setFooter({ text: `Page ${page} / ${maxPages} • ${userRankDisplay}` })
