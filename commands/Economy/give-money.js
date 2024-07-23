@@ -32,11 +32,10 @@ class GiveMoney extends Command {
     }
 
     const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
-    const authCash = BigInt(
-      (await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`)) ||
-        (await db.get(`servers.${msg.guild.id}.economy.startBalance`)) ||
-        0,
-    );
+    const cashValue = await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`);
+    const startBalance = BigInt((await db.get(`servers.${msg.guild.id}.economy.startBalance`)) || 0);
+
+    const authCash = cashValue === undefined ? startBalance : BigInt(cashValue);
 
     let amount = args[1].replace(/,/g, '').replace(currencySymbol, '');
 

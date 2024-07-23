@@ -21,11 +21,11 @@ class Deposit extends Command {
     let amount = args.join(' ');
     const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
 
-    const cash = BigInt(
-      (await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`)) ||
-        (await db.get(`servers.${msg.guild.id}.economy.startBalance`)) ||
-        0,
-    );
+    const cashValue = await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`);
+    const startBalance = BigInt((await db.get(`servers.${msg.guild.id}.economy.startBalance`)) || 0);
+
+    const cash = cashValue === undefined ? startBalance : BigInt(cashValue);
+
     const bank = BigInt((await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`)) || 0);
 
     const embed = new EmbedBuilder()

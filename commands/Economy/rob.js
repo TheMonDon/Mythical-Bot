@@ -62,11 +62,11 @@ class Rob extends Command {
     if (!mem) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Member');
     if (mem.id === msg.author.id) return this.client.util.errorEmbed(msg, "You can't rob yourself.", 'Invalid Member');
 
-    const authCash = BigInt(
-      (await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`)) ||
-        (await db.get(`servers.${msg.guild.id}.economy.startBalance`)) ||
-        0,
-    );
+    const cashValue = await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`);
+    const startBalance = BigInt((await db.get(`servers.${msg.guild.id}.economy.startBalance`)) || 0);
+
+    const authCash = cashValue === undefined ? startBalance : BigInt(cashValue);
+
     const authBank = BigInt((await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`)) || 0);
     const authNet = authCash + authBank;
 

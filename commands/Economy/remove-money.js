@@ -54,11 +54,11 @@ class RemoveMoney extends Command {
       const newAmount = bank - amount;
       await db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`, newAmount.toString());
     } else {
-      const cash = BigInt(
-        (await db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`)) ||
-          (await db.get(`servers.${msg.guild.id}.economy.startBalance`)) ||
-          0,
-      );
+      const cashValue = await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`);
+      const startBalance = BigInt((await db.get(`servers.${msg.guild.id}.economy.startBalance`)) || 0);
+
+      const cash = cashValue === undefined ? startBalance : BigInt(cashValue);
+
       const newAmount = cash - amount;
       await db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, newAmount.toString());
     }

@@ -25,12 +25,15 @@ class Setup extends Command {
       const filter = (m) => m.author.id === msg.author.id;
       const filter2 = (m) => ['y', 'yes', 'n', 'no'].includes(m.content.toLowerCase()) && m.author.id === msg.author.id;
 
-      if (!msg.guild.members.me.permissions.has('ManageChannels'))
+      if (!msg.guild.members.me.permissions.has('ManageChannels')) {
         return msg.reply('The bot is missing manage channels permission.');
-      if (!msg.guild.members.me.permissions.has('ManageRoles'))
+      }
+      if (!msg.guild.members.me.permissions.has('ManageRoles')) {
         return msg.reply('The bot is missing manage roles permission');
-      if (!msg.guild.members.me.permissions.has('ManageMessages'))
+      }
+      if (!msg.guild.members.me.permissions.has('ManageMessages')) {
         return msg.reply('The bot is missing manage messages permission');
+      }
 
       // Check if the system is setup already
       if (await db.get(`servers.${msg.guild.id}.tickets`)) {
@@ -46,8 +49,11 @@ class Setup extends Command {
           `);
 
           const collected = await this.client.util.verify(msg.channel, msg.author);
-          if (!collected) return collected.first().reply('Got it! Nothing has been changed.');
-          else await db.delete(`servers.${msg.guild.id}.tickets`);
+          if (!collected) {
+            return collected.first().reply('Got it! Nothing has been changed.');
+          } else {
+            await db.delete(`servers.${msg.guild.id}.tickets`);
+          }
         }
       }
 

@@ -55,11 +55,10 @@ class Work extends Command {
     userCooldown.active = true;
     await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.work.cooldown`, userCooldown);
 
-    const oldBalance = BigInt(
-      (await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`)) ||
-        (await db.get(`servers.${msg.guild.id}.economy.startBalance`)) ||
-        0,
-    );
+    const cashValue = await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`);
+    const startBalance = BigInt((await db.get(`servers.${msg.guild.id}.economy.startBalance`)) || 0);
+
+    const oldBalance = cashValue === undefined ? startBalance : BigInt(cashValue);
 
     const newBalance = oldBalance + BigInt(amount);
     await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newBalance.toString());
