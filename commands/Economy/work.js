@@ -57,7 +57,6 @@ class Work extends Command {
 
     const cashValue = await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`);
     const startBalance = BigInt((await db.get(`servers.${msg.guild.id}.economy.startBalance`)) || 0);
-
     const oldBalance = cashValue === undefined ? startBalance : BigInt(cashValue);
 
     const newBalance = oldBalance + BigInt(amount);

@@ -38,7 +38,6 @@ class Balance extends Command {
 
     const cashValue = await db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`);
     const startBalance = BigInt((await db.get(`servers.${msg.guild.id}.economy.startBalance`)) || 0);
-
     const cash = cashValue === undefined ? startBalance : BigInt(cashValue);
 
     const bank = BigInt((await db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`)) || 0);
