@@ -96,8 +96,8 @@ class Rob extends Command {
     const ranNum = Math.floor(Math.random() * 100);
 
     // Minimum fine is 10% of the amount of money the user has, maximum fine is 30% of the amount of money the user has
-    const minFine = (await db.get(`servers.${msg.guild.id}.economy.crime.fine.min`)) || 10;
-    const maxFine = (await db.get(`servers.${msg.guild.id}.economy.crime.fine.max`)) || 30;
+    const minFine = (await db.get(`servers.${msg.guild.id}.economy.rob.fine.min`)) || 10;
+    const maxFine = (await db.get(`servers.${msg.guild.id}.economy.rob.fine.max`)) || 30;
 
     // randomFine is a random number between 10 and 30
     const randomFine = BigInt(Math.round(Math.random() * (maxFine - minFine + 1) + minFine));
