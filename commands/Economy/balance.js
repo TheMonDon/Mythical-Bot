@@ -36,7 +36,7 @@ class Balance extends Command {
 
     if (!mem) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Member');
 
-    const cashValue = await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`);
+    const cashValue = await db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`);
     const startBalance = BigInt((await db.get(`servers.${msg.guild.id}.economy.startBalance`)) || 0);
 
     const cash = cashValue === undefined ? startBalance : BigInt(cashValue);
