@@ -30,7 +30,7 @@ class CreateItem extends Command {
       .setTimestamp();
 
     // Find the item in the store regardless of case
-    const item = Object.keys(store).find((key) => key.toLowerCase() === name);
+    const item = Object.keys(store).find((key) => key.toLowerCase() === name.toLowerCase());
     if (item) {
       const noItemEmbed = new EmbedBuilder()
         .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
@@ -40,51 +40,79 @@ class CreateItem extends Command {
       return msg.channel.send({ embeds: [noItemEmbed] });
     }
 
+    let cost;
+    let collected;
+    let isValid = false;
+
     const message = await msg.channel.send({ content: 'What would you like the price to be?', embeds: [embed] });
 
-    let collected = await msg.channel
-      .awaitMessages({
-        filter,
-        max: 1,
-        time: 60000,
-        errors: ['time'],
-      })
-      .catch(() => null);
-    if (!collected) return msg.reply('You did not reply in time, the command has been cancelled.');
-    if (collected.first().content.toLowerCase() === 'cancel') return msg.reply('The command has been cancelled.');
+    while (!isValid) {
+      collected = await msg.channel
+        .awaitMessages({
+          filter,
+          max: 1,
+          time: 60000,
+          errors: ['time'],
+        })
+        .catch(() => null);
+      if (!collected) return msg.reply('You did not reply in time, the command has been cancelled.');
+      if (collected.first().content.toLowerCase() === 'cancel') return msg.reply('The command has been cancelled.');
 
-    let cost = parseInt(
-      collected
-        .first()
-        .content.toLowerCase()
-        .replace(/[^0-9\\.]/g, ''),
-    );
-    if (isNaN(cost)) return msg.reply('The cost must be a number. Command has been cancelled.');
-    if (cost === Infinity) {
-      msg.reply(`The cost must be less than Infinity. The cost has been set to ${Number.MAX_VALUE.toLocaleString()}.`);
-      cost = Number.MAX_VALUE;
-    }
-    if (cost < 0) {
-      msg.reply('The cost must be at least zero, therefore the cost has been set to zero.');
-      cost = 0;
+      cost = parseInt(
+        collected
+          .first()
+          .content.toLowerCase()
+          .replace(/[^0-9\\.]/g, ''),
+      );
+
+      if (isNaN(cost)) {
+        await collected
+          .first()
+          .reply('The cost must be a valid number. Please enter the cost again or type `cancel` to exit.');
+      } else if (cost === Infinity) {
+        await collected.first().reply(`The cost must be less than ${BigInt(Number.MAX_VALUE.toLocaleString())}.`);
+      } else if (cost < 0) {
+        await msg.reply('The cost must be at least zero. Please enter a valid cost.');
+      } else {
+        isValid = true;
+      }
     }
 
     const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
     embed.addFields([{ name: 'Cost', value: currencySymbol + cost.toLocaleString(), inline: true }]);
+    await message.edit({
+      content: 'What would you like the description to be? \nThis should be no more than 1000 characters',
+      embeds: [embed],
+    });
 
-    await message.edit({ content: 'What would you like the description to be?', embeds: [embed] });
-    collected = await msg.channel
-      .awaitMessages({
-        filter,
-        max: 1,
-        time: 60000,
-        errors: ['time'],
-      })
-      .catch(() => null);
-    if (!collected) return msg.reply('You did not reply in time, the command has been cancelled.');
-    if (collected.first().content.toLowerCase() === 'cancel') return msg.reply('The command has been cancelled.');
+    isValid = false;
+    let description;
 
-    const description = collected.first().content.slice(0, 1024);
+    while (!isValid) {
+      collected = await msg.channel
+        .awaitMessages({
+          filter,
+          max: 1,
+          time: 60000,
+          errors: ['time'],
+        })
+        .catch(() => null);
+      if (!collected) return msg.reply('You did not reply in time, the command has been cancelled.');
+      if (collected.first().content.toLowerCase() === 'cancel')
+        return collected.first().reply('The command has been cancelled.');
+
+      description = collected.first().content;
+      if (description.length > 1000) {
+        collected
+          .first()
+          .reply(
+            'The description must be less than 1024 characters. Please try again or use `cancel` to cancel the command',
+          );
+      } else {
+        isValid = true;
+      }
+    }
+
     embed.addFields([{ name: 'Description', value: description, inline: true }]);
 
     store[name] = {
