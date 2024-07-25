@@ -16,6 +16,7 @@ class Help extends Command {
   async run(msg, args, level) {
     const baseCategories = [
       'economy',
+      'items',
       'fun',
       'games',
       'general',
