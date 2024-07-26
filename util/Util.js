@@ -1,5 +1,21 @@
-const yes = ['yes', 'y', 'ye', 'yeah', 'yup', 'yea', 'ya', 'correct', 'sure', 'hell yeah', 'ok', 'okay', 'si', 'evet'];
-const no = ['no', 'n', 'nah', 'nope', 'fuck off', 'nada', 'cancel', 'stop', 'nuh uh', 'nu', 'fuck no'];
+const yes = [
+  'yes',
+  'y',
+  'ye',
+  'yeah',
+  'yup',
+  'yea',
+  'ya',
+  'correct',
+  'sure',
+  'hell yeah',
+  'ok',
+  'okay',
+  'si',
+  'evet',
+  'true',
+];
+const no = ['no', 'n', 'nah', 'nope', 'fuck off', 'nada', 'cancel', 'stop', 'nuh uh', 'nu', 'fuck no', 'false'];
 const botInvRegex = /(https?:\/\/)?(www\.|canary\.|ptb\.)?discord(app)?\.com\/(api\/)?oauth2\/authorize\?([^ ]+)\/?/gi;
 const inviteRegex = /(https?:\/\/)?(www\.|canary\.|ptb\.)?discord(\.gg|(app)?\.com\/invite|\.me)\/([^ ]+)\/?/gi;
 
@@ -372,6 +388,8 @@ function errorEmbed(context, desc = 'An error has ocurred.', title = 'Error') {
 }
 
 module.exports = {
+  yes,
+  no,
   list,
   verify,
   toProperCase,

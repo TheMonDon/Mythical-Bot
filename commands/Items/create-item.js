@@ -46,7 +46,7 @@ class CreateItem extends Command {
     let collected;
     let isValid = false;
 
-    const message = await msg.channel.send({ content: 'What would you like the price to be?', embeds: [embed] });
+    const message = await msg.channel.send({ content: '1️⃣ What would you like the price to be?', embeds: [embed] });
 
     while (!isValid) {
       collected = await msg.channel
@@ -87,7 +87,7 @@ class CreateItem extends Command {
     const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
     embed.addFields([{ name: 'Cost', value: currencySymbol + cost.toLocaleString(), inline: true }]);
     await message.edit({
-      content: 'What would you like the description to be? \nThis should be no more than 1000 characters',
+      content: '2️⃣ What would you like the description to be? \nThis should be no more than 1000 characters',
       embeds: [embed],
     });
 
@@ -104,7 +104,9 @@ class CreateItem extends Command {
         })
         .catch(() => null);
       if (!collected) return msg.reply('You did not reply in time, the command has been cancelled.');
-      if (collected.first().content.toLowerCase() === 'cancel') {
+
+      const response = collected.first().content.toLowerCase();
+      if (response === 'cancel') {
         return collected.first().reply('The command has been cancelled.');
       }
 
@@ -119,10 +121,10 @@ class CreateItem extends Command {
         isValid = true;
       }
     }
-    embed.addFields([{ name: 'Description', value: description, inline: true }]);
+    embed.addFields([{ name: 'Description', value: description, inline: false }]);
 
     await message.edit({
-      content: 'Would you like this item to show up in inventory? (yes/no)',
+      content: '3️⃣ Would you like this item to show up in inventory? (yes/no)',
       embeds: [embed],
     });
 
@@ -141,14 +143,16 @@ class CreateItem extends Command {
       if (!collected) {
         return msg.reply('You did not reply in time, the command has been cancelled.');
       }
-      if (collected.first().content.toLowerCase() === 'cancel') {
+
+      const response = collected.first().content.toLowerCase();
+      if (response === 'cancel') {
         return collected.first().reply('The command has been cancelled.');
       }
 
-      if (!['yes', 'no', 'y', 'n'].includes(collected.first().content.toLowerCase())) {
+      if (!this.client.util.no.includes(response) && !this.client.util.yes.includes(response)) {
         await collected.first().reply('Please answer with either a `yes` or a `no`.');
       } else {
-        if (['yes', 'y'].includes(collected.first().content.toLowerCase())) {
+        if (['yes', 'y', 'true'].includes(response)) {
           inventory = true;
           isValid = true;
         } else {
@@ -161,7 +165,104 @@ class CreateItem extends Command {
 
     await message.edit({
       content:
-        'What message do you want the bot to reply with, when the item is bought (or used if an inventory item)? \nYou can use the Member and Server tags from https://unbelievaboat.com/tags in this message. \nType `skip` to skip.',
+        '4️⃣ What role must the user already have in order to buy (and use if an inventory item) this item? \nIf none, just reply `skip`.',
+      embeds: [embed],
+    });
+
+    isValid = false;
+    let roleRequired;
+
+    while (!isValid) {
+      collected = await msg.channel
+        .awaitMessages({
+          filter,
+          max: 1,
+          time: 60000,
+          errors: ['time'],
+        })
+        .catch(() => null);
+      if (!collected) {
+        return msg.reply('You did not reply in time, the command has been cancelled.');
+      }
+
+      const response = collected.first().content.toLowerCase();
+      if (response === 'cancel') {
+        return collected.first().reply('The command has been cancelled.');
+      }
+      if (response === 'skip') {
+        roleRequired = null;
+        isValid = true;
+        break;
+      }
+
+      roleRequired = this.client.util.getRole(msg, collected.first().content);
+
+      if (!roleRequired) {
+        collected.first().reply('Please reply with a valid server role.');
+      } else {
+        roleRequired = roleRequired.id;
+        isValid = true;
+      }
+    }
+    embed.addFields([
+      {
+        name: 'Role Required',
+        value: roleRequired ? this.client.util.getRole(msg, roleRequired)?.toString() : 'None',
+        inline: true,
+      },
+    ]);
+
+    await message.edit({
+      content: '5️⃣ What role should be required to purchase this item? \nIf none, just reply `skip`.',
+      embeds: [embed],
+    });
+
+    isValid = false;
+    let roleGiven;
+
+    while (!isValid) {
+      collected = await msg.channel
+        .awaitMessages({
+          filter,
+          max: 1,
+          time: 60000,
+          errors: ['time'],
+        })
+        .catch(() => null);
+      if (!collected) {
+        return msg.reply('You did not reply in time, the command has been cancelled.');
+      }
+
+      const response = collected.first().content.toLowerCase();
+      if (response === 'cancel') {
+        return collected.first().reply('The command has been cancelled.');
+      }
+      if (response === 'skip') {
+        roleGiven = null;
+        isValid = true;
+        break;
+      }
+
+      roleGiven = this.client.util.getRole(msg, collected.first().content);
+
+      if (!roleGiven) {
+        collected.first().reply('Please reply with a valid server role.');
+      } else {
+        roleGiven = roleGiven.id;
+        isValid = true;
+      }
+    }
+    embed.addFields([
+      {
+        name: 'Role Given',
+        value: roleGiven ? this.client.util.getRole(msg, roleGiven)?.toString() : 'None',
+        inline: true,
+      },
+    ]);
+
+    await message.edit({
+      content:
+        '6️⃣ What message do you want the bot to reply with, when the item is bought (or used if an inventory item)? \nYou can use the Member, Server & Role tags from https://unbelievaboat.com/tags in this message. \nIf none, just reply `skip`.',
       embeds: [embed],
     });
 
@@ -206,14 +307,32 @@ class CreateItem extends Command {
       .replace('{server.members}', msg.guild.memberCount.toLocaleString())
       .replace('{server.created}', serverCreated)
       .replace('{servers.created.duration', serverCreatedDuration);
+
+    const role = this.client.util.getRole(msg, roleRequired); // || this.client.util.getRole(msg, roleGiven);
+    if (role) {
+      const roleCreatedAt = moment(role.createdAt);
+      const roleCreated = roleCreatedAt.format('D MM YY');
+      const roleCreatedDuration = roleCreatedAt.from(moment(), true);
+
+      replyMessage = replyMessage
+        .replace('{role.id}', role.id)
+        .replace('{role.name}', role.name)
+        .replace('{role.mention}', role)
+        .replace('{role.members}', role.members.size.toLocaleString())
+        .replace('{role.created}', roleCreated)
+        .replace('{role.created.duration}', roleCreatedDuration);
+    }
+
     if (replyMessage.toLowerCase() === 'skip') replyMessage = false;
 
     embed.addFields([{ name: 'Reply message', value: !replyMessage ? 'None' : replyMessage, inline: true }]);
 
     store[name] = {
-      cost,
+      cost: cost.toString(),
       description,
       inventory,
+      roleRequired,
+      roleGiven,
       replyMessage,
     };
 

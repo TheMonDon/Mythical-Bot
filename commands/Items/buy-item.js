@@ -33,6 +33,20 @@ class BuyItem extends Command {
     let userCash = BigInt(await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`));
     if (userCash < itemCost) return msg.reply('You do not have enough money to buy this item.');
 
+    const roleRequired = item.roleRequired;
+    if (roleRequired) {
+      const role = this.client.util.getRole(msg, roleRequired);
+      if (role) {
+        // Check if the member has the role
+        const hasRole = msg.member.roles.cache.has(role.id);
+        if (!hasRole) {
+          return msg.reply(`You do not have the required role: ${role.name}`);
+        }
+      } else {
+        return msg.reply('The required role specified does not exist.');
+      }
+    }
+
     // Deduct the cost from the user's cash
     userCash = userCash - itemCost;
     await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, userCash.toString());

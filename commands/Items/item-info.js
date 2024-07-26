@@ -37,7 +37,19 @@ class ItemInfo extends Command {
     const embed = new EmbedBuilder()
       .setColor(msg.settings.embedColor)
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
-      .addFields([{ name: 'Cost', value: currencySymbol + BigInt(item.cost).toLocaleString(), inline: true }]);
+      .setTitle('Item Info')
+      .addFields([
+        { name: 'Name', value: itemKey, inline: true },
+        { name: 'Cost', value: currencySymbol + BigInt(item.cost).toLocaleString(), inline: true },
+        { name: 'Description', value: item.description, inline: false },
+        { name: 'Show in Inventory?', value: item.inventory ? 'True' : 'False', inline: true },
+        {
+          name: 'Role Required',
+          value: item.roleRequired ? this.client.util.getRole(msg, item.roleRequired).toString() : 'None',
+          inline: true,
+        },
+        { name: 'Reply Message', value: item.replyMessage || 'None', inline: true },
+      ]);
     return msg.channel.send({ embeds: [embed] });
   }
 }
