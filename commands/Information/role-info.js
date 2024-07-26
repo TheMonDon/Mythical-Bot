@@ -27,6 +27,8 @@ class RoleInfo extends Command {
 
     await msg.guild.members.fetch();
 
+    const hexColor = infoRole.hexColor.toString().toUpperCase();
+    const color = hexColor === '#000000' ? 'None' : hexColor;
     const embed = new EmbedBuilder()
       .setTitle(`${infoRole.name}'s Information`)
       .setColor(infoRole.hexColor)
@@ -35,7 +37,7 @@ class RoleInfo extends Command {
         { name: 'Name', value: infoRole.name, inline: true },
         { name: 'ID', value: infoRole.id.toString(), inline: true },
         { name: 'Mention', value: `\`${infoRole}\``, inline: true },
-        { name: 'Color', value: infoRole.hexColor.toString().toUpperCase(), inline: true },
+        { name: 'Color', value: color, inline: true },
         { name: 'Members', value: infoRole.members.size.toLocaleString(), inline: true },
         { name: 'Position', value: `${infoRole.position}/${msg.guild.roles.cache.size}`, inline: true },
         { name: 'Mentionable', value: infoRole.mentionable.toString(), inline: true },
