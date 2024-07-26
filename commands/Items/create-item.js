@@ -1,6 +1,8 @@
 const Command = require('../../base/Command.js');
 const { EmbedBuilder } = require('discord.js');
 const { QuickDB } = require('quick.db');
+require('moment-duration-format');
+const moment = require('moment');
 const db = new QuickDB();
 
 class CreateItem extends Command {
@@ -55,8 +57,12 @@ class CreateItem extends Command {
           errors: ['time'],
         })
         .catch(() => null);
-      if (!collected) return msg.reply('You did not reply in time, the command has been cancelled.');
-      if (collected.first().content.toLowerCase() === 'cancel') return msg.reply('The command has been cancelled.');
+      if (!collected) {
+        return msg.reply('You did not reply in time, the command has been cancelled.');
+      }
+      if (collected.first().content.toLowerCase() === 'cancel') {
+        return msg.reply('The command has been cancelled.');
+      }
 
       cost = parseInt(
         collected
@@ -70,7 +76,7 @@ class CreateItem extends Command {
           .first()
           .reply('The cost must be a valid number. Please enter the cost again or type `cancel` to exit.');
       } else if (cost === Infinity) {
-        await collected.first().reply(`The cost must be less than ${BigInt(Number.MAX_VALUE.toLocaleString())}.`);
+        await collected.first().reply(`The cost must be less than ${BigInt(Number.MAX_VALUE).toLocaleString()}.`);
       } else if (cost < 0) {
         await msg.reply('The cost must be at least zero. Please enter a valid cost.');
       } else {
@@ -98,26 +104,117 @@ class CreateItem extends Command {
         })
         .catch(() => null);
       if (!collected) return msg.reply('You did not reply in time, the command has been cancelled.');
-      if (collected.first().content.toLowerCase() === 'cancel')
+      if (collected.first().content.toLowerCase() === 'cancel') {
         return collected.first().reply('The command has been cancelled.');
+      }
 
       description = collected.first().content;
       if (description.length > 1000) {
         collected
           .first()
           .reply(
-            'The description must be less than 1024 characters. Please try again or use `cancel` to cancel the command',
+            'The description must be less than 1000 characters. Please try again or use `cancel` to cancel the command',
           );
       } else {
         isValid = true;
       }
     }
-
     embed.addFields([{ name: 'Description', value: description, inline: true }]);
+
+    await message.edit({
+      content: 'Would you like this item to show up in inventory? (yes/no)',
+      embeds: [embed],
+    });
+
+    isValid = false;
+    let inventory;
+
+    while (!isValid) {
+      collected = await msg.channel
+        .awaitMessages({
+          filter,
+          max: 1,
+          time: 60000,
+          errors: ['time'],
+        })
+        .catch(() => null);
+      if (!collected) {
+        return msg.reply('You did not reply in time, the command has been cancelled.');
+      }
+      if (collected.first().content.toLowerCase() === 'cancel') {
+        return collected.first().reply('The command has been cancelled.');
+      }
+
+      if (!['yes', 'no', 'y', 'n'].includes(collected.first().content.toLowerCase())) {
+        await collected.first().reply('Please answer with either a `yes` or a `no`.');
+      } else {
+        if (['yes', 'y'].includes(collected.first().content.toLowerCase())) {
+          inventory = true;
+          isValid = true;
+        } else {
+          inventory = false;
+          isValid = true;
+        }
+      }
+    }
+    embed.addFields([{ name: 'Show in inventory?', value: inventory ? 'True' : 'False', inline: true }]);
+
+    await message.edit({
+      content:
+        'What message do you want the bot to reply with, when the item is bought (or used if an inventory item)? \nYou can use the Member and Server tags from https://unbelievaboat.com/tags in this message. \nType `skip` to skip.',
+      embeds: [embed],
+    });
+
+    let replyMessage;
+
+    collected = await msg.channel
+      .awaitMessages({
+        filter,
+        max: 1,
+        time: 60000,
+        errors: ['time'],
+      })
+      .catch(() => null);
+    if (!collected) {
+      return msg.reply('You did not reply in time, the command has been cancelled.');
+    }
+    if (collected.first().content.toLowerCase() === 'cancel') {
+      return collected.first().reply('The command has been cancelled.');
+    }
+
+    // Replace Member
+    const memberCreatedAt = moment(msg.author.createdAt);
+    const memberCreated = memberCreatedAt.format('D MM YY');
+    const memberCreatedDuration = memberCreatedAt.from(moment(), true);
+    replyMessage = collected
+      .first()
+      .content.replace('{member.id}', msg.author.id)
+      .replace('{member.username}', msg.author.username)
+      .replace('{member.tag}', msg.author.tag)
+      .replace('{member.mention}', msg.author)
+      .replace('{member.created}', memberCreated)
+      .replace('{member.created.duration}', memberCreatedDuration);
+
+    // Replace Server
+    const guildCreatedAt = moment(msg.guild.createdAt);
+    const serverCreated = guildCreatedAt.format('D MM YY');
+    const serverCreatedDuration = guildCreatedAt.from(moment(), true);
+
+    replyMessage = replyMessage
+      .replace('{server.id}', msg.guild.id)
+      .replace('{server.name}', msg.guild.name)
+      .replace('{server.members}', msg.guild.memberCount.toLocaleString())
+      .replace('{server.created}', serverCreated)
+      .replace('{servers.created.duration', serverCreatedDuration);
+    if (replyMessage.toLowerCase() === 'skip') replyMessage = false;
+
+    embed.addFields([{ name: 'Reply message', value: !replyMessage ? 'None' : replyMessage, inline: true }]);
 
     store[name] = {
       cost,
       description,
+      inventory,
+      replyMessage,
     };
 
     await db.set(`servers.${msg.guild.id}.economy.store`, store);

@@ -33,6 +33,18 @@ class BuyItem extends Command {
     let userCash = BigInt(await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`));
     if (userCash < itemCost) return msg.reply('You do not have enough money to buy this item.');
 
+    // Deduct the cost from the user's cash
+    userCash = userCash - itemCost;
+    await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, userCash.toString());
+
+    if (!item.inventory) {
+      if (!item.replyMessage) {
+        return msg.channel.send('👍');
+      }
+
+      return msg.channel.send(item.replyMessage);
+    }
+
     const userInventory = (await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.inventory`)) || [];
 
     // Check if the user already owns the item
@@ -42,9 +54,6 @@ class BuyItem extends Command {
     // Add the item to the user's inventory
     userInventory.push({ name: itemKey, ...item });
 
-    // Deduct the cost from the user's cash
-    userCash = userCash - itemCost;
-    await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, userCash.toString());
     await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.inventory`, userInventory);
 
     const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
