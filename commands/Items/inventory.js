@@ -42,7 +42,6 @@ class Inventory extends Command {
     const end = start + itemsPerPage;
     const paginatedInventory = userInventory.slice(start, end);
 
-    const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
     const inventoryDetails = paginatedInventory
       .map((item) => {
         return `**${item?.quantity || 1} - ${item?.name}**\n${item?.description}`;

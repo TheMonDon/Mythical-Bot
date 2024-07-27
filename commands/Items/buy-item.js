@@ -11,7 +11,7 @@ class BuyItem extends Command {
       name: 'buy-item',
       category: 'Items',
       description: 'Buy an item from the store.',
-      usage: 'buy-item <item>',
+      usage: 'buy-item [quantity] <item>',
       examples: ['buy pizza'],
       aliases: ['buy'],
       requiredArgs: 1,
@@ -20,7 +20,20 @@ class BuyItem extends Command {
   }
 
   async run(msg, args) {
-    const itemName = args.join(' ').toLowerCase();
+    let quantity = 1;
+    let itemName = args.join(' ').toLowerCase();
+    if (!isNaN(args[0])) {
+      quantity = parseInt(args[0]);
+      if (quantity <= 0) {
+        return msg.reply('Invalid `[quantity]` argument given. Cannot be less than 1');
+      }
+      args.shift();
+      itemName = args.join(' ').toLowerCase();
+      if (!itemName) {
+        return msg.reply('Invalid `<item name>` argument given');
+      }
+    }
+
     if (!itemName) return msg.reply('Please specify an item to buy.');
 
     const store = (await db.get(`servers.${msg.guild.id}.economy.store`)) || {};
@@ -57,7 +70,7 @@ class BuyItem extends Command {
     }
 
     // Deduct the cost from the user's cash
-    userCash = userCash - itemCost;
+    userCash = userCash - itemCost * BigInt(quantity);
     await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, userCash.toString());
 
     if (!item.inventory) {
@@ -124,26 +137,29 @@ class BuyItem extends Command {
     const itemIndex = userInventory.findIndex((inventoryItem) => inventoryItem?.name?.toLowerCase() === itemName);
     if (itemIndex !== -1) {
       // If the item is found, increment the quantity
-      userInventory[itemIndex].quantity += 1;
+      userInventory[itemIndex].quantity += quantity;
       await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.inventory`, userInventory);
     } else {
       // Add the item to the user's inventory
-      item.quantity = 1;
+      item.quantity = quantity;
       userInventory.push({ name: itemKey, ...item });
 
       await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.inventory`, userInventory);
     }
 
     const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
+    const itemCostQuantity = (itemCost * BigInt(quantity)).toLocaleString();
     const csCost =
-      itemCost.toLocaleString().length > 700
-        ? currencySymbol + itemCost.toLocaleString().slice(0, 700) + '...'
-        : currencySymbol + itemCost.toLocaleString();
+      itemCostQuantity.length > 700
+        ? currencySymbol + itemCostQuantity.slice(0, 700) + '...'
+        : currencySymbol + itemCostQuantity;
 
     const embed = new EmbedBuilder()
       .setTitle('Purchase Successful')
       .setDescription(
-        `You have bought ${itemKey} for ${csCost}! This is now in your inventory. \nUse this item with the \`use-item\` command.`,
+        `You have bought ${quantity} ${itemKey}${
+          quantity > 1 ? 's' : ''
+        } for ${csCost}! This is now in your inventory. \nUse this item with the \`use-item\` command.`,
       )
       .setColor(msg.settings.embedColor)
       .setTimestamp();

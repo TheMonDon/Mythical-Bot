@@ -10,7 +10,7 @@ class UseItem extends Command {
       name: 'use-item',
       category: 'Items',
       description: 'Use an item from your inventory.',
-      usage: 'use-item <item name>',
+      usage: 'use-item [quantity] <item name>',
       aliases: ['useitem', 'use'],
       guildOnly: true,
       requiredArgs: 1,
@@ -18,7 +18,19 @@ class UseItem extends Command {
   }
 
   async run(msg, args) {
-    const itemName = args.join(' ').toLowerCase();
+    let quantity = 1;
+    let itemName = args.join(' ').toLowerCase();
+    if (!isNaN(args[0])) {
+      quantity = parseInt(args[0]);
+      if (quantity <= 0) {
+        return msg.reply('Invalid `[quantity]` argument given. Cannot be less than 1');
+      }
+      args.shift();
+      itemName = args.join(' ').toLowerCase();
+      if (!itemName) {
+        return msg.reply('Invalid `<item name>` argument given');
+      }
+    }
 
     // Fetch user's inventory from the database
     const userInventory = (await db.get(`servers.${msg.guild.id}.users.${msg.author.id}.economy.inventory`)) || [];
@@ -32,8 +44,8 @@ class UseItem extends Command {
     }
 
     const item = userInventory[itemIndex];
-    userInventory[itemIndex].quantity -= 1;
-    let filteredInventory;
+    userInventory[itemIndex].quantity -= quantity;
+    let filteredInventory = userInventory;
 
     if (!item.quantity || item.quantity < 1) {
       delete userInventory[itemIndex];
