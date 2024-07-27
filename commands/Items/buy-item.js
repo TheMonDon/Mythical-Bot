@@ -27,7 +27,6 @@ class BuyItem extends Command {
 
     // Find the item in the store regardless of case
     const itemKey = Object.keys(store).find((key) => key.toLowerCase() === itemName);
-
     if (!itemKey) return msg.reply('That item does not exist in the store.');
 
     const item = store[itemKey];
@@ -61,16 +60,15 @@ class BuyItem extends Command {
     userCash = userCash - itemCost;
     await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, userCash.toString());
 
-    if (item.roleGiven) {
-      const role = this.client.util.getRole(msg, item.roleGiven);
-      await msg.member.roles.add(role).catch((error) => msg.channel.send(error));
-    }
-    if (item.roleRemoved) {
-      const role = this.client.util.getRole(msg, item.roleRemoved);
-      await msg.member.roles.remove(role).catch((error) => msg.channel.send(error));
-    }
-
     if (!item.inventory) {
+      if (item.roleGiven) {
+        const role = this.client.util.getRole(msg, item.roleGiven);
+        await msg.member.roles.add(role).catch((error) => msg.channel.send(error));
+      }
+      if (item.roleRemoved) {
+        const role = this.client.util.getRole(msg, item.roleRemoved);
+        await msg.member.roles.remove(role).catch((error) => msg.channel.send(error));
+      }
       if (!item.replyMessage) {
         return msg.channel.send('👍');
       }
@@ -104,7 +102,6 @@ class BuyItem extends Command {
         (await this.client.util.getRole(msg, item.roleRemoved)) ||
         (await this.client.util.getRole(msg, item.roleRequired));
 
-      console.log(role);
       if (role) {
         const roleCreatedAt = moment(role.createdAt);
         const roleCreated = roleCreatedAt.format('D MM YY');
@@ -123,14 +120,19 @@ class BuyItem extends Command {
 
     const userInventory = (await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.inventory`)) || [];
 
-    // Check if the user already owns the item
-    const alreadyOwned = userInventory.find((inventoryItem) => inventoryItem.name.toLowerCase() === itemName);
-    if (alreadyOwned) return msg.reply('You already own this item.');
+    // Find the index of the item in the user's inventory
+    const itemIndex = userInventory.findIndex((inventoryItem) => inventoryItem?.name?.toLowerCase() === itemName);
+    if (itemIndex !== -1) {
+      // If the item is found, increment the quantity
+      userInventory[itemIndex].quantity += 1;
+      await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.inventory`, userInventory);
+    } else {
+      // Add the item to the user's inventory
+      item.quantity = 1;
+      userInventory.push({ name: itemKey, ...item });
 
-    // Add the item to the user's inventory
-    userInventory.push({ name: itemKey, ...item });
-
-    await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.inventory`, userInventory);
+      await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.inventory`, userInventory);
+    }
 
     const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
     const csCost =
@@ -140,7 +142,9 @@ class BuyItem extends Command {
 
     const embed = new EmbedBuilder()
       .setTitle('Purchase Successful')
-      .setDescription(`You have successfully bought **${itemKey}** for ${csCost}.`)
+      .setDescription(
+        `You have bought ${itemKey} for ${csCost}! This is now in your inventory. \nUse this item with the \`use-item\` command.`,
+      )
       .setColor(msg.settings.embedColor)
       .setTimestamp();
 

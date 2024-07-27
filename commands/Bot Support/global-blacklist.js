@@ -9,7 +9,8 @@ class GlobalBlacklist extends Command {
       name: 'global-blacklist',
       description: 'Blacklist someone from using the bot',
       usage: 'global-blacklist <Add | Remove | Check> <User> <Reason>',
-      requiredArgs: 1,
+      examples: ['global-blacklist check bunny', 'global-blacklist add bunny Being naughty'],
+      requiredArgs: 2,
       category: 'Bot Support',
       permLevel: 'Bot Support',
       aliases: ['gbl', 'g-blacklist', 'gblacklist'],
@@ -26,6 +27,7 @@ class GlobalBlacklist extends Command {
         return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Incorrect Usage');
       } else {
         type = args[0].toLowerCase();
+        mem = await this.client.util.getMember(msg, args[1]);
       }
     } else if (args[0]) {
       // Check if the first argument is a user mention
@@ -59,6 +61,7 @@ class GlobalBlacklist extends Command {
     if (!mem) {
       return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'User not found');
     }
+    mem = mem.user ? mem.user : mem;
 
     args.shift();
     args.shift();
@@ -66,6 +69,7 @@ class GlobalBlacklist extends Command {
 
     const blacklist = await db.get(`users.${mem.id}.blacklist`);
 
+    console.log(mem);
     const embed = new EmbedBuilder()
       .setAuthor({ name: mem.tag, iconURL: mem.displayAvatarURL() })
       .setColor(msg.settings.embedColor)
@@ -84,8 +88,8 @@ class GlobalBlacklist extends Command {
         await db.set(`users.${mem.id}.blacklistReason`, reason);
 
         embed.setTitle(`${mem.tag} has been added to the global blacklist.`).addFields([
-          { name: 'Reason:', value: reason },
           { name: 'User:', value: `${mem.tag} \n(${mem.id})` },
+          { name: 'Reason:', value: reason },
         ]);
 
         msg.channel.send({ embeds: [embed] });
@@ -105,8 +109,8 @@ class GlobalBlacklist extends Command {
         await db.set(`users.${mem.id}.blacklistReason`, reason);
 
         embed.setTitle(`${mem.tag} has been removed from the global blacklist.`).addFields([
-          { name: 'Reason:', value: reason },
           { name: 'User:', value: `${mem.tag} \n(${mem.id})` },
+          { name: 'Reason:', value: reason },
         ]);
 
         msg.channel.send({ embeds: [embed] });
@@ -117,13 +121,11 @@ class GlobalBlacklist extends Command {
       case 'check': {
         const reason = (await db.get(`users.${mem.id}.blacklistReason`)) || 'No reason specified';
 
-        embed
-          .setTitle(`${mem.tag} blacklist check`)
-          .addFields([
-            { name: 'User:', value: `${mem.tag} (${mem.id})`, inline: true },
-            { name: 'Is Blacklisted?', value: blacklist ? 'True' : 'False', inline: true },
-          ])
-          .addField('Reason:', reason);
+        embed.setTitle(`${mem.tag} blacklist check`).addFields([
+          { name: 'User:', value: `${mem.tag} (${mem.id})`, inline: true },
+          { name: 'Is Blacklisted?', value: blacklist ? 'True' : 'False', inline: true },
+          { name: 'Reason', value: reason, inline: true },
+        ]);
 
         msg.channel.send({ embeds: [embed] });
         break;
