@@ -42,16 +42,18 @@ class Inventory extends Command {
     const end = start + itemsPerPage;
     const paginatedInventory = userInventory.slice(start, end);
 
-    const inventoryDetails = paginatedInventory
-      .map((item) => {
-        return `**${item?.quantity || 1} - ${item?.name}**\n${item?.description}`;
-      })
-      .join('\n');
+    // Build the fields for the embed
+    const fields = paginatedInventory.map((item) => ({
+      name: `${item?.quantity || 1} - ${item?.name}`,
+      value: item?.description || 'No description available.',
+      inline: false,
+    }));
 
     const embed = new EmbedBuilder()
       .setAuthor({ name: `${mem.username}'s Inventory`, iconURL: mem.displayAvatarURL() })
       .setColor(msg.settings.embedColor)
-      .setDescription(inventoryDetails || 'Nothing to see here!')
+      .setDescription(`Use an item with the \`use [quantity] <name>\` command`)
+      .addFields(fields)
       .setFooter({ text: `Page ${page} / ${maxPages}` })
       .setTimestamp();
 
@@ -86,16 +88,18 @@ class Inventory extends Command {
       const newEnd = newStart + itemsPerPage;
       const newPaginatedInventory = userInventory.slice(newStart, newEnd);
 
-      const newInventoryDetails = newPaginatedInventory
-        .map((item) => {
-          return `**${item?.quantity || 1} - ${item?.name}**\n${item?.description}`;
-        })
-        .join('\n');
+      // Build the new fields for the updated embed
+      const newFields = newPaginatedInventory.map((item) => ({
+        name: `${item?.quantity || 1} -  ${item?.name}`,
+        value: item?.description || 'No description available.',
+        inline: false,
+      }));
 
       const updatedEmbed = new EmbedBuilder()
         .setColor(msg.settings.embedColor)
         .setAuthor({ name: `${mem.username}'s Inventory`, iconURL: mem.displayAvatarURL() })
-        .setDescription(newInventoryDetails || 'Nothing to see here!')
+        .setDescription(`Use an item with the \`use [quantity] <name>\` command`)
+        .addFields(newFields)
         .setFooter({ text: `Page ${page} / ${maxPages}` })
         .setTimestamp();
 
