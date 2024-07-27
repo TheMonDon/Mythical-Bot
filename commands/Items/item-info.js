@@ -42,10 +42,20 @@ class ItemInfo extends Command {
         { name: 'Name', value: itemKey, inline: true },
         { name: 'Cost', value: currencySymbol + BigInt(item.cost).toLocaleString(), inline: true },
         { name: 'Description', value: item.description, inline: false },
-        { name: 'Show in Inventory?', value: item.inventory ? 'True' : 'False', inline: true },
+        { name: 'Show in Inventory?', value: item.inventory ? 'Yes' : 'No', inline: true },
         {
           name: 'Role Required',
           value: item.roleRequired ? this.client.util.getRole(msg, item.roleRequired).toString() : 'None',
+          inline: true,
+        },
+        {
+          name: 'Role Given',
+          value: item.roleGiven ? this.client.util.getRole(msg, item.roleGiven).toString() : 'None',
+          inline: true,
+        },
+        {
+          name: 'Role Removed',
+          value: item.roleRemoved ? this.client.util.getRole(msg, item.roleRemoved).toString() : 'None',
           inline: true,
         },
         { name: 'Reply Message', value: item.replyMessage || 'None', inline: true },

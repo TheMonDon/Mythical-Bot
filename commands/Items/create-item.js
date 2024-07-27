@@ -1,8 +1,6 @@
 const Command = require('../../base/Command.js');
 const { EmbedBuilder } = require('discord.js');
 const { QuickDB } = require('quick.db');
-require('moment-duration-format');
-const moment = require('moment');
 const db = new QuickDB();
 
 class CreateItem extends Command {
@@ -74,18 +72,18 @@ class CreateItem extends Command {
       if (isNaN(cost)) {
         await collected
           .first()
-          .reply('The cost must be a valid number. Please enter the cost again or type `cancel` to exit.');
+          .reply('The cost must be a valid number. Please enter the price again or type `cancel` to exit.');
       } else if (cost === Infinity) {
-        await collected.first().reply(`The cost must be less than ${BigInt(Number.MAX_VALUE).toLocaleString()}.`);
+        await collected.first().reply(`The price must be less than ${BigInt(Number.MAX_VALUE).toLocaleString()}.`);
       } else if (cost < 0) {
-        await msg.reply('The cost must be at least zero. Please enter a valid cost.');
+        await msg.reply('The price must be at least zero. Please enter a valid cost.');
       } else {
         isValid = true;
       }
     }
 
     const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
-    embed.addFields([{ name: 'Cost', value: currencySymbol + cost.toLocaleString(), inline: true }]);
+    embed.addFields([{ name: 'Price', value: currencySymbol + cost.toLocaleString(), inline: true }]);
     await message.edit({
       content: '2️⃣ What would you like the description to be? \nThis should be no more than 1000 characters',
       embeds: [embed],
@@ -161,7 +159,7 @@ class CreateItem extends Command {
         }
       }
     }
-    embed.addFields([{ name: 'Show in inventory?', value: inventory ? 'True' : 'False', inline: true }]);
+    embed.addFields([{ name: 'Show in inventory?', value: inventory ? 'Yes' : 'No', inline: true }]);
 
     await message.edit({
       content:
@@ -213,7 +211,8 @@ class CreateItem extends Command {
     ]);
 
     await message.edit({
-      content: '5️⃣ What role should be required to purchase this item? \nIf none, just reply `skip`.',
+      content:
+        '5️⃣ What role do you want to be given when this item is bought (or used if an inventory item)? \nIf none, just reply `skip`.',
       embeds: [embed],
     });
 
@@ -262,7 +261,56 @@ class CreateItem extends Command {
 
     await message.edit({
       content:
-        '6️⃣ What message do you want the bot to reply with, when the item is bought (or used if an inventory item)? \nYou can use the Member, Server & Role tags from https://unbelievaboat.com/tags in this message. \nIf none, just reply `skip`.',
+        '6️⃣ What role do you want to be removed from the user when this item is bought (or used if an inventory item)?\nIf none, just reply `skip`.',
+      embeds: [embed],
+    });
+
+    isValid = false;
+    let roleRemoved;
+
+    while (!isValid) {
+      collected = await msg.channel
+        .awaitMessages({
+          filter,
+          max: 1,
+          time: 60000,
+          errors: ['time'],
+        })
+        .catch(() => null);
+      if (!collected) {
+        return msg.reply('You did not reply in time, the command has been cancelled.');
+      }
+
+      const response = collected.first().content.toLowerCase();
+      if (response === 'cancel') {
+        return collected.first().reply('The command has been cancelled.');
+      }
+      if (response === 'skip') {
+        roleRemoved = null;
+        isValid = true;
+        break;
+      }
+
+      roleRemoved = this.client.util.getRole(msg, collected.first().content);
+
+      if (!roleRemoved) {
+        collected.first().reply('Please reply with a valid server role.');
+      } else {
+        roleRemoved = roleRemoved.id;
+        isValid = true;
+      }
+    }
+    embed.addFields([
+      {
+        name: 'Role Removed',
+        value: roleRemoved ? this.client.util.getRole(msg, roleRemoved)?.toString() : 'None',
+        inline: true,
+      },
+    ]);
+
+    await message.edit({
+      content:
+        '7️⃣ What message do you want the bot to reply with, when the item is bought (or used if an inventory item)? \nYou can use the Member, Server & Role tags from https://unbelievaboat.com/tags in this message. \nIf none, just reply `skip`.',
       embeds: [embed],
     });
 
@@ -283,45 +331,7 @@ class CreateItem extends Command {
       return collected.first().reply('The command has been cancelled.');
     }
 
-    // Replace Member
-    const memberCreatedAt = moment(msg.author.createdAt);
-    const memberCreated = memberCreatedAt.format('D MM YY');
-    const memberCreatedDuration = memberCreatedAt.from(moment(), true);
-    replyMessage = collected
-      .first()
-      .content.replace('{member.id}', msg.author.id)
-      .replace('{member.username}', msg.author.username)
-      .replace('{member.tag}', msg.author.tag)
-      .replace('{member.mention}', msg.author)
-      .replace('{member.created}', memberCreated)
-      .replace('{member.created.duration}', memberCreatedDuration);
-
-    // Replace Server
-    const guildCreatedAt = moment(msg.guild.createdAt);
-    const serverCreated = guildCreatedAt.format('D MM YY');
-    const serverCreatedDuration = guildCreatedAt.from(moment(), true);
-
-    replyMessage = replyMessage
-      .replace('{server.id}', msg.guild.id)
-      .replace('{server.name}', msg.guild.name)
-      .replace('{server.members}', msg.guild.memberCount.toLocaleString())
-      .replace('{server.created}', serverCreated)
-      .replace('{servers.created.duration', serverCreatedDuration);
-
-    const role = this.client.util.getRole(msg, roleRequired); // || this.client.util.getRole(msg, roleGiven);
-    if (role) {
-      const roleCreatedAt = moment(role.createdAt);
-      const roleCreated = roleCreatedAt.format('D MM YY');
-      const roleCreatedDuration = roleCreatedAt.from(moment(), true);
-
-      replyMessage = replyMessage
-        .replace('{role.id}', role.id)
-        .replace('{role.name}', role.name)
-        .replace('{role.mention}', role)
-        .replace('{role.members}', role.members.size.toLocaleString())
-        .replace('{role.created}', roleCreated)
-        .replace('{role.created.duration}', roleCreatedDuration);
-    }
+    replyMessage = collected.first().content;
 
     if (replyMessage.toLowerCase() === 'skip') replyMessage = false;
 
@@ -333,6 +343,7 @@ class CreateItem extends Command {
       inventory,
       roleRequired,
       roleGiven,
+      roleRemoved,
       replyMessage,
     };
 

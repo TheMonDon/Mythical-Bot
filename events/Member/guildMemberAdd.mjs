@@ -45,7 +45,7 @@ export async function run(client, member) {
       if (!roles) return;
 
       for (let i = 0; i < roles.length; i++) {
-        member.roles.add(roles[i]);
+        await member.roles.add(roles[i]).catch((error) => console.error(error));
         await setTimeoutPromise(1000);
       }
 

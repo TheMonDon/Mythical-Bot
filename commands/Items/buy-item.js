@@ -1,6 +1,8 @@
 const Command = require('../../base/Command.js');
 const { EmbedBuilder } = require('discord.js');
 const { QuickDB } = require('quick.db');
+require('moment-duration-format');
+const moment = require('moment');
 const db = new QuickDB();
 
 class BuyItem extends Command {
@@ -33,30 +35,90 @@ class BuyItem extends Command {
     let userCash = BigInt(await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`));
     if (userCash < itemCost) return msg.reply('You do not have enough money to buy this item.');
 
-    const roleRequired = item.roleRequired;
-    if (roleRequired) {
-      const role = this.client.util.getRole(msg, roleRequired);
-      if (role) {
+    if (item.roleRequired) {
+      const roleRequired = this.client.util.getRole(msg, item.roleRequired);
+      if (roleRequired) {
         // Check if the member has the role
-        const hasRole = msg.member.roles.cache.has(role.id);
+        const hasRole = msg.member.roles.cache.has(roleRequired.id);
         if (!hasRole) {
-          return msg.reply(`You do not have the required role: ${role.name}`);
+          return msg.reply(`You do not have the required role **${roleRequired.name}** to purchase this item.`);
         }
       } else {
         return msg.reply('The required role specified does not exist.');
       }
     }
 
+    if (item.roleGiven || item.roleRemoved) {
+      if (!msg.guild.members.me.permissions.has('ManageRoles'))
+        return this.client.util.errorEmbed(
+          msg,
+          'Manage Roles permission is required on the bot to buy this item.',
+          'Missing Permission',
+        );
+    }
+
     // Deduct the cost from the user's cash
     userCash = userCash - itemCost;
     await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, userCash.toString());
+
+    if (item.roleGiven) {
+      const role = this.client.util.getRole(msg, item.roleGiven);
+      await msg.member.roles.add(role).catch((error) => msg.channel.send(error));
+    }
+    if (item.roleRemoved) {
+      const role = this.client.util.getRole(msg, item.roleRemoved);
+      await msg.member.roles.remove(role).catch((error) => msg.channel.send(error));
+    }
 
     if (!item.inventory) {
       if (!item.replyMessage) {
         return msg.channel.send('👍');
       }
 
-      return msg.channel.send(item.replyMessage);
+      // Replace Member
+      const memberCreatedAt = moment(msg.author.createdAt);
+      const memberCreated = memberCreatedAt.format('D MM YY');
+      const memberCreatedDuration = memberCreatedAt.from(moment(), true);
+      let replyMessage = item.replyMessage
+        .replace('{member.id}', msg.author.id)
+        .replace('{member.username}', msg.author.username)
+        .replace('{member.tag}', msg.author.tag)
+        .replace('{member.mention}', msg.author)
+        .replace('{member.created}', memberCreated)
+        .replace('{member.created.duration}', memberCreatedDuration);
+
+      // Replace Server
+      const guildCreatedAt = moment(msg.guild.createdAt);
+      const serverCreated = guildCreatedAt.format('D MM YY');
+      const serverCreatedDuration = guildCreatedAt.from(moment(), true);
+
+      replyMessage = replyMessage
+        .replace('{server.id}', msg.guild.id)
+        .replace('{server.name}', msg.guild.name)
+        .replace('{server.members}', msg.guild.memberCount.toLocaleString())
+        .replace('{server.created}', serverCreated)
+        .replace('{servers.created.duration', serverCreatedDuration);
+
+      const role =
+        (await this.client.util.getRole(msg, item.roleGiven)) ||
+        (await this.client.util.getRole(msg, item.roleRemoved)) ||
+        (await this.client.util.getRole(msg, item.roleRequired));
+
+      console.log(role);
+      if (role) {
+        const roleCreatedAt = moment(role.createdAt);
+        const roleCreated = roleCreatedAt.format('D MM YY');
+        const roleCreatedDuration = roleCreatedAt.from(moment(), true);
+
+        replyMessage = replyMessage
+          .replace('{role.id}', role.id)
+          .replace('{role.name}', role.name)
+          .replace('{role.mention}', role)
+          .replace('{role.members}', role.members.size.toLocaleString())
+          .replace('{role.created}', roleCreated)
+          .replace('{role.created.duration}', roleCreatedDuration);
+      }
+      return msg.channel.send(replyMessage);
     }
 
     const userInventory = (await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.inventory`)) || [];

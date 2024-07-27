@@ -13,37 +13,49 @@ class EditItem extends Command {
       usage: 'edit-item <name|price|description> "<item name>" <new value>',
       aliases: ['edititem'],
       permLevel: 'Administrator',
+      examples: ['edit-item name pizzza pizza', 'edit-item price "Large Crate" 100'],
       guildOnly: true,
-      requiredArgs: 3,
+      requiredArgs: 2,
     });
   }
 
   async run(msg, args) {
     const attribute = args.shift().toLowerCase();
-    const itemNameStartIndex = args.findIndex((arg) => arg.startsWith('"'));
-    const itemNameEndIndex = args.findIndex((arg) => arg.endsWith('"'));
+    let itemName;
+    let newValue;
 
-    if (itemNameStartIndex === -1 || itemNameEndIndex === -1) {
-      return msg.reply('Please enclose the item name in double quotes.');
+    if (args[0].startsWith('"')) {
+      // Find the ending index of the item name enclosed in double quotes
+      const itemNameEndIndex = args.findIndex((arg) => arg.endsWith('"'));
+      if (itemNameEndIndex === -1) {
+        return msg.reply('Please enclose the item name in double quotes.');
+      }
+
+      // Extract the item name and remove the double quotes
+      itemName = args
+        .slice(0, itemNameEndIndex + 1)
+        .join(' ')
+        .replace(/"/g, '');
+      newValue = args.slice(itemNameEndIndex + 1).join(' ');
+    } else {
+      // The first argument is the item name without spaces
+      itemName = args.shift();
+      newValue = args.join(' ');
     }
 
-    const itemName = args
-      .slice(itemNameStartIndex, itemNameEndIndex + 1)
-      .join(' ')
-      .replace(/"/g, '');
-    const newValue = args.slice(itemNameEndIndex + 1).join(' ');
+    // Proceed with using itemName and newValue
 
     const store = (await db.get(`servers.${msg.guild.id}.economy.store`)) || {};
 
     // Find the item in the store regardless of case
-    const itemKey = Object.keys(store).find((key) => key.toLowerCase() === itemName.toLowerCase());
+    let itemKey = Object.keys(store).find((key) => key.toLowerCase() === itemName.toLowerCase());
 
     if (!itemKey) return msg.reply('That item does not exist in the store.');
 
     const item = store[itemKey];
 
     switch (attribute) {
-      case 'name':
+      case 'name': {
         // Ensure the new name is not already taken
         const newItemKey = newValue.toLowerCase();
         if (Object.keys(store).find((key) => key.toLowerCase() === newItemKey)) {
@@ -52,8 +64,11 @@ class EditItem extends Command {
         // Update the item name
         store[newValue] = item;
         delete store[itemKey];
+        itemKey = newValue; // Update the reference to the new item key
         break;
-      case 'price':
+      }
+
+      case 'price': {
         const price = parseInt(newValue, 10);
         if (isNaN(price) || price < 0) {
           return msg.reply('Please provide a valid price.');
@@ -61,20 +76,109 @@ class EditItem extends Command {
         item.cost = price;
         store[itemKey] = item;
         break;
-      case 'description':
-        item.description = newValue;
+      }
+
+      case 'description': {
+        item.description = newValue.slice(0, 1000);
         store[itemKey] = item;
         break;
+      }
+
+      case 'inventory': {
+        if (['yes', 'no'].includes(newValue.toLowerCase())) {
+          item.inventory = newValue.toLowerCase() === 'yes';
+          store[itemKey] = item;
+        } else {
+          return msg.reply('Please respond with "yes" or "no" for inventory.');
+        }
+        break;
+      }
+
+      case 'role-required': {
+        if (!newValue) {
+          item.roleRequired = null;
+          break;
+        }
+        const role = this.client.util.getRole(msg, newValue);
+        if (!role) {
+          return msg.reply('Please re-run the command with a valid role.');
+        }
+        item.roleRequired = role.id;
+        store[itemKey] = item;
+        break;
+      }
+
+      case 'role-given': {
+        if (!newValue) {
+          item.roleGiven = null;
+          break;
+        }
+        const role = this.client.util.getRole(msg, newValue);
+        if (!role) {
+          return msg.reply('Please re-run the command with a valid role.');
+        }
+        item.roleGiven = role.id;
+        store[itemKey] = item;
+        break;
+      }
+
+      case 'role-removed': {
+        if (!newValue) {
+          item.roleRemoved = null;
+          break;
+        }
+        const role = this.client.util.getRole(msg, newValue);
+        if (!role) {
+          return msg.reply('Please re-run the command with a valid role.');
+        }
+        item.roleRemoved = role.id;
+        store[itemKey] = item;
+        break;
+      }
+
+      case 'reply-message': {
+        if (!newValue) {
+          item.replyMessage = null;
+          break;
+        }
+        item.replyMessage = newValue.slice(0, 1000);
+        store[itemKey] = item;
+        break;
+      }
+
       default:
-        return msg.reply('Invalid attribute. You can only edit name, price, or description.');
+        return msg.reply(
+          'Invalid attribute. You can only edit name, price, description, inventory, role-required, role-given, role-removed or reply-message.',
+        );
     }
 
     await db.set(`servers.${msg.guild.id}.economy.store`, store);
 
     const embed = new EmbedBuilder()
       .setTitle('Item Edited')
-      .setDescription(`The **${attribute}** of **${itemKey}** has been updated to **${newValue}**.`)
       .setColor(msg.settings.embedColor)
+      .addFields([
+        { name: 'Name', value: itemKey, inline: true },
+        { name: 'Price', value: BigInt(item.cost).toLocaleString(), inline: true },
+        { name: 'Description', value: item.description, inline: false },
+        { name: 'Show in Inventory?', value: item.inventory ? 'Yes' : 'No', inline: true },
+        {
+          name: 'Role Required',
+          value: item.roleRequired ? this.client.util.getRole(msg, item.roleRequired).toString() : 'None',
+          inline: true,
+        },
+        {
+          name: 'Role Given',
+          value: item.roleGiven ? this.client.util.getRole(msg, item.roleGiven).toString() : 'None',
+          inline: true,
+        },
+        {
+          name: 'Role Removed',
+          value: item.roleRemoved ? this.client.util.getRole(msg, item.roleRemoved).toString() : 'None',
+          inline: true,
+        },
+        { name: 'Reply Message', value: item.replyMessage || 'None', inline: true },
+      ])
       .setTimestamp();
 
     return msg.channel.send({ embeds: [embed] });

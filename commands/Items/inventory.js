@@ -24,6 +24,7 @@ class Inventory extends Command {
     } else if (args.length === 1) {
       if (!parseInt(args[0])) {
         mem = await this.client.util.getMember(msg, args[0]);
+        if (!mem) mem = msg.member;
       } else {
         page = parseInt(args[0]?.replace(/[^0-9\\.]/g, '') || 1);
       }
@@ -43,7 +44,7 @@ class Inventory extends Command {
 
     const inventoryDetails = paginatedInventory
       .map((item) => {
-        return `**${item.name}** - ${BigInt(item.cost || 0)?.toLocaleString()}\n${item.description}`;
+        return `**${item?.name}** - ${BigInt(item?.cost || 0)?.toLocaleString()}\n${item?.description}`;
       })
       .join('\n');
 
