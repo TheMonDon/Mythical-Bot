@@ -35,7 +35,7 @@ exports.run = async (interaction) => {
     } else {
       const tLeft = moment
         .duration(timeleft)
-        .format('y[ years][,] M[ Months], d[ days][,] h[ hours][,] m[ minutes][, and] s[ seconds]');
+        .format('y[ years][,] M[ Months][,] d[ days][,] h[ hours][,] m[ minutes][, and] s[ seconds]');
       embed.setDescription(`You cannot work for ${tLeft}`);
       return interaction.editReply({ embeds: [embed] });
     }
