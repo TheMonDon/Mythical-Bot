@@ -162,8 +162,51 @@ class CreateItem extends Command {
     embed.addFields([{ name: 'Show in inventory?', value: inventory ? 'Yes' : 'No', inline: true }]);
 
     await message.edit({
+      content: '4️⃣ How much stock of this item will there be? \nIf unlimited, just reply skip or infinity.',
+      embeds: [embed],
+    });
+
+    isValid = false;
+    let stock;
+
+    while (!isValid) {
+      collected = await msg.channel
+        .awaitMessages({
+          filter,
+          max: 1,
+          time: 60000,
+          errors: ['time'],
+        })
+        .catch(() => null);
+      if (!collected) {
+        return msg.reply('You did not reply in time, the command has been cancelled.');
+      }
+
+      const response = collected.first().content.toLowerCase();
+      if (response === 'cancel') {
+        return collected.first().reply('The command has been cancelled.');
+      }
+      if (['skip', 'infinite', 'infinity'].includes(response)) {
+        stock = null;
+        isValid = true;
+        break;
+      }
+
+      stock = parseInt(response);
+      if (isNaN(stock)) {
+        await collected.first().reply('Please answer with a number');
+      } else if (stock < 1) {
+        await collected.first().reply('Please enter a number larger than zero.');
+      } else {
+        isValid = true;
+        break;
+      }
+    }
+    embed.addFields([{ name: 'Stock Remaining', value: stock == null ? 'Infinity' : stock, inline: true }]);
+
+    await message.edit({
       content:
-        '4️⃣ What role must the user already have in order to buy (and use if an inventory item) this item? \nIf none, just reply `skip`.',
+        '5️⃣ What role must the user already have in order to buy (and use if an inventory item) this item? \nIf none, just reply `skip`.',
       embeds: [embed],
     });
 
@@ -212,7 +255,7 @@ class CreateItem extends Command {
 
     await message.edit({
       content:
-        '5️⃣ What role do you want to be given when this item is bought (or used if an inventory item)? \nIf none, just reply `skip`.',
+        '6️⃣ What role do you want to be given when this item is bought (or used if an inventory item)? \nIf none, just reply `skip`.',
       embeds: [embed],
     });
 
@@ -261,7 +304,7 @@ class CreateItem extends Command {
 
     await message.edit({
       content:
-        '6️⃣ What role do you want to be removed from the user when this item is bought (or used if an inventory item)?\nIf none, just reply `skip`.',
+        '7️⃣ What role do you want to be removed from the user when this item is bought (or used if an inventory item)?\nIf none, just reply `skip`.',
       embeds: [embed],
     });
 
@@ -310,7 +353,7 @@ class CreateItem extends Command {
 
     await message.edit({
       content:
-        '7️⃣ What message do you want the bot to reply with, when the item is bought (or used if an inventory item)? \nYou can use the Member, Server & Role tags from https://unbelievaboat.com/tags in this message. \nIf none, just reply `skip`.',
+        '8️⃣ What message do you want the bot to reply with, when the item is bought (or used if an inventory item)? \nYou can use the Member, Server & Role tags from https://unbelievaboat.com/tags in this message. \nIf none, just reply `skip`.',
       embeds: [embed],
     });
 
@@ -341,6 +384,7 @@ class CreateItem extends Command {
       cost: cost.toString(),
       description,
       inventory,
+      stock,
       roleRequired,
       roleGiven,
       roleRemoved,

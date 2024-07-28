@@ -43,6 +43,7 @@ class ItemInfo extends Command {
         { name: 'Cost', value: currencySymbol + BigInt(item.cost).toLocaleString(), inline: true },
         { name: 'Description', value: item.description, inline: false },
         { name: 'Show in Inventory?', value: item.inventory ? 'Yes' : 'No', inline: true },
+        { name: 'Stock Remaining', value: item.stock ? item.stock.toLocaleString() : 'Infinity', inline: true },
         {
           name: 'Role Required',
           value: item.roleRequired ? this.client.util.getRole(msg, item.roleRequired).toString() : 'None',

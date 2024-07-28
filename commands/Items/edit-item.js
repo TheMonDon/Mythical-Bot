@@ -10,7 +10,9 @@ class EditItem extends Command {
       name: 'edit-item',
       category: 'Items',
       description: 'Edit an item in the store.',
-      usage: 'edit-item <name|price|description> "<item name>" <new value>',
+      longDescription:
+        'Edit the attribute of an item. Available attributes: name, price, description, inventory, stock, role-required, role-given, role-removed or reply-message',
+      usage: 'edit-item <attribute> "<item name>" [new value]',
       aliases: ['edititem'],
       permLevel: 'Administrator',
       examples: ['edit-item name pizzza pizza', 'edit-item price "Large Crate" 100'],
@@ -69,7 +71,7 @@ class EditItem extends Command {
       }
 
       case 'price': {
-        const price = parseInt(newValue, 10);
+        const price = parseInt(newValue);
         if (isNaN(price) || price < 0) {
           return msg.reply('Please provide a valid price.');
         }
@@ -94,11 +96,33 @@ class EditItem extends Command {
         break;
       }
 
+      case 'stock': {
+        if (!newValue) {
+          item.stock = null;
+          store[itemKey] = item;
+          break;
+        }
+        if (['infinite', 'infinity'].includes(newValue.toLowerCase())) {
+          item.stock = null;
+          store[itemKey] = item;
+          break;
+        }
+        const stock = parseInt(newValue);
+        if (isNaN(stock) || stock < 0) {
+          return msg.reply('Please provide a valid stock amount greater than zero.');
+        }
+        item.stock = stock;
+        store[itemKey] = item;
+        break;
+      }
+
       case 'role-required': {
         if (!newValue) {
           item.roleRequired = null;
+          store[itemKey] = item;
           break;
         }
+
         const role = this.client.util.getRole(msg, newValue);
         if (!role) {
           return msg.reply('Please re-run the command with a valid role.');
@@ -111,6 +135,7 @@ class EditItem extends Command {
       case 'role-given': {
         if (!newValue) {
           item.roleGiven = null;
+          store[itemKey] = item;
           break;
         }
         const role = this.client.util.getRole(msg, newValue);
@@ -125,6 +150,7 @@ class EditItem extends Command {
       case 'role-removed': {
         if (!newValue) {
           item.roleRemoved = null;
+          store[itemKey] = item;
           break;
         }
         const role = this.client.util.getRole(msg, newValue);
@@ -139,6 +165,7 @@ class EditItem extends Command {
       case 'reply-message': {
         if (!newValue) {
           item.replyMessage = null;
+          store[itemKey] = item;
           break;
         }
         item.replyMessage = newValue.slice(0, 1000);
@@ -162,6 +189,7 @@ class EditItem extends Command {
         { name: 'Price', value: BigInt(item.cost).toLocaleString(), inline: true },
         { name: 'Description', value: item.description, inline: false },
         { name: 'Show in Inventory?', value: item.inventory ? 'Yes' : 'No', inline: true },
+        { name: 'Stock', value: item.stock ? item.stock.toLocaleString() : 'Infinity', inline: true },
         {
           name: 'Role Required',
           value: item.roleRequired ? this.client.util.getRole(msg, item.roleRequired).toString() : 'None',

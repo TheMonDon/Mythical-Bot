@@ -45,7 +45,20 @@ class BuyItem extends Command {
     const item = store[itemKey];
     const itemCost = BigInt(item.cost);
     let userCash = BigInt(await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`));
-    if (userCash < itemCost) return msg.reply('You do not have enough money to buy this item.');
+    if (userCash < itemCost * BigInt(quantity)) return msg.reply('You do not have enough money to buy this item.');
+
+    if (item.stock && item.stock < quantity) {
+      return msg.reply(`The store only has ${item.stock} stock remaining.`);
+    }
+    if (item.stock) {
+      item.stock -= quantity;
+      if (item.stock === 0) {
+        await db.delete(`servers.${msg.guild.id}.economy.store.${itemKey}`);
+      } else {
+        store[itemKey] = item;
+        await db.set(`servers.${msg.guild.id}.economy.store`, store);
+      }
+    }
 
     if (item.roleRequired) {
       const roleRequired = this.client.util.getRole(msg, item.roleRequired);
@@ -138,6 +151,13 @@ class BuyItem extends Command {
     if (itemIndex !== -1) {
       // If the item is found, increment the quantity
       userInventory[itemIndex].quantity += quantity;
+      userInventory[itemIndex] = {
+        ...userInventory[itemIndex],
+        replyMessage: item.replyMessage,
+        roleRequired: item.roleRequired,
+        roleGiven: item.roleGiven,
+        roleRemoved: item.roleRemoved,
+      };
       await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.inventory`, userInventory);
     } else {
       // Add the item to the user's inventory
