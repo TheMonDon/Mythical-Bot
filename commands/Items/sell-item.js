@@ -36,8 +36,14 @@ class SellItem extends Command {
     const sellerInventory = (await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.inventory`)) || [];
 
     // Find the item in the seller's inventory
-    const itemIndex = sellerInventory.findIndex((inventoryItem) => inventoryItem?.name?.toLowerCase() === itemName);
-    if (itemIndex === -1 || sellerInventory[itemIndex].quantity < quantity) {
+    const itemIndex = (sellerInventory || []).findIndex((inventoryItem) => {
+      // Check if inventoryItem exists and has a name property
+      if (inventoryItem && inventoryItem.name) {
+        return inventoryItem.name.toLowerCase() === itemName;
+      }
+      return false;
+    });
+    if (!itemIndex || itemIndex === -1 || sellerInventory[itemIndex].quantity < quantity) {
       return msg.reply('You do not have enough of this item in your inventory.');
     }
     const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
@@ -79,7 +85,7 @@ class SellItem extends Command {
       await msg.channel.send({ content: `${member}`, embeds: [confirmEmbed] });
 
       const confirmFilter = (response) => response.author.id === member.id;
-      const confirmCollector = new MessageCollector(msg.channel, { confirmFilter, time: 300000, max: 1 });
+      const confirmCollector = new MessageCollector(msg.channel, { filter: confirmFilter, time: 300000, max: 1 });
 
       confirmCollector.on('collect', async (confirmation) => {
         if (confirmation.content.toLowerCase() === 'yes') {
