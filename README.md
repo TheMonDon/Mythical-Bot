@@ -2,12 +2,12 @@
 <div align="center">
   <br />
   <p>
-    <a href="https://cisn.xyz/discord"><img src="https://img.shields.io/discord/512780870378061845?color=7289da&logo=discord&logoColor=white" alt="Discord Server" /></a>
+    <a href="https://cisn.xyz/support"><img src="https://img.shields.io/discord/579742127676981269?color=7289da&logo=discord&logoColor=white" alt="Discord Server" /></a>
     <img src="https://img.shields.io/github/package-json/v/TheMonDon/Mythical-Bot" alt="Bot Version" />
   </p>
 </div>
 
-Multi-utility bot including per-server economy, moderation, reminders, giveaways, and more!
+Multi-utility bot including per-server economy, moderation, reminders, giveaways, tickets, logging, music, and more!
 
 [![Fuck it Ship it](http://forthebadge.com/images/badges/fuck-it-ship-it.svg)](https://github.com/TheMonDon/Mythical-Bot) [![It Works. Why?](https://forthebadge.com/images/badges/it-works-why.svg)](https://github.com/TheMonDon/Mythical-Bot)
 
@@ -15,14 +15,14 @@ Multi-utility bot including per-server economy, moderation, reminders, giveaways
 
 - [Administrator](#Administrator)
 - [Bot Admin](#Bot-Admin)
-- [Crafters Island](#Crafters-Island)
+- [Bot Support](#Bot-Support)
 - [Economy](#Economy)
 - [Fun](#Fun)
 - [Games](#Games)
 - [General](#General)
 - [Information](#Information)
+- [Items](#Items)
 - [Logging](#Logging)
-- [Memes](#Memes)
 - [Minecraft](#Minecraft)
 - [Moderator](#Moderator)
 - [Music](#Music)
