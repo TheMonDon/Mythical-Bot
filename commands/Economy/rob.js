@@ -83,12 +83,12 @@ class Rob extends Command {
 
     let totalAmount = Number(memCash + authNet);
     if (!Number.isFinite(totalAmount)) {
-      totalAmount = Number.MAX_SAFE_INTEGER;
+      totalAmount = Number.MAX_VALUE;
     }
 
     let authNetAmount = Number(authNet);
     if (!Number.isFinite(authNetAmount)) {
-      authNetAmount = Number.MAX_SAFE_INTEGER;
+      authNetAmount = Number.MAX_VALUE;
     }
 
     const failRate = Math.floor((authNetAmount / totalAmount) * (maxRate - minRate + 1) + minRate);
