@@ -53,109 +53,185 @@ Name | Description | Usage
 Name | Description | Usage
 ----------------|--------------|-------
 `conf` | Modify the default configuration for all guilds. | `conf <view/get/edit> <key> <value>`
-`iwolfei` | Say who the worst person in the world is. | `iwolfei <user>`
 `reload` | Reloads a command that has been modified. | `reload <command>`
 `restart`| Restarts the bot. (Must be running in Forever or PM2) | `restart`
-`themondon` | Say who the best person in the world is. | `themondon <user>`
 
 ###### [Back to Top](#index)
 
-## Crafters Island
+## Bot Support
 Name | Description | Usage
 ----------------|--------------|-------
-`` |  | ``
-`` |  | ``
-`` |  | ``
+`global-blacklist` | Blacklist someone from using the bot | `global-blacklist <Add | Remove | Check> <User> <Reason>`
 
 ###### [Back to Top](#index)
 
 ## Economy
 Name | Description | Usage
 ----------------|--------------|-------
-`` |  | ``
-`` |  | ``
-`` |  | ``
+`add-money-role` |  | ``
+`add-money` |  | ``
+`balance` |  | ``
+`blackjack` |  | ``
+`clean-leaderboard` |  | ``
+`crime` |  | ``
+`deposit` |  | ``
+`economy-stats` |  | ``
+`give-money` |  | ``
+`leaderboard` |  | ``
+`remove-money-role` |  | ``
+`remove-money` |  | ``
+`reset-money` |  | ``
+`rob` |  | ``
+`set-cooldown` |  | ``
+`set-currency` |  | ``
+`set-payout` |  | ``
+`set-start-balance` |  | ``
+`slut` |  | ``
+`withdraw` |  | ``
+`work` |  | ``
 
 ###### [Back to Top](#index)
 
 ## Fun
 Name | Description | Usage
 ----------------|--------------|-------
-`` |  | ``
-`` |  | ``
-`` |  | ``
+`8ball` |  | ``
+`advice` |  | ``
+`choose` |  | ``
+`clap` |  | ``
+`color` |  | ``
+`cow-say` |  | ``
+`cow` |  | ``
+`cursive` |  | ``
+`dad-joke` |  | ``
+`download-emoji` |  | ``
+`insult` |  | ``
+`kill` |  | ``
+`number` |  | ``
+`quote` |  | ``
+`roast` |  | ``
+`shower-thoughts` |  | ``
 
 ###### [Back to Top](#index)
 
 ## Games
 Name | Description | Usage
 ----------------|--------------|-------
-`` |  | ``
-`` |  | ``
-`` |  | ``
+`connect4` |  | ``
+`flood-buttons` |  | ``
+`flood` |  | ``
+`hangman` |  | ``
+`rock-paper-scissors` |  | ``
+`tic-tac-toe` |  | ``
+`typer-competition` |  | ``
+`wordle` |  | ``
 
 ###### [Back to Top](#index)
 
 ## General
 Name | Description | Usage
 ----------------|--------------|-------
-`` |  | ``
-`` |  | ``
-`` |  | ``
+`bot-info` |  | ``
+`grab` |  | ``
+`help` |  | ``
+`reminders` |  | ``
+`remindme` |  | ``
+`warnings` |  | ``
+
+###### [Back to Top](#index)
+
+## Giveaways
+Name | Description | Usage
+----------------|--------------|-------
+`delete-giveaway` |  | ``
+`end-giveaway` |  | ``
+`reroll-giveaway` |  | ``
+`start-giveaway` |  | ``
 
 ###### [Back to Top](#index)
 
 ## Information
 Name | Description | Usage
 ----------------|--------------|-------
-`` |  | ``
-`` |  | ``
-`` |  | ``
+`avatar` |  | ``
+`channel-info` |  | ``
+`dictionary` |  | ``
+`emojis` |  | ``
+`math` |  | ``
+`mylevel` |  | ``
+`perms` |  | ``
+`role-info` |  | ``
+`server-info` |  | ``
+`today-in-history` |  | ``
+`user-info` |  | ``
+`weather` |  | ``
+`wiki` |  | ``
+
+###### [Back to Top](#index)
+
+## Items
+Name | Description | Usage
+----------------|--------------|-------
+`buy-item` |  | ``
+`create-item` |  | ``
+`delete-item` |  | ``
+`edit-item` |  | ``
+`inventory` |  | ``
+`sell-item` |  | ``
+`store` |  | ``
+`use-item` |  | ``
 
 ###### [Back to Top](#index)
 
 ## Logging
 Name | Description | Usage
 ----------------|--------------|-------
-`` |  | ``
-`` |  | ``
-`` |  | ``
-
-###### [Back to Top](#index)
-
-## Memes
-Name | Description | Usage
-----------------|--------------|-------
-`` |  | ``
-`` |  | ``
-`` |  | ``
+`log-system` |  | ``
+`log-toggle` |  | ``
+`toggle-all` |  | ``
 
 ###### [Back to Top](#index)
 
 ## Minecraft
 Name | Description | Usage
 ----------------|--------------|-------
-`` |  | ``
-`` |  | ``
-`` |  | ``
+`mc-account` |  | ``
+`mc-server` |  | ``
 
 ###### [Back to Top](#index)
 
 ## Moderator
 Name | Description | Usage
 ----------------|--------------|-------
-`` |  | ``
-`` |  | ``
-`` |  | ``
+`ban` |  | ``
+`blacklist` |  | ``
+`emoji` |  | ``
+`kick` |  | ``
+`nickname` |  | ``
+`purge` |  | ``
+`unban` |  | ``
+`warn-info` |  | ``
+`warn` |  | ``
 
 ###### [Back to Top](#index)
 
 ## Music
 Name | Description | Usage
 ----------------|--------------|-------
-`` |  | ``
-`` |  | ``
-`` |  | ``
+`back` |  | ``
+`clear-queue` |  | ``
+`lyrics` |  | ``
+`now-playing` |  | ``
+`pause` |  | ``
+`play` |  | ``
+`queue` |  | ``
+`remove` |  | ``
+`repeat` |  | ``
+`resume` |  | ``
+`shuffle` |  | ``
+`skip` |  | ``
+`stop` |  | ``
+`volume` |  | ``
 
 ###### [Back to Top](#index)
 
@@ -163,36 +239,57 @@ Name | Description | Usage
 [![Ages 18](http://forthebadge.com/images/badges/ages-18.svg)](https://github.com/TheMonDon/Mythical-Bot)
 Name | Description | Usage
 ----------------|--------------|-------
-`` |  | ``
-`` |  | ``
-`` |  | ``
+`ass` |  | ``
+`bdsm` |  | ``
+`bikini` |  | ``
+`boobs` |  | ``
+`cuck` |  | ``
+`cum` |  | ``
+`dildo` |  | ``
+`feet` |  | ``
+`ginger` |  | ``
+`gonewild` |  | ``
+`hair` |  | ``
+`hentai` |  | ``
+`lesbian` |  | ``
+`men` |  | ``
+`milf` |  | ``
+`pornhub` |  | ``
+`pussy` |  | ``
+`thong` |  | ``
 
 ###### [Back to Top](#index)
 
 ## Owner
 Name | Description | Usage
 ----------------|--------------|-------
-`` |  | ``
-`` |  | ``
-`` |  | ``
+`deploy` |  | ``
+`eval` |  | ``
+`exec` |  | ``
+`npm` |  | ``
 
 ###### [Back to Top](#index)
 
 ## Search
 Name | Description | Usage
 ----------------|--------------|-------
-`` |  | ``
-`` |  | ``
-`` |  | ``
+`github` |  | ``
+`movie` |  | ``
+`reddit` |  | ``
+`steam` |  | ``
+`tv-show` |  | ``
 
 ###### [Back to Top](#index)
 
 ## Tickets
 Name | Description | Usage
 ----------------|--------------|-------
-`` |  | ``
-`` |  | ``
-`` |  | ``
+`add-member` |  | ``
+`close` |  | ``
+`force-close` |  | ``
+`new-ticket` |  | ``
+`remove-member` |  | ``
+`topic` |  | ``
 
 ###### [Back to Top](#index)
 
