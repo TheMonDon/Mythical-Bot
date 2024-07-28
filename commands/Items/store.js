@@ -30,7 +30,7 @@ class Store extends Command {
     // Construct the message with item names
     const itemDetails = Object.entries(store).map(([itemName, itemInfo], index) => {
       const csCost = currencySymbol + BigInt(itemInfo.cost);
-      const trimmedCost = csCost.length > 300 ? csCost.slice(0, 400) + '...' : csCost;
+      const trimmedCost = csCost.length > 300 ? csCost.toLocaleString().slice(0, 400) + '...' : csCost.toLocaleString();
       return {
         display: `${index + 1}. **${itemName}** - ${trimmedCost}\n${itemInfo.description}`,
       };
