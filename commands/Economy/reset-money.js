@@ -6,9 +6,9 @@ class ResetMoney extends Command {
   constructor(client) {
     super(client, {
       name: 'reset-money',
-      description: 'Reset the money of a user.',
+      description: 'Reset the money of a user',
       category: 'Economy',
-      usage: 'Reset-Money [user]',
+      usage: 'reset-money [user]',
       aliases: ['resetmoney'],
       guildOnly: true,
     });

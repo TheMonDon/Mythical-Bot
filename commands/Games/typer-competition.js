@@ -10,8 +10,8 @@ class TyperCompetition extends Command {
   constructor(client) {
     super(client, {
       name: 'typer-competition',
-      description: 'See who can type the fastest.',
-      usage: 'Typer-Competition',
+      description: 'See who can type the fastest',
+      usage: 'typer-competition',
       category: 'Games',
       aliases: ['typercompetition', 'tc'],
     });

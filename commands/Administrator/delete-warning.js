@@ -7,7 +7,7 @@ class DeleteWarning extends Command {
   constructor(client) {
     super(client, {
       name: 'delete-warning',
-      description: 'Delete a specific warnings case.',
+      description: 'Delete a specific warnings case',
       usage: 'Delete-Warning <CaseID>',
       category: 'Administrator',
       permLevel: 'Administrator',

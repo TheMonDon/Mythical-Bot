@@ -8,7 +8,7 @@ class Setup extends Command {
   constructor(client) {
     super(client, {
       name: 'setup',
-      description: 'Setup the different systems of the bot.',
+      description: 'Setup the different systems of the bot',
       usage: 'setup <logs | tickets | warns>',
       category: 'Administrator',
       permLevel: 'Administrator',

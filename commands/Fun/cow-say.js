@@ -5,7 +5,7 @@ class CowSay extends Command {
   constructor(client) {
     super(client, {
       name: 'cow-say',
-      description: 'Say stuff as a cow.. moo.',
+      description: 'Say stuff as a cow.. moo',
       usage: 'cow-say <text>',
       category: 'Fun',
       aliases: ['cowsay'],

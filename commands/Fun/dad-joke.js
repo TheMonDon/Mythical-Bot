@@ -6,7 +6,7 @@ class DadJoke extends Command {
   constructor(client) {
     super(client, {
       name: 'dad-joke',
-      description: 'Get a random dad joke.',
+      description: 'Get a random dad joke',
       usage: 'dad-joke',
       category: 'Fun',
       aliases: ['dadjoke'],

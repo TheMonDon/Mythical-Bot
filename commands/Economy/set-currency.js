@@ -8,7 +8,7 @@ class SetCurrency extends Command {
       name: 'set-currency',
       category: 'Economy',
       description: 'Sets the currency symbol',
-      usage: 'set-currency <currency symbol>',
+      usage: 'set-currency [currency symbol]',
       aliases: ['setcurrency'],
       permLevel: 'Administrator',
       guildOnly: true,

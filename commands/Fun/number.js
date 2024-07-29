@@ -6,7 +6,7 @@ class Number extends Command {
   constructor(client) {
     super(client, {
       name: 'number',
-      description: 'Get a random fact about a number.',
+      description: 'Get a random fact about a number',
       usage: 'number <number>',
       requiredArgs: 1,
       category: 'Fun',

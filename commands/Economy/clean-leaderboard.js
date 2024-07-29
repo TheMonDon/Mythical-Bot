@@ -8,7 +8,7 @@ class CleanLeaderboard extends Command {
     super(client, {
       name: 'clean-leaderboard',
       category: 'Economy',
-      description: 'Clean the leaderboard of users no longer in the guild.',
+      description: 'Clean the leaderboard of users no longer in the guild',
       usage: 'clean-leaderboard',
       aliases: ['cl', 'cleanleaderboard', 'clean-lb'],
       permLevel: 'Administrator',

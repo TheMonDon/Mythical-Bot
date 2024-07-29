@@ -6,8 +6,8 @@ class Math extends Command {
   constructor(client) {
     super(client, {
       name: 'math',
-      description: 'Solve some math equations',
-      usage: 'math <Equation>',
+      description: 'Solve a math equation',
+      usage: 'math <equation>',
       category: 'Information',
       aliases: ['calc', 'calculate'],
       examples: ['math 1 + 2', 'math 120cm to in'],
@@ -32,7 +32,7 @@ class Math extends Command {
           },
           { name: '**📤 Result**', value: `\`\`\`${solution}\`\`\``, inline: false },
         ])
-        .setDescription('Powered by: [math.js](https://mathjs.org/examples/index.html)');
+        .setDescription('Powered by: [mathjs](https://mathjs.org/examples/index.html)');
       return msg.channel.send({ embeds: [embed] });
     } catch (err) {
       return this.client.util.errorEmbed(msg, err.toString(), 'Invalid Equation');

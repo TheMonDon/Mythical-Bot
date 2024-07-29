@@ -13,7 +13,7 @@ class Color extends Command {
   constructor(client) {
     super(client, {
       name: 'color',
-      description: 'Get information about some colors.',
+      description: 'Get information about a color',
       usage: 'color <hex, rgb, name, imageURL, attachment>',
       category: 'Fun',
     });

@@ -6,7 +6,7 @@ class ShowerThoughts extends Command {
   constructor(client) {
     super(client, {
       name: 'shower-thoughts',
-      description: 'Get a random shower thought.',
+      description: 'Get a random shower thought',
       usage: 'shower-thoughts',
       category: 'Fun',
       aliases: ['showerthoughts', 'showerthought', 'shower-thought'],

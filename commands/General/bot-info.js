@@ -11,7 +11,7 @@ class BotInfo extends Command {
     super(client, {
       name: 'bot-info',
       description: 'Gives some useful bot information',
-      usage: 'Bot-Info',
+      usage: 'bot-info',
       category: 'General',
       aliases: ['bi', 'botinfo', 'about', 'info'],
     });

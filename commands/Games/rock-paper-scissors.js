@@ -6,8 +6,8 @@ class RockPaperScissors extends Command {
   constructor(client) {
     super(client, {
       name: 'rock-paper-scissors',
-      description: 'Play a game of rock paper scissors.',
-      usage: 'rock-paper-scissors <user>',
+      description: 'Play a game of rock paper scissors',
+      usage: 'rock-paper-scissors <member>',
       requiredArgs: 1,
       category: 'Games',
       aliases: ['rockpaperscissors', 'rps'],
@@ -25,7 +25,7 @@ class RockPaperScissors extends Command {
     if (current) return msg.reply(`Please wait until the current game of \`${current.name}\` is finished.`);
 
     const mem = await this.client.util.getMember(msg, args.join(' '));
-    if (!mem) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid User');
+    if (!mem) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Member');
     if (mem.user.id === msg.author.id)
       return this.client.util.errorEmbed(msg, "You can't play against yourself, silly.");
 

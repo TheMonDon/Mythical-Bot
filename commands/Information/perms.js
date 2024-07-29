@@ -6,7 +6,7 @@ class Permissions extends Command {
   constructor(client) {
     super(client, {
       name: 'permissions',
-      description: 'List the permissions that a member or role has.',
+      description: 'List the permissions that a member or role has',
       usage: 'permissions [member | role]',
       category: 'Information',
       aliases: ['perms'],
@@ -50,7 +50,7 @@ class Permissions extends Command {
           \`View Channels\`| ${has('ViewChannel') ? yes : no}
           \`Manage Channels\`| ${has('ManageChannels') ? yes : no}
           \`Manage Roles\`| ${has('ManageRoles') ? yes : no}
-          \`Manage Emojis and Stickers\`| ${has('ManageEmojisAndStickers') ? yes : no}
+          \`Manage Emojis, Stickers, and sounds\`| ${has('ManageEmojisAndStickers') ? yes : no}
           \`View Audit Log\`| ${has('ViewAuditLog') ? yes : no}
           \`View Server Insights\`| ${has('ViewGuildInsights') ? yes : no}
           \`Manage Webhooks\`| ${has('ManageWebhooks') ? yes : no}
@@ -86,7 +86,8 @@ class Permissions extends Command {
           \`Manage Threads\`| ${has('ManageThreads') ? yes : no}
           \`Read Message History\`| ${has('ReadMessageHistory') ? yes : no}
           \`Send Text-to-Speech Messages\`| ${has('SendTTSMessages') ? yes : no}
-          \`Use Application Commands\`| ${has('UseApplicationCommands') ? yes : no}
+          \`Send Voice Messages\`| ${has('SendVoiceMessages') ? yes : no}
+          \`Create Polls\`| ${has('SendPolls') ? yes : no}
           `,
           inline: true,
         },
@@ -95,7 +96,7 @@ class Permissions extends Command {
           value: stripIndents`
           \`Connect\`| ${has('Connect') ? yes : no}
           \`Speak\`| ${has('Speak') ? yes : no}
-          \`Stream\`| ${has('Stream') ? yes : no}
+          \`Video\`| ${has('Stream') ? yes : no}
           \`Use Voice Activity\`| ${has('UseVAD') ? yes : no}
           \`Priority Speaker\`| ${has('PrioritySpeaker') ? yes : no}
           \`Mute Members\`| ${has('MuteMembers') ? yes : no}
@@ -105,9 +106,25 @@ class Permissions extends Command {
           inline: true,
         },
         {
+          name: '➢ __Apps Permissions__',
+          value: stripIndents`
+          \`Use Application Commands\`| ${has('UseApplicationCommands') ? yes : no}
+          \`Use Activities\`| ${has('UseEmbeddedActivities') ? yes : no}
+          `,
+          inline: true,
+        },
+        {
           name: '➢ __Stage Channel Permissions:__',
           value: stripIndents`
           \`Request to Speak\`| ${has('RequestToSpeak') ? yes : no}
+          `,
+          inline: true,
+        },
+        {
+          name: '➢ __Events Permissions:__',
+          value: stripIndents`
+          \`Create Events\`| ${has('CreateEvents') ? yes : no}
+          \`Manage Events\`| ${has('ManageEvents') ? yes : no}
           `,
           inline: true,
         },

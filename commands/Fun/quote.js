@@ -5,7 +5,7 @@ class Quote extends Command {
   constructor(client) {
     super(client, {
       name: 'quote',
-      description: 'Get a random quote.',
+      description: 'Get a random quote',
       usage: 'quote',
       category: 'Fun',
       aliases: ['quotes'],

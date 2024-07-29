@@ -8,8 +8,8 @@ class Warnings extends Command {
   constructor(client) {
     super(client, {
       name: 'warnings',
-      description: 'View all your warnings. Moderators can view others warnings.',
-      usage: 'Warnings [user]',
+      description: 'View all your warnings. Moderators can view others warnings',
+      usage: 'warnings [user]',
       category: 'General',
       aliases: ['warns'],
       guildOnly: true,

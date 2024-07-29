@@ -6,7 +6,7 @@ class Hangman extends Command {
   constructor(client) {
     super(client, {
       name: 'hangman',
-      description: 'Play a game of hangman.',
+      description: 'Play a game of hangman',
       usage: 'hangman',
       category: 'Games',
     });

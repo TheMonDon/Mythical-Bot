@@ -8,7 +8,7 @@ class Rob extends Command {
   constructor(client) {
     super(client, {
       name: 'rob',
-      description: 'Rob a player',
+      description: 'Rob another users money',
       category: 'Economy',
       usage: 'rob <user>',
       aliases: ['robbery'],

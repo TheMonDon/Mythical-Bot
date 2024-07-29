@@ -5,8 +5,8 @@ class Kill extends Command {
   constructor(client) {
     super(client, {
       name: 'kill',
-      description: 'Kill the chosen user in a funny way.',
-      usage: 'kill [user]',
+      description: 'Kill the chosen member in a funny way',
+      usage: 'kill [member]',
       category: 'Fun',
       guildOnly: true,
     });

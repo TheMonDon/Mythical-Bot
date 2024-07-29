@@ -11,7 +11,7 @@ class Conf extends Command {
   constructor(client) {
     super(client, {
       name: 'conf',
-      description: 'Modify the default configuration for all guilds.',
+      description: 'Modify the default configuration for all guilds',
       category: 'Bot Admin',
       permLevel: 'Bot Admin',
       usage: 'conf <view/get/edit> <key> <value>',

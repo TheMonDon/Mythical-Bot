@@ -6,7 +6,7 @@ class Advice extends Command {
   constructor(client) {
     super(client, {
       name: 'advice',
-      description: 'Get a random piece of advice.',
+      description: 'Get a random piece of advice',
       usage: 'advice',
       category: 'Fun',
     });

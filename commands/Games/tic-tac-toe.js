@@ -7,8 +7,8 @@ class TicTacToe extends Command {
   constructor(client) {
     super(client, {
       name: 'tic-tac-toe',
-      description: 'Play a game of tic-tac-toe with another user or the AI.',
-      usage: 'tic-tac-toe <user>',
+      description: 'Play a game of tic-tac-toe with another user or the bot',
+      usage: 'tic-tac-toe <member>',
       requiredArgs: 1,
       category: 'Games',
       aliases: ['ttt', 'tictactoe'],

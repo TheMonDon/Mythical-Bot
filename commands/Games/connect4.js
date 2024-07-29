@@ -11,7 +11,7 @@ class Connect4 extends Command {
   constructor(client) {
     super(client, {
       name: 'connect-four',
-      description: 'Play a game of connect-four.',
+      description: 'Play a game of connect-four',
       usage: 'connect-four [opponent] <color>',
       category: 'Games',
       aliases: ['connectfour', 'connect4', 'c4'],

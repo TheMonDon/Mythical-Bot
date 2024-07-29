@@ -11,6 +11,7 @@ class Slut extends Command {
       name: 'slut',
       category: 'Economy',
       description: 'Whip it out, for some quick cash ;)',
+      usage: 'slut',
       aliases: ['whore', 'escort'],
       guildOnly: true,
     });

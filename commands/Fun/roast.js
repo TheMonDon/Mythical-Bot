@@ -5,7 +5,7 @@ class Roast extends Command {
   constructor(client) {
     super(client, {
       name: 'roast',
-      description: 'Get a random roast message.',
+      description: 'Get a random roast message',
       usage: 'roast',
       category: 'Fun',
       aliases: ['roasts'],

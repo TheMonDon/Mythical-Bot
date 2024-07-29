@@ -5,8 +5,8 @@ class Emojis extends Command {
   constructor(client) {
     super(client, {
       name: 'emojis',
-      description: 'Shows all the custom emojis in the server.',
-      usage: 'Emojis',
+      description: 'Shows all the custom emojis in the server',
+      usage: 'emojis',
       category: 'Information',
       guildOnly: true,
     });

@@ -8,7 +8,7 @@ class FloodButtons extends Command {
   constructor(client) {
     super(client, {
       name: 'flood-buttons',
-      description: 'Play a game of flood.',
+      description: 'Play a game of flood',
       usage: 'flood-buttons',
       category: 'Games',
       aliases: ['floodbuttons', 'floodbutton'],

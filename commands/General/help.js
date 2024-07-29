@@ -5,9 +5,9 @@ class Help extends Command {
   constructor(client) {
     super(client, {
       name: 'help',
-      description: 'Displays all the available commands for you.',
+      description: 'Displays all your available commands',
       category: 'General',
-      usage: 'Help <Category || Command>',
+      usage: 'help <category | command>',
       examples: ['help games', 'help user-info'],
       aliases: ['h'],
     });

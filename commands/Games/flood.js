@@ -8,7 +8,7 @@ class Flood extends Command {
   constructor(client) {
     super(client, {
       name: 'flood',
-      description: 'Play a game of flood.',
+      description: 'Play a game of flood',
       usage: 'flood',
       category: 'Games',
     });

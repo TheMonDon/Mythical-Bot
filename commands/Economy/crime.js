@@ -11,6 +11,7 @@ class Crime extends Command {
       name: 'crime',
       category: 'Economy',
       description: 'Commit a crime for a chance at some extra money',
+      usage: 'crime',
       examples: ['crime'],
       guildOnly: true,
     });

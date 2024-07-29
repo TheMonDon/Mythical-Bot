@@ -9,7 +9,7 @@ class EndGiveaway extends Command {
       usage: 'end-giveaway <Message ID>',
       requiredArgs: 1,
       category: 'Giveaways',
-      aliases: ['endgiveaway', 'gend'],
+      aliases: ['endgiveaway', 'gend', 'giveawayend'],
       guildOnly: true,
     });
   }

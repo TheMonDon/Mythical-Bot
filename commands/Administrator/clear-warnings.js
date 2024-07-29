@@ -7,7 +7,7 @@ class ClearWarnings extends Command {
   constructor(client) {
     super(client, {
       name: 'clear-warnings',
-      description: 'Clear all the warnings of the specific user.',
+      description: 'Clear all the warnings of the specific user',
       usage: 'clear-warnings <User>',
       category: 'Administrator',
       permLevel: 'Administrator',

@@ -10,6 +10,7 @@ class DeleteGiveaway extends Command {
       requiredArgs: 1,
       category: 'Giveaways',
       aliases: ['deletegiveaway', 'delgiveaway', 'gdelete'],
+      permLevel: 'Moderator',
       guildOnly: true,
     });
   }

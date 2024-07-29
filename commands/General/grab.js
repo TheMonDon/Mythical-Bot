@@ -5,9 +5,9 @@ class Grab extends Command {
   constructor(client) {
     super(client, {
       name: 'grab',
-      description: 'Get the source code of a command.',
+      description: 'Get the source code of a command',
       category: 'General',
-      usage: 'grab [-i] <commandName>',
+      usage: 'grab [-i] <command name>',
       requiredArgs: 1,
     });
   }

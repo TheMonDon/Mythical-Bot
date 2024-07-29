@@ -7,8 +7,8 @@ class EightBall extends Command {
   constructor(client) {
     super(client, {
       name: '8ball',
-      description: 'Ask the 8ball something.',
-      usage: '8ball <Question>',
+      description: 'Ask the 8ball something',
+      usage: '8ball <question>',
       category: 'Fun',
     });
   }

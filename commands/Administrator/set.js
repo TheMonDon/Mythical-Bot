@@ -14,7 +14,7 @@ class Set extends Command {
   constructor(client) {
     super(client, {
       name: 'set',
-      description: 'View or change the settings for your guild.',
+      description: 'View or change the settings for your guild',
       longDescription: 'Example: `-set edit welcomeEnabled true` will enable the welcome message.',
       category: 'Administrator',
       permLevel: 'Administrator',

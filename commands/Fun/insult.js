@@ -6,7 +6,7 @@ class Insult extends Command {
   constructor(client) {
     super(client, {
       name: 'insult',
-      description: 'Get a random insult.',
+      description: 'Get a random insult',
       usage: 'insult',
       category: 'Fun',
     });

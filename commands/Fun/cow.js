@@ -5,7 +5,7 @@ class Cow extends Command {
   constructor(client) {
     super(client, {
       name: 'cow',
-      description: 'Send a random ascii image of a cow.',
+      description: 'Send a random ascii image of a cow',
       usage: 'cow',
       category: 'Fun',
     });

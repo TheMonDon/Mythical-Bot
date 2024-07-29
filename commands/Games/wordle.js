@@ -7,7 +7,7 @@ class Wordle extends Command {
   constructor(client) {
     super(client, {
       name: 'wordle',
-      description: 'Play the famous wordle game!',
+      description: 'Play the famous wordle game',
       usage: 'wordle',
       category: 'Games',
     });

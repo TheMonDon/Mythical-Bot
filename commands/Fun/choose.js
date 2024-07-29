@@ -4,8 +4,9 @@ class Choose extends Command {
   constructor(client) {
     super(client, {
       name: 'choose',
-      description: 'Make the bot choose something.',
-      usage: 'choose <one word, two words, ... | word1 word2 word3 ...>',
+      description: 'Make the bot choose something',
+      usage: 'choose <choice 1, choice 2...>',
+      examples: ['choose Minecraft Terraria', 'choose Minecraft, Terraria'],
       requiredArgs: 2,
       category: 'Fun',
     });

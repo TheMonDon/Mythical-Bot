@@ -9,9 +9,9 @@ class Leaderboard extends Command {
       name: 'leaderboard',
       description: 'Get the economy leaderboard',
       category: 'Economy',
-      examples: ['leaderboard [page] [-cash | -bank]'],
+      examples: ['leaderboard 2', 'leaderboard -bank', 'leaderboard 2 -cash'],
       aliases: ['lb', 'baltop'],
-      usage: 'leaderboard [page]',
+      usage: 'leaderboard [page] [-cash | -bank]',
       guildOnly: true,
     });
   }

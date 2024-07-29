@@ -5,7 +5,7 @@ class Cursive extends Command {
   constructor(client) {
     super(client, {
       name: 'cursive',
-      description: 'Convert your text into cursive!',
+      description: 'Convert your text into cursive',
       usage: 'cursive <text>',
       requiredArgs: 1,
       category: 'Fun',
