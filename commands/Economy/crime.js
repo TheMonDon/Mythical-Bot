@@ -81,7 +81,7 @@ class Crime extends Command {
 
       embed
         .setColor(msg.settings.embedErrorColor)
-        .setDescription(crimeFail[num].replace('csamount', csamount))
+        .setDescription(crimeFail[num].replace('{amount}', csamount))
         .setFooter({ text: `Reply #${num.toLocaleString()}` });
       msg.channel.send({ embeds: [embed] });
 
@@ -94,7 +94,7 @@ class Crime extends Command {
 
       embed
         .setColor(msg.settings.embedSuccessColor)
-        .setDescription(crimeSuccess[num].replace('csamount', csamount))
+        .setDescription(crimeSuccess[num].replace('{amount}', csamount))
         .setFooter({ text: `Reply #${num.toLocaleString()}` });
       msg.channel.send({ embeds: [embed] });
 

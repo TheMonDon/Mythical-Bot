@@ -76,7 +76,7 @@ class Slut extends Command {
       csAmount = csAmount.length > 1024 ? csAmount.slice(0, 1021) + '...' : csAmount;
 
       const num = Math.floor(Math.random() * (crimeFail.length - 1)) + 1;
-      const txt = crimeFail[num].replace('csamount', csAmount);
+      const txt = crimeFail[num].replace('{amount}', csAmount);
 
       embed.setDescription(txt).setFooter({ text: `Reply #${num.toLocaleString()}` });
       msg.channel.send({ embeds: [embed] });
@@ -93,7 +93,7 @@ class Slut extends Command {
       csAmount = csAmount.length > 1024 ? csAmount.slice(0, 1021) + '...' : csAmount;
 
       const num = Math.floor(Math.random() * (crimeSuccess.length - 1)) + 1;
-      const txt = crimeSuccess[num].replace('csamount', csAmount);
+      const txt = crimeSuccess[num].replace('{amount}', csAmount);
 
       embed
         .setDescription(txt)
