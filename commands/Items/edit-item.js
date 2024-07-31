@@ -25,12 +25,16 @@ class EditItem extends Command {
     const attribute = args.shift().toLowerCase();
     let itemName;
     let newValue;
+    const errorEmbed = new EmbedBuilder()
+      .setColor(msg.settings.embedErrorColor)
+      .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() });
 
     if (args[0].startsWith('"')) {
       // Find the ending index of the item name enclosed in double quotes
       const itemNameEndIndex = args.findIndex((arg) => arg.endsWith('"'));
       if (itemNameEndIndex === -1) {
-        return msg.reply('Please enclose the item name in double quotes.');
+        errorEmbed.setDescription('Please enclose the item name in double quotes.');
+        return msg.channel.send({ embeds: [errorEmbed] });
       }
 
       // Extract the item name and remove the double quotes
@@ -52,7 +56,10 @@ class EditItem extends Command {
     // Find the item in the store regardless of case
     let itemKey = Object.keys(store).find((key) => key.toLowerCase() === itemName.toLowerCase());
 
-    if (!itemKey) return msg.reply('That item does not exist in the store.');
+    if (!itemKey) {
+      errorEmbed.setDescription('That item does not exist in the store.');
+      return msg.channel.send({ embeds: [errorEmbed] });
+    }
 
     const item = store[itemKey];
 
@@ -61,7 +68,8 @@ class EditItem extends Command {
         // Ensure the new name is not already taken
         const newItemKey = newValue.toLowerCase();
         if (Object.keys(store).find((key) => key.toLowerCase() === newItemKey)) {
-          return msg.reply('An item with that name already exists.');
+          errorEmbed.setDescription('An item with that name already exists.');
+          return msg.channel.send({ embeds: [errorEmbed] });
         }
         // Update the item name
         store[newValue] = item;
@@ -73,7 +81,8 @@ class EditItem extends Command {
       case 'price': {
         const price = parseInt(newValue);
         if (isNaN(price) || price < 0) {
-          return msg.reply('Please provide a valid price.');
+          errorEmbed.setDescription('Please provide a valid price.');
+          return msg.channel.send({ embeds: [errorEmbed] });
         }
         item.cost = price;
         store[itemKey] = item;
@@ -81,6 +90,10 @@ class EditItem extends Command {
       }
 
       case 'description': {
+        if (newValue.length > 1000) {
+          errorEmbed.setDescription('Please keep the description under 1000 characters,');
+          return msg.channel.send({ embeds: [errorEmbed] });
+        }
         item.description = newValue.slice(0, 1000);
         store[itemKey] = item;
         break;
@@ -91,7 +104,8 @@ class EditItem extends Command {
           item.inventory = newValue.toLowerCase() === 'yes';
           store[itemKey] = item;
         } else {
-          return msg.reply('Please respond with "yes" or "no" for inventory.');
+          errorEmbed.setDescription('Please respond with "yes" or "no" for inventory.');
+          return msg.channel.send({ embeds: [errorEmbed] });
         }
         break;
       }
@@ -109,7 +123,8 @@ class EditItem extends Command {
         }
         const stock = parseInt(newValue);
         if (isNaN(stock) || stock < 0) {
-          return msg.reply('Please provide a valid stock amount greater than zero.');
+          errorEmbed.setDescription('Please provide a valid stock amount greater than zero.');
+          return msg.channel.send({ embeds: [errorEmbed] });
         }
         item.stock = stock;
         store[itemKey] = item;
@@ -125,7 +140,8 @@ class EditItem extends Command {
 
         const role = this.client.util.getRole(msg, newValue);
         if (!role) {
-          return msg.reply('Please re-run the command with a valid role.');
+          errorEmbed.setDescription('Please re-run the command with a valid role.');
+          return msg.channel.send({ embeds: [errorEmbed] });
         }
         item.roleRequired = role.id;
         store[itemKey] = item;
@@ -140,7 +156,8 @@ class EditItem extends Command {
         }
         const role = this.client.util.getRole(msg, newValue);
         if (!role) {
-          return msg.reply('Please re-run the command with a valid role.');
+          errorEmbed.setDescription('Please re-run the command with a valid role.');
+          return msg.channel.send({ embeds: [errorEmbed] });
         }
         item.roleGiven = role.id;
         store[itemKey] = item;
@@ -155,7 +172,8 @@ class EditItem extends Command {
         }
         const role = this.client.util.getRole(msg, newValue);
         if (!role) {
-          return msg.reply('Please re-run the command with a valid role.');
+          errorEmbed.setDescription('Please re-run the command with a valid role.');
+          return msg.channel.send({ embeds: [errorEmbed] });
         }
         item.roleRemoved = role.id;
         store[itemKey] = item;
@@ -184,6 +202,7 @@ class EditItem extends Command {
     const embed = new EmbedBuilder()
       .setTitle('Item Edited')
       .setColor(msg.settings.embedColor)
+      .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
       .addFields([
         { name: 'Name', value: itemKey, inline: true },
         { name: 'Price', value: BigInt(item.cost).toLocaleString(), inline: true },

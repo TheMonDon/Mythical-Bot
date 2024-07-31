@@ -348,11 +348,14 @@ async function getTickets(userID, msg) {
  * @param {String} question
  * @param {Number} limit
  */
-async function awaitReply(msg, question, limit = 60000) {
+async function awaitReply(msg, question, time = 60000) {
   const filter = (m) => m.author.id === msg.author.id;
-  await msg.channel.send(question);
+  if (question) {
+    await msg.channel.send(question);
+  }
+
   try {
-    const collected = await msg.channel.awaitMessages({ filter, max: 1, time: limit, errors: ['time'] });
+    const collected = await msg.channel.awaitMessages({ filter, max: 1, time, errors: ['time'] });
     return collected.first().content;
   } catch (e) {
     return false;

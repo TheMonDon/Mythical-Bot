@@ -20,19 +20,25 @@ class Setup extends Command {
   async run(msg, args) {
     const type = args[0]?.toLowerCase();
     const successColor = msg.settings.embedSuccessColor;
+    const errorEmbed = new EmbedBuilder()
+      .setColor(msg.settings.embedErrorColor)
+      .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() });
 
     if (['ticket', 'tix', 'tickets'].includes(type)) {
       const filter = (m) => m.author.id === msg.author.id;
       const filter2 = (m) => ['y', 'yes', 'n', 'no'].includes(m.content.toLowerCase()) && m.author.id === msg.author.id;
 
       if (!msg.guild.members.me.permissions.has('ManageChannels')) {
-        return msg.reply('The bot is missing manage channels permission.');
+        errorEmbed.setDescription('The bot is missing Manage Channels permission.');
+        return msg.channel.send({ embeds: [errorEmbed] });
       }
       if (!msg.guild.members.me.permissions.has('ManageRoles')) {
-        return msg.reply('The bot is missing manage roles permission');
+        errorEmbed.setDescription('The bot is missing Manage Roles permission');
+        return msg.channel.send({ embeds: [errorEmbed] });
       }
       if (!msg.guild.members.me.permissions.has('ManageMessages')) {
-        return msg.reply('The bot is missing manage messages permission');
+        errorEmbed.setDescription('The bot is missing Manage Messages permission');
+        return msg.channel.send({ embeds: [errorEmbed] });
       }
 
       // Check if the system is setup already
@@ -70,7 +76,10 @@ class Setup extends Command {
         errors: ['time'],
       });
 
-      if (!collected) return msg.reply('You did not reply in time, the command has been cancelled.');
+      if (!collected) {
+        errorEmbed.setDescription('You did not reply in time, the command has been cancelled.');
+        return msg.channel.send({ embeds: [errorEmbed] });
+      }
       const response = collected.first().content.toLowerCase();
       let role = this.client.util.getRole(msg, response);
 
@@ -97,10 +106,15 @@ class Setup extends Command {
         time: 60000,
         errors: ['time'],
       });
-      if (!collected2) return msg.reply('You did not reply in time, the command has been cancelled.');
+      if (!collected2) {
+        errorEmbed.setDescription('You did not reply in time, the command has been cancelled.');
+        return msg.channel.send({ embeds: [errorEmbed] });
+      }
       const response1 = collected2.first().content.toLowerCase();
 
-      if (response1 === 'cancel') return collected2.first().reply('Got it! The command has been cancelled.');
+      if (response1 === 'cancel') {
+        return collected2.first().reply('Got it! The command has been cancelled.');
+      }
       ['yes', 'y'].includes(response1) ? (reaction = 'yes') : (reaction = 'no');
 
       const catPerms = [
@@ -169,7 +183,10 @@ class Setup extends Command {
           time: 120000,
           errors: ['time'],
         });
-        if (!collected3) return msg.reply('You did not reply in time, the command has been cancelled.');
+        if (!collected3) {
+          errorEmbed.setDescription('You did not reply in time, the command has been cancelled.');
+          return msg.channel.send({ embeds: [errorEmbed] });
+        }
 
         const response2 = collected3.first().content.toLowerCase();
         embed.setDescription(response2);
@@ -230,15 +247,23 @@ class Setup extends Command {
 
       if (!args || args.length < 1) {
         text = await this.client.util.awaitReply(msg, 'What channel do you want to setup logging in?');
-        if (!text) return msg.reply('The command has been cancelled due to no reply.');
+        if (!text) {
+          errorEmbed.setDescription('You did not reply in time, the command has been cancelled.');
+          return msg.channel.send({ embeds: [errorEmbed] });
+        }
         chan = this.client.util.getChannel(msg, text);
       }
 
       let i = 2;
       while (!chan) {
-        const str = `That channel was not found, please try again with a valid server channel. Try #${i}`;
-        text = await this.client.util.awaitReply(msg, str);
-        if (!text) return msg.reply('The command has been cancelled due to no reply.');
+        text = await this.client.util.awaitReply(
+          msg,
+          `That channel was not found, please try again with a valid server channel. Try #${i}`,
+        );
+        if (!text) {
+          errorEmbed.setDescription('You did not reply in time, the command has been cancelled.');
+          return msg.channel.send({ embeds: [errorEmbed] });
+        }
         chan = this.client.util.getChannel(msg, text);
 
         i++;
@@ -253,8 +278,7 @@ class Setup extends Command {
           .setColor(successColor)
           .setThumbnail('https://cdn.discordapp.com/emojis/482184108555108358.png')
           .setDescription(`Everything related to logs will be posted in ${chan} from now on.`)
-          .setTimestamp()
-          .setFooter({ text: 'Logs System V4.1' });
+          .setTimestamp();
         msg.channel.send({ embeds: [embed] });
       } else {
         await db.set(`servers.${msg.guild.id}.logs.logSystem`, logSystem);
@@ -263,8 +287,7 @@ class Setup extends Command {
           .setColor(successColor)
           .setThumbnail('https://cdn.discordapp.com/emojis/482184108555108358.png')
           .setDescription(`Everything related to logs will be posted in ${chan}.`)
-          .setTimestamp()
-          .setFooter({ text: 'Logs System V4.1' });
+          .setTimestamp();
         msg.channel.send({ embeds: [embed] });
       }
       await db.set(`servers.${msg.guild.id}.logs.channel`, chan.id);
@@ -285,16 +308,35 @@ class Setup extends Command {
       let channel;
       args.shift();
       let channelArg = args[0];
-      const kickAmount = args[1];
-      const banAmount = args[2];
+      let kickAmount = parseInt(args[1]);
+      let banAmount = parseInt(args[2]);
 
       channel = await this.client.util.getChannel(msg, channelArg);
 
-      if (!channel) {
-        msg.reply('That channel was not found, please type a valid server channel.');
-        channelArg = await this.client.util.awaitReply(msg, 'What channel do you want to setup logging in?');
+      while (!channel) {
+        channelArg = await this.client.util.awaitReply(
+          msg,
+          'That was an invalid channel. What channel do you want to setup logging in?',
+        );
         channel = await this.client.util.getChannel(msg, channelArg);
-        if (!channel || !channelArg) return msg.reply('The command has been cancelled due invalid channel.');
+      }
+
+      while (isNaN(kickAmount)) {
+        kickAmount = await this.client.util.awaitReply(msg, 'How many points should be required to kick the member?');
+        if (!kickAmount) {
+          errorEmbed.setDescription('You did not reply in time, the command has been cancelled.');
+          return msg.channel.send({ embeds: [errorEmbed] });
+        }
+        kickAmount = parseInt(kickAmount);
+      }
+
+      while (isNaN(banAmount)) {
+        banAmount = await this.client.util.awaitReply(msg, 'How many points should be required to ban the member?');
+        if (!banAmount) {
+          errorEmbed.setDescription('You did not reply in time, the command has been cancelled.');
+          return msg.channel.send({ embeds: [errorEmbed] });
+        }
+        banAmount = parseInt(banAmount);
       }
 
       await db.set(`servers.${msg.guild.id}.warns.kick`, kickAmount);
@@ -320,7 +362,7 @@ class Setup extends Command {
     }
     // End of the warns setup
 
-    // Base command if there is not any args
+    // Base command if there are not any args
     const embed = new EmbedBuilder()
       .setTitle('Systems Setup')
       .setColor('#0000FF')
@@ -344,9 +386,6 @@ class Setup extends Command {
           \`${msg.settings.prefix}Setup Warns <channel-name> <Points for kick> <Points for ban>\``,
         },
       ])
-      .setDescription(
-        'These systems should have minimal bugs, if you find any please report them to the support server.',
-      )
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() });
     return msg.channel.send({ embeds: [embed] });
   }

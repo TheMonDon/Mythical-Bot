@@ -63,19 +63,15 @@ class logSystem extends Command {
 
     const logOutput = await getAllLogInfo(msg);
 
-    const embed = new EmbedBuilder()
-      .setColor(msg.settings.embedColor)
-      .addFields([
-        {
-          name: 'Toggle Status',
-          value: logOutput,
-          inline: true,
-        },
-        { name: 'Log Channel', value: `<#${await db.get(`servers.${msg.guild.id}.logs.channel`)}>` },
-      ])
-      .setFooter({ text: 'Log System V4.1' });
+    const embed = new EmbedBuilder().setColor(msg.settings.embedColor).addFields([
+      {
+        name: 'Toggle Status',
+        value: logOutput,
+        inline: true,
+      },
+      { name: 'Log Channel', value: `<#${await db.get(`servers.${msg.guild.id}.logs.channel`)}>` },
+    ]);
 
-    if (msg.guild.members.me.permissions.has('ManageMessages')) msg.delete();
     return msg.channel.send({ embeds: [embed] });
   }
 }
