@@ -32,7 +32,7 @@ export async function run(client, member) {
     channel.send({ embeds: [embed] }).catch(() => {});
   }
 
-  async function AutoRole(client, member) {
+  async function PersistentRoles(member) {
     if (!member || !member.guild) return;
     try {
       const toggle = (await db.get(`servers.${member.guild.id}.proles.system`)) || false;
@@ -52,6 +52,24 @@ export async function run(client, member) {
       await db.delete(`servers.${member.guild.id}.proles.users.${member.user.id}`);
     } catch (error) {
       console.error(error);
+    }
+  }
+
+  async function AssignAutoRoles(member) {
+    if (!member || !member.guild) return;
+    try {
+      const autoRoles = (await db.get(`servers.${member.guild.id}.autoRoles`)) || [];
+      if (!autoRoles.length) return;
+
+      for (const roleId of autoRoles) {
+        const role = member.guild.roles.cache.get(roleId);
+        if (role) {
+          await member.roles.add(role).catch((error) => console.error(error));
+          await setTimeoutPromise(1000);
+        }
+      }
+    } catch (error) {
+      console.error('Error assigning auto-roles:', error);
     }
   }
 
@@ -88,5 +106,6 @@ export async function run(client, member) {
   // Run the functions
   WelcomeSystem(client, member);
   await LogSystem(member);
-  await AutoRole(member);
+  await PersistentRoles(member);
+  await AssignAutoRoles(member);
 }
