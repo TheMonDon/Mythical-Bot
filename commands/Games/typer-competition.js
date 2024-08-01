@@ -21,7 +21,9 @@ class TyperCompetition extends Command {
     const color = msg.settings.embedColor;
 
     const current = this.client.games.get(msg.channel.id);
-    if (current) return msg.reply(`Please wait until the current game of \`${current.name}\` is finished.`);
+    if (current) {
+      return this.client.util.errorEmbed(msg, `Please wait until the current game of \`${current.name}\` is finished.`);
+    }
     this.client.games.set(msg.channel.id, { name: this.help.name, user: msg.author.id, data: Date.now() });
 
     const randWord = randomWords(1).toString();

@@ -8,7 +8,8 @@ class Wordle extends Command {
     super(client, {
       name: 'wordle',
       description: 'Play the famous wordle game',
-      usage: 'wordle',
+      usage: 'wordle [hard | dev]',
+      examples: ['wordle', 'wordle hard'],
       category: 'Games',
     });
   }
@@ -16,7 +17,9 @@ class Wordle extends Command {
   async run(msg, args, level) {
     let dev = false;
     const current = this.client.games.get(msg.channel.id);
-    if (current) return msg.reply(`Please wait until the current game of \`${current.name}\` is finished.`);
+    if (current) {
+      return this.client.util.errorEmbed(msg, `Please wait until the current game of \`${current.name}\` is finished.`);
+    }
 
     let gameOver = false;
     let winner = false;
@@ -34,7 +37,7 @@ class Wordle extends Command {
     // Allow the owner to use the dev test function
     if (args?.length > 0) {
       if (args[0] === 'dev') {
-        if (level < 8) return msg.reply('You are not a developer!');
+        if (level < 8) return msg.channel.send('You must be a developer to use this game type.');
         dev = true;
       } else if (args[0] === 'hard') {
         filteredWords = wordArray.filter((word) => word.length >= 6);

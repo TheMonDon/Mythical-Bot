@@ -38,7 +38,9 @@ class Flood extends Command {
     let error;
 
     const current = this.client.games.get(msg.channel.id);
-    if (current) return msg.reply(`Please wait until the current game of \`${current.name}\` is finished.`);
+    if (current) {
+      return this.client.util.errorEmbed(msg, `Please wait until the current game of \`${current.name}\` is finished.`);
+    }
     this.client.games.set(msg.channel.id, { name: this.help.name, user: msg.author.id });
 
     const up = (pos) => ({ x: pos.x, y: pos.y - 1 });

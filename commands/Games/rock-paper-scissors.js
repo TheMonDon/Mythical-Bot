@@ -22,7 +22,9 @@ class RockPaperScissors extends Command {
     let reply;
 
     const current = this.client.games.get(msg.channel.id);
-    if (current) return msg.reply(`Please wait until the current game of \`${current.name}\` is finished.`);
+    if (current) {
+      return this.client.util.errorEmbed(msg, `Please wait until the current game of \`${current.name}\` is finished.`);
+    }
 
     const mem = await this.client.util.getMember(msg, args.join(' '));
     if (!mem) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Member');

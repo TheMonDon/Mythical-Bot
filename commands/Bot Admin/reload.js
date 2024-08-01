@@ -20,7 +20,13 @@ class Reload extends Command {
         this.client.commands.get(args[0].toLowerCase()) ||
         this.client.commands.get(this.client.aliases.get(args[0].toLowerCase()));
 
-      if (!command) return msg.reply(`The command \`${args[0]}\` does not exist, nor is it an alias.`);
+      if (!command) {
+        return this.client.util.errorEmbed(
+          msg,
+          `The command \`${args[0]}\` does not exist, nor is it an alias.`,
+          'Invalid Usage',
+        );
+      }
 
       let response = await this.client.unloadCommand(command.conf.location, command.help.name);
       if (response) return this.client.util.errorEmbed(msg, response, 'Error Unloading');
@@ -28,7 +34,7 @@ class Reload extends Command {
       response = this.client.loadCommand(command.conf.location, command.help.name);
       if (response) return this.client.util.errorEmbed(msg, response, 'Error Loading');
 
-      return msg.reply(`The command \`${command.help.name}\` has been reloaded`);
+      return msg.channel.send(`The command \`${command.help.name}\` has been reloaded`);
     }
 
     if (args.length !== 2) return this.client.util.errorEmbed(msg, 'Invalid Parameters');
@@ -36,7 +42,9 @@ class Reload extends Command {
 
     const commandName = args[1].toLowerCase();
     const command = this.client.slashCommands.get(commandName);
-    if (!command) return msg.reply(`The slash command \`${commandName}\` does not exist.`);
+    if (!command) {
+      return this.client.util.errorEmbed(msg, `The slash command \`${commandName}\` does not exist.`, 'Invalid Usage');
+    }
 
     let response = await this.client.unloadInteraction(command.conf.location, commandName);
     if (response) return this.client.util.errorEmbed(msg, response, 'Error Unloading');
@@ -44,7 +52,7 @@ class Reload extends Command {
     response = await this.client.loadInteraction(command.conf.location, commandName);
     if (response) return this.client.util.errorEmbed(msg, response, 'Error Loading');
 
-    return msg.reply(`The slash command \`${commandName}\` has been reloaded`);
+    return msg.channel.send(`The slash command \`${commandName}\` has been reloaded`);
   }
 }
 module.exports = Reload;

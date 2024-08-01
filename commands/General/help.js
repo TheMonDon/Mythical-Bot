@@ -230,8 +230,9 @@ class Help extends Command {
       command = this.client.commands.get(command) || this.client.commands.get(this.client.aliases.get(command));
 
       if (command) {
-        if (level < this.client.levelCache[command.conf.permLevel])
-          return msg.reply("You don't have access to that command.");
+        if (level < this.client.levelCache[command.conf.permLevel]) {
+          return this.client.util.errorEmbed(msg, "You don't have access to that command.");
+        }
 
         em.setTitle(`${this.client.util.toProperCase(command.help.name)} Information`)
           .setColor(msg.settings.embedColor)

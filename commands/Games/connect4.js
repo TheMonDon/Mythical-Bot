@@ -47,10 +47,10 @@ class Connect4 extends Command {
     };
 
     const current = this.client.games.get(msg.channel.id);
-    if (current) return msg.reply(`Please wait until the current game of \`${current.name}\` is finished.`);
+    if (current) return msg.channel.send(`Please wait until the current game of \`${current.name}\` is finished.`);
 
     let opponent = msg.guild.members.me;
-    if (opponent.id === msg.author.id) return msg.reply('You may not play against yourself.');
+    if (opponent.id === msg.author.id) return msg.channel.send("You can't play against yourself.");
 
     // Check if they provided user and color, get a user
     if (args && args.length === 2) {

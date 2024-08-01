@@ -212,7 +212,7 @@ class Setup extends Command {
 
       await db.set(`servers.${msg.guild.id}.tickets.logID`, tixLog.id);
 
-      return msg.reply('Awesome! Everything has been setup.');
+      return msg.channel.send('Awesome! Everything has been setup.');
     }
     // End of ticket setup.
 

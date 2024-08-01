@@ -17,10 +17,17 @@ class TicTacToe extends Command {
 
   async run(msg, args) {
     const current = this.client.games.get(msg.channel.id);
-    if (current) return msg.reply(`Please wait until the current game of \`${current.name}\` is finished.`);
+    if (current) {
+      return this.client.util.errorEmbed(msg, `Please wait until the current game of \`${current.name}\` is finished.`);
+    }
 
     const opponent = await this.client.util.getMember(msg, args.join(' '));
-    if (opponent.id === msg.author.id) return msg.reply('You may not play against yourself.');
+    if (!opponent) {
+      return this.client.util.errorEmbed(msg, 'Member not found');
+    }
+    if (opponent.id === msg.author.id) {
+      return msg.channel.send('You may not play against yourself.');
+    }
 
     this.client.games.set(msg.channel.id, { name: this.help.name, user: msg.author.id });
 

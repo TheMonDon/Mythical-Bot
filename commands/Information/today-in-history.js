@@ -29,11 +29,15 @@ class TodayInHistory extends Command {
       day = parseInt(args[1], 10);
     }
 
-    if (isNaN(month) || (month < 1 && month > 12))
-      return msg.reply(`Please enter a valid month (1-12) \n${msg.settings.prefix}today-in-history [month] [day]`);
+    if (isNaN(month) || (month < 1 && month > 12)) {
+      return msg.channel.send(
+        `Please enter a valid month (1-12) \n${msg.settings.prefix}today-in-history [month] [day]`,
+      );
+    }
 
-    if (isNaN(day) || (day < 1 && day > 31))
-      return msg.reply(`Please enter a valid day (1-31) \n${msg.settings.prefix}today-in-history [month] [day]`);
+    if (isNaN(day) || (day < 1 && day > 31)) {
+      return msg.channel.send(`Please enter a valid day (1-31) \n${msg.settings.prefix}today-in-history [month] [day]`);
+    }
 
     // If the month and day are valid, format the date
     const date = month && day ? `/${month}/${day}` : '';

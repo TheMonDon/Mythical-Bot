@@ -14,7 +14,9 @@ class Hangman extends Command {
 
   async run(msg, args) {
     const current = this.client.games.get(msg.channel.id);
-    if (current) return msg.reply(`Please wait until the current game of \`${current.name}\` is finished.`);
+    if (current) {
+      return this.client.util.errorEmbed(msg, `Please wait until the current game of \`${current.name}\` is finished.`);
+    }
     this.client.games.set(msg.channel.id, { name: this.help.name, user: msg.author.id });
     const color = msg.settings.embedColor;
 
@@ -61,11 +63,11 @@ class Hangman extends Command {
         if (r.emoji.name === '👎') {
           if (msg.guild.members.me.permissions.has('ManageMessages')) await questionMessage.delete();
           this.client.games.delete(msg.channel.id);
-          return msg.reply("We are sorry but the mentioned Discord user doesn't want to play hangman against you!");
+          return msg.reply("We are sorry but the user doesn't want to play hangman against you!");
         } else if (!r || r.length < 1) {
           if (msg.guild.members.me.permissions.has('ManageMessages')) await questionMessage.delete();
           this.client.games.delete(msg.channel.id);
-          return msg.reply("We are sorry but the mentioned Discord user doesn't want to play hangman against you!");
+          return msg.reply("We are sorry but that user doesn't want to play hangman against you!");
         }
 
         await questionMessage.delete();

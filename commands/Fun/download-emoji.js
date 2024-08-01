@@ -39,7 +39,9 @@ class DownloadEmoji extends Command {
       });
     }
 
-    if (result.length < 1) return msg.reply('You need to input at least one emoji.');
+    if (result.length < 1) {
+      return this.client.util.errorEmbed(msg, 'You need to input at least one emoji.');
+    }
 
     result.forEach((emoji) => {
       if (emoji.replace(/[^\d]/g, '').length > 1) {
@@ -56,7 +58,7 @@ class DownloadEmoji extends Command {
     const emojis = res.splice(0, 10);
     const text = emojis.length > 1 ? 'Here are your emojis:' : 'Here is your emoji:';
 
-    return msg.reply({ content: text, files: emojis });
+    return msg.channel.send({ content: text, files: emojis });
   }
 }
 

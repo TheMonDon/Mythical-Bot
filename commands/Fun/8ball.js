@@ -14,7 +14,9 @@ class EightBall extends Command {
   }
 
   async run(msg, args) {
-    if (!args || args.length < 1) return msg.reply('You have to actually state your question.');
+    if (!args || args.length < 1) {
+      return this.client.util.errorEmbed(msg, 'You have to actually state your question.');
+    }
 
     const question = args.join(' ');
 

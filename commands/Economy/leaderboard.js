@@ -25,7 +25,7 @@ class Leaderboard extends Command {
       cashOrBank = args[1]?.toLowerCase();
     }
     if (cashOrBank && !['-cash', '-bank'].includes(cashOrBank)) {
-      return msg.reply('Invalid argument given');
+      return this.client.util.errorEmbed(msg, 'Invalid `-cash` or `-bank` argument given', 'Invalid Usage');
     }
     if (isNaN(page)) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Incorrect Usage');
 
