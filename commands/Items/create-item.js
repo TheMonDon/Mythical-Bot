@@ -202,7 +202,9 @@ class CreateItem extends Command {
         break;
       }
     }
-    embed.addFields([{ name: 'Stock Remaining', value: stock == null ? 'Infinity' : stock, inline: true }]);
+    embed.addFields([
+      { name: 'Stock Remaining', value: stock == null ? 'Infinity' : stock.toLocaleString(), inline: true },
+    ]);
 
     await message.edit({
       content:
