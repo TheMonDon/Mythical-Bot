@@ -403,7 +403,7 @@ class CreateItem extends Command {
     embed.addFields([{ name: 'Reply message', value: !replyMessage ? 'None' : replyMessage, inline: true }]);
 
     store[name] = {
-      cost: cost.toString(),
+      cost,
       description,
       inventory,
       stock,
