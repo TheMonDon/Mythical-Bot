@@ -134,7 +134,7 @@ class Rob extends Command {
       csMemCash = csMemCash.length > 1024 ? `${csMemCash.slice(0, 1021) + '...'}` : csMemCash;
 
       embed
-        .setColor('#64BC6C')
+        .setColor(msg.settings.embedSuccessColor)
         .setDescription(`You successfully robbed ${mem} of ${csAmount}`)
         .addFields([
           {

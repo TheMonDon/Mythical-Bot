@@ -63,7 +63,7 @@ class Work extends Command {
     await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newBalance.toString());
 
     embed
-      .setColor('#64BC6C')
+      .setColor(msg.settings.embedSuccessColor)
       .setDescription(job)
       .setFooter({ text: `Reply #${num.toLocaleString()}` });
     msg.channel.send({ embeds: [embed] });

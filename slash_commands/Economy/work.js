@@ -68,7 +68,7 @@ exports.run = async (interaction) => {
   await db.set(`servers.${interaction.guild.id}.users.${interaction.member.id}.economy.cash`, newBalance.toString());
 
   embed
-    .setColor('#64BC6C')
+    .setColor(interaction.settings.embedSuccessColor)
     .setDescription(job)
     .setFooter({ text: `Reply #${num.toLocaleString()}` });
   interaction.editReply({ embeds: [embed] });

@@ -96,7 +96,7 @@ exports.run = async (interaction) => {
 
     embed
       .setDescription(txt)
-      .setColor('#64BC6C')
+      .setColor(interaction.settings.embedSuccessColor)
       .setFooter({ text: `Reply #${num.toLocaleString()}` });
     interaction.editReply({ embeds: [embed] });
 

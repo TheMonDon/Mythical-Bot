@@ -53,7 +53,7 @@ class SetFailRate extends Command {
       return this.client.util.errorEmbed(msg, "The percentage can't be greater than 100%.", 'Invalid Fail Rate');
     }
 
-    embed.setColor('#64BC6C');
+    embed.setColor(msg.settings.embedSuccessColor);
 
     if (type === 'crime') {
       await db.set(`servers.${msg.guild.id}.economy.${type}.failrate`, percentage);

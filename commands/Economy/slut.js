@@ -97,7 +97,7 @@ class Slut extends Command {
 
       embed
         .setDescription(txt)
-        .setColor('#64BC6C')
+        .setColor(msg.settings.embedSuccessColor)
         .setFooter({ text: `Reply #${num.toLocaleString()}` });
       msg.channel.send({ embeds: [embed] });
 

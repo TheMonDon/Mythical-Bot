@@ -72,7 +72,9 @@ class SetCooldown extends Command {
     const cd = cooldown / 1000;
     await db.set(`servers.${msg.guild.id}.economy.${type}.cooldown`, cd);
 
-    embed.setColor('#64BC6C').setDescription(`The cooldown of \`${properCase}\` has been set to ${cd} seconds.`);
+    embed
+      .setColor(msg.settings.embedSuccessColor)
+      .setDescription(`The cooldown of \`${properCase}\` has been set to ${cd} seconds.`);
     return msg.channel.send({ embeds: [embed] });
   }
 }

@@ -74,7 +74,7 @@ class SetFineAmount extends Command {
       .setDescription(
         `The ${longMinMax} amount for \`${this.client.util.toProperCase(type)}\` has been changed to ${amount}%`,
       )
-      .setColor('#64BC6C');
+      .setColor(msg.settings.embedSuccessColor);
     return msg.channel.send({ embeds: [embed] });
   }
 }
