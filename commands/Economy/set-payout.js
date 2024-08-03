@@ -10,6 +10,17 @@ class SetPayout extends Command {
       name: 'set-payout',
       category: 'Economy',
       description: 'Sets the payout of the economy commands',
+      longDescription: stripIndents`
+      Defaults:
+      Work Min: 20
+      Work Max: 250
+      Slut Min: 100
+      Slut Max: 400
+      Crime Min: 250
+      Crime Max: 700
+      Chat Min: 10
+      Chat Max: 100
+      `,
       usage: 'set-payout <work | crime | slut | chat> <min | max> <amount>',
       aliases: ['setpayout'],
       examples: ['set-payout work min 100', 'set-payout crime max 170000'],
@@ -22,8 +33,8 @@ class SetPayout extends Command {
     const types = ['work', 'crime', 'slut', 'chat'];
     const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
 
-    const workMin = (await db.get(`servers.${msg.guild.id}.economy.work.min`)) || 50;
-    const workMax = (await db.get(`servers.${msg.guild.id}.economy.work.max`)) || 500;
+    const workMin = (await db.get(`servers.${msg.guild.id}.economy.work.min`)) || 20;
+    const workMax = (await db.get(`servers.${msg.guild.id}.economy.work.max`)) || 250;
     const slutMin = (await db.get(`servers.${msg.guild.id}.economy.slut.min`)) || 100;
     const slutMax = (await db.get(`servers.${msg.guild.id}.economy.slut.max`)) || 400;
     const crimeMin = (await db.get(`servers.${msg.guild.id}.economy.crime.min`)) || 250;
