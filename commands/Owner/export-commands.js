@@ -1,5 +1,4 @@
 const Command = require('../../base/Command.js');
-const { QuickDB } = require('quick.db');
 const { EmbedBuilder } = require('discord.js');
 const fs = require('fs');
 
