@@ -56,8 +56,8 @@ class Crime extends Command {
     const max = Number(await db.get(`servers.${msg.guild.id}.economy.${type}.max`)) || 2000;
 
     // Get the min and max fine percentages
-    const minFine = Number(await db.get(`servers.${msg.guild.id}.economy.${type}.fine.min`)) || 10;
-    const maxFine = Number(await db.get(`servers.${msg.guild.id}.economy.${type}.fine.max`)) || 30;
+    const minFine = Number(await db.get(`servers.${msg.guild.id}.economy.${type}.fine.min`)) || 20;
+    const maxFine = Number(await db.get(`servers.${msg.guild.id}.economy.${type}.fine.max`)) || 40;
 
     // randomFine is a random number between the minimum and maximum fail rate
     const randomFine = BigInt(Math.abs(Math.round(Math.random() * (maxFine - minFine + 1) + minFine)));
