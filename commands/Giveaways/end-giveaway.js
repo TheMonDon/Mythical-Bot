@@ -20,10 +20,6 @@ class EndGiveaway extends Command {
 
     const query = args.join(' ');
 
-    const ErrorEmbed = new EmbedBuilder()
-      .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
-      .setColor(msg.settings.embedErrorColor);
-
     if (isNaN(query)) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Incorrect Usage');
 
     const giveaway = this.client.giveawaysManager.giveaways.find(
@@ -40,9 +36,12 @@ class EndGiveaway extends Command {
         // Success message
         msg.channel.send('Giveaway ended!');
       })
-      .catch((e) => {
-        ErrorEmbed.setTitle(e);
-        return msg.channel.send(ErrorEmbed);
+      .catch((error) => {
+        const ErrorEmbed = new EmbedBuilder()
+          .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
+          .setColor(msg.settings.embedErrorColor)
+          .setDescription(error);
+        return msg.channel.send({ embeds: [ErrorEmbed] });
       });
   }
 }

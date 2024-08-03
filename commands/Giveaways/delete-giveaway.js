@@ -20,10 +20,6 @@ class DeleteGiveaway extends Command {
       return this.client.util.errorEmbed(msg, 'You need to have the Manage Messages permission to delete giveaways');
     const query = args.join(' ');
 
-    const ErrorEmbed = new EmbedBuilder()
-      .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
-      .setColor(msg.settings.embedErrorColor);
-
     if (isNaN(query))
       return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Message ID');
 
@@ -41,8 +37,11 @@ class DeleteGiveaway extends Command {
         msg.channel.send('Giveaway deleted!');
       })
       .catch((e) => {
-        ErrorEmbed.setTitle(e);
-        return msg.channel.send(ErrorEmbed);
+        const ErrorEmbed = new EmbedBuilder()
+          .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
+          .setColor(msg.settings.embedErrorColor)
+          .setDescription(e);
+        return msg.channel.send({ embeds: [ErrorEmbed] });
       });
   }
 }

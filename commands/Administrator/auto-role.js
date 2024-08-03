@@ -7,7 +7,7 @@ class AutoRole extends Command {
   constructor(client) {
     super(client, {
       name: 'auto-role',
-      category: 'Moderation',
+      category: 'Administrator',
       description: 'Manage auto-roles in the server.',
       usage: 'auto-role <add | remove | list> [role or page]',
       aliases: ['autorole', 'autoroles'],
