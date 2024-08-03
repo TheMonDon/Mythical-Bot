@@ -110,7 +110,7 @@ class BlackJack extends Command {
     let bet;
 
     if (Arguments === 'all') {
-      bet = cash;
+      bet = parseInt(cash);
     } else {
       bet = parseInt(Arguments.replace(/[^0-9]/g, ''));
       if (isNaN(bet)) return this.client.util.errorEmbed(msg, 'Bet amount must be a number', 'Invalid Bet');
