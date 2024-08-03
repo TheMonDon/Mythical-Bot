@@ -69,7 +69,6 @@ class GlobalBlacklist extends Command {
 
     const blacklist = await db.get(`users.${mem.id}.blacklist`);
 
-    console.log(mem);
     const embed = new EmbedBuilder()
       .setAuthor({ name: mem.tag, iconURL: mem.displayAvatarURL() })
       .setColor(msg.settings.embedColor)

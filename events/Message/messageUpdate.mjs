@@ -130,8 +130,8 @@ export async function run(client, oldMessage, newMessage) {
 
     // Check if the member is blacklisted from using commands in this guild.
     if (newMessage.guild) {
-      const bl = await db.get(`servers.${newMessage.guild.id}.users.${newMessage.member.id}.blacklist`);
-      if (bl && level < 4 && cmd.help.name !== 'blacklist') {
+      const blacklist = await db.get(`servers.${newMessage.guild.id}.users.${newMessage.member.id}.blacklist`);
+      if (blacklist && level < 4 && (cmd.help.name !== 'blacklist' || cmd.help.name !== 'global-blacklist')) {
         return newMessage.channel.send(
           `Sorry ${newMessage.member.displayName}, you are currently blacklisted from using commands in this server.`,
         );
@@ -139,7 +139,7 @@ export async function run(client, oldMessage, newMessage) {
     }
 
     const globalBlacklisted = await db.get(`users.${newMessage.author.id}.blacklist`);
-    if (globalBlacklisted) {
+    if (globalBlacklisted && level < 8 && (cmd.help.name !== 'blacklist' || cmd.help.name !== 'global-blacklist')) {
       return newMessage.channel.send(
         `Sorry ${newMessage.author.username}, you are currently blacklisted from using commands.`,
       );

@@ -44,7 +44,7 @@ class ExportCommands extends Command {
     const embed = new EmbedBuilder()
       .setTitle('Commands Exported')
       .setDescription(`All commands have been exported to \`${jsonFilePath}\``)
-      .setColor('#00FF00');
+      .setColor(msg.settings.embedSuccessColor);
 
     msg.channel.send({ embeds: [embed] });
   }

@@ -4,9 +4,10 @@ const db = new QuickDB();
 
 export async function run(client, interaction) {
   interaction.settings = client.getSettings(interaction.guild);
+  const level = client.permlevel(interaction);
 
   const globalBlacklisted = (await db.get(`users.${interaction.user.id}.blacklist`)) || false;
-  if (globalBlacklisted) {
+  if (globalBlacklisted && level < 8) {
     const embed = new EmbedBuilder()
       .setTitle('Blacklisted')
       .setAuthor({ name: interaction.user.tag, iconURL: interaction.user.displayAvatarURL() })
@@ -18,7 +19,7 @@ export async function run(client, interaction) {
   if (interaction.guild) {
     const blacklisted =
       (await db.get(`servers.${interaction.guild.id}.users.${interaction.user.id}.blacklist`)) || false;
-    if (blacklisted) {
+    if (blacklisted && level < 4) {
       const embed = new EmbedBuilder()
         .setTitle('Blacklisted')
         .setAuthor({ name: interaction.user.tag, iconURL: interaction.user.displayAvatarURL() })
@@ -34,7 +35,6 @@ export async function run(client, interaction) {
     const slashCommand = client.slashCommands.get(interaction.commandName);
     if (!slashCommand) return;
 
-    const level = client.permlevel(interaction);
     if (level < client.levelCache[slashCommand.conf.permLevel]) {
       const embed = new EmbedBuilder()
         .setTitle('Missing Permission')

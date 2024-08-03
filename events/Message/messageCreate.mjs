@@ -81,12 +81,18 @@ export async function run(client, message) {
   }
 
   const globalBlacklisted = await db.get(`users.${message.author.id}.blacklist`);
-  if (globalBlacklisted) {
+  if (
+    globalBlacklisted &&
+    level < 8 &&
+    (command.help.name !== 'blacklist' || command.help.name !== 'global-blacklist')
+  ) {
     return message.channel.send(`Sorry ${message.author.username}, you are currently blacklisted from using commands.`);
   }
 
   if (!message.guild && command.conf.guildOnly) {
-    return message.channel.send('This command is unavailable via private message. Please run this command in a guild.');
+    return message.channel.send(
+      'This command is unavailable via private message. Please run this command in a server.',
+    );
   }
 
   if (command.conf.nsfw && !message.channel.nsfw) {
