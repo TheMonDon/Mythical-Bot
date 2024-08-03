@@ -10,20 +10,10 @@ class SetPayout extends Command {
       name: 'set-payout',
       category: 'Economy',
       description: 'Sets the payout of the economy commands',
-      longDescription: stripIndents`
-      Defaults:
-      Work Min: 20
-      Work Max: 250
-      Slut Min: 100
-      Slut Max: 400
-      Crime Min: 250
-      Crime Max: 700
-      Chat Min: 10
-      Chat Max: 100
-      `,
-      usage: 'set-payout <work | crime | slut | chat> <min | max> <amount>',
+      usage: 'set-payout <work | crime | slut | chat> <min | max> [amount]',
       aliases: ['setpayout'],
-      examples: ['set-payout work min 100', 'set-payout crime max 170000'],
+      examples: ['set-payout work min 100', 'set-payout crime max 170000', 'set-payout chat min'],
+      longDescription: 'By using the command without an amount it will reset the amount to default',
       permLevel: 'Administrator',
       guildOnly: true,
     });
@@ -61,12 +51,15 @@ class SetPayout extends Command {
     }
 
     const type = args[0]?.toLowerCase();
-    if (!types.includes(type))
+    if (!types.includes(type)) {
       return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Incorrect Usage');
+    }
 
     const minMax = args[1]?.toLowerCase();
-    if (!['min', 'max'].includes(minMax))
+    if (!['min', 'max'].includes(minMax)) {
       return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Incorrect Usage');
+    }
+    const longMinMax = minMax === 'min' ? 'minimum' : 'maximum';
 
     args.shift();
     args.shift();
@@ -74,6 +67,14 @@ class SetPayout extends Command {
       .join('')
       .replace(/[^0-9\\.]/g, '')
       .replace(/-/g, '');
+
+    if (!amount) {
+      db.delete(`servers.${msg.guild.id}.economy.${type}.${minMax}`);
+      embed
+        .setDescription(`The ${longMinMax} amount for \`${this.client.util.toProperCase(type)}\` has been reset.`)
+        .setColor(msg.settings.embedSuccessColor);
+      return msg.channel.send({ embeds: [embed] });
+    }
 
     if (isNaN(amount)) return this.client.util.errorEmbed(msg, 'Please provide a valid number', 'Invalid Payout');
 
@@ -84,14 +85,15 @@ class SetPayout extends Command {
     }
 
     await db.set(`servers.${msg.guild.id}.economy.${type}.${minMax}`, amount);
-    const longMinMax = minMax === 'min' ? 'minimum' : 'maximum';
+    const amountString = currencySymbol + amount.toLocaleString();
+    const limitedAmountString = amountString.length > 1000 ? amountString.slice(0, 1000) + '...' : amountString;
     embed
       .setDescription(
         `The ${longMinMax} amount for \`${this.client.util.toProperCase(
           type,
-        )}\` has been changed to ${currencySymbol}${amount}`,
+        )}\` has been changed to ${limitedAmountString}`,
       )
-      .setColor('#64BC6C');
+      .setColor(msg.settings.embedSuccessColor);
     return msg.channel.send({ embeds: [embed] });
   }
 }
