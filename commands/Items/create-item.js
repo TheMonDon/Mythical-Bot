@@ -29,6 +29,13 @@ class CreateItem extends Command {
       .setFooter({ text: 'Type cancel to quit.' })
       .setTimestamp();
 
+    const storeSize = Object.keys(store).length;
+    if (storeSize > 50) {
+      return msg.channel.send(
+        'The store has reached the maximum number of items allowed. Please use `delete-item` to delete some before creating more.',
+      );
+    }
+
     // Find the item in the store regardless of case
     const item = Object.keys(store).find((key) => key.toLowerCase() === name.toLowerCase());
     if (item) {
@@ -51,7 +58,7 @@ class CreateItem extends Command {
         .awaitMessages({
           filter,
           max: 1,
-          time: 60000,
+          time: 120000,
           errors: ['time'],
         })
         .catch(() => null);
@@ -83,7 +90,9 @@ class CreateItem extends Command {
     }
 
     const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
-    embed.addFields([{ name: 'Price', value: currencySymbol + cost.toLocaleString(), inline: true }]);
+    const costString = currencySymbol + cost.toLocaleString();
+    const limitedCostString = costString.length > 1024 ? costString.slice(0, 1020) + '...' : costString;
+    embed.addFields([{ name: 'Price', value: limitedCostString, inline: true }]);
     await message.edit({
       content: '2️⃣ What would you like the description to be? \nThis should be no more than 1000 characters',
       embeds: [embed],
@@ -97,7 +106,7 @@ class CreateItem extends Command {
         .awaitMessages({
           filter,
           max: 1,
-          time: 60000,
+          time: 120000,
           errors: ['time'],
         })
         .catch(() => null);
@@ -134,7 +143,7 @@ class CreateItem extends Command {
         .awaitMessages({
           filter,
           max: 1,
-          time: 60000,
+          time: 120000,
           errors: ['time'],
         })
         .catch(() => null);
@@ -174,7 +183,7 @@ class CreateItem extends Command {
         .awaitMessages({
           filter,
           max: 1,
-          time: 60000,
+          time: 120000,
           errors: ['time'],
         })
         .catch(() => null);
@@ -192,7 +201,7 @@ class CreateItem extends Command {
         break;
       }
 
-      stock = parseInt(response);
+      stock = parseInt(response.replace(/[^0-9\\.]/g, ''));
       if (isNaN(stock)) {
         await collected.first().reply('Please answer with a number');
       } else if (stock < 1) {
@@ -202,9 +211,9 @@ class CreateItem extends Command {
         break;
       }
     }
-    embed.addFields([
-      { name: 'Stock Remaining', value: stock == null ? 'Infinity' : stock.toLocaleString(), inline: true },
-    ]);
+    const stockString = stock == null ? 'Infinity' : stock.toLocaleString();
+    const limitedStockString = stockString.length > 1024 ? stockString.slice(0, 1020) + '...' : stockString;
+    embed.addFields([{ name: 'Stock Remaining', value: limitedStockString, inline: true }]);
 
     await message.edit({
       content:
@@ -220,7 +229,7 @@ class CreateItem extends Command {
         .awaitMessages({
           filter,
           max: 1,
-          time: 60000,
+          time: 120000,
           errors: ['time'],
         })
         .catch(() => null);
@@ -269,7 +278,7 @@ class CreateItem extends Command {
         .awaitMessages({
           filter,
           max: 1,
-          time: 60000,
+          time: 120000,
           errors: ['time'],
         })
         .catch(() => null);
@@ -318,7 +327,7 @@ class CreateItem extends Command {
         .awaitMessages({
           filter,
           max: 1,
-          time: 60000,
+          time: 120000,
           errors: ['time'],
         })
         .catch(() => null);
@@ -355,31 +364,42 @@ class CreateItem extends Command {
 
     await message.edit({
       content:
-        '8️⃣ What message do you want the bot to reply with, when the item is bought (or used if an inventory item)? \nYou can use the Member, Server & Role tags from https://unbelievaboat.com/tags in this message. \nIf none, just reply `skip`.',
+        '8️⃣ What message do you want the bot to reply with, when the item is bought (or used if an inventory item)? \nYou can use the Member, Server & Role tags from https://unbelievaboat.com/tags in this message. \nThis should be no more than 1000 characters \nIf none, just reply `skip`.',
       embeds: [embed],
     });
 
     let replyMessage;
+    isValid = false;
 
-    collected = await msg.channel
-      .awaitMessages({
-        filter,
-        max: 1,
-        time: 60000,
-        errors: ['time'],
-      })
-      .catch(() => null);
-    if (!collected) {
-      return msg.reply('You did not reply in time, the command has been cancelled.');
+    while (!isValid) {
+      collected = await msg.channel
+        .awaitMessages({
+          filter,
+          max: 1,
+          time: 120000,
+          errors: ['time'],
+        })
+        .catch(() => null);
+      if (!collected) {
+        return msg.reply('You did not reply in time, the command has been cancelled.');
+      }
+      if (collected.first().content.toLowerCase() === 'cancel') {
+        return collected.first().reply('The command has been cancelled.');
+      }
+
+      replyMessage = collected.first().content;
+      if (replyMessage.toLowerCase() === 'skip') replyMessage = false;
+
+      if (replyMessage.length > 1000) {
+        collected
+          .first()
+          .reply(
+            'The reply-message must be less than 1000 characters. Please try again or use `cancel` to cancel the command',
+          );
+      } else {
+        isValid = true;
+      }
     }
-    if (collected.first().content.toLowerCase() === 'cancel') {
-      return collected.first().reply('The command has been cancelled.');
-    }
-
-    replyMessage = collected.first().content;
-
-    if (replyMessage.toLowerCase() === 'skip') replyMessage = false;
-
     embed.addFields([{ name: 'Reply message', value: !replyMessage ? 'None' : replyMessage, inline: true }]);
 
     store[name] = {

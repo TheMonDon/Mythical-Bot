@@ -10,7 +10,7 @@ class GiveMoney extends Command {
       description: 'Pay another user',
       category: 'Economy',
       usage: 'give-money <user> <amount | all>',
-      aliases: ['givemoney', 'pay', 'send'],
+      aliases: ['givemoney', 'pay', 'send', 'give'],
       requiredArgs: 2,
       guildOnly: true,
     });

@@ -15,12 +15,19 @@ class Number extends Command {
   }
 
   async run(msg, args) {
-    const { body } = await fetch.get(`http://numbersapi.com/${args.join(' ')}`).catch(() => {
-      return msg.channel.send('I could not find any information about that number.');
+    let error = false;
+    const body = await fetch.get(`http://numbersapi.com/${args.join(' ')}`).catch(() => {
+      error = true;
     });
-    if (!body) return msg.channel.send('I could not find any information about that number.');
 
-    const embed = new EmbedBuilder().setTitle(body.toString()).setColor(msg.settings.embedColor);
+    if (error) {
+      const errorEmbed = new EmbedBuilder()
+        .setDescription('I could not find any information about that number.')
+        .setColor(msg.settings.embedErrorColor);
+      return msg.channel.send({ embeds: [errorEmbed] });
+    }
+
+    const embed = new EmbedBuilder().setTitle(body.body.toString()).setColor(msg.settings.embedColor);
 
     return msg.channel.send({ embeds: [embed] });
   }

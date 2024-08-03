@@ -34,13 +34,15 @@ class ItemInfo extends Command {
     }
 
     const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
+    const cost = currencySymbol + BigInt(item.cost).toLocaleString();
+    const trimmedCost = cost.length > 1000 ? cost.slice(0, 1000) + '...' : cost;
     const embed = new EmbedBuilder()
       .setColor(msg.settings.embedColor)
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
       .setTitle('Item Info')
       .addFields([
         { name: 'Name', value: itemKey, inline: true },
-        { name: 'Cost', value: currencySymbol + BigInt(item.cost).toLocaleString(), inline: true },
+        { name: 'Cost', value: trimmedCost, inline: true },
         { name: 'Description', value: item.description, inline: false },
         { name: 'Show in Inventory?', value: item.inventory ? 'Yes' : 'No', inline: true },
         { name: 'Stock Remaining', value: item.stock ? item.stock.toLocaleString() : 'Infinity', inline: true },

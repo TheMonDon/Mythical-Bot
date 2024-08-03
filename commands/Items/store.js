@@ -27,12 +27,17 @@ class Store extends Command {
     const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
     const store = (await db.get(`servers.${msg.guild.id}.economy.store`)) || {};
 
+    // Sort store by item cost
+    const sortedStore = Object.entries(store).sort(([, itemInfoA], [, itemInfoB]) => itemInfoA.cost - itemInfoB.cost);
+
     // Construct the message with item names
-    const itemDetails = Object.entries(store).map(([itemName, itemInfo], index) => {
+    const itemDetails = sortedStore.map(([itemName, itemInfo]) => {
       const csCost = currencySymbol + BigInt(itemInfo.cost).toLocaleString();
-      const trimmedCost = csCost.length > 300 ? csCost.slice(0, 400) + '...' : csCost;
+      const trimmedCost = csCost.length > 100 ? csCost.slice(0, 100) + '...' : csCost;
       return {
-        display: `${index + 1}. **${itemName}** - ${trimmedCost}\n${itemInfo.description}`,
+        name: `${trimmedCost} - ${itemName}`,
+        value: `${itemInfo.description}`,
+        inline: false,
       };
     });
 
@@ -47,7 +52,7 @@ class Store extends Command {
       .setColor(msg.settings.embedColor)
       .setTitle(`${msg.guild.name} Store`)
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
-      .setDescription(`${displayedStore.map((entry) => entry.display).join('\n') || 'None'}`)
+      .addFields(displayedStore)
       .setFooter({ text: `Page ${page} / ${maxPages}` })
       .setTimestamp();
 
@@ -99,7 +104,7 @@ class Store extends Command {
         .setColor(msg.settings.embedColor)
         .setTitle(`${msg.guild.name} Store`)
         .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
-        .setDescription(`${displayedStore.map((entry) => entry.display).join('\n') || 'None'}`)
+        .addFields(displayedStore)
         .setFooter({ text: `Page ${page} / ${maxPages}` })
         .setTimestamp();
 
