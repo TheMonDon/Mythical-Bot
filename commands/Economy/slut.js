@@ -84,8 +84,8 @@ class Slut extends Command {
       const newAmount = cash - fineAmount;
       await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAmount.toString());
     } else {
-      const min = Number(await db.get(`servers.${msg.guild.id}.economy.${type}.min`)) || 500;
-      const max = Number(await db.get(`servers.${msg.guild.id}.economy.${type}.max`)) || 2000;
+      const min = Number(await db.get(`servers.${msg.guild.id}.economy.${type}.min`)) || 100;
+      const max = Number(await db.get(`servers.${msg.guild.id}.economy.${type}.max`)) || 400;
 
       const amount = BigInt(Math.floor(Math.random() * (max - min + 1) + min));
 

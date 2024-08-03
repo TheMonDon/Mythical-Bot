@@ -52,8 +52,8 @@ class Crime extends Command {
     const authNet = cash + bank;
 
     // Get the min and max amounts of money the user can get
-    const min = Number(await db.get(`servers.${msg.guild.id}.economy.${type}.min`)) || 500;
-    const max = Number(await db.get(`servers.${msg.guild.id}.economy.${type}.max`)) || 2000;
+    const min = Number(await db.get(`servers.${msg.guild.id}.economy.${type}.min`)) || 250;
+    const max = Number(await db.get(`servers.${msg.guild.id}.economy.${type}.max`)) || 700;
 
     // Get the min and max fine percentages
     const minFine = Number(await db.get(`servers.${msg.guild.id}.economy.${type}.fine.min`)) || 20;
