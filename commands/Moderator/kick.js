@@ -51,7 +51,7 @@ class Kick extends Command {
         .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
         .setDescription('Full info posted in the log channel.');
 
-      const reply = await msg.channel.send(em2);
+      const reply = await msg.channel.send({ embeds: [em2] });
       msg.guild.channels.cache.get(logChan).send({ embeds: [em] });
       setTimeout(() => {
         reply.delete();
