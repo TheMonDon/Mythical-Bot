@@ -84,7 +84,7 @@ exports.run = async (interaction) => {
 
     embed
       .setColor(interaction.settings.embedErrorColor)
-      .setDescription(crimeFail[num].replace('csamount', csamount))
+      .setDescription(crimeFail[num].replace('{amount}', csamount))
       .setFooter({ text: `Reply #${num.toLocaleString()}` });
     interaction.editReply({ embeds: [embed] });
 
@@ -97,7 +97,7 @@ exports.run = async (interaction) => {
 
     embed
       .setColor(interaction.settings.embedSuccessColor)
-      .setDescription(crimeSuccess[num].replace('csamount', csamount))
+      .setDescription(crimeSuccess[num].replace('{amount}', csamount))
       .setFooter({ text: `Reply #${num.toLocaleString()}` });
     interaction.editReply({ embeds: [embed] });
 

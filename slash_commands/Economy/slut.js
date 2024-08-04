@@ -80,7 +80,7 @@ exports.run = async (interaction) => {
   if (ranNum < failRate) {
     const csamount = currencySymbol + fineAmount.toLocaleString();
     const num = Math.floor(Math.random() * (crimeFail.length - 1)) + 1;
-    const txt = crimeFail[num].replace('csamount', csamount);
+    const txt = crimeFail[num].replace('{amount}', csamount);
 
     embed.setDescription(txt).setFooter({ text: `Reply #${num.toLocaleString()}` });
     interaction.editReply({ embeds: [embed] });
@@ -92,7 +92,7 @@ exports.run = async (interaction) => {
     const csamount = currencySymbol + amount.toLocaleString();
 
     const num = Math.floor(Math.random() * (crimeSuccess.length - 1)) + 1;
-    const txt = crimeSuccess[num].replace('csamount', csamount);
+    const txt = crimeSuccess[num].replace('{amount}', csamount);
 
     embed
       .setDescription(txt)
