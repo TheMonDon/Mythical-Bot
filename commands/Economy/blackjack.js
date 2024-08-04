@@ -113,10 +113,17 @@ class BlackJack extends Command {
       bet = parseInt(cash);
     } else {
       bet = parseInt(Arguments.replace(/[^0-9]/g, ''));
+      if (bet === Infinity) {
+        return this.client.util.errorEmbed(msg, "You can't bet infinity.", 'Invalid bet');
+      }
       if (isNaN(bet)) return this.client.util.errorEmbed(msg, 'Bet amount must be a number', 'Invalid Bet');
       if (bet < 1) return this.client.util.errorEmbed(msg, `You can't bet less than ${currencySymbol}1`, 'Invalid Bet');
       if (BigInt(bet) > cash)
         return this.client.util.errorEmbed(msg, "You can't bet more cash than you have", 'Invalid Bet');
+    }
+
+    if (bet === Infinity) {
+      return this.client.util.errorEmbed(msg, "You can't bet infinity.", 'Invalid bet');
     }
 
     const bj = new Blackjack(bet, 1);
