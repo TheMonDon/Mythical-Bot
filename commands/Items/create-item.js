@@ -21,6 +21,7 @@ class CreateItem extends Command {
   async run(msg, args) {
     const name = args.join(' ').slice(0, 200);
     const store = (await db.get(`servers.${msg.guild.id}.economy.store`)) || {};
+    const botMember = msg.guild.members.cache.get(this.client.user.id);
     const filter = (m) => m.author.id === msg.author.id;
     const embed = new EmbedBuilder()
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
@@ -83,7 +84,7 @@ class CreateItem extends Command {
       } else if (cost === Infinity) {
         await collected.first().reply(`The price must be less than ${BigInt(Number.MAX_VALUE).toLocaleString()}.`);
       } else if (cost < 0) {
-        await msg.reply('The price must be at least zero. Please enter a valid cost.');
+        await collected.first().reply('The price must be at least zero. Please enter a valid cost.');
       } else {
         isValid = true;
       }
@@ -93,6 +94,7 @@ class CreateItem extends Command {
     const costString = currencySymbol + cost.toLocaleString();
     const limitedCostString = costString.length > 1024 ? costString.slice(0, 1020) + '...' : costString;
     embed.addFields([{ name: 'Price', value: limitedCostString, inline: true }]);
+
     await message.edit({
       content: '2️⃣ What would you like the description to be? \nThis should be no more than 1000 characters',
       embeds: [embed],
@@ -250,7 +252,9 @@ class CreateItem extends Command {
       roleRequired = this.client.util.getRole(msg, collected.first().content);
 
       if (!roleRequired) {
-        collected.first().reply('Please reply with a valid server role.');
+        collected
+          .first()
+          .reply('Please reply with a valid server role. Try again or use `cancel` to cancel the command');
       } else {
         roleRequired = roleRequired.id;
         isValid = true;
@@ -259,7 +263,7 @@ class CreateItem extends Command {
     embed.addFields([
       {
         name: 'Role Required',
-        value: roleRequired ? this.client.util.getRole(msg, roleRequired)?.toString() : 'None',
+        value: roleRequired ? this.client.util.getRole(msg, roleRequired).toString() : 'None',
         inline: true,
       },
     ]);
@@ -299,7 +303,15 @@ class CreateItem extends Command {
       roleGiven = this.client.util.getRole(msg, collected.first().content);
 
       if (!roleGiven) {
-        collected.first().reply('Please reply with a valid server role.');
+        collected
+          .first()
+          .reply('Please reply with a valid server role. Try again or use `cancel` to cancel the command');
+      } else if (roleGiven.position >= botMember.roles.highest.position) {
+        collected
+          .first()
+          .reply(
+            "The role you mentioned is above or equal to the bot's highest role. Please try again with a different role or use `cancel` to cancel the command",
+          );
       } else {
         roleGiven = roleGiven.id;
         isValid = true;
@@ -308,7 +320,7 @@ class CreateItem extends Command {
     embed.addFields([
       {
         name: 'Role Given',
-        value: roleGiven ? this.client.util.getRole(msg, roleGiven)?.toString() : 'None',
+        value: roleGiven ? this.client.util.getRole(msg, roleGiven).toString() : 'None',
         inline: true,
       },
     ]);
@@ -348,7 +360,15 @@ class CreateItem extends Command {
       roleRemoved = this.client.util.getRole(msg, collected.first().content);
 
       if (!roleRemoved) {
-        collected.first().reply('Please reply with a valid server role.');
+        collected
+          .first()
+          .reply('Please reply with a valid server role. Try again or use `cancel` to cancel the command');
+      } else if (roleRemoved.position >= botMember.roles.highest.position) {
+        collected
+          .first()
+          .reply(
+            "The role you mentioned is above or equal to the bot's highest role. Please try again with a different role or use `cancel` to cancel the command",
+          );
       } else {
         roleRemoved = roleRemoved.id;
         isValid = true;
@@ -357,14 +377,14 @@ class CreateItem extends Command {
     embed.addFields([
       {
         name: 'Role Removed',
-        value: roleRemoved ? this.client.util.getRole(msg, roleRemoved)?.toString() : 'None',
+        value: roleRemoved ? this.client.util.getRole(msg, roleRemoved).toString() : 'None',
         inline: true,
       },
     ]);
 
     await message.edit({
       content:
-        '8️⃣ What message do you want the bot to reply with, when the item is bought (or used if an inventory item)? \nYou can use the Member, Server & Role tags from https://unbelievaboat.com/tags in this message. \nThis should be no more than 1000 characters \nIf none, just reply `skip`.',
+        '8️⃣ What message do you want the bot to reply with, when the item is bought (or used if an inventory item)? \nYou can use the Member, Server & Role tags from https://mythical.cisn.xyz/tags in this message. \nThis should be no more than 1000 characters \nIf none, just reply `skip`.',
       embeds: [embed],
     });
 

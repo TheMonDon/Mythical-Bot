@@ -23,6 +23,7 @@ class EditItem extends Command {
 
   async run(msg, args) {
     const attribute = args.shift().toLowerCase();
+    const botMember = msg.guild.members.cache.get(this.client.user.id);
     let itemName;
     let newValue;
     const errorEmbed = new EmbedBuilder()
@@ -158,6 +159,9 @@ class EditItem extends Command {
         if (!role) {
           errorEmbed.setDescription('Please re-run the command with a valid role.');
           return msg.channel.send({ embeds: [errorEmbed] });
+        } else if (role.position >= botMember.roles.highest.position) {
+          errorEmbed.setDescription('I am not able to assign this role. Please move my role higher.');
+          return msg.channel.send({ embeds: [errorEmbed] });
         }
         item.roleGiven = role.id;
         store[itemKey] = item;
@@ -173,6 +177,9 @@ class EditItem extends Command {
         const role = this.client.util.getRole(msg, newValue);
         if (!role) {
           errorEmbed.setDescription('Please re-run the command with a valid role.');
+          return msg.channel.send({ embeds: [errorEmbed] });
+        } else if (role.position >= botMember.roles.highest.position) {
+          errorEmbed.setDescription('I am not able to assign this role. Please move my role higher.');
           return msg.channel.send({ embeds: [errorEmbed] });
         }
         item.roleRemoved = role.id;
