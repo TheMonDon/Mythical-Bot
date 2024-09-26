@@ -5,8 +5,6 @@ export async function run(client, guild) {
 
   try {
     client.user.setActivity(`${client.settings.get('default').prefix}help | ${client.guilds.cache.size} Servers`);
-    // Well they're gone. Let's remove them from the settings and log it!
-    client.settings.delete(guild.id);
     client.logger.log(`Left guild: ${guild.name} (${guild.id}) with ${guild.memberCount} members`);
   } catch (error) {
     client.logger.error(`GuildDelete: ${error}`);

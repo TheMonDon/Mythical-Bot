@@ -69,14 +69,11 @@ class Rob extends Command {
     const authBank = BigInt((await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`)) || 0);
     const authNet = authCash + authBank;
 
-    const memCash = BigInt(
-      (await db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`)) ||
-        (await db.get(`servers.${msg.guild.id}.economy.startBalance`)) ||
-        0,
-    );
+    const memCash = BigInt((await db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`)) || 0);
 
-    if (memCash <= BigInt(0))
+    if (memCash <= BigInt(0)) {
       return this.client.util.errorEmbed(msg, `${mem} does not have anything to rob`, 'No Money');
+    }
 
     const minRate = 20;
     const maxRate = 80;
