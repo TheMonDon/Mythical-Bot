@@ -1,5 +1,5 @@
 const Command = require('../../base/Command.js');
-const { EmbedBuilder } = require('discord.js');
+const { EmbedBuilder, ThreadChannel } = require('discord.js');
 const moment = require('moment');
 require('moment-duration-format');
 
@@ -64,12 +64,14 @@ class ServerInfo extends Command {
 
     const displayRolesName =
       server.roles.cache.size - 1 > displayedRoles.split(',').length
-        ? `Roles (${server.roles.cache.size}/${displayedRoles.split(',').length - 1})`
+        ? `Roles (${displayedRoles.split(',').length - 1}/${server.roles.cache.size})`
         : `Roles (${server.roles.cache.size})`;
 
     const verificationLevel = ['None', 'Low', 'Medium', 'High', 'Very High'];
 
     const owner = server.members.cache.get(server.ownerId).user;
+    const nonThreadChannels = msg.guild.channels.cache.filter((channel) => !(channel instanceof ThreadChannel));
+
     const embed = new EmbedBuilder()
       .setTitle(`${server.name}'s Information`)
       .setColor(msg.settings.embedColor)
@@ -80,7 +82,7 @@ class ServerInfo extends Command {
         { name: 'ID', value: server.id.toString(), inline: true },
         { name: 'Owner', value: owner.tag, inline: true },
         { name: 'Verification Level', value: verificationLevel[server.verificationLevel], inline: true },
-        { name: 'Channels', value: server.channels.cache.size.toLocaleString(), inline: true },
+        { name: 'Channels', value: nonThreadChannels.size.toLocaleString(), inline: true },
         { name: 'Created At', value: `${ca} \n (${time})`, inline: true },
         { name: 'AFK Channel', value: server.afkChannel?.name || 'No AFK Channel', inline: true },
         { name: 'Members', value: server.members.cache.size.toLocaleString(), inline: true },
