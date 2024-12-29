@@ -75,6 +75,7 @@ exports.run = async (interaction) => {
       setTimeout(() => embed.delete(), 30000);
     });
 
+    await interaction.editReply('Warnings Cleared');
     return interaction.guild.channels.cache.get(logChan).send({ embeds: [logEmbed] });
   } else {
     return interaction.editReply({ embeds: [logEmbed] });
