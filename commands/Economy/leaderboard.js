@@ -39,9 +39,9 @@ class Leaderboard extends Command {
       .setTitle(`${msg.guild.name} Leaderboard`)
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() });
 
-    if (!cashOrBank) {
+    try {
       for (const userId in usersData) {
-        try {
+        if (!cashOrBank) {
           const user = await this.client.users.fetch(userId);
           if (user) {
             const cash = BigInt(usersData[userId]?.economy?.cash || 0);
@@ -49,36 +49,24 @@ class Leaderboard extends Command {
             const money = cash + bank;
             leaderboard.push({ user: user.tag, userId: user.id, money });
           }
-        } catch (err) {
-          this.client.logger.error(`Leaderboard: ${err}`);
-        }
-      }
-    } else if (cashOrBank === '-cash') {
-      embed.setTitle(`${msg.guild.name} Cash Leaderboard`);
-      for (const userId in usersData) {
-        try {
+        } else if (cashOrBank === '-cash') {
+          embed.setTitle(`${msg.guild.name} Cash Leaderboard`);
           const user = await this.client.users.fetch(userId);
           if (user) {
             const money = BigInt(usersData[userId]?.economy?.cash || 0);
             leaderboard.push({ user: user.tag, userId: user.id, money });
           }
-        } catch (err) {
-          this.client.logger.error(`Leaderboard: ${err}`);
-        }
-      }
-    } else if (cashOrBank === '-bank') {
-      embed.setTitle(`${msg.guild.name} Bank Leaderboard`);
-      for (const userId in usersData) {
-        try {
+        } else if (cashOrBank === '-bank') {
+          embed.setTitle(`${msg.guild.name} Bank Leaderboard`);
           const user = await this.client.users.fetch(userId);
           if (user) {
             const money = BigInt(usersData[userId]?.economy?.bank || 0);
             leaderboard.push({ user: user.tag, userId: user.id, money });
           }
-        } catch (err) {
-          this.client.logger.error(`Leaderboard: ${err}`);
         }
       }
+    } catch (error) {
+      this.client.logger.error(`Leaderboard: ${error}`);
     }
 
     const sortedLeaderboard = leaderboard
