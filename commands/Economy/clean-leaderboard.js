@@ -44,9 +44,10 @@ class CleanLeaderboard extends Command {
     const verified = await this.client.util.verify(msg.channel, msg.author);
 
     if (verified) {
-      toRemove.forEach(async (i) => {
+      for (const i of toRemove) {
         await db.delete(`servers.${msg.guild.id}.users.${i}`);
-      });
+      }
+
       return msg.channel.send(`${toRemove.length} users have been removed from the leaderboard.`);
     } else {
       return msg.channel.send('Command Cancelled.');
