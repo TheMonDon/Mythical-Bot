@@ -1,6 +1,4 @@
 const Command = require('../../base/Command.js');
-const emojiRegex = require('emoji-regex');
-const twemoji = require('twemoji');
 
 class DownloadEmoji extends Command {
   constructor(client) {
@@ -18,49 +16,44 @@ class DownloadEmoji extends Command {
   async run(msg, args) {
     const content = args.join(' ');
     const result = [];
-    const res = [];
+    // Helper function to get code points for Unicode emojis
+    const toCodePoint = (emoji) => [...emoji].map((char) => char.codePointAt(0).toString(16)).join('-');
 
-    // Normal Emojis
+    // Match Normal Unicode Emojis
+    const emojiRegex = require('emoji-regex');
     const normalEmojis = content.match(emojiRegex());
     if (normalEmojis) {
       normalEmojis.forEach((emoji) => {
-        result.push(emoji);
+        const codePoint = toCodePoint(emoji);
+        const url = `https://cdn.jsdelivr.net/gh/jdecked/twemoji@latest/assets/72x72/${codePoint}.png`;
+        result.push(url);
       });
     }
 
-    // Client Emojis
-    let clientEmojis = content.match(/:[_a-zA-Z0-9]*>/g);
+    // Match Client Emojis (Static and Animated)
+    const clientEmojis = content.match(/<a?:\w+:(\d+)>/g);
     if (clientEmojis) {
-      clientEmojis = clientEmojis.map((e) => e.substring(1, e.length - 1));
-      clientEmojis.forEach((e) => {
-        const e1 = e.replace(/[^\d]/g, '');
-        const clientEmoji = this.client.emojis.resolveIdentifier(e1);
-        if (clientEmoji) result.push(clientEmoji);
+      clientEmojis.forEach((emoji) => {
+        const emojiId = emoji.match(/:(\d+)>/)[1];
+        const isAnimated = emoji.startsWith('<a:');
+        const url = `https://cdn.discordapp.com/emojis/${emojiId}${isAnimated ? '.gif' : '.png'}`;
+        result.push(url);
       });
     }
 
-    if (result.length < 1) {
+    if (result.length === 0) {
       return this.client.util.errorEmbed(msg, 'You need to input at least one emoji.');
     }
 
-    result.forEach((emoji) => {
-      if (emoji.replace(/[^\d]/g, '').length > 1) {
-        res.push(
-          `https://cdn.discordapp.com/emojis/${emoji.replace(/[^\d]/g, '')}${
-            emoji.charAt(0) === 'a' ? '.gif' : '.png'
-          }`,
-        );
-      } else {
-        const out = twemoji.parse(emoji);
-        res.push(out.split('src="')[1].replace(/"\/>/g, ''));
-      }
-    });
-    const emojis = res.splice(0, 10);
-    const text = emojis.length > 1 ? 'Here are your emojis:' : 'Here is your emoji:';
-
-    return msg.channel.send({ content: text, files: emojis });
+    try {
+      const emojis = result.slice(0, 10); // Limit to 10 emojis
+      const text = emojis.length > 1 ? 'Here are your emojis:' : 'Here is your emoji:';
+      return msg.channel.send({ content: text, files: emojis });
+    } catch (error) {
+      console.error('Error while processing emojis:', error);
+      return msg.channel.send('An error occurred while processing your request.');
+    }
   }
 }
 
 module.exports = DownloadEmoji;
-// Special credits to CoolGuy#9889 and Redi Panda_#0247
