@@ -4,7 +4,7 @@ class Clap extends Command {
   constructor(client) {
     super(client, {
       name: 'clap',
-      description: 'Clappify your text',
+      description: 'Clapify your text',
       usage: 'clap <text>',
       examples: ['clap add emojis to this'],
       category: 'Fun',
