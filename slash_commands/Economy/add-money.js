@@ -1,4 +1,4 @@
-const { EmbedBuilder, SlashCommandBuilder } = require('discord.js');
+const { EmbedBuilder, SlashCommandBuilder, InteractionContextType } = require('discord.js');
 const { QuickDB } = require('quick.db');
 const db = new QuickDB();
 
@@ -8,7 +8,7 @@ exports.conf = {
 
 exports.commandData = new SlashCommandBuilder()
   .setName('add-money')
-  .setDMPermission(false)
+  .setContexts(InteractionContextType.Guild)
   .setDescription("Add money to a member's cash or bank balance.")
   .addMentionableOption((option) =>
     option.setName('target').setDescription('The member or role to add money to').setRequired(true),

@@ -1,4 +1,4 @@
-const { EmbedBuilder, SlashCommandBuilder } = require('discord.js');
+const { EmbedBuilder, SlashCommandBuilder, InteractionContextType, MessageFlags } = require('discord.js');
 const { QuickDB } = require('quick.db');
 const moment = require('moment');
 const db = new QuickDB();
@@ -9,14 +9,14 @@ exports.conf = {
 
 exports.commandData = new SlashCommandBuilder()
   .setName('warn-info')
-  .setDMPermission(false)
+  .setContexts(InteractionContextType.Guild)
   .setDescription('View the information of a specific case.')
   .addStringOption((option) =>
     option.setName('case_id').setDescription('The specific warning to get information on').setRequired(true),
   );
 
 exports.run = async (interaction) => {
-  await interaction.deferReply({ ephemeral: true });
+  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
   const caseID = interaction.options.getString('case_id');
   const warn = await db.get(`servers.${interaction.guild.id}.warns.warnings.${caseID}`);
 

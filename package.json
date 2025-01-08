@@ -1,11 +1,11 @@
 {
   "name": "mythical",
-  "version": "5.3.0",
+  "version": "5.4.0",
   "description": "Mythical Bot",
   "owner": "themondon",
   "main": "index.js",
   "engines": {
-    "node": ">=16.9.0"
+    "node": ">=18.18.2"
   },
   "scripts": {
     "lint": "eslint --fix --cache commands/** events/** slash_commands/** base/** util/**",
@@ -24,6 +24,7 @@
     "blackjack-n-deck": "^1.0.1",
     "botlist.me.js": "^1.0.2",
     "botpanel.js": "^1.2.9",
+    "canvacord": "^6.0.2",
     "canvas": "^2.11.2",
     "chalk": "^4.1.1",
     "chrono-node": "^2.7.6",
@@ -38,7 +39,7 @@
     "discord-giveaways": "^6.0.0",
     "discord-html-transcripts": "^3.2.0",
     "discord-player": "^6.6.10",
-    "discord.js": "^14.15.3",
+    "discord.js": "^14.17.3",
     "emoji-regex": "^10.4.0",
     "enmap": "^5.8.6",
     "fluent-ffmpeg": "^2.1.2",

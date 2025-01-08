@@ -1,4 +1,4 @@
-const { EmbedBuilder, SlashCommandBuilder } = require('discord.js');
+const { EmbedBuilder, SlashCommandBuilder, InteractionContextType, MessageFlags } = require('discord.js');
 const { QuickDB } = require('quick.db');
 const db = new QuickDB();
 
@@ -8,7 +8,7 @@ exports.conf = {
 
 exports.commandData = new SlashCommandBuilder()
   .setName('warn')
-  .setDMPermission(false)
+  .setContexts(InteractionContextType.Guild)
   .setDescription('Warns a user, by default members are kicked at 8 and banned at 10 points.')
   .addUserOption((option) => option.setName('user').setDescription('The user you want to warn').setRequired(true))
   .addIntegerOption((option) =>
@@ -24,7 +24,7 @@ exports.commandData = new SlashCommandBuilder()
   );
 
 exports.run = async (interaction) => {
-  await interaction.deferReply({ ephemeral: true });
+  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
   const user = interaction.options.getUser('user');
 
   let member = true;

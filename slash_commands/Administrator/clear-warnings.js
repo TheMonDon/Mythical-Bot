@@ -1,4 +1,4 @@
-const { EmbedBuilder, SlashCommandBuilder } = require('discord.js');
+const { EmbedBuilder, SlashCommandBuilder, MessageFlags } = require('discord.js');
 const { QuickDB } = require('quick.db');
 const db = new QuickDB();
 
@@ -13,7 +13,7 @@ exports.commandData = new SlashCommandBuilder()
   .setDMPermission(false);
 
 exports.run = async (interaction) => {
-  await interaction.deferReply({ ephemeral: true });
+  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
   const mem = interaction.options.getUser('user');
   const color = interaction.settings.embedColor;
 

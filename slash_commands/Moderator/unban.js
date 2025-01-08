@@ -1,4 +1,4 @@
-const { EmbedBuilder, SlashCommandBuilder } = require('discord.js');
+const { EmbedBuilder, SlashCommandBuilder, InteractionContextType, MessageFlags } = require('discord.js');
 const { QuickDB } = require('quick.db');
 const db = new QuickDB();
 
@@ -8,7 +8,7 @@ exports.conf = {
 
 exports.commandData = new SlashCommandBuilder()
   .setName('unban')
-  .setDMPermission(false)
+  .setContexts(InteractionContextType.Guild)
   .setDescription('Unban a user from the server')
   .addStringOption((option) =>
     option.setName('user_id').setDescription('The User ID of the person to unban').setRequired(true),
@@ -16,7 +16,7 @@ exports.commandData = new SlashCommandBuilder()
   .addStringOption((option) => option.setName('reason').setDescription('The reason to unban the user'));
 
 exports.run = async (interaction) => {
-  await interaction.deferReply({ ephemeral: true });
+  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
   if (!interaction.guild.members.me.permissions.has('BanMembers'))
     return interaction.editReply('The bot is missing Ban Members permission.');
 

@@ -1,4 +1,4 @@
-const { EmbedBuilder, SlashCommandBuilder } = require('discord.js');
+const { EmbedBuilder, SlashCommandBuilder, InteractionContextType } = require('discord.js');
 const { QuickDB } = require('quick.db');
 const db = new QuickDB();
 
@@ -8,7 +8,7 @@ exports.conf = {
 
 exports.commandData = new SlashCommandBuilder()
   .setName('blacklist')
-  .setDMPermission(false)
+  .setContexts(InteractionContextType.Guild)
   .setDescription('Add/remove/check users blacklisted from the bot')
   .addSubcommand((subcommand) =>
     subcommand

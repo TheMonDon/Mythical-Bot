@@ -1,4 +1,4 @@
-const { EmbedBuilder, SlashCommandBuilder } = require('discord.js');
+const { EmbedBuilder, SlashCommandBuilder, InteractionContextType, MessageFlags } = require('discord.js');
 const { QuickDB } = require('quick.db');
 const moment = require('moment');
 const db = new QuickDB();
@@ -9,11 +9,12 @@ exports.conf = {
 
 exports.commandData = new SlashCommandBuilder()
   .setName('warnings')
+  .setContexts(InteractionContextType.Guild)
   .setDescription('View your warnings, or moderators can view other warnings.')
   .addUserOption((option) => option.setName('user').setDescription('The user to view warnings of'));
 
 exports.run = async (interaction) => {
-  await interaction.deferReply({ ephemeral: true });
+  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
   const user = interaction.options.getUser('user');
   const level = interaction.user.permLevel;
   const warns = [];

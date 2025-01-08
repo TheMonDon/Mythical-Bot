@@ -1,13 +1,12 @@
-const { SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder, InteractionContextType } = require('discord.js');
 
 exports.conf = {
   permLevel: 'Moderator',
-  guildOnly: false,
 };
 
 exports.commandData = new SlashCommandBuilder()
   .setName('nickname')
-  .setDMPermission(false)
+  .setContexts(InteractionContextType.Guild)
   .setDescription('Change a users nickname')
   .addUserOption((option) =>
     option.setName('user').setDescription('The user you want to change the nickname of').setRequired(true),

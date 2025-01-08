@@ -1,4 +1,4 @@
-const { SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder, InteractionContextType } = require('discord.js');
 const amountText = 'The amount of messages to delete';
 const delText = 'The text to delete';
 
@@ -8,7 +8,7 @@ exports.conf = {
 
 exports.commandData = new SlashCommandBuilder()
   .setName('purge')
-  .setDMPermission(false)
+  .setContexts(InteractionContextType.Guild)
   .setDescription('Purge messages')
   .addSubcommand((subcommand) =>
     subcommand
