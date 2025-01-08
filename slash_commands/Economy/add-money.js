@@ -3,7 +3,7 @@ const { QuickDB } = require('quick.db');
 const db = new QuickDB();
 
 exports.conf = {
-  permLevel: 'User',
+  permLevel: 'Administrator',
 };
 
 exports.commandData = new SlashCommandBuilder()
