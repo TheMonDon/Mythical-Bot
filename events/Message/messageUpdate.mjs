@@ -121,7 +121,9 @@ export async function run(client, oldMessage, newMessage) {
     }
 
     // If the member on a guild is invisible or not cached, fetch them.
-    if (newMessage.guild && !newMessage.member) await newMessage.guild.fetchMember(newMessage.author);
+    if (newMessage.guild && !newMessage.member) {
+      await newMessage.guild.members.fetch(newMessage.author.id);
+    }
     // Get the user or member's permission level from the elevation
     const level = client.permlevel(newMessage);
 
