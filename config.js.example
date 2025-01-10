@@ -14,10 +14,6 @@ const config = {
   // Auth token for BotList.me
   BotListToken: '',
 
-  // OxFord Dictionary
-  OxfordID: '',
-  OxfordKey: '',
-
   // Github API Token
   github: '',
 

@@ -1,4 +1,5 @@
 const Command = require('../../base/Command.js');
+const emojiRegex = require('emoji-regex');
 
 class DownloadEmoji extends Command {
   constructor(client) {
@@ -20,7 +21,6 @@ class DownloadEmoji extends Command {
     const toCodePoint = (emoji) => [...emoji].map((char) => char.codePointAt(0).toString(16)).join('-');
 
     // Match Normal Unicode Emojis
-    const emojiRegex = require('emoji-regex');
     const normalEmojis = content.match(emojiRegex());
     if (normalEmojis) {
       normalEmojis.forEach((emoji) => {
