@@ -1,11 +1,13 @@
 import pkg from '../../config.js';
 import { EmbedBuilder, ChannelType } from 'discord.js';
 import { QuickDB } from 'quick.db';
+import express from 'express';
+import cors from 'cors';
 import { scheduleJob } from 'node-schedule';
 import { Client } from 'botpanel.js';
 import * as botlistmePackage from 'botlist.me.js';
 const BotlistMe = botlistmePackage.default || botlistmePackage;
-const { BotListToken, BotPanelID, BotPanelSecret } = pkg;
+const { BotListToken, BotPanelID, BotPanelSecret, Port } = pkg;
 const db = new QuickDB();
 
 export async function run(client) {
@@ -124,6 +126,39 @@ export async function run(client) {
 
     botlistme.on('error', (e) => {
       console.log(`Oops! ${e}`);
+    });
+  }
+
+  // Web server
+  if (Port) {
+    const app = express();
+    app.use(express.json());
+    app.use(cors());
+
+    app.get('/api/data', (req, res) => {
+      const commands = client.commands.reduce((acc, command) => {
+        const category = command.help.category;
+        if (!acc[category]) acc[category] = {};
+
+        acc[category][command.help.name] = {
+          description: command.help.description,
+          usage: command.help.usage,
+          examples: command.help.examples,
+          aliases: command.conf.aliases,
+          permissionLevel: command.conf.permLevel,
+          guildOnly: command.conf.guildOnly,
+          nsfw: command.conf.nsfw,
+          longDescription: command.help.longDescription || 'No long description provided.',
+        };
+
+        return acc;
+      }, {});
+
+      res.json({ commands });
+    });
+
+    app.listen(Port, () => {
+      console.log(`Web server running at http://localhost:${Port}`);
     });
   }
 
