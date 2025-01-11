@@ -40,6 +40,7 @@
     "discord-html-transcripts": "^3.2.0",
     "discord-player": "^6.6.10",
     "discord.js": "^14.17.3",
+    "duck-duck-scrape": "^2.2.7",
     "emoji-regex": "^10.4.0",
     "enmap": "^5.8.6",
     "express": "^4.21.2",

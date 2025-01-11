@@ -1,6 +1,8 @@
 const { EmbedBuilder, SlashCommandBuilder } = require('discord.js');
-const trev = require('trev-reborn');
+const { stripIndents } = require('common-tags');
 const fetch = require('node-superfetch');
+const DDG = require('duck-duck-scrape');
+const trev = require('trev-reborn');
 
 exports.conf = {
   permLevel: 'User',
@@ -53,6 +55,12 @@ exports.commandData = new SlashCommandBuilder()
       .addStringOption((option) =>
         option.setName('package').setDescription('The package to search for').setRequired(true),
       ),
+  )
+  .addSubcommand((subcommand) =>
+    subcommand
+      .setName('duck-duck-go')
+      .setDescription('Search for something on DuckDuckGo')
+      .addStringOption((option) => option.setName('query').setDescription('What you want to query').setRequired(true)),
   );
 
 exports.run = async (interaction) => {
@@ -365,6 +373,48 @@ exports.run = async (interaction) => {
           return interaction.client.util.errorEmbed(interaction, 'No results were found for that package.');
         return interaction.editReply(`Oh no, an error occurred: \`${err.message}\`. Try again later!`);
       }
+    }
+
+    case 'duck-duck-go': {
+      function recursiveReplace(obj, searchValue, replaceValue) {
+        if (typeof obj === 'string') {
+          return obj.replace(new RegExp(searchValue, 'g'), replaceValue);
+        } else if (Array.isArray(obj)) {
+          return obj.map((item) => recursiveReplace(item, searchValue, replaceValue));
+        } else if (typeof obj === 'object' && obj !== null) {
+          return Object.fromEntries(
+            Object.entries(obj).map(([key, value]) => [key, recursiveReplace(value, searchValue, replaceValue)]),
+          );
+        }
+        return obj; // Return as is for other types (e.g., numbers, null)
+      }
+
+      const query = interaction.options.get('query').value;
+
+      const searchResults = await DDG.search(query, {
+        safeSearch: DDG.SafeSearchType.STRICT,
+      });
+      const results = searchResults.results;
+      if (searchResults.noResults) {
+        return interaction.client.util.errorEmbed(interaction, 'No search results were found.');
+      }
+
+      const cleanedResults = recursiveReplace(results, '<b>', '**');
+      const cleanedResultsFinal = recursiveReplace(cleanedResults, '</b>', '**');
+
+      const embed = new EmbedBuilder()
+        .setTitle(`Search results for ${query.slice(0, 200)}`)
+        .setColor(interaction.settings.embedColor)
+        .setDescription(
+          stripIndents`
+           1. [${cleanedResultsFinal[0].title}](${cleanedResultsFinal[0].url}) \n${cleanedResultsFinal[0].description}
+           2. [${cleanedResultsFinal[1].title}](${cleanedResultsFinal[1].url}) \n${cleanedResultsFinal[1].description}
+           3. [${cleanedResultsFinal[2].title}](${cleanedResultsFinal[2].url}) \n${cleanedResultsFinal[2].description}
+           4. [${cleanedResultsFinal[3].title}](${cleanedResultsFinal[3].url}) \n${cleanedResultsFinal[3].description}
+           5. [${cleanedResultsFinal[4].title}](${cleanedResultsFinal[4].url}) \n${cleanedResultsFinal[4].description}`,
+        );
+
+      return interaction.editReply({ embeds: [embed] });
     }
   }
 };
