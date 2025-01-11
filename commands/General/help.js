@@ -9,7 +9,7 @@ class Help extends Command {
       category: 'General',
       usage: 'help <category | command>',
       examples: ['help games', 'help user-info'],
-      aliases: ['h'],
+      aliases: ['h', 'commands', 'cmds'],
     });
   }
 
@@ -21,6 +21,7 @@ class Help extends Command {
       'games',
       'general',
       'giveaways',
+      'images',
       'information',
       'minecraft',
       'music',
@@ -43,6 +44,8 @@ class Help extends Command {
       mc: 'minecraft',
       mod: 'moderator',
       mods: 'moderator',
+      giveaway: 'giveaways',
+      image: 'images',
       info: 'information',
       ticket: 'tickets',
     };
