@@ -45,7 +45,7 @@ class Weather extends Command {
 
       const embed = new EmbedBuilder()
         .setColor(msg.settings.embedColor)
-        .setTitle(`Weather in: ${JSONObj.name}`)
+        .setTitle(`Weather in: ${JSONObj.name}, ${JSONObj.sys.country}`)
         .addFields([
           { name: 'Temperature: ', value: `${JSONObj.main.temp}°F \n${metricTemperature}°C` },
           { name: 'Feels Like: ', value: `${JSONObj.main.feels_like}°F \n${metricFeelsLike}°C` },
@@ -55,7 +55,8 @@ class Weather extends Command {
           `**Sky info:** ${JSONObj.weather[0].description} \n\n**Wind Info:** ${
             JSONObj.wind.speed + 'mph'
           } (${metricWindSpeed})`,
-        );
+        )
+        .setFooter({ text: 'Weather provided by OpenWeather' });
 
       return msg.channel.send({ embeds: [embed] });
     });
