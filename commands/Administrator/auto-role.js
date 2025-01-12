@@ -8,11 +8,11 @@ class AutoRole extends Command {
     super(client, {
       name: 'auto-role',
       category: 'Administrator',
-      description: 'Manage auto-roles in the server.',
+      description: 'Manage auto-roles in the server',
       usage: 'auto-role <add | remove | list> [role or page]',
       aliases: ['autorole', 'autoroles'],
       permLevel: 'Administrator',
-      examples: ['auto-role add @member', 'auto-role remove @Moderator'],
+      examples: ['auto-role add @member', 'auto-role remove Moderator'],
       requiredArgs: 1,
       guildOnly: true,
     });
@@ -26,6 +26,13 @@ class AutoRole extends Command {
     const embed = new EmbedBuilder()
       .setColor(msg.settings.embedColor)
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() });
+
+    if (!msg.guild.me.permissions.has('ManageRoles')) {
+      embed
+        .setDescription('Manage Roles permission is required on the bot to use this.')
+        .setColor(msg.settings.embedErrorColor);
+      return msg.channel.send({ embeds: [embed] });
+    }
 
     switch (action) {
       case 'add': {
@@ -46,7 +53,7 @@ class AutoRole extends Command {
         autoRoles.push(role.id);
         await db.set(`servers.${msg.guild.id}.autoRoles`, autoRoles);
 
-        embed.setDescription(`The ${role} role will be given to all new members when they join the server..`);
+        embed.setDescription(`The ${role} role will be given to all new members when they join the server.`);
         return msg.channel.send({ embeds: [embed] });
       }
 
@@ -74,22 +81,37 @@ class AutoRole extends Command {
 
       case 'list': {
         const autoRoles = (await db.get(`servers.${msg.guild.id}.autoRoles`)) || [];
-        if (autoRoles.length === 0) {
-          embed.setDescription('No auto-roles have been set.').setColor(msg.settings.embedErrorColor);
+
+        // Fetch all roles to ensure uncached roles are included
+        const allRoles = await msg.guild.roles.fetch();
+
+        // Remove roles that are no longer in the server
+        const validRoles = autoRoles.filter((roleId) => allRoles.has(roleId));
+
+        // Update the database if roles were removed
+        if (validRoles.length !== autoRoles.length) {
+          await db.set(`servers.${msg.guild.id}.autoRoles`, validRoles);
+        }
+
+        // If no valid roles remain, send an appropriate message
+        if (validRoles.length === 0) {
+          embed
+            .setDescription('No valid auto-roles remain in the server. The list has been updated.')
+            .setColor(msg.settings.embedErrorColor);
           return msg.channel.send({ embeds: [embed] });
         }
 
         let page = parseInt(roleName) || 1;
         const itemsPerPage = 10;
-        const maxPages = Math.ceil(autoRoles.length / itemsPerPage);
+        const maxPages = Math.ceil(validRoles.length / itemsPerPage);
 
         if (page > maxPages) page = maxPages;
         if (page < 1) page = 1;
 
         const start = (page - 1) * itemsPerPage;
         const end = start + itemsPerPage;
-        const roles = autoRoles.slice(start, end).map((roleId) => {
-          const role = msg.guild.roles.cache.get(roleId);
+        const roles = validRoles.slice(start, end).map((roleId) => {
+          const role = allRoles.get(roleId);
           return role ? role.name : `Unknown Role (${roleId})`;
         });
 

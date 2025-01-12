@@ -9,7 +9,7 @@ exports.conf = {
 exports.commandData = new SlashCommandBuilder()
   .setName('blacklist')
   .setContexts(InteractionContextType.Guild)
-  .setDescription('Add/remove/check users blacklisted from the bot')
+  .setDescription('Add/remove/check if users blacklisted from the bot')
   .addSubcommand((subcommand) =>
     subcommand
       .setName('add')

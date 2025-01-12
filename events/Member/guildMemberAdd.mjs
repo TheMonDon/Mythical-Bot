@@ -57,6 +57,8 @@ export async function run(client, member) {
 
   async function AssignAutoRoles(member) {
     if (!member || !member.guild) return;
+    if (!member.guild.members.me.permissions.has('ManageRoles')) return;
+
     try {
       const autoRoles = (await db.get(`servers.${member.guild.id}.autoRoles`)) || [];
       if (!autoRoles.length) return;
