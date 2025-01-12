@@ -33,7 +33,10 @@ class DuckDuckGo extends Command {
 
     const searchResults = await DDG.search(query, {
       safeSearch: DDG.SafeSearchType.STRICT,
+    }).catch(() => {
+      return this.client.util.errorEmbed(msg, 'An error occurred while searching DuckDuckGo.');
     });
+
     const results = searchResults.results;
     if (searchResults.noResults) {
       return this.client.util.errorEmbed(msg, 'No search results were found.');

@@ -393,7 +393,10 @@ exports.run = async (interaction) => {
 
       const searchResults = await DDG.search(query, {
         safeSearch: DDG.SafeSearchType.STRICT,
+      }).catch(() => {
+        return interaction.client.util.errorEmbed(interaction, 'An error occurred while searching DuckDuckGo.');
       });
+
       const results = searchResults.results;
       if (searchResults.noResults) {
         return interaction.client.util.errorEmbed(interaction, 'No search results were found.');
