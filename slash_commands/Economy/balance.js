@@ -1,4 +1,4 @@
-const { EmbedBuilder, SlashCommandBuilder } = require('discord.js');
+const { EmbedBuilder, SlashCommandBuilder, InteractionContextType } = require('discord.js');
 const { QuickDB } = require('quick.db');
 const db = new QuickDB();
 
@@ -8,7 +8,7 @@ exports.conf = {
 
 exports.commandData = new SlashCommandBuilder()
   .setName('balance')
-  .setDMPermission(false)
+  .setContexts(InteractionContextType.Guild)
   .setDescription('Check your balance')
   .addUserOption((option) => option.setName('user').setDescription('Check the balance of another user'));
 

@@ -26,8 +26,7 @@ class Leaderboard extends Command {
     const itemsPerPage = 10;
     const maxPages = Math.ceil(usersCount / itemsPerPage);
 
-    if (page > maxPages)
-      return this.client.util.errorEmbed(msg, `Page ${page} does not exist. Maximum page: ${maxPages}`, 'Invalid Page');
+    if (page > maxPages) page = maxPages;
 
     // Fetch data for the current page
     const offset = (page - 1) * itemsPerPage;

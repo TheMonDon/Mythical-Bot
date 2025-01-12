@@ -1,4 +1,4 @@
-const { EmbedBuilder, SlashCommandBuilder } = require('discord.js');
+const { EmbedBuilder, SlashCommandBuilder, InteractionContextType } = require('discord.js');
 const { QuickDB } = require('quick.db');
 const moment = require('moment');
 const db = new QuickDB();
@@ -9,7 +9,7 @@ exports.conf = {
 
 exports.commandData = new SlashCommandBuilder()
   .setName('slut')
-  .setDMPermission(false)
+  .setContexts(InteractionContextType.Guild)
   .setDescription('Whip it out, for some quick cash ;)');
 
 exports.run = async (interaction) => {

@@ -13,32 +13,30 @@ class LGBT extends Command {
   }
 
   async run(msg, args) {
-    let infoMem; // Will store the GuildMember or User object
-    let fetchedUser; // Will store the User object
+    let infoMem;
 
-    // If text is provided, try to get the member from the guild
     if (args?.length > 0) {
+      // Try to fetch the member from the provided text
       infoMem = await this.client.util.getMember(msg, args.join(' ').toLowerCase());
-    } else {
-      infoMem = msg.member;
     }
 
     if (!infoMem) {
-      // If no member is found, try to fetch the user by ID
-      const findId = args.join(' ').toLowerCase().replace(/<@|>/g, '');
-
-      try {
-        // Fetch the user object using the ID
-        fetchedUser = await this.client.users.fetch(findId, { force: true });
-      } catch (err) {
-        // If the user cannot be fetched, default to the message author
-        infoMem = msg.member; // Use the message author's member object
-        fetchedUser = infoMem.user; // Get the User object from the member
+      // If no member is found, attempt to fetch the user by ID
+      const findId = args?.join(' ').toLowerCase().replace(/<@|>/g, '');
+      if (findId) {
+        try {
+          infoMem = await this.client.users.fetch(findId, { force: true });
+        } catch (_) {}
       }
-    } else {
-      // If a member is found in the guild, fetch their user object
-      fetchedUser = infoMem.user;
     }
+
+    // Default to the author if no user/member is found
+    if (!infoMem) {
+      infoMem = msg.guild ? msg.member : msg.author;
+    }
+
+    // Get the user object
+    const fetchedUser = infoMem.user || infoMem;
 
     // Fetch the user's avatar as a PNG
     const avatarURL = fetchedUser.displayAvatarURL({ extension: 'png', size: 512, dynamic: false });

@@ -1,4 +1,4 @@
-const { EmbedBuilder, SlashCommandBuilder, MessageFlags } = require('discord.js');
+const { EmbedBuilder, SlashCommandBuilder, MessageFlags, InteractionContextType } = require('discord.js');
 const { QuickDB } = require('quick.db');
 const db = new QuickDB();
 
@@ -10,7 +10,7 @@ exports.commandData = new SlashCommandBuilder()
   .setName('clear-warnings')
   .setDescription('Clear all the warnings of the specific user.')
   .addUserOption((option) => option.setName('user').setDescription('The user to clear warnings from').setRequired(true))
-  .setDMPermission(false);
+  .setContexts(InteractionContextType.Guild);
 
 exports.run = async (interaction) => {
   await interaction.deferReply({ flags: MessageFlags.Ephemeral });

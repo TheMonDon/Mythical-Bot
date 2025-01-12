@@ -1,4 +1,4 @@
-const { EmbedBuilder, SlashCommandBuilder } = require('discord.js');
+const { EmbedBuilder, SlashCommandBuilder, InteractionContextType } = require('discord.js');
 
 exports.conf = {
   permLevel: 'Moderator',
@@ -6,7 +6,7 @@ exports.conf = {
 
 exports.commandData = new SlashCommandBuilder()
   .setName('emoji')
-  .setDMPermission(false)
+  .setContexts(InteractionContextType.Guild)
   .setDescription('Create, edit, or get information about an emoji')
   .addSubcommand((subcommand) =>
     subcommand

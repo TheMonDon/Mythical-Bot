@@ -11,31 +11,34 @@ class UserInfo extends Command {
       usage: 'user-info [user]',
       category: 'Information',
       aliases: ['ui', 'userinfo'],
-      guildOnly: true,
     });
   }
 
   async run(msg, args) {
-    let infoMem = msg.member;
-    let fetchedUser;
+    let infoMem;
 
-    // If text is provided, try to get the member
-    if (args?.length > 0) infoMem = await this.client.util.getMember(msg, args.join(' ').toLowerCase());
+    if (args?.length > 0) {
+      // Try to fetch the member from the provided text
+      infoMem = await this.client.util.getMember(msg, args.join(' ').toLowerCase());
+    }
 
     if (!infoMem) {
-      // If no member is found, try to get the user by ID
-      const findId = args.join(' ').toLowerCase().replace(/<@|>/g, '');
-      try {
-        infoMem = await this.client.users.fetch(findId, { force: true });
-      } catch (err) {
-        // If no user is found, use the author
-        infoMem = msg.member;
-        fetchedUser = await infoMem.user.fetch();
+      // If no member is found, attempt to fetch the user by ID
+      const findId = args?.join(' ').toLowerCase().replace(/<@|>/g, '');
+      if (findId) {
+        try {
+          infoMem = await this.client.users.fetch(findId, { force: true });
+        } catch (_) {}
       }
-    } else {
-      // If a member is found, fetch the user
-      fetchedUser = await infoMem.user.fetch();
     }
+
+    // Default to the author if no user/member is found
+    if (!infoMem) {
+      infoMem = msg.guild ? msg.member : msg.author;
+    }
+
+    // Get the user object
+    const fetchedUser = infoMem.user || infoMem;
 
     // User Flags / Badges
     const flags = {
@@ -56,7 +59,7 @@ class UserInfo extends Command {
     };
 
     // If the user is a guild member
-    if (msg.guild.members.cache.get(infoMem.id)) {
+    if (msg.guild && msg.guild.members.cache.get(infoMem.id)) {
       const joinPosition = await this.client.util.getJoinPosition(infoMem.id, msg.guild);
 
       // Created At timestamp
@@ -132,7 +135,7 @@ class UserInfo extends Command {
       .setColor(color)
       .setThumbnail(infoMem.displayAvatarURL({ extension: 'png', size: 4096 }))
       .setImage(infoMem.bannerURL({ extension: 'png', size: 1024 }))
-      .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
+      .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
       .addFields([
         { name: 'Username', value: `${infoMem.tag} (${infoMem})`, inline: true },
         { name: 'User ID', value: infoMem.id.toString(), inline: true },

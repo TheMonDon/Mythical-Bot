@@ -52,11 +52,7 @@ class Rob extends Command {
       const findId = args.join(' ').toLowerCase().replace(/<@|>/g, '');
       try {
         mem = await this.client.users.fetch(findId, { force: true });
-      } catch (err) {
-        // If no user is found, use the author
-        mem = msg.member;
-        mem = await mem.user.fetch();
-      }
+      } catch (_) {}
     }
 
     if (!mem) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Member');

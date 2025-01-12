@@ -1,4 +1,4 @@
-const { SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder, InteractionContextType } = require('discord.js');
 const { QuickDB } = require('quick.db');
 const db = new QuickDB();
 
@@ -20,7 +20,7 @@ exports.commandData = new SlashCommandBuilder()
         { name: 'Information', value: 'information' },
       ),
   )
-  .setDMPermission(false);
+  .setContexts(InteractionContextType.Guild);
 
 exports.run = async (interaction) => {
   await interaction.deferReply();

@@ -16,18 +16,18 @@ class Permissions extends Command {
   }
 
   async run(msg, args, level) {
-    let infoMem = msg.member;
+    let infoMemOrRole = msg.member;
 
-    // If a user is mentioned, fetch them and set them as the infoMem
+    // If a user is mentioned, fetch them and set them as the infoMemOrRole
     if (args?.length > 0) {
       await msg.guild.members.fetch();
-      infoMem = await this.client.util.getMember(msg, args.join(' '));
+      infoMemOrRole = await this.client.util.getMember(msg, args.join(' '));
     }
 
-    if (!infoMem) {
+    if (!infoMemOrRole) {
       await msg.guild.roles.fetch();
-      infoMem = await this.client.util.getRole(msg, args.join(' '));
-      if (!infoMem) return msg.channel.send('That member or role was not found, please try again.');
+      infoMemOrRole = await this.client.util.getRole(msg, args.join(' '));
+      if (!infoMemOrRole) return msg.channel.send('That member or role was not found, please try again.');
     }
 
     // Emojis to use for the permissions
@@ -36,7 +36,7 @@ class Permissions extends Command {
 
     // Function to check if the user has a permission
     function has(perm) {
-      return infoMem.permissions.has(perm);
+      return infoMemOrRole.permissions.has(perm);
     }
 
     const embed = new EmbedBuilder()
@@ -137,17 +137,17 @@ class Permissions extends Command {
         },
       ]);
 
-    if (infoMem.user?.displayAvatarURL) {
-      const newMsg = { ...msg, member: infoMem, author: infoMem.user, guild: msg.guild };
+    if (infoMemOrRole.user?.displayAvatarURL) {
+      const newMsg = { ...msg, member: infoMemOrRole, author: infoMemOrRole.user, guild: msg.guild };
       const permLevel = this.client.permlevel(newMsg);
       const friendly = this.client.config.permLevels.find((l) => l.level === permLevel).name;
 
       embed
-        .setAuthor({ name: infoMem.displayName, iconURL: infoMem.user.displayAvatarURL({ dynamic: true }) })
-        .setTitle(`${infoMem.displayName}'s Permissions`)
+        .setAuthor({ name: infoMemOrRole.displayName, iconURL: infoMemOrRole.user.displayAvatarURL({ dynamic: true }) })
+        .setTitle(`${infoMemOrRole.displayName}'s Permissions`)
         .addFields([{ name: '➢ __Bot User Level:__', value: `${permLevel} - ${friendly}`, inline: true }]);
     } else {
-      embed.setTitle(`${infoMem.name}'s Permissions`);
+      embed.setTitle(`${infoMemOrRole.name}'s Permissions`);
     }
 
     return msg.channel.send({ embeds: [embed] });

@@ -12,33 +12,36 @@ class Avatar extends Command {
   }
 
   async run(msg, args) {
-    let infoMem = msg.member;
+    let infoMem;
 
-    if (args?.length > 0) infoMem = await this.client.util.getMember(msg, args.join(' ').toLowerCase());
-
-    if (!infoMem) {
-      // If no member is found, try to get the user by ID
-      const fid = args.join(' ').toLowerCase().replace(/<@|>/g, '');
-      try {
-        infoMem = await this.client.users.fetch(fid);
-      } catch (err) {
-        // If no user is found, use the author
-        infoMem = msg.member;
-        infoMem.user.fetch();
-      }
-    } else {
-      // If a member is found, fetch the user
-      infoMem.user.fetch();
+    if (args?.length > 0) {
+      // Try to fetch the member from the provided text
+      infoMem = await this.client.util.getMember(msg, args.join(' ').toLowerCase());
     }
 
-    await msg.guild.members.fetch();
+    if (!infoMem) {
+      // If no member is found, attempt to fetch the user by ID
+      const findId = args?.join(' ').toLowerCase().replace(/<@|>/g, '');
+      if (findId) {
+        try {
+          infoMem = await this.client.users.fetch(findId, { force: true });
+        } catch (_) {}
+      }
+    }
 
-    infoMem = infoMem.user ? infoMem.user : infoMem;
+    // Default to the author if no user/member is found
+    if (!infoMem) {
+      infoMem = msg.guild ? msg.member : msg.author;
+    }
+
+    // Get the user object
+    const fetchedUser = infoMem.user || infoMem;
+
     const embed = new EmbedBuilder()
-      .setTitle(`${infoMem.username}'s Avatar`)
+      .setTitle(`${fetchedUser.username}'s Avatar`)
       .setColor(msg.settings.embedColor)
-      .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
-      .setImage(infoMem.displayAvatarURL({ size: 4096, extension: 'png' }));
+      .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
+      .setImage(fetchedUser.displayAvatarURL({ size: 4096, extension: 'png' }));
 
     return msg.channel.send({ embeds: [embed] });
   }

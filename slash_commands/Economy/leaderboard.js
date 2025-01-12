@@ -18,52 +18,45 @@ exports.commandData = new SlashCommandBuilder()
   .setDescription('Get the economy leaderboard')
   .addIntegerOption((option) =>
     option.setName('page').setDescription('Specify the leaderboard page').setRequired(false),
+  )
+  .addStringOption((option) =>
+    option
+      .setName('type')
+      .setDescription('Choose between Bank or Cash.')
+      .addChoices({ name: 'Bank', value: 'bank' }, { name: 'Cash', value: 'cash' }),
   );
 
 exports.run = async (interaction) => {
   await interaction.deferReply();
-
-  const page = interaction.options.getInteger('page') || 1;
-
+  let page = interaction.options.getInteger('page') || 1;
+  const cashOrBank = interaction.options.getString('type') || 'total';
   await interaction.guild.members.fetch();
+  const usersCount = (await db.get(`servers.${interaction.guild.id}.users`))
+    ? Object.keys(await db.get(`servers.${interaction.guild.id}.users`)).length
+    : 0;
+  const itemsPerPage = 10;
+  const maxPages = Math.ceil(usersCount / itemsPerPage);
+
+  if (page > maxPages) page = maxPages;
 
   const currencySymbol = (await db.get(`servers.${interaction.guild.id}.economy.symbol`)) || '$';
+
+  // Fetch data for the current page
+  const offset = (page - 1) * itemsPerPage;
   const usersData = (await db.get(`servers.${interaction.guild.id}.users`)) || {};
-  const leaderboard = [];
 
-  // Cache users and add them to the leaderboard
-  for (const userId in usersData) {
-    try {
-      const user = await interaction.client.users.fetch(userId);
-      if (user) {
-        const cash = BigInt(usersData[userId].economy.cash || 0);
-        const bank = BigInt(usersData[userId].economy.bank || 0);
-        const money = cash + bank;
-        leaderboard.push({ user: user.tag, userId: user.id, money });
-      }
-    } catch (err) {
-      console.error(`Leaderboard: ${err}`);
-    }
-  }
+  const sortedLeaderboard = Object.entries(usersData)
+    .map(([userId, data]) => {
+      const cash = BigInt(data.economy?.cash || 0);
+      const bank = BigInt(data.economy?.bank || 0);
+      const total = cash + bank;
 
-  // Sort the leaderboard
-  const sortedLeaderboard = leaderboard
-    .sort((a, b) => (b.money > a.money ? 1 : -1))
-    .map((c, index) => {
-      const bigMoney = BigInt(c.money);
-      const neg = bigMoney < 0n;
-      const money = neg ? -bigMoney : bigMoney;
-      let moneyStr = `${money.toLocaleString()}`;
-      if (moneyStr.length > 150) {
-        moneyStr = moneyStr.slice(0, 147) + '...';
-      }
-      return {
-        rank: index + 1,
-        user: c.user,
-        userId: c.userId,
-        display: `**${index + 1}.** ${c.user}: ${bigMoney < 0n ? '-' : ''}${currencySymbol}${moneyStr}`,
-      };
-    });
+      const money = cashOrBank === 'cash' ? cash : cashOrBank === 'bank' ? bank : total;
+
+      return { userId, money };
+    })
+    .sort((a, b) => (b.money > a.money ? 1 : b.money < a.money ? -1 : 0))
+    .slice(offset, offset + itemsPerPage); // Pagination happens here
 
   function getOrdinalSuffix(n) {
     const s = ['th', 'st', 'nd', 'rd'];
@@ -71,33 +64,48 @@ exports.run = async (interaction) => {
     return n + (s[(v - 20) % 10] || s[v] || s[0]);
   }
 
-  // Find the user's rank
-  const userRank = sortedLeaderboard.find((entry) => entry.userId === interaction.user.id);
+  const fullLeaderboard = Object.entries(usersData)
+    .map(([userId, data]) => {
+      const cash = BigInt(data.economy?.cash || 0);
+      const bank = BigInt(data.economy?.bank || 0);
+      const total = cash + bank;
+
+      return { userId, money: cashOrBank === 'cash' ? cash : cashOrBank === 'bank' ? bank : total };
+    })
+    .sort((a, b) => (b.money > a.money ? 1 : b.money < a.money ? -1 : 0)); // Sort before slicing
+
+  // Assign ranks to the entire leaderboard
+  fullLeaderboard.forEach((entry, index) => {
+    entry.rank = index + 1;
+  });
+
+  // Get the user's rank from the full leaderboard
+  const userRank = fullLeaderboard.find((entry) => entry.userId === interaction.user.id);
   const userRankDisplay = userRank
     ? `Your leaderboard rank: ${getOrdinalSuffix(userRank.rank)}`
     : 'You are not on the leaderboard';
 
-  const maxPages = Math.ceil((sortedLeaderboard.length + 1) / 10);
-  let realPage = Math.max(1, Math.min(page, maxPages));
-  let displayedLeaderboard = sortedLeaderboard.slice((page - 1) * 10, page * 10);
-
-  // Create the pages
-  if (displayedLeaderboard.length < 1) {
-    for (let i = 1; i <= page; i++) {
-      displayedLeaderboard = sortedLeaderboard.slice((i - 1) * 10, i * 10);
-      if (displayedLeaderboard.length > 0) {
-        realPage = i;
-        break;
-      }
-    }
-  }
-
   const embed = new EmbedBuilder()
     .setColor(interaction.settings.embedColor)
-    .setTitle(`${interaction.guild.name} Leaderboard`)
+    .setTitle(
+      `${interaction.guild.name} ${
+        cashOrBank === 'cash' ? 'Cash' : cashOrBank === 'bank' ? 'Bank' : 'Total'
+      } Leaderboard`,
+    )
     .setAuthor({ name: interaction.user.tag, iconURL: interaction.user.displayAvatarURL() })
-    .setDescription(`${displayedLeaderboard.map((entry) => entry.display).join('\n') || 'None'}`)
-    .setFooter({ text: `Page ${realPage} / ${maxPages} • ${userRankDisplay}` })
+    .setDescription(
+      sortedLeaderboard
+        .map((entry, index) => {
+          const user = interaction.client.users.cache.get(entry.userId) || { tag: 'Unknown User' };
+          const neg = entry.money < 0n;
+          const money = neg ? -entry.money : entry.money;
+          return `**${offset + index + 1}.** ${user.tag}: ${entry.money < 0n ? '-' : ''}${currencySymbol}${
+            money.toLocaleString().length > 150 ? money.toLocaleString().slice(0, 147) + '...' : money.toLocaleString()
+          }`;
+        })
+        .join('\n') || 'None',
+    )
+    .setFooter({ text: `Page ${page} / ${maxPages} • ${userRankDisplay}` })
     .setTimestamp();
 
   const row = new ActionRowBuilder().addComponents(
@@ -105,12 +113,12 @@ exports.run = async (interaction) => {
       .setCustomId('prev')
       .setLabel('Previous')
       .setStyle(ButtonStyle.Primary)
-      .setDisabled(realPage === 1),
+      .setDisabled(page === 1),
     new ButtonBuilder()
       .setCustomId('next')
       .setLabel('Next')
       .setStyle(ButtonStyle.Primary)
-      .setDisabled(realPage === maxPages),
+      .setDisabled(page === maxPages),
   );
 
   const message = await interaction.editReply({ embeds: [embed], components: [row] });
@@ -122,46 +130,61 @@ exports.run = async (interaction) => {
     time: 2147483647,
   });
 
-  collector.on('collect', async (i) => {
-    if (i.customId === 'prev') {
-      realPage -= 1;
-    } else if (i.customId === 'next') {
-      realPage += 1;
+  const userID = interaction.user.id;
+  collector.on('collect', async (interaction) => {
+    if (interaction.user.id !== userID) {
+      return interaction.reply({ content: 'These buttons are not for you!', ephemeral: true });
     }
 
-    displayedLeaderboard = sortedLeaderboard.slice((realPage - 1) * 10, realPage * 10);
+    if (interaction.customId === 'prev_page') page--;
+    if (interaction.customId === 'next_page') page++;
 
+    // Calculate the offset and slice the leaderboard for the current page
+    const offset = (page - 1) * itemsPerPage; // itemsPerPage is the number of users per page (e.g., 10)
+    const currentPageLeaderboard = fullLeaderboard.slice(offset, offset + itemsPerPage);
+
+    // Fetch user data for the current page asynchronously
+    const displayedLeaderboard = await Promise.all(
+      currentPageLeaderboard.map(async (entry, index) => {
+        const user = await interaction.client.users.fetch(entry.userId).catch(() => null);
+        const formattedMoney = entry.money.toLocaleString();
+        return user
+          ? `**${offset + index + 1}.** ${user.tag}: ${currencySymbol}${formattedMoney}`
+          : `**${offset + index + 1}.** Unknown User: ${currencySymbol}${formattedMoney}`;
+      }),
+    );
+
+    // Update the embed
     const updatedEmbed = new EmbedBuilder()
       .setColor(interaction.settings.embedColor)
       .setTitle(`${interaction.guild.name} Leaderboard`)
       .setAuthor({ name: interaction.user.tag, iconURL: interaction.user.displayAvatarURL() })
-      .setDescription(`${displayedLeaderboard.map((entry) => entry.display).join('\n') || 'None'}`)
-      .setFooter({ text: `Page ${realPage} / ${maxPages} • ${userRankDisplay}` })
+      .setDescription(displayedLeaderboard.join('\n') || 'None')
+      .setFooter({ text: `Page ${page} / ${maxPages} • ${userRankDisplay}` })
       .setTimestamp();
 
-    await i.update({
-      embeds: [updatedEmbed],
-      components: [
-        new ActionRowBuilder().addComponents(
-          new ButtonBuilder()
-            .setCustomId('prev')
-            .setLabel('Previous')
-            .setStyle(ButtonStyle.Primary)
-            .setDisabled(realPage === 1),
-          new ButtonBuilder()
-            .setCustomId('next')
-            .setLabel('Next')
-            .setStyle(ButtonStyle.Primary)
-            .setDisabled(realPage === maxPages),
-        ),
-      ],
-    });
+    // Update the row (buttons)
+    const updatedRow = new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setCustomId('prev_page')
+        .setLabel('Previous')
+        .setStyle(ButtonStyle.Primary)
+        .setDisabled(page === 1),
+      new ButtonBuilder()
+        .setCustomId('next_page')
+        .setLabel('Next')
+        .setStyle(ButtonStyle.Primary)
+        .setDisabled(page === maxPages),
+    );
+
+    // Update the interaction response
+    await interaction.update({ embeds: [updatedEmbed], components: [updatedRow] });
   });
 
   collector.on('end', () => {
     const disabledRow = new ActionRowBuilder().addComponents(
-      new ButtonBuilder().setCustomId('prev').setLabel('Previous').setStyle(ButtonStyle.Primary).setDisabled(true),
-      new ButtonBuilder().setCustomId('next').setLabel('Next').setStyle(ButtonStyle.Primary).setDisabled(true),
+      new ButtonBuilder().setCustomId('prev_page').setLabel('Previous').setStyle(ButtonStyle.Primary).setDisabled(true),
+      new ButtonBuilder().setCustomId('next_page').setLabel('Next').setStyle(ButtonStyle.Primary).setDisabled(true),
     );
     message.edit({ components: [disabledRow] });
   });

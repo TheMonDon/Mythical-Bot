@@ -1,4 +1,4 @@
-const { EmbedBuilder, SlashCommandBuilder } = require('discord.js');
+const { EmbedBuilder, SlashCommandBuilder, InteractionContextType } = require('discord.js');
 const { lyricsExtractor } = require('@discord-player/extractor');
 const { useHistory, useQueue } = require('discord-player');
 const { stripIndents } = require('common-tags');
@@ -11,7 +11,7 @@ exports.conf = {
 exports.commandData = new SlashCommandBuilder()
   .setName('music')
   .setDescription('Control the music')
-  .setDMPermission(false)
+  .setContexts(InteractionContextType.Guild)
   .addSubcommand((subcommand) => subcommand.setName('back').setDescription('Go back to the last song.'))
   .addSubcommand((subcommand) => subcommand.setName('clear-queue').setDescription('Clears all songs from the queue'))
   .addSubcommand((subcommand) =>

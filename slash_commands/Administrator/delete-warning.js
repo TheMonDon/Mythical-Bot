@@ -1,4 +1,4 @@
-const { EmbedBuilder, SlashCommandBuilder, MessageFlags } = require('discord.js');
+const { EmbedBuilder, SlashCommandBuilder, MessageFlags, InteractionContextType } = require('discord.js');
 const { QuickDB } = require('quick.db');
 const db = new QuickDB();
 
@@ -10,7 +10,7 @@ exports.commandData = new SlashCommandBuilder()
   .setName('delete-warning')
   .setDescription('Delete a specific warnings case.')
   .addStringOption((option) => option.setName('case_id').setDescription(' The Case ID To delete').setRequired(true))
-  .setDMPermission(false);
+  .setContexts(InteractionContextType.Guild);
 
 exports.run = async (interaction) => {
   await interaction.deferReply({ flags: MessageFlags.Ephemeral });
