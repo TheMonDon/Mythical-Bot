@@ -374,11 +374,8 @@ loadGiveaways();
 loadMusic();
 init();
 
-client
-  .on('disconnect', () => client.logger.warn('Bot is disconnecting'))
-  .on('reconnecting', () => client.logger.log('Bot reconnecting'))
-  .on('error', (e) => client.logger.error(e))
-  .on('warn', (info) => client.logger.warn(info));
+client.on('error', (e) => client.logger.error(e));
+client.on('warn', (info) => client.logger.warn(info));
 
 client.on('raw', (packet) => {
   // We don't want this to run on unrelated packets

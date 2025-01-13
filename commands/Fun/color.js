@@ -24,7 +24,9 @@ class Color extends Command {
     let color;
 
     // Create the embed
-    const embed = new EmbedBuilder().setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() });
+    const embed = new EmbedBuilder()
+      .setTitle('Color Information')
+      .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() });
 
     const rgbRegex = /^rgb[\s+]?\((:?\d+\.?\d?%?)(,|-|\/\|)\s?(:?\d+\.?\d?%?)(,|-|\/\|)\s?(:?\d+\.?\d?%?)\)/i;
     const hexRegex = /(^(#|0x)?([a-fA-F0-9]){6}$)|(^(#|0x)?([a-fA-F0-9]){3}$)/;
@@ -63,9 +65,7 @@ class Color extends Command {
           rgb: input,
         };
       } catch (err) {
-        const rand = '000000'.replace(/0/g, function () {
-          return (~~(Math.random() * 16)).toString(16);
-        });
+        const rand = randomHexColor();
         embed.setTitle('Invalid color, random one assigned:');
 
         color = {
@@ -110,9 +110,7 @@ class Color extends Command {
     } else if (cssRegex.test(input)) {
       // Test if the input is a text color
       if (input === 'random') {
-        const rand = '000000'.replace(/0/g, function () {
-          return (~~(Math.random() * 16)).toString(16);
-        });
+        const rand = randomHexColor();
         embed.setTitle('Random Color');
 
         color = {
@@ -138,9 +136,7 @@ class Color extends Command {
             css: nearestColor(input).name,
           };
         } catch (err) {
-          const rand = '000000'.replace(/0/g, function () {
-            return (~~(Math.random() * 16)).toString(16);
-          });
+          const rand = randomHexColor();
           embed.setTitle('Invalid color, random one assigned:');
 
           color = {
@@ -154,9 +150,7 @@ class Color extends Command {
       }
     } else {
       // If the input is not a color, assign a random color
-      const rand = '000000'.replace(/0/g, function () {
-        return (~~(Math.random() * 16)).toString(16);
-      });
+      const rand = randomHexColor();
       embed.setTitle('Invalid color, random one assigned:');
 
       color = {
@@ -207,7 +201,6 @@ class Color extends Command {
       hsl,
     };
 
-    if (!embed.title) embed.setTitle('Color Information');
     const canvas = createCanvas(100, 100);
     const context = canvas.getContext('2d');
 
@@ -235,3 +228,10 @@ class Color extends Command {
 }
 
 module.exports = Color;
+
+// Helper Functions
+function randomHexColor() {
+  return Math.floor(Math.random() * 16777215)
+    .toString(16)
+    .padStart(6, '0');
+}

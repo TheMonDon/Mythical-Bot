@@ -28,7 +28,7 @@ class Deposit extends Command {
     const bank = BigInt((await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`)) || 0);
 
     const embed = new EmbedBuilder()
-      .setColor('#04ACF4')
+      .setColor(msg.settings.embedColor)
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() });
 
     let csCashAmount = currencySymbol + cash.toLocaleString();
