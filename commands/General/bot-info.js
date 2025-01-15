@@ -30,7 +30,7 @@ class BotInfo extends Command {
       .setThumbnail(this.client.user.displayAvatarURL())
       .addFields([
         { name: 'Uptime', value: botUptime, inline: true },
-        { name: 'Ping', value: Math.floor(this.client.ws.ping).toLocaleString(), inline: true },
+        { name: 'Ping', value: Math.round(this.client.ws.ping).toLocaleString(), inline: true },
         { name: 'Guilds', value: this.client.guilds.cache.size.toLocaleString(), inline: true },
         { name: 'Discord.js', value: version, inline: true },
         { name: 'Node', value: process.version, inline: true },
