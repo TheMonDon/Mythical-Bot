@@ -56,7 +56,7 @@ exports.run = async (interaction) => {
     }
 
     let csAmount = currencySymbol + amount.toLocaleString();
-    csAmount = csAmount.length > 2048 ? `${csAmount.slice(0, 2048) + '...'}` : csAmount;
+    csAmount = this.client.util.limitStringLength(csAmount);
 
     embed
       .setColor(interaction.settings.embedColor)
@@ -95,7 +95,7 @@ exports.run = async (interaction) => {
     }
 
     let csAmount = currencySymbol + amount.toLocaleString();
-    csAmount = csAmount.length > 1024 ? `${csAmount.slice(0, 1021) + '...'}` : csAmount;
+    csAmount = this.client.util.limitStringLength(csAmount, 0, 1024);
 
     const embed = new EmbedBuilder()
       .setAuthor({ name: interaction.user.tag, iconURL: interaction.user.displayAvatarURL() })

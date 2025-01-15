@@ -32,7 +32,7 @@ class Deposit extends Command {
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() });
 
     let csCashAmount = currencySymbol + cash.toLocaleString();
-    csCashAmount = csCashAmount.length > 1024 ? `${csCashAmount.slice(0, 1021) + '...'}` : csCashAmount;
+    csCashAmount = this.client.util.limitStringLength(csCashAmount, 0, 1024);
 
     amount = amount.replace(/,/g, '').replace(currencySymbol, '');
     if (isNaN(amount) || !amount) {
@@ -50,7 +50,7 @@ class Deposit extends Command {
         return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Amount');
       }
     }
-    amount = BigInt(amount.replace(/[^0-9\\.]/g, ''));
+    amount = BigInt(amount.replace(/[^0-9].*/, '').replace(/[^0-9]/g, ''));
 
     if (amount < BigInt(0))
       return this.client.util.errorEmbed(msg, "You can't deposit negative amounts of cash", 'Invalid Parameter');
@@ -69,7 +69,7 @@ class Deposit extends Command {
     await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`, newBankAmount.toString());
 
     let csAmount = currencySymbol + amount.toLocaleString();
-    csAmount = csAmount.length > 1024 ? `${csAmount.slice(0, 1021) + '...'}` : csAmount;
+    csAmount = this.client.util.limitStringLength(csAmount, 0, 1024);
     embed.setDescription(`Deposited ${csAmount} to your bank.`);
     return msg.channel.send({ embeds: [embed] });
   }

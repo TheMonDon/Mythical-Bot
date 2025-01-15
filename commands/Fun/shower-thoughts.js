@@ -26,7 +26,7 @@ class ShowerThoughts extends Command {
         .setTimestamp();
 
       if (post.text) {
-        const text = post.text?.length > 4000 ? post.text.slice(0, 4000) + '\nRead more on reddit.' : post.text;
+        const text = post.text.length > 4000 ? post.text.slice(0, 4000) + '\nRead more on reddit.' : post.text;
         em.setDescription(text);
       }
 

@@ -102,8 +102,7 @@ class CreateItem extends Command {
 
     const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
     const costString = currencySymbol + cost.toLocaleString();
-    const limitedCostString = costString.length > 1024 ? costString.slice(0, 1020) + '...' : costString;
-    embed.addFields([{ name: 'Price', value: limitedCostString, inline: true }]);
+    embed.addFields([{ name: 'Price', value: this.client.util.limitStringLength(costString, 0, 1024), inline: true }]);
 
     await message.edit({
       content: '2️⃣ What would you like the description to be? \nThis should be no more than 1000 characters',
@@ -228,9 +227,11 @@ class CreateItem extends Command {
         break;
       }
     }
+
     const stockString = stock == null ? 'Infinity' : stock.toLocaleString();
-    const limitedStockString = stockString.length > 1024 ? stockString.slice(0, 1020) + '...' : stockString;
-    embed.addFields([{ name: 'Stock Remaining', value: limitedStockString, inline: true }]);
+    embed.addFields([
+      { name: 'Stock Remaining', value: this.client.util.limitStringLength(stockString, 0, 1024), inline: true },
+    ]);
 
     await message.edit({
       content:

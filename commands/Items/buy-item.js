@@ -169,10 +169,7 @@ class BuyItem extends Command {
 
     const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
     const itemCostQuantity = (itemCost * BigInt(quantity)).toLocaleString();
-    const csCost =
-      itemCostQuantity.length > 700
-        ? currencySymbol + itemCostQuantity.slice(0, 700) + '...'
-        : currencySymbol + itemCostQuantity;
+    const csCost = this.client.util.limitStringLength(currencySymbol + itemCostQuantity, 0, 700);
 
     const embed = new EmbedBuilder()
       .setTitle('Purchase Successful')

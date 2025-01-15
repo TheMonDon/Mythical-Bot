@@ -33,7 +33,7 @@ class SetFineAmount extends Command {
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() });
 
     if (!args || args.length < 1) {
-      embed.setColor('#04ACF4').setDescription(stripIndents`
+      embed.setColor(msg.settings.embedColor).setDescription(stripIndents`
           The current fine ranges are: 
         
           \`Crime\` - min: ${crimeMin}% | max: ${crimeMax}%
@@ -57,8 +57,8 @@ class SetFineAmount extends Command {
     args.shift();
     const amount = args
       .join('')
-      .replace(/[^0-9\\.]/g, '')
-      .replace(/-/g, '');
+      .replace(/[^0-9].*/, '')
+      .replace(/[^0-9]/g, '');
 
     if (isNaN(amount)) return this.client.util.errorEmbed(msg, 'Please provide a valid number', 'Invalid Fine Amount');
 

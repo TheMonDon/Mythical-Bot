@@ -31,10 +31,10 @@ class AddMoney extends Command {
 
     if (args.length === 2) {
       mem = await this.client.util.getMember(msg, args[0]);
-      amount = parseInt(args[1].replace(/[^0-9\\.]/g, ''));
+      amount = parseInt(args[1].replace(/[^0-9].*/, '').replace(/[^0-9]/g, ''));
     } else {
       mem = await this.client.util.getMember(msg, args[1]);
-      amount = parseInt(args[2].replace(/[^0-9\\.]/g, ''));
+      amount = parseInt(args[2].replace(/[^0-9].*/, '').replace(/[^0-9]/g, ''));
     }
 
     if (['cash', 'bank'].includes(args[0].toLowerCase())) {
@@ -66,7 +66,7 @@ class AddMoney extends Command {
     }
 
     let csAmount = currencySymbol + amount.toLocaleString();
-    csAmount = csAmount.length > 2048 ? `${csAmount.slice(0, 2048) + '...'}` : csAmount;
+    csAmount = this.client.util.limitStringLength(csAmount);
 
     embed
       .setColor(msg.settings.embedColor)

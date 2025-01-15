@@ -49,7 +49,7 @@ class Github extends Command {
         .setAuthor({ name: 'GitHub', iconURL: 'https://i.imgur.com/e4HunUm.png', url: 'https://github.com/' })
         .setTitle(body.full_name)
         .setURL(body.html_url)
-        .setDescription(body.description ? body.description.slice(0, 2000) : 'No description.')
+        .setDescription(body.description ? this.client.util.limitStringLength(body.description) : 'No description.')
         .setThumbnail(body.owner.avatar_url)
         .addFields([
           { name: 'Stars', value: body.stargazers_count.toLocaleString(), inline: true },

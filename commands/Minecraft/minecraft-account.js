@@ -6,11 +6,11 @@ const fetch = require('node-superfetch');
 class MinecraftAccount extends Command {
   constructor(client) {
     super(client, {
-      name: 'mc-account',
-      description: 'Find information about a Minecraft account.',
-      usage: 'mc-account <username>',
+      name: 'minecraft-account',
+      description: 'View information about a Minecraft account',
+      usage: 'minecraft-account <username>',
       category: 'Minecraft',
-      aliases: ['mca', 'mcaccount'],
+      aliases: ['mca', 'mcaccount', 'mc-account'],
       requiredArgs: 1,
     });
   }
@@ -33,17 +33,17 @@ class MinecraftAccount extends Command {
     try {
       const body = await fetch.get(`https://api.mojang.com/users/profiles/minecraft/${name}`);
       const id = body.body.id;
-      const rn = body.body.name;
+      const realName = body.body.name;
 
       const em = new EmbedBuilder()
-        .setTitle(`${rn}'s Account Information`)
+        .setTitle(`${realName}'s Account Information`)
         .setColor(successColor)
         .setImage(`https://mc-heads.net/body/${id}`)
         .addFields([
           { name: 'UUID', value: id.toString(), inline: false },
           {
             name: 'NameMC Link',
-            value: `Click [here](https://es.namemc.com/profile/${id}) to go to their NameMC Profile`,
+            value: `Click [here](https://namemc.com/profile/${id}) to go to their NameMC Profile`,
             inline: false,
           },
         ]);

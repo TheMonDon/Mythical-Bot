@@ -25,7 +25,7 @@ class Withdraw extends Command {
     const cash = BigInt((await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`)) || 0);
 
     let csBankAmount = currencySymbol + bank.toLocaleString();
-    csBankAmount = csBankAmount.length > 1024 ? `${csBankAmount.slice(0, 1021) + '...'}` : csBankAmount;
+    csBankAmount = this.client.util.limitStringLength(csBankAmount, 0, 1024);
 
     amount = amount.replace(/,/g, '').replace(currencySymbol, '');
     if (isNaN(amount)) {
@@ -36,13 +36,13 @@ class Withdraw extends Command {
         const newAmount = bank + cash;
         await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAmount.toString());
 
-        embed.setColor('#04ACF4').setDescription(`Withdrew ${csBankAmount} from your bank!`);
+        embed.setColor(msg.settings.embedColor).setDescription(`Withdrew ${csBankAmount} from your bank!`);
         return msg.channel.send({ embeds: [embed] });
       } else {
         return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Incorrect Usage');
       }
     }
-    amount = BigInt(amount.replace(/[^0-9\\.]/g, ''));
+    amount = BigInt(amount.replace(/[^0-9].*/, '').replace(/[^0-9]/g, ''));
 
     if (amount < BigInt(0)) return this.client.util.errorEmbed(msg, "You can't withdraw negative amounts of money.");
     if (amount > bank)
@@ -54,14 +54,14 @@ class Withdraw extends Command {
     if (bank <= BigInt(0)) return this.client.util.errorEmbed(msg, "You don't have any money to withdraw.");
 
     let csAmount = currencySymbol + amount.toLocaleString();
-    csAmount = csAmount.length > 1024 ? `${csAmount.slice(0, 1021) + '...'}` : csAmount;
+    csAmount = this.client.util.limitStringLength(csAmount, 0, 1024);
 
     const newBankAmount = bank - amount;
     const newCashAmount = cash + amount;
     await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`, newBankAmount.toString());
     await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newCashAmount.toString());
 
-    embed.setColor('#04ACF4').setDescription(`Withdrew ${csAmount} from your bank.`);
+    embed.setColor(msg.settings.embedColor).setDescription(`Withdrew ${csAmount} from your bank.`);
     return msg.channel.send({ embeds: [embed] });
   }
 }

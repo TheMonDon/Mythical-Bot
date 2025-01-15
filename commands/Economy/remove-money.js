@@ -42,8 +42,11 @@ class RemoveMoney extends Command {
       type = args[0].toLowerCase();
     }
 
-    if (isNaN(amount) || amount === Infinity) {
+    if (isNaN(amount)) {
       return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Amount');
+    }
+    if (parseInt(amount) === Infinity) {
+      return this.client.util.errorEmbed(msg, "You can't remove Infinity from a member", 'Invalid Amount');
     }
     if (!mem) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Member');
     if (mem.user.bot) return this.client.util.errorEmbed(msg, "You can't remove money from bots.");
@@ -64,7 +67,7 @@ class RemoveMoney extends Command {
     }
 
     let csAmount = currencySymbol + amount.toLocaleString();
-    csAmount = csAmount.length > 2048 ? `${csAmount.slice(0, 2048) + '...'}` : csAmount;
+    csAmount = this.client.util.limitStringLength(csAmount);
 
     embed
       .setColor(msg.settings.embedColor)

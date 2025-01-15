@@ -27,7 +27,7 @@ class Math extends Command {
         .addFields([
           {
             name: '**📥 Expression**',
-            value: `\`\`\`${text.length > 1000 ? text.slice(0, 1000) + '...' : text}\`\`\``,
+            value: `\`\`\`${this.client.util.limitStringLength(text, 0, 1000)}\`\`\``,
             inline: false,
           },
           { name: '**📤 Result**', value: `\`\`\`${solution}\`\`\``, inline: false },

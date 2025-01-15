@@ -71,7 +71,7 @@ class RemoveMoneyRole extends Command {
 
     const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
     let csAmount = currencySymbol + amount.toLocaleString();
-    csAmount = csAmount.length > 1024 ? `${csAmount.slice(0, 1021) + '...'}` : csAmount;
+    csAmount = this.client.util.limitStringLength(csAmount, 0, 1024);
 
     embed
       .setColor(msg.settings.embedColor)

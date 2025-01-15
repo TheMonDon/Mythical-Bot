@@ -32,10 +32,10 @@ class AddMoneyRole extends Command {
 
     if (args.length === 2) {
       role = this.client.util.getRole(msg, args[0]);
-      amount = args[1].replace(/[^0-9]/g, '');
+      amount = args[1].replace(/[^0-9].*/, '').replace(/[^0-9]/g, '');
     } else {
       role = this.client.util.getRole(msg, args[1]);
-      amount = args[2].replace(/[^0-9]/g, '');
+      amount = args[2].replace(/[^0-9].*/, '').replace(/[^0-9]/g, '');
     }
 
     if (['cash', 'bank'].includes(args[0].toLowerCase())) {
@@ -82,7 +82,7 @@ class AddMoneyRole extends Command {
     }
 
     let csAmount = currencySymbol + amount.toLocaleString();
-    csAmount = csAmount.length > 1024 ? `${csAmount.slice(0, 1021) + '...'}` : csAmount;
+    csAmount = this.client.util.limitStringLength(csAmount, 0, 1024);
 
     const embed = new EmbedBuilder()
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })

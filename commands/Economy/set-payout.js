@@ -37,7 +37,7 @@ class SetPayout extends Command {
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() });
 
     if (!args || args.length < 1) {
-      embed.setColor('#04ACF4').setDescription(stripIndents`
+      embed.setColor(msg.settings.embedColor).setDescription(stripIndents`
           The current payout ranges are: 
         
           \`Work\`  - min: ${currencySymbol}${workMin}  | max: ${currencySymbol}${workMax}
@@ -86,12 +86,12 @@ class SetPayout extends Command {
 
     await db.set(`servers.${msg.guild.id}.economy.${type}.${minMax}`, amount);
     const amountString = currencySymbol + amount.toLocaleString();
-    const limitedAmountString = amountString.length > 1000 ? amountString.slice(0, 1000) + '...' : amountString;
+
     embed
       .setDescription(
         `The ${longMinMax} amount for \`${this.client.util.toProperCase(
           type,
-        )}\` has been changed to ${limitedAmountString}`,
+        )}\` has been changed to ${this.client.util.limitStringLength(amountString, 0, 1024)}`,
       )
       .setColor(msg.settings.embedSuccessColor);
     return msg.channel.send({ embeds: [embed] });

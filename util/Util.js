@@ -270,10 +270,10 @@ async function clean(client, text) {
 
 /**
  * Random object from array
- * @param {Array} arr The array to use
+ * @param {Array} array The array to use
  */
-function random(arr) {
-  return arr[Math.floor(Math.random() * arr.length)];
+function random(array) {
+  return array[Math.floor(Math.random() * array.length)];
 }
 
 /**
@@ -368,7 +368,7 @@ async function awaitReply(msg, question, time = 60000) {
  * @param {String} desc The description for the error embed
  * @param {String} title The title for the error embed
  */
-function errorEmbed(context, desc = 'An error has ocurred.', title = 'Error') {
+function errorEmbed(context, desc = 'An error has occurred.', title = 'Error') {
   let author;
 
   if (context instanceof Message) {

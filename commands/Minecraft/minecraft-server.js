@@ -5,11 +5,11 @@ const fetch = require('node-superfetch');
 class MinecraftServer extends Command {
   constructor(client) {
     super(client, {
-      name: 'mc-server',
-      description: 'Get information about a Minecraft server.',
-      usage: 'mc-server <IP Address>',
+      name: 'minecraft-server',
+      description: 'Get information about a Minecraft server',
+      usage: 'minecraft-server <IP Address>',
       category: 'Minecraft',
-      aliases: ['mcs', 'mcserver', 'mcstats'],
+      aliases: ['mcs', 'mcserver', 'mcstats', 'mc-server'],
     });
   }
 

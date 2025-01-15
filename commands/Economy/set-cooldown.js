@@ -35,7 +35,7 @@ class SetCooldown extends Command {
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() });
 
     if (!args || args.length < 1) {
-      embed.setColor('#04ACF4').setDescription(stripIndents`
+      embed.setColor(msg.settings.embedColor).setDescription(stripIndents`
       The current cooldowns are set to: 
       
       \`Work\`   - ${workCooldown} seconds

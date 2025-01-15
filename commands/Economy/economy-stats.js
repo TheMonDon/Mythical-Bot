@@ -35,16 +35,27 @@ class EconomyStats extends Command {
     }
 
     const totalBalance = totalCash + totalBank;
-
     const embed = new EmbedBuilder()
       .setColor(msg.settings.embedColor)
       .setTitle(`${msg.guild.name}'s Economy Total`)
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
       .setDescription(`Here are the totals for the entire economy:`)
       .addFields(
-        { name: 'Total Cash', value: `${currencySymbol}${totalCash.toLocaleString()}`, inline: false },
-        { name: 'Total Bank', value: `${currencySymbol}${totalBank.toLocaleString()}`, inline: false },
-        { name: 'Total Balance', value: `${currencySymbol}${totalBalance.toLocaleString()}`, inline: false },
+        {
+          name: 'Total Cash',
+          value: `${this.client.util.limitStringLength(currencySymbol + totalCash.toLocaleString(), 0, 1024)}`,
+          inline: false,
+        },
+        {
+          name: 'Total Bank',
+          value: `${this.client.util.limitStringLength(currencySymbol + totalBank.toLocaleString(), 0, 1024)}`,
+          inline: false,
+        },
+        {
+          name: 'Total Balance',
+          value: `${this.client.util.limitStringLength(currencySymbol + totalBalance.toLocaleString(), 0, 1024)}`,
+          inline: false,
+        },
       )
       .setTimestamp();
 

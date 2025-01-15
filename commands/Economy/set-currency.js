@@ -24,6 +24,10 @@ class SetCurrency extends Command {
         `The currency symbol for this server is: ${oldSymbol} \nUsage: ${msg.settings.prefix}set-currency <symbol>`,
       );
 
+    if (/\d/.test(symbol)) {
+      return msg.channel.send('The currency symbol cannot contain numbers.');
+    }
+
     if (symbol.length > 50) return msg.channel.send('The maximum length for the currency symbol is 50 characters.');
     if (symbol === oldSymbol) return msg.channel.send('That is already the currency symbol.');
 

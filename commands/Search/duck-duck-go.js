@@ -46,7 +46,7 @@ class DuckDuckGo extends Command {
     const cleanedResultsFinal = recursiveReplace(cleanedResults, '</b>', '**');
 
     const embed = new EmbedBuilder()
-      .setTitle(`Search results for ${query.slice(0, 200)}`)
+      .setTitle(`Search results for ${this.client.util.limitStringLength(query, 0, 200)}`)
       .setColor(msg.settings.embedColor)
       .setDescription(
         stripIndents`

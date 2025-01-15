@@ -40,7 +40,7 @@ class GiveMoney extends Command {
     let amount = args[1].replace(/,/g, '').replace(currencySymbol, '');
 
     let csCashAmount = currencySymbol + authCash.toLocaleString();
-    csCashAmount = csCashAmount.length > 1024 ? `${csCashAmount.slice(0, 1021) + '...'}` : csCashAmount;
+    csCashAmount = this.client.util.limitStringLength(csCashAmount, 0, 1024);
 
     if (isNaN(amount)) {
       if (amount.toLowerCase() === 'all') {
@@ -53,13 +53,18 @@ class GiveMoney extends Command {
         const newMemCash = memCash + authCash;
         await db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, newMemCash.toString());
 
-        embed.setColor('#04ACF4').setDescription(`${mem} has received your ${csCashAmount}.`);
+        embed.setColor(msg.settings.embedColor).setDescription(`${mem} has received your ${csCashAmount}.`);
         return msg.channel.send({ embeds: [embed] });
       } else {
         return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Incorrect Usage');
       }
     }
-    amount = BigInt(parseInt(amount.replace(/[^0-9\\.]/g, '')));
+
+    if (parseInt(amount.replace(/[^0-9].*/, '').replace(/[^0-9]/g, '')) === Infinity) {
+      return this.client.util.errorEmbed(msg, "You can't give Infinity money to someone", 'Invalid Amount');
+    }
+
+    amount = BigInt(parseInt(amount.replace(/[^0-9].*/, '').replace(/[^0-9]/g, '')));
 
     if (amount > authCash) {
       return this.client.util.errorEmbed(
@@ -84,7 +89,8 @@ class GiveMoney extends Command {
     await db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, newMemCash.toString());
 
     let csAmount = currencySymbol + amount.toLocaleString();
-    csAmount = csAmount.length > 1024 ? `${csAmount.slice(0, 1021) + '...'}` : csAmount;
+    csAmount = this.client.util.limitStringLength(csAmount, 0, 1024);
+
     embed.setColor(msg.settings.embedColor).setDescription(`${mem} has received your ${csAmount}.`);
     return msg.channel.send({ embeds: [embed] });
   }

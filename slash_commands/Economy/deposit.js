@@ -33,7 +33,7 @@ exports.run = async (interaction) => {
     .setAuthor({ name: interaction.user.tag, iconURL: interaction.user.displayAvatarURL() });
 
   let csCashAmount = currencySymbol + cash.toLocaleString();
-  csCashAmount = csCashAmount.length > 1024 ? `${csCashAmount.slice(0, 1021) + '...'}` : csCashAmount;
+  csCashAmount = this.client.util.limitStringLength(csCashAmount, 0, 1024);
 
   amount = amount.replace(/,/g, '').replace(currencySymbol, '');
   amount = BigInt(amount.replace(/[^0-9\\.]/g, ''));
@@ -59,7 +59,7 @@ exports.run = async (interaction) => {
   await db.set(`servers.${interaction.guild.id}.users.${interaction.member.id}.economy.bank`, newBankAmount.toString());
 
   let csAmount = currencySymbol + amount.toLocaleString();
-  csAmount = csAmount.length > 1024 ? `${csAmount.slice(0, 1021) + '...'}` : csAmount;
+  csAmount = this.client.util.limitStringLength(csAmount, 0, 1024);
   embed.setDescription(`Deposited ${csAmount} to your bank.`);
   return interaction.editReply({ embeds: [embed] });
 };

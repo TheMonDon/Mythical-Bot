@@ -77,7 +77,7 @@ class Reminders extends Command {
               name: `**${numberEmojiArray.join('') + '.'}** I'll remind you ${moment(
                 triggerOn,
               ).fromNow()} (ID: ${remID})`,
-              value: reminder.slice(0, 200),
+              value: this.client.util.limitStringLength(reminder, 0, 200),
             },
           ]);
           i += 1;

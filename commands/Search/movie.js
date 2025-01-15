@@ -36,7 +36,7 @@ class Movie extends Command {
         .setTitle(body.title)
         .setURL(`https://www.themoviedb.org/movie/${body.id}`)
         .setAuthor({ name: 'TMDb', iconURL: 'https://i.imgur.com/3K3QMv9.png', url: 'https://www.themoviedb.org/' })
-        .setDescription(body.overview ? body.overview.slice(0, 2048) : 'No description available.')
+        .setDescription(body.overview ? this.client.util.limitStringLength(body.overview) : 'No description available.')
         .setThumbnail(body.poster_path ? `https://image.tmdb.org/t/p/w500${body.poster_path}` : null)
         .addFields([
           { name: '❯ Runtime', value: body.runtime ? `${body.runtime} mins.` : '???', inline: true },

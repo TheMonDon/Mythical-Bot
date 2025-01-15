@@ -73,7 +73,7 @@ class Slut extends Command {
 
     if (ranNum < failRate) {
       let csAmount = currencySymbol + fineAmount.toLocaleString();
-      csAmount = csAmount.length > 1024 ? csAmount.slice(0, 1021) + '...' : csAmount;
+      csAmount = this.client.util.limitStringLength(csAmount, 0, 1024);
 
       const num = Math.floor(Math.random() * (crimeFail.length - 1)) + 1;
       const txt = crimeFail[num].replace('{amount}', csAmount);
@@ -90,7 +90,7 @@ class Slut extends Command {
       const amount = BigInt(Math.floor(Math.random() * (max - min + 1) + min));
 
       let csAmount = currencySymbol + amount.toLocaleString();
-      csAmount = csAmount.length > 1024 ? csAmount.slice(0, 1021) + '...' : csAmount;
+      csAmount = this.client.util.limitStringLength(csAmount, 0, 1024);
 
       const num = Math.floor(Math.random() * (crimeSuccess.length - 1)) + 1;
       const txt = crimeSuccess[num].replace('{amount}', csAmount);

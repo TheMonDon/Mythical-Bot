@@ -104,7 +104,7 @@ class Rob extends Command {
       await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAmount.toString());
 
       let csFineAmount = currencySymbol + fineAmount.toLocaleString();
-      csFineAmount = csFineAmount.length > 1024 ? `${csFineAmount.slice(0, 1021) + '...'}` : csFineAmount;
+      csFineAmount = this.client.util.limitStringLength(csFineAmount, 0, 1024);
       embed.setDescription(`You were caught attempting to rob ${mem} and have been fined **${csFineAmount}**`);
       msg.channel.send({ embeds: [embed] });
     } else {
@@ -120,11 +120,11 @@ class Rob extends Command {
       await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAuthCash.toString());
 
       let csAmount = currencySymbol + amount.toLocaleString();
-      csAmount = csAmount.length > 1024 ? `${csAmount.slice(0, 1021) + '...'}` : csAmount;
+      csAmount = this.client.util.limitStringLength(csAmount, 0, 1024);
       let csAuthCash = currencySymbol + newAuthCash.toLocaleString();
-      csAuthCash = csAuthCash.length > 1024 ? `${csAuthCash.slice(0, 1021) + '...'}` : csAuthCash;
+      csAuthCash = this.client.util.limitStringLength(csAuthCash, 0, 1024);
       let csMemCash = currencySymbol + newMemCash.toLocaleString();
-      csMemCash = csMemCash.length > 1024 ? `${csMemCash.slice(0, 1021) + '...'}` : csMemCash;
+      csMemCash = this.client.util.limitStringLength(csMemCash, 0, 1024);
 
       embed
         .setColor(msg.settings.embedSuccessColor)

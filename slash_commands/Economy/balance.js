@@ -44,13 +44,13 @@ exports.run = async (interaction) => {
   }
 
   let csCashAmount = formatCurrency(cash, currencySymbol);
-  csCashAmount = csCashAmount.length > 1024 ? `${csCashAmount.slice(0, 1021) + '...'}` : csCashAmount;
+  csCashAmount = this.client.util.limitStringLength(csCashAmount, 0, 1024);
 
   let csBankAmount = formatCurrency(bank, currencySymbol);
-  csBankAmount = csBankAmount.length > 1024 ? `${csBankAmount.slice(0, 1021) + '...'}` : csBankAmount;
+  csBankAmount = this.client.util.limitStringLength(csBankAmount, 0, 1024);
 
   let csNetWorthAmount = formatCurrency(netWorth, currencySymbol);
-  csNetWorthAmount = csNetWorthAmount.length > 1024 ? `${csNetWorthAmount.slice(0, 1021) + '...'}` : csNetWorthAmount;
+  csNetWorthAmount = this.client.util.limitStringLength(csNetWorthAmount, 0, 1024);
 
   // Fetch all users data to find the rank
   const usersData = (await db.get(`servers.${interaction.guildId}.users`)) || {};

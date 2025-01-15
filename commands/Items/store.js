@@ -33,9 +33,8 @@ class Store extends Command {
     // Construct the message with item names
     const itemDetails = sortedStore.map(([itemName, itemInfo]) => {
       const csCost = currencySymbol + BigInt(itemInfo.cost).toLocaleString();
-      const trimmedCost = csCost.length > 100 ? csCost.slice(0, 100) + '...' : csCost;
       return {
-        name: `${trimmedCost} - ${itemName}`,
+        name: `${this.client.util.limitStringLength(csCost, 0, 100)} - ${itemName}`,
         value: `${itemInfo.description}`,
         inline: false,
       };

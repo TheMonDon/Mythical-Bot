@@ -99,9 +99,9 @@ exports.run = async (interaction) => {
           const user = interaction.client.users.cache.get(entry.userId) || { tag: 'Unknown User' };
           const neg = entry.money < 0n;
           const money = neg ? -entry.money : entry.money;
-          return `**${offset + index + 1}.** ${user.tag}: ${entry.money < 0n ? '-' : ''}${currencySymbol}${
-            money.toLocaleString().length > 150 ? money.toLocaleString().slice(0, 147) + '...' : money.toLocaleString()
-          }`;
+          return `**${offset + index + 1}.** ${user.tag}: ${
+            entry.money < 0n ? '-' : ''
+          }${currencySymbol}${this.client.util.limitStringLength(money, 0, 150)}`;
         })
         .join('\n') || 'None',
     )

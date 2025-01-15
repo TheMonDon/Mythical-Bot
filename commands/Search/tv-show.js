@@ -37,7 +37,7 @@ class TVShow extends Command {
         .setTitle(body.name)
         .setURL(`https://www.themoviedb.org/tv/${body.id}`)
         .setAuthor({ name: 'TMDb', iconURL: 'https://i.imgur.com/3K3QMv9.png', url: 'https://www.themoviedb.org/' })
-        .setDescription(body.overview ? body.overview.slice(0, 2048) : 'No description available.')
+        .setDescription(body.overview ? this.client.util.limitStringLength(body.overview) : 'No description available.')
         .setThumbnail(body.poster_path ? `https://image.tmdb.org/t/p/w500${body.poster_path}` : null)
         .addFields([
           { name: '❯ First Air Date', value: body.first_air_date || '???', inline: true },
