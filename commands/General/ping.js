@@ -15,7 +15,7 @@ class Ping extends Command {
 
     msg.channel.send('Loading data...').then(async (message) => {
       const latency = message.createdTimestamp - msg.createdTimestamp;
-      await message.edit(`🏓Latency is ${latency}ms. API Latency is ${wsPing}ms`);
+      await message.edit(`🏓 API Latency is ${latency}ms. Latency is ${wsPing}ms`);
     });
   }
 }

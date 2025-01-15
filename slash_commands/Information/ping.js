@@ -8,9 +8,9 @@ exports.commandData = new SlashCommandBuilder().setName('ping').setDescription('
 
 exports.run = async (interaction) => {
   await interaction.deferReply();
-  const reply = await interaction.editReply('Ping?');
+  const reply = await interaction.editReply('Loading data...');
   await interaction.editReply(
-    `Pong! Latency is ${reply.createdTimestamp - interaction.createdTimestamp}ms. API Latency is ${Math.round(
+    `🏓 API Latency is ${reply.createdTimestamp - interaction.createdTimestamp}ms. Latency is ${Math.round(
       interaction.client.ws.ping,
     )}ms.`,
   );
