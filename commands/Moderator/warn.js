@@ -12,10 +12,10 @@ class Warn extends Command {
       longDescription: stripIndents`
         Warn system that will kick or ban a user depending on the points they have.
         Users are kicked when they reach 8 points, or banned when they reach 10. (Change with \`setup\` command)`,
-      usage: 'warn <User> <0-1000 Points> <Reason>',
+      usage: 'warn <User> [0-1000 Points] <Reason>',
       category: 'Moderator',
       permLevel: 'Moderator',
-      requiredArgs: 3,
+      requiredArgs: 2,
       guildOnly: true,
     });
   }
@@ -45,15 +45,24 @@ class Warn extends Command {
         return this.client.util.errorEmbed(msg, "You can't warn someone with an equal or higher role than you.");
     }
 
-    // Check if points is a number and is between 0 and 1000
-    const points = parseInt(args[1], 10);
-    if (isNaN(points) || points < 0 || points > 1000)
-      return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Incorrect Usage');
+    // Check if points were provided
+    let points = 0; // Default to 0
+    let reasonStartIndex = 1; // By default, the reason starts after the user mention
 
-    // Convert shorthand to fullhand for reason
-    args.shift();
-    args.shift();
-    let reason = args.join(' ');
+    if (args[1] && !isNaN(parseInt(args[1], 10))) {
+      points = parseInt(args[1], 10);
+      if (points < 0 || points > 1000) {
+        return this.client.util.errorEmbed(
+          msg,
+          msg.settings.prefix + this.help.usage,
+          'Points must be between 0 and 1000',
+        );
+      }
+      reasonStartIndex = 2; // If points are provided, the reason starts after the second argument
+    }
+
+    // Extract reason
+    const reason = args.slice(reasonStartIndex).join(' ') || 'No reason provided';
 
     // Grab the settings for the server
     const ka = (await db.get(`servers.${msg.guild.id}.warns.kick`)) || 8;

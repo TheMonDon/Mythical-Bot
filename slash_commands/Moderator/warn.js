@@ -11,16 +11,16 @@ exports.commandData = new SlashCommandBuilder()
   .setContexts(InteractionContextType.Guild)
   .setDescription('Warns a user, by default members are kicked at 8 and banned at 10 points.')
   .addUserOption((option) => option.setName('user').setDescription('The user you want to warn').setRequired(true))
+  .addStringOption((option) =>
+    option.setName('reason').setDescription('Why you are warning the user').setRequired(true),
+  )
   .addIntegerOption((option) =>
     option
       .setName('amount')
       .setDescription('The amount of points to warn the user for')
-      .setMinValue(1)
+      .setMinValue(0)
       .setMaxValue(1000)
-      .setRequired(true),
-  )
-  .addStringOption((option) =>
-    option.setName('reason').setDescription('Why you are warning the user').setRequired(true),
+      .setRequired(false),
   );
 
 exports.run = async (interaction) => {
@@ -49,7 +49,7 @@ exports.run = async (interaction) => {
       );
   }
 
-  const points = interaction.options.getInteger('amount');
+  const points = interaction.options.getInteger('amount') || 0;
   let reason = interaction.options.getString('reason');
 
   // Grab the settings for the server

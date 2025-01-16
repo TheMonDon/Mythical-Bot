@@ -1,4 +1,5 @@
 const Command = require('../../base/Command.js');
+const { EmbedBuilder } = require('discord.js');
 
 class Ping extends Command {
   constructor(client) {
@@ -13,10 +14,22 @@ class Ping extends Command {
   async run(msg) {
     const wsPing = Math.round(this.client.ws.ping).toLocaleString();
 
-    msg.channel.send('Loading data...').then(async (message) => {
-      const latency = message.createdTimestamp - msg.createdTimestamp;
-      await message.edit(`🏓 Bot Latency is ${latency}ms. API Latency is ${wsPing}ms`);
-    });
+    const reply = await msg.channel.send('Loading data...');
+
+    const embed = new EmbedBuilder().setTitle('Ping').addFields([
+      {
+        name: 'Bot Latency',
+        value: `${reply.createdTimestamp - msg.createdTimestamp}ms`,
+        inline: true,
+      },
+      {
+        name: 'API Latency',
+        value: `${wsPing}ms`,
+        inline: true,
+      },
+    ]);
+
+    return reply.edit({ content: '', embeds: [embed] });
   }
 }
 
