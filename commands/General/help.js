@@ -1,5 +1,6 @@
-const Command = require('../../base/Command.js');
 const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder } = require('discord.js');
+const Command = require('../../base/Command.js');
+const { stripIndents } = require('common-tags');
 
 class Help extends Command {
   constructor(client) {
@@ -94,8 +95,10 @@ class Help extends Command {
         { name: 'Current Categories:', value: sortedCategoriesArray.join(', ') },
         {
           name: 'Quick Bits',
-          value:
-            '[Invite Link](https://cisn.xyz/mythical) \n[Source Code](https://github.com/TheMonDon/Mythical-Bot) \n[Support Server](https://discord.com/invite/XvHzUNZDdR)',
+          value: stripIndents`[Invite Link](https://cisn.xyz/mythical)
+            [Source Code](https://github.com/TheMonDon/Mythical-Bot)
+            [Support Server](https://discord.com/invite/XvHzUNZDdR)
+            [Website](https://mythical.cisn.xyz)`,
         },
       ]);
 

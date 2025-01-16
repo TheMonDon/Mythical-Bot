@@ -1,6 +1,7 @@
 const { version: botVersion } = require('../../package.json');
 const { version, EmbedBuilder } = require('discord.js');
 const Command = require('../../base/Command.js');
+const { stripIndents } = require('common-tags');
 const { QuickDB } = require('quick.db');
 require('moment-duration-format');
 const moment = require('moment');
@@ -43,8 +44,10 @@ class BotInfo extends Command {
         { name: 'Commands Used', value: commands.toLocaleString(), inline: true },
         {
           name: 'Quick Bits',
-          value:
-            '[Invite Link](https://cisn.xyz/mythical) \n[Source Code](https://github.com/TheMonDon/Mythical-Bot) \n[Support Server](https://discord.com/invite/XvHzUNZDdR)',
+          value: stripIndents`[Invite Link](https://cisn.xyz/mythical)
+            [Source Code](https://github.com/TheMonDon/Mythical-Bot) 
+            [Support Server](https://discord.com/invite/XvHzUNZDdR)
+            [Website](https://mythical.cisn.xyz)`,
           inline: true,
         },
       ]);

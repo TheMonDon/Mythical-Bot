@@ -8,10 +8,20 @@ class DeleteWarning extends Command {
     super(client, {
       name: 'delete-warning',
       description: 'Delete a specific warnings case',
-      usage: 'Delete-Warning <CaseID>',
+      usage: 'delete-warning <CaseID>',
       category: 'Administrator',
       permLevel: 'Administrator',
-      aliases: ['delwarn', 'deletecase', 'deletewarn', 'delcase', 'clearcase', 'deletewarning', 'delwarning'],
+      aliases: [
+        'delwarn',
+        'deletecase',
+        'deletewarn',
+        'delcase',
+        'clearcase',
+        'deletewarning',
+        'delwarning',
+        'del-warn',
+        'remove-warning',
+      ],
       guildOnly: true,
       requiredArgs: 1,
     });

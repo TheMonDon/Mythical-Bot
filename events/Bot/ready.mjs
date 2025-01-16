@@ -162,6 +162,24 @@ export async function run(client) {
     });
   }
 
+  // Delete server data scheduler (every day at midnight) after 30 days of leaving
+  scheduleJob('DeleteServerData', '0 0 * * *', async () => {
+    const servers = (await db.get('servers')) || {};
+    if (servers) {
+      for (const [serverID] of Object.entries(servers)) {
+        const leaveTimestamp = await db.get(`servers.${serverID}.leave_timestamp`);
+        if (leaveTimestamp) {
+          const timeDiff = Date.now() - leaveTimestamp;
+          if (timeDiff >= 2592000000) {
+            await db.delete(`servers.${serverID}`);
+            this.client.settings.delete(serverID);
+            console.log(`Deleted server data for ${serverID}`);
+          }
+        }
+      }
+    }
+  });
+
   // Reminder scheduler
   scheduleJob('Reminders', '* * * * *', async () => {
     const reminders = (await db.get('global.reminders')) || [];

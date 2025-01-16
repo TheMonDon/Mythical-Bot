@@ -130,7 +130,7 @@ class Leaderboard extends Command {
       const displayedLeaderboard = await Promise.all(
         currentPageLeaderboard.map(async (entry, index) => {
           const user = await this.client.users.fetch(entry.userId).catch(() => null);
-          const formattedMoney = entry.money.toLocaleString();
+          const formattedMoney = this.client.util.limitStringLength(entry.money.toLocaleString(), 0, 150);
           return user
             ? `**${offset + index + 1}.** ${user.tag}: ${currencySymbol}${formattedMoney}`
             : `**${offset + index + 1}.** Unknown User: ${currencySymbol}${formattedMoney}`;

@@ -175,7 +175,7 @@ const loadGiveaways = async () => {
     // This function is called when a giveaway needs to be saved in the database.
     async saveGiveaway(_messageId, giveawayData) {
       // Add the new giveaway to the database
-      db.push('giveaways', giveawayData);
+      await db.push('giveaways', giveawayData);
       // Don't forget to return something!
       return true;
     }
