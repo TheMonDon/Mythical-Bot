@@ -62,7 +62,7 @@ class Warn extends Command {
     }
 
     // Extract reason
-    const reason = args.slice(reasonStartIndex).join(' ') || 'No reason provided';
+    let reason = args.slice(reasonStartIndex).join(' ');
 
     // Grab the settings for the server
     const ka = (await db.get(`servers.${msg.guild.id}.warns.kick`)) || 8;
