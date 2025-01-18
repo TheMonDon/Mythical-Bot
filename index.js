@@ -150,7 +150,7 @@ const client = new Bot({
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildModeration,
     GatewayIntentBits.GuildMembers,
-    GatewayIntentBits.GuildEmojisAndStickers,
+    GatewayIntentBits.GuildExpressions,
     GatewayIntentBits.GuildIntegrations,
     GatewayIntentBits.GuildWebhooks,
     GatewayIntentBits.GuildInvites,
@@ -224,16 +224,16 @@ const loadGiveaways = async () => {
 };
 
 const loadMusic = async () => {
-  client.player = new Player(client, {
+  const player = new Player(client, {
     autoSelfDeaf: true,
     enableLive: true,
   });
 
-  await client.player.extractors.loadMulti(DefaultExtractors);
+  await player.extractors.loadMulti(DefaultExtractors);
 
-  await client.player.extractors.register(YoutubeiExtractor, {});
+  await player.extractors.register(YoutubeiExtractor, {});
 
-  client.player.events
+  player.events
     .on('playerStart', async (queue, track) => {
       try {
         if (queue.repeatMode === 1) return;
@@ -241,7 +241,7 @@ const loadMusic = async () => {
         const em = new EmbedBuilder()
           .setTitle('Now Playing')
           .setDescription(`[${track.title}](${track.url}) \n\nRequested By: ${track.requestedBy}`)
-          .setColor('#0099CC');
+          .setColor(queue.metadata.settings.embedColor);
 
         if (track.thumbnail) {
           em.setThumbnail(track.thumbnail);
@@ -271,7 +271,7 @@ const loadMusic = async () => {
       const em = new EmbedBuilder()
         .setTitle('Track Added to Queue')
         .setThumbnail(track.thumbnail)
-        .setColor('#0099CC')
+        .setColor(queue.metadata.settings.embedColor)
         .setDescription(`[${track.title}](${track.url}) \n\nRequested By: ${track.requestedBy}`);
 
       queue.metadata.channel.send({ embeds: [em] }).catch(() => {});
@@ -282,9 +282,14 @@ const loadMusic = async () => {
 
       const em = new EmbedBuilder()
         .setTitle('Playlist Added to Queue')
-        .setColor('#0099CC')
-        .setDescription(`[${playlist.title}](${playlist.url}) \n\nRequested By: ${tracks[0].requestedBy}`)
+        .setColor(queue.metadata.settings.embedColor)
         .addFields([{ name: 'Playlist Length', value: length.toString(), inline: true }]);
+
+      if (playlist.url) {
+        em.setDescription(`[${playlist.title}](${playlist.url}) \n\nRequested By: ${tracks[0].requestedBy}`);
+      } else {
+        em.setDescription(`${playlist.title} \n\nRequested By: ${tracks[0].requestedBy}`);
+      }
 
       if (playlist.thumbnail) {
         em.setThumbnail(playlist.thumbnail);
@@ -296,7 +301,7 @@ const loadMusic = async () => {
     .on('emptyQueue', (queue) => {
       const em = new EmbedBuilder()
         .setTitle('Queue Ended')
-        .setColor('#0099CC')
+        .setColor(queue.metadata.settings.embedColor)
         .setDescription('Music has been stopped since the queue has no more tracks.');
 
       queue.metadata.channel.send({ embeds: [em] }).catch(() => {});

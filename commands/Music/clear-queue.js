@@ -1,4 +1,5 @@
 const Command = require('../../base/Command.js');
+const { useQueue } = require('discord-player');
 const { EmbedBuilder } = require('discord.js');
 
 class ClearQueue extends Command {
@@ -14,7 +15,7 @@ class ClearQueue extends Command {
   }
 
   async run(msg) {
-    const queue = this.client.player.nodes.get(msg.guild.id);
+    const queue = useQueue(msg.guild.id);
 
     if (!msg.member.voice.channel) return msg.channel.send('You must be in a voice channel to clear the queue.');
     if (msg.guild.members.me.voice.channel && msg.member.voice.channel.id !== msg.guild.members.me.voice.channel.id)

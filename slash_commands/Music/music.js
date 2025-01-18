@@ -1,5 +1,5 @@
 const { EmbedBuilder, SlashCommandBuilder, InteractionContextType } = require('discord.js');
-const { useHistory, useQueue } = require('discord-player');
+const { useHistory, useQueue, useMainPlayer } = require('discord-player');
 const { stripIndents } = require('common-tags');
 
 exports.conf = {
@@ -24,7 +24,9 @@ exports.commandData = new SlashCommandBuilder()
     subcommand
       .setName('play')
       .setDescription('Play something amazing')
-      .addStringOption((option) => option.setName('song').setDescription('The song or link to play').setRequired(true)),
+      .addStringOption((option) =>
+        option.setName('song').setDescription('The song or link to play').setRequired(true).setAutocomplete(true),
+      ),
   )
   .addSubcommand((subcommand) =>
     subcommand
@@ -79,11 +81,11 @@ exports.run = async (interaction) => {
   await interaction.deferReply();
   const queue = useQueue(interaction.guild.id);
   const subcommand = interaction.options.getSubcommand();
+  const player = useMainPlayer();
 
   switch (subcommand) {
     case 'back': {
       const history = useHistory(interaction.guild.id);
-      const queue = useQueue(interaction.guild.id);
 
       if (!interaction.member.voice.channel)
         return interaction.editReply('You must be in a voice channel to skip music.');
@@ -106,8 +108,6 @@ exports.run = async (interaction) => {
     }
 
     case 'clear-queue': {
-      const queue = interaction.client.player.nodes.get(interaction.guild.id);
-
       if (!interaction.member.voice.channel)
         return interaction.editReply('You must be in a voice channel to clear the queue.');
       if (
@@ -138,7 +138,7 @@ exports.run = async (interaction) => {
           );
       }
 
-      const lyrics = await interaction.client.player.lyrics.search({ q: song }).catch(() => null);
+      const lyrics = await player.lyrics.search({ q: song }).catch(() => null);
       if (!lyrics[0]) return interaction.editReply(`No lyrics found for: \`${song}\``);
       const trimmedLyrics = interaction.client.util.limitStringLength(lyrics[0].plainLyrics, 0, 4096);
 
@@ -201,7 +201,8 @@ exports.run = async (interaction) => {
       const query = interaction.options.get('song').value;
 
       try {
-        const { track } = await interaction.client.player.play(interaction.member.voice.channel, query, {
+        const { track } = await player.play(interaction.member.voice.channel, query, {
+          requestedBy: interaction.user,
           nodeOptions: {
             metadata: interaction,
             selfDead: true,

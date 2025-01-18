@@ -1,5 +1,5 @@
 const Command = require('../../base/Command.js');
-const { useQueue } = require('discord-player');
+const { useQueue, useMainPlayer } = require('discord-player');
 const { EmbedBuilder } = require('discord.js');
 
 class Lyrics extends Command {
@@ -15,6 +15,7 @@ class Lyrics extends Command {
   async run(msg, args) {
     let song;
     const queue = useQueue(msg.guild.id);
+    const player = useMainPlayer();
 
     if (!args || args.length < 1) {
       if (!msg.guild) return this.client.util.errorEmbed(msg, "I can't get the lyrics of nothing.");
@@ -26,7 +27,7 @@ class Lyrics extends Command {
       song = args.join(' ').slice(0, 300);
     }
 
-    const lyrics = await this.client.player.lyrics.search({ q: song }).catch(() => null);
+    const lyrics = await player.lyrics.search({ q: song }).catch(() => null);
     if (!lyrics[0]) return msg.channel.send(`No lyrics found for: \`${song}\``);
     const trimmedLyrics = this.client.util.limitStringLength(lyrics[0].plainLyrics, 0, 4096);
 

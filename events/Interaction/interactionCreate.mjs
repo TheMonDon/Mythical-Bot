@@ -1,3 +1,4 @@
+import { useMainPlayer } from 'discord-player';
 import { EmbedBuilder } from 'discord.js';
 import { QuickDB } from 'quick.db';
 const db = new QuickDB();
@@ -77,17 +78,32 @@ export async function run(client, interaction) {
           .catch((e) => client.logger.error('An error occurred replying on an error', e));
       }
     }
-  } else if (interaction.isAutocomplete()) {
-    const slashCommand = interaction.client.commands.get(interaction.commandName);
+  }
 
-    if (!slashCommand) {
-      client.logger.error(`No command matching ${interaction.commandName} was found.`);
+  if (interaction.isAutocomplete()) {
+    if (!interaction.commandName === 'music') {
       return;
     }
 
     try {
-      await slashCommand.autocomplete(interaction);
-      await db.add('global.commands', 1);
+      const song = interaction.options.getString('song');
+      if (!song.length) return interaction.respond([]);
+
+      const player = useMainPlayer();
+
+      const data = await player.search(song, { requestedBy: interaction.user });
+
+      if (!data.hasTracks()) return interaction.respond([]);
+
+      const results = data.tracks
+        .filter((track) => track.url.length < 100)
+        .slice(0, 10)
+        .map((track) => ({
+          name: track.title.slice(0, 100),
+          value: track.url,
+        }));
+
+      return interaction.respond(results);
     } catch (error) {
       client.logger.error(error);
     }
