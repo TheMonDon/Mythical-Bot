@@ -20,6 +20,8 @@ class Resume extends Command {
     if (msg.guild.members.me.voice.channel && msg.member.voice.channel.id !== msg.guild.members.me.voice.channel.id)
       return msg.channel.send('You must be in the same voice channel as the bot.');
 
+    if (!queue || !queue.node) return msg.channel.send('No music is currently playing.');
+
     queue.node.setPaused(!queue.node.isPaused());
 
     const em = new EmbedBuilder()

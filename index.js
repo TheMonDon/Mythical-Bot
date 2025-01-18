@@ -1,9 +1,11 @@
 const { GatewayIntentBits, Collection, Client, EmbedBuilder, Partials } = require('discord.js');
+const { DefaultExtractors } = require('@discord-player/extractor');
+const { YoutubeiExtractor } = require('discord-player-youtubei');
 const { GiveawaysManager } = require('discord-giveaways');
 const { readdirSync, statSync } = require('fs');
 const { Player } = require('discord-player');
-const config = require('./config.js');
 const { QuickDB } = require('quick.db');
+const config = require('./config.js');
 const Enmap = require('enmap');
 const path = require('path');
 const db = new QuickDB();
@@ -225,16 +227,11 @@ const loadMusic = async () => {
   client.player = new Player(client, {
     autoSelfDeaf: true,
     enableLive: true,
-    ytdlOptions: {
-      requestOptions: {
-        headers: {
-          cookie: config.youtubeCookie || '',
-        },
-      },
-    },
   });
 
-  await client.player.extractors.loadDefault();
+  await client.player.extractors.loadMulti(DefaultExtractors);
+
+  await client.player.extractors.register(YoutubeiExtractor, {});
 
   client.player.events
     .on('playerStart', async (queue, track) => {
@@ -243,9 +240,12 @@ const loadMusic = async () => {
 
         const em = new EmbedBuilder()
           .setTitle('Now Playing')
-          .setDescription(`[${track.author} - ${track.title}](${track.url}) \n\nRequested By: ${track.requestedBy}`)
-          .setThumbnail(track.thumbnail)
+          .setDescription(`[${track.title}](${track.url}) \n\nRequested By: ${track.requestedBy}`)
           .setColor('#0099CC');
+
+        if (track.thumbnail) {
+          em.setThumbnail(track.thumbnail);
+        }
 
         const msg = await queue.metadata.channel.send({ embeds: [em] }).catch(() => {});
 
@@ -272,7 +272,7 @@ const loadMusic = async () => {
         .setTitle('Track Added to Queue')
         .setThumbnail(track.thumbnail)
         .setColor('#0099CC')
-        .setDescription(`[${track.author} - ${track.title}](${track.url}) \n\nRequested By: ${track.requestedBy}`);
+        .setDescription(`[${track.title}](${track.url}) \n\nRequested By: ${track.requestedBy}`);
 
       queue.metadata.channel.send({ embeds: [em] }).catch(() => {});
     })
@@ -282,10 +282,13 @@ const loadMusic = async () => {
 
       const em = new EmbedBuilder()
         .setTitle('Playlist Added to Queue')
-        .setThumbnail(playlist.thumbnail)
         .setColor('#0099CC')
         .setDescription(`[${playlist.title}](${playlist.url}) \n\nRequested By: ${tracks[0].requestedBy}`)
         .addFields([{ name: 'Playlist Length', value: length.toString(), inline: true }]);
+
+      if (playlist.thumbnail) {
+        em.setThumbnail(playlist.thumbnail);
+      }
 
       queue.metadata.channel.send({ embeds: [em] }).catch(() => {});
     })

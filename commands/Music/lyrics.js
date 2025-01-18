@@ -1,8 +1,6 @@
-const { lyricsExtractor } = require('@discord-player/extractor');
 const Command = require('../../base/Command.js');
 const { useQueue } = require('discord-player');
 const { EmbedBuilder } = require('discord.js');
-const lyricsFinder = lyricsExtractor();
 
 class Lyrics extends Command {
   constructor(client) {
@@ -28,17 +26,14 @@ class Lyrics extends Command {
       song = args.join(' ').slice(0, 300);
     }
 
-    const lyrics = await lyricsFinder.search(song).catch(() => null);
-    if (!lyrics) return msg.channel.send(`No lyrics found for: ${song}`);
-    const trimmedLyrics = lyrics.lyrics.substring(0, 3097);
+    const lyrics = await this.client.player.lyrics.search({ q: song }).catch(() => null);
+    if (!lyrics[0]) return msg.channel.send(`No lyrics found for: \`${song}\``);
+    const trimmedLyrics = this.client.util.limitStringLength(lyrics[0].plainLyrics, 0, 4096);
 
     const em = new EmbedBuilder()
       .setColor(msg.settings.embedColor)
-      .setAuthor({ name: lyrics.artist.name, iconURL: lyrics.artist.image, url: lyrics.artist.url })
-      .setTitle(lyrics.title)
-      .setURL(lyrics.url)
-      .setThumbnail(lyrics.thumbnail)
-      .setDescription(trimmedLyrics.length === 3090 ? `${trimmedLyrics}...` : trimmedLyrics);
+      .setTitle(lyrics[0].trackName)
+      .setDescription(trimmedLyrics);
     return msg.channel.send({ embeds: [em] });
   }
 }

@@ -1,8 +1,6 @@
 const { EmbedBuilder, SlashCommandBuilder, InteractionContextType } = require('discord.js');
-const { lyricsExtractor } = require('@discord-player/extractor');
 const { useHistory, useQueue } = require('discord-player');
 const { stripIndents } = require('common-tags');
-const lyricsFinder = lyricsExtractor();
 
 exports.conf = {
   permLevel: 'User',
@@ -132,7 +130,7 @@ exports.run = async (interaction) => {
         if (!interaction.guild)
           return interaction.client.util.errorEmbed(interaction, "I can't get the lyrics of nothing.");
         const playing = queue?.currentTrack;
-        song = `${playing?.author} ${playing?.title}`;
+        song = playing?.title;
         if (!playing || song === ' ')
           return interaction.client.util.errorEmbed(
             interaction,
@@ -140,16 +138,13 @@ exports.run = async (interaction) => {
           );
       }
 
-      const lyrics = await lyricsFinder.search(song).catch(() => null);
-      if (!lyrics) return interaction.editReply(`No lyrics found for: ${song}`);
-      const trimmedLyrics = lyrics.lyrics.substring(0, 3097);
+      const lyrics = await interaction.client.player.lyrics.search({ q: song }).catch(() => null);
+      if (!lyrics[0]) return interaction.editReply(`No lyrics found for: \`${song}\``);
+      const trimmedLyrics = interaction.client.util.limitStringLength(lyrics[0].plainLyrics, 0, 4096);
 
       const em = new EmbedBuilder()
         .setColor(interaction.settings.embedColor)
-        .setAuthor({ name: lyrics.artist.name, iconURL: lyrics.artist.image, url: lyrics.artist.url })
-        .setTitle(lyrics.title)
-        .setURL(lyrics.url)
-        .setThumbnail(lyrics.thumbnail)
+        .setTitle(lyrics[0].trackName)
         .setDescription(trimmedLyrics.length === 3090 ? `${trimmedLyrics}...` : trimmedLyrics);
       return interaction.editReply({ embeds: [em] });
     }
@@ -206,15 +201,7 @@ exports.run = async (interaction) => {
       const query = interaction.options.get('song').value;
 
       try {
-        const searchResult = await interaction.client.player.search(query, { requestedBy: interaction.user });
-
-        if (!searchResult) return interaction.editReply('I could not find that song.');
-        if (!searchResult.hasTracks()) {
-          // If player didn't find any songs for this query
-          return interaction.editReply(`We couldn't find any tracks for ${query}!`);
-        }
-
-        await interaction.client.player.play(interaction.member.voice.channel, searchResult, {
+        const { track } = await interaction.client.player.play(interaction.member.voice.channel, query, {
           nodeOptions: {
             metadata: interaction,
             selfDead: true,
@@ -223,6 +210,8 @@ exports.run = async (interaction) => {
             leaveOnEmpty: false,
           },
         });
+
+        if (!track) return interaction.editReply('No tracks found.');
 
         const interactionMessage = await interaction.editReply('Music Started');
         return interactionMessage.delete().catch(() => {});

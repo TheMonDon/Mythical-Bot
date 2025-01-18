@@ -9,6 +9,8 @@ class Play extends Command {
       category: 'Music',
       usage: 'play <song>',
       aliases: ['p'],
+      examples: ['play unsweetened lemonade'],
+      requiredArgs: 1,
       guildOnly: true,
     });
   }
@@ -19,26 +21,20 @@ class Play extends Command {
       return msg.channel.send('You have to be in the same voice channel as the bot to play music');
 
     const query = args.join(' ').slice(0, 300);
-    if (!query) return msg.channel.send('Please enter something to search for.');
 
     try {
-      const searchResult = await this.client.player.search(query, { requestedBy: msg.author });
-
-      if (!searchResult) return msg.channel.send('I could not find that song.');
-      if (!searchResult.hasTracks()) {
-        // If player didn't find any songs for this query
-        return msg.channel.send(`We couldn't find any tracks for ${query}!`);
-      }
-
-      await this.client.player.play(msg.member.voice.channel, searchResult, {
+      const { track } = await this.client.player.play(msg.member.voice.channel, query, {
+        requestedBy: msg.author,
         nodeOptions: {
           metadata: msg,
-          selfDead: true,
+          selfDeaf: true,
           leaveOnStop: true,
           leaveOnEnd: false,
           leaveOnEmpty: false,
         },
       });
+
+      if (!track) return msg.channel.send('No tracks found.');
     } catch (e) {
       return msg.channel.send(`Something went wrong: ${e}`);
     }

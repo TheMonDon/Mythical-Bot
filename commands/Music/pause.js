@@ -19,7 +19,9 @@ class Pause extends Command {
     if (msg.guild.members.me.voice.channel && msg.member.voice.channel.id !== msg.guild.members.me.voice.channel.id)
       return msg.channel.send('You must be in the same voice channel as the bot.');
 
-    queue.node.setPaused(!queue.node.isPaused()); // isPaused() returns true if that player is already paused
+    if (!queue || !queue.node) return msg.channel.send('No music is currently playing.');
+
+    queue.node.setPaused(!queue.node.isPaused());
     return msg.channel.send(`Music has been ${queue.node.isPaused() ? 'paused' : 'resumed'}`);
   }
 }
