@@ -27,6 +27,7 @@ class Help extends Command {
       'minecraft',
       'music',
       'nsfw',
+      'playlists',
       'search',
       'tickets',
     ];
@@ -48,6 +49,7 @@ class Help extends Command {
       giveaway: 'giveaways',
       image: 'images',
       info: 'information',
+      playlist: 'playlists',
       ticket: 'tickets',
     };
 
