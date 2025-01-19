@@ -1,4 +1,3 @@
-import { useMainPlayer } from 'discord-player';
 import { EmbedBuilder } from 'discord.js';
 import { QuickDB } from 'quick.db';
 const db = new QuickDB();
@@ -81,37 +80,7 @@ export async function run(client, interaction) {
   }
 
   if (interaction.isAutocomplete()) {
-    if (interaction.commandName !== 'music') {
-      return;
-    }
-
-    try {
-      const song = interaction.options.getString('song');
-      if (!song || song.trim().length === 0) {
-        return interaction.respond([]);
-      }
-
-      const player = useMainPlayer();
-
-      const data = await player.search(song, { requestedBy: interaction.user });
-
-      if (!data.hasTracks()) {
-        return interaction.respond([]);
-      }
-
-      const results = data.tracks
-        .filter((track) => track.url.length < 100)
-        .slice(0, 10)
-        .map((track) => ({
-          name: track.title.slice(0, 100),
-          value: track.url,
-        }));
-
-      return interaction.respond(results);
-    } catch (error) {
-      client.logger.error('Error handling autocomplete:', error);
-
-      return interaction.respond([]);
-    }
+    const slashCommand = client.slashCommands.get(interaction.commandName);
+    await slashCommand.autoComplete(interaction);
   }
 }

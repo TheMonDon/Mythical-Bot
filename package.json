@@ -1,6 +1,6 @@
 {
   "name": "mythical",
-  "version": "5.6.2",
+  "version": "5.6.3",
   "description": "Mythical Bot",
   "owner": "themondon",
   "main": "index.js",
@@ -63,6 +63,7 @@
     "tictactoe-minimax-ai": "github:lukechu10/tictactoe-minimax",
     "trev-reborn": "^1.2.0",
     "undici": "^5.28.4",
+    "uuid": "^11.0.5",
     "youtube-sr": "^4.3.4"
   },
   "devDependencies": {

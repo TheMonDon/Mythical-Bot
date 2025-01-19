@@ -16,6 +16,7 @@ class UserInfo extends Command {
 
   async run(msg, args) {
     let infoMem;
+    let fetchedUser;
 
     if (args?.length > 0) {
       // Try to fetch the member from the provided text
@@ -27,7 +28,8 @@ class UserInfo extends Command {
       const findId = args?.join(' ').toLowerCase().replace(/<@|>/g, '');
       if (findId) {
         try {
-          infoMem = await this.client.users.fetch(findId, { force: true });
+          fetchedUser = await this.client.users.fetch(findId, { force: true });
+          infoMem = fetchedUser;
         } catch (_) {}
       }
     }
@@ -38,7 +40,9 @@ class UserInfo extends Command {
     }
 
     // Get the user object
-    const fetchedUser = infoMem.user || infoMem;
+    if (!fetchedUser) {
+      fetchedUser = await this.client.users.fetch(infoMem.user?.id || infoMem.id, { force: true });
+    }
 
     // User Flags / Badges
     const flags = {

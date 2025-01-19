@@ -32,7 +32,7 @@ class Inventory extends Command {
     mem = mem.user ? mem.user : mem;
 
     const userInventory = (await db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.inventory`)) || [];
-    const itemsPerPage = 10; // Number of items per page
+    const itemsPerPage = 10;
     const maxPages = Math.ceil(userInventory.length / itemsPerPage) || 1;
 
     // Ensure page is within valid range

@@ -77,6 +77,35 @@ exports.commandData = new SlashCommandBuilder()
       ),
   );
 
+exports.autoComplete = async (interaction) => {
+  try {
+    const song = interaction.options.getString('song');
+    if (!song || song.trim().length === 0) {
+      return interaction.respond([]).catch(() => {});
+    }
+
+    const player = useMainPlayer();
+
+    const data = await player.search(song, { requestedBy: interaction.user });
+
+    if (!data.hasTracks()) {
+      return interaction.respond([]).catch(() => {});
+    }
+
+    const results = data.tracks
+      .filter((track) => track.url.length < 100)
+      .slice(0, 10)
+      .map((track) => ({
+        name: track.title.slice(0, 100),
+        value: track.url,
+      }));
+
+    return interaction.respond(results).catch(() => {});
+  } catch (error) {
+    return interaction.respond([]).catch(() => {});
+  }
+};
+
 exports.run = async (interaction) => {
   await interaction.deferReply();
   const queue = useQueue(interaction.guild.id);
@@ -87,13 +116,15 @@ exports.run = async (interaction) => {
     case 'back': {
       const history = useHistory(interaction.guild.id);
 
-      if (!interaction.member.voice.channel)
+      if (!interaction.member.voice.channel) {
         return interaction.editReply('You must be in a voice channel to skip music.');
+      }
       if (
         interaction.guild.members.me.voice.channel &&
         interaction.member.voice.channel.id !== interaction.guild.members.me.voice.channel.id
-      )
+      ) {
         return interaction.editReply('You must be in the same voice channel as the bot.');
+      }
       if (!queue.node.isPlaying()) return interaction.editReply('There is nothing playing.');
 
       await history.previous();
@@ -113,8 +144,9 @@ exports.run = async (interaction) => {
       if (
         interaction.guild.members.me.voice.channel &&
         interaction.member.voice.channel.id !== interaction.guild.members.me.voice.channel.id
-      )
+      ) {
         return interaction.editReply('You must be in the same voice channel as the bot.');
+      }
       if (!queue) return interaction.editReply('There is nothing in the queue.');
 
       queue.delete(false);
@@ -176,8 +208,9 @@ exports.run = async (interaction) => {
       if (
         interaction.guild.members.me.voice.channel &&
         interaction.member.voice.channel.id !== interaction.guild.members.me.voice.channel.id
-      )
+      ) {
         return interaction.editReply('You must be in the same voice channel as the bot.');
+      }
 
       queue.node.setPaused(!queue.node.isPaused());
 
@@ -190,13 +223,15 @@ exports.run = async (interaction) => {
     }
 
     case 'play': {
-      if (!interaction.member.voice.channel)
+      if (!interaction.member.voice.channel) {
         return interaction.editReply('You must be in a voice channel to play music.');
+      }
       if (
         interaction.guild.members.me.voice.channel &&
         interaction.member.voice.channel.id !== interaction.guild.members.me.voice.channel.id
-      )
+      ) {
         return interaction.editReply('You have to be in the same voice channel as the bot to play music');
+      }
 
       const query = interaction.options.get('song').value;
 
@@ -214,8 +249,7 @@ exports.run = async (interaction) => {
 
         if (!track) return interaction.editReply('No tracks found.');
 
-        const interactionMessage = await interaction.editReply('Music Started');
-        return interactionMessage.delete().catch(() => {});
+        return interaction.editReply('Music Started');
       } catch (e) {
         return interaction.editReply(`Something went wrong: ${e}`);
       }
@@ -266,13 +300,15 @@ exports.run = async (interaction) => {
     case 'remove': {
       const track = interaction.options.get('track').value;
 
-      if (!interaction.member.voice.channel)
+      if (!interaction.member.voice.channel) {
         return interaction.editReply('You must be in a voice channel to modify the queue.');
+      }
       if (
         interaction.guild.members.me.voice.channel &&
         interaction.member.voice.channel.id !== interaction.guild.members.me.voice.channel.id
-      )
+      ) {
         return interaction.editReply('You must be in the same voice channel as the bot.');
+      }
 
       if (!queue) return interaction.editReply('The queue is empty.');
       if (!queue.isPlaying()) return interaction.editReply('There is nothing playing.');
@@ -298,13 +334,15 @@ exports.run = async (interaction) => {
     case 'repeat': {
       const type = interaction.options.get('type').value;
 
-      if (!interaction.member.voice.channel)
+      if (!interaction.member.voice.channel) {
         return interaction.editReply('You must be in a voice channel to loop music.');
+      }
       if (
         interaction.guild.members.me.voice.channel &&
         interaction.member.voice.channel.id !== interaction.guild.members.me.voice.channel.id
-      )
+      ) {
         return interaction.editReply('You must be in the same voice channel as the bot.');
+      }
       if (!queue) return interaction.editReply('There is nothing in the queue.');
 
       switch (type) {
@@ -333,13 +371,15 @@ exports.run = async (interaction) => {
     }
 
     case 'resume': {
-      if (!interaction.member.voice.channel)
+      if (!interaction.member.voice.channel) {
         return interaction.editReply('You must be in a voice channel to resume music.');
+      }
       if (
         interaction.guild.members.me.voice.channel &&
         interaction.member.voice.channel.id !== interaction.guild.members.me.voice.channel.id
-      )
+      ) {
         return interaction.editReply('You must be in the same voice channel as the bot.');
+      }
 
       queue.node.setPaused(!queue.node.isPaused());
 
@@ -352,13 +392,15 @@ exports.run = async (interaction) => {
     }
 
     case 'shuffle': {
-      if (!interaction.member.voice.channel)
+      if (!interaction.member.voice.channel) {
         return interaction.editReply('You must be in a voice channel to shuffle the queue.');
+      }
       if (
         interaction.guild.members.me.voice.channel &&
         interaction.member.voice.channel.id !== interaction.guild.members.me.voice.channel.id
-      )
+      ) {
         return interaction.editReply('You must be in the same voice channel as the bot.');
+      }
 
       if (!queue) return interaction.editReply('There is nothing in the queue.');
 
@@ -373,13 +415,15 @@ exports.run = async (interaction) => {
     }
 
     case 'skip': {
-      if (!interaction.member.voice.channel)
+      if (!interaction.member.voice.channel) {
         return interaction.editReply('You must be in a voice channel to skip music.');
+      }
       if (
         interaction.guild.members.me.voice.channel &&
         interaction.member.voice.channel.id !== interaction.guild.members.me.voice.channel.id
-      )
+      ) {
         return interaction.editReply('You must be in the same voice channel as the bot.');
+      }
       if (!queue) return interaction.editReply('There is nothing playing.');
 
       const song = queue.currentTrack;
@@ -394,13 +438,15 @@ exports.run = async (interaction) => {
     }
 
     case 'stop': {
-      if (!interaction.member.voice.channel)
+      if (!interaction.member.voice.channel) {
         return interaction.editReply('You must be in a voice channel to stop music.');
+      }
       if (
         interaction.guild.members.me.voice.channel &&
         interaction.member.voice.channel.id !== interaction.guild.members.me.voice.channel.id
-      )
+      ) {
         return interaction.editReply('You must be in the same voice channel as the bot.');
+      }
 
       if (!queue) return interaction.editReply('There was nothing playing.');
 
@@ -415,13 +461,15 @@ exports.run = async (interaction) => {
     }
 
     case 'volume': {
-      if (!interaction.member.voice.channel)
+      if (!interaction.member.voice.channel) {
         return interaction.editReply('You must be in a voice channel to change the volume.');
+      }
       if (
         interaction.guild.members.me.voice.channel &&
         interaction.member.voice.channel.id !== interaction.guild.members.me.voice.channel.id
-      )
+      ) {
         return interaction.editReply('You must be in the same voice channel as the bot.');
+      }
       if (!queue.node.isPlaying()) return interaction.editReply('There is nothing playing.');
 
       const volume = interaction.options.get('level').value;

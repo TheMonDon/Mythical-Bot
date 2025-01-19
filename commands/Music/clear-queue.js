@@ -22,7 +22,7 @@ class ClearQueue extends Command {
       return msg.channel.send('You must be in the same voice channel as the bot.');
     if (!queue) return msg.channel.send('There is nothing in the queue.');
 
-    queue.delete(false);
+    queue.clear();
 
     const em = new EmbedBuilder().setDescription(':recycle: The music queue has been cleared!');
     return msg.channel.send({ embeds: [em] });
