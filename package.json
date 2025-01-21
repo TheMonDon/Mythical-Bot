@@ -62,7 +62,7 @@
     "superagent": "^8.0.0",
     "tictactoe-minimax-ai": "github:lukechu10/tictactoe-minimax",
     "trev-reborn": "^1.2.0",
-    "undici": "^5.28.4",
+    "undici": "^5.28.5",
     "uuid": "^11.0.5",
     "youtube-sr": "^4.3.4"
   },
