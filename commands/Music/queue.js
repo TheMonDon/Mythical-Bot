@@ -26,7 +26,14 @@ class Queue extends Command {
     if (isNaN(page)) return msg.channel.send('Please input a valid number.');
 
     let realPage = page;
-    let q = queue.tracks.map((track, i) => `**${i + 1}.** ${track.title}`);
+    let q = queue.tracks.map((track, i) => {
+      const spotifySong = track.queryType === 'spotifySong';
+      if (spotifySong) {
+        return `**${i + 1}.** ${track.title} - ${track.author}`;
+      } else {
+        return `**${i + 1}.** ${track.title}`;
+      }
+    });
     const maxPages = Math.max(Math.ceil(q.length / 25), 1); // Ensure maxPages is at least 1
 
     let temp = q.slice((page - 1) * 25, page * 25);
