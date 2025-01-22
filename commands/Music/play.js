@@ -39,7 +39,7 @@ class Play extends Command {
 
       if (!track) return msg.channel.send('No tracks found.');
     } catch (e) {
-      return msg.channel.send(`Something went wrong: ${e}`);
+      return msg.channel.send(`Something went wrong: \`${e}\``);
     }
   }
 }

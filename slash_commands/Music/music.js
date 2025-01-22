@@ -240,7 +240,7 @@ exports.run = async (interaction) => {
           requestedBy: interaction.user,
           nodeOptions: {
             metadata: interaction,
-            selfDead: true,
+            selfDeaf: true,
             leaveOnStop: true,
             leaveOnEnd: false,
             leaveOnEmpty: false,
@@ -251,7 +251,7 @@ exports.run = async (interaction) => {
 
         return interaction.editReply('Music Started');
       } catch (e) {
-        return interaction.editReply(`Something went wrong: ${e}`);
+        return interaction.editReply(`Something went wrong: \`${e}\``);
       }
     }
 

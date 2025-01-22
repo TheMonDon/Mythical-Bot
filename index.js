@@ -312,7 +312,9 @@ const loadMusic = async () => {
     .on('error', (queue, error) => {
       queue.metadata.channel.send(`Something went wrong: ${error}`);
     });
-  // .on('debug', (queue, message) => console.log(`[DEBUG ${queue.guild.id}] ${message}`));
+
+  // Enable when you need to debug discord-player
+  // player.on('debug', console.log).events.on('debug', (queue, msg) => console.log(`[${queue.guild.name}] ${msg}`));
 };
 
 const init = async function init() {
