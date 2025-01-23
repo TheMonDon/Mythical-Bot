@@ -81,6 +81,7 @@ export async function run(client, interaction) {
 
   if (interaction.isAutocomplete()) {
     const slashCommand = client.slashCommands.get(interaction.commandName);
+    if (!slashCommand) return;
     await slashCommand.autoComplete(interaction);
   }
 }

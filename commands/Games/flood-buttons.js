@@ -195,7 +195,7 @@ Filling starts at the top left corner.`,
 
     try {
       const embed = await getContent();
-      message = await msg.channel.send({ embeds: [embed], components: getButtons(gameOver) });
+      message = await msg.channel.send({ embeds: [embed], components: getButtons(gameOver) }).catch(console.error);
 
       while (!gameOver && turn < moves) {
         const current = gameBoard[0];
@@ -211,7 +211,7 @@ Filling starts at the top left corner.`,
             filter: (i) => i.deferUpdate(),
             time: 60_000,
           })
-          .catch(() => {});
+          .catch(console.error);
 
         if (!collected) {
           gameOver = true;
@@ -219,12 +219,12 @@ Filling starts at the top left corner.`,
           this.client.games.delete(msg.channel.id);
           const embed = await getContent();
 
-          return message.edit({ embeds: [embed], components: getButtons(gameOver) });
+          return message.edit({ embeds: [embed], components: getButtons(gameOver) }).catch(console.error);
         }
 
         const interactionUser = collected.user;
         if (interactionUser.id !== msg.author.id) {
-          await collected.editReply({ content: `These buttons aren't for you!`, ephemeral: true }).catch(() => {});
+          await collected.editReply({ content: `These buttons aren't for you!`, ephemeral: true }).catch(console.error);
           continue;
         }
 
@@ -237,12 +237,14 @@ Filling starts at the top left corner.`,
           this.client.games.delete(msg.channel.id);
           const embed = await getContent();
 
-          return collected.editReply({ embeds: [embed], components: getButtons(gameOver) });
+          return collected.editReply({ embeds: [embed], components: getButtons(gameOver) }).catch(console.error);
         } else if (selected === lastMove) {
-          await collected.editReply({
-            content: "You can't flood with the same color twice in a row!",
-            ephemeral: true,
-          });
+          await collected
+            .editReply({
+              content: "You can't flood with the same color twice in a row!",
+              ephemeral: true,
+            })
+            .catch(console.error);
           continue;
         }
 
@@ -294,7 +296,7 @@ Filling starts at the top left corner.`,
         this.client.games.delete(msg.channel.id);
         const embed = await getContent();
 
-        return collected.editReply({ embeds: [embed], components: getButtons(gameOver) });
+        return collected.editReply({ embeds: [embed], components: getButtons(gameOver) }).catch(console.error);
       }
 
       if (turn >= moves) {
@@ -303,7 +305,7 @@ Filling starts at the top left corner.`,
         result = 'maxTurns';
         const embed = await getContent();
 
-        return collected.editReply({ embeds: [embed], components: getButtons(gameOver) });
+        return collected.editReply({ embeds: [embed], components: getButtons(gameOver) }).catch(console.error);
       }
 
       this.client.games.delete(msg.channel.id);
@@ -315,7 +317,7 @@ Filling starts at the top left corner.`,
       result = 'error';
       const embed = await getContent();
 
-      return message.edit({ embeds: [embed], components: getButtons(gameOver) });
+      return message.edit({ embeds: [embed], components: getButtons(gameOver) }).catch(console.error);
     }
   }
 }
