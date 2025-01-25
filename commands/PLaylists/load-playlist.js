@@ -34,6 +34,10 @@ class LoadPlaylist extends Command {
       return msg.channel.send("You don't have a playlist with that name.");
     }
 
+    if (!msg.member.voice?.channel) {
+      return msg.channel.send('You must be in a voice channel to use this command.');
+    }
+
     const playlist = player.createPlaylist({
       author: {
         name: msg.author.tag,

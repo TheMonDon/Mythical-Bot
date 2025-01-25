@@ -46,10 +46,8 @@ class SavePlaylist extends Command {
       return msg.channel.send('The queue is empty, nothing to save.');
     }
 
-    const playlistID = uuidv4();
-
     const newPlaylist = {
-      id: playlistID,
+      id: uuidv4(),
       name: playlistName,
       createdAt: new Date().toISOString(),
       tracks: serializedTracks,
