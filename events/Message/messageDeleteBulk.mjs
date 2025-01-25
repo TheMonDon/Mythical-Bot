@@ -34,7 +34,7 @@ export async function run(client, messages) {
       '0',
     )} ${date.getUTCFullYear()}]`;
 
-    const formattedAuthor = `(${message.author.tag} - ${message.author.id})`;
+    const formattedAuthor = `(${message.author?.tag} - ${message.author?.id})`;
     const formattedID = `[${message.id}]`;
     output.push(`${formattedDate} ${formattedAuthor} ${formattedID}: `);
 

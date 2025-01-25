@@ -45,7 +45,6 @@ class FloodButtons extends Command {
     let message;
     let gameEnd;
     let result;
-    let collected;
 
     const current = this.client.games.get(msg.channel.id);
     if (current) {
@@ -193,131 +192,131 @@ Filling starts at the top left corner.`,
       return [row1, row2];
     }
 
+    function checkWinCondition(selected) {
+      for (let y = 0; y < HEIGHT; y++) {
+        for (let x = 0; x < WIDTH; x++) {
+          if (gameBoard[y * WIDTH + x] !== selected) {
+            return false;
+          }
+        }
+      }
+      return true;
+    }
+
+    function floodFill(selected) {
+      const current = gameBoard[0];
+      const queue = [{ x: 0, y: 0 }];
+      const visited = [];
+
+      while (queue.length > 0) {
+        const pos = queue.shift();
+        if (!pos || visited.some((v) => v.x === pos.x && v.y === pos.y)) {
+          continue;
+        }
+        visited.push(pos);
+        if (gameBoard[pos.y * WIDTH + pos.x] === current) {
+          gameBoard[pos.y * WIDTH + pos.x] = selected;
+          const positions = [
+            { pos: up(pos), valid: (pos) => pos.y >= 0 },
+            { pos: down(pos), valid: (pos) => pos.y < HEIGHT },
+            { pos: left(pos), valid: (pos) => pos.x >= 0 },
+            { pos: right(pos), valid: (pos) => pos.x < WIDTH },
+          ];
+
+          for (const { pos: newPos, valid } of positions) {
+            if (valid(newPos) && !visited.some((v) => v.x === newPos.x && v.y === newPos.y)) {
+              queue.push(newPos);
+            }
+          }
+        }
+      }
+    }
+
     try {
       const embed = await getContent();
-      message = await msg.channel.send({ embeds: [embed], components: getButtons(gameOver) }).catch(console.error);
+      message = await msg.channel.send({ embeds: [embed], components: getButtons(gameOver) });
 
-      while (!gameOver && turn < moves) {
-        const current = gameBoard[0];
-        const queue = [{ x: 0, y: 0 }];
-        const visited = [];
-        let selected = null;
+      const collector = message.createMessageComponentCollector({
+        filter: (i) => i.user.id === msg.author.id,
+        time: 300_000,
+        idle: 60_000,
+      });
 
-        const embed = await getContent();
-        message.edit({ embeds: [embed] });
+      collector.on('collect', async (interaction) => {
+        try {
+          await interaction.deferUpdate();
 
-        collected = await message
-          .awaitMessageComponent({
-            filter: (i) => i.deferUpdate(),
-            time: 60_000,
-          })
-          .catch(console.error);
+          const selected = nameToEmoji[interaction.customId];
 
-        if (!collected) {
-          gameOver = true;
-          result = 'timeOut';
-          this.client.games.delete(msg.channel.id);
-          const embed = await getContent();
+          if (selected === '🛑') {
+            gameOver = true;
+            result = 'earlyEnd';
+            collector.stop();
+            return;
+          }
 
-          return message.edit({ embeds: [embed], components: getButtons(gameOver) }).catch(console.error);
-        }
-
-        const interactionUser = collected.user;
-        if (interactionUser.id !== msg.author.id) {
-          await collected.editReply({ content: `These buttons aren't for you!`, ephemeral: true }).catch(console.error);
-          continue;
-        }
-
-        const customId = collected.customId;
-        selected = nameToEmoji[customId];
-
-        if (selected === '🛑') {
-          gameOver = true;
-          result = 'earlyEnd';
-          this.client.games.delete(msg.channel.id);
-          const embed = await getContent();
-
-          return collected.editReply({ embeds: [embed], components: getButtons(gameOver) }).catch(console.error);
-        } else if (selected === lastMove) {
-          await collected
-            .editReply({
+          if (selected === lastMove) {
+            await interaction.followUp({
               content: "You can't flood with the same color twice in a row!",
               ephemeral: true,
-            })
-            .catch(console.error);
-          continue;
-        }
-
-        lastMove = selected;
-        turn += 1;
-
-        while (queue.length > 0) {
-          const pos = queue.shift();
-          if (!pos || visited.includes(pos)) {
-            continue;
+            });
+            return;
           }
-          visited.push(pos);
-          if (gameBoard[pos.y * WIDTH + pos.x] === current) {
-            gameBoard[pos.y * WIDTH + pos.x] = selected;
-            const upPos = up(pos);
-            if (!visited.includes(upPos) && upPos.y >= 0) {
-              queue.push(upPos);
-            }
-            const downPos = down(pos);
-            if (!visited.includes(downPos) && downPos.y < HEIGHT) {
-              queue.push(downPos);
-            }
-            const leftPos = left(pos);
-            if (!visited.includes(leftPos) && leftPos.x >= 0) {
-              queue.push(leftPos);
-            }
-            const rightPos = right(pos);
-            if (!visited.includes(rightPos) && rightPos.x < WIDTH) {
-              queue.push(rightPos);
-            }
+
+          lastMove = selected;
+          turn++;
+
+          floodFill(selected);
+
+          if (checkWinCondition(selected)) {
+            gameOver = true;
+            result = 'winner';
+            gameEnd = Date.now();
+            collector.stop();
+            return;
           }
-        }
 
-        gameOver = true;
-        result = 'winner';
-        gameEnd = Date.now();
-
-        for (let y = 0; y < HEIGHT; y++) {
-          for (let x = 0; x < WIDTH; x++) {
-            if (gameBoard[y * WIDTH + x] !== selected) {
-              gameOver = false;
-              result = 'playing';
-            }
+          if (turn >= moves) {
+            gameOver = true;
+            result = 'maxTurns';
+            collector.stop();
+            return;
           }
+
+          const newEmbed = await getContent();
+          await message.edit({ embeds: [newEmbed] });
+        } catch (err) {
+          collector.stop('error');
+          this.client.logger.error(`Flood interaction error: ${err}`);
         }
-      }
+      });
 
-      if (gameOver) {
-        this.client.games.delete(msg.channel.id);
-        const embed = await getContent();
+      collector.on('end', async (collected, reason) => {
+        try {
+          this.client.games.delete(msg.channel.id);
 
-        return collected.editReply({ embeds: [embed], components: getButtons(gameOver) }).catch(console.error);
-      }
+          if (reason === 'time') {
+            gameOver = true;
+            result = 'timeOut';
+          } else if (reason === 'error') {
+            gameOver = true;
+            result = 'error';
+          }
 
-      if (turn >= moves) {
-        this.client.games.delete(msg.channel.id);
-        gameOver = true;
-        result = 'maxTurns';
-        const embed = await getContent();
-
-        return collected.editReply({ embeds: [embed], components: getButtons(gameOver) }).catch(console.error);
-      }
-
-      this.client.games.delete(msg.channel.id);
-      return msg.channel.send('Something went wrong, please try again later.');
+          gameEnd = Date.now();
+          const finalEmbed = await getContent();
+          await message.edit({ embeds: [finalEmbed], components: getButtons(true) });
+        } catch (err) {
+          this.client.logger.error(`Flood cleanup error: ${err}`);
+        }
+      });
     } catch (err) {
       this.client.games.delete(msg.channel.id);
       this.client.logger.error(`Flood: ${err}`);
       gameOver = true;
       result = 'error';
       const embed = await getContent();
-
-      return message.edit({ embeds: [embed], components: getButtons(gameOver) }).catch(console.error);
+      return message?.edit({ embeds: [embed], components: getButtons(gameOver) }).catch(() => {});
     }
   }
 }
