@@ -1,5 +1,5 @@
 const Command = require('../../base/Command.js');
-const { EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder } = require('discord.js');
+const { EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, MessageFlags } = require('discord.js');
 const { QuickDB } = require('quick.db');
 const { Duration } = require('luxon');
 const db = new QuickDB();
@@ -258,7 +258,7 @@ Filling starts at the top left corner.`,
           if (selected === lastMove) {
             await interaction.followUp({
               content: "You can't flood with the same color twice in a row!",
-              ephemeral: true,
+              flags: MessageFlags.Ephemeral,
             });
             return;
           }

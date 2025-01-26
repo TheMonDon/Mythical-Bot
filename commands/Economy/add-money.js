@@ -31,10 +31,20 @@ class AddMoney extends Command {
 
     if (args.length === 2) {
       mem = await this.client.util.getMember(msg, args[0]);
-      amount = parseInt(args[1].replace(/[^0-9].*/, '').replace(/[^0-9]/g, ''));
+      amount = parseInt(
+        args[1]
+          .replace(/\..*/, '') // Remove everything after the first period
+          .replace(/[^0-9,]/g, '') // Keep only digits and commas
+          .replace(/,/g, ''), // Remove commas
+      );
     } else {
       mem = await this.client.util.getMember(msg, args[1]);
-      amount = parseInt(args[2].replace(/[^0-9].*/, '').replace(/[^0-9]/g, ''));
+      amount = parseInt(
+        args[2]
+          .replace(/\..*/, '') // Remove everything after the first period
+          .replace(/[^0-9,]/g, '') // Keep only digits and commas
+          .replace(/,/g, ''), // Remove commas
+      );
     }
 
     if (['cash', 'bank'].includes(args[0].toLowerCase())) {

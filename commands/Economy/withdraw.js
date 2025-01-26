@@ -42,7 +42,13 @@ class Withdraw extends Command {
         return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Incorrect Usage');
       }
     }
-    amount = BigInt(amount.replace(/[^0-9].*/, '').replace(/[^0-9]/g, ''));
+
+    amount = BigInt(
+      amount
+        .replace(/\..*/, '') // Remove everything after the first period
+        .replace(/[^0-9,]/g, '') // Keep only digits and commas
+        .replace(/,/g, ''), // Remove commas
+    );
 
     if (amount < BigInt(0)) return this.client.util.errorEmbed(msg, "You can't withdraw negative amounts of money.");
     if (amount > bank)

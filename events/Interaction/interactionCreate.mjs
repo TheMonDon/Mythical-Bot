@@ -1,4 +1,4 @@
-import { EmbedBuilder } from 'discord.js';
+import { EmbedBuilder, MessageFlags } from 'discord.js';
 import { QuickDB } from 'quick.db';
 const db = new QuickDB();
 
@@ -13,7 +13,7 @@ export async function run(client, interaction) {
       .setAuthor({ name: interaction.user.tag, iconURL: interaction.user.displayAvatarURL() })
       .setColor(interaction.settings.embedErrorColor)
       .setDescription(`Sorry ${interaction.user.username}, you are currently blacklisted from using commands.`);
-    return interaction.reply({ embeds: [embed], ephemeral: true });
+    return interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
   }
 
   if (interaction.guild) {
@@ -27,7 +27,7 @@ export async function run(client, interaction) {
         .setDescription(
           `Sorry ${interaction.user.username}, you are currently blacklisted from using commands in this server.`,
         );
-      return interaction.reply({ embeds: [embed], ephemeral: true });
+      return interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
     }
   }
 
@@ -53,7 +53,7 @@ export async function run(client, interaction) {
           },
         ]);
 
-      return interaction.reply({ embeds: [embed], ephemeral: true });
+      return interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
     }
 
     try {
@@ -65,14 +65,14 @@ export async function run(client, interaction) {
         interaction
           .followUp({
             content: `There was a problem with your request.\n\`\`\`${error.message}\`\`\``,
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
           })
           .catch((e) => client.logger.error('An error occurred following up on an error', e));
       } else {
         interaction
           .editReply({
             content: `There was a problem with your request.\n\`\`\`${error.message}\`\`\``,
-            ephemeral: true,
+            flags: MessageFlags.Ephemeral,
           })
           .catch((e) => client.logger.error('An error occurred replying on an error', e));
       }

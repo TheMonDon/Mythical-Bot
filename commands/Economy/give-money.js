@@ -60,11 +60,25 @@ class GiveMoney extends Command {
       }
     }
 
-    if (parseInt(amount.replace(/[^0-9].*/, '').replace(/[^0-9]/g, '')) === Infinity) {
+    if (
+      parseInt(
+        amount
+          .replace(/\..*/, '') // Remove everything after the first period
+          .replace(/[^0-9,]/g, '') // Keep only digits and commas
+          .replace(/,/g, ''), // Remove commas
+      ) === Infinity
+    ) {
       return this.client.util.errorEmbed(msg, "You can't give Infinity money to someone", 'Invalid Amount');
     }
 
-    amount = BigInt(parseInt(amount.replace(/[^0-9].*/, '').replace(/[^0-9]/g, '')));
+    amount = BigInt(
+      parseInt(
+        amount
+          .replace(/\..*/, '') // Remove everything after the first period
+          .replace(/[^0-9,]/g, '') // Keep only digits and commas
+          .replace(/,/g, ''), // Remove commas
+      ),
+    );
 
     if (amount > authCash) {
       return this.client.util.errorEmbed(

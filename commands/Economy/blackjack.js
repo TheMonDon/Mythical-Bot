@@ -108,7 +108,12 @@ class BlackJack extends Command {
 
     const Arguments = args.join(' ').toLowerCase();
 
-    const bet = parseInt(Arguments.replace(/[^0-9].*/, '').replace(/[^0-9]/g, ''));
+    const bet = parseInt(
+      Arguments.replace(/\..*/, '') // Remove everything after the first period
+        .replace(/[^0-9,]/g, '') // Keep only digits and commas
+        .replace(/,/g, ''), // Remove commas
+    );
+
     if (bet === Infinity) {
       return this.client.util.errorEmbed(msg, "You can't bet infinity.", 'Invalid bet');
     }
