@@ -7,7 +7,7 @@ exports.conf = {
 };
 
 exports.commandData = new SlashCommandBuilder()
-  .setName('balance')
+  .setName('deposit')
   .setContexts(InteractionContextType.Guild)
   .setDescription('Check your balance')
   .addIntegerOption((option) =>
