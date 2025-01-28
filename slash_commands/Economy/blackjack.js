@@ -218,21 +218,21 @@ exports.run = async (interaction) => {
       await db.set(`servers.${interaction.guild.id}.users.${interaction.member.id}.economy.cash`, newAmount.toString());
 
       let csAmount = currencySymbol + amount.toLocaleString();
-      csAmount = this.client.util.limitStringLength(csAmount, 0, 1024);
+      csAmount = interaction.client.util.limitStringLength(csAmount, 0, 1024);
       return cardEmbed(`Result: You win ${csAmount}`);
     } else if (blackjack) {
       const newAmount = cash + amount;
       await db.set(`servers.${interaction.guild.id}.users.${interaction.member.id}.economy.cash`, newAmount.toString());
 
       let csAmount = currencySymbol + amount.toLocaleString();
-      csAmount = this.client.util.limitStringLength(csAmount, 0, 1024);
+      csAmount = interaction.client.util.limitStringLength(csAmount, 0, 1024);
       return cardEmbed(`Result: BlackJack, you win ${csAmount}`);
     } else if (bust) {
       const newAmount = cash - amount;
       await db.set(`servers.${interaction.guild.id}.users.${interaction.member.id}.economy.cash`, newAmount.toString());
 
       let csAmount = currencySymbol + amount.toLocaleString();
-      csAmount = this.client.util.limitStringLength(csAmount, 0, 1024);
+      csAmount = interaction.client.util.limitStringLength(csAmount, 0, 1024);
       return cardEmbed(`Result: Bust, you lose ${csAmount}`);
     } else if (push) {
       return cardEmbed('Result: Push, money back');

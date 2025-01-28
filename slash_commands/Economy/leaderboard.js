@@ -101,7 +101,7 @@ exports.run = async (interaction) => {
           const money = neg ? -entry.money : entry.money;
           return `**${offset + index + 1}.** ${user.tag}: ${
             entry.money < 0n ? '-' : ''
-          }${currencySymbol}${this.client.util.limitStringLength(money, 0, 150)}`;
+          }${currencySymbol}${interaction.client.util.limitStringLength(money, 0, 150)}`;
         })
         .join('\n') || 'None',
     )
