@@ -276,19 +276,23 @@ class Setup extends Command {
         embed
           .setTitle('Successfully Changed')
           .setColor(successColor)
-          .setThumbnail('https://cdn.discordapp.com/emojis/482184108555108358.png')
-          .setDescription(`Everything related to logs will be posted in ${chan} from now on.`)
+          .setThumbnail('https://i.cisn.xyz/piqe4/MovoNohA60/raw.png')
+          .setDescription(
+            `Everything related to logs will be posted in ${chan} from now on. \n\nUse ${msg.settings.prefix}help logging to see how to fine-tune the logging.`,
+          )
           .setTimestamp();
-        msg.channel.send({ embeds: [embed] });
+        await msg.channel.send({ embeds: [embed] });
       } else {
         await db.set(`servers.${msg.guild.id}.logs.logSystem`, logSystem);
         embed
           .setTitle('Successfully Set')
           .setColor(successColor)
-          .setThumbnail('https://cdn.discordapp.com/emojis/482184108555108358.png')
-          .setDescription(`Everything related to logs will be posted in ${chan}.`)
+          .setThumbnail('https://i.cisn.xyz/piqe4/MovoNohA60/raw.png')
+          .setDescription(
+            `Everything related to logs will be posted in ${chan}. \n\nUse ${msg.settings.prefix}help logging to see how to fine-tune the logging.`,
+          )
           .setTimestamp();
-        msg.channel.send({ embeds: [embed] });
+        await msg.channel.send({ embeds: [embed] });
       }
       await db.set(`servers.${msg.guild.id}.logs.channel`, chan.id);
       return;

@@ -35,7 +35,7 @@ export async function run(client, channel, newChannel) {
     catUp = true;
   } else if (channel.parent !== newChannel.parent) {
     catUp = true;
-    newCategoryName = newChannel.parent.name;
+    newCategoryName = newChannel.parent?.name || 'None';
   }
 
   const embed = new EmbedBuilder()
@@ -65,7 +65,7 @@ export async function run(client, channel, newChannel) {
 
   if (catUp)
     embed.addFields([
-      { name: 'Old Category', value: newCategoryName, inline: true },
+      { name: 'Old Category', value: channel.parent?.name || 'None', inline: true },
       { name: 'New Category', value: newCategoryName, inline: true },
     ]);
 
