@@ -17,7 +17,7 @@ exports.commandData = new SlashCommandBuilder()
 exports.run = async (interaction) => {
   await interaction.deferReply();
 
-  let amount = interaction.options.getInteger('amount');
+  let amount = BigInt(interaction.options.getInteger('amount'));
   const currencySymbol = (await db.get(`servers.${interaction.guild.id}.economy.symbol`)) || '$';
 
   const cashValue = await db.get(`servers.${interaction.guild.id}.users.${interaction.member.id}.economy.cash`);
@@ -34,9 +34,6 @@ exports.run = async (interaction) => {
 
   let csCashAmount = currencySymbol + cash.toLocaleString();
   csCashAmount = interaction.client.util.limitStringLength(csCashAmount, 0, 1024);
-
-  amount = amount.replace(/,/g, '').replace(currencySymbol, '');
-  amount = BigInt(amount.replace(/[^0-9\\.]/g, ''));
 
   if (amount < BigInt(0))
     return interaction.client.util.errorEmbed(
