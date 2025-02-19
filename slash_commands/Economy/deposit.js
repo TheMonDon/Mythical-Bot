@@ -17,7 +17,7 @@ exports.commandData = new SlashCommandBuilder()
 exports.run = async (interaction) => {
   await interaction.deferReply();
 
-  let amount = BigInt(interaction.options.getInteger('amount'));
+  const amount = BigInt(interaction.options.getInteger('amount'));
   const currencySymbol = (await db.get(`servers.${interaction.guild.id}.economy.symbol`)) || '$';
 
   const cashValue = await db.get(`servers.${interaction.guild.id}.users.${interaction.member.id}.economy.cash`);
