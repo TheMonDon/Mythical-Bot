@@ -136,11 +136,11 @@ class Purge extends Command {
           try {
             messages = await getMessages(msg.channel, Math.min(count, 100), (m) => !m.pinned, msg.id);
           } catch (e) {
-            return this.error('Unable to get messages.');
+            return console.error('Unable to get messages:', e);
           }
 
-          await deleteMessages(msg.channel, messages);
-          purged += messages.size;
+          const deletedCount = await deleteMessages(msg.channel, messages);
+          purged += deletedCount;
 
           if (progress) purgeMsg.edit(`Purging messages... ${Math.ceil((purged / total) * 100)}%`).catch(() => false);
           if (!messages.size) count = 0;

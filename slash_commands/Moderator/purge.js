@@ -202,11 +202,12 @@ exports.run = async (interaction) => {
             originalMessage.id,
           );
         } catch (e) {
-          return this.error('Unable to get messages.');
+          return console.error('Unable to get messages:', e);
         }
 
-        await deleteMessages(interaction.channel, messages);
-        purged += messages.size;
+        // Keep track of how many messages were actually deleted
+        const deletedCount = await deleteMessages(interaction.channel, messages);
+        purged += deletedCount;
 
         if (progress)
           interaction.editReply(`Purging messages... ${Math.ceil((purged / total) * 100)}%`).catch(() => false);
@@ -216,7 +217,7 @@ exports.run = async (interaction) => {
         amount -= Math.min(amount, 100);
       }
 
-      resultMessage = `purged ${purged} messages.`;
+      resultMessage = `Purged ${purged} messages.`;
       break;
     }
 
