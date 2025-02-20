@@ -20,19 +20,24 @@ class NewTicket extends Command {
       return msg.channel.send('The ticket system has not been setup in this server.');
     const { catID, logID, roleID } = await db.get(`servers.${msg.guild.id}.tickets`);
 
-    if (!msg.guild.channels.cache.get(catID))
-      return msg.channel.send('Please re-run `Setup`, the ticket category is missing.');
+    if (!msg.guild.channels.cache.get(catID)) {
+      return msg.channel.send('Please re-run `setup`, the ticket category is missing.');
+    }
 
-    if (!msg.guild.members.me.permissions.has('ManageChannels'))
+    if (!msg.guild.members.me.permissions.has('ManageChannels')) {
       return msg.channel.send('The bot is missing Manage Channels permission.');
-    if (!msg.guild.members.me.permissions.has('ManageRoles'))
+    }
+    if (!msg.guild.members.me.permissions.has('ManageRoles')) {
       return msg.channel.send('The bot is missing Manage Roles permission');
-    if (!msg.guild.members.me.permissions.has('ManageMessages'))
+    }
+    if (!msg.guild.members.me.permissions.has('ManageMessages')) {
       return msg.channel.send('The bot is missing Manage Messages permission');
+    }
 
     if (msg.channel.name.startsWith('ticket')) return msg.channel.send("You're already in a ticket, silly.");
-    if (!args || args.length < 1)
-      return msg.channel.send(`Please provide a reason. Usage: ${msg.settings.prefix}New-ticket <reason>`);
+    if (!args || args.length < 1) {
+      return msg.channel.send(`Please provide a reason. Usage: ${msg.settings.prefix}new-ticket <reason>`);
+    }
 
     const tix = await this.client.util.getTickets(msg.author.id, msg);
     if (tix.length > 2) {

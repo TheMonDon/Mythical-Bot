@@ -2,6 +2,7 @@
 /* eslint-disable no-unused-vars */
 const { EmbedBuilder, SlashCommandBuilder } = require('discord.js');
 const { inspect } = require('util');
+const { QuickDB } = require('quick.db');
 
 exports.conf = {
   permLevel: 'Bot Owner',
@@ -17,11 +18,9 @@ exports.commandData = new SlashCommandBuilder()
 exports.run = async (interaction) => {
   await interaction.deferReply();
 
-  const { QuickDB } = require('quick.db');
   const db = new QuickDB();
   const DiscordJS = require('discord.js');
   const util = interaction.client.util;
-  const config = interaction.client.config;
   let promise = false;
 
   const embed = new EmbedBuilder().setFooter({
@@ -32,7 +31,7 @@ exports.run = async (interaction) => {
   const code = (lang, code) =>
     `\`\`\`${lang}\n${String(code).slice(0, 4000) + (code.length >= 4000 ? '...' : '')}\n\`\`\``;
 
-  const query = interaction.options.get('query').value;
+  const query = interaction.options.getString('query');
 
   try {
     let evald = eval(query);

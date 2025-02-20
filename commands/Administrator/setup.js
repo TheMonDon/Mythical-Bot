@@ -1,4 +1,4 @@
-const { EmbedBuilder, ChannelType } = require('discord.js');
+const { EmbedBuilder, ChannelType, ButtonStyle, ButtonBuilder, ActionRowBuilder } = require('discord.js');
 const Command = require('../../base/Command.js');
 const { stripIndents } = require('common-tags');
 const { QuickDB } = require('quick.db');
@@ -94,7 +94,7 @@ class Setup extends Command {
       }
       await db.set(`servers.${msg.guild.id}.tickets.roleID`, role.id);
 
-      await msg.channel.send(stripIndents`Do you want to create a new ticket reaction menu? (yes/no)
+      await msg.channel.send(stripIndents`Do you want to create a ticket creation menu? (yes/no)
         You have 60 seconds.
 
         Type \`cancel\` to exit.`);
@@ -172,9 +172,7 @@ class Setup extends Command {
           },
         ];
 
-        await msg.channel.send(stripIndents`What do you want the reaction message to say?
-          Please note the reaction emoji is: 📰.
-          You have 120 seconds.`);
+        await msg.channel.send(`What do you want the ticket creation message to say? \nYou have 120 seconds.`);
 
         // This is to ask what to put inside the embed description for reaction message
         const collected3 = await msg.channel.awaitMessages({
@@ -188,18 +186,21 @@ class Setup extends Command {
           return msg.channel.send({ embeds: [errorEmbed] });
         }
 
-        const response2 = collected3.first().content.toLowerCase();
+        const response2 = collected3.first().content;
         embed.setDescription(response2);
-        const reactionChannel = await msg.guild.channels.create({
+        const button = new ButtonBuilder()
+          .setCustomId('create_ticket')
+          .setLabel('Open a Ticket')
+          .setStyle(ButtonStyle.Primary);
+        const row = new ActionRowBuilder().addComponents(button);
+
+        const ticketCreationChannel = await msg.guild.channels.create({
           name: 'new-ticket',
           type: ChannelType.GuildText,
           parent: category.id,
           permissionOverwrites: reactPerms,
         });
-        const embed1 = await reactionChannel.send({ embeds: [embed] });
-        await embed1.react('📰');
-
-        await db.set(`servers.${msg.guild.id}.tickets.reactionID`, embed1.id);
+        await ticketCreationChannel.send({ embeds: [embed], components: [row] });
       }
 
       // Do the rest of the stuff here after creating embed

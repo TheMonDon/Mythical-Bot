@@ -35,8 +35,9 @@ class forceClose extends Command {
         reason = args?.join(' ') || 'No reason specified';
       }
     } else {
-      if (!args[0])
+      if (!args[0]) {
         return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}force-close [Ticket Channel ID] [Reason]`);
+      }
       tID = args[0];
       args.shift();
       reason = args?.join(' ') || 'No reason specified';
