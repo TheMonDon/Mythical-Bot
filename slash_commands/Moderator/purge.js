@@ -42,7 +42,7 @@ exports.commandData = new SlashCommandBuilder()
       .setName('invites')
       .setDescription('Delete messages containing invites')
       .addIntegerOption((option) =>
-        option.setName('amount').setDescription(amountText).setMinValue(1).setMaxValue(1000).setRequired(true),
+        option.setName('amount').setDescription(amountText).setMinValue(1).setMaxValue(100).setRequired(true),
       ),
   )
   .addSubcommand((subcommand) =>
@@ -139,7 +139,7 @@ exports.commandData = new SlashCommandBuilder()
 exports.run = async (interaction) => {
   await interaction.deferReply();
 
-  const amount = interaction.options.getInteger('amount');
+  let amount = interaction.options.getInteger('amount') + 1;
   const subcommand = interaction.options.getSubcommand();
   const text = interaction.options.getString('text');
   const messageId = interaction.options.getString('message_id');
@@ -154,7 +154,6 @@ exports.run = async (interaction) => {
   const originalMessage = await interaction.fetchReply();
 
   async function getMessages(channel, limit, filter, before, after) {
-    limit = limit > 100 ? 100 : limit;
     return channel.messages.fetch({ limit, before, after }).then((messages) => {
       // Filter out the original interaction message
       const filteredMessages = messages.filter((m) => m.id !== originalMessage.id);
@@ -177,16 +176,54 @@ exports.run = async (interaction) => {
   let resultMessage = '';
   switch (subcommand) {
     case 'any': {
-      const messages = await getMessages(interaction.channel, amount + 1, (m) => !m.pinned);
-      const size = await deleteMessages(interaction.channel, messages);
-      resultMessage = `Successfully deleted ${size} messages.`;
+      amount = amount - 1;
+      const total = Number(amount);
+      let purged = 0;
+      const progress = amount > 100;
+
+      if (amount < 100) {
+        const filter = (element) => !element.pinned;
+        const messages = await getMessages(interaction.channel, amount, filter);
+        const size = await deleteMessages(interaction.channel, messages);
+        resultMessage = `Successfully deleted ${size} messages.`;
+        break;
+      }
+
+      const purgeText = progress ? 'Purging messages... 0%' : 'Purging messages...';
+      await interaction.editReply(purgeText);
+
+      while (amount > 0) {
+        let messages = [];
+        try {
+          messages = await getMessages(
+            interaction.channel,
+            Math.min(amount, 100),
+            (m) => !m.pinned,
+            originalMessage.id,
+          );
+        } catch (e) {
+          return this.error('Unable to get messages.');
+        }
+
+        await deleteMessages(interaction.channel, messages);
+        purged += messages.size;
+
+        if (progress)
+          interaction.editReply(`Purging messages... ${Math.ceil((purged / total) * 100)}%`).catch(() => false);
+        if (!messages.size) amount = 0;
+
+        await interaction.client.util.wait(1100);
+        amount -= Math.min(amount, 100);
+      }
+
+      resultMessage = `purged ${purged} messages.`;
       break;
     }
 
     case 'user': {
       const user = interaction.options.getUser('user');
       const filter = (m) => m.author.id === user.id;
-      const messages = await getMessages(interaction.channel, amount + 1, filter);
+      const messages = await getMessages(interaction.channel, amount, filter);
       const size = await deleteMessages(interaction.channel, messages);
       resultMessage = `Successfully deleted ${size} messages from ${user.tag}.`;
       break;
@@ -194,7 +231,7 @@ exports.run = async (interaction) => {
 
     case 'links': {
       const filter = (m) => linkRegex.test(m.content);
-      const messages = await getMessages(interaction.channel, amount + 1, filter);
+      const messages = await getMessages(interaction.channel, amount, filter);
       const size = await deleteMessages(interaction.channel, messages);
       resultMessage = `Successfully deleted ${size} messages containing links.`;
       break;
@@ -202,7 +239,7 @@ exports.run = async (interaction) => {
 
     case 'invites': {
       const filter = (m) => inviteRegex.test(m.content);
-      const messages = await getMessages(interaction.channel, amount + 1, filter);
+      const messages = await getMessages(interaction.channel, amount, filter);
       const size = await deleteMessages(interaction.channel, messages);
       resultMessage = `Successfully deleted ${size} messages containing invites.`;
       break;
@@ -210,7 +247,7 @@ exports.run = async (interaction) => {
 
     case 'match': {
       const filter = (m) => m.content.toLowerCase().includes(text.toLowerCase());
-      const messages = await getMessages(interaction.channel, amount + 1, filter);
+      const messages = await getMessages(interaction.channel, amount, filter);
       const size = await deleteMessages(interaction.channel, messages);
       resultMessage = `Successfully deleted ${size} messages containing "${text}".`;
       break;
@@ -218,7 +255,7 @@ exports.run = async (interaction) => {
 
     case 'not': {
       const filter = (m) => !m.content.toLowerCase().includes(text.toLowerCase());
-      const messages = await getMessages(interaction.channel, amount + 1, filter);
+      const messages = await getMessages(interaction.channel, amount, filter);
       const size = await deleteMessages(interaction.channel, messages);
       resultMessage = `Successfully deleted ${size} messages not containing "${text}".`;
       break;
@@ -226,7 +263,7 @@ exports.run = async (interaction) => {
 
     case 'startswith': {
       const filter = (m) => m.content.toLowerCase().startsWith(text.toLowerCase());
-      const messages = await getMessages(interaction.channel, amount + 1, filter);
+      const messages = await getMessages(interaction.channel, amount, filter);
       const size = await deleteMessages(interaction.channel, messages);
       resultMessage = `Successfully deleted ${size} messages starting with "${text}".`;
       break;
@@ -234,7 +271,7 @@ exports.run = async (interaction) => {
 
     case 'endswith': {
       const filter = (m) => m.content.toLowerCase().endsWith(text.toLowerCase());
-      const messages = await getMessages(interaction.channel, amount + 1, filter);
+      const messages = await getMessages(interaction.channel, amount, filter);
       const size = await deleteMessages(interaction.channel, messages);
       resultMessage = `Successfully deleted ${size} messages ending with "${text}".`;
       break;
@@ -242,7 +279,7 @@ exports.run = async (interaction) => {
 
     case 'bots': {
       const filter = (m) => m.author.bot;
-      const messages = await getMessages(interaction.channel, amount + 1, filter);
+      const messages = await getMessages(interaction.channel, amount, filter);
       const size = await deleteMessages(interaction.channel, messages);
       resultMessage = `Successfully deleted ${size} messages from bots.`;
       break;
@@ -250,7 +287,7 @@ exports.run = async (interaction) => {
 
     case 'humans': {
       const filter = (m) => !m.author.bot;
-      const messages = await getMessages(interaction.channel, amount + 1, filter);
+      const messages = await getMessages(interaction.channel, amount, filter);
       const size = await deleteMessages(interaction.channel, messages);
       resultMessage = `Successfully deleted ${size} messages from humans.`;
       break;
@@ -258,21 +295,21 @@ exports.run = async (interaction) => {
 
     case 'images': {
       const filter = (m) => m.attachments.size > 0;
-      const messages = await getMessages(interaction.channel, amount + 1, filter);
+      const messages = await getMessages(interaction.channel, amount, filter);
       const size = await deleteMessages(interaction.channel, messages);
       resultMessage = `Successfully deleted ${size} messages containing images.`;
       break;
     }
 
     case 'after': {
-      const messages = await getMessages(interaction.channel, amount + 1, null, null, messageId);
+      const messages = await getMessages(interaction.channel, amount, null, null, messageId);
       const size = await deleteMessages(interaction.channel, messages);
       resultMessage = `Successfully deleted ${size} messages after ${messageId}.`;
       break;
     }
 
     case 'before': {
-      const messages = await getMessages(interaction.channel, amount + 1, null, messageId);
+      const messages = await getMessages(interaction.channel, amount, null, messageId);
       const size = await deleteMessages(interaction.channel, messages);
       resultMessage = `Successfully deleted ${size} messages before ${messageId}.`;
       break;
@@ -280,7 +317,7 @@ exports.run = async (interaction) => {
 
     case 'mentions': {
       const filter = (m) => m.mentions.users.size > 0;
-      const messages = await getMessages(interaction.channel, amount + 1, filter);
+      const messages = await getMessages(interaction.channel, amount, filter);
       const size = await deleteMessages(interaction.channel, messages);
       resultMessage = `Successfully deleted ${size} messages containing mentions.`;
       break;

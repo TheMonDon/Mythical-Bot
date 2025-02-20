@@ -82,7 +82,8 @@ class Purge extends Command {
         .bulkDelete(messages, true)
         .then((messages) => messages.size)
         .catch((err) => {
-          return this.client.util.errorEmbed(msg, err);
+          console.error(err);
+          return 0;
         });
     }
 
@@ -124,7 +125,7 @@ class Purge extends Command {
           const filter = (element) => !element.pinned;
           const messages = await getMessages(msg.channel, count, filter);
           const size = await deleteMessages(msg.channel, messages);
-          return msg.channel.send(`Successfully deleted ${size} messages in current channel.`);
+          return msg.channel.send(`Successfully deleted ${size} messages.`);
         }
 
         const purgeText = progress ? 'Purging messages... 0%' : 'Purging messages...';
