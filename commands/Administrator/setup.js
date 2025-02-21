@@ -1,4 +1,12 @@
-const { EmbedBuilder, ChannelType, ButtonStyle, ButtonBuilder, ActionRowBuilder } = require('discord.js');
+const {
+  EmbedBuilder,
+  ChannelType,
+  ButtonStyle,
+  ButtonBuilder,
+  ActionRowBuilder,
+  ChannelSelectMenuBuilder,
+  ComponentType,
+} = require('discord.js');
 const Command = require('../../base/Command.js');
 const { stripIndents } = require('common-tags');
 const { QuickDB } = require('quick.db');
@@ -42,24 +50,336 @@ class Setup extends Command {
       }
 
       // Check if the system is setup already
-      if (await db.get(`servers.${msg.guild.id}.tickets`)) {
-        const { catID } = await db.get(`servers.${msg.guild.id}.tickets`);
+      const ticketData = await db.get(`servers.${msg.guild.id}.tickets`);
+      if (ticketData) {
+        const { catID, roleID } = await db.get(`servers.${msg.guild.id}.tickets`);
         if (catID) {
-          // Alert them of what happens
-          await msg.channel
-            .send(stripIndents`The ticket system has already been setup in this server. **Do you want to re-run the setup?**
-          
-          Please note, this will override the old channel categories and log channels, you will have to delete the old ones manually.
-  
-          Type \`cancel\` to exit.
-          `);
+          await msg.channel.send(stripIndents`
+            The ticket system is already set up in this server. Would you like to:
+            1️⃣ Reuse existing ticket channels and just update the menu.
+            2️⃣ Select new ticket creation and log channels.
+            3️⃣ Disable the ticket system.
+            (Reply with 1, 2, 3, or cancel)
+            `);
 
-          const collected = await this.client.util.verify(msg.channel, msg.author);
-          if (!collected) {
-            return collected.first().reply('Got it! Nothing has been changed.');
-          } else {
+          const collected = await msg.channel.awaitMessages({ filter, max: 1, time: 60000, errors: ['time'] });
+          if (!collected) return msg.channel.send('Setup cancelled due to no response.');
+
+          const choice = collected.first().content.toLowerCase();
+          if (choice === 'cancel') return msg.channel.send('Got it! Setup cancelled.');
+
+          // Disable the ticket system
+          if (choice === '3') {
             await db.delete(`servers.${msg.guild.id}.tickets`);
+            return msg.channel.send(
+              'The ticket system has been removed from the bots memory, you will need to delete the channels manually.',
+            );
           }
+
+          // Select new ticket creation and log channels
+          if (choice === '2') {
+            async function getChannelSelectionMenu(msg, placeholder, content) {
+              const menu = new ChannelSelectMenuBuilder()
+                .setCustomId('channel_select')
+                .setPlaceholder(placeholder)
+                .setMinValues(1)
+                .setMaxValues(1)
+                .addChannelTypes(ChannelType.GuildText);
+
+              const row = new ActionRowBuilder().addComponents(menu);
+              const menuMessage = await msg.channel.send({ content, components: [row] });
+
+              try {
+                const collected = await menuMessage.awaitMessageComponent({
+                  componentType: ComponentType.ChannelSelect,
+                  filter: (interaction) => interaction.user.id === msg.author.id,
+                  time: 60000,
+                });
+
+                await collected.deferUpdate();
+                await menuMessage.delete();
+                return collected.channels.first(); // Return the selected channel
+              } catch (err) {
+                await menuMessage.delete();
+                return msg.channel.send('Channel selection timed out.');
+              }
+            }
+
+            const newLoggingChannel = await getChannelSelectionMenu(
+              msg,
+              'Select the ticket creation channel',
+              'What channel do you want to use for logging?',
+            );
+
+            await db.set(`servers.${msg.guild.id}.tickets.logID`, newLoggingChannel.id);
+
+            await msg.channel.send(stripIndents`Do you want to create a ticket creation menu? (yes/no)
+              You have 60 seconds.
+      
+              Type \`cancel\` to exit.`);
+
+            const collectedCreationQuestion = await msg.channel.awaitMessages({
+              filter2,
+              max: 1,
+              time: 60000,
+              errors: ['time'],
+            });
+            if (!collectedCreationQuestion) {
+              errorEmbed.setDescription('You did not reply in time, the command has been cancelled.');
+              return msg.channel.send({ embeds: [errorEmbed] });
+            }
+            const response1 = collectedCreationQuestion.first().content.toLowerCase();
+
+            if (response1 === 'cancel') {
+              return collectedCreationQuestion.first().reply('Got it! The command has been cancelled.');
+            }
+            const ticketCreationMenu = ['yes', 'y'].includes(response1) ? 'yes' : 'no';
+
+            const catPerms = [
+              {
+                id: msg.guild.id,
+                deny: ['ViewChannel'],
+              },
+              {
+                id: msg.guild.members.me.id,
+                allow: ['ViewChannel'],
+              },
+              {
+                id: roleID,
+                allow: ['ViewChannel'],
+              },
+            ];
+
+            const logPerms = [
+              {
+                id: msg.guild.id,
+                deny: ['ViewChannel'],
+              },
+              {
+                id: msg.guild.members.me.id,
+                allow: ['ViewChannel'],
+              },
+              {
+                id: roleID,
+                allow: ['ViewChannel'],
+              },
+            ];
+
+            const category = newLoggingChannel.parent;
+            category.permissionOverwrites.set(catPerms);
+            newLoggingChannel.permissionOverwrites.set(logPerms);
+            await db.set(`servers.${msg.guild.id}.tickets.catID`, category.id);
+            await msg.channel.send(
+              'I have set the ticket channels category to the new logging channels category and updated the category and logging channel permissions.',
+            );
+
+            let newMenuChannel;
+            let oldChannelName;
+
+            // Create the ticket creation message & button
+            let renamed = false;
+            if (ticketCreationMenu === 'yes') {
+              newMenuChannel = await getChannelSelectionMenu(
+                msg,
+                'Select the ticket creation channel',
+                'What channel do you want to use for the button menu?',
+              );
+
+              const embed = new EmbedBuilder().setTitle('New Ticket').setColor(successColor);
+
+              const reactPerms = [
+                {
+                  id: msg.guild.id,
+                  allow: ['ViewChannel'],
+                  deny: ['AddReactions', 'SendMessages'],
+                },
+                {
+                  id: msg.guild.members.me.id,
+                  allow: ['AddReactions', 'SendMessages'],
+                },
+              ];
+
+              await msg.channel.send(
+                stripIndents`What do you want the ticket creation message to say?
+                The color for the menu will be the bots embed success color.
+                Users will have to click a button to open a new ticket.
+                You have 120 seconds.`,
+              );
+
+              // This is to ask what to put inside the embed description for ticket creation message
+              const collectedCreationMessage = await msg.channel.awaitMessages({
+                filter,
+                max: 1,
+                time: 120000,
+                errors: ['time'],
+              });
+              if (!collectedCreationMessage) {
+                errorEmbed.setDescription('You did not reply in time, the command has been cancelled.');
+                return msg.channel.send({ embeds: [errorEmbed] });
+              }
+
+              // Set the ticket creation menu message
+              embed.setDescription(collectedCreationMessage.first().content);
+
+              // Create the persistent button
+              const button = new ButtonBuilder()
+                .setCustomId('create_ticket')
+                .setLabel('Open a Ticket')
+                .setStyle(ButtonStyle.Primary);
+              const row = new ActionRowBuilder().addComponents(button);
+
+              newMenuChannel.permissionOverwrites.set(reactPerms);
+              if (newMenuChannel.name.toLowerCase() !== 'new-ticket') {
+                renamed = true;
+                oldChannelName = newMenuChannel.name;
+                await newMenuChannel.setName('new-ticket');
+              }
+              await newMenuChannel.send({ embeds: [embed], components: [row] });
+            }
+
+            return msg.channel.send(stripIndents`The ticket system is now fully re-functional.
+
+              New Log Channel: ${newLoggingChannel}
+              New Ticket Creation Channel: ${ticketCreationMenu === 'yes' ? newMenuChannel : 'Skipped'} ${
+                renamed === true ? `Renamed from \`${oldChannelName}\`` : ''
+              }
+              `);
+          }
+          // End of select new ticket creation and log channels
+
+          // Create new ticket menu in existing channel
+          if (choice === '1') {
+            let ticketMenuChannel = msg.guild.channels.cache.find(
+              (channel) => channel.name === 'new-ticket' && channel.parentId === catID,
+            );
+
+            if (!ticketMenuChannel) {
+              return msg.channel.send(
+                'I was unable to find a channel called `new-ticket` under the saved category ID. Please re-run setup and choose option 2.',
+              );
+            }
+
+            await msg.channel.send(
+              `I found the following channel, is this correct? (yes/no): ${ticketMenuChannel} \n\nType \`cancel\` to exit.`,
+            );
+
+            const collectedChannelQuestion = await msg.channel.awaitMessages({
+              filter2,
+              max: 1,
+              time: 60000,
+              errors: ['time'],
+            });
+            if (!collectedChannelQuestion) {
+              errorEmbed.setDescription('You did not reply in time, the command has been cancelled.');
+              return msg.channel.send({ embeds: [errorEmbed] });
+            }
+            const response1 = collectedChannelQuestion.first().content.toLowerCase();
+
+            if (response1 === 'cancel') {
+              return collectedChannelQuestion.first().reply('Got it! The command has been cancelled.');
+            }
+            const isCorrectChannel = ['yes', 'y'].includes(response1) ? 'yes' : 'no';
+
+            let renamed = false;
+            let oldChannelName;
+
+            if (isCorrectChannel === 'no') {
+              async function getChannelSelectionMenu(msg, placeholder, content) {
+                const menu = new ChannelSelectMenuBuilder()
+                  .setCustomId('channel_select')
+                  .setPlaceholder(placeholder)
+                  .setMinValues(1)
+                  .setMaxValues(1)
+                  .addChannelTypes(ChannelType.GuildText);
+
+                const row = new ActionRowBuilder().addComponents(menu);
+                const menuMessage = await msg.channel.send({ content, components: [row] });
+
+                try {
+                  const collected = await menuMessage.awaitMessageComponent({
+                    componentType: ComponentType.ChannelSelect,
+                    filter: (interaction) => interaction.user.id === msg.author.id,
+                    time: 60000,
+                  });
+
+                  await collected.deferUpdate();
+                  await menuMessage.delete();
+                  return collected.channels.first(); // Return the selected channel
+                } catch (err) {
+                  await menuMessage.delete();
+                  return msg.channel.send('Channel selection timed out.');
+                }
+              }
+
+              ticketMenuChannel = await getChannelSelectionMenu(
+                msg,
+                'Select the ticket creation channel',
+                'What channel do you want to use for ticket menu?',
+              );
+
+              if (ticketMenuChannel.name.toLowerCase() !== 'new-ticket') {
+                renamed = true;
+                oldChannelName = ticketMenuChannel.name;
+                await ticketMenuChannel.setName('new-ticket');
+              }
+            }
+
+            // collect the embed message and send the embed/button
+            const reactPerms = [
+              {
+                id: msg.guild.id,
+                allow: ['ViewChannel'],
+                deny: ['AddReactions', 'SendMessages'],
+              },
+              {
+                id: msg.guild.members.me.id,
+                allow: ['AddReactions', 'SendMessages'],
+              },
+            ];
+
+            await msg.channel.send(
+              stripIndents`What do you want the ticket creation message to say?
+              The color for the menu will be the bots embed success color.
+              Users will have to click a button to open a new ticket.
+              You have 120 seconds.`,
+            );
+
+            // This is to ask what to put inside the embed description for ticket creation message
+            const collectedCreationMessage = await msg.channel.awaitMessages({
+              filter,
+              max: 1,
+              time: 120000,
+              errors: ['time'],
+            });
+            if (!collectedCreationMessage) {
+              errorEmbed.setDescription('You did not reply in time, the command has been cancelled.');
+              return msg.channel.send({ embeds: [errorEmbed] });
+            }
+
+            // Set the ticket creation menu message
+            const embed = new EmbedBuilder()
+              .setTitle('New Ticket')
+              .setColor(successColor)
+              .setDescription(collectedCreationMessage.first().content);
+
+            // Create the persistent button
+            const button = new ButtonBuilder()
+              .setCustomId('create_ticket')
+              .setLabel('Open a Ticket')
+              .setStyle(ButtonStyle.Primary);
+            const row = new ActionRowBuilder().addComponents(button);
+
+            ticketMenuChannel.permissionOverwrites.set(reactPerms);
+            await ticketMenuChannel.send({ embeds: [embed], components: [row] });
+
+            return msg.channel.send(stripIndents`The new ticket menu has been sent to ${ticketMenuChannel}.
+              ${renamed === true ? `Renamed channel from ${oldChannelName}` : ''}
+              Please delete the old ticket menu manually.
+              `);
+          }
+          // End of creating new ticket menu in existing channel
+
+          return msg.channel.send('You selected an invalid response, please re-run the setup command.');
         }
       }
 
@@ -67,7 +387,6 @@ class Setup extends Command {
       You have 60 seconds.
 
       Type \`cancel\` to exit.`);
-      let reaction;
 
       const collected = await msg.channel.awaitMessages({
         filter,
@@ -99,23 +418,22 @@ class Setup extends Command {
 
         Type \`cancel\` to exit.`);
 
-      // This is for second question
-      const collected2 = await msg.channel.awaitMessages({
+      const collectedCreationQuestion = await msg.channel.awaitMessages({
         filter2,
         max: 1,
         time: 60000,
         errors: ['time'],
       });
-      if (!collected2) {
+      if (!collectedCreationQuestion) {
         errorEmbed.setDescription('You did not reply in time, the command has been cancelled.');
         return msg.channel.send({ embeds: [errorEmbed] });
       }
-      const response1 = collected2.first().content.toLowerCase();
+      const response1 = collectedCreationQuestion.first().content.toLowerCase();
 
       if (response1 === 'cancel') {
-        return collected2.first().reply('Got it! The command has been cancelled.');
+        return collectedCreationQuestion.first().reply('Got it! The command has been cancelled.');
       }
-      ['yes', 'y'].includes(response1) ? (reaction = 'yes') : (reaction = 'no');
+      const ticketCreationMenu = ['yes', 'y'].includes(response1) ? 'yes' : 'no';
 
       const catPerms = [
         {
@@ -155,11 +473,10 @@ class Setup extends Command {
       });
       await db.set(`servers.${msg.guild.id}.tickets.catID`, category.id);
 
-      const embed = new EmbedBuilder();
-      // Create the reaction message stuff
-      if (reaction === 'yes') {
-        embed.setTitle('New Ticket').setColor(successColor);
+      let ticketCreationChannel;
 
+      // Create the ticket creation message & button
+      if (ticketCreationMenu === 'yes') {
         const reactPerms = [
           {
             id: msg.guild.id,
@@ -172,35 +489,48 @@ class Setup extends Command {
           },
         ];
 
-        await msg.channel.send(`What do you want the ticket creation message to say? \nYou have 120 seconds.`);
+        await msg.channel.send(
+          stripIndents`What do you want the ticket creation message to say?
+          The color for the menu will be the bots embed success color.
+          Users will have to click a button to open a new ticket.
+          You have 120 seconds.`,
+        );
 
-        // This is to ask what to put inside the embed description for reaction message
-        const collected3 = await msg.channel.awaitMessages({
+        // This is to ask what to put inside the embed description for ticket creation message
+        const collectedCreationMessage = await msg.channel.awaitMessages({
           filter,
           max: 1,
           time: 120000,
           errors: ['time'],
         });
-        if (!collected3) {
+        if (!collectedCreationMessage) {
           errorEmbed.setDescription('You did not reply in time, the command has been cancelled.');
           return msg.channel.send({ embeds: [errorEmbed] });
         }
 
-        const response2 = collected3.first().content;
-        embed.setDescription(response2);
+        // Set the ticket creation menu message
+        const embed = new EmbedBuilder()
+          .setTitle('New Ticket')
+          .setColor(successColor)
+          .setDescription(collectedCreationMessage.first().content);
+
+        // Create the persistent button
         const button = new ButtonBuilder()
           .setCustomId('create_ticket')
           .setLabel('Open a Ticket')
           .setStyle(ButtonStyle.Primary);
         const row = new ActionRowBuilder().addComponents(button);
 
-        const ticketCreationChannel = await msg.guild.channels.create({
+        ticketCreationChannel = await msg.guild.channels.create({
           name: 'new-ticket',
           type: ChannelType.GuildText,
           parent: category.id,
           permissionOverwrites: reactPerms,
+          reason: 'Setting up tickets system',
         });
         await ticketCreationChannel.send({ embeds: [embed], components: [row] });
+      } else {
+        await msg.channel.send('To add a ticket menu later re-run setup and choose option 1.');
       }
 
       // Do the rest of the stuff here after creating embed
@@ -209,11 +539,15 @@ class Setup extends Command {
         type: ChannelType.GuildText,
         parent: category.id,
         permissionOverwrites: logPerms,
+        reason: 'Setting up tickets system',
       });
 
       await db.set(`servers.${msg.guild.id}.tickets.logID`, tixLog.id);
 
-      return msg.channel.send('Awesome! Everything has been setup.');
+      return msg.channel.send(stripIndents`The ticket system is now fully functional.
+
+        Log Channel: ${tixLog}
+        Ticket Creation Channel: ${ticketCreationMenu === 'yes' ? ticketCreationChannel : 'Skipped'}`);
     }
     // End of ticket setup.
 

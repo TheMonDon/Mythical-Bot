@@ -74,7 +74,7 @@ class forceClose extends Command {
 
     const userEmbed = new EmbedBuilder()
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
-      .setTitle('Ticket Closed')
+      .setTitle('Ticket Force Closed')
       .setColor('#E65DF4')
       .addFields([
         { name: 'Ticket Name', value: `${channel.name}`, inline: false },
@@ -91,7 +91,7 @@ class forceClose extends Command {
 
     const logEmbed = new EmbedBuilder()
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
-      .setTitle('Ticket Closed')
+      .setTitle('Ticket Force Closed')
       .addFields([
         { name: 'Author', value: `${tOwner} (${tOwner.id})`, inline: false },
         { name: 'Channel', value: `${channel.name}: ${channel.id}`, inline: false },
