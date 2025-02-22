@@ -78,7 +78,7 @@ function toProperCase(text) {
   if (typeof text !== 'string') {
     newText = require('util').inspect(text, { depth: 1 });
   }
-  return newText.replace(/([^\W_]+[^\s-]*) */g, (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase());
+  return newText.replace(/([^\W_]+[^\s-]*) */g, (txt) => txt.charAt(0).toUpperCase() + txt.slice(1).toLowerCase());
 }
 
 /**
@@ -106,7 +106,7 @@ function stripInvites(str, { guild = true, bot = true, text = '[redacted invite]
 
 /**
  *
- * @param {Message} context - Message or Interaction object
+ * @param {*} context - Message or Interaction object
  * @param {String} memberString - memberStringing to use to find the member
  * @returns {?GuildMember} - Returns member object or false
  */
@@ -130,19 +130,19 @@ async function getMember(context, memberString) {
 
 /**
  *
- * @param {Message} msg - Message object
+ * @param {*} context - Message or Interaction object
  * @param {String} roleString - String to use to find the role
  * @returns {?GuildRole}
  */
-function getRole(msg, roleString) {
-  if (!msg.guild || !roleString) return false;
-  if (msg.mentions.roles.first()) return msg.mentions.roles.first();
+function getRole(context, roleString) {
+  if (!context.guild || !roleString) return false;
+  if (context.mentions?.roles.first()) return context.mentions.roles.first();
 
   roleString = roleString.replace(/[<#&>]+/g, '');
   return (
-    msg.guild.roles.cache.find((r) => r.name === roleString) ||
-    msg.guild.roles.cache.find((r) => r.id === roleString) ||
-    msg.guild.roles.cache.find((r) => r.name.toLowerCase() === roleString.toLowerCase())
+    context.guild.roles.cache.find((r) => r.name === roleString) ||
+    context.guild.roles.cache.find((r) => r.id === roleString) ||
+    context.guild.roles.cache.find((r) => r.name.toLowerCase() === roleString.toLowerCase())
   );
 }
 
@@ -325,11 +325,10 @@ function randomString(length) {
 /**
  *
  * @param {userID} userID
- * @param {Message} msg
- * @returns
+ * @param {Message} context
  */
-async function getTickets(userID, msg) {
-  const tickets = await db.get(`servers.${msg.guild.id}.tickets`);
+async function getTickets(userID, context) {
+  const tickets = await db.get(`servers.${context.guild.id}.tickets`);
   const userTickets = [];
   if (tickets) {
     Object.values(tickets).forEach((val) => {
@@ -344,18 +343,24 @@ async function getTickets(userID, msg) {
 
 /**
  *
- * @param {Message} msg
+ * @param {*} context - Message or Interaction object
  * @param {String} question
  * @param {Number} limit
  */
-async function awaitReply(msg, question, time = 60000) {
-  const filter = (m) => m.author.id === msg.author.id;
+async function awaitReply(context, question, time = 60000) {
+  let filter;
+  if (context instanceof Message) {
+    filter = (m) => m.author.id === context.author.id;
+  } else {
+    filter = (i) => i.user.id === context.user.id;
+  }
+
   if (question) {
-    await msg.channel.send(question);
+    await context.channel.send(question);
   }
 
   try {
-    const collected = await msg.channel.awaitMessages({ filter, max: 1, time, errors: ['time'] });
+    const collected = await context.channel.awaitMessages({ filter, max: 1, time, errors: ['time'] });
     return collected.first().content;
   } catch (e) {
     return false;

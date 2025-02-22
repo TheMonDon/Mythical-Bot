@@ -20,19 +20,21 @@ class CloseTicket extends Command {
   async run(msg, args) {
     const reason = args.join(' ') || 'No reason specified';
 
-    if (!(await db.get(`servers.${msg.guild.id}.tickets`)))
+    if (!(await db.get(`servers.${msg.guild.id}.tickets`))) {
       return msg.channel.send('The ticket system has not been setup in this server.');
+    }
     const { logID, roleID } = await db.get(`servers.${msg.guild.id}.tickets`);
 
-    if (!msg.channel.name.startsWith('ticket'))
+    if (!msg.channel.name.startsWith('ticket')) {
       return msg.channel.send('You need to be inside the ticket you want to close.');
+    }
 
     const tName = msg.channel.name;
     const role = msg.guild.roles.cache.get(roleID);
     const owner = await db.get(`servers.${msg.guild.id}.tickets.${msg.channel.id}.owner`);
     if (owner !== msg.author.id) {
       if (!msg.member.roles.cache.some((r) => r.id === roleID)) {
-        return msg.channel.send(`You need to be the ticket owner or a member of ${role.name} to use force-close.`);
+        return msg.channel.send(`You need to be the ticket owner or a member of ${role.name} to use this command.`);
       }
     }
 
@@ -52,7 +54,7 @@ class CloseTicket extends Command {
       })
       .catch(() => null);
 
-    if (!collected || collected.first().content.toLowerCase() === '-close') {
+    if (!collected) {
       const attachment = await discordTranscripts.createTranscript(msg.channel);
       let received;
 
@@ -78,7 +80,7 @@ class CloseTicket extends Command {
         ])
         .setColor('#E65DF4')
         .setTimestamp();
-      if (received === 'no') logEmbed.setFooter({ text: 'Could not message author.' });
+      if (received === 'no') logEmbed.setFooter({ text: 'Could not message author' });
 
       await msg.guild.channels.cache
         .get(logID)

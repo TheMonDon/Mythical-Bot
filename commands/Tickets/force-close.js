@@ -51,7 +51,7 @@ class forceClose extends Command {
 
     if (!msg.channel.name.startsWith('ticket')) {
       if (owner !== msg.author.id || !msg.member.roles.cache.some((r) => r.id === roleID))
-        return msg.channel.send(`You need to be a member of ${role.name} to use force-close.`);
+        return msg.channel.send(`You need to be a member of ${role.name} to use this command.`);
 
       if (!tID && !msg.channel.name.startsWith('ticket'))
         return msg.channel.send('You need to supply the ticket channel ID.');
@@ -60,7 +60,7 @@ class forceClose extends Command {
     } else {
       if (owner !== msg.author.id) {
         if (!msg.member.roles.cache.some((r) => r.id === roleID)) {
-          return msg.channel.send(`You need to be the ticket owner or a member of ${role.name} to use force-close.`);
+          return msg.channel.send(`You need to be the ticket owner or a member of ${role.name} to use this command.`);
         }
       }
       if (!owner) return msg.channel.send('That is not a valid ticket. Please try again.');
@@ -99,7 +99,7 @@ class forceClose extends Command {
       ])
       .setColor('#E65DF4')
       .setTimestamp();
-    if (received === 'no') logEmbed.setFooter({ text: 'Could not message author.' });
+    if (received === 'no') logEmbed.setFooter({ text: 'Could not message author' });
 
     await msg.guild.channels.cache
       .get(logID)

@@ -17,7 +17,7 @@ class Setup extends Command {
     super(client, {
       name: 'setup',
       description: 'Setup the different systems of the bot',
-      usage: 'setup <logs | tickets | warns>',
+      usage: 'setup <logging | tickets | warns>',
       category: 'Administrator',
       permLevel: 'Administrator',
       aliases: ['setlogchannel', 'setupticket', 'logsetup', 'ticketsetup', 'setupwarns'],
@@ -58,8 +58,9 @@ class Setup extends Command {
             The ticket system is already set up in this server. Would you like to:
             1️⃣ Reuse existing ticket channels and just update the menu.
             2️⃣ Select new ticket creation and log channels.
-            3️⃣ Disable the ticket system.
-            (Reply with 1, 2, 3, or cancel)
+            3️⃣ Disable and delete the tickets data.
+            4️⃣ Update the max number of tickets a user can open.
+            (Reply a number or cancel)
             `);
 
           const collected = await msg.channel.awaitMessages({ filter, max: 1, time: 60000, errors: ['time'] });
@@ -67,6 +68,41 @@ class Setup extends Command {
 
           const choice = collected.first().content.toLowerCase();
           if (choice === 'cancel') return msg.channel.send('Got it! Setup cancelled.');
+
+          // Update the max number of tickets
+          if (choice === '4') {
+            // code goes here
+            await msg.channel.send(
+              'How many tickets should a user be able to open? Please respond in number form, the default is 3.',
+            );
+
+            const collectedMaxTicketsQuestion = await msg.channel.awaitMessages({
+              filter2,
+              max: 1,
+              time: 60000,
+              errors: ['time'],
+            });
+            if (!collectedMaxTicketsQuestion) {
+              errorEmbed.setDescription('You did not reply in time, the command has been cancelled.');
+              return msg.channel.send({ embeds: [errorEmbed] });
+            }
+            let ticketLimit = parseInt(collectedMaxTicketsQuestion.first().content.toLowerCase());
+
+            while (isNaN(ticketLimit)) {
+              ticketLimit = await this.client.util.awaitReply(
+                msg,
+                'How many tickets should a user be able to open? Please respond in number form, the default is 3.',
+              );
+              if (!ticketLimit) {
+                errorEmbed.setDescription('You did not reply in time, the command has been cancelled.');
+                return msg.channel.send({ embeds: [errorEmbed] });
+              }
+              ticketLimit = parseInt(ticketLimit);
+            }
+            await db.set(`servers.${msg.guild.id}.tickets.limit`, ticketLimit);
+            return msg.channel.send(`The ticket limit has been updated to ${ticketLimit}.`);
+          }
+          // End of updating max number of tickets
 
           // Disable the ticket system
           if (choice === '3') {
@@ -399,7 +435,7 @@ class Setup extends Command {
         errorEmbed.setDescription('You did not reply in time, the command has been cancelled.');
         return msg.channel.send({ embeds: [errorEmbed] });
       }
-      const response = collected.first().content.toLowerCase();
+      const response = collected.first().content;
       let role = this.client.util.getRole(msg, response);
 
       if (response.toLowerCase() === 'cancel')
@@ -545,6 +581,7 @@ class Setup extends Command {
       await db.set(`servers.${msg.guild.id}.tickets.logID`, tixLog.id);
 
       return msg.channel.send(stripIndents`The ticket system is now fully functional.
+        To change settings or disable the system re-run the setup.
 
         Log Channel: ${tixLog}
         Ticket Creation Channel: ${ticketCreationMenu === 'yes' ? ticketCreationChannel : 'Skipped'}`);
@@ -710,7 +747,7 @@ class Setup extends Command {
           name: 'Tickets',
           value: stripIndents`
           To setup the ticket system please use:
-          \`${msg.settings.prefix}Setup Ticket\``,
+          \`${msg.settings.prefix}Setup Tickets\``,
         },
         {
           name: 'Logging',

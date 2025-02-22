@@ -16,8 +16,9 @@ class NewTicket extends Command {
   }
 
   async run(msg, args) {
-    if (!(await db.get(`servers.${msg.guild.id}.tickets`)))
+    if (!(await db.get(`servers.${msg.guild.id}.tickets`))) {
       return msg.channel.send('The ticket system has not been setup in this server.');
+    }
     const { catID, logID, roleID } = await db.get(`servers.${msg.guild.id}.tickets`);
 
     if (!msg.guild.channels.cache.get(catID)) {
@@ -25,13 +26,13 @@ class NewTicket extends Command {
     }
 
     if (!msg.guild.members.me.permissions.has('ManageChannels')) {
-      return msg.channel.send('The bot is missing Manage Channels permission.');
+      return msg.channel.send('Please let a server administrator know the bot is missing Manage Channels permission.');
     }
     if (!msg.guild.members.me.permissions.has('ManageRoles')) {
-      return msg.channel.send('The bot is missing Manage Roles permission');
+      return msg.channel.send('Please let a server administrator know the bot is missing Manage Roles permission');
     }
     if (!msg.guild.members.me.permissions.has('ManageMessages')) {
-      return msg.channel.send('The bot is missing Manage Messages permission');
+      return msg.channel.send('Please let a server administrator know the bot is missing Manage Messages permission');
     }
 
     if (msg.channel.name.startsWith('ticket')) return msg.channel.send("You're already in a ticket, silly.");
@@ -39,10 +40,11 @@ class NewTicket extends Command {
       return msg.channel.send(`Please provide a reason. Usage: ${msg.settings.prefix}new-ticket <reason>`);
     }
 
-    const tix = await this.client.util.getTickets(msg.author.id, msg);
-    if (tix.length > 2) {
-      return msg.channel.send(
-        `Sorry ${msg.author}, you already have three or more tickets open. Please close one before making a new one.`,
+    const userTickets = await this.client.util.getTickets(msg.author.id, msg);
+    const ticketLimit = (await db.get(`servers.${msg.guild.id}.tickets.limit`)) || 3;
+    if (userTickets.length >= ticketLimit) {
+      return msg.reply(
+        `Sorry ${msg.member.displayName}, you already have ${userTickets.length} of ${ticketLimit} tickets open. Please close one before making a new one.`,
       );
     }
 
@@ -68,20 +70,16 @@ class NewTicket extends Command {
       },
     ];
 
-    const count = (await db.get(`servers.${msg.guild.id}.tickets.count`)) || 0;
-    await db.set(`servers.${msg.guild.id}.tickets.count`, count + 1);
-
-    let str = msg.member.displayName;
-    str = str.replace(/[^a-zA-Z\d:]/g, '');
-    if (str.length === 0) {
-      str = msg.member.user.username.replace(/[^a-zA-Z\d:]/g, '');
-      if (str.length === 0) {
-        str = (Math.random().toString(36) + '00000000000000000').slice(2, 5);
+    let channelName = msg.member.displayName;
+    channelName = channelName.replace(/[^a-zA-Z\d:]/g, '');
+    if (channelName.length === 0) {
+      channelName = msg.member.user.username.replace(/[^a-zA-Z\d:]/g, '');
+      if (channelName.length === 0) {
+        channelName = (Math.random().toString(36) + '00000000000000000').slice(2, 5);
       }
     }
 
-    str = str.toLowerCase();
-    const tName = `ticket-${str}-${count}`;
+    const tName = `ticket-${channelName}`;
     const tixChan = await msg.guild.channels.create({
       name: tName,
       type: ChannelType.GuildText,
@@ -132,13 +130,11 @@ class NewTicket extends Command {
       if (!tixChan.permissionsFor(this.client.user.id).has('MentionEveryone')) {
         role.setMentionable(true);
         tixChan.send({ content: role.toString(), embeds: [chanEmbed] });
-        role.setMentionable(false);
-      } else {
-        tixChan.send({ content: role.toString(), embeds: [chanEmbed] });
+        return role.setMentionable(false);
       }
-    } else {
-      tixChan.send({ content: role.toString(), embeds: [chanEmbed] });
     }
+
+    return tixChan.send({ content: role.toString(), embeds: [chanEmbed] });
   }
 }
 
