@@ -681,24 +681,26 @@ class Setup extends Command {
         );
       }
 
-      let channel;
       args.shift();
       let channelArg = args[0];
       let kickAmount = parseInt(args[1]);
       let banAmount = parseInt(args[2]);
 
-      channel = await this.client.util.getChannel(msg, channelArg);
+      let logChannel = await this.client.util.getChannel(msg, channelArg);
 
-      while (!channel) {
+      while (!logChannel) {
         channelArg = await this.client.util.awaitReply(
           msg,
           'That was an invalid channel. What channel do you want to setup logging in?',
         );
-        channel = await this.client.util.getChannel(msg, channelArg);
+        logChannel = await this.client.util.getChannel(msg, channelArg);
       }
 
       while (isNaN(kickAmount)) {
-        kickAmount = await this.client.util.awaitReply(msg, 'How many points should be required to kick the member?');
+        kickAmount = await this.client.util.awaitReply(
+          msg,
+          'How many points should be required to kick the member? Please respond with a number.',
+        );
         if (!kickAmount) {
           errorEmbed.setDescription('You did not reply in time, the command has been cancelled.');
           return msg.channel.send({ embeds: [errorEmbed] });
@@ -707,7 +709,10 @@ class Setup extends Command {
       }
 
       while (isNaN(banAmount)) {
-        banAmount = await this.client.util.awaitReply(msg, 'How many points should be required to ban the member?');
+        banAmount = await this.client.util.awaitReply(
+          msg,
+          'How many points should be required to ban the member? Please respond with a number.',
+        );
         if (!banAmount) {
           errorEmbed.setDescription('You did not reply in time, the command has been cancelled.');
           return msg.channel.send({ embeds: [errorEmbed] });
@@ -717,7 +722,7 @@ class Setup extends Command {
 
       await db.set(`servers.${msg.guild.id}.warns.kick`, kickAmount);
       await db.set(`servers.${msg.guild.id}.warns.ban`, banAmount);
-      await db.set(`servers.${msg.guild.id}.warns.channel`, channel.id);
+      await db.set(`servers.${msg.guild.id}.warns.channel`, logChannel.id);
 
       const em = new EmbedBuilder()
         .setTitle('Warns System Setup')
@@ -734,7 +739,7 @@ class Setup extends Command {
         .setTimestamp();
 
       await msg.channel.send({ embeds: [em] });
-      return msg.guild.channels.cache.get(channel.id).send({ embeds: [em] });
+      return msg.guild.channels.cache.get(logChannel.id).send({ embeds: [em] });
     }
     // End of the warns setup
 
@@ -758,8 +763,8 @@ class Setup extends Command {
         {
           name: 'Warns',
           value: stripIndents`
-          To setup the warns system please use:
-          \`${msg.settings.prefix}Setup Warns <channel-name> <Points for kick> <Points for ban>\``,
+          To setup the warnings system please use:
+          \`${msg.settings.prefix}Setup Warnings <channel-name> <Points for kick> <Points for ban>\``,
         },
       ])
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() });

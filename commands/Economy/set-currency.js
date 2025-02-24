@@ -24,12 +24,17 @@ class SetCurrency extends Command {
         `The currency symbol for this server is: ${oldSymbol} \nUsage: ${msg.settings.prefix}set-currency <symbol>`,
       );
 
-    if (/\d/.test(symbol)) {
+    // Remove custom emojis before checking for numbers
+    const filteredSymbol = symbol.replace(/<a?:\w+:\d+>/g, '');
+
+    if (/\d/.test(filteredSymbol)) {
       return msg.channel.send('The currency symbol cannot contain numbers.');
     }
 
-    if (symbol.length > 50) return msg.channel.send('The maximum length for the currency symbol is 50 characters.');
-    if (symbol === oldSymbol) return msg.channel.send('That is already the currency symbol.');
+    if (filteredSymbol.length > 50) {
+      return msg.channel.send('The maximum length for the currency symbol is 50 characters.');
+    }
+    if (filteredSymbol === oldSymbol) return msg.channel.send('That is already the currency symbol.');
 
     await db.set(`servers.${msg.guild.id}.economy.symbol`, symbol);
 
