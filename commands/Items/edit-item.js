@@ -281,7 +281,9 @@ class EditItem extends Command {
     }
 
     await db.set(`servers.${msg.guild.id}.economy.store`, store);
-    const timeRemainingString = item.timeRemaining ? `Deleted <t:${item.timeRemaining}:R>` : 'No time limit';
+    const timeRemainingString = item.timeRemaining
+      ? `Deleted <t:${Math.floor(item.timeRemaining / 1000)}:R>`
+      : 'No time limit';
 
     const embed = new EmbedBuilder()
       .setTitle('Item Edited')
