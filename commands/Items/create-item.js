@@ -9,26 +9,30 @@ class CreateItem extends Command {
       name: 'create-item',
       category: 'Items',
       description: 'Create an item to be shown in the store.',
-      usage: 'create-item <item name>',
-      longDescription: 'Create an item to be shown in the store. The item name will be cut off at 200 characters',
-      aliases: ['createitem'],
+      usage: 'create-item [item name]',
+      longDescription:
+        'Use this command without any arguments to be guided through every option, and type `cancel` at any point to stop. \nUse this command, with the item name, to create a "simple" item you can edit later.',
+      aliases: ['createitem', 'new-item', 'item-create'],
       permLevel: 'Administrator',
       guildOnly: true,
-      requiredArgs: 1,
     });
   }
 
   async run(msg, args) {
-    const name = args.join(' ').slice(0, 200);
+    let name = args.join(' ');
+
     const store = (await db.get(`servers.${msg.guild.id}.economy.store`)) || {};
     const botMember = msg.guild.members.cache.get(this.client.user.id);
     const filter = (m) => m.author.id === msg.author.id;
     const embed = new EmbedBuilder()
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
       .setColor(msg.settings.embedColor)
-      .addFields([{ name: 'Name', value: name, inline: true }])
       .setFooter({ text: 'Type cancel to quit.' })
       .setTimestamp();
+    let isValid = false;
+    let collected;
+    let messagesToDelete = [];
+    let number = 1;
 
     const storeSize = Object.keys(store).length;
     if (storeSize > 50) {
@@ -37,24 +41,35 @@ class CreateItem extends Command {
       );
     }
 
-    // Find the item in the store regardless of case
-    const item = Object.keys(store).find((key) => key.toLowerCase() === name.toLowerCase());
-    if (item) {
-      const noItemEmbed = new EmbedBuilder()
-        .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
-        .setColor(msg.settings.embedErrorColor)
-        .setDescription('There is already an item with that name.');
+    const findItem = function (name) {
+      // Find the item in the store regardless of case
+      const item = Object.keys(store).find((key) => key.toLowerCase() === name.toLowerCase());
+      if (item) {
+        const itemEmbed = new EmbedBuilder()
+          .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
+          .setColor(msg.settings.embedErrorColor)
+          .setDescription('There is already an item with that name.');
 
-      return msg.channel.send({ embeds: [noItemEmbed] });
+        return itemEmbed;
+      }
+      return false;
+    };
+
+    if (name) {
+      const item = findItem(name);
+      if (item) return msg.channel.send({ embeds: [item] });
+
+      return msg.channel.send('This feature is a WIP, please re-run the command without a name.');
     }
 
-    let cost;
-    let collected;
-    let isValid = false;
-    const messagesToDelete = [];
+    // Add blank name field
+    embed.addFields([{ name: 'Name', value: '​', inline: true }]);
+    const message = await msg.channel.send({
+      content: `**${number}.** What should the new item be called? \nThis name should be unique and no more than 200 characters.`,
+      embeds: [embed],
+    });
 
-    const message = await msg.channel.send({ content: '1️⃣ What would you like the price to be?', embeds: [embed] });
-
+    // Question 1: Collect the name from the user
     while (!isValid) {
       collected = await msg.channel
         .awaitMessages({
@@ -64,6 +79,54 @@ class CreateItem extends Command {
           errors: ['time'],
         })
         .catch(() => null);
+
+      if (!collected) {
+        return msg.reply('You did not reply in time, the command has been cancelled.');
+      }
+      if (collected.first().content.toLowerCase() === 'cancel') {
+        return msg.reply('The command has been cancelled.');
+      }
+
+      name = collected.first().content;
+      const item = findItem(name);
+
+      if (name.length > 200) {
+        const invalidLengthMessage = await msg.channel.send('The name must be 200 characters or less in length.');
+        messagesToDelete.push(invalidLengthMessage);
+      } else if (item) {
+        const alreadyItemMessage = await msg.channel.send('There is already an item with that name.');
+        messagesToDelete.push(alreadyItemMessage);
+      } else {
+        isValid = true;
+      }
+    }
+
+    // Since its the first field we can just use setFields
+    embed.setFields([{ name: 'Name', value: name, inline: true }]);
+    let cost;
+    isValid = false;
+    number++;
+
+    messagesToDelete = messagesToDelete.filter((delMessages) => {
+      return delMessages
+        .delete()
+        .then(() => false)
+        .catch(() => true);
+    });
+
+    await message.edit({ content: `**${number}.** What would you like the price to be?`, embeds: [embed] });
+
+    // Question 2: Collect the price from the user
+    while (!isValid) {
+      collected = await msg.channel
+        .awaitMessages({
+          filter,
+          max: 1,
+          time: 120000,
+          errors: ['time'],
+        })
+        .catch(() => null);
+
       if (!collected) {
         return msg.reply('You did not reply in time, the command has been cancelled.');
       }
@@ -75,7 +138,9 @@ class CreateItem extends Command {
         collected
           .first()
           .content.toLowerCase()
-          .replace(/[^0-9\\.]/g, ''),
+          .replace(/\..*/, '') // Remove everything after the first period
+          .replace(/[^0-9,]/g, '') // Keep only digits and commas
+          .replace(/,/g, ''), // Remove commas
       );
 
       if (isNaN(cost)) {
@@ -103,16 +168,23 @@ class CreateItem extends Command {
     const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
     const costString = currencySymbol + cost.toLocaleString();
     embed.addFields([{ name: 'Price', value: this.client.util.limitStringLength(costString, 0, 1024), inline: true }]);
-
-    await message.edit({
-      content: '2️⃣ What would you like the description to be? \nThis should be no more than 1000 characters',
-      embeds: [embed],
-    });
+    number++;
 
     isValid = false;
     let description;
-    messagesToDelete.forEach((msg) => msg.delete().catch(() => {}));
+    messagesToDelete = messagesToDelete.filter((delMessages) => {
+      return delMessages
+        .delete()
+        .then(() => false)
+        .catch(() => true);
+    });
 
+    await message.edit({
+      content: `**${number}.** What would you like the description to be? \nThis should be no more than 1000 characters`,
+      embeds: [embed],
+    });
+
+    // Question 3: Collect the description from the user
     while (!isValid) {
       collected = await msg.channel
         .awaitMessages({
@@ -139,17 +211,25 @@ class CreateItem extends Command {
         isValid = true;
       }
     }
-    embed.addFields([{ name: 'Description', value: description, inline: false }]);
 
-    await message.edit({
-      content: '3️⃣ Would you like this item to show up in inventory? (yes/no)',
-      embeds: [embed],
-    });
+    embed.addFields([{ name: 'Description', value: description, inline: false }]);
+    number++;
 
     isValid = false;
     let inventory;
-    messagesToDelete.forEach((msg) => msg.delete().catch(() => {}));
+    messagesToDelete = messagesToDelete.filter((delMessages) => {
+      return delMessages
+        .delete()
+        .then(() => false)
+        .catch(() => true);
+    });
 
+    await message.edit({
+      content: `**${number}.** Would you like this item to show up in inventory? (yes/no)`,
+      embeds: [embed],
+    });
+
+    // Question 4: Collect whether the item should show up in inventory
     while (!isValid) {
       collected = await msg.channel
         .awaitMessages({
@@ -181,17 +261,98 @@ class CreateItem extends Command {
         }
       }
     }
-    embed.addFields([{ name: 'Show in inventory?', value: inventory ? 'Yes' : 'No', inline: true }]);
+
+    embed.addFields([{ name: 'Show in Inventory?', value: inventory ? 'Yes' : 'No', inline: true }]);
+    number++;
+
+    isValid = false;
+    let timeRemaining;
+    messagesToDelete = messagesToDelete.filter((delMessages) => {
+      return delMessages
+        .delete()
+        .then(() => false)
+        .catch(() => true);
+    });
 
     await message.edit({
-      content: '4️⃣ How much stock of this item will there be? \nIf unlimited, just reply skip or infinity.',
+      content: `**${number}.** How long should this item stay in the store for? (e.g. 3 days) \nMinimum duration is 10 minutes. \nIf no limit, just reply \`skip\``,
       embeds: [embed],
     });
+    const parse = (await import('parse-duration')).default;
+
+    while (!isValid) {
+      collected = await msg.channel
+        .awaitMessages({
+          filter,
+          max: 1,
+          time: 120000,
+          errors: ['time'],
+        })
+        .catch(() => null);
+
+      if (!collected) {
+        return msg.reply('You did not reply in time, the command has been cancelled.');
+      }
+
+      const response = collected.first().content.toLowerCase().trim().replace(/,/g, '');
+      if (response === 'cancel') {
+        return collected.first().reply('The command has been cancelled.');
+      }
+      if (response === 'skip') {
+        timeRemaining = null;
+        isValid = true;
+        break;
+      }
+
+      if (/^\d+$/.test(response)) {
+        const missingUnitMessage = await msg.channel.send(
+          'Please specify a unit (e.g., `5 minutes`, `2 days`). Try again.',
+        );
+        messagesToDelete.push(missingUnitMessage);
+        continue;
+      }
+
+      const timeLimit = parse(response);
+
+      if (isNaN(timeLimit) || timeLimit === null) {
+        const invalidTimeLimitMessage = await msg.channel.send('Invalid `duration` given. Please try again.');
+        messagesToDelete.push(invalidTimeLimitMessage);
+      } else if (timeLimit < 600000) {
+        const tooShortLimitMessage = await msg.channel.send(
+          'Duration remaining cannot be less than 10 minutes. Please try again.',
+        );
+        messagesToDelete.push(tooShortLimitMessage);
+      } else if (timeLimit > 315576000000) {
+        const tooLongLimitMessage = await msg.channel.send(
+          'Duration remaining cannot be more than 10 years. Please try again or reply with `skip`.',
+        );
+        messagesToDelete.push(tooLongLimitMessage);
+      } else {
+        timeRemaining = Date.now() + timeLimit;
+        isValid = true;
+        break;
+      }
+    }
+
+    const timeString = timeRemaining ? `Deleted <t:${Math.floor(timeRemaining / 1000)}:R>` : 'No time limit';
+    embed.addFields([{ name: 'Time Remaining', value: timeString, inline: true }]);
+    number++;
 
     isValid = false;
     let stock;
-    messagesToDelete.forEach((msg) => msg.delete().catch(() => {}));
+    messagesToDelete = messagesToDelete.filter((delMessages) => {
+      return delMessages
+        .delete()
+        .then(() => false)
+        .catch(() => true);
+    });
 
+    await message.edit({
+      content: `**${number}.** How much stock of this item will there be? \nIf unlimited, just reply skip or infinity.`,
+      embeds: [embed],
+    });
+
+    // Question 6: Ask how much stock the item should have
     while (!isValid) {
       collected = await msg.channel
         .awaitMessages({
@@ -232,17 +393,23 @@ class CreateItem extends Command {
     embed.addFields([
       { name: 'Stock Remaining', value: this.client.util.limitStringLength(stockString, 0, 1024), inline: true },
     ]);
-
-    await message.edit({
-      content:
-        '5️⃣ What role must the user already have in order to buy (and use if an inventory item) this item? \nIf none, just reply `skip`.',
-      embeds: [embed],
-    });
+    number++;
 
     isValid = false;
     let roleRequired;
-    messagesToDelete.forEach((msg) => msg.delete().catch(() => {}));
+    messagesToDelete = messagesToDelete.filter((delMessages) => {
+      return delMessages
+        .delete()
+        .then(() => false)
+        .catch(() => true);
+    });
 
+    await message.edit({
+      content: `**${number}.** What role must the user already have in order to buy (and use if an inventory item) this item? \nIf none, just reply \`skip\`.`,
+      embeds: [embed],
+    });
+
+    // Question 7: Ask what role the user should already have
     while (!isValid) {
       collected = await msg.channel
         .awaitMessages({
@@ -278,6 +445,7 @@ class CreateItem extends Command {
         isValid = true;
       }
     }
+
     embed.addFields([
       {
         name: 'Role Required',
@@ -285,17 +453,23 @@ class CreateItem extends Command {
         inline: true,
       },
     ]);
-
-    await message.edit({
-      content:
-        '6️⃣ What role do you want to be given when this item is bought (or used if an inventory item)? \nIf none, just reply `skip`.',
-      embeds: [embed],
-    });
+    number++;
 
     isValid = false;
     let roleGiven;
-    messagesToDelete.forEach((msg) => msg.delete().catch(() => {}));
+    messagesToDelete = messagesToDelete.filter((delMessages) => {
+      return delMessages
+        .delete()
+        .then(() => false)
+        .catch(() => true);
+    });
 
+    await message.edit({
+      content: `**${number}.** What role do you want to be given when this item is bought (or used if an inventory item)? \nIf none, just reply \`skip\`.`,
+      embeds: [embed],
+    });
+
+    // Question 8: Ask what role should be given to the user
     while (!isValid) {
       collected = await msg.channel
         .awaitMessages({
@@ -336,6 +510,7 @@ class CreateItem extends Command {
         isValid = true;
       }
     }
+
     embed.addFields([
       {
         name: 'Role Given',
@@ -343,17 +518,23 @@ class CreateItem extends Command {
         inline: true,
       },
     ]);
-
-    await message.edit({
-      content:
-        '7️⃣ What role do you want to be removed from the user when this item is bought (or used if an inventory item)?\nIf none, just reply `skip`.',
-      embeds: [embed],
-    });
+    number++;
 
     isValid = false;
     let roleRemoved;
-    messagesToDelete.forEach((msg) => msg.delete().catch(() => {}));
+    messagesToDelete = messagesToDelete.filter((delMessages) => {
+      return delMessages
+        .delete()
+        .then(() => false)
+        .catch(() => true);
+    });
 
+    await message.edit({
+      content: `**${number}.** What role do you want to be removed from the user when this item is bought (or used if an inventory item)? \nIf none, just reply \`skip\`.`,
+      embeds: [embed],
+    });
+
+    // Question 9: Ask what role should be removed from the user
     while (!isValid) {
       collected = await msg.channel
         .awaitMessages({
@@ -394,6 +575,7 @@ class CreateItem extends Command {
         isValid = true;
       }
     }
+
     embed.addFields([
       {
         name: 'Role Removed',
@@ -401,17 +583,101 @@ class CreateItem extends Command {
         inline: true,
       },
     ]);
+    number++;
+
+    let requiredBalance;
+    isValid = false;
+    messagesToDelete = messagesToDelete.filter((delMessages) => {
+      return delMessages
+        .delete()
+        .then(() => false)
+        .catch(() => true);
+    });
 
     await message.edit({
-      content:
-        '8️⃣ What message do you want the bot to reply with, when the item is bought (or used if an inventory item)? \nYou can use the Member, Server & Role tags from https://mythical.cisn.xyz/tags in this message. \nThis should be no more than 1000 characters \nIf none, just reply `skip`.',
+      content: `**${number}.** What do you want the required balance to be? \nIf none, just reply \`skip\``,
       embeds: [embed],
     });
 
+    // Question 10: Ask what the required balance should be
+    while (!isValid) {
+      collected = await msg.channel
+        .awaitMessages({
+          filter,
+          max: 1,
+          time: 120000,
+          errors: ['time'],
+        })
+        .catch(() => null);
+      if (!collected) {
+        return msg.reply('You did not reply in time, the command has been cancelled.');
+      }
+      if (collected.first().content.toLowerCase() === 'cancel') {
+        return msg.reply('The command has been cancelled.');
+      }
+
+      const rawCollected = collected.first().content.toLowerCase();
+
+      if (rawCollected === 'skip') {
+        requiredBalance = null;
+        isValid = true;
+        break;
+      }
+
+      requiredBalance = parseInt(
+        rawCollected
+          .replace(/\..*/, '') // Remove everything after the first period
+          .replace(/[^0-9,]/g, '') // Keep only digits and commas
+          .replace(/,/g, ''), // Remove commas
+      );
+
+      if (isNaN(requiredBalance)) {
+        const invalidResponseMessage = await msg.channel.send(
+          'The required balance must be a valid number. Please enter the required balance again or type `cancel` to exit.',
+        );
+        messagesToDelete.push(invalidResponseMessage);
+      } else if (requiredBalance === Infinity) {
+        const infinityMessage = await msg.channel.send(
+          `The required balance must be less than ${BigInt(
+            Number.MAX_VALUE,
+          ).toLocaleString()}. Please enter the required balance again or type \`cancel\` to exit.`,
+        );
+        messagesToDelete.push(infinityMessage);
+      } else if (requiredBalance < 0) {
+        const negativeResponseMessage = await msg.channel.send(
+          'The price must be at least zero. Please enter the price again or type `cancel` to exit.',
+        );
+        messagesToDelete.push(negativeResponseMessage);
+      } else {
+        isValid = true;
+      }
+    }
+
+    const requiredBalanceString = currencySymbol + cost.toLocaleString();
+    embed.addFields([
+      {
+        name: 'Required Balance',
+        value: this.client.util.limitStringLength(requiredBalanceString, 0, 1024),
+        inline: true,
+      },
+    ]);
+    number++;
+
     let replyMessage;
     isValid = false;
-    messagesToDelete.forEach((msg) => msg.delete().catch(() => {}));
+    messagesToDelete = messagesToDelete.filter((delMessages) => {
+      return delMessages
+        .delete()
+        .then(() => false)
+        .catch(() => true);
+    });
 
+    await message.edit({
+      content: `**${number}.** What message do you want the bot to reply with, when the item is bought (or used if an inventory item)? \nYou can use the Member, Server & Role tags from https://mythical.cisn.xyz/tags in this message. \nThis should be no more than 1000 characters \nIf none, just reply \`skip\`.`,
+      embeds: [embed],
+    });
+
+    // Question 11: What should the reply message be
     while (!isValid) {
       collected = await msg.channel
         .awaitMessages({
@@ -440,17 +706,25 @@ class CreateItem extends Command {
         isValid = true;
       }
     }
-    embed.addFields([{ name: 'Reply message', value: !replyMessage ? 'None' : replyMessage, inline: true }]);
-    messagesToDelete.forEach((msg) => msg.delete().catch(() => {}));
+
+    embed.addFields([{ name: 'Reply Message', value: !replyMessage ? 'None' : replyMessage, inline: true }]);
+    messagesToDelete = messagesToDelete.filter((delMessages) => {
+      return delMessages
+        .delete()
+        .then(() => false)
+        .catch(() => true);
+    });
 
     store[name] = {
       cost,
       description,
       inventory,
       stock,
+      timeRemaining,
       roleRequired,
       roleGiven,
       roleRemoved,
+      requiredBalance,
       replyMessage,
     };
 

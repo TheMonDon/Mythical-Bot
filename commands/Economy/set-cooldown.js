@@ -3,7 +3,6 @@ const { stripIndents } = require('common-tags');
 const { EmbedBuilder } = require('discord.js');
 const { QuickDB } = require('quick.db');
 const db = new QuickDB();
-const ms = require('ms');
 
 class SetCooldown extends Command {
   constructor(client) {
@@ -11,6 +10,7 @@ class SetCooldown extends Command {
       name: 'set-cooldown',
       category: 'Economy',
       description: 'Set the cooldown of economy modules',
+      longDescription: 'Minimum cooldown is 30 seconds. \nMaximum cooldown is 2 weeks.',
       usage: 'set-cooldown <work | rob | crime | slut | chat> <cooldown>',
       aliases: ['setcooldown'],
       examples: ['set-cooldown work 30 seconds', 'set-cooldown work 2 weeks'],
@@ -19,9 +19,9 @@ class SetCooldown extends Command {
     });
   }
 
-  async run(msg, args, level) {
-    let type;
+  async run(msg, args) {
     const types = ['rob', 'work', 'crime', 'slut', 'chat'];
+    let type;
 
     // Get the cooldowns from the database
     const robCooldown = (await db.get(`servers.${msg.guild.id}.economy.rob.cooldown`)) || 600;
@@ -34,18 +34,20 @@ class SetCooldown extends Command {
       .setColor(msg.settings.embedErrorColor)
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() });
 
+    const { parseMS } = await import('human-ms');
+
     if (!args || args.length < 1) {
       embed.setColor(msg.settings.embedColor).setDescription(stripIndents`
       The current cooldowns are set to: 
       
-      \`Work\`   - ${workCooldown} seconds
-      \`Rob\`    - ${robCooldown} seconds
-      \`Crime\`  - ${crimeCooldown} seconds
-      \`Slut\`   - ${slutCooldown} seconds
-      \`Chat\`   - ${chatCooldown} seconds
+      \`Work\`   - ${parseMS(workCooldown * 1000)}
+      \`Rob\`    - ${parseMS(robCooldown * 1000)}
+      \`Crime\`  - ${parseMS(crimeCooldown * 1000)}
+      \`Slut\`   - ${parseMS(slutCooldown * 1000)}
+      \`Chat\`   - ${parseMS(chatCooldown * 1000)}
       
-      Usage: ${msg.settings.prefix + this.help.usage}
-      Examples: ${this.help.examples.join('\n')}
+      Usage: \`${msg.settings.prefix + this.help.usage}\`
+      Examples: ${this.help.examples.map((a) => `\`${a}\``).join('\n')}
 
       `);
       return msg.channel.send({ embeds: [embed] });
@@ -58,15 +60,18 @@ class SetCooldown extends Command {
 
     args.shift();
     const time = args.join(' ');
-    const cooldown = ms(time);
+    const parse = (await import('parse-duration')).default;
+    const cooldown = parse(time);
     const properCase = this.client.util.toProperCase(type);
+
+    if (isNaN(cooldown)) {
+      return this.client.util.errorEmbed(msg, 'Please provide a valid cooldown time.', 'Invalid Cooldown');
+    }
 
     if (cooldown > 1209600000) {
       return this.client.util.errorEmbed(msg, "Cooldowns can't be longer than 2 weeks.", 'Invalid Cooldown');
     } else if (cooldown < 30000) {
       return this.client.util.errorEmbed(msg, "Cooldowns can't be shorter than 30 seconds.", 'Invalid Cooldown');
-    } else if (isNaN(cooldown)) {
-      return this.client.util.errorEmbed(msg, 'Please provide a valid cooldown time.', 'Invalid Cooldown');
     }
 
     const cd = cooldown / 1000;
@@ -74,7 +79,7 @@ class SetCooldown extends Command {
 
     embed
       .setColor(msg.settings.embedSuccessColor)
-      .setDescription(`The cooldown of \`${properCase}\` has been set to ${cd} seconds.`);
+      .setDescription(`The cooldown of \`${properCase}\` has been set to ${parseMS(cooldown)}.`);
     return msg.channel.send({ embeds: [embed] });
   }
 }

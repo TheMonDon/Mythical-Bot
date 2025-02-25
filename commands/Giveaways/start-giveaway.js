@@ -1,7 +1,6 @@
 const Command = require('../../base/Command.js');
 const { QuickDB } = require('quick.db');
 const db = new QuickDB();
-const ms = require('ms');
 
 class StartGiveaway extends Command {
   constructor(client) {
@@ -9,6 +8,7 @@ class StartGiveaway extends Command {
       name: 'start-giveaway',
       description: 'Start a giveaway',
       usage: 'start-giveaway <Duration> <Winners> <Channel> <Prize>',
+      // Change this to be more like create-item (future me!)
       requiredArgs: 4,
       category: 'Giveaways',
       aliases: ['gcreate', 'startgiveaway', 'gstart'],
@@ -17,10 +17,12 @@ class StartGiveaway extends Command {
   }
 
   async run(msg, args) {
-    if (!msg.member.permissions.has('ManageMessages'))
+    if (!msg.member.permissions.has('ManageMessages')) {
       return this.client.util.errorEmbed(msg, 'You need to have the Manage Messages permission to start giveaways');
+    }
 
-    const duration = ms(args[0]);
+    const parse = (await import('parse-duration')).default;
+    const duration = parse(args[0]);
     const winnerCount = parseInt(args[1]);
     const channel = this.client.util.getChannel(msg, args[2]);
     args.shift();

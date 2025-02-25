@@ -35,6 +35,12 @@ class ItemInfo extends Command {
 
     const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
     const cost = currencySymbol + BigInt(item.cost).toLocaleString();
+    const requiredBalance = item.requiredBalance
+      ? currencySymbol + BigInt(item.requiredBalance).toLocaleString()
+      : 'None';
+    const timeRemainingString = item.timeRemaining
+      ? `Deleted <t:${Math.floor(item.timeRemaining / 1000)}:R>`
+      : 'No time limit';
 
     const embed = new EmbedBuilder()
       .setColor(msg.settings.embedColor)
@@ -45,6 +51,7 @@ class ItemInfo extends Command {
         { name: 'Cost', value: this.client.util.limitStringLength(cost, 0, 1024), inline: true },
         { name: 'Description', value: item.description, inline: false },
         { name: 'Show in Inventory?', value: item.inventory ? 'Yes' : 'No', inline: true },
+        { name: 'Time Remaining', value: timeRemainingString, inline: true },
         { name: 'Stock Remaining', value: item.stock ? item.stock.toLocaleString() : 'Infinity', inline: true },
         {
           name: 'Role Required',
@@ -59,6 +66,11 @@ class ItemInfo extends Command {
         {
           name: 'Role Removed',
           value: item.roleRemoved ? this.client.util.getRole(msg, item.roleRemoved).toString() : 'None',
+          inline: true,
+        },
+        {
+          name: 'Required Balance',
+          value: this.client.util.limitStringLength(requiredBalance, 0, 1024),
           inline: true,
         },
         { name: 'Reply Message', value: item.replyMessage || 'None', inline: true },

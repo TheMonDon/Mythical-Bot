@@ -166,14 +166,14 @@ export async function run(client) {
   scheduleJob('DeleteServerData', '0 0 * * *', async () => {
     const servers = (await db.get('servers')) || {};
     if (servers) {
-      for (const [serverID] of Object.entries(servers)) {
-        const leaveTimestamp = await db.get(`servers.${serverID}.leave_timestamp`);
+      for (const [serverId] of Object.entries(servers)) {
+        const leaveTimestamp = await db.get(`servers.${serverId}.leave_timestamp`);
         if (leaveTimestamp) {
           const timeDiff = Date.now() - leaveTimestamp;
           if (timeDiff >= 2592000000) {
-            await db.delete(`servers.${serverID}`);
-            this.client.settings.delete(serverID);
-            console.log(`Deleted server data for ${serverID}`);
+            await db.delete(`servers.${serverId}`);
+            this.client.settings.delete(serverId);
+            this.client.logger.log(`Deleted server data for ${serverId}.`);
           }
         }
       }
@@ -210,6 +210,28 @@ export async function run(client) {
             console.error(err);
           }
         }
+      }
+    }
+  });
+
+  // Delete expired items scheduler
+  scheduleJob('DeleteExpiredItems', '* * * * *', async () => {
+    const servers = (await db.get('servers')) || {};
+
+    for (const [serverId, serverData] of Object.entries(servers)) {
+      const store = serverData?.economy?.store || {};
+      let updated = false;
+
+      for (const [itemName, itemData] of Object.entries(store)) {
+        if (itemData.timeRemaining && itemData.timeRemaining <= Date.now()) {
+          delete store[itemName]; // Remove expired item
+          updated = true;
+        }
+      }
+
+      // Save only if an item was deleted
+      if (updated) {
+        await db.set(`servers.${serverId}.economy.store`, store);
       }
     }
   });

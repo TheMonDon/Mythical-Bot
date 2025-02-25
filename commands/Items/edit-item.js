@@ -11,11 +11,11 @@ class EditItem extends Command {
       category: 'Items',
       description: 'Edit an item in the store.',
       longDescription:
-        'Edit the attribute of an item. Available attributes: name, price, description, inventory, stock, role-required, role-given, role-removed or reply-message',
+        'Available attributes: name, price, description, inventory, time-remaining, stock, role-required, role-given, role-removed, required-balance and reply',
       usage: 'edit-item <attribute> "<item name>" [new value]',
       aliases: ['edititem'],
       permLevel: 'Administrator',
-      examples: ['edit-item name pizzza pizza', 'edit-item price "Large Crate" 100'],
+      examples: ['edit-item name pizzza pizza', 'edit-item price "Large Crate" 100', 'edit-item time-remaining pizza'],
       guildOnly: true,
       requiredArgs: 2,
     });
@@ -23,9 +23,11 @@ class EditItem extends Command {
 
   async run(msg, args) {
     const attribute = args.shift().toLowerCase();
+    const parse = (await import('parse-duration')).default;
     const botMember = msg.guild.members.cache.get(this.client.user.id);
     let itemName;
     let newValue;
+
     const errorEmbed = new EmbedBuilder()
       .setColor(msg.settings.embedErrorColor)
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() });
@@ -72,6 +74,7 @@ class EditItem extends Command {
           errorEmbed.setDescription('An item with that name already exists.');
           return msg.channel.send({ embeds: [errorEmbed] });
         }
+
         // Update the item name
         store[newValue] = item;
         delete store[itemKey];
@@ -80,11 +83,18 @@ class EditItem extends Command {
       }
 
       case 'price': {
-        const price = parseInt(newValue);
+        const price = parseInt(
+          newValue
+            .replace(/\..*/, '') // Remove everything after the first period
+            .replace(/[^0-9,]/g, '') // Keep only digits and commas
+            .replace(/,/g, ''), // Remove commas
+        );
+
         if (isNaN(price) || price < 0) {
-          errorEmbed.setDescription('Please provide a valid price.');
+          errorEmbed.setDescription('Please re-run the command with a price that is a number and above zero.');
           return msg.channel.send({ embeds: [errorEmbed] });
         }
+
         item.cost = price;
         store[itemKey] = item;
         break;
@@ -92,9 +102,10 @@ class EditItem extends Command {
 
       case 'description': {
         if (newValue.length > 1000) {
-          errorEmbed.setDescription('Please keep the description under 1000 characters,');
+          errorEmbed.setDescription('Please re-run the command with the description under 1000 characters.');
           return msg.channel.send({ embeds: [errorEmbed] });
         }
+
         item.description = newValue.slice(0, 1000);
         store[itemKey] = item;
         break;
@@ -105,9 +116,35 @@ class EditItem extends Command {
           item.inventory = newValue.toLowerCase() === 'yes';
           store[itemKey] = item;
         } else {
-          errorEmbed.setDescription('Please respond with "yes" or "no" for inventory.');
+          errorEmbed.setDescription('Please re-run the command with "yes" or "no" for inventory.');
           return msg.channel.send({ embeds: [errorEmbed] });
         }
+        break;
+      }
+
+      case 'timeremaining':
+      case 'time-remaining': {
+        if (!newValue) {
+          item.timeRemaining = null;
+          store[itemKey] = item;
+          break;
+        }
+
+        const timeLimit = parse(newValue);
+
+        if (isNaN(timeLimit) || timeLimit === null) {
+          errorEmbed.setDescription('Please re-run the command with a valid `duration` given.');
+          return msg.channel.send({ embeds: [errorEmbed] });
+        } else if (timeLimit < 600000) {
+          errorEmbed.setDescription('Please re-run the command again with a duration greater than 10 minutes.');
+          return msg.channel.send({ embeds: [errorEmbed] });
+        } else if (timeLimit > 315576000000) {
+          errorEmbed.setDescription('Please re-run the command again with a duration less than 10 years.');
+          return msg.channel.send({ embeds: [errorEmbed] });
+        }
+
+        item.timeRemaining = Date.now() + timeLimit;
+        store[itemKey] = item;
         break;
       }
 
@@ -117,21 +154,25 @@ class EditItem extends Command {
           store[itemKey] = item;
           break;
         }
+
         if (['infinite', 'infinity'].includes(newValue.toLowerCase())) {
           item.stock = null;
           store[itemKey] = item;
           break;
         }
+
         const stock = parseInt(newValue);
         if (isNaN(stock) || stock < 0) {
-          errorEmbed.setDescription('Please provide a valid stock amount greater than zero.');
+          errorEmbed.setDescription('Please re-run the command with a valid stock amount greater than zero.');
           return msg.channel.send({ embeds: [errorEmbed] });
         }
+
         item.stock = stock;
         store[itemKey] = item;
         break;
       }
 
+      case 'rolerequired':
       case 'role-required': {
         if (!newValue) {
           item.roleRequired = null;
@@ -144,17 +185,20 @@ class EditItem extends Command {
           errorEmbed.setDescription('Please re-run the command with a valid role.');
           return msg.channel.send({ embeds: [errorEmbed] });
         }
+
         item.roleRequired = role.id;
         store[itemKey] = item;
         break;
       }
 
+      case 'rolegiven':
       case 'role-given': {
         if (!newValue) {
           item.roleGiven = null;
           store[itemKey] = item;
           break;
         }
+
         const role = this.client.util.getRole(msg, newValue);
         if (!role) {
           errorEmbed.setDescription('Please re-run the command with a valid role.');
@@ -163,36 +207,68 @@ class EditItem extends Command {
           errorEmbed.setDescription('I am not able to assign this role. Please move my role higher.');
           return msg.channel.send({ embeds: [errorEmbed] });
         }
+
         item.roleGiven = role.id;
         store[itemKey] = item;
         break;
       }
 
+      case 'roleremoved':
       case 'role-removed': {
         if (!newValue) {
           item.roleRemoved = null;
           store[itemKey] = item;
           break;
         }
+
         const role = this.client.util.getRole(msg, newValue);
         if (!role) {
           errorEmbed.setDescription('Please re-run the command with a valid role.');
           return msg.channel.send({ embeds: [errorEmbed] });
         } else if (role.position >= botMember.roles.highest.position) {
-          errorEmbed.setDescription('I am not able to assign this role. Please move my role higher.');
+          errorEmbed.setDescription(
+            'I am not able to assign this role. Please move my role higher and re-run the command.',
+          );
           return msg.channel.send({ embeds: [errorEmbed] });
         }
+
         item.roleRemoved = role.id;
         store[itemKey] = item;
         break;
       }
 
-      case 'reply-message': {
+      case 'requiredbalance':
+      case 'required-balance': {
+        if (!newValue) {
+          item.requiredBalance = null;
+          store[itemKey] = item;
+          break;
+        }
+
+        const requiredBalance = parseInt(
+          newValue
+            .replace(/\..*/, '') // Remove everything after the first period
+            .replace(/[^0-9,]/g, '') // Keep only digits and commas
+            .replace(/,/g, ''), // Remove commas
+        );
+        if (isNaN(requiredBalance) || requiredBalance < 0) {
+          errorEmbed.setDescription('Please re-run the command with a number that is above 0 for required-balance.');
+          return msg.channel.send({ embeds: [errorEmbed] });
+        }
+
+        item.requiredBalance = requiredBalance;
+        store[itemKey] = item;
+        break;
+      }
+
+      case 'reply-message':
+      case 'reply': {
         if (!newValue) {
           item.replyMessage = null;
           store[itemKey] = item;
           break;
         }
+
         item.replyMessage = newValue.slice(0, 1000);
         store[itemKey] = item;
         break;
@@ -200,11 +276,12 @@ class EditItem extends Command {
 
       default:
         return msg.reply(
-          'Invalid attribute. You can only edit name, price, description, inventory, role-required, role-given, role-removed or reply-message.',
+          'Invalid attribute. You can only edit name, price, description, inventory, time-remaining, role-required, role-given, role-removed, required-balance or reply-message.',
         );
     }
 
     await db.set(`servers.${msg.guild.id}.economy.store`, store);
+    const timeRemainingString = item.timeRemaining ? `Deleted <t:${item.timeRemaining}:R>` : 'No time limit';
 
     const embed = new EmbedBuilder()
       .setTitle('Item Edited')
@@ -215,6 +292,7 @@ class EditItem extends Command {
         { name: 'Price', value: BigInt(item.cost).toLocaleString(), inline: true },
         { name: 'Description', value: item.description, inline: false },
         { name: 'Show in Inventory?', value: item.inventory ? 'Yes' : 'No', inline: true },
+        { name: 'Time Remaining', value: timeRemainingString, inline: true },
         { name: 'Stock', value: item.stock ? item.stock.toLocaleString() : 'Infinity', inline: true },
         {
           name: 'Role Required',

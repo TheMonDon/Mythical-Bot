@@ -246,7 +246,7 @@ class Help extends Command {
           .setColor(msg.settings.embedColor)
           .addFields([
             { name: 'Usage', value: command.help.usage, inline: true },
-            { name: 'Aliases', value: command.conf.aliases.join(', ') || 'None', inline: true },
+            { name: 'Aliases', value: command.conf.aliases.map((a) => `\`${a}\``).join(', ') || 'None', inline: true },
             { name: 'Description', value: command.help.description || 'None', inline: true },
             {
               name: 'Guild Only',
@@ -259,7 +259,11 @@ class Help extends Command {
               inline: true,
             },
             { name: 'Long Description', value: command.help.longDescription || 'None', inline: true },
-            { name: 'Examples', value: command.help.examples?.join('\n') || 'None', inline: true },
+            {
+              name: 'Examples',
+              value: command.help.examples?.map((a) => `\`${a}\``).join('\n') || 'None',
+              inline: true,
+            },
           ]);
         return msg.channel.send({ embeds: [em] });
       } else {
