@@ -101,7 +101,7 @@ exports.run = async (interaction) => {
           const money = neg ? -entry.money : entry.money;
           return `**${offset + index + 1}.** ${user.tag}: ${
             entry.money < 0n ? '-' : ''
-          }${currencySymbol}${interaction.client.util.limitStringLength(money, 0, 150)}`;
+          }${currencySymbol}${interaction.client.util.limitStringLength(money.toLocaleString(), 0, 150)}`;
         })
         .join('\n') || 'None',
     )
@@ -127,17 +127,16 @@ exports.run = async (interaction) => {
   const collector = message.createMessageComponentCollector({
     filter,
     componentType: ComponentType.Button,
-    time: 2147483647,
+    time: 3600000,
   });
 
-  const userID = interaction.user.id;
-  collector.on('collect', async (interaction) => {
-    if (interaction.user.id !== userID) {
+  collector.on('collect', async (btnInteraction) => {
+    if (btnInteraction.user.id !== interaction.user.id) {
       return interaction.reply({ content: 'These buttons are not for you!', ephemeral: true });
     }
 
-    if (interaction.customId === 'prev_page') page--;
-    if (interaction.customId === 'next_page') page++;
+    if (btnInteraction.customId === 'prev_page') page--;
+    if (btnInteraction.customId === 'next_page') page++;
 
     // Calculate the offset and slice the leaderboard for the current page
     const offset = (page - 1) * itemsPerPage; // itemsPerPage is the number of users per page (e.g., 10)
@@ -147,7 +146,7 @@ exports.run = async (interaction) => {
     const displayedLeaderboard = await Promise.all(
       currentPageLeaderboard.map(async (entry, index) => {
         const user = await interaction.client.users.fetch(entry.userId).catch(() => null);
-        const formattedMoney = entry.money.toLocaleString();
+        const formattedMoney = interaction.client.util.limitStringLength(entry.money.toLocaleString(), 0, 150);
         return user
           ? `**${offset + index + 1}.** ${user.tag}: ${currencySymbol}${formattedMoney}`
           : `**${offset + index + 1}.** Unknown User: ${currencySymbol}${formattedMoney}`;
@@ -178,7 +177,7 @@ exports.run = async (interaction) => {
     );
 
     // Update the interaction response
-    await interaction.update({ embeds: [updatedEmbed], components: [updatedRow] });
+    await btnInteraction.update({ embeds: [updatedEmbed], components: [updatedRow] });
   });
 
   collector.on('end', () => {

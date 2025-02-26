@@ -153,7 +153,11 @@ exports.run = async (interaction) => {
     });
 
     collector.on('end', () => {
-      interaction.editReply({ components: [] });
+      const disabledRow = new ActionRowBuilder().addComponents(
+        new ButtonBuilder().setCustomId('prev').setLabel('Previous').setStyle(ButtonStyle.Primary).setDisabled(true),
+        new ButtonBuilder().setCustomId('next').setLabel('Next').setStyle(ButtonStyle.Primary).setDisabled(true),
+      );
+      interaction.editReply({ components: [disabledRow] });
     });
 
     return;
