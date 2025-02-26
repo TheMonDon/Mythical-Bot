@@ -758,7 +758,7 @@ class CreateItem extends Command {
     }
 
     embed.addFields([{ name: 'Reply Message', value: !replyMessage ? 'None' : replyMessage, inline: true }]);
-    embed.clearFooter();
+    embed.setFooter(null);
     messagesToDelete = messagesToDelete.filter((delMessages) => {
       return delMessages
         .delete()
