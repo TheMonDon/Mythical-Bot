@@ -703,11 +703,11 @@ class CreateItem extends Command {
       }
     }
 
-    const requiredBalanceString = currencySymbol + cost.toLocaleString();
+    const requiredBalanceString = currencySymbol + requiredBalance?.toLocaleString();
     embed.addFields([
       {
         name: 'Required Balance',
-        value: this.client.util.limitStringLength(requiredBalanceString, 0, 1024),
+        value: requiredBalance ? this.client.util.limitStringLength(requiredBalanceString, 0, 1024) : 'None',
         inline: true,
       },
     ]);
