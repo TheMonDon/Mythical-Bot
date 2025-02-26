@@ -12,7 +12,7 @@ class EditItem extends Command {
       description: 'Edit an item in the store.',
       longDescription:
         'Available attributes: name, price, description, inventory, time-remaining, stock, role-required, role-given, role-removed, required-balance and reply',
-      usage: 'edit-item <attribute> "<item name>" [new value]',
+      usage: 'edit-item <attribute> <item name> [new value]',
       aliases: ['edititem'],
       permLevel: 'Administrator',
       examples: ['edit-item name pizzza pizza', 'edit-item price "Large Crate" 100', 'edit-item time-remaining pizza'],
@@ -51,8 +51,6 @@ class EditItem extends Command {
       itemName = args.shift();
       newValue = args.join(' ');
     }
-
-    // Proceed with using itemName and newValue
 
     const store = (await db.get(`servers.${msg.guild.id}.economy.store`)) || {};
 
@@ -111,6 +109,8 @@ class EditItem extends Command {
         break;
       }
 
+      case 'inventoryitem':
+      case 'inventory-item':
       case 'inventory': {
         if (['yes', 'no'].includes(newValue.toLowerCase())) {
           item.inventory = newValue.toLowerCase() === 'yes';
@@ -122,6 +122,7 @@ class EditItem extends Command {
         break;
       }
 
+      case 'duration':
       case 'timeremaining':
       case 'time-remaining': {
         if (!newValue) {
@@ -141,6 +142,12 @@ class EditItem extends Command {
         } else if (timeLimit > 315576000000) {
           errorEmbed.setDescription('Please re-run the command again with a duration less than 10 years.');
           return msg.channel.send({ embeds: [errorEmbed] });
+        }
+
+        if (timeLimit === 0) {
+          item.timeRemaining = null;
+          store[itemKey] = item;
+          break;
         }
 
         item.timeRemaining = Date.now() + timeLimit;
@@ -252,7 +259,7 @@ class EditItem extends Command {
             .replace(/,/g, ''), // Remove commas
         );
         if (isNaN(requiredBalance) || requiredBalance < 0) {
-          errorEmbed.setDescription('Please re-run the command with a number that is above 0 for required-balance.');
+          errorEmbed.setDescription('Please re-run the command with a number that is at least 0 for required-balance.');
           return msg.channel.send({ embeds: [errorEmbed] });
         }
 
@@ -261,6 +268,7 @@ class EditItem extends Command {
         break;
       }
 
+      case 'replymessage':
       case 'reply-message':
       case 'reply': {
         if (!newValue) {
@@ -269,7 +277,12 @@ class EditItem extends Command {
           break;
         }
 
-        item.replyMessage = newValue.slice(0, 1000);
+        if (newValue.length > 1000) {
+          errorEmbed.setDescription('Please re-run the command with the reply-message under 1000 characters.');
+          return msg.channel.send({ embeds: [errorEmbed] });
+        }
+
+        item.replyMessage = newValue;
         store[itemKey] = item;
         break;
       }

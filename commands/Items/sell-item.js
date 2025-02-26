@@ -43,16 +43,18 @@ class SellItem extends Command {
       }
       return false;
     });
+
     if (!itemIndex || itemIndex === -1 || sellerInventory[itemIndex].quantity < quantity) {
       return msg.reply('You do not have enough of this item in your inventory.');
     }
     const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
 
     // Ask the seller for a price
+    itemName = sellerInventory[itemIndex].name;
     const embed = new EmbedBuilder()
       .setColor(msg.settings.embedColor)
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
-      .setDescription(`What price do you want to sell ${member} ${quantity} ${itemName}${quantity > 1 ? 's' : ''}?`);
+      .setDescription(`What price do you want to sell ${member} ${quantity} ${itemName}${quantity > 1 ? "'s" : ''}?`);
     await msg.channel.send({ embeds: [embed] });
 
     const filter = (response) => response.author.id === msg.author.id;
@@ -81,14 +83,14 @@ class SellItem extends Command {
             quantity > 1 ? "'s" : ''
           } for ${currencySymbol}${price}. \nDo you accept this? (yes/no)`,
         )
-        .setFooter({ text: '5 minutes remaining' });
+        .setFooter({ text: `Deal ends in 5 minutes` });
       await msg.channel.send({ content: `${member}`, embeds: [confirmEmbed] });
 
       const confirmFilter = (response) => response.author.id === member.id;
       const confirmCollector = new MessageCollector(msg.channel, { filter: confirmFilter, time: 300000, max: 1 });
 
       confirmCollector.on('collect', async (confirmation) => {
-        if (confirmation.content.toLowerCase() === 'yes') {
+        if (this.client.util.yes.includes(confirmation.content.toLowerCase())) {
           // Transfer money and update inventories
           buyerCash -= totalCost;
           await db.set(`servers.${msg.guild.id}.users.${member.id}.economy.cash`, buyerCash.toString());
@@ -99,21 +101,19 @@ class SellItem extends Command {
 
           // Update seller's inventory
           sellerInventory[itemIndex].quantity -= quantity;
-          itemName = sellerInventory[itemIndex].name;
-          const description = sellerInventory[itemIndex].description;
           if (sellerInventory[itemIndex].quantity === 0) sellerInventory.splice(itemIndex, 1);
           await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.inventory`, sellerInventory);
 
           // Update buyer's inventory
           const buyerInventory = (await db.get(`servers.${msg.guild.id}.users.${member.id}.economy.inventory`)) || [];
-          const buyerItemIndex = buyerInventory.findIndex((invItem) => invItem?.name?.toLowerCase() === itemName);
+          const buyerItemIndex = buyerInventory.findIndex((invItem) => invItem?.id === sellerInventory[itemIndex].id);
           if (buyerItemIndex !== -1) {
             buyerInventory[buyerItemIndex].quantity += quantity;
           } else {
             buyerInventory.push({
-              name: itemName,
+              id: sellerInventory[itemIndex].id,
               quantity,
-              description,
+              ...sellerInventory[itemIndex],
             });
           }
           await db.set(`servers.${msg.guild.id}.users.${member.id}.economy.inventory`, buyerInventory);
@@ -122,7 +122,7 @@ class SellItem extends Command {
           const confirmEmbed = new EmbedBuilder()
             .setColor(msg.settings.embedColor)
             .setDescription(
-              `Trade Completed \n${member} has received ${quantity} ${itemName}${
+              `✅ Trade Complete \n${member} has received ${quantity} ${sellerInventory[itemIndex].name}${
                 quantity > 1 ? 's' : ''
               } for ${currencySymbol}${price} from ${msg.author}`,
             );

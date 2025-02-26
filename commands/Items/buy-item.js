@@ -50,6 +50,7 @@ class BuyItem extends Command {
     if (item.stock && item.stock < quantity) {
       return msg.reply(`The store only has ${item.stock} stock remaining.`);
     }
+
     if (item.stock) {
       item.stock -= quantity;
       if (item.stock === 0) {
@@ -69,7 +70,9 @@ class BuyItem extends Command {
           return msg.reply(`You do not have the required role **${roleRequired.name}** to purchase this item.`);
         }
       } else {
-        return msg.reply('The required role specified does not exist.');
+        return msg.reply(
+          'The required role no longer exists, please contact a server administrator to purchase this item.',
+        );
       }
     }
 
@@ -124,9 +127,9 @@ class BuyItem extends Command {
         .replace('{servers.created.duration', serverCreatedDuration);
 
       const role =
-        (await this.client.util.getRole(msg, item.roleGiven)) ||
-        (await this.client.util.getRole(msg, item.roleRemoved)) ||
-        (await this.client.util.getRole(msg, item.roleRequired));
+        this.client.util.getRole(msg, item.roleGiven) ||
+        this.client.util.getRole(msg, item.roleRemoved) ||
+        this.client.util.getRole(msg, item.roleRequired);
 
       if (role) {
         const roleCreatedAt = moment(role.createdAt);
@@ -146,26 +149,28 @@ class BuyItem extends Command {
 
     const userInventory = (await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.inventory`)) || [];
 
-    // Find the index of the item in the user's inventory
-    const itemIndex = userInventory.findIndex((inventoryItem) => inventoryItem?.name?.toLowerCase() === itemName);
+    // Find the item in the user's inventory by its unique ID instead of name
+    const itemIndex = userInventory.findIndex((inventoryItem) => inventoryItem?.id === item.id);
+
     if (itemIndex !== -1) {
       // If the item is found, increment the quantity
       userInventory[itemIndex].quantity += quantity;
       userInventory[itemIndex] = {
         ...userInventory[itemIndex],
-        replyMessage: item.replyMessage,
-        roleRequired: item.roleRequired,
-        roleGiven: item.roleGiven,
-        roleRemoved: item.roleRemoved,
+        name: itemKey,
+        ...item,
       };
-      await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.inventory`, userInventory);
     } else {
-      // Add the item to the user's inventory
-      item.quantity = quantity;
-      userInventory.push({ name: itemKey, ...item });
-
-      await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.inventory`, userInventory);
+      // Ensure item has a unique ID and name when stored
+      userInventory.push({
+        id: item.id,
+        name: itemKey,
+        quantity,
+        ...item,
+      });
     }
+
+    await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.inventory`, userInventory);
 
     const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
     const itemCostQuantity = (itemCost * BigInt(quantity)).toLocaleString();
@@ -175,7 +180,7 @@ class BuyItem extends Command {
       .setTitle('Purchase Successful')
       .setDescription(
         `You have bought ${quantity} ${itemKey}${
-          quantity > 1 ? 's' : ''
+          quantity > 1 ? "'s" : ''
         } for ${csCost}! This is now in your inventory. \nUse this item with the \`use-item\` command.`,
       )
       .setColor(msg.settings.embedColor)

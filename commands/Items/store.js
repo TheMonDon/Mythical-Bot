@@ -84,7 +84,7 @@ class Store extends Command {
     }
 
     const message = await msg.channel.send({ embeds: [embed], components: [row] });
-    const collector = message.createMessageComponentCollector({ time: 2147483647 });
+    const collector = message.createMessageComponentCollector({ time: 3600000 });
 
     collector.on('collect', async (interaction) => {
       if (interaction.user.id !== msg.author.id) {

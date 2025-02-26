@@ -44,7 +44,26 @@ class UseItem extends Command {
     }
 
     const item = userInventory[itemIndex];
-    userInventory[itemIndex].quantity -= quantity;
+    if (item.roleRequired) {
+      const roleRequired = this.client.util.getRole(msg, item.roleRequired);
+      if (roleRequired) {
+        // Check if the member has the role
+        const hasRole = msg.member.roles.cache.has(roleRequired.id);
+        if (!hasRole) {
+          return msg.reply(`You do not have the required role **${roleRequired.name}** to use this item.`);
+        }
+      } else {
+        return msg.reply('The required role no longer exists, please contact a server administrator to use this item.');
+      }
+    }
+
+    const itemAmount = item.quantity - quantity;
+
+    if (itemAmount < 0) {
+      return msg.reply(`You only have ${item.quantity} of this item in your inventory.`);
+    }
+
+    item.quantity -= quantity;
     let filteredInventory = userInventory;
 
     if (!item.quantity || item.quantity < 1) {
@@ -56,12 +75,12 @@ class UseItem extends Command {
     await db.set(`servers.${msg.guild.id}.users.${msg.author.id}.economy.inventory`, filteredInventory);
 
     if (item.roleGiven) {
-      const role = this.client.util.getRole(msg, item.roleGiven);
-      await msg.member.roles.add(role).catch((error) => msg.channel.send(error));
+      const roleGiven = this.client.util.getRole(msg, item.roleGiven);
+      await msg.member.roles.add(roleGiven).catch((error) => msg.channel.send(error));
     }
     if (item.roleRemoved) {
-      const role = this.client.util.getRole(msg, item.roleRemoved);
-      await msg.member.roles.remove(role).catch((error) => msg.channel.send(error));
+      const roleRemoved = this.client.util.getRole(msg, item.roleRemoved);
+      await msg.member.roles.remove(roleRemoved).catch((error) => msg.channel.send(error));
     }
     if (!item.replyMessage) {
       return msg.channel.send('👍');
@@ -92,9 +111,9 @@ class UseItem extends Command {
       .replace('{servers.created.duration', serverCreatedDuration);
 
     const role =
-      (await this.client.util.getRole(msg, item.roleGiven)) ||
-      (await this.client.util.getRole(msg, item.roleRemoved)) ||
-      (await this.client.util.getRole(msg, item.roleRequired));
+      this.client.util.getRole(msg, item.roleGiven) ||
+      this.client.util.getRole(msg, item.roleRemoved) ||
+      this.client.util.getRole(msg, item.roleRequired);
 
     if (role) {
       const roleCreatedAt = moment(role.createdAt);

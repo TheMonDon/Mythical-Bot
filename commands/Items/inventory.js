@@ -49,13 +49,22 @@ class Inventory extends Command {
       inline: false,
     }));
 
-    const embed = new EmbedBuilder()
-      .setAuthor({ name: `${mem.username}'s Inventory`, iconURL: mem.displayAvatarURL() })
-      .setColor(msg.settings.embedColor)
-      .setDescription(`Use an item with the \`use [quantity] <name>\` command`)
-      .addFields(fields)
-      .setFooter({ text: `Page ${page} / ${maxPages}` })
-      .setTimestamp();
+    let embed;
+    if (!fields || fields.length < 1) {
+      embed = new EmbedBuilder()
+        .setAuthor({ name: `${mem.username}'s Inventory`, iconURL: mem.displayAvatarURL() })
+        .setColor(msg.settings.embedErrorColor)
+        .setDescription(`You don't have any items, view available items with the \`store\` command.`)
+        .setTimestamp();
+    } else {
+      embed = new EmbedBuilder()
+        .setAuthor({ name: `${mem.username}'s Inventory`, iconURL: mem.displayAvatarURL() })
+        .setColor(msg.settings.embedColor)
+        .setDescription(`Use an item with the \`use [quantity] <name>\` command`)
+        .addFields(fields)
+        .setFooter({ text: `Page ${page} / ${maxPages}` })
+        .setTimestamp();
+    }
 
     const row = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
@@ -71,7 +80,7 @@ class Inventory extends Command {
     );
 
     const message = await msg.channel.send({ embeds: [embed], components: [row] });
-    const collector = message.createMessageComponentCollector({ time: 2147483647 });
+    const collector = message.createMessageComponentCollector({ time: 3600000 });
 
     collector.on('collect', async (interaction) => {
       if (interaction.user.id !== msg.author.id) {

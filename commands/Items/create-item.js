@@ -2,6 +2,7 @@ const Command = require('../../base/Command.js');
 const { EmbedBuilder } = require('discord.js');
 const { QuickDB } = require('quick.db');
 const db = new QuickDB();
+const { v4: uuidv4 } = require('uuid');
 
 class CreateItem extends Command {
   constructor(client) {
@@ -59,7 +60,56 @@ class CreateItem extends Command {
       const item = findItem(name);
       if (item) return msg.channel.send({ embeds: [item] });
 
-      return msg.channel.send('This feature is a WIP, please re-run the command without a name.');
+      const cost = 0;
+      const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
+      const costString = currencySymbol + cost.toLocaleString();
+      const description = 'None provided';
+      const inventory = true;
+      const timeRemaining = null;
+      const stock = null;
+      const roleRequired = null;
+      const roleGiven = null;
+      const roleRemoved = null;
+      const requiredBalance = null;
+      const replyMessage = null;
+
+      store[name] = {
+        id: uuidv4(),
+        cost,
+        description,
+        inventory,
+        timeRemaining,
+        stock,
+        roleRequired,
+        roleGiven,
+        roleRemoved,
+        requiredBalance,
+        replyMessage,
+      };
+
+      const finalEmbed = new EmbedBuilder()
+        .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
+        .setColor(msg.settings.embedColor)
+        .addFields([
+          { name: 'Name', value: name, inline: true },
+          { name: 'Price', value: costString, inline: true },
+          { name: 'Description', value: 'None provided', inline: false },
+          { name: 'Show in Inventory?', value: 'Yes', inline: true },
+          { name: 'Time Remaining', value: 'No time limit', inline: true },
+          { name: 'Stock Remaining', value: 'Infinity', inline: true },
+          { name: 'Role Required', value: 'None', inline: true },
+          { name: 'Role Given', value: 'None', inline: true },
+          { name: 'Role Removed', value: 'None', inline: true },
+          { name: 'Required Balance', value: 'None', inline: true },
+          { name: 'Reply Message', value: 'None', inline: true },
+        ])
+        .setTimestamp();
+
+      await db.set(`servers.${msg.guild.id}.economy.store`, store);
+      return msg.channel.send({
+        content: '✅ Item created successfully!',
+        embeds: [finalEmbed],
+      });
     }
 
     // Add blank name field
@@ -708,6 +758,7 @@ class CreateItem extends Command {
     }
 
     embed.addFields([{ name: 'Reply Message', value: !replyMessage ? 'None' : replyMessage, inline: true }]);
+    embed.clearFooter();
     messagesToDelete = messagesToDelete.filter((delMessages) => {
       return delMessages
         .delete()
@@ -716,11 +767,12 @@ class CreateItem extends Command {
     });
 
     store[name] = {
+      id: uuidv4(),
       cost,
       description,
       inventory,
-      stock,
       timeRemaining,
+      stock,
       roleRequired,
       roleGiven,
       roleRemoved,
@@ -729,7 +781,7 @@ class CreateItem extends Command {
     };
 
     await db.set(`servers.${msg.guild.id}.economy.store`, store);
-    return message.edit({ content: ':white_check_mark: Item created successfully!', embeds: [embed] });
+    return message.edit({ content: '✅ Item created successfully!', embeds: [embed] });
   }
 }
 

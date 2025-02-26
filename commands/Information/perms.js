@@ -26,7 +26,7 @@ class Permissions extends Command {
 
     if (!infoMemOrRole) {
       await msg.guild.roles.fetch();
-      infoMemOrRole = await this.client.util.getRole(msg, args.join(' '));
+      infoMemOrRole = this.client.util.getRole(msg, args.join(' '));
       if (!infoMemOrRole) return msg.channel.send('That member or role was not found, please try again.');
     }
 

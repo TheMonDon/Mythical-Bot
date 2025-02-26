@@ -28,7 +28,7 @@ class ItemInfo extends Command {
       const embed = new EmbedBuilder()
         .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
         .setColor(msg.settings.embedErrorColor)
-        .setDescription('There is not an item with that name.');
+        .setDescription('That item does not exist in the store.');
 
       return msg.channel.send({ embeds: [embed] });
     }

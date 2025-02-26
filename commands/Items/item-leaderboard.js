@@ -1,4 +1,4 @@
-const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType } = require('discord.js');
 const Command = require('../../base/Command.js');
 const { QuickDB } = require('quick.db');
 const db = new QuickDB();
@@ -93,15 +93,18 @@ class ItemLeaderboard extends Command {
     );
 
     const message = await msg.channel.send({ embeds: [embed], components: [row] });
-    const collector = message.createMessageComponentCollector({ time: 2147483647 });
+    const collector = message.createMessageComponentCollector({
+      componentType: ComponentType.Button,
+      time: 3600000,
+    });
 
-    collector.on('collect', async (interaction) => {
-      if (interaction.user.id !== msg.author.id) {
-        return interaction.reply({ content: 'These buttons are not for you!', ephemeral: true });
+    collector.on('collect', async (btnInteraction) => {
+      if (btnInteraction.user.id !== msg.author.id) {
+        return btnInteraction.reply({ content: 'These buttons are not for you!', ephemeral: true });
       }
 
-      if (interaction.customId === 'prev_page') page--;
-      if (interaction.customId === 'next_page') page++;
+      if (btnInteraction.customId === 'prev_page') page--;
+      if (btnInteraction.customId === 'next_page') page++;
 
       // Ensure page is within range
       page = Math.max(1, Math.min(page, maxPages));
@@ -141,7 +144,7 @@ class ItemLeaderboard extends Command {
           .setDisabled(page === maxPages),
       );
 
-      await interaction.update({ embeds: [updatedEmbed], components: [updatedRow] });
+      await btnInteraction.update({ embeds: [updatedEmbed], components: [updatedRow] });
     });
 
     collector.on('end', () => {
