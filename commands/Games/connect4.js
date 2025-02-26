@@ -1,4 +1,4 @@
-const { EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder } = require('discord.js');
+const { EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, MessageFlags } = require('discord.js');
 const customEmojiRegex = /^(?:<a?:([a-zA-Z0-9_]+):)?([0-9]+)>?$/;
 const nums = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣'];
 const Command = require('../../base/Command.js');
@@ -315,7 +315,9 @@ class Connect4 extends Command {
 
         const interactionUser = collected.user;
         if (interactionUser.id !== currentUser.id) {
-          await collected.followUp({ content: "These buttons aren't for you!", ephemeral: true }).catch(console.error);
+          await collected
+            .followUp({ content: "These buttons aren't for you!", flags: MessageFlags.Ephemeral })
+            .catch(console.error);
           continue;
         }
 

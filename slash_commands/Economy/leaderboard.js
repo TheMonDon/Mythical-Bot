@@ -5,6 +5,7 @@ const {
   ButtonBuilder,
   ButtonStyle,
   ComponentType,
+  MessageFlags,
 } = require('discord.js');
 const { QuickDB } = require('quick.db');
 const db = new QuickDB();
@@ -132,7 +133,7 @@ exports.run = async (interaction) => {
 
   collector.on('collect', async (btnInteraction) => {
     if (btnInteraction.user.id !== interaction.user.id) {
-      return interaction.reply({ content: 'These buttons are not for you!', ephemeral: true });
+      return interaction.reply({ content: 'These buttons are not for you!', flags: MessageFlags.Ephemeral });
     }
 
     if (btnInteraction.customId === 'prev_page') page--;

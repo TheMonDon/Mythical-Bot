@@ -1,4 +1,11 @@
-const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType } = require('discord.js');
+const {
+  EmbedBuilder,
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  ComponentType,
+  MessageFlags,
+} = require('discord.js');
 const Command = require('../../base/Command.js');
 const { QuickDB } = require('quick.db');
 const db = new QuickDB();
@@ -100,7 +107,7 @@ class ItemLeaderboard extends Command {
 
     collector.on('collect', async (btnInteraction) => {
       if (btnInteraction.user.id !== msg.author.id) {
-        return btnInteraction.reply({ content: 'These buttons are not for you!', ephemeral: true });
+        return btnInteraction.reply({ content: 'These buttons are not for you!', flags: MessageFlags.Ephemeral });
       }
 
       if (btnInteraction.customId === 'prev_page') page--;

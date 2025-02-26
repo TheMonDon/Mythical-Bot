@@ -1,4 +1,4 @@
-const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags } = require('discord.js');
 const Command = require('../../base/Command.js');
 const { QuickDB } = require('quick.db');
 const db = new QuickDB();
@@ -84,7 +84,7 @@ class Inventory extends Command {
 
     collector.on('collect', async (interaction) => {
       if (interaction.user.id !== msg.author.id) {
-        return interaction.reply({ content: 'These buttons are not for you!', ephemeral: true });
+        return interaction.reply({ content: 'These buttons are not for you!', flags: MessageFlags.Ephemeral });
       }
 
       if (interaction.customId === 'prev_page') page--;

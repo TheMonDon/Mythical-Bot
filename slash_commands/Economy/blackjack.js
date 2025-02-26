@@ -5,6 +5,7 @@ const {
   ButtonBuilder,
   ButtonStyle,
   ActionRowBuilder,
+  MessageFlags,
 } = require('discord.js');
 const { QuickDB } = require('quick.db');
 const db = new QuickDB();
@@ -277,7 +278,9 @@ exports.run = async (interaction) => {
 
       const interactionUser = collected.user;
       if (interactionUser.id !== interaction.user.id) {
-        await collected.reply({ content: `These buttons aren't for you!`, ephemeral: true }).catch(() => {});
+        await collected
+          .reply({ content: `These buttons aren't for you!`, flags: MessageFlags.Ephemeral })
+          .catch(() => {});
         continue;
       }
 

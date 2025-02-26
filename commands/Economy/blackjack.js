@@ -1,4 +1,4 @@
-const { EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder } = require('discord.js');
+const { EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, MessageFlags } = require('discord.js');
 const Command = require('../../base/Command.js');
 const { QuickDB } = require('quick.db');
 const db = new QuickDB();
@@ -278,7 +278,9 @@ class BlackJack extends Command {
 
         const interactionUser = collected.user;
         if (interactionUser.id !== msg.author.id) {
-          await collected.reply({ content: `These buttons aren't for you!`, ephemeral: true }).catch(() => {});
+          await collected
+            .reply({ content: `These buttons aren't for you!`, flags: MessageFlags.Ephemeral })
+            .catch(() => {});
           continue;
         }
 
