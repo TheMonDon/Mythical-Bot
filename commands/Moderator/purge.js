@@ -70,6 +70,7 @@ class Purge extends Command {
     }
 
     async function getMessages(channel, limit, filter, before, after) {
+      if (limit > 100) limit = 100;
       return await channel.messages.fetch({ limit, before, after }).then((messages) => {
         if (filter) messages = messages.filter(filter);
         return messages;

@@ -154,6 +154,7 @@ exports.run = async (interaction) => {
   const originalMessage = await interaction.fetchReply();
 
   async function getMessages(channel, limit, filter, before, after) {
+    if (limit > 100) limit = 100;
     return channel.messages.fetch({ limit, before, after }).then((messages) => {
       // Filter out the original interaction message
       const filteredMessages = messages.filter((m) => m.id !== originalMessage.id);
