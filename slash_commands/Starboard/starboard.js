@@ -54,6 +54,11 @@ exports.commandData = new SlashCommandBuilder()
           .addStringOption((option) =>
             option.setName('upvote-emoji').setDescription('New upvote-emoji to use (default: ⭐)'),
           )
+          .addStringOption((option) =>
+            option
+              .setName('downvote-emoji')
+              .setDescription("The emoji that can be used to downvote a post. Use 'none' to remove (default: none)"),
+          )
           .addBooleanOption((option) =>
             option
               .setName('self-vote')
@@ -288,6 +293,7 @@ exports.run = async (interaction) => {
         const channel = interaction.options.getChannel('channel');
         const threshold = interaction.options.getInteger('threshold');
         const upvoteEmoji = interaction.options.getString('upvote-emoji');
+        const downvoteEmoji = interaction.options.getString('downvote-emoji');
         const selfVote = interaction.options.getBoolean('self-vote');
 
         if (channel !== null) {
@@ -303,10 +309,23 @@ exports.run = async (interaction) => {
           if (upvoteEmoji.startsWith('<') && upvoteEmoji.endsWith('>')) {
             const emojiId = upvoteEmoji.split(':')[2].slice(0, -1);
             if (!interaction.guild.emojis.cache.has(emojiId)) {
-              return interaction.editReply('That emoji is not available in this server,');
+              return interaction.editReply('That emoji is not available in this server.');
             }
           }
           updates.emoji = upvoteEmoji;
+        }
+
+        if (downvoteEmoji !== null) {
+          if (downvoteEmoji.toLowerCase() === 'none') {
+            updates['downvote-emoji'] = null;
+          } else if (downvoteEmoji.startsWith('<') && downvoteEmoji.endsWith('>')) {
+            const emojiId = downvoteEmoji.split(':')[2].slice(0, 1);
+            if (!interaction.guild.emojis.cache.has(emojiId)) {
+              return interaction.editReply('That downvote emoji is not available in this server.');
+            }
+          } else {
+            updates['downvote-emoji'] = downvoteEmoji;
+          }
         }
 
         if (selfVote !== null) {
