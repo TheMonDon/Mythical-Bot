@@ -1,4 +1,5 @@
 const { SlashCommandBuilder, InteractionContextType, EmbedBuilder } = require('discord.js');
+const { stripIndents } = require('common-tags');
 const { QuickDB } = require('quick.db');
 const db = new QuickDB();
 
@@ -31,7 +32,14 @@ exports.commandData = new SlashCommandBuilder()
           .setAutocomplete(true),
       ),
   )
-  .addSubcommand((subcommand) => subcommand.setName('list').setDescription('List all starboards'))
+  .addSubcommand((subcommand) =>
+    subcommand
+      .setName('view')
+      .setDescription('View the server starboards')
+      .addStringOption((option) =>
+        option.setName('name').setDescription('Name of the starboard to view').setRequired(true).setAutocomplete(true),
+      ),
+  )
   .addSubcommandGroup((group) =>
     group
       .setName('edit')
@@ -63,6 +71,14 @@ exports.commandData = new SlashCommandBuilder()
             option
               .setName('self-vote')
               .setDescription('Whether to allow users to vote on their own posts (default: false)'),
+          )
+          .addBooleanOption((option) =>
+            option.setName('allow-bots').setDescription('Whether to allow bot messages to be voted on (default: true)'),
+          )
+          .addBooleanOption((option) =>
+            option
+              .setName('require-image')
+              .setDescription('Whether to require messages to have an image to post to a starboard (default: false)'),
           ),
       )
       .addSubcommand((subcommand) =>
@@ -95,9 +111,6 @@ exports.commandData = new SlashCommandBuilder()
           )
           .addBooleanOption((option) =>
             option.setName('enabled').setDescription('Whether the starboard should be enabled'),
-          )
-          .addBooleanOption((option) =>
-            option.setName('allow-bots').setDescription('Whether to allow bot messages to be voted on (default: true)'),
           )
           .addBooleanOption((option) =>
             option
@@ -202,7 +215,7 @@ exports.run = async (interaction) => {
 
         if (Object.keys(starboards).length > 2) {
           return interaction.editReply(
-            'The server has reached the maximum number of starboards available (2). Please use </starboard delete:1344539277106741308> to delete one before making a new one.',
+            'The server has reached the maximum number of starboards available (3). Please delete one before making a new one.',
           );
         }
 
@@ -228,7 +241,10 @@ exports.run = async (interaction) => {
           'replied-to': true,
           'link-deletes': false,
           'link-edits': true,
+          'autoreact-upvote': true,
+          'autoreact-downvote': true,
           'remove-invalid-reactions': true,
+          'require-image': false,
           messages: {},
         });
 
@@ -247,33 +263,68 @@ exports.run = async (interaction) => {
         return interaction.editReply(`Deleted starboard "${name}".`);
       }
 
-      case 'list': {
+      case 'view': {
         if (Object.keys(starboards).length === 0) {
           return interaction.editReply('No starboards have been set up yet.');
         }
 
-        const embed = new EmbedBuilder()
-          .setTitle('Server Starboards')
-          .setColor(interaction.settings.embedColor)
-          .setDescription(
-            Object.entries(starboards)
-              .map(([name, config]) => {
-                return (
-                  `**${name}**\n` +
-                  `Channel: <#${config.channelId}>\n` +
-                  `Threshold: ${config.threshold}\n` +
-                  `Upvote-Emoji: ${config.emoji}\n` +
-                  `Color: ${config.color || interaction.settings.embedColor}\n` +
-                  `Allow-Bots: ${config['allow-bots'] ? 'true' : 'false'}\n` +
-                  `Ping-Author: ${config['ping-author'] ? 'true' : 'false'}\n` +
-                  `Replied-To: ${config['replied-to'] ? 'true' : 'false'}\n` +
-                  `Enabled: ${config.enabled ? 'true' : 'false'}\n`
-                );
-              })
-              .join('\n'),
-          );
+        const name = interaction.options.getString('name');
 
-        return interaction.editReply({ embeds: [embed] });
+        const starKey = Object.keys(starboards).find((key) => key.toLowerCase() === name.toLowerCase());
+        if (!starboards[starKey]) {
+          return interaction.editReply(`No starboard named "${name}" exists.`);
+        }
+
+        const config = starboards[starKey];
+
+        const mainEmbed = new EmbedBuilder()
+          .setTitle(`Starboard "${name}"`)
+          .setColor(config.color || interaction.settings.embedColor)
+          .setDescription(`This starboard is in <#${config.channelId}>.`)
+          .setTimestamp()
+          .addFields([
+            {
+              name: 'Requirements',
+              value: stripIndents`
+                Threshold: ${config.threshold}
+                Upvote-Emoji: ${config.emoji}
+                Downvote-Emoji: ${config['downvote-emoji'] ? config['downvote-emoji'] : 'None'}
+                Self-Vote: ${config['self-vote'] ? 'True' : 'False'}
+                Allow-Bots: ${config['allow-bots'] ? 'True' : 'False'}
+                Require-Image: ${config['require-image'] ? 'True' : 'False'}
+              `,
+              inline: true,
+            },
+            {
+              name: 'Behavior',
+              value: stripIndents`
+                Enabled: ${config.enabled ? 'True' : 'False'}
+                Autoreact-Upvote: ${config['autoreact-upvote'] ? 'True' : 'False'}
+                Autoreact-Downvote: ${config['autoreact-downvote'] ? 'True' : 'False'}
+                Link-Deletes: ${config['link-deletes'] ? 'True' : 'False'}
+                Link-Edits: ${config['link-edits'] ? 'True' : 'False'}
+                Remove-Invalid-Reactions: ${config['remove-invalid-reactions'] ? 'True' : 'False'}
+              `,
+              inline: true,
+            },
+            {
+              name: 'Style',
+              value: stripIndents`
+                Ping-Author: ${config['ping-author'] ? 'True' : 'False'}
+              `,
+              inline: true,
+            },
+            {
+              name: 'Embed Style',
+              value: stripIndents`
+                Color: ${config.color || interaction.settings.embedColor}
+                Replied-To: ${config['replied-to'] ? 'True' : 'False'}
+              `,
+              inline: true,
+            },
+          ]);
+
+        return interaction.editReply({ embeds: [mainEmbed] });
       }
     }
   }
@@ -291,10 +342,12 @@ exports.run = async (interaction) => {
     switch (subcommand) {
       case 'requirements': {
         const channel = interaction.options.getChannel('channel');
-        const threshold = interaction.options.getInteger('threshold');
-        const upvoteEmoji = interaction.options.getString('upvote-emoji');
-        const downvoteEmoji = interaction.options.getString('downvote-emoji');
         const selfVote = interaction.options.getBoolean('self-vote');
+        const threshold = interaction.options.getInteger('threshold');
+        const allowBots = interaction.options.getBoolean('allow-bots');
+        const upvoteEmoji = interaction.options.getString('upvote-emoji');
+        const requireImage = interaction.options.getBoolean('require-image');
+        const downvoteEmoji = interaction.options.getString('downvote-emoji');
 
         if (channel !== null) {
           if (!channel.permissionsFor(interaction.guild.members.me).has(['SendMessages', 'ViewChannel'])) {
@@ -332,6 +385,14 @@ exports.run = async (interaction) => {
           updates['self-vote'] = selfVote;
         }
 
+        if (allowBots !== null) {
+          updates['allow-bots'] = allowBots;
+        }
+
+        if (requireImage !== null) {
+          updates['require-image'] = requireImage;
+        }
+
         break;
       }
 
@@ -347,7 +408,8 @@ exports.run = async (interaction) => {
 
       case 'behavior': {
         const enabled = interaction.options.getBoolean('enabled');
-        const allowBots = interaction.options.getBoolean('allow-bots');
+        const autoreactUpvote = interaction.options.getBoolean('autoreact-upvote');
+        const autoreactDownvote = interaction.options.getBoolean('autoreact-downvote');
         const linkDeletes = interaction.options.getBoolean('link-deletes');
         const linkEdits = interaction.options.getBoolean('link-edits');
         const removeInvalidReactions = interaction.options.getBoolean('remove-invalid-reactions');
@@ -356,8 +418,12 @@ exports.run = async (interaction) => {
           updates.enabled = enabled;
         }
 
-        if (allowBots !== null) {
-          updates['allow-bots'] = allowBots;
+        if (autoreactUpvote !== null) {
+          updates['autoreact-upvote'] = autoreactUpvote;
+        }
+
+        if (autoreactDownvote !== null) {
+          updates['autoreact-downvote'] = autoreactDownvote;
         }
 
         if (linkDeletes !== null) {

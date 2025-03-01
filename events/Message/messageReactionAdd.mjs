@@ -8,92 +8,187 @@ export async function run(client, messageReaction, user) {
   const msg = messageReaction.message;
 
   const starboardSystem = async function (msg) {
+    if (messageReaction.partial) {
+      try {
+        await messageReaction.fetch();
+      } catch (error) {
+        console.error('Failed to fetch reaction:', error);
+        return;
+      }
+    }
+
+    if (msg.partial) {
+      try {
+        await msg.fetch();
+      } catch (error) {
+        console.error('Failed to fetch message:', error);
+        return;
+      }
+    }
+
     const starboards = (await db.get(`servers.${msg.guild.id}.starboards`)) || {};
 
     for (const [name, config] of Object.entries(starboards)) {
       if (!config.enabled) continue;
       if (msg.author.bot && !config['allow-bots']) continue;
 
-      // Star (upvote) and antistar (downvote) emoji
-      const isCustomStarEmoji = config.emoji.startsWith('<') && config.emoji.endsWith('>');
-      const isCustomAntiEmoji = config.antiEmoji?.startsWith('<') && config.antiEmoji?.endsWith('>');
-
-      let isStarboardReaction = false;
-      let isAntiStarboardReaction = false;
-
-      if (isCustomStarEmoji) {
-        const emojiId = config.emoji.split(':')[2].slice(0, -1);
-        isStarboardReaction = messageReaction.emoji.id === emojiId;
-      } else {
-        isStarboardReaction = messageReaction.emoji.name === config.emoji;
-      }
-
-      if (isCustomAntiEmoji) {
-        const antiEmojiId = config['downvote-emoji'].split(':')[2].slice(0, -1);
-        isAntiStarboardReaction = messageReaction.emoji.id === antiEmojiId;
-      } else if (config.antiEmoji) {
-        isAntiStarboardReaction = messageReaction.emoji.name === config.antiEmoji;
-      }
-
-      if (isStarboardReaction || isAntiStarboardReaction) {
-        const starChannel = msg.guild.channels.cache.get(config.channelId);
-        if (!starChannel) continue;
-        if (!starChannel.permissionsFor(msg.guild.members.me).has(['SendMessages', 'ViewChannel'])) continue;
-        if (starChannel === msg.channel) continue;
-
-        if (!config['self-vote'] && msg.author.id === user.id) {
-          if (config['remove-invalid-reactions']) {
-            await messageReaction.remove();
-            continue;
-          }
-          continue;
-        }
-
-        // Fetch reaction counts
-        const stars = msg.reactions.cache.get(config.emoji)?.count || 0;
-        const antistars = msg.reactions.cache.get(config['downvote-emoji'])?.count || 0;
-        let netStars;
-
-        if (config['downvote-emoji']) {
-          netStars = stars - antistars; // Calculate net votes
+      const matchEmoji = (reaction, emojiConfig) => {
+        if (emojiConfig.startsWith('<') && emojiConfig.endsWith('>')) {
+          const emojiId = emojiConfig.split(':')[2].slice(0, -1);
+          return reaction.emoji.id === emojiId;
         } else {
-          netStars = stars;
+          return reaction.emoji.name === emojiConfig;
+        }
+      };
+
+      const findReactionCount = (reactions, emojiConfig) => {
+        if (!reactions) return 0;
+        if (emojiConfig.startsWith('<') && emojiConfig.endsWith('>')) {
+          const emojiId = emojiConfig.split(':')[2].slice(0, -1);
+          return reactions.find((r) => r.emoji.id === emojiId)?.count || 0;
+        } else {
+          return reactions.find((r) => r.emoji.name === emojiConfig)?.count || 0;
+        }
+      };
+
+      const isStarboardReaction = matchEmoji(messageReaction, config.emoji);
+      const isAntiStarboardReaction = config['downvote-emoji'] && matchEmoji(messageReaction, config['downvote-emoji']);
+
+      if (!isStarboardReaction && !isAntiStarboardReaction) continue;
+
+      const starChannel = msg.guild.channels.cache.get(config.channelId);
+      if (
+        !starChannel ||
+        !starChannel.permissionsFor(msg.guild.members.me).has(['SendMessages', 'ViewChannel', 'EmbedLinks'])
+      )
+        continue;
+
+      const isStarboardChannel = msg.channel.id === config.channelId;
+
+      // Reaction on a message in the starboard channel
+      if (isStarboardChannel) {
+        const footerText = msg.embeds[0]?.footer?.text;
+        if (!footerText) continue;
+
+        const originalMsgId = footerText.split('|')[1]?.trim();
+        if (!originalMsgId) continue;
+
+        const channelField = msg.embeds[0].fields.find((field) => field.name === 'Channel');
+        if (!channelField) continue;
+
+        const channelId = channelField.value.replace(/[<#>]/g, '');
+        const originalChannel = msg.guild.channels.cache.get(channelId);
+        if (!originalChannel) continue;
+
+        const upvotes = findReactionCount(msg.reactions.cache, config.emoji);
+        const downvotes = config['downvote-emoji']
+          ? findReactionCount(msg.reactions.cache, config['downvote-emoji'])
+          : 0;
+
+        let originalMsgUpvotes = 0;
+        try {
+          const originalMsg = await originalChannel.messages.fetch(originalMsgId).catch(() => null);
+          if (originalMsg) {
+            originalMsgUpvotes = findReactionCount(originalMsg.reactions.cache, config.emoji);
+          }
+        } catch (err) {
+          console.error('Failed to fetch original message:', err);
         }
 
-        const existingStarMsg = await db.get(`servers.${msg.guild.id}.starboards.${name}.messages.${msg.id}`);
+        const adjustedUpvotes = Math.max(0, upvotes - 1);
+        const adjustedDownvotes = Math.max(0, downvotes - 1);
 
-        if (netStars >= config.threshold) {
-          const embeds = [];
-          const settings = client.getSettings(msg.guild);
+        const netVotes = config['downvote-emoji']
+          ? adjustedUpvotes + originalMsgUpvotes - adjustedDownvotes
+          : adjustedUpvotes + originalMsgUpvotes;
 
-          const processAttachments = (attachments, embed, embedsArray) => {
-            const attachmentMessage = [];
+        const newEmbeds = msg.embeds.map((embed) => {
+          const newEmbed = EmbedBuilder.from(embed);
+          newEmbed.setFooter({
+            text: `${config.emoji} ${netVotes} | ${originalMsgId}`,
+          });
+          return newEmbed;
+        });
 
-            if (attachments.length > 0 && attachments[0].contentType?.startsWith('image')) {
-              embed.setImage(attachments[0].url);
+        await msg.edit({ embeds: newEmbeds }).catch((e) => console.error('Error updating starboard message:', e));
+
+        if (netVotes < config.threshold) {
+          await msg.delete().catch(() => null);
+          await db.delete(`servers.${msg.guild.id}.starboards.${name}.messages.${originalMsgId}`);
+        }
+
+        continue;
+      }
+
+      // Reaction on a regular message
+      if (!config['self-vote'] && msg.author.id === user.id) {
+        if (config['remove-invalid-reactions']) {
+          await messageReaction.remove().catch(() => null);
+        }
+        continue;
+      }
+
+      const upvoteReaction = msg.reactions.cache.find((r) => matchEmoji(r, config.emoji));
+
+      const originalUpvotes = upvoteReaction ? upvoteReaction.count : 0;
+
+      let netVotes = originalUpvotes;
+
+      const existingStarMsgId = await db.get(`servers.${msg.guild.id}.starboards.${name}.messages.${msg.id}`);
+
+      if (existingStarMsgId) {
+        const starMessage = await starChannel.messages.fetch(existingStarMsgId).catch(() => null);
+        if (starMessage) {
+          const starboardUpvoteReaction = starMessage.reactions.cache.find((r) => matchEmoji(r, config.emoji));
+          const starboardDownvoteReaction = config['downvote-emoji']
+            ? starMessage.reactions.cache.find((r) => matchEmoji(r, config['downvote-emoji']))
+            : null;
+
+          const starboardUpvotes = starboardUpvoteReaction ? Math.max(0, starboardUpvoteReaction.count - 1) : 0; // Subtract bot's reaction
+          const starboardDownvotes = starboardDownvoteReaction ? Math.max(0, starboardDownvoteReaction.count - 1) : 0;
+
+          const starboardNetVotes = config['downvote-emoji'] ? starboardUpvotes - starboardDownvotes : starboardUpvotes;
+
+          netVotes += starboardNetVotes;
+        }
+      }
+
+      if (netVotes >= config.threshold) {
+        const embeds = [];
+        const settings = client.getSettings(msg.guild);
+
+        const processAttachments = (attachments, embed, embedsArray) => {
+          if (!attachments || attachments.length === 0) return;
+
+          const attachmentMessage = [];
+
+          if (attachments[0].contentType?.startsWith('image')) {
+            embed.setImage(attachments[0].url);
+          }
+
+          for (const attachment of attachments.slice(1)) {
+            if (attachment.contentType?.startsWith('image')) {
+              const attachmentEmbed = new EmbedBuilder()
+                .setImage(attachment.url)
+                .setColor(config.color || settings.embedColor);
+              embedsArray.push(attachmentEmbed);
+            } else {
+              attachmentMessage.push(`[${attachment.name}](${attachment.url})`);
             }
+          }
 
-            for (const attachment of attachments.slice(1)) {
-              if (attachment.contentType?.startsWith('image')) {
-                const attachmentEmbed = new EmbedBuilder()
-                  .setImage(attachment.url)
-                  .setColor(config.color || settings.embedColor);
-                embedsArray.push(attachmentEmbed);
-              } else {
-                attachmentMessage.push(`[${attachment.name}](${attachment.url})`);
-              }
-            }
+          if (attachmentMessage.length > 0) {
+            embed.addFields([{ name: 'Attachments', value: attachmentMessage.join('\n'), inline: true }]);
+          }
+        };
 
-            if (attachmentMessage.length > 0) {
-              embed.addFields([{ name: 'Attachments', value: attachmentMessage.join('\n'), inline: true }]);
-            }
-          };
-
-          if (config['replied-to'] && msg.reference) {
+        let replyEmbed;
+        if (config['replied-to'] && msg.reference) {
+          try {
             const replyMessage = await msg.channel.messages.fetch(msg.reference.messageId).catch(() => null);
             if (replyMessage) {
               const replyAttachments = [...replyMessage.attachments.values()];
-              const replyEmbed = new EmbedBuilder()
+              replyEmbed = new EmbedBuilder()
                 .setAuthor({
                   name: `Replying to ${replyMessage.author.tag}`,
                   iconURL: replyMessage.author.displayAvatarURL(),
@@ -113,58 +208,91 @@ export async function run(client, messageReaction, user) {
               processAttachments(replyAttachments, replyEmbed, embeds);
               embeds.unshift(replyEmbed);
             }
+          } catch (err) {
+            console.error('Error handling reply-to message:', err);
           }
+        }
 
-          const attachments = [...msg.attachments.values()];
-          const embed = new EmbedBuilder()
-            .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
-            .setThumbnail(msg.author.displayAvatarURL())
-            .setDescription(msg.content || null)
-            .setURL(msg.url)
-            .addFields([
-              { name: 'Author', value: msg.author.toString(), inline: true },
-              { name: 'Channel', value: `<#${msg.channel.id}>`, inline: true },
-              { name: 'Message', value: `[Jump To](${msg.url})`, inline: true },
-            ])
-            .setColor(config.color || settings.embedColor)
-            .setFooter({ text: `${config.emoji} ${stars} | ${msg.id}` })
-            .setTimestamp();
+        const attachments = [...msg.attachments.values()];
+        if (config['require-image']) {
+          if (!attachments || attachments.length === 0) continue;
+        }
 
-          processAttachments(attachments, embed, embeds);
-          embeds.unshift(embed);
+        const embed = new EmbedBuilder()
+          .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
+          .setThumbnail(msg.author.displayAvatarURL())
+          .setDescription(msg.content || null)
+          .setURL(msg.url)
+          .addFields([
+            { name: 'Author', value: msg.author.toString(), inline: true },
+            { name: 'Channel', value: `<#${msg.channel.id}>`, inline: true },
+            { name: 'Message', value: `[Jump To](${msg.url})`, inline: true },
+          ])
+          .setColor(config.color || settings.embedColor)
+          .setFooter({ text: `${config.emoji} ${originalUpvotes} | ${msg.id}` })
+          .setTimestamp();
 
-          if (msg.embeds.length > 0) {
-            msg.embeds.forEach((msgEmbed) => embeds.push(EmbedBuilder.from(msgEmbed)));
-          }
+        processAttachments(attachments, embed, embeds);
+        embeds.unshift(embed);
+        if (replyEmbed) {
+          embeds.unshift(replyEmbed);
+        }
 
-          let content = null;
-          if (config['ping-author'] === true) {
-            content = `<@${msg.author.id}>`;
-          }
+        if (msg.embeds && msg.embeds.length > 0) {
+          msg.embeds.forEach((msgEmbed) => embeds.push(EmbedBuilder.from(msgEmbed)));
+        }
 
-          if (existingStarMsg) {
-            const starMessage = await starChannel.messages.fetch(existingStarMsg).catch(() => null);
-            if (starMessage) {
-              await starMessage.edit({ content, embeds });
-            }
+        const content = config['ping-author'] ? `<@${msg.author.id}>` : null;
+
+        if (existingStarMsgId) {
+          const starMessage = await starChannel.messages.fetch(existingStarMsgId).catch(() => null);
+          if (starMessage) {
+            await starMessage.edit({ content, embeds }).catch((err) => {
+              console.error('Error updating starboard message:', err);
+            });
           } else {
+            try {
+              const starMessage = await starChannel.send({ content, embeds });
+
+              if (config['autoreact-upvote']) {
+                await starMessage.react(config.emoji);
+              }
+
+              if (config['downvote-emoji'] && config['autoreact-downvote']) {
+                await starMessage.react(config['downvote-emoji']);
+              }
+
+              await db.set(`servers.${msg.guild.id}.starboards.${name}.messages.${msg.id}`, starMessage.id);
+            } catch (err) {
+              console.error('Error creating new starboard message:', err);
+            }
+          }
+        } else {
+          try {
             const starMessage = await starChannel.send({ content, embeds });
-            await starMessage.react(config.emoji);
-            if (config['downvote-emoji']) {
+
+            if (config['autoreact-upvote']) {
+              await starMessage.react(config.emoji);
+            }
+
+            if (config['downvote-emoji'] && config['autoreact-downvote']) {
               await starMessage.react(config['downvote-emoji']);
             }
 
             await db.set(`servers.${msg.guild.id}.starboards.${name}.messages.${msg.id}`, starMessage.id);
+          } catch (err) {
+            console.error('Error creating new starboard message:', err);
           }
-        } else if (existingStarMsg) {
-          // Remove message if net votes fall below threshold
-          if (config['downvote-emoji']) {
-            const starMessage = await starChannel.messages.fetch(existingStarMsg).catch(() => null);
-            if (starMessage) {
-              await starMessage.delete();
-              await db.delete(`servers.${msg.guild.id}.starboards.${name}.messages.${msg.id}`);
-            }
+        }
+      } else if (existingStarMsgId) {
+        try {
+          const starMessage = await starChannel.messages.fetch(existingStarMsgId).catch(() => null);
+          if (starMessage) {
+            await starMessage.delete();
+            await db.delete(`servers.${msg.guild.id}.starboards.${name}.messages.${msg.id}`);
           }
+        } catch (err) {
+          console.error('Error deleting starboard message:', err);
         }
       }
     }

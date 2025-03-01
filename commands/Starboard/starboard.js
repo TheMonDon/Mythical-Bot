@@ -7,13 +7,13 @@ class Starboard extends Command {
   constructor(client) {
     super(client, {
       name: 'starboard',
-      description: 'Configure starboard systems',
+      description: 'Create/Delete starboard systems',
       category: 'Starboard',
-      usage: 'starboard <create|delete|list> [name]',
+      usage: 'starboard <create|delete> [name]',
       guildOnly: true,
       permLevel: 'Administrator',
       aliases: ['star', 'sb'],
-      examples: ['starboard create highlights #starboard', 'starboard delete highlights', 'starboard list'],
+      examples: ['starboard create highlights #starboard', 'starboard delete highlights'],
     });
   }
 
@@ -30,26 +30,15 @@ class Starboard extends Command {
         return msg.channel.send('No starboards have been set up yet!');
       }
 
-      const embed = new EmbedBuilder()
-        .setTitle('Server Starboards')
-        .setColor(msg.settings.embedColor)
+      const errorEmbed = new EmbedBuilder()
+        .setTitle('Invalid Subcommand')
+        .setColor(msg.settings.embedErrorColor)
         .setDescription(
-          Object.entries(starboards)
-            .map(([name, config]) => {
-              return (
-                `**${name}**\n` +
-                `Channel: <#${config.channelId}>\n` +
-                `Threshold: ${config.threshold}\n` +
-                `Emoji: ${config.emoji}\n` +
-                `Color: ${config.color || msg.settings.embedColor}\n` +
-                `Status: ${config.enabled ? 'Enabled' : 'Disabled'}\n`
-              );
-            })
-            .join('\n') + `\nTo edit a starboard please use </starboard edit:1344539277106741308>.`,
-          // Change the command ID after deploying
-        );
+          `To view or edit a standards information please use /starboard. \nUsage: ${msg.settings.prefix}${this.help.usage}`,
+        )
+        .setTimestamp();
 
-      return msg.channel.send({ embeds: [embed] });
+      return msg.channel.send({ embeds: [errorEmbed] });
     }
 
     const subCommand = args[0].toLowerCase();
@@ -91,6 +80,10 @@ class Starboard extends Command {
           'replied-to': true,
           'link-deletes': false,
           'link-edits': true,
+          'autoreact-upvote': true,
+          'autoreact-downvote': true,
+          'remove-invalid-reactions': true,
+          'require-image': false,
           messages: {},
         });
 
@@ -111,31 +104,6 @@ class Starboard extends Command {
 
         await db.delete(`servers.${msg.guild.id}.starboards.${name}`);
         return msg.channel.send(`Deleted starboard "${name}"!`);
-      }
-
-      case 'list': {
-        if (Object.keys(starboards).length === 0) {
-          return msg.channel.send('No starboards have been set up yet!');
-        }
-
-        const embed = new EmbedBuilder()
-          .setTitle('Server Starboards')
-          .setColor(msg.settings.embedColor)
-          .setDescription(
-            Object.entries(starboards)
-              .map(([name, config]) => {
-                return (
-                  `**${name}**\n` +
-                  `Channel: <#${config.channelId}>\n` +
-                  `Threshold: ${config.threshold}\n` +
-                  `Emoji: ${config.emoji}\n` +
-                  `Status: ${config.enabled ? 'Enabled' : 'Disabled'}\n`
-                );
-              })
-              .join('\n'),
-          );
-
-        return msg.channel.send({ embeds: [embed] });
       }
 
       default:
