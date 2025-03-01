@@ -81,7 +81,9 @@ export async function run(client, message) {
       const starChannel = message.guild.channels.cache.get(config.channelId);
       if (!starChannel) continue;
 
-      const existingStarMsg = await db.get(`servers.${message.guild.id}.starboards.${name}.messages.${message.id}`);
+      const existingStarMsg = await db.get(
+        `servers.${message.guild.id}.starboards.${name}.messages.${message.id}.starboardMsgId`,
+      );
       if (!existingStarMsg) continue;
 
       const starMessage = await starChannel.messages.fetch(existingStarMsg).catch(() => null);

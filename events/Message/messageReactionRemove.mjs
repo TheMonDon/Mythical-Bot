@@ -128,7 +128,9 @@ export async function run(client, messageReaction, user) {
 
       let netVotes = originalUpvotes;
 
-      const existingStarMsgId = await db.get(`servers.${msg.guild.id}.starboards.${name}.messages.${msg.id}`);
+      const existingStarMsgId = await db.get(
+        `servers.${msg.guild.id}.starboards.${name}.messages.${msg.id}.starboardMsgId`,
+      );
       if (!existingStarMsgId) continue;
 
       const starMessage = await starChannel.messages.fetch(existingStarMsgId).catch(() => null);
@@ -158,6 +160,7 @@ export async function run(client, messageReaction, user) {
         await starMessage
           .edit({ content, embeds: newEmbeds })
           .catch((e) => console.error('Error updating starboard message:', e));
+        await db.set(`servers.${msg.guild.id}.starboards.${name}.messages.${msg.id}.stars`, netVotes);
       } else {
         await starMessage.delete().catch((e) => console.error('Error deleting starboard message:', e));
         await db.delete(`servers.${msg.guild.id}.starboards.${name}.messages.${msg.id}`);

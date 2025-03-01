@@ -123,7 +123,7 @@ export async function run(client, messageReaction, user) {
       // Reaction on a regular message
       if (!config['self-vote'] && msg.author.id === user.id) {
         if (config['remove-invalid-reactions']) {
-          await messageReaction.remove().catch(() => null);
+          await messageReaction.remove().catch(() => console.log('Failed to remove reaction'));
         }
         continue;
       }
@@ -134,7 +134,9 @@ export async function run(client, messageReaction, user) {
 
       let netVotes = originalUpvotes;
 
-      const existingStarMsgId = await db.get(`servers.${msg.guild.id}.starboards.${name}.messages.${msg.id}`);
+      const existingStarMsgId = await db.get(
+        `servers.${msg.guild.id}.starboards.${name}.messages.${msg.id}.starboardMsgId`,
+      );
 
       if (existingStarMsgId) {
         const starMessage = await starChannel.messages.fetch(existingStarMsgId).catch(() => null);
@@ -238,8 +240,10 @@ export async function run(client, messageReaction, user) {
           embeds.unshift(replyEmbed);
         }
 
-        if (msg.embeds && msg.embeds.length > 0) {
-          msg.embeds.forEach((msgEmbed) => embeds.push(EmbedBuilder.from(msgEmbed)));
+        if (msg.embeds?.length > 0) {
+          if (config['extra-embeds']) {
+            msg.embeds.forEach((msgEmbed) => embeds.push(EmbedBuilder.from(msgEmbed)));
+          }
         }
 
         const content = config['ping-author'] ? `<@${msg.author.id}>` : null;
@@ -250,6 +254,7 @@ export async function run(client, messageReaction, user) {
             await starMessage.edit({ content, embeds }).catch((err) => {
               console.error('Error updating starboard message:', err);
             });
+            await db.set(`servers.${msg.guild.id}.starboards.${name}.messages.${msg.id}.stars`, netVotes);
           } else {
             try {
               const starMessage = await starChannel.send({ content, embeds });
@@ -262,7 +267,12 @@ export async function run(client, messageReaction, user) {
                 await starMessage.react(config['downvote-emoji']);
               }
 
-              await db.set(`servers.${msg.guild.id}.starboards.${name}.messages.${msg.id}`, starMessage.id);
+              await db.set(`servers.${msg.guild.id}.starboards.${name}.messages.${msg.id}`, {
+                starboardMsgId: starMessage.id,
+                stars: netVotes, // Store the number of stars
+                author: msg.author.id, // Store the message author's ID
+                channel: msg.channel.id, // Store the original channel ID
+              });
             } catch (err) {
               console.error('Error creating new starboard message:', err);
             }
@@ -279,7 +289,12 @@ export async function run(client, messageReaction, user) {
               await starMessage.react(config['downvote-emoji']);
             }
 
-            await db.set(`servers.${msg.guild.id}.starboards.${name}.messages.${msg.id}`, starMessage.id);
+            await db.set(`servers.${msg.guild.id}.starboards.${name}.messages.${msg.id}`, {
+              starboardMsgId: starMessage.id,
+              stars: netVotes, // Store the number of stars
+              author: msg.author.id, // Store the message author's ID
+              channel: msg.channel.id, // Store the original channel ID
+            });
           } catch (err) {
             console.error('Error creating new starboard message:', err);
           }

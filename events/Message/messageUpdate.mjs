@@ -218,7 +218,7 @@ export async function run(client, oldMessage, newMessage) {
       if (starChannel === newMessage.channel) continue;
 
       const existingStarMsg = await db.get(
-        `servers.${newMessage.guild.id}.starboards.${name}.messages.${newMessage.id}`,
+        `servers.${newMessage.guild.id}.starboards.${name}.messages.${newMessage.id}.starboardMsgId`,
       );
       if (!existingStarMsg) continue;
 
@@ -267,12 +267,13 @@ export async function run(client, oldMessage, newMessage) {
       };
 
       // If replied-to is enabled and the message has a reference
+      let replyEmbed;
       if (config['replied-to'] && newMessage.reference) {
         const replyMessage = await newMessage.channel.messages.fetch(newMessage.reference.messageId).catch(() => null);
 
         if (replyMessage) {
           const replyAttachments = [...replyMessage.attachments.values()];
-          const replyEmbed = new EmbedBuilder()
+          replyEmbed = new EmbedBuilder()
             .setAuthor({
               name: `Replying to ${replyMessage.author.tag}`,
               iconURL: replyMessage.author.displayAvatarURL(),
@@ -312,16 +313,18 @@ export async function run(client, oldMessage, newMessage) {
 
       processAttachments(attachments, embed, embeds);
       embeds.unshift(embed);
+      if (replyEmbed) {
+        embeds.unshift(replyEmbed);
+      }
 
       // Add any existing message embeds AFTER the original embed
-      if (newMessage.embeds.length > 0) {
-        newMessage.embeds.forEach((msgEmbed) => embeds.push(EmbedBuilder.from(msgEmbed)));
+      if (newMessage.embeds?.length > 0) {
+        if (config['extra-embeds']) {
+          newMessage.embeds.forEach((msgEmbed) => embeds.push(EmbedBuilder.from(msgEmbed)));
+        }
       }
 
-      let content = null;
-      if (config['ping-author'] === true) {
-        content = `<@${newMessage.author.id}>`;
-      }
+      const content = config['ping-author'] ? `<@${newMessage.author.id}>` : null;
 
       const starMessage = await starChannel.messages.fetch(existingStarMsg).catch(() => null);
       if (starMessage) {

@@ -96,6 +96,11 @@ exports.commandData = new SlashCommandBuilder()
             option
               .setName('ping-author')
               .setDescription('Whether to mention the author of the original message (default: false)'),
+          )
+          .addBooleanOption((option) =>
+            option
+              .setName('extra-embeds')
+              .setDescription('Whether to include embeds from the message in the starboard (default: true)'),
           ),
       )
       .addSubcommand((subcommand) =>
@@ -245,6 +250,7 @@ exports.run = async (interaction) => {
           'autoreact-downvote': true,
           'remove-invalid-reactions': true,
           'require-image': false,
+          'extra-embeds': true,
           messages: {},
         });
 
@@ -311,6 +317,7 @@ exports.run = async (interaction) => {
               name: 'Style',
               value: stripIndents`
                 Ping-Author: ${config['ping-author'] ? 'True' : 'False'}
+                Extra-Embeds: ${config['extra-embeds'] ? 'True' : 'False'}
               `,
               inline: true,
             },
@@ -398,9 +405,14 @@ exports.run = async (interaction) => {
 
       case 'style': {
         const pingAuthor = interaction.options.getBoolean('ping-author');
+        const extraEmbeds = interaction.options.getBoolean('extra-embeds');
 
         if (pingAuthor !== null) {
           updates['ping-author'] = pingAuthor;
+        }
+
+        if (extraEmbeds !== null) {
+          updates['extra-embeds'] = extraEmbeds;
         }
 
         break;
