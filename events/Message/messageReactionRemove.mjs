@@ -57,6 +57,11 @@ export async function run(client, messageReaction, user) {
       if (!isStarboardReaction && !isAntiStarboardReaction) continue;
 
       const starChannel = msg.guild.channels.cache.get(config.channelId);
+
+      if (msg.channel.nsfw && !starChannel.nsfw) {
+        continue;
+      }
+
       if (
         !starChannel ||
         !starChannel.permissionsFor(msg.guild.members.me).has(['SendMessages', 'ViewChannel', 'EmbedLinks'])
@@ -103,15 +108,16 @@ export async function run(client, messageReaction, user) {
           ? adjustedUpvotes + originalMsgUpvotes - adjustedDownvotes
           : adjustedUpvotes + originalMsgUpvotes;
 
-        const newEmbeds = msg.embeds.map((embed) => {
-          const newEmbed = EmbedBuilder.from(embed);
-          newEmbed.setFooter({
-            text: `${config.emoji} ${netVotes} | ${originalMsgId}`,
-          });
-          return newEmbed;
+        const newEmbed = EmbedBuilder.from(msg.embeds[0]);
+        newEmbed.setFooter({
+          text: `${config.emoji} ${netVotes} | ${originalMsgId}`,
         });
 
-        await msg.edit({ embeds: newEmbeds }).catch((e) => console.error('Error updating starboard message:', e));
+        const newEmbeds = msg.embeds.slice(1).map((embed) => EmbedBuilder.from(embed));
+
+        await msg
+          .edit({ embeds: [newEmbed, ...newEmbeds] })
+          .catch((e) => console.error('Error updating starboard message:', e));
 
         if (netVotes < config.threshold) {
           await msg.delete().catch(() => null);

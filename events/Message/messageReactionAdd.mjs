@@ -65,6 +65,13 @@ export async function run(client, messageReaction, user) {
 
       const isStarboardChannel = msg.channel.id === config.channelId;
 
+      if (msg.channel.nsfw && !starChannel.nsfw) {
+        if (config['remove-invalid-reactions']) {
+          await messageReaction.remove().catch(() => console.log('Failed to remove reaction from NSFW message'));
+        }
+        continue;
+      }
+
       // Reaction on a message in the starboard channel
       if (isStarboardChannel) {
         const footerText = msg.embeds[0]?.footer?.text;
@@ -102,15 +109,16 @@ export async function run(client, messageReaction, user) {
           ? adjustedUpvotes + originalMsgUpvotes - adjustedDownvotes
           : adjustedUpvotes + originalMsgUpvotes;
 
-        const newEmbeds = msg.embeds.map((embed) => {
-          const newEmbed = EmbedBuilder.from(embed);
-          newEmbed.setFooter({
-            text: `${config.emoji} ${netVotes} | ${originalMsgId}`,
-          });
-          return newEmbed;
+        const newEmbed = EmbedBuilder.from(msg.embeds[0]);
+        newEmbed.setFooter({
+          text: `${config.emoji} ${netVotes} | ${originalMsgId}`,
         });
 
-        await msg.edit({ embeds: newEmbeds }).catch((e) => console.error('Error updating starboard message:', e));
+        const newEmbeds = msg.embeds.slice(1).map((embed) => EmbedBuilder.from(embed));
+
+        await msg
+          .edit({ embeds: [newEmbed, ...newEmbeds] })
+          .catch((e) => console.error('Error updating starboard message:', e));
 
         if (netVotes < config.threshold) {
           await msg.delete().catch(() => null);
@@ -231,7 +239,7 @@ export async function run(client, messageReaction, user) {
             { name: 'Message', value: `[Jump To](${msg.url})`, inline: true },
           ])
           .setColor(config.color || settings.embedColor)
-          .setFooter({ text: `${config.emoji} ${originalUpvotes} | ${msg.id}` })
+          .setFooter({ text: `${config.emoji} ${netVotes} | ${msg.id}` })
           .setTimestamp();
 
         processAttachments(attachments, embed, embeds);

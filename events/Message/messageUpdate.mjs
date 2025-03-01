@@ -222,22 +222,9 @@ export async function run(client, oldMessage, newMessage) {
       );
       if (!existingStarMsg) continue;
 
-      // Get the configured emoji
-      const isCustomEmoji = config.emoji.startsWith('<') && config.emoji.endsWith('>');
-      let emojiIdentifier;
-
-      if (isCustomEmoji) {
-        emojiIdentifier = config.emoji.split(':')[2].slice(0, -1); // Extract emoji ID
-      } else {
-        emojiIdentifier = config.emoji; // Unicode emoji
-      }
-
-      // Find the reaction matching the configured emoji
-      const reaction = newMessage.reactions.cache.find((r) =>
-        isCustomEmoji ? r.emoji.id === emojiIdentifier : r.emoji.name === emojiIdentifier,
-      );
-
-      const emojiCount = reaction ? reaction.count : 0; // Get total count or default to 0
+      const starMessage = await starChannel.messages.fetch(existingStarMsg).catch(() => null);
+      if (!starMessage) continue;
+      const existingFooter = starMessage.embeds[0].footer.text.split('|')[0].trim();
 
       const embeds = [];
       const settings = client.getSettings(newMessage.guild);
@@ -308,7 +295,7 @@ export async function run(client, oldMessage, newMessage) {
           { name: 'Message', value: `[Jump To](${newMessage.url})`, inline: true },
         ])
         .setColor(config.color || settings.embedColor)
-        .setFooter({ text: `${config.emoji} ${emojiCount} | ${newMessage.id}` })
+        .setFooter({ text: `${existingFooter} | ${newMessage.id}` })
         .setTimestamp();
 
       processAttachments(attachments, embed, embeds);
@@ -326,10 +313,7 @@ export async function run(client, oldMessage, newMessage) {
 
       const content = config['ping-author'] ? `<@${newMessage.author.id}>` : null;
 
-      const starMessage = await starChannel.messages.fetch(existingStarMsg).catch(() => null);
-      if (starMessage) {
-        await starMessage.edit({ content, embeds });
-      }
+      await starMessage.edit({ content, embeds });
     }
   }
 
