@@ -113,7 +113,6 @@ export async function run(client, messageReaction, user) {
           const originalMsg = await originalChannel.messages.fetch(originalMsgId).catch(() => null);
           if (originalMsg) {
             // Check if the reaction is from the original author and if self-vote is disabled
-            console.log('starboardchannel Self-Vote', config['self-vote']);
             if (!config['self-vote'] && originalMsg.author.id === user.id) {
               if (config['remove-invalid-reactions']) {
                 await messageReaction.users
@@ -161,16 +160,12 @@ export async function run(client, messageReaction, user) {
       }
 
       // Reaction on a regular message
-      console.log('self-vote', config['self-vote']);
       if (!config['self-vote'] && msg.author.id === user.id) {
-        console.log('inside self-vote');
         if (config['remove-invalid-reactions']) {
-          console.log('inside remove reactions');
           await messageReaction.users
             .remove(user.id)
             .catch(() => console.log(`Failed to remove self-vote reaction in starboard for user ${user.id}`));
         }
-        console.log('Skipping self-vote, should not send to starboard');
         continue;
       }
 
