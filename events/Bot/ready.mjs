@@ -172,8 +172,8 @@ export async function run(client) {
           const timeDiff = Date.now() - leaveTimestamp;
           if (timeDiff >= 2592000000) {
             await db.delete(`servers.${serverId}`);
-            this.client.settings.delete(serverId);
-            this.client.logger.log(`Deleted server data for ${serverId}.`);
+            client.settings.delete(serverId);
+            client.logger.log(`Deleted server data for ${serverId}.`);
           }
         }
       }

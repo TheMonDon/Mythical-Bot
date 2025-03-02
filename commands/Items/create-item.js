@@ -38,7 +38,7 @@ class CreateItem extends Command {
     const storeSize = Object.keys(store).length;
     if (storeSize > 50) {
       return msg.channel.send(
-        'The store has reached the maximum number of items allowed. Please use `delete-item` to delete some before creating more.',
+        'The store has reached the maximum number of items allowed (50). Please use `delete-item` to delete some before creating more.',
       );
     }
 

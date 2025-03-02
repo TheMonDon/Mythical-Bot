@@ -9,7 +9,7 @@ exports.conf = {
 exports.commandData = new SlashCommandBuilder()
   .setName('warn')
   .setContexts(InteractionContextType.Guild)
-  .setDescription('Warns a user, by default members are kicked at 8 and banned at 10 points.')
+  .setDescription('Warn a user')
   .addUserOption((option) => option.setName('user').setDescription('The user you want to warn').setRequired(true))
   .addStringOption((option) =>
     option.setName('reason').setDescription('Why you are warning the user').setRequired(true),

@@ -17,12 +17,13 @@ class logSystem extends Command {
   }
 
   async run(msg) {
-    if (!(await db.get(`servers.${msg.guild.id}.logs.channel`)))
+    if (!(await db.get(`servers.${msg.guild.id}.logs.channel`))) {
       return msg.channel.send(`The log system is not set up! Use \`${msg.settings.prefix}Setup Logging <Channel>\``);
+    }
 
     async function getLogInfo(guildId, logType) {
       const logValue = await db.get(`servers.${guildId}.logs.logSystem.${logType}`);
-      return logValue === 'enabled' ? 'Enabled' : ':x:';
+      return logValue === 'enabled' ? '✅' : '❌';
     }
 
     async function getAllLogInfo(msg) {
@@ -62,14 +63,11 @@ class logSystem extends Command {
     }
 
     const logOutput = await getAllLogInfo(msg);
+    const logChannel = await db.get(`servers.${msg.guild.id}.logs.channel`);
 
     const embed = new EmbedBuilder().setColor(msg.settings.embedColor).addFields([
-      {
-        name: 'Toggle Status',
-        value: logOutput,
-        inline: true,
-      },
-      { name: 'Log Channel', value: `<#${await db.get(`servers.${msg.guild.id}.logs.channel`)}>` },
+      { name: 'Toggle Status', value: logOutput, inline: true },
+      { name: 'Log Channel', value: `<#${logChannel}>` },
     ]);
 
     return msg.channel.send({ embeds: [embed] });
