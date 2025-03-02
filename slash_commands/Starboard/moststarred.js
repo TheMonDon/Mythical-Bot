@@ -50,10 +50,11 @@ exports.autoComplete = async (interaction) => {
 };
 
 exports.run = async (interaction) => {
-  await interaction.deferReply();
   const guildId = interaction.guild.id;
   const starboards = (await db.get(`servers.${guildId}.starboards`)) || {};
   const name = interaction.options.getString('name');
+  const author = interaction.options.getUser('author');
+  const channel = interaction.options.getChannel('channel');
 
   const starKey = Object.keys(starboards).find((key) => key.toLowerCase() === name.toLowerCase());
   if (!starboards[starKey]) {
@@ -66,23 +67,42 @@ exports.run = async (interaction) => {
   const config = starboards[starKey];
   const starChannel = interaction.guild.channels.cache.get(config.channelId);
   if (!starChannel) {
-    return interaction.editReply({ content: 'Starboard channel not found.', flags: MessageFlags.Ephemeral });
+    return interaction.reply({ content: 'Starboard channel not found.', flags: MessageFlags.Ephemeral });
+  }
+
+  if (starChannel.nsfw) {
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+  } else {
+    await interaction.deferReply();
   }
 
   const messages = (await db.get(`servers.${guildId}.starboards.${name}.messages`)) || {};
-  const sortedMessages = Object.entries(messages).sort((a, b) => b[1].stars - a[1].stars);
+  // Filter messages based on author and channel if provided
+  const filteredMessages = Object.entries(messages)
+    .map(([msgId, data]) => ({ msgId, ...data }))
+    .filter((data) => {
+      if (author && data.author !== author.id) return false;
+      if (channel && data.channel !== channel.id) return false;
+      return true;
+    });
+
+  if (filteredMessages.length === 0) {
+    return interaction.editReply('No matching starred messages found.');
+  }
+
+  const sortedMessages = filteredMessages.sort((a, b) => b.stars - a.stars);
 
   if (sortedMessages.length === 0) {
-    return interaction.editReply({ content: 'No starred messages found.', flags: MessageFlags.Ephemeral });
+    return interaction.editReply({ content: 'No starred messages found.' });
   }
 
   let page = 0;
 
   const generateEmbed = async (page) => {
-    const [msgId, data] = sortedMessages[page] || [];
-    if (!msgId || !data) return null;
+    const messageData = sortedMessages[page];
+    if (!messageData) return null;
 
-    const starboardMsg = await starChannel.messages.fetch(data.starboardMsgId).catch(() => null);
+    const starboardMsg = await starChannel.messages.fetch(messageData.starboardMsgId).catch(() => null);
     return starboardMsg ? starboardMsg.embeds : null;
   };
 
@@ -102,13 +122,13 @@ exports.run = async (interaction) => {
 
   const embeds = await generateEmbed(page);
   if (!embeds) {
-    return interaction.editReply({ content: 'No valid messages to display.', flags: MessageFlags.Ephemeral });
+    return interaction.editReply({ content: 'No valid messages to display.' });
   }
 
-  await interaction.editReply({ embeds, components: [row] });
+  await interaction.editReply({ embeds, components: [row], ephemeral: starChannel.nsfw });
   const reply = await interaction.fetchReply();
 
-  const collector = reply.createMessageComponentCollector({ componentType: ComponentType.Button, time: 120000 });
+  const collector = reply.createMessageComponentCollector({ componentType: ComponentType.Button, time: 300000 });
 
   collector.on('collect', async (i) => {
     if (i.user.id !== interaction.user.id) {

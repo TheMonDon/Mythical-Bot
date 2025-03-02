@@ -206,7 +206,24 @@ export async function run(client, oldMessage, newMessage) {
 
     const starboards = (await db.get(`servers.${oldMessage.guild.id}.starboards`)) || {};
 
-    for (const [name, config] of Object.entries(starboards)) {
+    for (const [name, oldConfig] of Object.entries(starboards)) {
+      const getStarboardConfig = (config, channelId) => {
+        if (!config) return null;
+
+        // Check if any override applies to this channel
+        if (config.overrides) {
+          for (const [overrideName, overrideConfig] of Object.entries(config.overrides)) {
+            if (overrideConfig.channels.includes(channelId)) {
+              return { ...config, ...overrideConfig, overrideName };
+            }
+          }
+        }
+
+        return config; // Return default if no override is found
+      };
+
+      const config = getStarboardConfig(oldConfig, newMessage.channel.id);
+
       if (!config.enabled) continue;
       if (!config['link-edits']) continue;
       if (oldMessage.author.bot && !config['allow-bots']) continue;

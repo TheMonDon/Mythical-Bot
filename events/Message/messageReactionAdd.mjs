@@ -28,7 +28,23 @@ export async function run(client, messageReaction, user) {
 
     const starboards = (await db.get(`servers.${msg.guild.id}.starboards`)) || {};
 
-    for (const [name, config] of Object.entries(starboards)) {
+    for (const [name, oldConfig] of Object.entries(starboards)) {
+      const getStarboardConfig = (config, channelId) => {
+        if (!config) return null;
+
+        // Check if any override applies to this channel
+        if (config.overrides) {
+          for (const [overrideName, overrideConfig] of Object.entries(config.overrides)) {
+            if (overrideConfig.channels.includes(channelId)) {
+              return { ...config, ...overrideConfig, overrideName };
+            }
+          }
+        }
+
+        return config; // Return default if no override is found
+      };
+
+      const config = getStarboardConfig(oldConfig, msg.channel.id);
       if (!config.enabled) continue;
       if (msg.author.bot && !config['allow-bots']) continue;
 
@@ -114,7 +130,12 @@ export async function run(client, messageReaction, user) {
           text: `${config.emoji} ${netVotes} | ${originalMsgId}`,
         });
 
-        const newEmbeds = msg.embeds.slice(1).map((embed) => EmbedBuilder.from(embed));
+        let newEmbeds = [];
+        if (msg.embeds?.length > 0) {
+          if (config['extra-embeds']) {
+            newEmbeds = msg.embeds.slice(1).map((embed) => EmbedBuilder.from(embed));
+          }
+        }
 
         await msg
           .edit({ embeds: [newEmbed, ...newEmbeds] })

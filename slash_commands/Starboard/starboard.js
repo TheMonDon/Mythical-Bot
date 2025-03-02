@@ -179,12 +179,14 @@ exports.autoComplete = async (interaction) => {
 
     // Fetch starboards for the server
     const starboards = (await db.get(`servers.${interaction.guild.id}.starboards`)) || {};
+    if (!starboards) return interaction.respond([]).catch(() => {});
 
     // Get starboard names
     const starboardNames = Object.keys(starboards);
 
     // Filter based on user input
     const filtered = starboardNames.filter((name) => name.toLowerCase().includes(nameString.toLowerCase()));
+    if (!filtered) return interaction.respond([]).catch(() => {});
 
     // Respond with up to 25 choices (Discord API limit)
     return interaction
