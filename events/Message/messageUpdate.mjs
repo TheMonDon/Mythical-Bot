@@ -205,24 +205,25 @@ export async function run(client, oldMessage, newMessage) {
     if (newMessage.partial) await newMessage.fetch(); // Ensure we have full message data
 
     const starboards = (await db.get(`servers.${oldMessage.guild.id}.starboards`)) || {};
+    const overrides = (await db.get(`servers.${oldMessage.guild.id}.overrides`)) || {};
 
-    for (const [name, oldConfig] of Object.entries(starboards)) {
-      const getStarboardConfig = (config, channelId) => {
-        if (!config) return null;
+    const getStarboardConfig = (starboardName, channelId) => {
+      const baseConfig = starboards[starboardName];
+      if (!baseConfig) return null;
 
-        // Check if any override applies to this channel
-        if (config.overrides) {
-          for (const [overrideName, overrideConfig] of Object.entries(config.overrides)) {
-            if (overrideConfig.channels.includes(channelId)) {
-              return { ...config, ...overrideConfig, overrideName };
-            }
-          }
+      // Find the first override that applies to this channel
+      for (const [overrideName, overrideConfig] of Object.entries(overrides)) {
+        if (overrideConfig.starboard === starboardName && overrideConfig.channels.includes(channelId)) {
+          return { ...baseConfig, ...overrideConfig, overrideName };
         }
+      }
 
-        return config; // Return default if no override is found
-      };
+      return baseConfig; // Default config if no override applies
+    };
 
-      const config = getStarboardConfig(oldConfig, newMessage.channel.id);
+    for (const name of Object.keys(starboards)) {
+      const config = getStarboardConfig(name, newMessage.channel.id);
+      // Now you can use `config`, which will either be the default starboard config or an overridden one
 
       if (!config.enabled) continue;
       if (!config['link-edits']) continue;

@@ -60,11 +60,11 @@ class Starboard extends Command {
 
         const starKey = Object.keys(starboards).find((key) => key.toLowerCase() === name.toLowerCase());
         if (starboards[starKey]) {
-          return msg.channel.send(`A starboard named "${name}" already exists!`);
+          return msg.channel.send(`A starboard named \`${name}\` already exists.`);
         }
 
         if (!channel || !channel.permissionsFor(msg.guild.members.me).has(['SendMessages', 'ViewChannel'])) {
-          return msg.channel.send('Please specify a valid channel where I have permission to send messages!');
+          return msg.channel.send('Please specify a valid channel where I have permission to send messages.');
         }
 
         await db.set(`servers.${msg.guild.id}.starboards.${name}`, {
@@ -90,23 +90,23 @@ class Starboard extends Command {
           messages: {},
         });
 
-        return msg.channel.send(`Created starboard "${name}" in ${channel}.`);
+        return msg.channel.send(`Created starboard \`${name}\` in ${channel}.`);
       }
 
       case 'delete': {
         if (!args[1]) {
-          return msg.channel.send('Please specify a starboard name to delete!');
+          return msg.channel.send('Please specify a starboard name to delete.');
         }
 
         const name = args[1];
 
         const starKey = Object.keys(starboards).find((key) => key.toLowerCase() === name.toLowerCase());
         if (!starboards[starKey]) {
-          return msg.channel.send(`No starboard named "${name}" exists!`);
+          return msg.channel.send(`No starboard named \`${name}\` exists.`);
         }
 
         await db.delete(`servers.${msg.guild.id}.starboards.${name}`);
-        return msg.channel.send(`Deleted starboard "${name}"!`);
+        return msg.channel.send(`Deleted starboard \`${name}\`.`);
       }
 
       default:

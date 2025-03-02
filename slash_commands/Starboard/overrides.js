@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, InteractionContextType, EmbedBuilder } = require('discord.js');
+const { EmbedBuilder, SlashCommandBuilder } = require('discord.js');
 const { stripIndents } = require('common-tags');
 const { QuickDB } = require('quick.db');
 const db = new QuickDB();
@@ -8,26 +8,17 @@ exports.conf = {
 };
 
 exports.commandData = new SlashCommandBuilder()
-  .setName('starboard')
-  .setContexts(InteractionContextType.Guild)
-  .setDescription('Configure starboard systems')
+  .setName('overrides')
+  .setDescription('Manage starboard overrides')
   .addSubcommand((subcommand) =>
     subcommand
       .setName('create')
-      .setDescription('Create a new starboard')
-      .addStringOption((option) => option.setName('name').setDescription('Name of the starboard').setRequired(true))
-      .addChannelOption((option) =>
-        option.setName('channel').setDescription('The channel to send starred messages to').setRequired(true),
-      ),
-  )
-  .addSubcommand((subcommand) =>
-    subcommand
-      .setName('delete')
-      .setDescription('Delete a starboard')
+      .setDescription('Create a new override')
+      .addStringOption((option) => option.setName('name').setDescription('The name of the override').setRequired(true))
       .addStringOption((option) =>
         option
-          .setName('name')
-          .setDescription('Name of the starboard to delete')
+          .setName('starboard')
+          .setDescription('The starboard to link this override to')
           .setRequired(true)
           .setAutocomplete(true),
       ),
@@ -35,15 +26,58 @@ exports.commandData = new SlashCommandBuilder()
   .addSubcommand((subcommand) =>
     subcommand
       .setName('view')
-      .setDescription('View the server starboards')
+      .setDescription('View an override')
       .addStringOption((option) =>
-        option.setName('name').setDescription('Name of the starboard to view').setRequired(true).setAutocomplete(true),
+        option.setName('name').setDescription('The name of the override').setRequired(true).setAutocomplete(true),
+      ),
+  )
+  .addSubcommand((subcommand) =>
+    subcommand
+      .setName('delete')
+      .setDescription('Delete an override')
+      .addStringOption((option) =>
+        option.setName('name').setDescription('The name of the override').setRequired(true).setAutocomplete(true),
+      ),
+  )
+  .addSubcommandGroup((group) =>
+    group
+      .setName('channels')
+      .setDescription('Edit a overrides channels')
+      .addSubcommand((subcommand) =>
+        subcommand
+          .setName('add')
+          .setDescription('Add a channel to the override')
+          .addStringOption((option) =>
+            option
+              .setName('name')
+              .setDescription('Name of the override to add a channel to')
+              .setRequired(true)
+              .setAutocomplete(true),
+          )
+          .addChannelOption((option) =>
+            option.setName('channel').setDescription('The channel to add').setRequired(true),
+          ),
+      )
+      .addSubcommand((subcommand) =>
+        subcommand
+          .setName('remove')
+          .setDescription('Remove a channel from the override')
+          .addStringOption((option) =>
+            option
+              .setName('name')
+              .setDescription('Name of the override to add a channel to')
+              .setRequired(true)
+              .setAutocomplete(true),
+          )
+          .addChannelOption((option) =>
+            option.setName('channel').setDescription('The channel to remove').setRequired(true),
+          ),
       ),
   )
   .addSubcommandGroup((group) =>
     group
       .setName('edit')
-      .setDescription("Edit a starboard's setting")
+      .setDescription('Edit a overrides setting')
       .addSubcommand((subcommand) =>
         subcommand
           .setName('requirements')
@@ -51,11 +85,10 @@ exports.commandData = new SlashCommandBuilder()
           .addStringOption((option) =>
             option
               .setName('name')
-              .setDescription('Name of the starboard to edit')
+              .setDescription('Name of the override to edit')
               .setRequired(true)
               .setAutocomplete(true),
           )
-          .addChannelOption((option) => option.setName('channel').setDescription('New channel for starred messages'))
           .addIntegerOption((option) =>
             option.setName('threshold').setDescription('New emoji threshold (default: 3)').setMinValue(1),
           )
@@ -84,11 +117,11 @@ exports.commandData = new SlashCommandBuilder()
       .addSubcommand((subcommand) =>
         subcommand
           .setName('style')
-          .setDescription('Edit the general style of the starboard')
+          .setDescription('Edit the general style of the override')
           .addStringOption((option) =>
             option
               .setName('name')
-              .setDescription('Name of the starboard to edit')
+              .setDescription('Name of the override to edit')
               .setRequired(true)
               .setAutocomplete(true),
           )
@@ -111,11 +144,11 @@ exports.commandData = new SlashCommandBuilder()
       .addSubcommand((subcommand) =>
         subcommand
           .setName('behavior')
-          .setDescription('Edit how the starboard should behave')
+          .setDescription('Edit how the override should behave')
           .addStringOption((option) =>
             option
               .setName('name')
-              .setDescription('Name of the starboard to edit')
+              .setDescription('Name of the override to edit')
               .setRequired(true)
               .setAutocomplete(true),
           )
@@ -163,7 +196,7 @@ exports.commandData = new SlashCommandBuilder()
           .addStringOption((option) =>
             option
               .setName('name')
-              .setDescription('Name of the starboard to edit')
+              .setDescription('Name of the override to edit')
               .setRequired(true)
               .setAutocomplete(true),
           )
@@ -185,20 +218,33 @@ exports.commandData = new SlashCommandBuilder()
 
 exports.autoComplete = async (interaction) => {
   try {
-    const nameString = interaction.options.getString('name');
+    if (interaction.options.getSubcommand() === 'create') {
+      const starboards = (await db.get(`servers.${interaction.guild.id}.starboards`)) || {};
+      if (!starboards) return interaction.respond([]).catch(() => {});
 
-    // Fetch starboards for the server
-    const starboards = (await db.get(`servers.${interaction.guild.id}.starboards`)) || {};
-    if (!starboards) return interaction.respond([]).catch(() => {});
+      const starboardNames = Object.keys(starboards);
 
-    // Get starboard names
-    const starboardNames = Object.keys(starboards);
+      const starboardString = interaction.options.getString('starboard');
+      const filtered = starboardNames.filter((name) => name.toLowerCase().includes(starboardString.toLowerCase()));
+      if (!filtered) return interaction.respond([]).catch(() => {});
 
-    // Filter based on user input
-    const filtered = starboardNames.filter((name) => name.toLowerCase().includes(nameString.toLowerCase()));
+      return interaction
+        .respond(
+          filtered.slice(0, 25).map((name) => ({
+            name,
+            value: name,
+          })),
+        )
+        .catch(() => {});
+    }
+
+    const overrides = (await db.get(`servers.${interaction.guild.id}.overrides`)) || {};
+    const overridesNames = Object.keys(overrides);
+
+    const overridesName = interaction.options.getString('name');
+    const filtered = overridesNames.filter((name) => name.toLowerCase().includes(overridesName.toLowerCase()));
     if (!filtered) return interaction.respond([]).catch(() => {});
 
-    // Respond with up to 25 choices (Discord API limit)
     return interaction
       .respond(
         filtered.slice(0, 25).map((name) => ({
@@ -214,93 +260,66 @@ exports.autoComplete = async (interaction) => {
 
 exports.run = async (interaction) => {
   await interaction.deferReply();
+  const guildId = interaction.guild.id;
+  const starboards = (await db.get(`servers.${guildId}.starboards`)) || {};
+  const name = interaction.options.getString('name');
+  const starboard = interaction.options.getString('starboard');
+
   const subcommand = interaction.options.getSubcommand();
   const subcommandGroup = interaction.options.getSubcommandGroup();
-
-  const guildPremium = (await db.get(`servers.${interaction.guild.id}.premium`)) || false;
-  if (!guildPremium) {
-    return interaction.editReply('This command is currently in beta and requires a premium server to use.');
-  }
-
-  const starboards = (await db.get(`servers.${interaction.guildId}.starboards`)) || {};
 
   if (!subcommandGroup) {
     switch (subcommand) {
       case 'create': {
-        const name = interaction.options.getString('name');
-        const channel = interaction.options.getChannel('channel');
-
-        if (Object.keys(starboards).length > 2) {
-          return interaction.editReply(
-            'The server has reached the maximum number of starboards available (3). Please delete one before making a new one.',
-          );
-        }
-
-        const starKey = Object.keys(starboards).find((key) => key.toLowerCase() === name.toLowerCase());
-        if (starboards[starKey]) {
-          return interaction.editReply(`A starboard named \`${name}\` already exists!`);
-        }
-
-        if (!channel.permissionsFor(interaction.guild.members.me).has(['SendMessages', 'ViewChannel'])) {
-          return interaction.editReply('I need permission to send messages in that channel.');
-        }
-
-        await db.set(`servers.${interaction.guildId}.starboards.${name}`, {
-          enabled: true,
-          channelId: channel.id,
-          threshold: 3,
-          color: interaction.settings.embedColor,
-          emoji: '⭐',
-          'downvote-emoji': null,
-          'allow-bots': true,
-          'self-vote': false,
-          'ping-author': false,
-          'replied-to': true,
-          'link-deletes': false,
-          'link-edits': true,
-          'autoreact-upvote': true,
-          'autoreact-downvote': true,
-          'remove-invalid-reactions': true,
-          'require-image': false,
-          'extra-embeds': true,
-          'use-server-profile': true,
-          'show-thumbnail': true,
-          messages: {},
-        });
-
-        return interaction.editReply(`Created starboard \`${name}\` in ${channel}.`);
-      }
-
-      case 'delete': {
-        const name = interaction.options.getString('name');
-
-        const starKey = Object.keys(starboards).find((key) => key.toLowerCase() === name.toLowerCase());
+        const starKey = Object.keys(starboards).find((key) => key.toLowerCase() === starboard.toLowerCase());
         if (!starboards[starKey]) {
-          return interaction.editReply(`No starboard named \`${name}\` exists.`);
-        }
-
-        await db.delete(`servers.${interaction.guildId}.starboards.${starKey}`);
-        return interaction.editReply(`Deleted starboard \`${name}\`.`);
-      }
-
-      case 'view': {
-        if (Object.keys(starboards).length === 0) {
-          return interaction.editReply('No starboards have been set up yet.');
-        }
-
-        const name = interaction.options.getString('name');
-
-        const starKey = Object.keys(starboards).find((key) => key.toLowerCase() === name.toLowerCase());
-        if (!starboards[starKey]) {
-          return interaction.editReply(`No starboard named \`${name}\` exists.`);
+          return interaction.editReply({ content: `No starboard named \`${starboard}\` exists.` });
         }
 
         const config = starboards[starKey];
 
+        await db.set(`servers.${interaction.guildId}.overrides.${name}`, {
+          starboard: starKey,
+          channels: [],
+          ...config,
+        });
+
+        return interaction.editReply(`The override \`${name}\` has been created from starboard \`${starKey}\``);
+      }
+
+      case 'delete': {
+        const overrides = (await db.get(`servers.${interaction.guildId}.overrides`)) || {};
+
+        const overridesKey = Object.keys(overrides).find((key) => key.toLowerCase() === name.toLowerCase());
+        if (!overrides[overridesKey]) {
+          return interaction.editReply({ content: `No override named \`${name}\` exists.` });
+        }
+
+        await db.delete(`servers.${interaction.guildId}.overrides.${overridesKey}`);
+        return interaction.editReply(`The override \`${overridesKey}\` has been deleted.`);
+      }
+
+      case 'view': {
+        const overrides = (await db.get(`servers.${interaction.guildId}.overrides`)) || {};
+        if (Object.keys(overrides).length === 0) {
+          return interaction.editReply('No overrides have been set up yet.');
+        }
+
+        const overridesKey = Object.keys(overrides).find((key) => key.toLowerCase() === name.toLowerCase());
+        if (!overrides[overridesKey]) {
+          return interaction.editReply(`No override named \`${name}\` exists.`);
+        }
+
+        const config = overrides[overridesKey];
+
         const mainEmbed = new EmbedBuilder()
-          .setTitle(`Starboard "${name}"`)
+          .setTitle(`Override "${name}"`)
           .setColor(config.color || interaction.settings.embedColor)
-          .setDescription(`This starboard is in <#${config.channelId}>.`)
+          .setDescription(
+            stripIndents`This override belongs to the starboard '${config.starboard}'.
+
+            This override applies to the following channels: ${config.channels?.map((c) => `<#${c}>`)?.join(', ')}`,
+          )
           .setTimestamp()
           .addFields([
             {
@@ -353,18 +372,17 @@ exports.run = async (interaction) => {
   }
 
   if (subcommandGroup === 'edit') {
-    const name = interaction.options.getString('name');
+    const overrides = (await db.get(`servers.${interaction.guildId}.overrides`)) || {};
 
-    const starKey = Object.keys(starboards).find((key) => key.toLowerCase() === name.toLowerCase());
-    if (!starboards[starKey]) {
-      return interaction.editReply(`No starboard named \`${name}\` exists.`);
+    const overridesKey = Object.keys(overrides).find((key) => key.toLowerCase() === name.toLowerCase());
+    if (!overrides[overridesKey]) {
+      return interaction.editReply({ content: `No override named \`${name}\` exists.` });
     }
 
     const updates = {};
 
     switch (subcommand) {
       case 'requirements': {
-        const channel = interaction.options.getChannel('channel');
         const selfVote = interaction.options.getBoolean('self-vote');
         const threshold = interaction.options.getInteger('threshold');
         const allowBots = interaction.options.getBoolean('allow-bots');
@@ -372,20 +390,13 @@ exports.run = async (interaction) => {
         const requireImage = interaction.options.getBoolean('require-image');
         const downvoteEmoji = interaction.options.getString('downvote-emoji');
 
-        if (channel !== null) {
-          if (!channel.permissionsFor(interaction.guild.members.me).has(['SendMessages', 'ViewChannel'])) {
-            return interaction.editReply('I need permission to send messages in that channel.');
-          }
-          updates.channelId = channel.id;
-        }
-
         if (threshold) updates.threshold = threshold;
 
         if (upvoteEmoji !== null) {
           if (upvoteEmoji.startsWith('<') && upvoteEmoji.endsWith('>')) {
             const emojiId = upvoteEmoji.split(':')[2].slice(0, -1);
             if (!interaction.guild.emojis.cache.has(emojiId)) {
-              return interaction.editReply('That emoji is not available in this server.');
+              return interaction.editReply('That upvote emoji is not available in this server.');
             }
           }
           updates.emoji = upvoteEmoji;
@@ -472,13 +483,55 @@ exports.run = async (interaction) => {
       }
     }
 
-    await db.set(`servers.${interaction.guildId}.starboards.${starKey}`, {
-      ...starboards[starKey],
+    await db.set(`servers.${interaction.guildId}.overrides.${overridesKey}`, {
+      ...overrides[overridesKey],
       ...updates,
     });
 
-    return interaction.editReply(`Updated settings for starboard \`${name}\`.`);
+    return interaction.editReply(`Updated settings for override \`${name}\`.`);
   }
 
-  return interaction.editReply('You messed up, how did you get here?!');
+  if (subcommandGroup === 'channels') {
+    const name = interaction.options.getString('name');
+    const channel = interaction.options.getChannel('channel');
+
+    const overrides = (await db.get(`servers.${interaction.guildId}.overrides`)) || {};
+
+    const overridesKey = Object.keys(overrides).find((key) => key.toLowerCase() === name.toLowerCase());
+    const config = overrides[overridesKey];
+    if (!config) {
+      return interaction.editReply({ content: `No override named \`${name}\` exists.` });
+    }
+
+    const updates = { channels: [] };
+
+    switch (subcommand) {
+      case 'add': {
+        updates.channels.push(channel.id);
+
+        break;
+      }
+
+      case 'remove': {
+        const index = config.channels.indexOf(channel.id);
+
+        if (index > -1) {
+          updates.channels.splice(index, 1);
+        } else {
+          return interaction.editReply('That channel is not in this override.');
+        }
+
+        break;
+      }
+    }
+
+    await db.set(`servers.${interaction.guildId}.overrides.${overridesKey}`, {
+      ...overrides[overridesKey],
+      ...updates,
+    });
+
+    return interaction.editReply(`Updated channel settings for override \`${overridesKey}\``);
+  }
+
+  return interaction.editReply('You messed up, how did you even get here?!');
 };
