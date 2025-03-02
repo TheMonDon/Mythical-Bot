@@ -84,6 +84,9 @@ class Starboard extends Command {
           'autoreact-downvote': true,
           'remove-invalid-reactions': true,
           'require-image': false,
+          'extra-embeds': true,
+          'use-server-profile': true,
+          'show-thumbnail': true,
           messages: {},
         });
 

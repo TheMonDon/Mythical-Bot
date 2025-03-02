@@ -101,6 +101,11 @@ exports.commandData = new SlashCommandBuilder()
             option
               .setName('extra-embeds')
               .setDescription('Whether to include embeds from the message in the starboard (default: true)'),
+          )
+          .addBooleanOption((option) =>
+            option
+              .setName('use-server-profile')
+              .setDescription('Whether to use the users server profile for embeds (default: true)'),
           ),
       )
       .addSubcommand((subcommand) =>
@@ -169,6 +174,11 @@ exports.commandData = new SlashCommandBuilder()
             option
               .setName('replied-to')
               .setDescription('Whether to include the message that was replied to (default true)'),
+          )
+          .addBooleanOption((option) =>
+            option
+              .setName('show-thumbnail')
+              .setDescription('Whether to include the author pfp in the embed thumbnail (default: true)'),
           ),
       ),
   );
@@ -253,6 +263,8 @@ exports.run = async (interaction) => {
           'remove-invalid-reactions': true,
           'require-image': false,
           'extra-embeds': true,
+          'use-server-profile': true,
+          'show-thumbnail': true,
           messages: {},
         });
 
@@ -320,6 +332,7 @@ exports.run = async (interaction) => {
               value: stripIndents`
                 Ping-Author: ${config['ping-author'] ? 'True' : 'False'}
                 Extra-Embeds: ${config['extra-embeds'] ? 'True' : 'False'}
+                Use-Server-Profile: ${config['use-server-profile'] ? 'True' : 'False'}
               `,
               inline: true,
             },
@@ -328,6 +341,7 @@ exports.run = async (interaction) => {
               value: stripIndents`
                 Color: ${config.color || interaction.settings.embedColor}
                 Replied-To: ${config['replied-to'] ? 'True' : 'False'}
+                Show-Thumbnail: ${config['show-thumbnail'] ? 'True' : 'False'}
               `,
               inline: true,
             },
@@ -390,17 +404,11 @@ exports.run = async (interaction) => {
           }
         }
 
-        if (selfVote !== null) {
-          updates['self-vote'] = selfVote;
-        }
+        if (selfVote !== null) updates['self-vote'] = selfVote;
 
-        if (allowBots !== null) {
-          updates['allow-bots'] = allowBots;
-        }
+        if (allowBots !== null) updates['allow-bots'] = allowBots;
 
-        if (requireImage !== null) {
-          updates['require-image'] = requireImage;
-        }
+        if (requireImage !== null) updates['require-image'] = requireImage;
 
         break;
       }
@@ -408,14 +416,13 @@ exports.run = async (interaction) => {
       case 'style': {
         const pingAuthor = interaction.options.getBoolean('ping-author');
         const extraEmbeds = interaction.options.getBoolean('extra-embeds');
+        const useServerProfile = interaction.options.getBoolean('use-server-profile');
 
-        if (pingAuthor !== null) {
-          updates['ping-author'] = pingAuthor;
-        }
+        if (pingAuthor !== null) updates['ping-author'] = pingAuthor;
 
-        if (extraEmbeds !== null) {
-          updates['extra-embeds'] = extraEmbeds;
-        }
+        if (extraEmbeds !== null) updates['extra-embeds'] = extraEmbeds;
+
+        if (useServerProfile !== null) updates['use-server-profile'] = useServerProfile;
 
         break;
       }
@@ -428,29 +435,17 @@ exports.run = async (interaction) => {
         const linkEdits = interaction.options.getBoolean('link-edits');
         const removeInvalidReactions = interaction.options.getBoolean('remove-invalid-reactions');
 
-        if (enabled !== null) {
-          updates.enabled = enabled;
-        }
+        if (enabled !== null) updates.enabled = enabled;
 
-        if (autoreactUpvote !== null) {
-          updates['autoreact-upvote'] = autoreactUpvote;
-        }
+        if (autoreactUpvote !== null) updates['autoreact-upvote'] = autoreactUpvote;
 
-        if (autoreactDownvote !== null) {
-          updates['autoreact-downvote'] = autoreactDownvote;
-        }
+        if (autoreactDownvote !== null) updates['autoreact-downvote'] = autoreactDownvote;
 
-        if (linkDeletes !== null) {
-          updates['link-deletes'] = linkDeletes;
-        }
+        if (linkDeletes !== null) updates['link-deletes'] = linkDeletes;
 
-        if (linkEdits !== null) {
-          updates['link-edits'] = linkEdits;
-        }
+        if (linkEdits !== null) updates['link-edits'] = linkEdits;
 
-        if (removeInvalidReactions !== null) {
-          updates['remove-invalid-reactions'] = removeInvalidReactions;
-        }
+        if (removeInvalidReactions !== null) updates['remove-invalid-reactions'] = removeInvalidReactions;
 
         break;
       }
@@ -458,6 +453,7 @@ exports.run = async (interaction) => {
       case 'embed': {
         const color = interaction.options.getString('color');
         const repliedTo = interaction.options.getBoolean('replied-to');
+        const showThumbnail = interaction.options.getBoolean('show-thumbnail');
 
         if (color !== null) {
           const hexRegex = /(^(#|0x)?([a-fA-F0-9]){6}$)|(^(#|0x)?([a-fA-F0-9]){3}$)/;
@@ -468,9 +464,9 @@ exports.run = async (interaction) => {
           updates.color = color;
         }
 
-        if (repliedTo !== null) {
-          updates['replied-to'] = repliedTo;
-        }
+        if (repliedTo !== null) updates['replied-to'] = repliedTo;
+
+        if (showThumbnail !== null) updates['show-thumbnail'] = showThumbnail;
 
         break;
       }

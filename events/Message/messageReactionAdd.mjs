@@ -236,7 +236,6 @@ export async function run(client, messageReaction, user) {
                   name: `Replying to ${replyMessage.author.tag}`,
                   iconURL: replyMessage.author.displayAvatarURL(),
                 })
-                .setThumbnail(replyMessage.author.displayAvatarURL())
                 .setDescription(replyMessage.content || null)
                 .setURL(replyMessage.url)
                 .addFields([
@@ -247,6 +246,20 @@ export async function run(client, messageReaction, user) {
                 .setColor(config.color || settings.embedColor)
                 .setFooter({ text: replyMessage.id.toString() })
                 .setTimestamp();
+
+              if (config['show-thumbnail']) {
+                replyEmbed.setThumbnail(replyMessage.author.displayAvatarURL());
+              }
+
+              if (config['use-server-profile']) {
+                replyEmbed.setAuthor({
+                  name: `Replying to ${replyMessage.member.tag}`,
+                  iconURL: replyMessage.member.displayAvatarURL(),
+                });
+                if (config['show-thumbnail']) {
+                  replyEmbed.setThumbnail(replyMessage.member.displayAvatarURL());
+                }
+              }
 
               processAttachments(replyAttachments, replyEmbed, embeds);
               embeds.unshift(replyEmbed);
@@ -263,7 +276,7 @@ export async function run(client, messageReaction, user) {
 
         const embed = new EmbedBuilder()
           .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
-          .setThumbnail(msg.author.displayAvatarURL())
+
           .setDescription(msg.content || null)
           .setURL(msg.url)
           .addFields([
@@ -274,6 +287,17 @@ export async function run(client, messageReaction, user) {
           .setColor(config.color || settings.embedColor)
           .setFooter({ text: `${config.emoji} ${netVotes} | ${msg.id}` })
           .setTimestamp();
+
+        if (config['show-thumbnail']) {
+          embed.setThumbnail(msg.author.displayAvatarURL());
+        }
+
+        if (config['use-server-profile']) {
+          embed.setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() });
+          if (config['show-thumbnail']) {
+            embed.setThumbnail(msg.member.displayAvatarURL());
+          }
+        }
 
         processAttachments(attachments, embed, embeds);
         embeds.unshift(embed);
