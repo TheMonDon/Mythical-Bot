@@ -281,6 +281,7 @@ exports.run = async (interaction) => {
   await interaction.deferReply();
   const guildId = interaction.guild.id;
   const starboards = (await db.get(`servers.${guildId}.starboards`)) || {};
+  const overrides = (await db.get(`servers.${interaction.guildId}.overrides`)) || {};
   const name = interaction.options.getString('name');
   const starboard = interaction.options.getString('starboard');
 
@@ -304,8 +305,6 @@ exports.run = async (interaction) => {
       }
 
       case 'delete': {
-        const overrides = (await db.get(`servers.${interaction.guildId}.overrides`)) || {};
-
         const overridesKey = Object.keys(overrides).find((key) => key.toLowerCase() === name.toLowerCase());
         if (!overrides[overridesKey]) {
           return interaction.editReply({ content: `No override named \`${name}\` exists.` });
@@ -316,7 +315,6 @@ exports.run = async (interaction) => {
       }
 
       case 'view': {
-        const overrides = (await db.get(`servers.${interaction.guildId}.overrides`)) || {};
         if (Object.keys(overrides).length === 0) {
           return interaction.editReply('No overrides have been set up yet.');
         }
@@ -394,8 +392,6 @@ exports.run = async (interaction) => {
   }
 
   if (subcommandGroup === 'edit') {
-    const overrides = (await db.get(`servers.${interaction.guildId}.overrides`)) || {};
-
     const overridesKey = Object.keys(overrides).find((key) => key.toLowerCase() === name.toLowerCase());
     if (!overrides[overridesKey]) {
       return interaction.editReply({ content: `No override named \`${name}\` exists.` });

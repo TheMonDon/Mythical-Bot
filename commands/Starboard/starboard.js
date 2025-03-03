@@ -18,11 +18,6 @@ class Starboard extends Command {
   }
 
   async run(msg, args) {
-    const guildPremium = (await db.get(`servers.${msg.guild.id}.premium`)) || false;
-    if (!guildPremium) {
-      return msg.channel.send('This command is currently in beta and requires a premium server to use.');
-    }
-
     const starboards = (await db.get(`servers.${msg.guild.id}.starboards`)) || {};
 
     if (!args.length) {

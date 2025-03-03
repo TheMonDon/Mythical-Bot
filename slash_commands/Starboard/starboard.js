@@ -233,15 +233,10 @@ exports.autoComplete = async (interaction) => {
 
 exports.run = async (interaction) => {
   await interaction.deferReply();
+  const starboards = (await db.get(`servers.${interaction.guildId}.starboards`)) || {};
+
   const subcommand = interaction.options.getSubcommand();
   const subcommandGroup = interaction.options.getSubcommandGroup();
-
-  const guildPremium = (await db.get(`servers.${interaction.guild.id}.premium`)) || false;
-  if (!guildPremium) {
-    return interaction.editReply('This command is currently in beta and requires a premium server to use.');
-  }
-
-  const starboards = (await db.get(`servers.${interaction.guildId}.starboards`)) || {};
 
   if (!subcommandGroup) {
     switch (subcommand) {
