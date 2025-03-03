@@ -50,6 +50,18 @@ export async function run(client, messageReaction, user) {
       if (!config.enabled) continue;
       if (msg.author.bot && !config['allow-bots']) continue;
 
+      const messageAge = Date.now() - msg.createdTimestamp;
+
+      if (config['older-than'] !== null && messageAge < config['older-than']) {
+        console.log(`Message is too new to be starred. (Min age: ${config['older-than']}ms)`);
+        continue;
+      }
+
+      if (config['newer-than'] !== null && messageAge > config['newer-than']) {
+        console.log(`Message is too old to be starred. (Max age: ${config['newer-than']}ms)`);
+        continue;
+      }
+
       const matchEmoji = (reaction, emojiConfig) => {
         if (emojiConfig.startsWith('<') && emojiConfig.endsWith('>')) {
           const emojiId = emojiConfig.split(':')[2].slice(0, -1);
@@ -222,8 +234,10 @@ export async function run(client, messageReaction, user) {
             }
           }
 
-          if (attachmentMessage.length > 0) {
-            embed.addFields([{ name: 'Attachments', value: attachmentMessage.join('\n'), inline: true }]);
+          if (config['attachments-list']) {
+            if (attachmentMessage.length > 0) {
+              embed.addFields([{ name: 'Attachments', value: attachmentMessage.join('\n'), inline: true }]);
+            }
           }
         };
 

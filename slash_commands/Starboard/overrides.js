@@ -112,6 +112,20 @@ exports.commandData = new SlashCommandBuilder()
             option
               .setName('require-image')
               .setDescription('Whether to require messages to have an image to post to a starboard (default: false)'),
+          )
+          .addStringOption((option) =>
+            option
+              .setName('older-than')
+              .setDescription(
+                'How old a post must be in order for it to be voted on (e.g. "1 hour"). Use 0 to disable (default: 0)',
+              ),
+          )
+          .addStringOption((option) =>
+            option
+              .setName('newer-than')
+              .setDescription(
+                'How new a post must be in order for it to be voted on (e.g. "1 hour"). Use 0 to disable (default: 0)',
+              ),
           ),
       )
       .addSubcommand((subcommand) =>
@@ -210,6 +224,11 @@ exports.commandData = new SlashCommandBuilder()
           )
           .addBooleanOption((option) =>
             option
+              .setName('attachments-list')
+              .setDescription('Whether to list the names (as hyperlinks) of uploaded attachments. (default true)'),
+          )
+          .addBooleanOption((option) =>
+            option
               .setName('show-thumbnail')
               .setDescription('Whether to include the author pfp in the embed thumbnail (default: true)'),
           ),
@@ -276,15 +295,12 @@ exports.run = async (interaction) => {
           return interaction.editReply({ content: `No starboard named \`${starboard}\` exists.` });
         }
 
-        const config = starboards[starKey];
-
         await db.set(`servers.${interaction.guildId}.overrides.${name}`, {
           starboard: starKey,
           channels: [],
-          ...config,
         });
 
-        return interaction.editReply(`The override \`${name}\` has been created from starboard \`${starKey}\``);
+        return interaction.editReply(`The override \`${name}\` has been created for starboard \`${starKey}\``);
       }
 
       case 'delete': {
@@ -310,7 +326,10 @@ exports.run = async (interaction) => {
           return interaction.editReply(`No override named \`${name}\` exists.`);
         }
 
-        const config = overrides[overridesKey];
+        const starKey = overrides[overridesKey].starboard;
+
+        const config = { ...starboards[starKey], ...overrides[overridesKey] };
+        const { parseMS } = await import('human-ms');
 
         const mainEmbed = new EmbedBuilder()
           .setTitle(`Override "${name}"`)
@@ -331,6 +350,8 @@ exports.run = async (interaction) => {
                 Self-Vote: ${config['self-vote'] ? 'True' : 'False'}
                 Allow-Bots: ${config['allow-bots'] ? 'True' : 'False'}
                 Require-Image: ${config['require-image'] ? 'True' : 'False'}
+                Older-Than: ${config['older-than'] ? `${parseMS(config['older-than'])}` : 'Disabled'}
+                Newer-Than: ${config['newer-than'] ? `${parseMS(config['newer-than'])}` : 'Disabled'}
               `,
               inline: true,
             },
@@ -360,6 +381,7 @@ exports.run = async (interaction) => {
               value: stripIndents`
                 Color: ${config.color || interaction.settings.embedColor}
                 Replied-To: ${config['replied-to'] ? 'True' : 'False'}
+                Attachments-List: ${config['attachments-list'] ? 'True' : 'False'}
                 Show-Thumbnail: ${config['show-thumbnail'] ? 'True' : 'False'}
               `,
               inline: true,
@@ -383,8 +405,11 @@ exports.run = async (interaction) => {
 
     switch (subcommand) {
       case 'requirements': {
+        const parse = (await import('parse-duration')).default;
         const selfVote = interaction.options.getBoolean('self-vote');
         const threshold = interaction.options.getInteger('threshold');
+        const olderThan = interaction.options.getString('older-than');
+        const newerThan = interaction.options.getString('newer-than');
         const allowBots = interaction.options.getBoolean('allow-bots');
         const upvoteEmoji = interaction.options.getString('upvote-emoji');
         const requireImage = interaction.options.getBoolean('require-image');
@@ -396,7 +421,9 @@ exports.run = async (interaction) => {
           if (upvoteEmoji.startsWith('<') && upvoteEmoji.endsWith('>')) {
             const emojiId = upvoteEmoji.split(':')[2].slice(0, -1);
             if (!interaction.guild.emojis.cache.has(emojiId)) {
-              return interaction.editReply('That upvote emoji is not available in this server.');
+              await interaction.channel.send(
+                'You provided an invalid upvote emoji that is not available in this server, it has been skipped.',
+              );
             }
           }
           updates.emoji = upvoteEmoji;
@@ -408,7 +435,9 @@ exports.run = async (interaction) => {
           } else if (downvoteEmoji.startsWith('<') && downvoteEmoji.endsWith('>')) {
             const emojiId = downvoteEmoji.split(':')[2].slice(0, 1);
             if (!interaction.guild.emojis.cache.has(emojiId)) {
-              return interaction.editReply('That downvote emoji is not available in this server.');
+              await interaction.channel.send(
+                'You provided an invalid downvote emoji that is not available in this server, it has been skipped.',
+              );
             }
           } else {
             updates['downvote-emoji'] = downvoteEmoji;
@@ -420,6 +449,25 @@ exports.run = async (interaction) => {
         if (allowBots !== null) updates['allow-bots'] = allowBots;
 
         if (requireImage !== null) updates['require-image'] = requireImage;
+
+        if (olderThan !== null) {
+          const time = parse(olderThan);
+
+          if (time === 0) {
+            updates['older-than'] = null;
+          } else {
+            updates['older-than'] = time;
+          }
+        }
+
+        if (newerThan !== null) {
+          const time = parse(newerThan);
+          if (time === 0) {
+            updates['newer-than'] = null;
+          } else {
+            updates['newer-than'] = time;
+          }
+        }
 
         break;
       }
@@ -465,11 +513,12 @@ exports.run = async (interaction) => {
         const color = interaction.options.getString('color');
         const repliedTo = interaction.options.getBoolean('replied-to');
         const showThumbnail = interaction.options.getBoolean('show-thumbnail');
+        const attachmentsList = interaction.options.getBoolean('attachments-list');
 
         if (color !== null) {
           const hexRegex = /(^(#|0x)?([a-fA-F0-9]){6}$)|(^(#|0x)?([a-fA-F0-9]){3}$)/;
           if (!hexRegex.test(color)) {
-            return interaction.editReply('Please provide a valid hex code for color.');
+            await interaction.channel.send(`You provided an invalid hex code for color and it has been skipped.`);
           }
 
           updates.color = color;
@@ -478,6 +527,8 @@ exports.run = async (interaction) => {
         if (repliedTo !== null) updates['replied-to'] = repliedTo;
 
         if (showThumbnail !== null) updates['show-thumbnail'] = showThumbnail;
+
+        if (attachmentsList !== null) updates['attachments-list'] = attachmentsList;
 
         break;
       }
@@ -503,11 +554,15 @@ exports.run = async (interaction) => {
       return interaction.editReply({ content: `No override named \`${name}\` exists.` });
     }
 
-    const updates = { channels: [] };
-
     switch (subcommand) {
       case 'add': {
-        updates.channels.push(channel.id);
+        const index = config.channels.indexOf(channel.id);
+
+        if (index > -1) {
+          return interaction.editReply(`The channel ${channel} is already in the override and has not been added.`);
+        } else {
+          config.channels.push(channel.id);
+        }
 
         break;
       }
@@ -516,19 +571,16 @@ exports.run = async (interaction) => {
         const index = config.channels.indexOf(channel.id);
 
         if (index > -1) {
-          updates.channels.splice(index, 1);
+          config.channels.splice(index, 1);
         } else {
-          return interaction.editReply('That channel is not in this override.');
+          return interaction.editReply(`The channel ${channel} is not in the override and has not been removed.`);
         }
 
         break;
       }
     }
 
-    await db.set(`servers.${interaction.guildId}.overrides.${overridesKey}`, {
-      ...overrides[overridesKey],
-      ...updates,
-    });
+    await db.set(`servers.${interaction.guildId}.overrides.${overridesKey}`, config);
 
     return interaction.editReply(`Updated channel settings for override \`${overridesKey}\``);
   }

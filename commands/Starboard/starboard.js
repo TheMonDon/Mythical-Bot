@@ -87,6 +87,9 @@ class Starboard extends Command {
           'extra-embeds': true,
           'use-server-profile': true,
           'show-thumbnail': true,
+          'older-than': null,
+          'newer-than': null,
+          'attachments-list': true,
           messages: {},
         });
 
