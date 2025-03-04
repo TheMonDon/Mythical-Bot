@@ -125,7 +125,7 @@ export async function run(client, oldMessage, newMessage) {
       await newMessage.guild.members.fetch(newMessage.author.id);
     }
     // Get the user or member's permission level from the elevation
-    const level = client.permlevel(newMessage);
+    const level = await client.permlevel(newMessage);
 
     const cmd = client.commands.get(command) || client.commands.get(client.aliases.get(command));
     if (!cmd) return;
@@ -164,7 +164,7 @@ export async function run(client, oldMessage, newMessage) {
           .addFields([
             {
               name: 'Your Level',
-              value: `${level} (${client.config.permLevels.find((l) => l.level === level).name})`,
+              value: `${level} (${client.permLevels.find((l) => l.level === level).name})`,
               inline: true,
             },
             {

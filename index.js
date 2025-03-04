@@ -24,18 +24,96 @@ class Bot extends Client {
     this.games = new Enmap({ name: 'games', cloneLevel: 'deep', fetchAll: false, autoFetch: true });
 
     this.logger = require('./util/Logger.js');
+
+    // PERMISSION LEVEL DEFINITIONS.
+    this.permLevels = [
+      {
+        level: 0,
+        name: 'User',
+        checkPermissions: () => true,
+      },
+      {
+        level: 1,
+        name: 'Supporter',
+        checkPermissions: async (context) => {
+          const premium = await db.get(`users.${context.user ? context.user.id : context.author.id}.premium`);
+          return premium === true;
+        },
+      },
+      {
+        level: 2,
+        name: 'Moderator',
+        checkPermissions: (context) => {
+          try {
+            const modRole = this.util.getRole(context, context.settings.modRole);
+            if (!modRole) return false;
+            if (context.member.roles.cache.has(modRole.id)) return true;
+            if (context.member.roles.highest.position > modRole.position) return true;
+          } catch (e) {
+            return false;
+          }
+        },
+      },
+      {
+        level: 3,
+        name: 'Administrator',
+        checkPermissions: (context) => {
+          try {
+            if (context.member.permissions.has('Administrator')) return true;
+            const adminRole = this.util.getRole(context, context.settings.adminRole);
+            if (!adminRole) return false;
+            if (context.member.roles.cache.has(adminRole.id)) return true;
+            if (context.member.roles.highest.position > adminRole.position) return true;
+          } catch (e) {
+            return false;
+          }
+        },
+      },
+      {
+        level: 4,
+        name: 'Server Owner',
+        checkPermissions: (context) => {
+          try {
+            return context.guild.ownerId === (context.user ? context.user.id : context.author.id);
+          } catch (e) {
+            return false;
+          }
+        },
+      },
+      {
+        level: 8,
+        name: 'Bot Support',
+        checkPermissions: (context) => {
+          return config.support.includes(context.user ? context.user.id : context.author.id);
+        },
+      },
+      {
+        level: 9,
+        name: 'Bot Admin',
+        checkPermissions: (context) => {
+          return config.admins.includes(context.user ? context.user.id : context.author.id);
+        },
+      },
+      {
+        level: 10,
+        name: 'Bot Owner',
+        checkPermissions: (context) => {
+          return config.owners.includes(context.user ? context.user.id : context.author.id);
+        },
+      },
+    ];
   }
 
   // PERMISSION LEVEL FUNCTION
-  permlevel(object) {
+  async permlevel(object) {
     let permlvl = 0;
 
-    const permOrder = config.permLevels.slice(0).sort((p, c) => (p.level < c.level ? 1 : -1));
+    const permOrder = client.permLevels.slice(0).sort((p, c) => (p.level < c.level ? 1 : -1));
 
     while (permOrder.length) {
       const currentLevel = permOrder.shift();
       if (object.guild && currentLevel.guildOnly) continue;
-      if (currentLevel.checkPermissions(object)) {
+      if (await currentLevel.checkPermissions(object)) {
         permlvl = currentLevel.level;
         break;
       }
@@ -372,8 +450,8 @@ const init = async function init() {
   await getEvents('./events');
 
   client.levelCache = {};
-  for (let i = 0; i < config.permLevels.length; i++) {
-    const thisLevel = config.permLevels[i];
+  for (let i = 0; i < client.permLevels.length; i++) {
+    const thisLevel = client.permLevels[i];
     client.levelCache[thisLevel.name] = thisLevel.level;
   }
 

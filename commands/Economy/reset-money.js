@@ -36,7 +36,7 @@ class ResetMoney extends Command {
     } else {
       if (level < this.client.levelCache.Administrator) {
         return msg.channel.send(`You do not have permission to use this command.
-Your permission level is ${level} (${this.client.config.permLevels.find((l) => l.level === level).name})
+Your permission level is ${level} (${this.client.permLevels.find((l) => l.level === level).name})
 This command requires level ${this.client.levelCache.Administrator} (Administrator)`);
       }
 

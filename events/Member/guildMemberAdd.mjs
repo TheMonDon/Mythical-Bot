@@ -100,7 +100,8 @@ export async function run(client, member) {
       .setDescription(welcomeMessage)
       .setTimestamp();
 
-    const channel = member.guild.channels.cache.find((c) => c.name === settings.welcomeChannel);
+    const context = { guild: member.guild };
+    const channel = client.util.getChannel(context, settings.welcomeChannel);
     if (!channel) return;
     channel.send({ embeds: [embed] }).catch(() => {});
   }

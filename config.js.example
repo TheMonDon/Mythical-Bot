@@ -41,115 +41,18 @@ const config = {
   
   defaultSettings: {
     prefix: '*',
-    modRole: 'Moderator',
-    adminRole: 'Administrator',
-    systemNotice: 'true',
+    modRole: 'Moderator', // This can also be a role ID
+    adminRole: 'Administrator', // This can also be a role ID
     welcomeEnabled: 'false',
-    welcomeChannel: 'welcome-leave',
+    welcomeChannel: 'welcome-leave', // This can also be a channel ID
     welcomeMessage: 'Hello {{user}} ({{globalName}}), welcome to {{guild}}. We hope you have a great time here!',
-    leaveChannel: 'welcome-leave',
+    leaveChannel: 'welcome-leave', // This can also be a channel ID
     leaveMessage: 'Goodbye {{user}} ({{globalName}}) :( Sorry to see you go.',
     leaveEnabled: 'false',
     embedColor: '#0099CC',
     embedErrorColor: '#FF0000',
     embedSuccessColor: '#00FF00'
   },
-
-  // PERMISSION LEVEL DEFINITIONS.
-
-  permLevels: [
-    {
-      level: 0,
-      name: 'User',
-      // Don't bother checking, just return true which allows them to execute any command their
-      // level allows them to.
-      checkPermissions: () => true,
-    },
-    {
-      level: 2,
-      // This is the name of the role.
-      name: 'Moderator',
-      // The following lines check the guild the message came from for the roles.
-      // Then it checks if the member that authored the message has the role.
-      // If they do return true, which will allow them to execute the command in question.
-      // If they don't then return false, which will prevent them from executing the command.
-      checkPermissions: (context) => {
-        try {
-          const modRole = context.guild.roles.cache.find(
-            (r) => r.name.toLowerCase() === context.settings.modRole.toLowerCase(),
-          );
-          if (!modRole) return false;
-          if (context.member.roles.cache.has(modRole.id)) return true;
-          if (context.member.roles.highest.position > modRole.position) return true;
-        } catch (e) {
-          return false;
-        }
-      },
-    },
-
-    {
-      level: 3,
-      name: 'Administrator',
-      checkPermissions: (context) => {
-        try {
-          const adminRole = context.guild.roles.cache.find(
-            (r) => r.name.toLowerCase() === context.settings.adminRole.toLowerCase(),
-          );
-          if (context.member.permissions.has('Administrator')) return true;
-          if (!adminRole) return false;
-          if (context.member.roles.cache.has(adminRole.id)) return true;
-          if (context.member.roles.highest.position > adminRole.position) return true;
-        } catch (e) {
-          return false;
-        }
-      },
-    },
-
-    {
-      level: 4,
-      name: 'Server Owner',
-      // Simple check, if the guild owner id matches the message author's ID, then it will return true.
-      // Otherwise it will return false.
-      checkPermissions: (context) => {
-        try {
-          return context.guild.ownerId === (context.user ? context.user.id : context.author.id);
-        } catch (e) {
-          return false;
-        }
-      },
-    },
-
-    // Bot Support is a special in between level that has the equivalent of server owner access
-    // to any server they joins, in order to help troubleshoot the bot on behalf of owners.
-    {
-      level: 8,
-      name: 'Bot Support',
-      checkPermissions: (context) => {
-        return config.support.includes(context.user ? context.user.id : context.author.id);
-      },
-    },
-
-    // Bot Admin has some limited access like rebooting the bot or reloading commands.
-    {
-      level: 9,
-      name: 'Bot Admin',
-      checkPermissions: (context) => {
-        return config.admins.includes(context.user ? context.user.id : context.author.id);
-      },
-    },
-
-    // This is the bot owner, this should be the highest permission level available.
-    // The reason this should be the highest level is because of dangerous commands such as eval
-    // or exec (if the owner has that).
-    {
-      level: 10,
-      name: 'Bot Owner',
-      // Another simple check, compares the message author id to the one stored in the config file.
-      checkPermissions: (context) => {
-        return config.owners.includes(context.user ? context.user.id : context.author.id);
-      },
-    },
-  ],
 };
 
 module.exports = config;

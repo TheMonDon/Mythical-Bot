@@ -67,7 +67,7 @@ export async function run(client, message) {
 
   if (message.guild && !message.member) await message.guild.fetchMember(message.author);
 
-  const level = client.permlevel(message);
+  const level = await client.permlevel(message);
   const command = client.commands.get(commandName) || client.commands.get(client.aliases.get(commandName));
   if (!command) return;
 
@@ -111,7 +111,7 @@ export async function run(client, message) {
       .addFields([
         {
           name: 'Your Level',
-          value: `${level} (${client.config.permLevels.find((l) => l.level === level).name})`,
+          value: `${level} (${client.permLevels.find((l) => l.level === level).name})`,
           inline: true,
         },
         {

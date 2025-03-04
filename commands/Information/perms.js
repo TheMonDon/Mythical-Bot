@@ -139,8 +139,8 @@ class Permissions extends Command {
 
     if (infoMemOrRole.user?.displayAvatarURL) {
       const newMsg = { ...msg, member: infoMemOrRole, author: infoMemOrRole.user, guild: msg.guild };
-      const permLevel = this.client.permlevel(newMsg);
-      const friendly = this.client.config.permLevels.find((l) => l.level === permLevel).name;
+      const permLevel = await this.client.permlevel(newMsg);
+      const friendly = this.client.permLevels.find((l) => l.level === permLevel).name;
 
       embed
         .setAuthor({ name: infoMemOrRole.displayName, iconURL: infoMemOrRole.user.displayAvatarURL({ dynamic: true }) })

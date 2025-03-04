@@ -12,8 +12,8 @@ class Conf extends Command {
     super(client, {
       name: 'conf',
       description: 'Modify the default configuration for all guilds',
-      category: 'Bot Admin',
-      permLevel: 'Bot Admin',
+      category: 'Owner',
+      permLevel: 'Owner',
       usage: 'conf <view/get/edit> <key> <value>',
       aliases: ['defaults'],
       guildOnly: true,

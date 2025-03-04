@@ -14,7 +14,7 @@ class MyLevel extends Command {
   }
 
   async run(msg, args, level) {
-    const friendly = this.client.config.permLevels.find((l) => l.level === level).name;
+    const friendly = this.client.permLevels.find((l) => l.level === level).name;
 
     const embed = new EmbedBuilder()
       .setColor(msg.settings.embedColor)

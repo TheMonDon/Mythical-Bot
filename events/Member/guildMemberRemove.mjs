@@ -80,7 +80,8 @@ export async function run(client, member) {
       .setDescription(leaveMessage)
       .setTimestamp();
 
-    const channel = member.guild.channels.cache.find((c) => c.name === settings.leaveChannel);
+    const context = { guild: member.guild };
+    const channel = client.util.getChannel(context, settings.leaveChannel);
     if (!channel) return;
     channel.send({ embeds: [em] }).catch(() => {});
   }

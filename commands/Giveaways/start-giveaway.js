@@ -1,6 +1,4 @@
 const Command = require('../../base/Command.js');
-const { QuickDB } = require('quick.db');
-const db = new QuickDB();
 
 class StartGiveaway extends Command {
   constructor(client) {
@@ -30,8 +28,9 @@ class StartGiveaway extends Command {
     args.shift();
     const prize = args.join(' ');
 
-    if (isNaN(winnerCount))
+    if (isNaN(winnerCount)) {
       return this.client.util.errorEmbed(msg, 'Winner amount is not a number', 'Invalid Winner Count');
+    }
 
     if (winnerCount < 1) {
       return this.client.util.errorEmbed(msg, 'Giveaways must have at least 1 winner.', 'Invalid Winner Count');
@@ -39,9 +38,13 @@ class StartGiveaway extends Command {
       return this.client.util.errorEmbed(msg, 'Giveaways can not have more than 50 winners.', 'Invalid Winner Count');
     }
 
-    if (duration < '10s') {
+    if (isNaN(duration)) {
+      return this.client.util.errorEmbed(msg, 'Duration is not a number', 'Invalid Duration');
+    }
+
+    if (duration < 10000) {
       return this.client.util.errorEmbed(msg, 'Giveaways must be at least 10 seconds long.', 'Invalid Duration');
-    } else if (duration > '42d') {
+    } else if (duration > 3628800000) {
       return this.client.util.errorEmbed(msg, 'Giveaways cannot be longer than 6 weeks (42d)', 'Invalid Duration');
     }
 
@@ -49,15 +52,11 @@ class StartGiveaway extends Command {
 
     // Start the giveaway
     this.client.giveawaysManager.start(channel, {
-      // The giveaway duration
       duration,
-      // The giveaway prize
       prize,
-      // The giveaway winner count
       winnerCount,
-      // Who hosts this giveaway
       hostedBy: msg.member,
-      // Messages
+      embedColor: msg.settings.embedColor,
       messages: {
         giveaway: '',
         giveawayEnded: '',
@@ -71,9 +70,7 @@ class StartGiveaway extends Command {
       },
     });
 
-    await db.add('global.giveaways', 1);
-
-    return msg.channel.send(`:tada: Done! The giveaway for ${prize} is starting in ${channel}`);
+    return msg.channel.send(`:tada: Done! The giveaway for \`${prize}\` is starting in ${channel}`);
   }
 }
 

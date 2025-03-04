@@ -63,16 +63,16 @@ class Set extends Command {
         `Are you sure you want to reset \`${key}\` to the default \`${defaults[key]}\`?`,
       );
 
-      // If they respond with y or yes, continue.
-      if (['y', 'yes'].includes(response)) {
+      // If they respond with yes, continue.
+      if (this.client.util.yes.includes(response)) {
         // We reset the `key` here.
         this.client.settings.delete(message.guild.id, key);
-        message.reply(`${key} was successfully reset to default.`);
+        return message.reply(`${key} was successfully reset to default.`);
       }
 
-      // If they respond with n or no, we inform them that the action has been cancelled.
-      else if (['n', 'no', 'cancel'].includes(response)) {
-        message.reply(`Your setting for \`${key}\` remains at \`${settings[key]}\``);
+      // If they respond with no, we inform them that the action has been cancelled.
+      else if (this.client.util.no.includes(response)) {
+        return message.reply(`Your setting for \`${key}\` remains at \`${settings[key]}\``);
       }
     }
 
@@ -95,7 +95,7 @@ class Set extends Command {
           },
         ])
         .setFooter({ text: `For help use \`${message.settings.prefix}help set\`` });
-      await message.channel.send({ embeds: [embed] });
+      return message.channel.send({ embeds: [embed] });
     }
   }
 }

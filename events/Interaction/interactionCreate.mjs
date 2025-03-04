@@ -16,7 +16,7 @@ const db = new QuickDB();
 
 export async function run(client, interaction) {
   interaction.settings = client.getSettings(interaction.guild);
-  const level = client.permlevel(interaction);
+  const level = await client.permlevel(interaction);
 
   const globalBlacklisted = (await db.get(`users.${interaction.user.id}.blacklist`)) || false;
   if (globalBlacklisted && level < 8) {
@@ -55,7 +55,7 @@ export async function run(client, interaction) {
         .addFields([
           {
             name: 'Your Level',
-            value: `${level} (${client.config.permLevels.find((l) => l.level === level).name})`,
+            value: `${level} (${client.permLevels.find((l) => l.level === level).name})`,
             inline: true,
           },
           {
