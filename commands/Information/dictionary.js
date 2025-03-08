@@ -17,6 +17,12 @@ class Dictionary extends Command {
   async run(msg, args) {
     const query = args.join(' ');
 
+    if (!this.client.config.Wordnik) {
+      return msg.channel.send(
+        "The bot owner has not setup this command. \nIf you are the bot owner please add `Wordnik: 'apiKey'` to the config file.",
+      );
+    }
+
     const { body } = await fetch.get(
       `https://api.wordnik.com/v4/word.json/${query}/definitions?api_key=${this.client.config.Wordnik}&useCanonical=true&includeTags=false&includeRelated=false&limit=69`,
     );
