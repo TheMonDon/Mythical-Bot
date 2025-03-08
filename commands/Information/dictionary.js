@@ -1,6 +1,5 @@
 const Command = require('../../base/Command.js');
 const { stripIndents } = require('common-tags');
-const { EmbedBuilder } = require('discord.js');
 const fetch = require('node-superfetch');
 
 class Dictionary extends Command {

@@ -28,10 +28,7 @@ class AutoRole extends Command {
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() });
 
     if (!msg.guild.members.me.permissions.has('ManageRoles')) {
-      embed
-        .setDescription('The bot requires Manage Roles permission to use this feature.')
-        .setColor(msg.settings.embedErrorColor);
-      return msg.channel.send({ embeds: [embed] });
+      return this.client.util.errorEmbed(msg, 'The bot requires Manage Roles permission to use this feature.');
     }
 
     switch (action) {
@@ -40,14 +37,12 @@ class AutoRole extends Command {
 
         const role = this.client.util.getRole(msg, roleName.toLowerCase());
         if (!role) {
-          embed.setDescription('Role not found').setColor(msg.settings.embedErrorColor);
-          return msg.channel.send({ embeds: [embed] });
+          return this.client.util.errorEmbed(msg, 'That role was not found.');
         }
 
         const autoRoles = (await db.get(`servers.${msg.guild.id}.autoRoles`)) || [];
         if (autoRoles.includes(role.id)) {
-          embed.setDescription('This role is already set as an auto-role.');
-          return msg.channel.send({ embeds: [embed] });
+          return this.client.util.errorEmbed(msg, 'That role is already added as an auto-role.');
         }
 
         autoRoles.push(role.id);
@@ -62,14 +57,12 @@ class AutoRole extends Command {
 
         const role = this.client.util.getRole(msg, roleName.toLowerCase());
         if (!role) {
-          embed.setDescription('Role not found').setColor(msg.settings.embedErrorColor);
-          return msg.channel.send({ embeds: [embed] });
+          return this.client.util.errorEmbed(msg, 'That role was not found.');
         }
 
         let autoRoles = (await db.get(`servers.${msg.guild.id}.autoRoles`)) || [];
         if (!autoRoles.includes(role.id)) {
-          embed.setDescription(`The ${role} role is not as as an auto-role.`).setColor(msg.settings.embedErrorColor);
-          return msg.channel.send({ embeds: [embed] });
+          return this.client.util.errorEmbed(msg, `The \`${role}\` role is not as as an auto-role.`);
         }
 
         autoRoles = autoRoles.filter((r) => r !== role.id);
@@ -93,7 +86,7 @@ class AutoRole extends Command {
           await db.set(`servers.${msg.guild.id}.autoRoles`, validRoles);
           embed
             .setDescription('No valid auto-roles remain in the server. The list has been updated.')
-            .setColor(msg.settings.embedErrorColor);
+            .setColor(msg.settings.embedColor);
           return msg.channel.send({ embeds: [embed] });
         }
 
@@ -101,9 +94,9 @@ class AutoRole extends Command {
         if (validRoles.length === 0) {
           embed
             .setDescription(
-              `There are no auto-roles in this server. \n\nUsage: ${msg.settings.prefix}${this.help.usage}`,
+              `There are no auto-roles in this server. \n\nUsage: \`${msg.settings.prefix}${this.help.usage}\``,
             )
-            .setColor(msg.settings.embedErrorColor);
+            .setColor(msg.settings.embedColor);
           return msg.channel.send({ embeds: [embed] });
         }
 
