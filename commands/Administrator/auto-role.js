@@ -111,7 +111,7 @@ class AutoRole extends Command {
         const end = start + itemsPerPage;
         const roles = validRoles.slice(start, end).map((roleId) => {
           const role = allRoles.get(roleId);
-          return role ? role.name : `Unknown Role (${roleId})`;
+          return role ? role.toString() : `Unknown Role (${roleId})`;
         });
 
         const roleEmbed = new EmbedBuilder()
