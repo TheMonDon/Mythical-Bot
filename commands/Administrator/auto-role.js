@@ -27,9 +27,9 @@ class AutoRole extends Command {
       .setColor(msg.settings.embedColor)
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() });
 
-    if (!msg.guild.me.permissions.has('ManageRoles')) {
+    if (!msg.guild.members.me.permissions.has('ManageRoles')) {
       embed
-        .setDescription('Manage Roles permission is required on the bot to use this.')
+        .setDescription('The bot requires Manage Roles permission to use this feature.')
         .setColor(msg.settings.embedErrorColor);
       return msg.channel.send({ embeds: [embed] });
     }
@@ -91,12 +91,18 @@ class AutoRole extends Command {
         // Update the database if roles were removed
         if (validRoles.length !== autoRoles.length) {
           await db.set(`servers.${msg.guild.id}.autoRoles`, validRoles);
+          embed
+            .setDescription('No valid auto-roles remain in the server. The list has been updated.')
+            .setColor(msg.settings.embedErrorColor);
+          return msg.channel.send({ embeds: [embed] });
         }
 
         // If no valid roles remain, send an appropriate message
         if (validRoles.length === 0) {
           embed
-            .setDescription('No valid auto-roles remain in the server. The list has been updated.')
+            .setDescription(
+              `There are no auto-roles in this server. \n\nUsage: ${msg.settings.prefix}${this.help.usage}`,
+            )
             .setColor(msg.settings.embedErrorColor);
           return msg.channel.send({ embeds: [embed] });
         }

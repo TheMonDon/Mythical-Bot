@@ -34,7 +34,11 @@ class Wikipedia extends Command {
     const embed = new EmbedBuilder()
       .setColor(msg.settings.embedColor)
       .setTitle(body.query.pages[0].title)
-      .setAuthor({ name: 'Wikipedia', iconURL: 'https://i.imgur.com/a4eeEhh.png' })
+      .setAuthor({
+        name: 'Wikipedia',
+        iconURL:
+          'https://upload.wikimedia.org/wikipedia/en/thumb/8/80/Wikipedia-logo-v2.svg/2244px-Wikipedia-logo-v2.svg.png',
+      })
       .setDescription(str.length > 3095 ? str.substr(0, 3090) + ' ...' : str);
 
     return msg.channel.send({ embeds: [embed] });

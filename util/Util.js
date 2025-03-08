@@ -206,7 +206,7 @@ async function getTotalPoints(userID, msg) {
 
 /**
  *
- * @param {String} str - String to clean
+ * @param {String} str - String to limit length of
  * @param {Number} minLength - Minimum length of string
  * @param {Number} maxLength - Maximum length of string
  * @returns {String}
@@ -252,13 +252,12 @@ async function clean(client, text) {
   const secrets = [
     config.token,
     config.github,
-    config.OxfordID,
-    config.OxfordKey,
     config.TMDb,
     config.BotListToken,
     config.OpenWeather,
     config.botLogsWebhookURL,
     config.youtubeCookie,
+    config.Wordnik,
   ];
 
   for (let i = 0; i < secrets.length; i++) {
