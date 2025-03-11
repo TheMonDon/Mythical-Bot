@@ -309,9 +309,13 @@ export async function run(client, interaction) {
         }
       }
 
+      const reason = interaction.fields.getTextInputValue('reasonInput') || 'No reason specified';
+
       const em = new EmbedBuilder().setTitle('Ticket Closed').setColor('#E65DF4')
         .setDescription(stripIndents`${interaction.user} has requested to close this ticket.
-            The ticket will close in 5 minutes if no further activity occurs.`);
+        The ticket will close in 5 minutes if no further activity occurs.
+
+        Reason: ${reason}`);
       await interaction.editReply({ embeds: [em] });
 
       const filter = (m) => m.content?.length > 0;
@@ -326,7 +330,6 @@ export async function run(client, interaction) {
         .catch(() => null);
 
       if (!collected) {
-        const reason = interaction.fields.getTextInputValue('reasonInput') || 'No reason specified';
         const attachment = await discordTranscripts.createTranscript(interaction.channel);
         let received;
 
@@ -338,15 +341,16 @@ export async function run(client, interaction) {
             { name: 'Server', value: interaction.guild.name, inline: false },
           ])
           .setTimestamp();
-        await interaction.user.send({ embeds: [userEmbed], files: [attachment] }).catch(() => {
+        const user = await interaction.client.users.fetch(owner);
+        await user.send({ embeds: [userEmbed], files: [attachment] }).catch(() => {
           received = 'no';
         });
 
         const logEmbed = new EmbedBuilder()
-          .setAuthor({ name: interaction.member.displayName, iconURL: interaction.user.displayAvatarURL() })
+          .setAuthor({ name: user.displayName, iconURL: user.displayAvatarURL() })
           .setTitle('Ticket Closed')
           .addFields([
-            { name: 'Author', value: `${interaction.user} (${interaction.user.id})`, inline: false },
+            { name: 'Author', value: `<@${owner}> (${owner})`, inline: false },
             { name: 'Channel', value: `${tName}: ${interaction.channel.id}`, inline: false },
             { name: 'Reason', value: reason, inline: false },
           ])

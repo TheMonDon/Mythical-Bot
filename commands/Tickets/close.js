@@ -40,7 +40,9 @@ class CloseTicket extends Command {
 
     const em = new EmbedBuilder().setTitle('Ticket Closed').setColor('#E65DF4')
       .setDescription(stripIndents`${msg.author} has requested to close this ticket.
-      The ticket will close in 5 minutes if no further activity occurs.`);
+      The ticket will close in 5 minutes if no further activity occurs.
+      
+      Reason: ${reason}`);
     await msg.channel.send({ embeds: [em] });
 
     const filter = (m) => m.content?.length > 0;
@@ -66,15 +68,16 @@ class CloseTicket extends Command {
           { name: 'Server', value: msg.guild.name, inline: false },
         ])
         .setTimestamp();
-      await msg.author.send({ embeds: [userEmbed], files: [attachment] }).catch(() => {
+      const user = await this.client.users.fetch(owner);
+      await user.send({ embeds: [userEmbed], files: [attachment] }).catch(() => {
         received = 'no';
       });
 
       const logEmbed = new EmbedBuilder()
-        .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
+        .setAuthor({ name: user.displayName, iconURL: user.displayAvatarURL() })
         .setTitle('Ticket Closed')
         .addFields([
-          { name: 'Author', value: `${msg.author} (${msg.author.id})`, inline: false },
+          { name: 'Author', value: `<@${owner}> (${owner})`, inline: false },
           { name: 'Channel', value: `${tName}: ${msg.channel.id}`, inline: false },
           { name: 'Reason', value: reason, inline: false },
         ])
