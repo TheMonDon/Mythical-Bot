@@ -52,15 +52,8 @@ export async function run(client, messageReaction, user) {
 
       const messageAge = Date.now() - msg.createdTimestamp;
 
-      if (config['older-than'] !== null && messageAge < config['older-than']) {
-        console.log(`Message is too new to be starred. (Min age: ${config['older-than']}ms)`);
-        continue;
-      }
-
-      if (config['newer-than'] !== null && messageAge > config['newer-than']) {
-        console.log(`Message is too old to be starred. (Max age: ${config['newer-than']}ms)`);
-        continue;
-      }
+      if (config['older-than'] !== null && messageAge < config['older-than']) continue;
+      if (config['newer-than'] !== null && messageAge > config['newer-than']) continue;
 
       const matchEmoji = (reaction, emojiConfig) => {
         if (emojiConfig.startsWith('<') && emojiConfig.endsWith('>')) {
@@ -269,7 +262,7 @@ export async function run(client, messageReaction, user) {
 
               if (config['use-server-profile']) {
                 replyEmbed.setAuthor({
-                  name: `Replying to ${replyMessage.member.tag}`,
+                  name: `Replying to ${replyMessage.member.displayName}`,
                   iconURL: replyMessage.member.displayAvatarURL(),
                 });
                 if (config['show-thumbnail']) {
@@ -292,7 +285,6 @@ export async function run(client, messageReaction, user) {
 
         const embed = new EmbedBuilder()
           .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
-
           .setDescription(msg.content || null)
           .setURL(msg.url)
           .addFields([
