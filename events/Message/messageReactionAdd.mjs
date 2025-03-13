@@ -97,13 +97,21 @@ export async function run(client, messageReaction, user) {
 
       // Reaction on a message in the starboard channel
       if (isStarboardChannel) {
-        const footerText = msg.embeds[0]?.footer?.text;
+        let embed = 0;
+        if (msg.embeds[0]?.author?.name.startsWith('Replying to')) {
+          embed = 1;
+        }
+
+        const authorField = msg.embeds[embed]?.fields.find((field) => field.name === 'Author');
+        if (!authorField) continue;
+
+        const footerText = msg.embeds[embed]?.footer?.text;
         if (!footerText) continue;
 
         const originalMsgId = footerText.split('|')[1]?.trim();
         if (!originalMsgId) continue;
 
-        const channelField = msg.embeds[0].fields.find((field) => field.name === 'Channel');
+        const channelField = msg.embeds[embed].fields.find((field) => field.name === 'Channel');
         if (!channelField) continue;
 
         const channelId = channelField.value.replace(/[<#>]/g, '');
@@ -142,25 +150,30 @@ export async function run(client, messageReaction, user) {
           ? adjustedUpvotes + originalMsgUpvotes - adjustedDownvotes
           : adjustedUpvotes + originalMsgUpvotes;
 
-        const newEmbed = EmbedBuilder.from(msg.embeds[0]);
+        const replyEmbed = embed === 1 ? EmbedBuilder.from(msg.embeds[0]) : null;
+        const newEmbed = EmbedBuilder.from(msg.embeds[embed === 1 ? 1 : 0]);
+
         newEmbed.setFooter({
           text: `${config.emoji} ${netVotes} | ${originalMsgId}`,
         });
 
         let newEmbeds = [];
-        if (msg.embeds?.length > 0) {
-          if (config['extra-embeds']) {
-            newEmbeds = msg.embeds.slice(1).map((embed) => EmbedBuilder.from(embed));
-          }
+        if (config['extra-embeds'] && msg.embeds?.length > (embed === 1 ? 2 : 1)) {
+          newEmbeds = msg.embeds
+            .slice(embed === 1 ? 2 : 1)
+            .map((embed) => EmbedBuilder.from(embed))
+            .slice(0, 8);
         }
 
         await msg
-          .edit({ embeds: [newEmbed, ...newEmbeds] })
+          .edit({ embeds: replyEmbed ? [replyEmbed, newEmbed, ...newEmbeds] : [newEmbed, ...newEmbeds] })
           .catch((e) => console.error('Error updating starboard message:', e));
 
         if (netVotes < config.threshold) {
           await msg.delete().catch(() => null);
           await db.delete(`servers.${msg.guild.id}.starboards.${name}.messages.${originalMsgId}`);
+        } else {
+          await db.set(`servers.${msg.guild.id}.starboards.${name}.messages.${originalMsgId}.stars`, netVotes);
         }
 
         continue;
@@ -315,7 +328,7 @@ export async function run(client, messageReaction, user) {
 
         if (msg.embeds?.length > 0) {
           if (config['extra-embeds']) {
-            msg.embeds.forEach((msgEmbed) => embeds.push(EmbedBuilder.from(msgEmbed)));
+            msg.embeds.slice(0, 8).forEach((msgEmbed) => embeds.push(EmbedBuilder.from(msgEmbed)));
           }
         }
 

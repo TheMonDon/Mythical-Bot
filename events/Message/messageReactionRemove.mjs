@@ -46,6 +46,7 @@ export async function run(client, messageReaction, user) {
     for (const name of Object.keys(starboards)) {
       const config = getStarboardConfig(name, msg.channel.id);
       // Now you can use `config`, which will either be the default starboard config or an overridden one
+
       if (!config.enabled) continue;
       if (msg.author.bot && !config['allow-bots']) continue;
 
@@ -75,9 +76,7 @@ export async function run(client, messageReaction, user) {
 
       const starChannel = msg.guild.channels.cache.get(config.channelId);
 
-      if (msg.channel.nsfw && !starChannel.nsfw) {
-        continue;
-      }
+      if (msg.channel.nsfw && !starChannel.nsfw) continue;
 
       if (
         !starChannel ||
@@ -90,13 +89,18 @@ export async function run(client, messageReaction, user) {
 
       // Reaction removed from a message in the starboard channel
       if (isStarboardChannel) {
-        const footerText = msg.embeds[0]?.footer?.text;
+        let embed = 0;
+        if (msg.embeds[0]?.author?.name.startsWith('Replying to')) {
+          embed = 1;
+        }
+
+        const footerText = msg.embeds[embed]?.footer?.text;
         if (!footerText) continue;
 
         const originalMsgId = footerText.split('|')[1]?.trim();
         if (!originalMsgId) continue;
 
-        const channelField = msg.embeds[0].fields.find((field) => field.name === 'Channel');
+        const channelField = msg.embeds[embed].fields.find((field) => field.name === 'Channel');
         if (!channelField) continue;
 
         const channelId = channelField.value.replace(/[<#>]/g, '');
@@ -125,25 +129,30 @@ export async function run(client, messageReaction, user) {
           ? adjustedUpvotes + originalMsgUpvotes - adjustedDownvotes
           : adjustedUpvotes + originalMsgUpvotes;
 
-        const newEmbed = EmbedBuilder.from(msg.embeds[0]);
+        const replyEmbed = embed === 1 ? EmbedBuilder.from(msg.embeds[0]) : null;
+        const newEmbed = EmbedBuilder.from(msg.embeds[embed === 1 ? 1 : 0]);
+
         newEmbed.setFooter({
           text: `${config.emoji} ${netVotes} | ${originalMsgId}`,
         });
 
         let newEmbeds = [];
-        if (msg.embeds?.length > 0) {
-          if (config['extra-embeds']) {
-            newEmbeds = msg.embeds.slice(1).map((embed) => EmbedBuilder.from(embed));
-          }
+        if (config['extra-embeds'] && msg.embeds?.length > (embed === 1 ? 2 : 1)) {
+          newEmbeds = msg.embeds
+            .slice(embed === 1 ? 2 : 1)
+            .map((embed) => EmbedBuilder.from(embed))
+            .slice(0, 8);
         }
 
         await msg
-          .edit({ embeds: [newEmbed, ...newEmbeds] })
+          .edit({ embeds: replyEmbed ? [replyEmbed, newEmbed, ...newEmbeds] : [newEmbed, ...newEmbeds] })
           .catch((e) => console.error('Error updating starboard message:', e));
 
         if (netVotes < config.threshold) {
           await msg.delete().catch(() => null);
           await db.delete(`servers.${msg.guild.id}.starboards.${name}.messages.${originalMsgId}`);
+        } else {
+          await db.set(`servers.${msg.guild.id}.starboards.${name}.messages.${originalMsgId}.stars`, netVotes);
         }
 
         continue;
