@@ -13,6 +13,7 @@ async function hasPermissionToSendMessage(client, message) {
 
 async function handleEconomyEvent(message, settings) {
   if (message.channel.type === ChannelType.DM) return;
+  if (!message.guild) return;
 
   const min = (await db.get(`servers.${message.guild.id}.economy.chat.min`)) || 10;
   const max = (await db.get(`servers.${message.guild.id}.economy.chat.max`)) || 100;
@@ -39,6 +40,7 @@ async function handleEconomyEvent(message, settings) {
   await db.set(`servers.${message.guild.id}.users.${message.author.id}.economy.cash`, newAmount.toString());
 
   setTimeout(async () => {
+    if (!message.guild) return;
     await db.set(`servers.${message.guild.id}.users.${message.author.id}.economy.chat.cooldown`, { active: false });
   }, cooldown * 1000);
 }
