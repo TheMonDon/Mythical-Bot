@@ -59,13 +59,27 @@ export async function run(client, messageReaction, user) {
         }
       };
 
-      const findReactionCount = (reactions, emojiConfig) => {
-        if (!reactions) return 0;
+      const getReactionUsers = async (reactions, emojiConfig) => {
+        if (!reactions) return [];
+        let reaction;
+
         if (emojiConfig.startsWith('<') && emojiConfig.endsWith('>')) {
           const emojiId = emojiConfig.split(':')[2].slice(0, -1);
-          return reactions.find((r) => r.emoji.id === emojiId)?.count || 0;
+          reaction = reactions.find((r) => r.emoji.id === emojiId);
         } else {
-          return reactions.find((r) => r.emoji.name === emojiConfig)?.count || 0;
+          reaction = reactions.find((r) => r.emoji.name === emojiConfig);
+        }
+
+        if (!reaction) return [];
+
+        try {
+          if (reaction.users.cache.size < reaction.count) {
+            await reaction.users.fetch();
+          }
+          return reaction.users.cache.map((user) => user.id);
+        } catch (error) {
+          console.error('Error fetching reaction users:', error);
+          return [];
         }
       };
 
@@ -107,27 +121,31 @@ export async function run(client, messageReaction, user) {
         const originalChannel = msg.guild.channels.cache.get(channelId);
         if (!originalChannel) continue;
 
-        const upvotes = findReactionCount(msg.reactions.cache, config.emoji);
-        const downvotes = config['downvote-emoji']
-          ? findReactionCount(msg.reactions.cache, config['downvote-emoji'])
-          : 0;
+        const upVoteCounter = new Set();
+        const downVoteCounter = new Set();
 
-        let originalMsgUpvotes = 0;
+        const starboardUpvoters = await getReactionUsers(msg.reactions.cache, config.emoji);
+        starboardUpvoters.forEach((id) => upVoteCounter.add(id));
+
+        if (config['downvote-emoji']) {
+          const starboardDownvoters = await getReactionUsers(msg.reactions.cache, config['downvote-emoji']);
+          starboardDownvoters.forEach((id) => downVoteCounter.add(id));
+        }
+
         try {
           const originalMsg = await originalChannel.messages.fetch(originalMsgId).catch(() => null);
           if (originalMsg) {
-            originalMsgUpvotes = findReactionCount(originalMsg.reactions.cache, config.emoji);
+            const originalUpvoters = await getReactionUsers(originalMsg.reactions.cache, config.emoji);
+            originalUpvoters.forEach((id) => upVoteCounter.add(id));
           }
         } catch (err) {
           console.error('Failed to fetch original message:', err);
         }
 
-        const adjustedUpvotes = Math.max(0, upvotes - 1);
-        const adjustedDownvotes = Math.max(0, downvotes - 1);
+        upVoteCounter.delete(client.user.id);
+        downVoteCounter.delete(client.user.id);
 
-        const netVotes = config['downvote-emoji']
-          ? adjustedUpvotes + originalMsgUpvotes - adjustedDownvotes
-          : adjustedUpvotes + originalMsgUpvotes;
+        const netVotes = config['downvote-emoji'] ? upVoteCounter.size - downVoteCounter.size : upVoteCounter.size;
 
         const replyEmbed = embed === 1 ? EmbedBuilder.from(msg.embeds[0]) : null;
         const newEmbed = EmbedBuilder.from(msg.embeds[embed === 1 ? 1 : 0]);
@@ -159,12 +177,6 @@ export async function run(client, messageReaction, user) {
       }
 
       // Reaction removed from a regular message
-      const upvoteReaction = msg.reactions.cache.find((r) => matchEmoji(r, config.emoji));
-
-      const originalUpvotes = upvoteReaction ? upvoteReaction.count : 0;
-
-      let netVotes = originalUpvotes;
-
       const existingStarMsgId = await db.get(
         `servers.${msg.guild.id}.starboards.${name}.messages.${msg.id}.starboardMsgId`,
       );
@@ -173,17 +185,24 @@ export async function run(client, messageReaction, user) {
       const starMessage = await starChannel.messages.fetch(existingStarMsgId).catch(() => null);
       if (!starMessage) continue;
 
-      const starboardUpvoteReaction = starMessage.reactions.cache.find((r) => matchEmoji(r, config.emoji));
-      const starboardDownvoteReaction = config['downvote-emoji']
-        ? starMessage.reactions.cache.find((r) => matchEmoji(r, config['downvote-emoji']))
-        : null;
+      const upVoteCounter = new Set();
+      const downVoteCounter = new Set();
 
-      const starboardUpvotes = starboardUpvoteReaction ? Math.max(0, starboardUpvoteReaction.count - 1) : 0; // Subtract bot's reaction
-      const starboardDownvotes = starboardDownvoteReaction ? Math.max(0, starboardDownvoteReaction.count - 1) : 0;
+      const originalUpvoters = await getReactionUsers(msg.reactions.cache, config.emoji);
+      originalUpvoters.forEach((id) => upVoteCounter.add(id));
 
-      const starboardNetVotes = config['downvote-emoji'] ? starboardUpvotes - starboardDownvotes : starboardUpvotes;
+      const starboardUpvoters = await getReactionUsers(starMessage.reactions.cache, config.emoji);
+      starboardUpvoters.forEach((id) => upVoteCounter.add(id));
 
-      netVotes += starboardNetVotes;
+      if (config['downvote-emoji']) {
+        const starboardDownvoters = await getReactionUsers(starMessage.reactions.cache, config['downvote-emoji']);
+        starboardDownvoters.forEach((id) => downVoteCounter.add(id));
+      }
+
+      upVoteCounter.delete(client.user.id);
+      downVoteCounter.delete(client.user.id);
+
+      const netVotes = config['downvote-emoji'] ? upVoteCounter.size - downVoteCounter.size : upVoteCounter.size;
 
       if (netVotes >= config.threshold) {
         const newEmbeds = starMessage.embeds.map((embed) => EmbedBuilder.from(embed));
@@ -199,7 +218,10 @@ export async function run(client, messageReaction, user) {
           .catch((e) => console.error('Error updating starboard message:', e));
         await db.set(`servers.${msg.guild.id}.starboards.${name}.messages.${msg.id}.stars`, netVotes);
       } else {
-        await starMessage.delete().catch((e) => console.error('Error deleting starboard message:', e));
+        const verifyMessage = await starChannel.messages.fetch(existingStarMsgId).catch(() => null);
+        if (verifyMessage && verifyMessage.id === existingStarMsgId) {
+          await verifyMessage.delete().catch((e) => console.error('Error deleting starboard message:', e));
+        }
         await db.delete(`servers.${msg.guild.id}.starboards.${name}.messages.${msg.id}`);
       }
     }
