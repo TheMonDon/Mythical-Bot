@@ -388,6 +388,17 @@ const loadMusic = async () => {
       queue.metadata.channel.send(`Something went wrong: ${error}`);
     })
     .on('error', (queue, error) => {
+      console.error(`Track error: ${error.message}`);
+
+      // Remove the bad track
+      queue.node.skip();
+
+      if (queue.size > 0) {
+        queue.node.play();
+      } else {
+        queue.delete(); // Clean up if no more tracks
+      }
+
       queue.metadata.channel.send(`Something went wrong: ${error}`);
     });
 
