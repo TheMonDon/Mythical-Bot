@@ -311,9 +311,12 @@ const loadMusic = async () => {
 
   await player.extractors.register(YoutubeiExtractor, {});
 
+  let consecutiveFails = 0;
+
   player.events
     .on('playerStart', async (queue, track) => {
       try {
+        consecutiveFails = 0;
         if (queue.repeatMode === 1) return;
 
         const em = new EmbedBuilder()
@@ -385,21 +388,34 @@ const loadMusic = async () => {
       queue.metadata.channel.send({ embeds: [em] }).catch(() => {});
     })
     .on('playerError', (queue, error) => {
+      console.log(`Something went wrong: ${error}`);
       queue.metadata.channel.send(`Something went wrong: ${error}`);
     })
-    .on('error', (queue, error) => {
-      console.error(`Track error: ${error.message}`);
+    .on('error', async (queue, error) => {
+      console.log(`Track failed: ${error.message}`);
+      await queue.metadata.channel.send(`Track failed: ${error.message}`);
 
-      // Remove the bad track
-      queue.node.skip();
+      consecutiveFails++;
 
-      if (queue.size > 0) {
-        queue.node.play();
-      } else {
-        queue.delete(); // Clean up if no more tracks
+      if (consecutiveFails > 5) {
+        console.log('Too many failures in a row — clearing queue.');
+        await queue.metadata.channel.send('Too many failures in a row — clearing queue.');
+        queue.delete();
+        consecutiveFails = 0;
+        return;
       }
 
-      queue.metadata.channel.send(`Something went wrong: ${error}`);
+      if (queue.size > 0) {
+        console.log('Waiting 5 seconds before skip...');
+        await queue.metadata.channel.send('Waiting 5 seconds before skipping the broken song.');
+        // eslint-disable-next-line promise/param-names
+        await new Promise((r) => setTimeout(r, 5000));
+        queue.node.skip();
+        queue.node.play();
+      } else {
+        queue.delete();
+        consecutiveFails = 0;
+      }
     });
 
   // Enable when you need to debug discord-player
