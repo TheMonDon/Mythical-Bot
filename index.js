@@ -301,14 +301,7 @@ const loadGiveaways = async () => {
 
 const loadLavalink = async () => {
   client.lavalink = new LavalinkManager({
-    nodes: [
-      {
-        authorization: 'Jmonahan13!!',
-        host: '135.134.64.80',
-        port: 2333,
-        id: 'main',
-      },
-    ],
+    nodes: config.nodes,
     sendToShard: (guildId, payload) => client.guilds.cache.get(guildId)?.shard?.send(payload),
     autoSkip: true,
     client: {
@@ -364,7 +357,7 @@ const loadLavalink = async () => {
           .setDescription(
             `**[${track.info.title}](${track.info.uri})**\n\n` +
               `**Duration:** ${duration}\n` +
-              `**Requested By:** ${track.requester}\n` +
+              `**Requested By:** ${client.users.cache.get(track.requester.id)}\n` +
               `**Tracks in Queue:** ${queueLength}`,
           )
           .setColor(client.getSettings(player.guildId).embedColor)
@@ -413,7 +406,7 @@ const loadLavalink = async () => {
           .setDescription(
             `**[${track.info.title}](${track.info.uri})**\n\n` +
               `**Duration:** ${duration}\n` +
-              `**Requested By:** ${track.requester}\n` +
+              `**Requested By:** ${client.users.cache.get(track.requester.id)}\n` +
               `**Queue Position:** ${queuePosition}\n` +
               `**Estimated Time Until Playing:** ${queuePosition > 0 ? 'Calculating...' : 'Now'}`,
           )

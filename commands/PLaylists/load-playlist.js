@@ -1,4 +1,3 @@
-const { deserialize, useMainPlayer } = require('discord-player');
 const Command = require('../../base/Command.js');
 const { QuickDB } = require('quick.db');
 const db = new QuickDB();
@@ -17,8 +16,6 @@ class LoadPlaylist extends Command {
   }
 
   async run(msg, args) {
-    const player = useMainPlayer();
-
     const playlistName = args.join(' ').trim();
 
     if (playlistName.length === 0 || playlistName.length >= 50) {
@@ -38,44 +35,30 @@ class LoadPlaylist extends Command {
       return msg.channel.send('You must be in a voice channel to use this command.');
     }
 
-    const playlist = player.createPlaylist({
-      author: {
-        name: msg.author.tag,
-        url: '',
-      },
-      description: '',
-      id: userPlaylist.id,
-      source: 'arbitrary',
-      thumbnail: '',
-      title: playlistName,
-      tracks: [],
-      type: 'playlist',
-      url: '',
-    });
-
     try {
-      const tracks = userPlaylist.tracks.map((track) => {
-        const song = deserialize(player, track);
-        song.playlist = playlist;
-        return song;
-      });
+      let player = this.client.lavalink.getPlayer(msg.guild.id);
 
-      playlist.tracks = tracks;
+      if (!player) {
+        player = this.client.lavalink.createPlayer({
+          guildId: msg.guild.id,
+          voiceChannelId: msg.member.voice.channel.id,
+          textChannelId: msg.channel.id,
+          selfDeaf: true,
+          selfMute: false,
+        });
 
-      await player.play(msg.member.voice.channel, playlist, {
-        requestedBy: msg.author,
-        nodeOptions: {
-          metadata: msg,
-          selfDead: true,
-          leaveOnStop: true,
-          leaveOnEnd: false,
-          leaveOnEmpty: false,
-        },
-      });
+        await player.connect();
+      }
+
+      player.queue.add(userPlaylist.tracks);
+
+      if (!player.playing && !player.paused) {
+        await player.play();
+      }
 
       return msg.channel.send(`Your playlist \`${playlistName}\` has been loaded!`);
     } catch (error) {
-      console.error('Deserialization error:', error);
+      console.error('Load Playlist Error:', error);
       msg.channel.send('An error occurred while loading the queue.');
     }
   }
