@@ -40,7 +40,9 @@ class Play extends Command {
           selfDeaf: true,
           selfMute: false,
         });
+      }
 
+      if (!player.connected) {
         await player.connect();
       }
 
@@ -78,7 +80,7 @@ class Play extends Command {
               `**Requested By:** ${msg.author}\n` +
               `**Queue Length:** ${player.queue.tracks.length} tracks`,
           )
-          .setColor('#0099CC')
+          .setColor(msg.settings.embedColor)
           .setTimestamp();
 
         if (result.tracks[0].info.artworkUrl) {
@@ -111,7 +113,7 @@ class Play extends Command {
                   Math.floor((calculateEstimatedTime % 60000) / 1000),
                 ).padStart(2, '0')}\``,
             )
-            .setColor('#0099CC')
+            .setColor(msg.settings.embedColor)
             .setTimestamp();
 
           if (result.tracks[0].info.artworkUrl) {

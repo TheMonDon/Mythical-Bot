@@ -343,7 +343,7 @@ const loadLavalink = async () => {
   client.lavalink
     .on('trackStart', async (player, track) => {
       try {
-        if (player.repeatMode === 1) return;
+        if (player.repeatMode === 'track') return;
 
         const queueLength = player.queue.tracks.length;
         const duration = track.info.duration
@@ -367,31 +367,39 @@ const loadLavalink = async () => {
           em.setThumbnail(track.info.artworkUrl);
         }
 
-        const msg =
-          (await player.textChannelId) &&
-          client.channels.cache
-            .get(player.textChannelId)
-            ?.send({ embeds: [em] })
-            .catch(() => {});
-
         const oldmsg = (await db.get(`servers.${player.guildId}.music.lastTrack`)) || null;
         if (oldmsg !== null) {
           try {
-            await client.channels.cache
-              .get(oldmsg.channelId)
-              ?.messages.cache.get(oldmsg.id)
-              ?.delete()
-              .catch(() => {});
+            const channel = client.channels.cache.get(oldmsg.channelId);
+            if (channel) {
+              const message = await channel.messages.fetch(oldmsg.id).catch(() => null);
+              if (message) {
+                await message.delete().catch(() => {});
+              }
+            }
           } catch {
             await db.delete(`servers.${player.guildId}.music.lastTrack`);
           }
         }
 
-        if (msg) await db.set(`servers.${player.guildId}.music.lastTrack`, msg);
+        const msg =
+          player.textChannelId &&
+          (await client.channels.cache
+            .get(player.textChannelId)
+            ?.send({ embeds: [em] })
+            .catch(() => null));
+
+        if (msg) {
+          await db.set(`servers.${player.guildId}.music.lastTrack`, {
+            id: msg.id,
+            channelId: msg.channel.id,
+          });
+        }
       } catch (error) {
         client.logger.error(error);
       }
     })
+
     .on('trackAdd', (player, track) => {
       if (player.playing) {
         const queuePosition = player.queue.tracks.length;

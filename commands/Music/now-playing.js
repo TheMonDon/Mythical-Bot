@@ -25,7 +25,7 @@ class NowPlaying extends Command {
     const duration = song.info.duration;
     const progress = Math.round((position / duration) * 20);
     const progressBar = '▬'.repeat(progress) + '🔘' + '▬'.repeat(20 - progress);
-    
+
     // Format time
     const formatTime = (ms) => {
       const minutes = Math.floor(ms / 60000);
@@ -40,12 +40,14 @@ class NowPlaying extends Command {
 
           ${progressBar} [${formatTime(position)}/${formatTime(duration)}]
 
-          Requested By: ${song.requester}
+          Requested By: ${this.client.users.cache.get(song.requester.id)}
       `,
       )
       .setColor(msg.settings.embedColor)
       .setThumbnail(song.info.artworkUrl)
+      .setFooter({ text: `Repeat Mode: ${this.client.util.toProperCase(player.repeatMode)}` })
       .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() });
+
     return msg.channel.send({ embeds: [em] });
   }
 }

@@ -17,9 +17,10 @@ class Repeat extends Command {
     const player = this.client.lavalink.getPlayer(msg.guild.id);
 
     if (!msg.member.voice.channel) return msg.channel.send('You must be in a voice channel to loop music.');
-    if (msg.guild.members.me.voice.channel && msg.member.voice.channel.id !== msg.guild.members.me.voice.channel.id)
+    if (msg.guild.members.me.voice.channel && msg.member.voice.channel.id !== msg.guild.members.me.voice.channel.id) {
       return msg.channel.send('You must be in the same voice channel as the bot.');
-    if (!player) return msg.channel.send('There is no player in this guild.');
+    }
+    if (!player) return msg.channel.send('There is nothing currently playing.');
 
     const opts = ['off', 'track', 'queue'];
     const text = args.join('').toLowerCase();
@@ -30,30 +31,27 @@ class Repeat extends Command {
     const mode = opts.indexOf(text);
 
     if (mode === 0) {
-      // Mode: off
-      if (mode === player.repeatMode) {
-        return msg.channel.send('Nothing is currently repeating.');
+      if (player.repeatMode === 'off') {
+        return msg.channel.send('There is nothing currently repeating.');
       }
 
-      player.setRepeatMode(0);
+      player.setRepeatMode('off');
       return msg.channel.send('Stopped repeat mode.');
     } else if (mode === 1) {
-      // Mode: Track
       const song = player.queue.current;
 
-      if (mode === player.repeatMode) {
+      if (player.repeatMode === 'track') {
         return msg.channel.send(`The song \`${song.info.title}\` is already repeating.`);
       }
 
-      player.setRepeatMode(1);
+      player.setRepeatMode('track');
       return msg.channel.send(`Now Repeating: \`${song.info.title}\``);
     } else if (mode === 2) {
-      // Mode: Queue
-      if (mode === player.repeatMode) {
+      if (player.repeatMode === 'queue') {
         return msg.channel.send('The queue is already repeating.');
       }
 
-      player.setRepeatMode(2);
+      player.setRepeatMode('queue');
       return msg.channel.send('Now repeating whole queue.');
     }
   }

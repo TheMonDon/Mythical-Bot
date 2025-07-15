@@ -16,8 +16,9 @@ class Shuffle extends Command {
     const player = this.client.lavalink.getPlayer(msg.guild.id);
 
     if (!msg.member.voice.channel) return msg.channel.send('You must be in a voice channel to shuffle the queue.');
-    if (msg.guild.members.me.voice.channel && msg.member.voice.channel.id !== msg.guild.members.me.voice.channel.id)
+    if (msg.guild.members.me.voice.channel && msg.member.voice.channel.id !== msg.guild.members.me.voice.channel.id) {
       return msg.channel.send('You must be in the same voice channel as the bot.');
+    }
 
     if (!player || player.queue.tracks.length === 0) return msg.channel.send('There are no tracks in the queue.');
 

@@ -16,9 +16,12 @@ class Back extends Command {
   async run(msg) {
     const player = this.client.lavalink.getPlayer(msg.guild.id);
 
-    if (!msg.member.voice.channel) return msg.channel.send('You must be in a voice channel to skip music.');
-    if (msg.guild.members.me.voice.channel && msg.member.voice.channel.id !== msg.guild.members.me.voice.channel.id)
+    if (!msg.member.voice.channel) {
+      return msg.channel.send('You must be in a voice channel to skip music.');
+    }
+    if (msg.guild.members.me.voice.channel && msg.member.voice.channel.id !== msg.guild.members.me.voice.channel.id) {
       return msg.channel.send('You must be in the same voice channel as the bot.');
+    }
     if (!player || !player.playing) return msg.channel.send('There is nothing playing.');
 
     // Get previous track from history

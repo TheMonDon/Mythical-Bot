@@ -35,6 +35,9 @@ const config = {
   // Web server port
   Port: 7777,
 
+  // Wordnik API Token
+  Wordnik: '',
+
   // Lavalink nodes
   nodes: [
       {
