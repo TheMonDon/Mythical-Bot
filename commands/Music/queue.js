@@ -1,6 +1,5 @@
 const Command = require('../../base/Command.js');
 const { EmbedBuilder } = require('discord.js');
-const { useQueue } = require('discord-player');
 require('moment-duration-format');
 const moment = require('moment');
 
@@ -19,20 +18,15 @@ class Queue extends Command {
   async run(msg, args) {
     let page = args.join(' ');
     page = parseInt(page, 10);
-    const queue = useQueue(msg.guild.id);
+    const player = this.client.lavalink.getPlayer(msg.guild.id);
 
-    if (!queue || queue.tracks.size < 1) return msg.channel.send('There are no more songs in the queue.');
+    if (!player || player.queue.tracks.length < 1) return msg.channel.send('There are no more songs in the queue.');
     if (!page) page = 1;
     if (isNaN(page)) return msg.channel.send('Please input a valid number.');
 
     let realPage = page;
-    let q = queue.tracks.map((track, i) => {
-      const spotifySong = track.queryType === 'spotifySong';
-      if (spotifySong) {
-        return `**${i + 1}.** ${track.title} - ${track.author}`;
-      } else {
-        return `**${i + 1}.** ${track.title}`;
-      }
+    let q = player.queue.tracks.map((track, i) => {
+      return `**${i + 1}.** ${track.info.title} - ${track.info.author}`;
     });
     const maxPages = Math.max(Math.ceil(q.length / 25), 1); // Ensure maxPages is at least 1
 
@@ -51,8 +45,7 @@ class Queue extends Command {
       }
     }
 
-    const trackArray = queue.tracks.toArray();
-    const totalMilliseconds = trackArray.reduce((acc, track) => acc + (track.durationMS || 0), 0);
+    const totalMilliseconds = player.queue.tracks.reduce((acc, track) => acc + (track.info.duration || 0), 0);
 
     const timeLeft = moment
       .duration(totalMilliseconds)

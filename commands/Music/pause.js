@@ -1,5 +1,4 @@
 const Command = require('../../base/Command.js');
-const { useQueue } = require('discord-player');
 
 class Pause extends Command {
   constructor(client) {
@@ -13,16 +12,16 @@ class Pause extends Command {
   }
 
   async run(msg) {
-    const queue = useQueue(msg.guild.id);
+    const player = this.client.lavalink.getPlayer(msg.guild.id);
 
     if (!msg.member.voice.channel) return msg.channel.send('You must be in a voice channel to pause music.');
     if (msg.guild.members.me.voice.channel && msg.member.voice.channel.id !== msg.guild.members.me.voice.channel.id)
       return msg.channel.send('You must be in the same voice channel as the bot.');
 
-    if (!queue || !queue.node) return msg.channel.send('No music is currently playing.');
+    if (!player || !player.queue.current) return msg.channel.send('No music is currently playing.');
 
-    queue.node.setPaused(!queue.node.isPaused());
-    return msg.channel.send(`Music has been ${queue.node.isPaused() ? 'paused' : 'resumed'}`);
+    await player.pause(!player.paused);
+    return msg.channel.send(`Music has been ${player.paused ? 'paused' : 'resumed'}`);
   }
 }
 
