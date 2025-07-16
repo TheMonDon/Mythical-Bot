@@ -31,6 +31,14 @@ exports.commandData = new SlashCommandBuilder()
   )
   .addSubcommand((subcommand) =>
     subcommand
+      .setName('play-next')
+      .setDescription('Play something next in the queue')
+      .addStringOption((option) =>
+        option.setName('song').setDescription('The song or link to play').setRequired(true).setAutocomplete(true),
+      ),
+  )
+  .addSubcommand((subcommand) =>
+    subcommand
       .setName('queue')
       .setDescription('See what songs are in the queue')
       .addIntegerOption((option) => option.setName('page').setDescription('The page of the queue to show')),
@@ -277,6 +285,7 @@ exports.run = async (interaction) => {
       }
 
       await player.pause();
+      player.autoPaused = false;
 
       const em = new EmbedBuilder()
         .setColor(interaction.settings.embedSuccessColor)
@@ -328,22 +337,20 @@ exports.run = async (interaction) => {
         if (result.loadType === 'playlist') {
           await player.queue.add(result.tracks);
           const totalDuration = result.tracks.reduce((acc, track) => acc + (track.info.duration || 0), 0);
-          const durationStr = totalDuration
-            ? `\`${Math.floor(totalDuration / 60000)}:${String(Math.floor((totalDuration % 60000) / 1000)).padStart(
-                2,
-                '0',
-              )}\``
-            : '`Unknown`';
+          const durationString = moment
+            .duration(totalDuration)
+            .format('y[ years][,] M[ Months][,] d[ days][,] h[ hours][,] m[ minutes][, and] s[ seconds]');
 
           const em = new EmbedBuilder()
             .setTitle('✅ Playlist Added to Queue')
             .setDescription(
-              `**${result.tracks.length} tracks** from **${
+              stripIndents`**${result.tracks.length} tracks** from **${
                 result.playlist?.name || 'Unknown Playlist'
-              }** have been added\n\n` +
-                `**Total Duration:** ${durationStr}\n` +
-                `**Requested By:** ${interaction.user}\n` +
-                `**Queue Length:** ${player.queue.tracks.length} tracks`,
+              }** have been added
+
+                **Total Duration:** ${durationString}
+                **Requested By:** ${interaction.user}
+                **Queue Length:** ${player.queue.tracks.length} tracks`,
             )
             .setColor(interaction.settings.embedColor)
             .setTimestamp();
@@ -356,37 +363,141 @@ exports.run = async (interaction) => {
         } else {
           await player.queue.add(result.tracks[0]);
 
-          if (player.playing) {
-            const queuePosition = player.queue.tracks.length;
-            const duration = result.tracks[0].info.duration
-              ? `\`${Math.floor(result.tracks[0].info.duration / 60000)}:${String(
-                  Math.floor((result.tracks[0].info.duration % 60000) / 1000),
-                ).padStart(2, '0')}\``
-              : '`Unknown`';
-            const calculateEstimatedTime = player.queue.tracks.reduce(
-              (acc, track) => acc + (track.info.duration || 0),
-              0,
-            );
-            const em = new EmbedBuilder()
-              .setTitle('✅ Track Added to Queue')
-              .setDescription(
-                `**[${result.tracks[0].info.title}](${result.tracks[0].info.uri})**\n\n` +
-                  `**Duration:** ${duration}\n` +
-                  `**Requested By:** ${interaction.user}\n` +
-                  `**Queue Position:** ${queuePosition}\n` +
-                  `**Estimated Time Until Playing:** \`${Math.floor(calculateEstimatedTime / 60000)}:${String(
-                    Math.floor((calculateEstimatedTime % 60000) / 1000),
-                  ).padStart(2, '0')}\``,
-              )
-              .setColor(interaction.settings.embedColor)
-              .setTimestamp();
-
-            if (result.tracks[0].info.artworkUrl) {
-              em.setThumbnail(result.tracks[0].info.artworkUrl);
-            }
-
-            await interaction.editReply({ embeds: [em] });
+          const queuePosition = player.queue.tracks.length;
+          let calculateEstimatedTime = player.queue.tracks.reduce((acc, track) => acc + (track.info.duration || 0), 0);
+          if (player?.queue?.current) {
+            calculateEstimatedTime += player.queue.current.info.duration || 0;
           }
+          const timeLeft = moment
+            .duration(calculateEstimatedTime)
+            .format('y[ years][,] M[ Months][,] d[ days][,] h[ hours][,] m[ minutes][, and] s[ seconds]');
+          const durationString = moment
+            .duration(result.tracks[0].info.duration || 0)
+            .format('y[ years][,] M[ Months][,] d[ days][,] h[ hours][,] m[ minutes][, and] s[ seconds]');
+
+          const em = new EmbedBuilder()
+            .setTitle('✅ Track Added to Queue')
+            .setDescription(
+              stripIndents`**[${result.tracks[0].info.title}](${result.tracks[0].info.uri})**
+
+                  **Duration:** ${durationString}
+                  **Requested By:** ${interaction.user}
+                  **Queue Position:** ${queuePosition}
+                  **Estimated Time Until Playing:** ${timeLeft}`,
+            )
+            .setColor(interaction.settings.embedColor)
+            .setTimestamp();
+
+          if (result.tracks[0].info.artworkUrl) {
+            em.setThumbnail(result.tracks[0].info.artworkUrl);
+          }
+
+          await interaction.editReply({ embeds: [em] });
+        }
+
+        // Start playing if not already playing
+        if (!player.playing && !player.paused) {
+          await player.play();
+        }
+      } catch (e) {
+        return interaction.editReply(`Something went wrong: \`${e}\``);
+      }
+      break;
+    }
+
+    case 'play-next': {
+      if (
+        interaction.guild.members.me.voice.channel &&
+        interaction.member.voice.channel.id !== interaction.guild.members.me.voice.channel.id
+      ) {
+        return interaction.client.util.errorEmbed(interaction, 'You must be in the same voice channel as the bot.');
+      }
+
+      const query = interaction.options.get('song').value;
+
+      try {
+        if (!player) {
+          player = interaction.client.lavalink.createPlayer({
+            guildId: interaction.guild.id,
+            voiceChannelId: interaction.member.voice.channel.id,
+            textChannelId: interaction.channel.id,
+            selfDeaf: true,
+            selfMute: false,
+          });
+        }
+
+        if (!player.connected) {
+          await player.connect();
+        }
+
+        // Search for tracks
+        const result = await player.search(
+          {
+            query,
+            source: 'ytsearch',
+          },
+          interaction.author,
+        );
+
+        if (!result || !result.tracks || result.tracks.length === 0) {
+          return interaction.client.util.errorEmbed(interaction, 'No tracks found for that query.');
+        }
+
+        // Add track(s) to queue
+        if (result.loadType === 'playlist') {
+          await player.queue.add(result.tracks, 0);
+          const totalDuration = result.tracks.reduce((acc, track) => acc + (track.info.duration || 0), 0);
+          const durationStr = totalDuration
+            ? `\`${Math.floor(totalDuration / 60000)}:${String(Math.floor((totalDuration % 60000) / 1000)).padStart(
+                2,
+                '0',
+              )}\``
+            : '`Unknown`';
+
+          const em = new EmbedBuilder()
+            .setTitle('✅ Playlist Added to Queue')
+            .setDescription(
+              stripIndents`**${result.tracks.length} tracks** from **${
+                result.playlist?.name || 'Unknown Playlist'
+              }** have been added
+
+                **Total Duration:** ${durationStr}
+                **Requested By:** ${interaction.user}
+                **Queue Length:** ${player.queue.tracks.length} tracks`,
+            )
+            .setColor(interaction.settings.embedColor)
+            .setTimestamp();
+
+          if (result.tracks[0].info.artworkUrl) {
+            em.setThumbnail(result.tracks[0].info.artworkUrl);
+          }
+
+          await interaction.editReply({ embeds: [em] });
+        } else {
+          await player.queue.add(result.tracks[0], 0);
+
+          const duration = result.tracks[0].info.duration
+            ? `\`${Math.floor(result.tracks[0].info.duration / 60000)}:${String(
+                Math.floor((result.tracks[0].info.duration % 60000) / 1000),
+              ).padStart(2, '0')}\``
+            : '`Unknown`';
+
+          const em = new EmbedBuilder()
+            .setTitle('✅ Track Added to Queue')
+            .setDescription(
+              stripIndents`**[${result.tracks[0].info.title}](${result.tracks[0].info.uri})**
+
+                **Duration:** ${duration}
+                **Requested By:** ${interaction.user}`,
+            )
+            .setColor(interaction.settings.embedColor)
+            .setTimestamp();
+
+          if (result.tracks[0].info.artworkUrl) {
+            em.setThumbnail(result.tracks[0].info.artworkUrl);
+          }
+
+          await interaction.editReply({ embeds: [em] });
         }
 
         // Start playing if not already playing

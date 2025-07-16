@@ -29,6 +29,7 @@ class Pause extends Command {
     }
 
     await player.pause();
+    player.autoPaused = false;
 
     const em = new EmbedBuilder()
       .setColor(msg.settings.embedSuccessColor)

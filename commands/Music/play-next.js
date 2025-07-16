@@ -1,19 +1,16 @@
 const Command = require('../../base/Command.js');
-const { stripIndents } = require('common-tags');
 const { EmbedBuilder } = require('discord.js');
-require('moment-duration-format');
-const moment = require('moment');
 
-class Play extends Command {
+class PlayNext extends Command {
   constructor(client) {
     super(client, {
-      name: 'play',
-      description: 'Play music or add songs to the queue',
+      name: 'play-next',
+      description: 'Play music or add songs to the queue to be played next',
       longDescription: 'Supports youtube search/links, youtube playlist, and spotify links.',
       category: 'Music',
-      usage: 'play <song>',
-      aliases: ['p'],
-      examples: ['play Unsweetened Lemonade'],
+      usage: 'play-next <song>',
+      aliases: ['playnext', 'pn'],
+      examples: ['play-next Unsweetened Lemonade'],
       requiredArgs: 1,
       guildOnly: true,
     });
@@ -67,22 +64,24 @@ class Play extends Command {
 
       // Add track(s) to queue
       if (result.loadType === 'playlist') {
-        await player.queue.add(result.tracks);
+        await player.queue.add(result.tracks, 0);
         const totalDuration = result.tracks.reduce((acc, track) => acc + (track.info.duration || 0), 0);
-        const durationString = moment
-          .duration(totalDuration)
-          .format('y[ years][,] M[ Months][,] d[ days][,] h[ hours][,] m[ minutes][, and] s[ seconds]');
+        const durationStr = totalDuration
+          ? `\`${Math.floor(totalDuration / 60000)}:${String(Math.floor((totalDuration % 60000) / 1000)).padStart(
+              2,
+              '0',
+            )}\``
+          : '`Unknown`';
 
         const em = new EmbedBuilder()
           .setTitle('✅ Playlist Added to Queue')
           .setDescription(
-            stripIndents`**${result.tracks.length} tracks** from **${
+            `**${result.tracks.length} tracks** from **${
               result.playlist?.name || 'Unknown Playlist'
-            }** have been added.
-
-              **Total Duration:** ${durationString}
-              **Requested By:** ${msg.author}
-              **Queue Length:** ${player.queue.tracks.length} tracks`,
+            }** have been added\n\n` +
+              `**Total Duration:** ${durationStr}\n` +
+              `**Requested By:** ${msg.author}\n` +
+              `**Queue Length:** ${player.queue.tracks.length} tracks`,
           )
           .setColor(msg.settings.embedColor)
           .setTimestamp();
@@ -93,38 +92,31 @@ class Play extends Command {
 
         msg.channel.send({ embeds: [em] });
       } else {
-        await player.queue.add(result.tracks[0]);
+        await player.queue.add(result.tracks[0], 0);
 
-        const queuePosition = player.queue.tracks.length;
-        let calculateEstimatedTime = player.queue.tracks.reduce((acc, track) => acc + (track.info.duration || 0), 0);
-        if (player?.queue?.current) {
-          calculateEstimatedTime += player.queue.current.info.duration || 0;
+        if (player.playing) {
+          const duration = result.tracks[0].info.duration
+            ? `\`${Math.floor(result.tracks[0].info.duration / 60000)}:${String(
+                Math.floor((result.tracks[0].info.duration % 60000) / 1000),
+              ).padStart(2, '0')}\``
+            : '`Unknown`';
+
+          const em = new EmbedBuilder()
+            .setTitle('✅ Track Added to Queue')
+            .setDescription(
+              `**[${result.tracks[0].info.title}](${result.tracks[0].info.uri})**\n\n` +
+                `**Duration:** ${duration}\n` +
+                `**Requested By:** ${msg.author}\n`,
+            )
+            .setColor(msg.settings.embedColor)
+            .setTimestamp();
+
+          if (result.tracks[0].info.artworkUrl) {
+            em.setThumbnail(result.tracks[0].info.artworkUrl);
+          }
+
+          msg.channel.send({ embeds: [em] });
         }
-        const timeLeft = moment
-          .duration(calculateEstimatedTime)
-          .format('y[ years][,] M[ Months][,] d[ days][,] h[ hours][,] m[ minutes][, and] s[ seconds]');
-        const durationString = moment
-          .duration(result.tracks[0].info.duration || 0)
-          .format('y[ years][,] M[ Months][,] d[ days][,] h[ hours][,] m[ minutes][, and] s[ seconds]');
-
-        const em = new EmbedBuilder()
-          .setTitle('✅ Track Added to Queue')
-          .setDescription(
-            stripIndents`**[${result.tracks[0].info.title}](${result.tracks[0].info.uri})**
-              
-                **Duration:** ${durationString}
-                **Requested By:** ${msg.author}
-                **Queue Position:** ${queuePosition}\n
-                **Estimated Time Until Playing:** ${timeLeft}`,
-          )
-          .setColor(msg.settings.embedColor)
-          .setTimestamp();
-
-        if (result.tracks[0].info.artworkUrl) {
-          em.setThumbnail(result.tracks[0].info.artworkUrl);
-        }
-
-        msg.channel.send({ embeds: [em] });
       }
 
       // Start playing if not already playing
@@ -138,4 +130,4 @@ class Play extends Command {
   }
 }
 
-module.exports = Play;
+module.exports = PlayNext;

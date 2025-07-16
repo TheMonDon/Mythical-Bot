@@ -2,10 +2,14 @@ const { GatewayIntentBits, Collection, Client, EmbedBuilder, Partials } = requir
 const { GiveawaysManager } = require('discord-giveaways');
 const { LavalinkManager } = require('lavalink-client');
 const { readdirSync, statSync } = require('fs');
+const { stripIndents } = require('common-tags');
 const { QuickDB } = require('quick.db');
 const config = require('./config.js');
+require('moment-duration-format');
+const moment = require('moment');
 const Enmap = require('enmap');
 const path = require('path');
+
 const db = new QuickDB();
 
 class Bot extends Client {
@@ -20,6 +24,7 @@ class Bot extends Client {
 
     this.settings = new Enmap({ name: 'settings', cloneLevel: 'deep', fetchAll: false, autoFetch: true });
     this.games = new Enmap({ name: 'games', cloneLevel: 'deep', fetchAll: false, autoFetch: true });
+    this.pauseTimeouts = new Map();
 
     this.logger = require('./util/Logger.js');
 
@@ -343,19 +348,18 @@ const loadLavalink = async () => {
         if (player.repeatMode === 'track') return;
 
         const queueLength = player.queue.tracks.length;
-        const duration = track.info.duration
-          ? `\`${Math.floor(track.info.duration / 60000)}:${String(
-              Math.floor((track.info.duration % 60000) / 1000),
-            ).padStart(2, '0')}\``
-          : '`Unknown`';
+        const durationString = moment
+          .duration(track.info.duration || 0)
+          .format('y[ years][,] M[ Months][,] d[ days][,] h[ hours][,] m[ minutes][, and] s[ seconds]');
 
         const em = new EmbedBuilder()
           .setTitle('🎵 Now Playing')
           .setDescription(
-            `**[${track.info.title}](${track.info.uri})**\n\n` +
-              `**Duration:** ${duration}\n` +
-              `**Requested By:** ${client.users.cache.get(track.requester.id)}\n` +
-              `**Tracks in Queue:** ${queueLength}`,
+            stripIndents`**[${track.info.title}](${track.info.uri})**
+
+              **Duration:** ${durationString}
+              **Requested By:** <@${track.requester.id}>
+              **Tracks in Queue:** ${queueLength}`,
           )
           .setColor(client.getSettings(player.guildId).embedColor)
           .setTimestamp();
@@ -396,61 +400,26 @@ const loadLavalink = async () => {
         console.error(error);
       }
     })
-
     .on('trackAdd', (player, track) => {
-      if (player.playing) {
-        const queuePosition = player.queue.tracks.length;
-        const duration = track.info.duration
-          ? `\`${Math.floor(track.info.duration / 60000)}:${String(
-              Math.floor((track.info.duration % 60000) / 1000),
-            ).padStart(2, '0')}\``
-          : '`Unknown`';
-
-        const em = new EmbedBuilder()
-          .setTitle('✅ Track Added to Queue')
-          .setDescription(
-            `**[${track.info.title}](${track.info.uri})**\n\n` +
-              `**Duration:** ${duration}\n` +
-              `**Requested By:** ${client.users.cache.get(track.requester.id)}\n` +
-              `**Queue Position:** ${queuePosition}\n` +
-              `**Estimated Time Until Playing:** ${queuePosition > 0 ? 'Calculating...' : 'Now'}`,
-          )
-          .setColor(client.getSettings(player.guildId).embedColor)
-          .setTimestamp();
-
-        if (track.info.artworkUrl) {
-          em.setThumbnail(track.info.artworkUrl);
-        }
-
-        player.textChannelId &&
-          client.channels.cache
-            .get(player.textChannelId)
-            ?.send({ embeds: [em] })
-            .catch(() => {});
-      }
-    })
-    .on('tracksAdd', (player, tracks) => {
-      const totalDuration = tracks.reduce((acc, track) => acc + (track.info.duration || 0), 0);
-      const durationStr = totalDuration
-        ? `\`${Math.floor(totalDuration / 60000)}:${String(Math.floor((totalDuration % 60000) / 1000)).padStart(
-            2,
-            '0',
-          )}\``
-        : '`Unknown`';
+      const queuePosition = player.queue.tracks.length;
+      const durationString = moment
+        .duration(track.info.duration || 0)
+        .format('y[ years][,] M[ Months][,] d[ days][,] h[ hours][,] m[ minutes][, and] s[ seconds]');
 
       const em = new EmbedBuilder()
-        .setTitle('✅ Playlist Added to Queue')
+        .setTitle('✅ Track Added to Queue')
         .setDescription(
-          `**${tracks.length} tracks** have been added to the queue\n\n` +
-            `**Total Duration:** ${durationStr}\n` +
-            `**Requested By:** ${tracks[0].requester}\n` +
-            `**Queue Length:** ${player.queue.tracks.length} tracks`,
+          `**[${track.info.title}](${track.info.uri})**\n\n` +
+            `**Duration:** ${durationString}\n` +
+            `**Requested By:** ${client.users.cache.get(track.requester.id)}\n` +
+            `**Queue Position:** ${queuePosition}\n` +
+            `**Estimated Time Until Playing:** ${queuePosition > 0 ? 'Calculating...' : 'Now'}`,
         )
         .setColor(client.getSettings(player.guildId).embedColor)
         .setTimestamp();
 
-      if (tracks[0].info.artworkUrl) {
-        em.setThumbnail(tracks[0].info.artworkUrl);
+      if (track.info.artworkUrl) {
+        em.setThumbnail(track.info.artworkUrl);
       }
 
       player.textChannelId &&
