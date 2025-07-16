@@ -143,8 +143,7 @@ class Bot extends Client {
     if (this.slashCommands.has(interactionName)) {
       command = this.slashCommands.get(interactionName);
     }
-    if (!command)
-      return client.logger.error(`The slash command \`${interactionName}\` doesn't seem to exist. Try again!`);
+    if (!command) return console.error(`The slash command \`${interactionName}\` doesn't seem to exist. Try again!`);
 
     delete require.cache[require.resolve(interactionPath)];
     this.slashCommands.delete(interactionName);
@@ -173,9 +172,7 @@ class Bot extends Client {
       command = this.commands.get(this.aliases.get(commandName));
     }
     if (!command)
-      return client.logger.error(
-        `The command \`${commandName}\` doesn't seem to exist, nor is it an alias. Try again!`,
-      );
+      return console.error(`The command \`${commandName}\` doesn't seem to exist, nor is it an alias. Try again!`);
 
     delete require.cache[require.resolve(commandPath)];
     return false;
@@ -327,16 +324,16 @@ const loadLavalink = async () => {
   // Add node connection logging
   client.lavalink.nodeManager
     .on('connect', (node) => {
-      client.logger.log(`Connected to Lavalink node: ${node.id}`);
+      console.log(`Connected to Lavalink node: ${node.id}`);
     })
     .on('disconnect', (node, reason) => {
-      client.logger.warn(`Disconnected from Lavalink node: ${node.id}, Reason: ${reason}`);
+      console.warn(`Disconnected from Lavalink node: ${node.id}, Reason: ${reason}`);
     })
     .on('error', (node, error) => {
-      client.logger.error(`Lavalink node ${node.id} error:`, error);
+      console.error(`Lavalink node ${node.id} error:`, error);
     })
     .on('reconnecting', (node) => {
-      client.logger.warn(`Reconnecting to Lavalink node: ${node.id}`);
+      console.warn(`Reconnecting to Lavalink node: ${node.id}`);
     });
 
   // Set up event handlers
@@ -396,7 +393,7 @@ const loadLavalink = async () => {
           });
         }
       } catch (error) {
-        client.logger.error(error);
+        console.error(error);
       }
     })
 
@@ -510,7 +507,7 @@ const loadLavalink = async () => {
   client.once('ready', () => {
     // Update client ID now that the bot is ready
     client.lavalink.options.client.id = client.user.id;
-    client.logger.log('Initializing Lavalink...');
+    console.log('Initializing Lavalink...');
     client.lavalink.init(client.user);
   });
 };
