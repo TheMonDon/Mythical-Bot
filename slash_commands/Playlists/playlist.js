@@ -234,7 +234,7 @@ exports.run = async (interaction) => {
         return interaction.editReply(
           `I have successfully created the playlist \`${playlistName}\` with ${
             queue.tracks.length
-          } tracks. You can play it using the \`/playlist load\` command. (${currentPlaylists.length + 1}/50)`,
+          } tracks. You can play it using the \`/playlist load\` command. (${currentPlaylists.length + 1}/20)`,
         );
       } catch (error) {
         console.error(error);
