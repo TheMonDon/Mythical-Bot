@@ -16,11 +16,14 @@ class Lyrics extends Command {
     const player = this.client.lavalink.getPlayer(msg.guild.id);
 
     if (!args || args.length < 1) {
-      if (!msg.guild) return this.client.util.errorEmbed(msg, "I can't get the lyrics of nothing.");
+      if (!msg.guild) {
+        return this.client.util.errorEmbed(msg, "I can't get the lyrics of nothing.");
+      }
       const playing = player?.queue.current;
       song = `${playing?.info.author} ${playing?.info.title}`;
-      if (!playing || song === ' ')
+      if (!playing || song === ' ') {
         return this.client.util.errorEmbed(msg, 'Nothing is playing, please try again with a song name.');
+      }
     } else {
       song = args.join(' ').slice(0, 300);
     }

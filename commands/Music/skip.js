@@ -16,11 +16,15 @@ class Skip extends Command {
   async run(msg) {
     const player = this.client.lavalink.getPlayer(msg.guild.id);
 
-    if (!msg.member.voice.channel) return msg.channel.send('You must be in a voice channel to skip music.');
-    if (msg.guild.members.me.voice.channel && msg.member.voice.channel.id !== msg.guild.members.me.voice.channel.id) {
-      return msg.channel.send('You must be in the same voice channel as the bot.');
+    if (!msg.member.voice.channel) {
+      return this.client.util.errorEmbed(msg, 'You must be in a voice channel to skip music.');
     }
-    if (!player || !player.queue.current) return msg.channel.send('There is nothing playing.');
+    if (msg.guild.members.me.voice.channel && msg.member.voice.channel.id !== msg.guild.members.me.voice.channel.id) {
+      return this.client.util.errorEmbed(msg, 'You must be in the same voice channel as the bot.');
+    }
+    if (!player || !player.queue.current) {
+      return this.client.util.errorEmbed(msg, 'There is nothing playing.');
+    }
 
     const song = player.queue.current;
     await player.skip();

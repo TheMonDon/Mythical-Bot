@@ -17,16 +17,20 @@ class Back extends Command {
     const player = this.client.lavalink.getPlayer(msg.guild.id);
 
     if (!msg.member.voice.channel) {
-      return msg.channel.send('You must be in a voice channel to skip music.');
+      return this.client.util.errorEmbed(msg, 'You must be in a voice channel to go back to the previous song.');
     }
     if (msg.guild.members.me.voice.channel && msg.member.voice.channel.id !== msg.guild.members.me.voice.channel.id) {
-      return msg.channel.send('You must be in the same voice channel as the bot.');
+      return this.client.util.errorEmbed(msg, 'You must be in the same voice channel as the bot.');
     }
-    if (!player || !player.playing) return msg.channel.send('There is nothing playing.');
+    if (!player || !player.playing) {
+      return this.client.util.errorEmbed(msg, 'There is nothing playing.');
+    }
 
     // Get previous track from history
     const previousTrack = await player.queue.shiftPrevious();
-    if (!previousTrack) return msg.channel.send('There is no previous song in history.');
+    if (!previousTrack) {
+      return this.client.util.errorEmbed(msg, 'There is no previous song in history.');
+    }
 
     await player.play({ clientTrack: previousTrack });
 

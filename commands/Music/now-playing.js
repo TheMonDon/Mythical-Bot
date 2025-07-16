@@ -18,7 +18,9 @@ class NowPlaying extends Command {
     const player = this.client.lavalink.getPlayer(msg.guild.id);
     const song = player?.queue.current;
 
-    if (!song) return msg.channel.send('There is nothing playing.');
+    if (!song) {
+      return this.client.util.errorEmbed(msg, 'There is nothing playing.');
+    }
 
     // Create a simple progress bar
     const position = player.position;

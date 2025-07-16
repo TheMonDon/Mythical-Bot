@@ -130,7 +130,7 @@ exports.autoComplete = async (interaction) => {
 exports.run = async (interaction) => {
   await interaction.deferReply();
   if (!interaction.member.voice.channel) {
-    return interaction.editReply('You must be in a voice channel to use this command.');
+    return interaction.client.util.errorEmbed(interaction, 'You must be in a voice channel to use this command.');
   }
 
   let player = interaction.client.lavalink.getPlayer(interaction.guild.id);
@@ -142,14 +142,18 @@ exports.run = async (interaction) => {
         interaction.guild.members.me.voice.channel &&
         interaction.member.voice.channel.id !== interaction.guild.members.me.voice.channel.id
       ) {
-        return interaction.editReply('You must be in the same voice channel as the bot.');
+        return interaction.client.util.errorEmbed(interaction, 'You must be in the same voice channel as the bot.');
       }
 
-      if (!player || !player.playing) return interaction.editReply('There is nothing playing.');
+      if (!player || !player.playing) {
+        return interaction.client.util.errorEmbed(interaction, 'There is nothing playing.');
+      }
 
       // Get previous track from history
       const previousTrack = await player.queue.shiftPrevious();
-      if (!previousTrack) return interaction.editReply('There is no previous song in history.');
+      if (!previousTrack) {
+        return interaction.client.util.errorEmbed(interaction, 'There is no previous song in history.');
+      }
 
       await player.play({ clientTrack: previousTrack });
 
@@ -162,15 +166,15 @@ exports.run = async (interaction) => {
     }
 
     case 'clear-queue': {
-      if (!interaction.member.voice.channel)
-        return interaction.editReply('You must be in a voice channel to clear the queue.');
       if (
         interaction.guild.members.me.voice.channel &&
         interaction.member.voice.channel.id !== interaction.guild.members.me.voice.channel.id
       ) {
-        return interaction.editReply('You must be in the same voice channel as the bot.');
+        return interaction.client.util.errorEmbed(interaction, 'You must be in the same voice channel as the bot.');
       }
-      if (!player) return interaction.editReply('There is nothing in the queue.');
+      if (!player) {
+        return interaction.client.util.errorEmbed(interaction, 'There is nothing in the queue.');
+      }
 
       player.queue.tracks.splice(0);
 
@@ -182,15 +186,17 @@ exports.run = async (interaction) => {
       let song = interaction.options.get('song')?.value;
 
       if (!song) {
-        if (!interaction.guild)
+        if (!interaction.guild) {
           return interaction.client.util.errorEmbed(interaction, "I can't get the lyrics of nothing.");
+        }
         const playing = player?.queue.current;
         song = `${playing?.info.author} ${playing?.info.title}`;
-        if (!playing || song === ' ')
+        if (!playing || song === ' ') {
           return interaction.client.util.errorEmbed(
             interaction,
             'Nothing is playing, please try again with a song name.',
           );
+        }
       }
 
       const Genius = require('genius-lyrics');
@@ -200,7 +206,9 @@ exports.run = async (interaction) => {
       const firstSong = searches[0];
       const lyrics = await firstSong.lyrics();
 
-      if (!lyrics) return interaction.editReply(`No lyrics found for: \`${song}\``);
+      if (!lyrics) {
+        return interaction.client.util.errorEmbed(interaction, `No lyrics found for: \`${song}\``);
+      }
       function cleanLyrics(rawText) {
         return rawText.replace(/^[\s\S]*?Read More\s*/i, '');
       }
@@ -219,7 +227,9 @@ exports.run = async (interaction) => {
     case 'now-playing': {
       const song = player?.queue.current;
 
-      if (!song) return interaction.editReply('There is nothing playing.');
+      if (!song) {
+        return interaction.client.util.errorEmbed(interaction, 'There is nothing playing.');
+      }
 
       // Create a simple progress bar
       const position = player.position;
@@ -257,10 +267,14 @@ exports.run = async (interaction) => {
         interaction.guild.members.me.voice.channel &&
         interaction.member.voice.channel.id !== interaction.guild.members.me.voice.channel.id
       ) {
-        return interaction.editReply('You must be in the same voice channel as the bot.');
+        return interaction.client.util.errorEmbed(interaction, 'You must be in the same voice channel as the bot.');
       }
-      if (!player || !player.queue.current) return interaction.editReply('No music is currently playing.');
-      if (player.paused) return interaction.editReply('The music is already paused.');
+      if (!player || !player.queue.current) {
+        return interaction.client.util.errorEmbed(interaction, 'There is nothing playing.');
+      }
+      if (player.paused) {
+        return interaction.client.util.errorEmbed(interaction, 'The music is already paused.');
+      }
 
       await player.pause();
 
@@ -277,7 +291,7 @@ exports.run = async (interaction) => {
         interaction.guild.members.me.voice.channel &&
         interaction.member.voice.channel.id !== interaction.guild.members.me.voice.channel.id
       ) {
-        return interaction.editReply('You have to be in the same voice channel as the bot to play music');
+        return interaction.client.util.errorEmbed(interaction, 'You must be in the same voice channel as the bot.');
       }
 
       const query = interaction.options.get('song').value;
@@ -307,7 +321,7 @@ exports.run = async (interaction) => {
         );
 
         if (!result || !result.tracks || result.tracks.length === 0) {
-          return interaction.channel.send('No tracks found.');
+          return interaction.client.util.errorEmbed(interaction, 'No tracks found for that query.');
         }
 
         // Add track(s) to queue
@@ -390,10 +404,12 @@ exports.run = async (interaction) => {
       page = parseInt(page, 10);
 
       if (!player || player.queue.tracks.length < 1) {
-        return interaction.editReply('There are no more songs in the queue.');
+        return interaction.client.util.errorEmbed(interaction, 'There is nothing in the queue.');
       }
       if (!page) page = 1;
-      if (isNaN(page)) return interaction.editReply('Please input a valid number.');
+      if (isNaN(page)) {
+        return interaction.client.util.errorEmbed(interaction, 'Please input a valid number.');
+      }
 
       let realPage = page;
       let maxPages = page;
@@ -449,13 +465,16 @@ exports.run = async (interaction) => {
         interaction.guild.members.me.voice.channel &&
         interaction.member.voice.channel.id !== interaction.guild.members.me.voice.channel.id
       ) {
-        return interaction.editReply('You must be in the same voice channel as the bot.');
+        return interaction.client.util.errorEmbed(interaction, 'You must be in the same voice channel as the bot.');
       }
-      if (!player) return interaction.editReply('The queue is empty.');
-      if (!player.playing) return interaction.editReply('There is nothing playing.');
+      if (!player || !player.playing) {
+        return interaction.client.util.errorEmbed(interaction, 'There is nothing currently playing.');
+      }
 
       const num = parseInt(track, 10) - 1;
-      if (isNaN(num)) return interaction.editReply('Please supply a valid number.');
+      if (isNaN(num)) {
+        return interaction.client.util.errorEmbed(interaction, 'Please supply a valid number.');
+      }
 
       const ql = player.queue.tracks.length;
       if (num > ql || num < 0) return interaction.editReply("You can't remove something that is not in the queue.");
@@ -478,14 +497,16 @@ exports.run = async (interaction) => {
         interaction.guild.members.me.voice.channel &&
         interaction.member.voice.channel.id !== interaction.guild.members.me.voice.channel.id
       ) {
-        return interaction.editReply('You must be in the same voice channel as the bot.');
+        return interaction.client.util.errorEmbed(interaction, 'You must be in the same voice channel as the bot.');
       }
-      if (!player) return interaction.editReply('There is nothing currently playing.');
+      if (!player) {
+        return interaction.client.util.errorEmbed(interaction, 'There is nothing currently playing.');
+      }
 
       switch (type) {
         case 'off': {
-          if (player.repeatMode === 'track') {
-            return interaction.editReply(`There is nothing repeating.`);
+          if (player.repeatMode === 'off') {
+            return interaction.client.util.errorEmbed(interaction, 'Repeat mode is already off.');
           }
 
           player.setRepeatMode('off');
@@ -495,7 +516,10 @@ exports.run = async (interaction) => {
         case 'track': {
           const song = player.queue.current;
           if (player.repeatMode === 'track') {
-            return interaction.editReply(`The song \`${song.info.title}\` is already repeating.`);
+            return interaction.client.util.errorEmbed(
+              interaction,
+              `The song \`${song.info.title}\` is already repeating.`,
+            );
           }
 
           player.setRepeatMode('track');
@@ -504,11 +528,11 @@ exports.run = async (interaction) => {
 
         case 'queue': {
           if (player.repeatMode === 'queue') {
-            return interaction.editReply('The queue is already repeating.');
+            return interaction.client.util.errorEmbed(interaction, 'The queue is already repeating.');
           }
 
           player.setRepeatMode('queue');
-          return interaction.editReply('Now repeating whole queue.');
+          return interaction.editReply('Now repeating the whole queue.');
         }
       }
       break;
@@ -519,10 +543,14 @@ exports.run = async (interaction) => {
         interaction.guild.members.me.voice.channel &&
         interaction.member.voice.channel.id !== interaction.guild.members.me.voice.channel.id
       ) {
-        return interaction.editReply('You must be in the same voice channel as the bot.');
+        return interaction.client.util.errorEmbed(interaction, 'You must be in the same voice channel as the bot.');
       }
-      if (!player || !player.queue.current) return interaction.editReply('No music is currently playing.');
-      if (!player.paused) return interaction.editReply('The music is not paused.');
+      if (!player || !player.queue.current) {
+        return interaction.client.util.errorEmbed(interaction, 'There is nothing currently playing.');
+      }
+      if (!player.paused) {
+        return interaction.client.util.errorEmbed(interaction, 'The music is not paused.');
+      }
 
       await player.resume();
 
@@ -539,11 +567,11 @@ exports.run = async (interaction) => {
         interaction.guild.members.me.voice.channel &&
         interaction.member.voice.channel.id !== interaction.guild.members.me.voice.channel.id
       ) {
-        return interaction.editReply('You must be in the same voice channel as the bot.');
+        return interaction.client.util.errorEmbed(interaction, 'You must be in the same voice channel as the bot.');
       }
 
       if (!player || player.queue.tracks.length === 0) {
-        return interaction.editReply('There are no tracks in the queue.');
+        return interaction.client.util.errorEmbed(interaction, 'There is nothing in the queue to shuffle.');
       }
       await player.queue.shuffle();
 
@@ -560,9 +588,11 @@ exports.run = async (interaction) => {
         interaction.guild.members.me.voice.channel &&
         interaction.member.voice.channel.id !== interaction.guild.members.me.voice.channel.id
       ) {
-        return interaction.editReply('You must be in the same voice channel as the bot.');
+        return interaction.client.util.errorEmbed(interaction, 'You must be in the same voice channel as the bot.');
       }
-      if (!player || !player.queue.current) return interaction.editReply('There is nothing playing.');
+      if (!player || !player.queue.current) {
+        return interaction.client.util.errorEmbed(interaction, 'There is nothing currently playing.');
+      }
 
       const song = player.queue.current;
       await player.skip();
@@ -580,10 +610,12 @@ exports.run = async (interaction) => {
         interaction.guild.members.me.voice.channel &&
         interaction.member.voice.channel.id !== interaction.guild.members.me.voice.channel.id
       ) {
-        return interaction.editReply('You must be in the same voice channel as the bot.');
+        return interaction.client.util.errorEmbed(interaction, 'You must be in the same voice channel as the bot.');
       }
 
-      if (!player) return interaction.editReply('There is nothing playing.');
+      if (!player) {
+        return interaction.client.util.errorEmbed(interaction, 'There is nothing playing.');
+      }
 
       await player.destroy();
 
@@ -600,9 +632,11 @@ exports.run = async (interaction) => {
         interaction.guild.members.me.voice.channel &&
         interaction.member.voice.channel.id !== interaction.guild.members.me.voice.channel.id
       ) {
-        return interaction.editReply('You must be in the same voice channel as the bot.');
+        return interaction.client.util.errorEmbed(interaction, 'You must be in the same voice channel as the bot.');
       }
-      if (!player || !player.playing) return interaction.editReply('There is nothing playing.');
+      if (!player || !player.playing) {
+        return interaction.client.util.errorEmbed(interaction, 'There is nothing currently playing.');
+      }
 
       const volume = interaction.options.get('level').value;
       await player.setVolume(volume);

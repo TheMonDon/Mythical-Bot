@@ -20,9 +20,13 @@ class Queue extends Command {
     page = parseInt(page, 10);
     const player = this.client.lavalink.getPlayer(msg.guild.id);
 
-    if (!player || player.queue.tracks.length < 1) return msg.channel.send('There are no more songs in the queue.');
+    if (!player || player.queue.tracks.length < 1) {
+      return this.client.util.errorEmbed(msg, 'There are no songs in the queue.');
+    }
     if (!page) page = 1;
-    if (isNaN(page)) return msg.channel.send('Please input a valid number.');
+    if (isNaN(page)) {
+      return this.client.util.errorEmbed(msg, 'Please input a valid number.');
+    }
 
     let realPage = page;
     let q = player.queue.tracks.map((track, i) => {

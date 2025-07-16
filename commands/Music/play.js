@@ -6,24 +6,27 @@ class Play extends Command {
     super(client, {
       name: 'play',
       description: 'Play music or add songs to the queue',
-      longDescription: 'Supports youtube search/links, youtube playlist, and spotify playlists.',
+      longDescription: 'Supports youtube search/links, youtube playlist, and spotify links.',
       category: 'Music',
       usage: 'play <song>',
       aliases: ['p'],
-      examples: ['play unsweetened lemonade'],
+      examples: ['play Unsweetened Lemonade'],
       requiredArgs: 1,
       guildOnly: true,
     });
   }
 
   async run(msg, args) {
-    if (!msg.member.voice.channel) return msg.channel.send('You must be in a voice channel to play music.');
-    if (msg.guild.members.me.voice.channel && msg.member.voice.channel.id !== msg.guild.members.me.voice.channel.id)
-      return msg.channel.send('You have to be in the same voice channel as the bot to play music');
+    if (!msg.member.voice.channel) {
+      return this.client.util.errorEmbed(msg, 'You must be in a voice channel to play music.');
+    }
+    if (msg.guild.members.me.voice.channel && msg.member.voice.channel.id !== msg.guild.members.me.voice.channel.id) {
+      return this.client.util.errorEmbed(msg, 'You must be in the same voice channel as the bot to play music.');
+    }
 
     // Check if any Lavalink nodes are available
     if (!this.client.lavalink.nodeManager.nodes.size) {
-      return msg.channel.send('No Lavalink nodes are available. Please try again later.');
+      return this.client.util.errorEmbed(msg, 'No Lavalink nodes are available. Please try again later.');
     }
 
     const query = args.join(' ').slice(0, 300);
@@ -56,7 +59,7 @@ class Play extends Command {
       );
 
       if (!result || !result.tracks || result.tracks.length === 0) {
-        return msg.channel.send('No tracks found.');
+        return this.client.util.errorEmbed(msg, 'No tracks found for the given query.');
       }
 
       // Add track(s) to queue

@@ -20,23 +20,23 @@ class SavePlaylist extends Command {
     const player = this.client.lavalink.getPlayer(msg.guild.id);
 
     if (!player || player.queue.tracks.length < 1) {
-      return msg.channel.send('There are no tracks in the queue to save to a playlist.');
+      return this.client.util.errorEmbed(msg, 'There are no tracks in the queue to save to a playlist.');
     }
 
     const playlistName = args.join(' ').trim();
 
     if (playlistName.length === 0 || playlistName.length >= 50) {
-      return msg.channel.send('Please provide a valid playlist name (1-50 characters).');
+      return this.client.util.errorEmbed(msg, 'Please provide a valid playlist name (1-50 characters).');
     }
 
     const currentPlaylists = (await db.get(`users.${msg.author.id}.playlists`)) || [];
 
     if (currentPlaylists.some((p) => p.name === playlistName)) {
-      return msg.channel.send('You already have a playlist with that name.');
+      return this.client.util.errorEmbed(msg, 'You already have a playlist with that name.');
     }
 
-    if (currentPlaylists.length >= 50) {
-      return msg.channel.send('You have reached the maximum number of playlists allowed (50).');
+    if (currentPlaylists.length >= 20) {
+      return this.client.util.errorEmbed(msg, 'You have reached the maximum number of playlists allowed (20).');
     }
 
     const queue = await player.queue.QueueSaver.get(msg.guild.id);
@@ -56,7 +56,7 @@ class SavePlaylist extends Command {
         } tracks. You can play it using the \`load-playlist\` command. (${currentPlaylists.length + 1}/50)`,
       );
     } catch (error) {
-      console.error(error);
+      console.error('Save Playlist Error:', error);
       return msg.channel.send('An error occurred while saving your playlist.');
     }
   }

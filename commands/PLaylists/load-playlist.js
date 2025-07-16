@@ -28,11 +28,11 @@ class LoadPlaylist extends Command {
     const userPlaylist = currentPlaylists.find((p) => p.name.toLowerCase() === playlistName.toLowerCase());
 
     if (!userPlaylist) {
-      return msg.channel.send("You don't have a playlist with that name.");
+      return this.client.util.errorEmbed(msg, 'You do not have a playlist with that name.');
     }
 
     if (!msg.member.voice?.channel) {
-      return msg.channel.send('You must be in a voice channel to use this command.');
+      return this.client.util.errorEmbed(msg, 'You must be in a voice channel to load a playlist.');
     }
 
     try {

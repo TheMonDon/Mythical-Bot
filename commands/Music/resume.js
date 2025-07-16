@@ -15,12 +15,18 @@ class Resume extends Command {
   async run(msg) {
     const player = this.client.lavalink.getPlayer(msg.guild.id);
 
-    if (!msg.member.voice.channel) return msg.channel.send('You must be in a voice channel to resume music.');
-    if (msg.guild.members.me.voice.channel && msg.member.voice.channel.id !== msg.guild.members.me.voice.channel.id) {
-      return msg.channel.send('You must be in the same voice channel as the bot.');
+    if (!msg.member.voice.channel) {
+      return this.client.util.errorEmbed(msg, 'You must be in a voice channel to resume music.');
     }
-    if (!player || !player.queue.current) return msg.channel.send('No music is currently playing.');
-    if (!player.paused) return msg.channel.send('The music is not paused.');
+    if (msg.guild.members.me.voice.channel && msg.member.voice.channel.id !== msg.guild.members.me.voice.channel.id) {
+      return this.client.util.errorEmbed(msg, 'You must be in the same voice channel as the bot.');
+    }
+    if (!player || !player.queue.current) {
+      return this.client.util.errorEmbed(msg, 'There is no music currently playing.');
+    }
+    if (!player.paused) {
+      return this.client.util.errorEmbed(msg, 'The music is already playing.');
+    }
 
     await player.resume();
 

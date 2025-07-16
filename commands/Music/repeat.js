@@ -32,7 +32,7 @@ class Repeat extends Command {
 
     if (mode === 0) {
       if (player.repeatMode === 'off') {
-        return msg.channel.send('There is nothing currently repeating.');
+        return this.client.util.errorEmbed(msg, 'There is nothing currently repeating.');
       }
 
       player.setRepeatMode('off');
@@ -41,18 +41,18 @@ class Repeat extends Command {
       const song = player.queue.current;
 
       if (player.repeatMode === 'track') {
-        return msg.channel.send(`The song \`${song.info.title}\` is already repeating.`);
+        return this.client.util.errorEmbed(msg, `The song \`${song.info.title}\` is already repeating.`);
       }
 
       player.setRepeatMode('track');
       return msg.channel.send(`Now Repeating: \`${song.info.title}\``);
     } else if (mode === 2) {
       if (player.repeatMode === 'queue') {
-        return msg.channel.send('The queue is already repeating.');
+        return this.client.util.errorEmbed(msg, 'The queue is already repeating.');
       }
 
       player.setRepeatMode('queue');
-      return msg.channel.send('Now repeating whole queue.');
+      return msg.channel.send('Now repeating the whole queue.');
     }
   }
 }
