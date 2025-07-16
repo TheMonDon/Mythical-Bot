@@ -21,7 +21,7 @@ class ListPlaylists extends Command {
     const playlists = (await db.get(`users.${msg.author.id}.playlists`)) || [];
 
     if (!playlists || playlists.length === 0) {
-      return msg.channel.send("You don't currently have any saved playlists.");
+      return this.client.util.errorEmbed(msg, "You don't currently have any saved playlists.");
     }
 
     const itemsPerPage = 10;

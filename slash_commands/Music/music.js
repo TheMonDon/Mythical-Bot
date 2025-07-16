@@ -1,6 +1,7 @@
 const { EmbedBuilder, SlashCommandBuilder, InteractionContextType } = require('discord.js');
-const { useHistory, useQueue, useMainPlayer } = require('discord-player');
 const { stripIndents } = require('common-tags');
+require('moment-duration-format');
+const moment = require('moment');
 
 exports.conf = {
   permLevel: 'User',
@@ -45,17 +46,16 @@ exports.commandData = new SlashCommandBuilder()
   .addSubcommand((subcommand) =>
     subcommand
       .setName('repeat')
-      .setDescription('Repeats the current track, queue, or enables autoplay.')
+      .setDescription('Repeats the current track, queue, or disable repeat mode.')
       .addStringOption((option) =>
         option
           .setName('type')
-          .setDescription('The type of autoplay')
+          .setDescription('The type of repeat mode to set')
           .setRequired(true)
           .addChoices(
             { name: 'Off', value: 'off' },
             { name: 'Track', value: 'track' },
             { name: 'Queue', value: 'queue' },
-            { name: 'Autoplay', value: 'autoplay' },
           ),
       ),
   )
@@ -84,20 +84,41 @@ exports.autoComplete = async (interaction) => {
       return interaction.respond([]).catch(() => {});
     }
 
-    const player = useMainPlayer();
+    if (!interaction.member.voice.channel) {
+      return interaction.respond([]).catch(() => {});
+    }
 
-    const data = await player.search(song, { requestedBy: interaction.user });
+    let player = interaction.client.lavalink.getPlayer(interaction.guild.id);
 
-    if (!data.hasTracks()) {
+    if (!player) {
+      player = interaction.client.lavalink.createPlayer({
+        guildId: interaction.guild.id,
+        voiceChannelId: interaction.member.voice.channel.id,
+        textChannelId: interaction.channel.id,
+        selfDeaf: true,
+        selfMute: false,
+      });
+    }
+
+    // Search for tracks
+    const data = await player.search(
+      {
+        query: song,
+        source: 'ytsearch',
+      },
+      interaction.author,
+    );
+
+    if (!data.tracks || data.tracks.length === 0) {
       return interaction.respond([]).catch(() => {});
     }
 
     const results = data.tracks
-      .filter((track) => track.url.length < 100)
+      .filter((track) => track.info.uri.length < 100)
       .slice(0, 10)
       .map((track) => ({
-        name: track.title.slice(0, 100),
-        value: track.url,
+        name: track.info.title.slice(0, 100),
+        value: track.info.uri,
       }));
 
     return interaction.respond(results).catch(() => {});
@@ -108,48 +129,54 @@ exports.autoComplete = async (interaction) => {
 
 exports.run = async (interaction) => {
   await interaction.deferReply();
-  const queue = useQueue(interaction.guild.id);
+  if (!interaction.member.voice.channel) {
+    return interaction.client.util.errorEmbed(interaction, 'You must be in a voice channel to use this command.');
+  }
+
+  let player = interaction.client.lavalink.getPlayer(interaction.guild.id);
   const subcommand = interaction.options.getSubcommand();
-  const player = useMainPlayer();
 
   switch (subcommand) {
     case 'back': {
-      const history = useHistory(interaction.guild.id);
-
-      if (!interaction.member.voice.channel) {
-        return interaction.editReply('You must be in a voice channel to skip music.');
-      }
       if (
         interaction.guild.members.me.voice.channel &&
         interaction.member.voice.channel.id !== interaction.guild.members.me.voice.channel.id
       ) {
-        return interaction.editReply('You must be in the same voice channel as the bot.');
+        return interaction.client.util.errorEmbed(interaction, 'You must be in the same voice channel as the bot.');
       }
-      if (!queue.node.isPlaying()) return interaction.editReply('There is nothing playing.');
 
-      await history.previous();
-      const song = queue.currentTrack;
+      if (!player || !player.playing) {
+        return interaction.client.util.errorEmbed(interaction, 'There is nothing playing.');
+      }
+
+      // Get previous track from history
+      const previousTrack = await player.queue.shiftPrevious();
+      if (!previousTrack) {
+        return interaction.client.util.errorEmbed(interaction, 'There is no previous song in history.');
+      }
+
+      await player.play({ clientTrack: previousTrack });
 
       const em = new EmbedBuilder()
         .setColor(interaction.settings.embedSuccessColor)
         .setAuthor({ name: interaction.member.displayName, iconURL: interaction.user.displayAvatarURL() })
-        .addFields([{ name: 'Now Playing', value: song.title }]);
+        .addFields([{ name: 'Now Playing', value: previousTrack.info.title }]);
 
       return interaction.editReply({ embeds: [em] });
     }
 
     case 'clear-queue': {
-      if (!interaction.member.voice.channel)
-        return interaction.editReply('You must be in a voice channel to clear the queue.');
       if (
         interaction.guild.members.me.voice.channel &&
         interaction.member.voice.channel.id !== interaction.guild.members.me.voice.channel.id
       ) {
-        return interaction.editReply('You must be in the same voice channel as the bot.');
+        return interaction.client.util.errorEmbed(interaction, 'You must be in the same voice channel as the bot.');
       }
-      if (!queue) return interaction.editReply('There is nothing in the queue.');
+      if (!player) {
+        return interaction.client.util.errorEmbed(interaction, 'There is nothing in the queue.');
+      }
 
-      queue.delete(false);
+      player.queue.tracks.splice(0);
 
       const em = new EmbedBuilder().setDescription(':recycle: The music queue has been cleared!');
       return interaction.editReply({ embeds: [em] });
@@ -159,114 +186,235 @@ exports.run = async (interaction) => {
       let song = interaction.options.get('song')?.value;
 
       if (!song) {
-        if (!interaction.guild)
+        if (!interaction.guild) {
           return interaction.client.util.errorEmbed(interaction, "I can't get the lyrics of nothing.");
-        const playing = queue?.currentTrack;
-        song = playing?.title;
-        if (!playing || song === ' ')
+        }
+        const playing = player?.queue.current;
+        song = `${playing?.info.author} ${playing?.info.title}`;
+        if (!playing || song === ' ') {
           return interaction.client.util.errorEmbed(
             interaction,
             'Nothing is playing, please try again with a song name.',
           );
+        }
       }
 
-      const lyrics = await player.lyrics.search({ q: song }).catch(() => null);
-      if (!lyrics[0]) return interaction.editReply(`No lyrics found for: \`${song}\``);
-      const trimmedLyrics = interaction.client.util.limitStringLength(lyrics[0].plainLyrics, 0, 4096);
+      const Genius = require('genius-lyrics');
+      const Client = new Genius.Client();
+
+      const searches = await Client.songs.search(song);
+      const firstSong = searches[0];
+      const lyrics = await firstSong.lyrics();
+
+      if (!lyrics) {
+        return interaction.client.util.errorEmbed(interaction, `No lyrics found for: \`${song}\``);
+      }
+      function cleanLyrics(rawText) {
+        return rawText.replace(/^[\s\S]*?Read More\s*/i, '');
+      }
+
+      const trimmedLyrics = interaction.client.util.limitStringLength(cleanLyrics(lyrics), 0, 4096);
 
       const em = new EmbedBuilder()
         .setColor(interaction.settings.embedColor)
-        .setTitle(lyrics[0].trackName)
-        .setDescription(trimmedLyrics.length === 3090 ? `${trimmedLyrics}...` : trimmedLyrics);
+        .setTitle(firstSong.fullTitle)
+        .setURL(firstSong.url)
+        .setDescription(trimmedLyrics);
+
       return interaction.editReply({ embeds: [em] });
     }
 
     case 'now-playing': {
-      const song = queue?.currentTrack;
+      const song = player?.queue.current;
 
-      if (!song) return interaction.editReply('There is nothing playing.');
+      if (!song) {
+        return interaction.client.util.errorEmbed(interaction, 'There is nothing playing.');
+      }
+
+      // Create a simple progress bar
+      const position = player.position;
+      const duration = song.info.duration;
+      const progress = Math.round((position / duration) * 20);
+      const progressBar = '▬'.repeat(progress) + '🔘' + '▬'.repeat(20 - progress);
+
+      // Format time
+      const formatTime = (ms) => {
+        const minutes = Math.floor(ms / 60000);
+        const seconds = Math.floor((ms % 60000) / 1000);
+        return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+      };
 
       const em = new EmbedBuilder()
         .setDescription(
           stripIndents`
-            Currently ${queue.node.isPlaying() ? 'Playing' : 'Paused'} ♪: [${song.title}](${song.url})
+            Currently ${player.playing ? 'Playing' : 'Paused'} ♪: [${song.info.title}](${song.info.uri})
   
-            ${queue.node.createProgressBar({ timecodes: true })}
+            ${progressBar} [${formatTime(position)}/${formatTime(duration)}]
   
-            Requested By: ${song.requestedBy}
-          `,
+            Requested By: ${this.client.users.cache.get(song.requester.id)}
+        `,
         )
         .setColor(interaction.settings.embedColor)
-        .setThumbnail(song.thumbnail)
+        .setThumbnail(song.info.artworkUrl)
+        .setFooter({ text: `Repeat Mode: ${interaction.client.util.toProperCase(player.repeatMode)}` })
         .setAuthor({ name: interaction.member.displayName, iconURL: interaction.user.displayAvatarURL() });
+
       return interaction.editReply({ embeds: [em] });
     }
 
     case 'pause': {
-      if (!interaction.member.voice.channel)
-        return interaction.editReply('You must be in a voice channel to pause music.');
       if (
         interaction.guild.members.me.voice.channel &&
         interaction.member.voice.channel.id !== interaction.guild.members.me.voice.channel.id
       ) {
-        return interaction.editReply('You must be in the same voice channel as the bot.');
+        return interaction.client.util.errorEmbed(interaction, 'You must be in the same voice channel as the bot.');
+      }
+      if (!player || !player.queue.current) {
+        return interaction.client.util.errorEmbed(interaction, 'There is nothing playing.');
+      }
+      if (player.paused) {
+        return interaction.client.util.errorEmbed(interaction, 'The music is already paused.');
       }
 
-      queue.node.setPaused(!queue.node.isPaused());
+      await player.pause();
 
       const em = new EmbedBuilder()
         .setColor(interaction.settings.embedSuccessColor)
         .setAuthor({ name: interaction.member.displayName, iconURL: interaction.user.displayAvatarURL() })
-        .setDescription(`Music has been ${queue.node.isPaused() ? 'paused' : 'resumed'}`);
+        .setDescription(`Music has been paused.`);
 
       return interaction.editReply({ embeds: [em] });
     }
 
     case 'play': {
-      if (!interaction.member.voice.channel) {
-        return interaction.editReply('You must be in a voice channel to play music.');
-      }
       if (
         interaction.guild.members.me.voice.channel &&
         interaction.member.voice.channel.id !== interaction.guild.members.me.voice.channel.id
       ) {
-        return interaction.editReply('You have to be in the same voice channel as the bot to play music');
+        return interaction.client.util.errorEmbed(interaction, 'You must be in the same voice channel as the bot.');
       }
 
       const query = interaction.options.get('song').value;
 
       try {
-        const { track } = await player.play(interaction.member.voice.channel, query, {
-          requestedBy: interaction.user,
-          nodeOptions: {
-            metadata: interaction,
+        if (!player) {
+          player = interaction.client.lavalink.createPlayer({
+            guildId: interaction.guild.id,
+            voiceChannelId: interaction.member.voice.channel.id,
+            textChannelId: interaction.channel.id,
             selfDeaf: true,
-            leaveOnStop: true,
-            leaveOnEnd: false,
-            leaveOnEmpty: false,
+            selfMute: false,
+          });
+        }
+
+        if (!player.connected) {
+          await player.connect();
+        }
+
+        // Search for tracks
+        const result = await player.search(
+          {
+            query,
+            source: 'ytsearch',
           },
-        });
+          interaction.author,
+        );
 
-        if (!track) return interaction.editReply('No tracks found.');
+        if (!result || !result.tracks || result.tracks.length === 0) {
+          return interaction.client.util.errorEmbed(interaction, 'No tracks found for that query.');
+        }
 
-        return interaction.editReply('Music Started');
+        // Add track(s) to queue
+        if (result.loadType === 'playlist') {
+          await player.queue.add(result.tracks);
+          const totalDuration = result.tracks.reduce((acc, track) => acc + (track.info.duration || 0), 0);
+          const durationStr = totalDuration
+            ? `\`${Math.floor(totalDuration / 60000)}:${String(Math.floor((totalDuration % 60000) / 1000)).padStart(
+                2,
+                '0',
+              )}\``
+            : '`Unknown`';
+
+          const em = new EmbedBuilder()
+            .setTitle('✅ Playlist Added to Queue')
+            .setDescription(
+              `**${result.tracks.length} tracks** from **${
+                result.playlist?.name || 'Unknown Playlist'
+              }** have been added\n\n` +
+                `**Total Duration:** ${durationStr}\n` +
+                `**Requested By:** ${interaction.user}\n` +
+                `**Queue Length:** ${player.queue.tracks.length} tracks`,
+            )
+            .setColor(interaction.settings.embedColor)
+            .setTimestamp();
+
+          if (result.tracks[0].info.artworkUrl) {
+            em.setThumbnail(result.tracks[0].info.artworkUrl);
+          }
+
+          await interaction.editReply({ embeds: [em] });
+        } else {
+          await player.queue.add(result.tracks[0]);
+
+          if (player.playing) {
+            const queuePosition = player.queue.tracks.length;
+            const duration = result.tracks[0].info.duration
+              ? `\`${Math.floor(result.tracks[0].info.duration / 60000)}:${String(
+                  Math.floor((result.tracks[0].info.duration % 60000) / 1000),
+                ).padStart(2, '0')}\``
+              : '`Unknown`';
+            const calculateEstimatedTime = player.queue.tracks.reduce(
+              (acc, track) => acc + (track.info.duration || 0),
+              0,
+            );
+            const em = new EmbedBuilder()
+              .setTitle('✅ Track Added to Queue')
+              .setDescription(
+                `**[${result.tracks[0].info.title}](${result.tracks[0].info.uri})**\n\n` +
+                  `**Duration:** ${duration}\n` +
+                  `**Requested By:** ${interaction.user}\n` +
+                  `**Queue Position:** ${queuePosition}\n` +
+                  `**Estimated Time Until Playing:** \`${Math.floor(calculateEstimatedTime / 60000)}:${String(
+                    Math.floor((calculateEstimatedTime % 60000) / 1000),
+                  ).padStart(2, '0')}\``,
+              )
+              .setColor(interaction.settings.embedColor)
+              .setTimestamp();
+
+            if (result.tracks[0].info.artworkUrl) {
+              em.setThumbnail(result.tracks[0].info.artworkUrl);
+            }
+
+            await interaction.editReply({ embeds: [em] });
+          }
+        }
+
+        // Start playing if not already playing
+        if (!player.playing && !player.paused) {
+          await player.play();
+        }
       } catch (e) {
         return interaction.editReply(`Something went wrong: \`${e}\``);
       }
+      break;
     }
 
     case 'queue': {
       let page = interaction.options.get('page')?.value;
       page = parseInt(page, 10);
 
-      if (!queue || queue.tracks.size < 1) return interaction.editReply('There are no more songs in the queue.');
+      if (!player || player.queue.tracks.length < 1) {
+        return interaction.client.util.errorEmbed(interaction, 'There is nothing in the queue.');
+      }
       if (!page) page = 1;
-      if (isNaN(page)) return interaction.editReply('Please input a valid number.');
+      if (isNaN(page)) {
+        return interaction.client.util.errorEmbed(interaction, 'Please input a valid number.');
+      }
 
       let realPage = page;
       let maxPages = page;
-      let q = queue.tracks.map((track, i) => {
-        return `${i + 1}. ${track.title} : ${track.author}`;
+      let q = player.queue.tracks.map((track, i) => {
+        return `**${i + 1}.** ${track.info.title} - ${track.info.author}`;
       });
       let temp = q.slice(Math.floor((page - 1) * 25), Math.ceil(page * 25));
 
@@ -286,11 +434,24 @@ exports.run = async (interaction) => {
         }
       }
 
+      const totalMilliseconds = player.queue.tracks.reduce((acc, track) => acc + (track.info.duration || 0), 0);
+
+      const timeLeft = moment
+        .duration(totalMilliseconds)
+        .format('y[ years][,] M[ Months][,] d[ days][,] h[ hours][,] m[ minutes][, and] s[ seconds]');
+
       const embed = new EmbedBuilder()
         .setColor(interaction.settings.embedColor)
         .setTitle(`${interaction.guild.name}'s Queue`)
         .setAuthor({ name: interaction.member.displayName, iconURL: interaction.user.displayAvatarURL() })
         .setDescription(q.join('\n'))
+        .addFields([
+          {
+            name: 'Estimated Time Remaining',
+            value: timeLeft,
+            inline: false,
+          },
+        ])
         .setFooter({ text: `Page ${realPage} / ${maxPages}` })
         .setTimestamp();
 
@@ -300,33 +461,31 @@ exports.run = async (interaction) => {
     case 'remove': {
       const track = interaction.options.get('track').value;
 
-      if (!interaction.member.voice.channel) {
-        return interaction.editReply('You must be in a voice channel to modify the queue.');
-      }
       if (
         interaction.guild.members.me.voice.channel &&
         interaction.member.voice.channel.id !== interaction.guild.members.me.voice.channel.id
       ) {
-        return interaction.editReply('You must be in the same voice channel as the bot.');
+        return interaction.client.util.errorEmbed(interaction, 'You must be in the same voice channel as the bot.');
+      }
+      if (!player || !player.playing) {
+        return interaction.client.util.errorEmbed(interaction, 'There is nothing currently playing.');
       }
 
-      if (!queue) return interaction.editReply('The queue is empty.');
-      if (!queue.isPlaying()) return interaction.editReply('There is nothing playing.');
-
       const num = parseInt(track, 10) - 1;
-      if (isNaN(num)) return interaction.editReply('Please supply a valid number.');
+      if (isNaN(num)) {
+        return interaction.client.util.errorEmbed(interaction, 'Please supply a valid number.');
+      }
 
-      const ql = queue.tracks.size;
-      if (num > ql) return interaction.editReply("You can't remove something that is not in the queue.");
+      const ql = player.queue.tracks.length;
+      if (num > ql || num < 0) return interaction.editReply("You can't remove something that is not in the queue.");
 
-      const tracks = queue.tracks.toArray();
-      const song = tracks[num];
-      queue.removeTrack(num);
+      const song = player.queue.tracks[num];
+      await player.queue.remove(num);
 
       const em = new EmbedBuilder()
         .setColor(interaction.settings.embedSuccessColor)
         .setAuthor({ name: interaction.member.displayName, iconURL: interaction.user.displayAvatarURL() })
-        .setDescription(`\`${song.title}\` has been removed from the queue.`);
+        .setDescription(`\`${song.info.title}\` has been removed from the queue.`);
 
       return interaction.editReply({ embeds: [em] });
     }
@@ -334,77 +493,87 @@ exports.run = async (interaction) => {
     case 'repeat': {
       const type = interaction.options.get('type').value;
 
-      if (!interaction.member.voice.channel) {
-        return interaction.editReply('You must be in a voice channel to loop music.');
-      }
       if (
         interaction.guild.members.me.voice.channel &&
         interaction.member.voice.channel.id !== interaction.guild.members.me.voice.channel.id
       ) {
-        return interaction.editReply('You must be in the same voice channel as the bot.');
+        return interaction.client.util.errorEmbed(interaction, 'You must be in the same voice channel as the bot.');
       }
-      if (!queue) return interaction.editReply('There is nothing in the queue.');
+      if (!player) {
+        return interaction.client.util.errorEmbed(interaction, 'There is nothing currently playing.');
+      }
 
       switch (type) {
         case 'off': {
-          queue.setRepeatMode(0);
+          if (player.repeatMode === 'off') {
+            return interaction.client.util.errorEmbed(interaction, 'Repeat mode is already off.');
+          }
+
+          player.setRepeatMode('off');
           return interaction.editReply('Stopped repeat mode.');
         }
 
         case 'track': {
-          queue.setRepeatMode(1);
-          const song = queue.currentTrack;
-          return interaction.editReply(`Now Repeating: ${song.title}`);
+          const song = player.queue.current;
+          if (player.repeatMode === 'track') {
+            return interaction.client.util.errorEmbed(
+              interaction,
+              `The song \`${song.info.title}\` is already repeating.`,
+            );
+          }
+
+          player.setRepeatMode('track');
+          return interaction.editReply(`Now Repeating: ${song.info.title}`);
         }
 
         case 'queue': {
-          queue.setRepeatMode(2);
-          return interaction.editReply('Now repeating whole queue.');
-        }
+          if (player.repeatMode === 'queue') {
+            return interaction.client.util.errorEmbed(interaction, 'The queue is already repeating.');
+          }
 
-        case 'autoplay': {
-          queue.setRepeatMode(3);
-          return interaction.editReply('Turned on autoplay.');
+          player.setRepeatMode('queue');
+          return interaction.editReply('Now repeating the whole queue.');
         }
       }
       break;
     }
 
     case 'resume': {
-      if (!interaction.member.voice.channel) {
-        return interaction.editReply('You must be in a voice channel to resume music.');
-      }
       if (
         interaction.guild.members.me.voice.channel &&
         interaction.member.voice.channel.id !== interaction.guild.members.me.voice.channel.id
       ) {
-        return interaction.editReply('You must be in the same voice channel as the bot.');
+        return interaction.client.util.errorEmbed(interaction, 'You must be in the same voice channel as the bot.');
+      }
+      if (!player || !player.queue.current) {
+        return interaction.client.util.errorEmbed(interaction, 'There is nothing currently playing.');
+      }
+      if (!player.paused) {
+        return interaction.client.util.errorEmbed(interaction, 'The music is not paused.');
       }
 
-      queue.node.setPaused(!queue.node.isPaused());
+      await player.resume();
 
       const em = new EmbedBuilder()
         .setColor(interaction.settings.embedSuccessColor)
         .setAuthor({ name: interaction.member.displayName, iconURL: interaction.user.displayAvatarURL() })
-        .setDescription(`Music has been ${queue.node.isPaused() ? 'paused' : 'resumed'}`);
+        .setDescription(`Music has been resumed`);
 
       return interaction.editReply({ embeds: [em] });
     }
 
     case 'shuffle': {
-      if (!interaction.member.voice.channel) {
-        return interaction.editReply('You must be in a voice channel to shuffle the queue.');
-      }
       if (
         interaction.guild.members.me.voice.channel &&
         interaction.member.voice.channel.id !== interaction.guild.members.me.voice.channel.id
       ) {
-        return interaction.editReply('You must be in the same voice channel as the bot.');
+        return interaction.client.util.errorEmbed(interaction, 'You must be in the same voice channel as the bot.');
       }
 
-      if (!queue) return interaction.editReply('There is nothing in the queue.');
-
-      queue.tracks.shuffle();
+      if (!player || player.queue.tracks.length === 0) {
+        return interaction.client.util.errorEmbed(interaction, 'There is nothing in the queue to shuffle.');
+      }
+      await player.queue.shuffle();
 
       const em = new EmbedBuilder()
         .setColor(interaction.settings.embedSuccessColor)
@@ -415,19 +584,18 @@ exports.run = async (interaction) => {
     }
 
     case 'skip': {
-      if (!interaction.member.voice.channel) {
-        return interaction.editReply('You must be in a voice channel to skip music.');
-      }
       if (
         interaction.guild.members.me.voice.channel &&
         interaction.member.voice.channel.id !== interaction.guild.members.me.voice.channel.id
       ) {
-        return interaction.editReply('You must be in the same voice channel as the bot.');
+        return interaction.client.util.errorEmbed(interaction, 'You must be in the same voice channel as the bot.');
       }
-      if (!queue) return interaction.editReply('There is nothing playing.');
+      if (!player || !player.queue.current) {
+        return interaction.client.util.errorEmbed(interaction, 'There is nothing currently playing.');
+      }
 
-      const song = queue.currentTrack;
-      queue.node.skip();
+      const song = player.queue.current;
+      await player.skip();
 
       const em = new EmbedBuilder()
         .setColor(interaction.settings.embedSuccessColor)
@@ -438,19 +606,18 @@ exports.run = async (interaction) => {
     }
 
     case 'stop': {
-      if (!interaction.member.voice.channel) {
-        return interaction.editReply('You must be in a voice channel to stop music.');
-      }
       if (
         interaction.guild.members.me.voice.channel &&
         interaction.member.voice.channel.id !== interaction.guild.members.me.voice.channel.id
       ) {
-        return interaction.editReply('You must be in the same voice channel as the bot.');
+        return interaction.client.util.errorEmbed(interaction, 'You must be in the same voice channel as the bot.');
       }
 
-      if (!queue) return interaction.editReply('There was nothing playing.');
+      if (!player) {
+        return interaction.client.util.errorEmbed(interaction, 'There is nothing playing.');
+      }
 
-      queue.delete();
+      await player.destroy();
 
       const em = new EmbedBuilder()
         .setColor(interaction.settings.embedSuccessColor)
@@ -461,19 +628,18 @@ exports.run = async (interaction) => {
     }
 
     case 'volume': {
-      if (!interaction.member.voice.channel) {
-        return interaction.editReply('You must be in a voice channel to change the volume.');
-      }
       if (
         interaction.guild.members.me.voice.channel &&
         interaction.member.voice.channel.id !== interaction.guild.members.me.voice.channel.id
       ) {
-        return interaction.editReply('You must be in the same voice channel as the bot.');
+        return interaction.client.util.errorEmbed(interaction, 'You must be in the same voice channel as the bot.');
       }
-      if (!queue.node.isPlaying()) return interaction.editReply('There is nothing playing.');
+      if (!player || !player.playing) {
+        return interaction.client.util.errorEmbed(interaction, 'There is nothing currently playing.');
+      }
 
       const volume = interaction.options.get('level').value;
-      queue.node.setVolume(volume);
+      await player.setVolume(volume);
 
       const em = new EmbedBuilder()
         .setColor(interaction.settings.embedSuccessColor)

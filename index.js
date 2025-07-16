@@ -1,9 +1,7 @@
 const { GatewayIntentBits, Collection, Client, EmbedBuilder, Partials } = require('discord.js');
-const { DefaultExtractors } = require('@discord-player/extractor');
-const { YoutubeiExtractor } = require('discord-player-youtubei');
 const { GiveawaysManager } = require('discord-giveaways');
+const { LavalinkManager } = require('lavalink-client');
 const { readdirSync, statSync } = require('fs');
-const { Player } = require('discord-player');
 const { QuickDB } = require('quick.db');
 const config = require('./config.js');
 const Enmap = require('enmap');
@@ -301,125 +299,220 @@ const loadGiveaways = async () => {
   client.giveawaysManager = manager;
 };
 
-const loadMusic = async () => {
-  const player = new Player(client, {
-    autoSelfDeaf: true,
-    enableLive: true,
+const loadLavalink = async () => {
+  client.lavalink = new LavalinkManager({
+    nodes: config.nodes,
+    sendToShard: (guildId, payload) => client.guilds.cache.get(guildId)?.shard?.send(payload),
+    autoSkip: true,
+    client: {
+      id: 'PLACEHOLDER', // Will be updated when ready
+      username: 'Mythical Bot',
+    },
+    playerOptions: {
+      applyVolumeAsFilter: false,
+      clientBasedPositionUpdateInterval: 150,
+      defaultSearchPlatform: 'ytsearch',
+      volumeDecrementer: 0.75,
+      onDisconnect: {
+        autoReconnect: true,
+        destroyPlayer: false,
+      },
+      onEmptyQueue: {
+        destroyAfterMs: 30_000,
+        autoPlayFunction: null,
+      },
+    },
   });
 
-  await player.extractors.loadMulti(DefaultExtractors);
+  // Add node connection logging
+  client.lavalink.nodeManager
+    .on('connect', (node) => {
+      client.logger.log(`Connected to Lavalink node: ${node.id}`);
+    })
+    .on('disconnect', (node, reason) => {
+      client.logger.warn(`Disconnected from Lavalink node: ${node.id}, Reason: ${reason}`);
+    })
+    .on('error', (node, error) => {
+      client.logger.error(`Lavalink node ${node.id} error:`, error);
+    })
+    .on('reconnecting', (node) => {
+      client.logger.warn(`Reconnecting to Lavalink node: ${node.id}`);
+    });
 
-  await player.extractors.register(YoutubeiExtractor, {});
-
-  let consecutiveFails = 0;
-
-  player.events
-    .on('playerStart', async (queue, track) => {
+  // Set up event handlers
+  client.lavalink
+    .on('trackStart', async (player, track) => {
       try {
-        consecutiveFails = 0;
-        if (queue.repeatMode === 1) return;
+        if (player.repeatMode === 'track') return;
+
+        const queueLength = player.queue.tracks.length;
+        const duration = track.info.duration
+          ? `\`${Math.floor(track.info.duration / 60000)}:${String(
+              Math.floor((track.info.duration % 60000) / 1000),
+            ).padStart(2, '0')}\``
+          : '`Unknown`';
 
         const em = new EmbedBuilder()
-          .setTitle('Now Playing')
-          .setDescription(`[${track.title}](${track.url}) \n\nRequested By: ${track.requestedBy}`)
-          .setColor(queue.metadata.settings.embedColor);
+          .setTitle('🎵 Now Playing')
+          .setDescription(
+            `**[${track.info.title}](${track.info.uri})**\n\n` +
+              `**Duration:** ${duration}\n` +
+              `**Requested By:** ${client.users.cache.get(track.requester.id)}\n` +
+              `**Tracks in Queue:** ${queueLength}`,
+          )
+          .setColor(client.getSettings(player.guildId).embedColor)
+          .setTimestamp();
 
-        if (track.thumbnail) {
-          em.setThumbnail(track.thumbnail);
+        if (track.info.artworkUrl) {
+          em.setThumbnail(track.info.artworkUrl);
         }
 
-        const msg = await queue.metadata.channel.send({ embeds: [em] }).catch(() => {});
-
-        const oldmsg = (await db.get(`servers.${queue.metadata.guild.id}.music.lastTrack`)) || null;
+        const oldmsg = (await db.get(`servers.${player.guildId}.music.lastTrack`)) || null;
         if (oldmsg !== null) {
           try {
-            await queue.metadata.guild.channels.cache
-              .get(oldmsg.channelId)
-              .messages.cache.get(oldmsg.id)
-              .delete()
-              .catch(() => {});
+            const channel = client.channels.cache.get(oldmsg.channelId);
+            if (channel) {
+              const message = await channel.messages.fetch(oldmsg.id).catch(() => null);
+              if (message) {
+                await message.delete().catch(() => {});
+              }
+            }
           } catch {
-            await db.delete(`servers.${queue.metadata.guild.id}.music.lastTrack`);
+            await db.delete(`servers.${player.guildId}.music.lastTrack`);
           }
         }
 
-        await db.set(`servers.${queue.metadata.guild.id}.music.lastTrack`, msg);
+        const msg =
+          player.textChannelId &&
+          (await client.channels.cache
+            .get(player.textChannelId)
+            ?.send({ embeds: [em] })
+            .catch(() => null));
+
+        if (msg) {
+          await db.set(`servers.${player.guildId}.music.lastTrack`, {
+            id: msg.id,
+            channelId: msg.channel.id,
+          });
+        }
       } catch (error) {
         client.logger.error(error);
       }
     })
-    .on('audioTrackAdd', (queue, track) => {
-      const em = new EmbedBuilder()
-        .setTitle('Track Added to Queue')
-        .setThumbnail(track.thumbnail)
-        .setColor(queue.metadata.settings.embedColor)
-        .setDescription(`[${track.title}](${track.url}) \n\nRequested By: ${track.requestedBy}`);
 
-      queue.metadata.channel.send({ embeds: [em] }).catch(() => {});
+    .on('trackAdd', (player, track) => {
+      if (player.playing) {
+        const queuePosition = player.queue.tracks.length;
+        const duration = track.info.duration
+          ? `\`${Math.floor(track.info.duration / 60000)}:${String(
+              Math.floor((track.info.duration % 60000) / 1000),
+            ).padStart(2, '0')}\``
+          : '`Unknown`';
+
+        const em = new EmbedBuilder()
+          .setTitle('✅ Track Added to Queue')
+          .setDescription(
+            `**[${track.info.title}](${track.info.uri})**\n\n` +
+              `**Duration:** ${duration}\n` +
+              `**Requested By:** ${client.users.cache.get(track.requester.id)}\n` +
+              `**Queue Position:** ${queuePosition}\n` +
+              `**Estimated Time Until Playing:** ${queuePosition > 0 ? 'Calculating...' : 'Now'}`,
+          )
+          .setColor(client.getSettings(player.guildId).embedColor)
+          .setTimestamp();
+
+        if (track.info.artworkUrl) {
+          em.setThumbnail(track.info.artworkUrl);
+        }
+
+        player.textChannelId &&
+          client.channels.cache
+            .get(player.textChannelId)
+            ?.send({ embeds: [em] })
+            .catch(() => {});
+      }
     })
-    .on('audioTracksAdd', (queue, tracks) => {
-      const playlist = tracks[0].playlist;
-      const length = playlist.videos?.length || playlist.tracks?.length || 0;
+    .on('tracksAdd', (player, tracks) => {
+      const totalDuration = tracks.reduce((acc, track) => acc + (track.info.duration || 0), 0);
+      const durationStr = totalDuration
+        ? `\`${Math.floor(totalDuration / 60000)}:${String(Math.floor((totalDuration % 60000) / 1000)).padStart(
+            2,
+            '0',
+          )}\``
+        : '`Unknown`';
 
       const em = new EmbedBuilder()
-        .setTitle('Playlist Added to Queue')
-        .setColor(queue.metadata.settings.embedColor)
-        .addFields([{ name: 'Playlist Length', value: length.toString(), inline: true }]);
+        .setTitle('✅ Playlist Added to Queue')
+        .setDescription(
+          `**${tracks.length} tracks** have been added to the queue\n\n` +
+            `**Total Duration:** ${durationStr}\n` +
+            `**Requested By:** ${tracks[0].requester}\n` +
+            `**Queue Length:** ${player.queue.tracks.length} tracks`,
+        )
+        .setColor(client.getSettings(player.guildId).embedColor)
+        .setTimestamp();
 
-      if (playlist.url) {
-        em.setDescription(`[${playlist.title}](${playlist.url}) \n\nRequested By: ${tracks[0].requestedBy}`);
-      } else {
-        em.setDescription(`${playlist.title} \n\nRequested By: ${tracks[0].requestedBy}`);
+      if (tracks[0].info.artworkUrl) {
+        em.setThumbnail(tracks[0].info.artworkUrl);
       }
 
-      if (playlist.thumbnail) {
-        em.setThumbnail(playlist.thumbnail);
-      }
-
-      queue.metadata.channel.send({ embeds: [em] }).catch(() => {});
+      player.textChannelId &&
+        client.channels.cache
+          .get(player.textChannelId)
+          ?.send({ embeds: [em] })
+          .catch(() => {});
     })
-    .on('noResults', (queue, query) => queue.metadata.channel.send(`No results were found for ${query}.`))
-    .on('emptyQueue', (queue) => {
+    .on('queueEnd', (player) => {
       const em = new EmbedBuilder()
-        .setTitle('Queue Ended')
-        .setColor(queue.metadata.settings.embedColor)
-        .setDescription('Music has been stopped since the queue has no more tracks.');
+        .setTitle('⏹️ Queue Ended')
+        .setDescription(
+          '**Music has been stopped since the queue has no more tracks.**\n\n' +
+            `Use \`/music play\` or \`${
+              client.getSettings(player.guildId).prefix
+            }play\` to add more music to the queue!`,
+        )
+        .setColor(client.getSettings(player.guildId).embedColor)
+        .setTimestamp();
 
-      queue.metadata.channel.send({ embeds: [em] }).catch(() => {});
+      player.textChannelId &&
+        client.channels.cache
+          .get(player.textChannelId)
+          ?.send({ embeds: [em] })
+          .catch(() => {});
     })
-    .on('playerError', (queue, error) => {
+    .on('playerError', (player, error) => {
       console.log(`Something went wrong: ${error}`);
-      queue.metadata.channel.send(`Something went wrong: ${error}`);
+      player.textChannelId && client.channels.cache.get(player.textChannelId)?.send(`Something went wrong: ${error}`);
     })
-    .on('error', async (queue, error) => {
-      console.log(`Track failed: ${error.message}`);
-      await queue.metadata.channel.send(`Track failed: ${error.message}`);
+    .on('trackError', async (player, track, error) => {
+      console.log(`Track failed: ${error.exception?.message || error.message}`);
+      (await player.textChannelId) &&
+        client.channels.cache
+          .get(player.textChannelId)
+          ?.send(`Track failed: ${error.exception?.message || error.message}`);
 
-      consecutiveFails++;
-
-      if (consecutiveFails > 5) {
-        console.log('Too many failures in a row — clearing queue.');
-        await queue.metadata.channel.send('Too many failures in a row — clearing queue.');
-        queue.delete();
-        consecutiveFails = 0;
-        return;
-      }
-
-      if (queue.size > 0) {
+      if (player.queue.tracks.length > 0) {
         console.log('Waiting 5 seconds before skip...');
-        await queue.metadata.channel.send('Waiting 5 seconds before skipping the broken song.');
+        (await player.textChannelId) &&
+          client.channels.cache.get(player.textChannelId)?.send('Waiting 5 seconds before skipping the broken song.');
         // eslint-disable-next-line promise/param-names
         await new Promise((r) => setTimeout(r, 5000));
-        queue.node.skip();
-        queue.node.play();
+        await player.skip().catch(() => {});
       } else {
-        queue.delete();
-        consecutiveFails = 0;
+        await player.destroy().catch(() => {});
       }
     });
 
-  // Enable when you need to debug discord-player
-  // player.on('debug', console.log).events.on('debug', (queue, msg) => console.log(`[${queue.guild.name}] ${msg}`));
+  // Handle raw Discord events for voice state updates
+  client.on('raw', (d) => client.lavalink.sendRawData(d));
+
+  // Initialize lavalink when the bot is ready
+  client.once('ready', () => {
+    // Update client ID now that the bot is ready
+    client.lavalink.options.client.id = client.user.id;
+    client.logger.log('Initializing Lavalink...');
+    client.lavalink.init(client.user);
+  });
 };
 
 const init = async function init() {
@@ -486,7 +579,7 @@ const init = async function init() {
 };
 
 loadGiveaways();
-loadMusic();
+loadLavalink();
 init();
 
 client.on('error', (e) => client.logger.error(e));

@@ -1,5 +1,4 @@
 const { EmbedBuilder, SlashCommandBuilder, InteractionContextType } = require('discord.js');
-const { useMainPlayer, deserialize, serialize, useQueue } = require('discord-player');
 const { QuickDB } = require('quick.db');
 const { v4: uuidv4 } = require('uuid');
 const db = new QuickDB();
@@ -39,7 +38,9 @@ exports.commandData = new SlashCommandBuilder()
           .setName('playlist')
           .setDescription('The playlist you want to load')
           .setRequired(true)
-          .setAutocomplete(true),
+          .setAutocomplete(true)
+          .setMinLength(1)
+          .setMaxLength(50),
       ),
   )
   .addSubcommand((subcommand) =>
@@ -47,7 +48,12 @@ exports.commandData = new SlashCommandBuilder()
       .setName('save')
       .setDescription('Save the queue to a playlist')
       .addStringOption((option) =>
-        option.setName('playlist').setDescription('The name of the playlist you want to save').setRequired(true),
+        option
+          .setName('playlist')
+          .setDescription('The name of the playlist you want to save')
+          .setRequired(true)
+          .setMinLength(1)
+          .setMaxLength(50),
       ),
   );
 
@@ -88,20 +94,20 @@ exports.run = async (interaction) => {
   switch (subcommand) {
     case 'delete': {
       if (!playlistName) {
-        return interaction.editReply('Please specify the name of the playlist to delete.');
+        return interaction.client.util.errorEmbed(interaction, 'Please specify the name of the playlist to delete.');
       }
 
       const userPlaylists = (await db.get(`users.${interaction.user.id}.playlists`)) || [];
 
       if (!userPlaylists || userPlaylists.length === 0) {
-        return interaction.editReply("You don't currently have any saved playlists.");
+        return interaction.client.util.errorEmbed(interaction, "You don't currently have any saved playlists.");
       }
 
       // Find the playlist by name
       const playlistIndex = userPlaylists.findIndex((p) => p.name.toLowerCase() === playlistName.toLowerCase());
 
       if (playlistIndex === -1) {
-        return interaction.editReply(`No playlist found with the name \`${playlistName}\`.`);
+        return interaction.client.util.errorEmbed(interaction, `No playlist found with the name \`${playlistName}\`.`);
       }
 
       // Remove the playlist
@@ -115,7 +121,7 @@ exports.run = async (interaction) => {
 
     case 'list': {
       if (!playlists || playlists.length === 0) {
-        return interaction.editReply("You don't currently have any saved playlists.");
+        return interaction.client.util.errorEmbed(interaction, "You don't currently have any saved playlists.");
       }
 
       const itemsPerPage = 10;
@@ -149,89 +155,70 @@ exports.run = async (interaction) => {
     }
 
     case 'load': {
-      const player = useMainPlayer();
-
-      if (playlistName.length === 0 || playlistName.length >= 50) {
-        return interaction.editReply('Please provide a valid playlist name (1-50 characters).');
-      }
-
       const currentPlaylists = (await db.get(`users.${interaction.user.id}.playlists`)) || [];
 
       // Find the playlist by name
       const userPlaylist = currentPlaylists.find((p) => p.name.toLowerCase() === playlistName.toLowerCase());
 
       if (!userPlaylist) {
-        return interaction.editReply("You don't have a playlist with that name.");
+        return interaction.client.util.errorEmbed(interaction, `You don't have a playlist named \`${playlistName}\`.`);
       }
 
-      const playlist = player.createPlaylist({
-        author: {
-          name: interaction.user.tag,
-          url: '',
-        },
-        description: '',
-        id: userPlaylist.id,
-        source: 'arbitrary',
-        thumbnail: '',
-        title: playlistName,
-        tracks: [],
-        type: 'playlist',
-        url: '',
-      });
-
       try {
-        const tracks = userPlaylist.tracks.map((track) => {
-          const song = deserialize(player, track);
-          song.playlist = playlist;
-          return song;
-        });
+        let player = interaction.client.lavalink.getPlayer(interaction.guild.id);
 
-        playlist.tracks = tracks;
+        if (!player) {
+          player = interaction.client.lavalink.createPlayer({
+            guildId: interaction.guild.id,
+            voiceChannelId: interaction.member.voice.channel.id,
+            textChannelId: interaction.channel.id,
+            selfDeaf: true,
+            selfMute: false,
+          });
 
-        await player.play(interaction.member.voice.channel, playlist, {
-          requestedBy: interaction.user,
-          nodeOptions: {
-            metadata: interaction,
-            selfDead: true,
-            leaveOnStop: true,
-            leaveOnEnd: false,
-            leaveOnEmpty: false,
-          },
-        });
+          await player.connect();
+        }
+
+        player.queue.add(userPlaylist.tracks);
+
+        if (!player.playing && !player.paused) {
+          await player.play();
+        }
 
         return interaction.editReply(`Your playlist \`${playlistName}\` has been loaded!`);
       } catch (error) {
-        console.error('Deserialization error:', error);
+        console.error('Load Playlist Error:', error);
         return interaction.editReply('An error occurred while loading the queue.');
       }
     }
 
     case 'save': {
-      const queue = useQueue(interaction.guild.id);
+      const player = interaction.client.lavalink.getPlayer(interaction.guild.id);
 
-      if (!queue || !queue.node) {
-        return interaction.editReply('No music is currently playing.');
-      }
-
-      if (playlistName.length === 0 || playlistName.length >= 50) {
-        return interaction.editReply('Please provide a valid playlist name (1-50 characters).');
+      if (!player || player.queue.tracks.length < 1) {
+        return interaction.client.util.errorEmbed(
+          interaction,
+          'There are no tracks in the queue to save to a playlist.',
+        );
       }
 
       const currentPlaylists = (await db.get(`users.${interaction.user.id}.playlists`)) || [];
 
       if (currentPlaylists.some((p) => p.name === playlistName)) {
-        return interaction.editReply('You already have a playlist with that name.');
+        return interaction.client.util.errorEmbed(
+          interaction,
+          `You already have a playlist named \`${playlistName}\`.`,
+        );
       }
 
-      if (currentPlaylists.length >= 50) {
-        return interaction.editReply('You have reached the maximum number of playlists allowed (50).');
+      if (currentPlaylists.length >= 20) {
+        return interaction.client.util.errorEmbed(
+          interaction,
+          'You have reached the maximum number of playlists allowed (20).',
+        );
       }
 
-      const serializedTracks = queue.tracks.map((track) => serialize(track));
-
-      if (serializedTracks.length === 0) {
-        return interaction.editReply('The queue is empty, nothing to save.');
-      }
+      const queue = await player.queue.QueueSaver.get(interaction.guild.id);
 
       const playlistID = uuidv4();
 
@@ -239,15 +226,15 @@ exports.run = async (interaction) => {
         id: playlistID,
         name: playlistName,
         createdAt: new Date().toISOString(),
-        tracks: serializedTracks,
+        tracks: queue.tracks,
       };
 
       try {
         await db.push(`users.${interaction.user.id}.playlists`, newPlaylist);
         return interaction.editReply(
           `I have successfully created the playlist \`${playlistName}\` with ${
-            serializedTracks.length
-          } tracks. You can play it using the \`load-playlist\` command. (${currentPlaylists.length + 1}/50)`,
+            queue.tracks.length
+          } tracks. You can play it using the \`/playlist load\` command. (${currentPlaylists.length + 1}/50)`,
         );
       } catch (error) {
         console.error(error);

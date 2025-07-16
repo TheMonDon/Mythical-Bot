@@ -1,5 +1,4 @@
 const Command = require('../../base/Command.js');
-const { useQueue } = require('discord-player');
 const { EmbedBuilder } = require('discord.js');
 
 class Stop extends Command {
@@ -14,15 +13,20 @@ class Stop extends Command {
   }
 
   async run(msg) {
-    const queue = useQueue(msg.guild.id);
+    const player = this.client.lavalink.getPlayer(msg.guild.id);
 
-    if (!msg.member.voice.channel) return msg.channel.send('You must be in a voice channel to stop music.');
-    if (msg.guild.members.me.voice.channel && msg.member.voice.channel.id !== msg.guild.members.me.voice.channel.id)
-      return msg.channel.send('You must be in the same voice channel as the bot.');
+    if (!msg.member.voice.channel) {
+      return this.client.util.errorEmbed(msg, 'You must be in a voice channel to stop music.');
+    }
+    if (msg.guild.members.me.voice.channel && msg.member.voice.channel.id !== msg.guild.members.me.voice.channel.id) {
+      return this.client.util.errorEmbed(msg, 'You must be in the same voice channel as the bot.');
+    }
 
-    if (!queue) return msg.channel.send('There was nothing playing.');
+    if (!player) {
+      return this.client.util.errorEmbed(msg, 'There is nothing playing.');
+    }
 
-    queue.delete();
+    await player.destroy();
 
     const em = new EmbedBuilder()
       .setColor(msg.settings.embedSuccessColor)

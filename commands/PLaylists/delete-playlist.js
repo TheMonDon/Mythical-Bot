@@ -19,20 +19,20 @@ class DeletePlaylist extends Command {
     const playlistName = args.join(' ').trim();
 
     if (!playlistName) {
-      return msg.channel.send('Please specify the name of the playlist to delete.');
+      return this.client.util.errorEmbed(msg, 'Please specify the name of the playlist to delete.');
     }
 
     const userPlaylists = (await db.get(`users.${msg.author.id}.playlists`)) || [];
 
     if (!userPlaylists || userPlaylists.length === 0) {
-      return msg.channel.send("You don't currently have any saved playlists.");
+      return this.client.util.errorEmbed(msg, "You don't currently have any saved playlists.");
     }
 
     // Find the playlist by name
     const playlistIndex = userPlaylists.findIndex((p) => p.name.toLowerCase() === playlistName.toLowerCase());
 
     if (playlistIndex === -1) {
-      return msg.channel.send(`No playlist found with the name \`${playlistName}\`.`);
+      return this.client.util.errorEmbed(msg, `No playlist found with the name \`${playlistName}\`.`);
     }
 
     // Remove the playlist

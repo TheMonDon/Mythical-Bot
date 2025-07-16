@@ -1,4 +1,3 @@
-const { serialize, useQueue } = require('discord-player');
 const Command = require('../../base/Command.js');
 const { QuickDB } = require('quick.db');
 const { v4: uuidv4 } = require('uuid');
@@ -18,50 +17,46 @@ class SavePlaylist extends Command {
   }
 
   async run(msg, args) {
-    const queue = useQueue(msg.guild.id);
+    const player = this.client.lavalink.getPlayer(msg.guild.id);
 
-    if (!queue || !queue.node) {
-      return msg.channel.send('No music is currently playing.');
+    if (!player || player.queue.tracks.length < 1) {
+      return this.client.util.errorEmbed(msg, 'There are no tracks in the queue to save to a playlist.');
     }
 
     const playlistName = args.join(' ').trim();
 
     if (playlistName.length === 0 || playlistName.length >= 50) {
-      return msg.channel.send('Please provide a valid playlist name (1-50 characters).');
+      return this.client.util.errorEmbed(msg, 'Please provide a valid playlist name (1-50 characters).');
     }
 
     const currentPlaylists = (await db.get(`users.${msg.author.id}.playlists`)) || [];
 
     if (currentPlaylists.some((p) => p.name === playlistName)) {
-      return msg.channel.send('You already have a playlist with that name.');
+      return this.client.util.errorEmbed(msg, 'You already have a playlist with that name.');
     }
 
-    if (currentPlaylists.length >= 50) {
-      return msg.channel.send('You have reached the maximum number of playlists allowed (50).');
+    if (currentPlaylists.length >= 20) {
+      return this.client.util.errorEmbed(msg, 'You have reached the maximum number of playlists allowed (20).');
     }
 
-    const serializedTracks = queue.tracks.map((track) => serialize(track));
-
-    if (serializedTracks.length === 0) {
-      return msg.channel.send('The queue is empty, nothing to save.');
-    }
+    const queue = await player.queue.QueueSaver.get(msg.guild.id);
 
     const newPlaylist = {
       id: uuidv4(),
       name: playlistName,
       createdAt: new Date().toISOString(),
-      tracks: serializedTracks,
+      tracks: queue.tracks,
     };
 
     try {
       await db.push(`users.${msg.author.id}.playlists`, newPlaylist);
       return msg.channel.send(
         `I have successfully created the playlist \`${playlistName}\` with ${
-          serializedTracks.length
+          queue.tracks.length
         } tracks. You can play it using the \`load-playlist\` command. (${currentPlaylists.length + 1}/50)`,
       );
     } catch (error) {
-      console.error(error);
+      console.error('Save Playlist Error:', error);
       return msg.channel.send('An error occurred while saving your playlist.');
     }
   }
