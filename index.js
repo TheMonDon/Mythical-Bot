@@ -400,34 +400,6 @@ const loadLavalink = async () => {
         console.error(error);
       }
     })
-    .on('trackAdd', (player, track) => {
-      const queuePosition = player.queue.tracks.length;
-      const durationString = moment
-        .duration(track.info.duration || 0)
-        .format('y[ years][,] M[ Months][,] d[ days][,] h[ hours][,] m[ minutes][, and] s[ seconds]');
-
-      const em = new EmbedBuilder()
-        .setTitle('✅ Track Added to Queue')
-        .setDescription(
-          `**[${track.info.title}](${track.info.uri})**\n\n` +
-            `**Duration:** ${durationString}\n` +
-            `**Requested By:** ${client.users.cache.get(track.requester.id)}\n` +
-            `**Queue Position:** ${queuePosition}\n` +
-            `**Estimated Time Until Playing:** ${queuePosition > 0 ? 'Calculating...' : 'Now'}`,
-        )
-        .setColor(client.getSettings(player.guildId).embedColor)
-        .setTimestamp();
-
-      if (track.info.artworkUrl) {
-        em.setThumbnail(track.info.artworkUrl);
-      }
-
-      player.textChannelId &&
-        client.channels.cache
-          .get(player.textChannelId)
-          ?.send({ embeds: [em] })
-          .catch(() => {});
-    })
     .on('queueEnd', (player) => {
       const em = new EmbedBuilder()
         .setTitle('⏹️ Queue Ended')
