@@ -246,7 +246,7 @@ exports.run = async (interaction) => {
 
         if (Object.keys(starboards).length > 2) {
           return interaction.editReply(
-            'The server has reached the maximum number of starboards available (3). Please delete one before making a new one.',
+            'This server has reached the maximum number of starboards available (3). Please delete one before making a new one.',
           );
         }
 

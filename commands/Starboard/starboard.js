@@ -42,12 +42,12 @@ class Starboard extends Command {
       case 'create': {
         if (Object.keys(starboards).length > 2) {
           return msg.channel.send(
-            `The server has reached the maximum number of starboards available (3). Please use \`${msg.settings.prefix}starboard delete [name]\` to delete one before making a new one.`,
+            `This server has reached the maximum number of starboards available (3). Please use \`${msg.settings.prefix}starboard delete [name]\` to delete one before making a new one.`,
           );
         }
 
         if (args.length < 3) {
-          return msg.channel.send(`Usage: ${msg.settings.prefix}starboard create <name> <channel>`);
+          return this.client.util.errorEmbed(msg, `${msg.settings.prefix}${this.help.usage}, 'Invalid Usage.'`);
         }
 
         const name = args[1];
@@ -55,11 +55,14 @@ class Starboard extends Command {
 
         const starKey = Object.keys(starboards).find((key) => key.toLowerCase() === name.toLowerCase());
         if (starboards[starKey]) {
-          return msg.channel.send(`A starboard named \`${name}\` already exists.`);
+          return this.client.util.errorEmbed(msg, `A starboard named \`${name}\` already exists.`);
         }
 
         if (!channel || !channel.permissionsFor(msg.guild.members.me).has(['SendMessages', 'ViewChannel'])) {
-          return msg.channel.send('Please specify a valid channel where I have permission to send messages.');
+          return this.client.util.errorEmbed(
+            msg,
+            'Please specify a valid channel where I have permission to send messages.',
+          );
         }
 
         await db.set(`servers.${msg.guild.id}.starboards.${name}`, {
@@ -93,7 +96,7 @@ class Starboard extends Command {
 
       case 'delete': {
         if (!args[1]) {
-          return msg.channel.send('Please specify a starboard name to delete.');
+          return this.client.util.errorEmbed(msg, 'Please specify a starboard name to delete.');
         }
 
         const name = args[1];
