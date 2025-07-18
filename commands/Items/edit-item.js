@@ -11,7 +11,7 @@ class EditItem extends Command {
       category: 'Items',
       description: 'Edit an item in the store.',
       longDescription:
-        'Available attributes: name, price, description, inventory, time-remaining, stock, role-required, role-given, role-removed, required-balance and reply',
+        'Available attributes: name, price, description, inventory, time-remaining, stock, role-required, role-given, role-removed, required-balance and reply-message. Leave the new value blank to remove the attribute.',
       usage: 'edit-item <attribute> <item name> [new value]',
       aliases: ['edititem'],
       permLevel: 'Administrator',
@@ -28,16 +28,14 @@ class EditItem extends Command {
     let itemName;
     let newValue;
 
-    const errorEmbed = new EmbedBuilder()
-      .setColor(msg.settings.embedErrorColor)
-      .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() });
-
     if (args[0].startsWith('"')) {
       // Find the ending index of the item name enclosed in double quotes
       const itemNameEndIndex = args.findIndex((arg) => arg.endsWith('"'));
       if (itemNameEndIndex === -1) {
-        errorEmbed.setDescription('Please enclose the item name in double quotes.');
-        return msg.channel.send({ embeds: [errorEmbed] });
+        return this.client.util.errorEmbed(
+          msg,
+          'Invalid item name format. Please enclose the item name in double quotes.',
+        );
       }
 
       // Extract the item name and remove the double quotes
@@ -58,19 +56,21 @@ class EditItem extends Command {
     let itemKey = Object.keys(store).find((key) => key.toLowerCase() === itemName.toLowerCase());
 
     if (!itemKey) {
-      errorEmbed.setDescription('That item does not exist in the store.');
-      return msg.channel.send({ embeds: [errorEmbed] });
+      return this.client.util.errorEmbed(msg, 'That item does not exist in the store.');
     }
 
     const item = store[itemKey];
 
     switch (attribute) {
       case 'name': {
+        if (!newValue) {
+          return this.client.util.errorEmbed(msg, 'Please provide a new name for the item.');
+        }
+
         // Ensure the new name is not already taken
         const newItemKey = newValue.toLowerCase();
         if (Object.keys(store).find((key) => key.toLowerCase() === newItemKey)) {
-          errorEmbed.setDescription('An item with that name already exists.');
-          return msg.channel.send({ embeds: [errorEmbed] });
+          return this.client.util.errorEmbed(msg, 'An item with that name already exists.');
         }
 
         // Update the item name
@@ -81,6 +81,10 @@ class EditItem extends Command {
       }
 
       case 'price': {
+        if (!newValue) {
+          newValue = '0'; // Default to 0 if no value is provided
+        }
+
         const price = parseInt(
           newValue
             .replace(/\..*/, '') // Remove everything after the first period
@@ -89,8 +93,10 @@ class EditItem extends Command {
         );
 
         if (isNaN(price) || price < 0) {
-          errorEmbed.setDescription('Please re-run the command with a price that is a number and above zero.');
-          return msg.channel.send({ embeds: [errorEmbed] });
+          return this.client.util.errorEmbed(
+            msg,
+            'Please re-run the command with a price that is a number and above zero.',
+          );
         }
 
         item.cost = price;
@@ -99,9 +105,17 @@ class EditItem extends Command {
       }
 
       case 'description': {
+        if (!newValue) {
+          item.description = 'None provided';
+          store[itemKey] = item;
+          break;
+        }
+
         if (newValue.length > 1000) {
-          errorEmbed.setDescription('Please re-run the command with the description under 1000 characters.');
-          return msg.channel.send({ embeds: [errorEmbed] });
+          return this.client.util.errorEmbed(
+            msg,
+            'Please re-run the command with the description under 1000 characters.',
+          );
         }
 
         item.description = newValue.slice(0, 1000);
@@ -112,12 +126,17 @@ class EditItem extends Command {
       case 'inventoryitem':
       case 'inventory-item':
       case 'inventory': {
+        if (!newValue) {
+          item.inventory = true; // Default to true if no value is provided
+          store[itemKey] = item;
+          break;
+        }
+
         if (['yes', 'no'].includes(newValue.toLowerCase())) {
           item.inventory = newValue.toLowerCase() === 'yes';
           store[itemKey] = item;
         } else {
-          errorEmbed.setDescription('Please re-run the command with "yes" or "no" for inventory.');
-          return msg.channel.send({ embeds: [errorEmbed] });
+          return this.client.util.errorEmbed(msg, 'Please re-run the command with "yes" or "no" for inventory.');
         }
         break;
       }
@@ -134,14 +153,17 @@ class EditItem extends Command {
         const timeLimit = parse(newValue);
 
         if (isNaN(timeLimit) || timeLimit === null) {
-          errorEmbed.setDescription('Please re-run the command with a valid `duration` given.');
-          return msg.channel.send({ embeds: [errorEmbed] });
+          return this.client.util.errorEmbed(msg, 'Please re-run the command with a valid `duration` given.');
         } else if (timeLimit < 600000) {
-          errorEmbed.setDescription('Please re-run the command again with a duration greater than 10 minutes.');
-          return msg.channel.send({ embeds: [errorEmbed] });
+          return this.client.util.errorEmbed(
+            msg,
+            'Please re-run the command again with a duration greater than 10 minutes.',
+          );
         } else if (timeLimit > 315576000000) {
-          errorEmbed.setDescription('Please re-run the command again with a duration less than 10 years.');
-          return msg.channel.send({ embeds: [errorEmbed] });
+          return this.client.util.errorEmbed(
+            msg,
+            'Please re-run the command again with a duration less than 10 years.',
+          );
         }
 
         if (timeLimit === 0) {
@@ -170,8 +192,10 @@ class EditItem extends Command {
 
         const stock = parseInt(newValue);
         if (isNaN(stock) || stock < 0) {
-          errorEmbed.setDescription('Please re-run the command with a valid stock amount greater than zero.');
-          return msg.channel.send({ embeds: [errorEmbed] });
+          return this.client.util.errorEmbed(
+            msg,
+            'Please re-run the command with a valid stock amount greater than zero.',
+          );
         }
 
         item.stock = stock;
@@ -189,8 +213,7 @@ class EditItem extends Command {
 
         const role = this.client.util.getRole(msg, newValue);
         if (!role) {
-          errorEmbed.setDescription('Please re-run the command with a valid role.');
-          return msg.channel.send({ embeds: [errorEmbed] });
+          return this.client.util.errorEmbed(msg, 'Please re-run the command with a valid role.');
         }
 
         item.roleRequired = role.id;
@@ -208,11 +231,12 @@ class EditItem extends Command {
 
         const role = this.client.util.getRole(msg, newValue);
         if (!role) {
-          errorEmbed.setDescription('Please re-run the command with a valid role.');
-          return msg.channel.send({ embeds: [errorEmbed] });
+          return this.client.util.errorEmbed(msg, 'Please re-run the command with a valid role.');
         } else if (role.position >= botMember.roles.highest.position) {
-          errorEmbed.setDescription('I am not able to assign this role. Please move my role higher.');
-          return msg.channel.send({ embeds: [errorEmbed] });
+          return this.client.util.errorEmbed(
+            msg,
+            'I am not able to assign this role. Please move my role higher and re-run the command.',
+          );
         }
 
         item.roleGiven = role.id;
@@ -230,13 +254,12 @@ class EditItem extends Command {
 
         const role = this.client.util.getRole(msg, newValue);
         if (!role) {
-          errorEmbed.setDescription('Please re-run the command with a valid role.');
-          return msg.channel.send({ embeds: [errorEmbed] });
+          return this.client.util.errorEmbed(msg, 'Please re-run the command with a valid role.');
         } else if (role.position >= botMember.roles.highest.position) {
-          errorEmbed.setDescription(
-            'I am not able to assign this role. Please move my role higher and re-run the command.',
+          return this.client.util.errorEmbed(
+            msg,
+            'I am not able to remove this role. Please move my role higher and re-run the command.',
           );
-          return msg.channel.send({ embeds: [errorEmbed] });
         }
 
         item.roleRemoved = role.id;
@@ -259,8 +282,10 @@ class EditItem extends Command {
             .replace(/,/g, ''), // Remove commas
         );
         if (isNaN(requiredBalance) || requiredBalance < 0) {
-          errorEmbed.setDescription('Please re-run the command with a number that is at least 0 for required-balance.');
-          return msg.channel.send({ embeds: [errorEmbed] });
+          return this.client.util.errorEmbed(
+            msg,
+            'Please re-run the command with a number that is at least 0 for required-balance.',
+          );
         }
 
         item.requiredBalance = requiredBalance;
@@ -278,8 +303,10 @@ class EditItem extends Command {
         }
 
         if (newValue.length > 1000) {
-          errorEmbed.setDescription('Please re-run the command with the reply-message under 1000 characters.');
-          return msg.channel.send({ embeds: [errorEmbed] });
+          return this.client.util.errorEmbed(
+            msg,
+            'Please re-run the command with the reply-message under 1000 characters.',
+          );
         }
 
         item.replyMessage = newValue;

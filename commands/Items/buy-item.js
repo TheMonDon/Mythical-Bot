@@ -177,6 +177,7 @@ class BuyItem extends Command {
     const csCost = this.client.util.limitStringLength(currencySymbol + itemCostQuantity, 0, 700);
 
     const embed = new EmbedBuilder()
+      .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
       .setTitle('Purchase Successful')
       .setDescription(
         `You have bought ${quantity} ${itemKey}${

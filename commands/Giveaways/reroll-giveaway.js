@@ -1,5 +1,4 @@
 const Command = require('../../base/Command.js');
-const { EmbedBuilder } = require('discord.js');
 
 class RerollGiveaway extends Command {
   constructor(client) {
@@ -36,11 +35,7 @@ class RerollGiveaway extends Command {
         msg.channel.send('Giveaway rerolled!');
       })
       .catch((e) => {
-        const ErrorEmbed = new EmbedBuilder()
-          .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
-          .setColor(msg.settings.embedErrorColor)
-          .setDescription(e);
-        return msg.channel.send(ErrorEmbed);
+        return this.client.util.errorEmbed(msg, e);
       });
   }
 }

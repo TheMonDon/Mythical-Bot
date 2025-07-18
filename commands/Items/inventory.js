@@ -8,7 +8,7 @@ class Inventory extends Command {
     super(client, {
       name: 'inventory',
       category: 'Items',
-      description: "View yours or somebody else's inventory",
+      description: "View yours or somebody else's inventory.",
       usage: 'inventory [member] [page]',
       aliases: ['inv'],
       guildOnly: true,

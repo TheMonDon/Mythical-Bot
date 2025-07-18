@@ -15,7 +15,7 @@ class ItemLeaderboard extends Command {
     super(client, {
       name: 'item-leaderboard',
       category: 'Items',
-      description: 'View the leaderboard for a specific item',
+      description: 'View the leaderboard for a specific item.',
       usage: 'item-leaderboard <item> [page]',
       aliases: ['ilb', 'itemleaderboard'],
       guildOnly: true,

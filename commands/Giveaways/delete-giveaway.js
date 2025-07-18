@@ -1,5 +1,4 @@
 const Command = require('../../base/Command.js');
-const { EmbedBuilder } = require('discord.js');
 
 class DeleteGiveaway extends Command {
   constructor(client) {
@@ -16,8 +15,9 @@ class DeleteGiveaway extends Command {
   }
 
   async run(msg, args) {
-    if (!msg.member.permissions.has('ManageMessages'))
+    if (!msg.member.permissions.has('ManageMessages')) {
       return this.client.util.errorEmbed(msg, 'You need to have the Manage Messages permission to delete giveaways');
+    }
     const query = args.join(' ');
 
     if (isNaN(query))
@@ -29,20 +29,27 @@ class DeleteGiveaway extends Command {
 
     if (!giveaway) return this.client.util.errorEmbed(msg, `Unable to find a giveaway for \`"${query}"\`.`);
 
-    // Delete the giveaway
-    this.client.giveawaysManager
-      .delete(giveaway.messageId)
-      .then(() => {
-        // Success message
-        msg.channel.send('Giveaway deleted!');
-      })
-      .catch((e) => {
-        const ErrorEmbed = new EmbedBuilder()
-          .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
-          .setColor(msg.settings.embedErrorColor)
-          .setDescription(e);
-        return msg.channel.send({ embeds: [ErrorEmbed] });
-      });
+    // Throw the 'are you sure?' text at them.
+    const response = await this.client.util.awaitReply(
+      msg,
+      `Are you sure you want to end the giveaway for \`${giveaway.prize}\`?`,
+    );
+
+    // If they respond with yes, continue.
+    if (this.client.util.yes.includes(response)) {
+      // Delete the giveaway
+      this.client.giveawaysManager
+        .delete(giveaway.messageId)
+        .then(() => {
+          // Success message
+          msg.channel.send('Giveaway deleted!');
+        })
+        .catch((error) => {
+          return this.client.util.errorEmbed(msg, error, 'An error occurred');
+        });
+    } else if (this.client.util.no.includes(response)) {
+      return msg.reply('Action cancelled.');
+    }
   }
 }
 

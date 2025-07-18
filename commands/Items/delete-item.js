@@ -35,10 +35,12 @@ class DeleteItem extends Command {
     }
 
     await db.delete(`servers.${msg.guild.id}.economy.store.${itemKey}`);
+
     const embed = new EmbedBuilder()
       .setColor(msg.settings.embedColor)
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
       .setDescription('Item has been removed from the store.');
+
     return msg.channel.send({ embeds: [embed] });
   }
 }

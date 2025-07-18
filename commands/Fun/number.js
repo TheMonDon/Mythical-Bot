@@ -21,10 +21,7 @@ class Number extends Command {
     });
 
     if (error) {
-      const errorEmbed = new EmbedBuilder()
-        .setDescription('I could not find any information about that number.')
-        .setColor(msg.settings.embedErrorColor);
-      return msg.channel.send({ embeds: [errorEmbed] });
+      return this.client.util.errorEmbed(msg, 'I could not find any information about that number.');
     }
 
     const embed = new EmbedBuilder().setTitle(body.body.toString()).setColor(msg.settings.embedColor);

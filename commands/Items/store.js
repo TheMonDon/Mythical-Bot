@@ -9,7 +9,7 @@ class Store extends Command {
   constructor(client) {
     super(client, {
       name: 'store',
-      description: 'View the items available for purchase',
+      description: 'View the items available for purchase.',
       category: 'Items',
       examples: ['store [page]'],
       aliases: ['shop'],

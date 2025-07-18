@@ -28,25 +28,19 @@ class Setup extends Command {
   async run(msg, args) {
     const type = args[0]?.toLowerCase();
     const successColor = msg.settings.embedSuccessColor;
-    const errorEmbed = new EmbedBuilder()
-      .setColor(msg.settings.embedErrorColor)
-      .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() });
 
     if (['ticket', 'tix', 'tickets'].includes(type)) {
       const filter = (m) => m.author.id === msg.author.id;
       const filter2 = (m) => ['y', 'yes', 'n', 'no'].includes(m.content.toLowerCase()) && m.author.id === msg.author.id;
 
       if (!msg.guild.members.me.permissions.has('ManageChannels')) {
-        errorEmbed.setDescription('The bot is missing Manage Channels permission.');
-        return msg.channel.send({ embeds: [errorEmbed] });
+        return this.client.util.errorEmbed(msg, 'The bot is missing Manage Channels permission.');
       }
       if (!msg.guild.members.me.permissions.has('ManageRoles')) {
-        errorEmbed.setDescription('The bot is missing Manage Roles permission');
-        return msg.channel.send({ embeds: [errorEmbed] });
+        return this.client.util.errorEmbed(msg, 'The bot is missing Manage Roles permission.');
       }
       if (!msg.guild.members.me.permissions.has('ManageMessages')) {
-        errorEmbed.setDescription('The bot is missing Manage Messages permission');
-        return msg.channel.send({ embeds: [errorEmbed] });
+        return this.client.util.errorEmbed(msg, 'The bot is missing Manage Messages permission');
       }
 
       // Check if the system is setup already
@@ -83,8 +77,7 @@ class Setup extends Command {
               errors: ['time'],
             });
             if (!collectedMaxTicketsQuestion) {
-              errorEmbed.setDescription('You did not reply in time, the command has been cancelled.');
-              return msg.channel.send({ embeds: [errorEmbed] });
+              return this.client.util.errorEmbed(msg, 'You did not reply in time, the command has been cancelled.');
             }
             let ticketLimit = parseInt(collectedMaxTicketsQuestion.first().content.toLowerCase());
 
@@ -94,8 +87,7 @@ class Setup extends Command {
                 'How many tickets should a user be able to open? Please respond in number form, the default is 3.',
               );
               if (!ticketLimit) {
-                errorEmbed.setDescription('You did not reply in time, the command has been cancelled.');
-                return msg.channel.send({ embeds: [errorEmbed] });
+                return this.client.util.errorEmbed(msg, 'You did not reply in time, the command has been cancelled.');
               }
               ticketLimit = parseInt(ticketLimit);
             }
@@ -161,8 +153,7 @@ class Setup extends Command {
               errors: ['time'],
             });
             if (!collectedCreationQuestion) {
-              errorEmbed.setDescription('You did not reply in time, the command has been cancelled.');
-              return msg.channel.send({ embeds: [errorEmbed] });
+              return this.client.util.errorEmbed(msg, 'You did not reply in time, the command has been cancelled.');
             }
             const response1 = collectedCreationQuestion.first().content.toLowerCase();
 
@@ -250,8 +241,7 @@ class Setup extends Command {
                 errors: ['time'],
               });
               if (!collectedCreationMessage) {
-                errorEmbed.setDescription('You did not reply in time, the command has been cancelled.');
-                return msg.channel.send({ embeds: [errorEmbed] });
+                return this.client.util.errorEmbed(msg, 'You did not reply in time, the command has been cancelled.');
               }
 
               // Set the ticket creation menu message
@@ -306,8 +296,7 @@ class Setup extends Command {
               errors: ['time'],
             });
             if (!collectedChannelQuestion) {
-              errorEmbed.setDescription('You did not reply in time, the command has been cancelled.');
-              return msg.channel.send({ embeds: [errorEmbed] });
+              return this.client.util.errorEmbed(msg, 'You did not reply in time, the command has been cancelled.');
             }
             const response1 = collectedChannelQuestion.first().content.toLowerCase();
 
@@ -388,8 +377,7 @@ class Setup extends Command {
               errors: ['time'],
             });
             if (!collectedCreationMessage) {
-              errorEmbed.setDescription('You did not reply in time, the command has been cancelled.');
-              return msg.channel.send({ embeds: [errorEmbed] });
+              return this.client.util.errorEmbed(msg, 'You did not reply in time, the command has been cancelled.');
             }
 
             // Set the ticket creation menu message
@@ -432,8 +420,7 @@ class Setup extends Command {
       });
 
       if (!collected) {
-        errorEmbed.setDescription('You did not reply in time, the command has been cancelled.');
-        return msg.channel.send({ embeds: [errorEmbed] });
+        return this.client.util.errorEmbed(msg, 'You did not reply in time, the command has been cancelled.');
       }
       const response = collected.first().content;
       let role = this.client.util.getRole(msg, response);
@@ -461,8 +448,7 @@ class Setup extends Command {
         errors: ['time'],
       });
       if (!collectedCreationQuestion) {
-        errorEmbed.setDescription('You did not reply in time, the command has been cancelled.');
-        return msg.channel.send({ embeds: [errorEmbed] });
+        return this.client.util.errorEmbed(msg, 'You did not reply in time, the command has been cancelled.');
       }
       const response1 = collectedCreationQuestion.first().content.toLowerCase();
 
@@ -540,8 +526,7 @@ class Setup extends Command {
           errors: ['time'],
         });
         if (!collectedCreationMessage) {
-          errorEmbed.setDescription('You did not reply in time, the command has been cancelled.');
-          return msg.channel.send({ embeds: [errorEmbed] });
+          return this.client.util.errorEmbed(msg, 'You did not reply in time, the command has been cancelled.');
         }
 
         // Set the ticket creation menu message
@@ -620,8 +605,7 @@ class Setup extends Command {
       if (!args || args.length < 1) {
         text = await this.client.util.awaitReply(msg, 'What channel do you want to setup logging in?');
         if (!text) {
-          errorEmbed.setDescription('You did not reply in time, the command has been cancelled.');
-          return msg.channel.send({ embeds: [errorEmbed] });
+          return this.client.util.errorEmbed(msg, 'You did not reply in time, the command has been cancelled.');
         }
         chan = this.client.util.getChannel(msg, text);
       }
@@ -633,8 +617,7 @@ class Setup extends Command {
           `That channel was not found, please try again with a valid server channel. Try #${i}`,
         );
         if (!text) {
-          errorEmbed.setDescription('You did not reply in time, the command has been cancelled.');
-          return msg.channel.send({ embeds: [errorEmbed] });
+          return this.client.util.errorEmbed(msg, 'You did not reply in time, the command has been cancelled.');
         }
         chan = this.client.util.getChannel(msg, text);
 
@@ -702,8 +685,7 @@ class Setup extends Command {
           'How many points should be required to kick the member? Please respond with a number.',
         );
         if (!kickAmount) {
-          errorEmbed.setDescription('You did not reply in time, the command has been cancelled.');
-          return msg.channel.send({ embeds: [errorEmbed] });
+          return this.client.util.errorEmbed(msg, 'You did not reply in time, the command has been cancelled.');
         }
         kickAmount = parseInt(kickAmount);
       }
@@ -714,8 +696,7 @@ class Setup extends Command {
           'How many points should be required to ban the member? Please respond with a number.',
         );
         if (!banAmount) {
-          errorEmbed.setDescription('You did not reply in time, the command has been cancelled.');
-          return msg.channel.send({ embeds: [errorEmbed] });
+          return this.client.util.errorEmbed(msg, 'You did not reply in time, the command has been cancelled.');
         }
         banAmount = parseInt(banAmount);
       }

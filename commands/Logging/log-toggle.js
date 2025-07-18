@@ -79,6 +79,7 @@ sticker`,
         inline: false,
       },
     ]);
+
     if (['enable', 'disable'].includes(args?.[0]?.toLowerCase())) {
       if (args?.[0]?.toLowerCase() === 'enable') {
         // Enable channel
