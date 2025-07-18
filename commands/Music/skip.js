@@ -25,6 +25,9 @@ class Skip extends Command {
     if (!player || !player.queue.current) {
       return this.client.util.errorEmbed(msg, 'There is nothing playing.');
     }
+    if (player.queue.tracks.length < 1) {
+      return this.client.util.errorEmbed(msg, 'There are no more songs in the queue.');
+    }
 
     const song = player.queue.current;
     await player.skip();
