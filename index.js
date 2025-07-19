@@ -352,10 +352,15 @@ const loadLavalink = async () => {
           .duration(track.info.duration || 0)
           .format('y[ years][,] M[ Months][,] d[ days][,] h[ hours][,] m[ minutes][, and] s[ seconds]');
 
+        let title = track.info.title;
+        if (track.info.sourceName === 'spotify') {
+          title = `${track.info.author} - ${track.info.title}`;
+        }
+
         const em = new EmbedBuilder()
           .setTitle('🎵 Now Playing')
           .setDescription(
-            stripIndents`**[${track.info.title}](${track.info.uri})**
+            stripIndents`**[${title}](${track.info.uri})**
 
               **Duration:** ${durationString}
               **Requested By:** <@${track.requester.id}>
