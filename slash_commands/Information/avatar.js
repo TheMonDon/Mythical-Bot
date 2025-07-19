@@ -11,17 +11,30 @@ exports.commandData = new SlashCommandBuilder()
 
 exports.run = async (interaction) => {
   await interaction.deferReply();
-  let infoMem = interaction.user;
-  if (interaction.options.getUser('user')) {
-    infoMem = interaction.options.getUser('user');
+
+  let infoUser = interaction.user;
+  let infoMember = interaction.member;
+
+  const targetUser = interaction.options.getUser('user');
+  const targetMember = interaction.options.getMember?.('user'); // May return null if user isn't in the guild
+
+  if (targetUser) {
+    infoUser = targetUser;
+    infoMember = targetMember;
   }
 
-  infoMem = infoMem.user ? infoMem.user : infoMem;
+  const avatarURL = infoMember?.displayAvatarURL
+    ? infoMember.displayAvatarURL({ size: 4096, extension: 'png', forceStatic: false }) // Guild avatar
+    : infoUser.displayAvatarURL({ size: 4096, extension: 'png', forceStatic: false }); // Global avatar
+
   const embed = new EmbedBuilder()
-    .setTitle(`${infoMem.username}'s Avatar`)
+    .setTitle(`${infoUser.username}'s Avatar`)
     .setColor(interaction.settings.embedColor)
-    .setAuthor({ name: interaction.user.displayName, iconURL: interaction.user.displayAvatarURL() })
-    .setImage(infoMem.displayAvatarURL({ size: 4096, extension: 'png' }));
+    .setAuthor({
+      name: interaction.user.displayName ?? interaction.user.username,
+      iconURL: interaction.user.displayAvatarURL(),
+    })
+    .setImage(avatarURL);
 
   return interaction.editReply({ embeds: [embed] });
 };
