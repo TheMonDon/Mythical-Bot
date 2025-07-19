@@ -19,13 +19,14 @@ class ItemLeaderboard extends Command {
       usage: 'item-leaderboard <item> [page]',
       aliases: ['ilb', 'itemleaderboard'],
       guildOnly: true,
+      requiredArgs: 1,
     });
   }
 
   async run(msg, args) {
     const itemName = args[0];
     if (!itemName) {
-      return msg.channel.send('Please specify the item you want to see the leaderboard for.');
+      return this.client.util.errorEmbed(msg, 'Please specify the item you want to see the leaderboard for.');
     }
 
     let page = parseInt(args[1]?.replace(/[^0-9\\.]/g, '') || 1);

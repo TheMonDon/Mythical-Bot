@@ -390,7 +390,7 @@ function errorEmbed(context, desc = 'An error has occurred.', title = 'Error') {
   if (context instanceof Message) {
     return context.channel.send({ embeds: [embed] });
   } else {
-    return context.editReply({ embeds: [embed] });
+    return context.editReply({ content: null, embeds: [embed] });
   }
 }
 

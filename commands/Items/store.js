@@ -21,9 +21,10 @@ class Store extends Command {
   async run(msg, args) {
     let page = parseInt(args.join(' ')) || 1;
 
-    if (isNaN(page)) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Incorrect Usage');
+    if (isNaN(page)) {
+      return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Incorrect Usage');
+    }
 
-    await msg.guild.members.fetch();
     const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
     const store = (await db.get(`servers.${msg.guild.id}.economy.store`)) || {};
 
@@ -75,12 +76,12 @@ class Store extends Command {
         .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
         .setDescription(
           stripIndents`
-          The store is empty. Someone probably robbed it :shrug:
-          Add items to the store using the \`create-item\` command.`,
+            The store is empty. Someone probably robbed it :shrug:
+            Add items to the store using the \`create-item\` command.`,
         )
         .setFooter({ text: `Page ${page} / ${maxPages}` });
 
-      return await msg.channel.send({ embeds: [errorEmbed], components: [row] });
+      return msg.channel.send({ embeds: [errorEmbed], components: [row] });
     }
 
     const message = await msg.channel.send({ embeds: [embed], components: [row] });

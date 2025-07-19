@@ -25,12 +25,7 @@ class ItemInfo extends Command {
 
     const item = store[itemKey];
     if (!item) {
-      const embed = new EmbedBuilder()
-        .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
-        .setColor(msg.settings.embedErrorColor)
-        .setDescription('That item does not exist in the store.');
-
-      return msg.channel.send({ embeds: [embed] });
+      return this.client.util.errorEmbed(msg, 'That item does not exist in the store.');
     }
 
     const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
@@ -44,7 +39,7 @@ class ItemInfo extends Command {
 
     const embed = new EmbedBuilder()
       .setColor(msg.settings.embedColor)
-      .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
+      .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
       .setTitle('Item Info')
       .addFields([
         { name: 'Name', value: itemKey, inline: true },
@@ -75,6 +70,7 @@ class ItemInfo extends Command {
         },
         { name: 'Reply Message', value: item.replyMessage || 'None', inline: true },
       ]);
+
     return msg.channel.send({ embeds: [embed] });
   }
 }

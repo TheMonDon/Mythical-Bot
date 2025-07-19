@@ -128,6 +128,7 @@ class UseItem extends Command {
         .replace('{role.created}', roleCreated)
         .replace('{role.created.duration}', roleCreatedDuration);
     }
+
     return msg.channel.send(replyMessage);
   }
 }

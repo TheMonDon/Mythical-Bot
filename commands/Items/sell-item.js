@@ -45,8 +45,9 @@ class SellItem extends Command {
     });
 
     if (!itemIndex || itemIndex === -1 || sellerInventory[itemIndex].quantity < quantity) {
-      return msg.reply('You do not have enough of this item in your inventory.');
+      return this.client.util.errorEmbed(msg, 'You do not have enough of this item in your inventory.');
     }
+
     const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
 
     // Ask the seller for a price
@@ -77,14 +78,14 @@ class SellItem extends Command {
       // Ask the buyer for confirmation
       const confirmEmbed = new EmbedBuilder()
         .setColor(msg.settings.embedColor)
-        .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
+        .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
         .setDescription(
           `${msg.author} wants to sell you ${quantity} ${itemName}${
             quantity > 1 ? "'s" : ''
           } for ${currencySymbol}${price}. \nDo you accept this? (yes/no)`,
         )
         .setFooter({ text: `Deal ends in 5 minutes` });
-      await msg.channel.send({ content: `${member}`, embeds: [confirmEmbed] });
+      await msg.channel.send({ content: member.toString(), embeds: [confirmEmbed] });
 
       const confirmFilter = (response) => response.author.id === member.id;
       const confirmCollector = new MessageCollector(msg.channel, { filter: confirmFilter, time: 300000, max: 1 });
@@ -128,7 +129,11 @@ class SellItem extends Command {
             );
           return msg.channel.send({ embeds: [confirmEmbed] });
         } else {
-          return msg.reply('The buyer declined the offer. The sale has been canceled.');
+          this.client.util.errorEmbed(
+            msg,
+            'The buyer declined the offer. The sale has been canceled.',
+            'Offer Declined',
+          );
         }
       });
 
