@@ -51,7 +51,7 @@ exports.run = async (interaction) => {
   const blacklist = await db.get(`servers.${interaction.guild.id}.users.${mem.id}.blacklist`);
 
   const embed = new EmbedBuilder()
-    .setAuthor({ name: mem.user.tag, iconURL: interaction.user.displayAvatarURL() })
+    .setAuthor({ name: mem.displayName, iconURL: interaction.member.displayAvatarURL() })
     .setColor(interaction.settings.embedColor)
     .setTimestamp();
 

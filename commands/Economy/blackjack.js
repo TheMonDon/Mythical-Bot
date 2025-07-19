@@ -173,7 +173,7 @@ class BlackJack extends Command {
       const winAmount = BigInt(bj.bet);
 
       const embed = new EmbedBuilder()
-        .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
+        .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
         .setDescription(`Result: You win ${currencySymbol}${winAmount.toLocaleString()}`)
         .setColor(color)
         .addFields([
@@ -193,7 +193,7 @@ class BlackJack extends Command {
       const dealerCards = getCards('dealer', bj);
 
       const embed = new EmbedBuilder()
-        .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
+        .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
         .setDescription(description)
         .setColor(color)
         .addFields([

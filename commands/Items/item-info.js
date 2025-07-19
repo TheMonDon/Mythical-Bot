@@ -39,7 +39,7 @@ class ItemInfo extends Command {
 
     const embed = new EmbedBuilder()
       .setColor(msg.settings.embedColor)
-      .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
+      .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
       .setTitle('Item Info')
       .addFields([
         { name: 'Name', value: itemKey, inline: true },

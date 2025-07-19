@@ -66,6 +66,7 @@ class LoadPlaylist extends Command {
         .format('y[ years][,] M[ Months][,] d[ days][,] h[ hours][,] m[ minutes][, and] s[ seconds]');
 
       const em = new EmbedBuilder()
+        .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
         .setTitle('✅ Playlist Added to Queue')
         .setDescription(
           stripIndents`**${userPlaylist.tracks.length} tracks** from **${playlistName}** have been added to the queue

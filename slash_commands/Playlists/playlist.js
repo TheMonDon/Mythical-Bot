@@ -139,6 +139,7 @@ exports.run = async (interaction) => {
 
       // Create the embed
       const embed = new EmbedBuilder()
+        .setAuthor({ name: interaction.member.displayName, iconURL: interaction.member.displayAvatarURL() })
         .setTitle('Your Playlists')
         .setDescription(
           paginatedPlaylists
@@ -194,6 +195,7 @@ exports.run = async (interaction) => {
           .format('y[ years][,] M[ Months][,] d[ days][,] h[ hours][,] m[ minutes][, and] s[ seconds]');
 
         const em = new EmbedBuilder()
+          .setAuthor({ name: interaction.member.displayName, iconURL: interaction.member.displayAvatarURL() })
           .setTitle('✅ Playlist Added to Queue')
           .setDescription(
             stripIndents`**${userPlaylist.tracks.length} tracks** from **${playlistName}** have been added to the queue

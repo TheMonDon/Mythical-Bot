@@ -54,7 +54,7 @@ class SellItem extends Command {
     itemName = sellerInventory[itemIndex].name;
     const embed = new EmbedBuilder()
       .setColor(msg.settings.embedColor)
-      .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
+      .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
       .setDescription(`What price do you want to sell ${member} ${quantity} ${itemName}${quantity > 1 ? "'s" : ''}?`);
     await msg.channel.send({ embeds: [embed] });
 
@@ -78,7 +78,7 @@ class SellItem extends Command {
       // Ask the buyer for confirmation
       const confirmEmbed = new EmbedBuilder()
         .setColor(msg.settings.embedColor)
-        .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
+        .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
         .setDescription(
           `${msg.author} wants to sell you ${quantity} ${itemName}${
             quantity > 1 ? "'s" : ''
@@ -141,7 +141,7 @@ class SellItem extends Command {
         if (collected.size === 0) {
           const noCollectionEmbed = new EmbedBuilder()
             .setColor(msg.settings.embedErrorColor)
-            .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
+            .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
             .setDescription(
               `Cancelled the transaction of ${quantity} ${sellerInventory[itemIndex].name}${
                 quantity > 1 ? "'s" : ''
@@ -156,7 +156,7 @@ class SellItem extends Command {
       if (collected.size === 0) {
         const noCollectionEmbed = new EmbedBuilder()
           .setColor(msg.settings.embedErrorColor)
-          .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
+          .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
           .setDescription(
             `Cancelled the transaction of ${quantity} ${sellerInventory[itemIndex].name}${
               quantity > 1 ? "'s" : ''

@@ -49,7 +49,7 @@ class Ban extends Command {
     // Embed for log channel or reply
     const em = new EmbedBuilder()
       .setTitle('User Banned')
-      .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
+      .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
       .setColor(successColor)
       .addFields([
         { name: 'User', value: `${banMem.toString()} (${banMem.id})` },
@@ -65,7 +65,7 @@ class Ban extends Command {
       const em2 = new EmbedBuilder()
         .setTitle('User Banned')
         .setColor(successColor)
-        .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
+        .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
         .setDescription('Full info posted in the log channel.');
 
       const reply = await msg.channel.send({ embeds: [em2] });

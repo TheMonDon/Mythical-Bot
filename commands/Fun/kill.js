@@ -31,6 +31,7 @@ class Kill extends Command {
     const num = Math.round(Math.random() * (deaths.length - 1)) + 1;
 
     const embed = new EmbedBuilder()
+      .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
       .setTitle(
         deaths[num]
           .replace('{mem.displayName}', `\`${mem.displayName}\``)

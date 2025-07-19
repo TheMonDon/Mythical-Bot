@@ -99,7 +99,7 @@ class Warn extends Command {
     // Send the embed to the users DMS
     const userEmbed = new EmbedBuilder()
       .setColor(color)
-      .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
+      .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
       .setTitle(`You have been ${status}`)
       .addFields([
         { name: 'Case ID', value: `\`${warnID}\`` },

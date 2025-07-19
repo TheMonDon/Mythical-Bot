@@ -38,7 +38,7 @@ class EconomyStats extends Command {
     const embed = new EmbedBuilder()
       .setColor(msg.settings.embedColor)
       .setTitle(`${msg.guild.name}'s Economy Total`)
-      .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
+      .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
       .setDescription(`Here are the totals for the entire economy:`)
       .addFields(
         {

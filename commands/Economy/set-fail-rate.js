@@ -26,7 +26,7 @@ class SetFailRate extends Command {
 
     const embed = new EmbedBuilder()
       .setColor(errorColor)
-      .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() });
+      .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() });
 
     if (!args || args.length < 1) {
       embed.setColor(msg.settings.embedColor).setDescription(stripIndents`

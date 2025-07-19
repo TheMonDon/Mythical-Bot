@@ -79,7 +79,7 @@ class Leaderboard extends Command {
       .setTitle(
         `${msg.guild.name} ${cashOrBank === 'cash' ? 'Cash' : cashOrBank === 'bank' ? 'Bank' : 'Total'} Leaderboard`,
       )
-      .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
+      .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
       .setDescription(
         sortedLeaderboard
           .map((entry, index) => {
@@ -141,7 +141,7 @@ class Leaderboard extends Command {
       const updatedEmbed = new EmbedBuilder()
         .setColor(msg.settings.embedColor)
         .setTitle(`${msg.guild.name} Leaderboard`)
-        .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
+        .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
         .setDescription(displayedLeaderboard.join('\n') || 'None')
         .setFooter({ text: `Page ${page} / ${maxPages} • ${userRankDisplay}` })
         .setTimestamp();

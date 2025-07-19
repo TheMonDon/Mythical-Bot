@@ -27,7 +27,7 @@ class DeleteItem extends Command {
     const item = store[itemKey];
     if (!item) {
       const embed = new EmbedBuilder()
-        .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
+        .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
         .setColor(msg.settings.embedErrorColor)
         .setDescription('There is not an item with that name.');
 
@@ -38,7 +38,7 @@ class DeleteItem extends Command {
 
     const embed = new EmbedBuilder()
       .setColor(msg.settings.embedColor)
-      .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
+      .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
       .setDescription('Item has been removed from the store.');
 
     return msg.channel.send({ embeds: [embed] });

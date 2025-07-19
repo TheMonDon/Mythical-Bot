@@ -51,7 +51,7 @@ class Store extends Command {
     const embed = new EmbedBuilder()
       .setColor(msg.settings.embedColor)
       .setTitle(`${msg.guild.name} Store`)
-      .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
+      .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
       .addFields(displayedStore)
       .setFooter({ text: `Page ${page} / ${maxPages}` })
       .setTimestamp();
@@ -73,7 +73,7 @@ class Store extends Command {
       const errorEmbed = new EmbedBuilder()
         .setColor(msg.settings.embedColor)
         .setTitle(`${msg.guild.name} Store`)
-        .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
+        .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
         .setDescription(
           stripIndents`
             The store is empty. Someone probably robbed it :shrug:
@@ -103,7 +103,7 @@ class Store extends Command {
       const updatedEmbed = new EmbedBuilder()
         .setColor(msg.settings.embedColor)
         .setTitle(`${msg.guild.name} Store`)
-        .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
+        .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
         .addFields(displayedStore)
         .setFooter({ text: `Page ${page} / ${maxPages}` })
         .setTimestamp();

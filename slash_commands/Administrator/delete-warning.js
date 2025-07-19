@@ -48,6 +48,7 @@ exports.run = async (interaction) => {
   }
 
   const userEmbed = new EmbedBuilder()
+    .setAuthor({ name: interaction.member.displayName, iconURL: interaction.member.displayAvatarURL() })
     .setTitle(title)
     .setColor(color)
     .addFields([
@@ -56,9 +57,11 @@ exports.run = async (interaction) => {
       { name: 'Case Reason', value: warnReason, inline: true },
       { name: 'Issued In', value: interaction.guild.name, inline: true },
     ]);
+
   const userMessage = await user.send({ embeds: [userEmbed] }).catch(() => null);
 
   const logEmbed = new EmbedBuilder()
+    .setAuthor({ name: interaction.member.displayName, iconURL: interaction.member.displayAvatarURL() })
     .setTitle(title)
     .setColor(color)
     .addFields([
@@ -71,6 +74,7 @@ exports.run = async (interaction) => {
 
   if (logChan) {
     const channelEmbed = new EmbedBuilder()
+      .setAuthor({ name: interaction.member.displayName, iconURL: interaction.member.displayAvatarURL() })
       .setTitle(title)
       .setColor(color)
       .addFields([

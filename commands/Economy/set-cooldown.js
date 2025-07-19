@@ -32,7 +32,7 @@ class SetCooldown extends Command {
 
     const embed = new EmbedBuilder()
       .setColor(msg.settings.embedErrorColor)
-      .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() });
+      .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() });
 
     const { parseMS } = await import('human-ms');
 

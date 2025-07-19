@@ -27,7 +27,7 @@ class SetStartBalance extends Command {
     await db.set(`servers.${msg.guild.id}.economy.startBalance`, amount);
 
     const em = new EmbedBuilder()
-      .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
+      .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
       .setDescription(
         amount > 0
           ? `The starting balance for new members has been set to: ${currencySymbol + amount.toLocaleString()}`

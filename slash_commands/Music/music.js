@@ -167,7 +167,7 @@ exports.run = async (interaction) => {
 
       const em = new EmbedBuilder()
         .setColor(interaction.settings.embedSuccessColor)
-        .setAuthor({ name: interaction.member.displayName, iconURL: interaction.user.displayAvatarURL() })
+        .setAuthor({ name: interaction.member.displayName, iconURL: interaction.member.displayAvatarURL() })
         .addFields([{ name: 'Now Playing', value: previousTrack.info.title }]);
 
       return interaction.editReply({ embeds: [em] });
@@ -265,7 +265,7 @@ exports.run = async (interaction) => {
         .setColor(interaction.settings.embedColor)
         .setThumbnail(song.info.artworkUrl)
         .setFooter({ text: `Repeat Mode: ${interaction.client.util.toProperCase(player.repeatMode)}` })
-        .setAuthor({ name: interaction.member.displayName, iconURL: interaction.user.displayAvatarURL() });
+        .setAuthor({ name: interaction.member.displayName, iconURL: interaction.member.displayAvatarURL() });
 
       return interaction.editReply({ embeds: [em] });
     }
@@ -289,7 +289,7 @@ exports.run = async (interaction) => {
 
       const em = new EmbedBuilder()
         .setColor(interaction.settings.embedSuccessColor)
-        .setAuthor({ name: interaction.member.displayName, iconURL: interaction.user.displayAvatarURL() })
+        .setAuthor({ name: interaction.member.displayName, iconURL: interaction.member.displayAvatarURL() })
         .setDescription(`Music has been paused.`);
 
       return interaction.editReply({ embeds: [em] });
@@ -554,7 +554,7 @@ exports.run = async (interaction) => {
       const embed = new EmbedBuilder()
         .setColor(interaction.settings.embedColor)
         .setTitle(`${interaction.guild.name}'s Queue`)
-        .setAuthor({ name: interaction.member.displayName, iconURL: interaction.user.displayAvatarURL() })
+        .setAuthor({ name: interaction.member.displayName, iconURL: interaction.member.displayAvatarURL() })
         .setDescription(q.join('\n'))
         .addFields([
           {
@@ -595,7 +595,7 @@ exports.run = async (interaction) => {
 
       const em = new EmbedBuilder()
         .setColor(interaction.settings.embedSuccessColor)
-        .setAuthor({ name: interaction.member.displayName, iconURL: interaction.user.displayAvatarURL() })
+        .setAuthor({ name: interaction.member.displayName, iconURL: interaction.member.displayAvatarURL() })
         .setDescription(`\`${song.info.title}\` has been removed from the queue.`);
 
       return interaction.editReply({ embeds: [em] });
@@ -667,7 +667,7 @@ exports.run = async (interaction) => {
 
       const em = new EmbedBuilder()
         .setColor(interaction.settings.embedSuccessColor)
-        .setAuthor({ name: interaction.member.displayName, iconURL: interaction.user.displayAvatarURL() })
+        .setAuthor({ name: interaction.member.displayName, iconURL: interaction.member.displayAvatarURL() })
         .setDescription(`Music has been resumed`);
 
       return interaction.editReply({ embeds: [em] });
@@ -688,7 +688,7 @@ exports.run = async (interaction) => {
 
       const em = new EmbedBuilder()
         .setColor(interaction.settings.embedSuccessColor)
-        .setAuthor({ name: interaction.member.displayName, iconURL: interaction.user.displayAvatarURL() })
+        .setAuthor({ name: interaction.member.displayName, iconURL: interaction.member.displayAvatarURL() })
         .setDescription('The queue has been shuffled.');
 
       return interaction.editReply({ embeds: [em] });
@@ -713,7 +713,7 @@ exports.run = async (interaction) => {
 
       const em = new EmbedBuilder()
         .setColor(interaction.settings.embedSuccessColor)
-        .setAuthor({ name: interaction.member.displayName, iconURL: interaction.user.displayAvatarURL() });
+        .setAuthor({ name: interaction.member.displayName, iconURL: interaction.member.displayAvatarURL() });
       if (song) em.addFields([{ name: 'Skipped Song', value: song.title, inline: false }]);
 
       return interaction.editReply({ embeds: [em] });
@@ -735,7 +735,7 @@ exports.run = async (interaction) => {
 
       const em = new EmbedBuilder()
         .setColor(interaction.settings.embedSuccessColor)
-        .setAuthor({ name: interaction.member.displayName, iconURL: interaction.user.displayAvatarURL() })
+        .setAuthor({ name: interaction.member.displayName, iconURL: interaction.member.displayAvatarURL() })
         .setDescription('All music has been stopped.');
 
       return interaction.editReply({ embeds: [em] });
@@ -757,7 +757,7 @@ exports.run = async (interaction) => {
 
       const em = new EmbedBuilder()
         .setColor(interaction.settings.embedSuccessColor)
-        .setAuthor({ name: interaction.member.displayName, iconURL: interaction.user.displayAvatarURL() })
+        .setAuthor({ name: interaction.member.displayName, iconURL: interaction.member.displayAvatarURL() })
         .setDescription(`The volume has been set to: ${volume}`);
 
       return interaction.editReply({ embeds: [em] });

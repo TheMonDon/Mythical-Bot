@@ -26,6 +26,7 @@ class Starboard extends Command {
       }
 
       const errorEmbed = new EmbedBuilder()
+        .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
         .setTitle('Invalid Subcommand')
         .setColor(msg.settings.embedErrorColor)
         .setDescription(

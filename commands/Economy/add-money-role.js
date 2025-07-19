@@ -22,7 +22,7 @@ class AddMoneyRole extends Command {
   async run(msg, args) {
     const errEmbed = new EmbedBuilder()
       .setColor(msg.settings.embedErrorColor)
-      .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() });
+      .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() });
 
     let type = 'cash';
     let role;
@@ -91,7 +91,7 @@ class AddMoneyRole extends Command {
     csAmount = this.client.util.limitStringLength(csAmount, 0, 1024);
 
     const embed = new EmbedBuilder()
-      .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
+      .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
       .setColor(msg.settings.embedColor)
       .setDescription(
         `Added **${csAmount}** to the ${type} balance of ${members.length} ${

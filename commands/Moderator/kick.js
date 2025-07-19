@@ -34,7 +34,7 @@ class Kick extends Command {
 
     const em = new EmbedBuilder()
       .setTitle('User Kicked')
-      .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
+      .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
       .setColor('#FFA500')
       .addFields([
         { name: 'User', value: kickMem.toString() },
@@ -48,7 +48,7 @@ class Kick extends Command {
       const em2 = new EmbedBuilder()
         .setTitle('User Kicked')
         .setColor('#FFA500')
-        .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
+        .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
         .setDescription('Full info posted in the log channel.');
 
       const reply = await msg.channel.send({ embeds: [em2] });

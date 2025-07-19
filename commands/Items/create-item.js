@@ -26,7 +26,7 @@ class CreateItem extends Command {
     const botMember = msg.guild.members.cache.get(this.client.user.id);
     const filter = (m) => m.author.id === msg.author.id;
     const embed = new EmbedBuilder()
-      .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
+      .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
       .setColor(msg.settings.embedColor)
       .setFooter({ text: 'Type cancel to quit.' })
       .setTimestamp();
@@ -47,7 +47,7 @@ class CreateItem extends Command {
       const item = Object.keys(store).find((key) => key.toLowerCase() === name.toLowerCase());
       if (item) {
         const itemEmbed = new EmbedBuilder()
-          .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
+          .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
           .setColor(msg.settings.embedErrorColor)
           .setDescription('There is already an item with that name.');
 
@@ -88,7 +88,7 @@ class CreateItem extends Command {
       };
 
       const finalEmbed = new EmbedBuilder()
-        .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
+        .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
         .setColor(msg.settings.embedColor)
         .addFields([
           { name: 'Name', value: name, inline: true },

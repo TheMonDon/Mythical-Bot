@@ -173,7 +173,7 @@ exports.run = async (interaction) => {
     const winAmount = BigInt(bj.bet);
 
     const embed = new EmbedBuilder()
-      .setAuthor({ name: interaction.user.username, iconURL: interaction.user.displayAvatarURL() })
+      .setAuthor({ name: interaction.member.displayName, iconURL: interaction.member.displayAvatarURL() })
       .setDescription(`Result: You win ${currencySymbol}${winAmount.toLocaleString()}`)
       .setColor(color)
       .addFields([
@@ -193,7 +193,7 @@ exports.run = async (interaction) => {
     const dealerCards = getCards('dealer', bj);
 
     const embed = new EmbedBuilder()
-      .setAuthor({ name: interaction.user.username, iconURL: interaction.user.displayAvatarURL() })
+      .setAuthor({ name: interaction.member.displayName, iconURL: interaction.member.displayAvatarURL() })
       .setDescription(description)
       .setColor(color)
       .addFields([

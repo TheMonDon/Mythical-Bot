@@ -29,7 +29,7 @@ class ChannelInfo extends Command {
     const embed = new EmbedBuilder()
       .setTitle('Channel Information')
       .setColor(msg.settings.embedColor)
-      .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() })
+      .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
       .addFields([
         { name: 'Name', value: infoChan.name, inline: true },
         { name: 'ID', value: infoChan.id.toString(), inline: true },

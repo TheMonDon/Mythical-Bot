@@ -29,7 +29,7 @@ class WarnInfo extends Command {
     const moderator = await this.client.users.fetch(mod);
 
     const em = new EmbedBuilder()
-      .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
+      .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
       .setColor(msg.settings.embedColor)
       .addFields([
         { name: 'Case ID', value: caseID.toString(), inline: true },

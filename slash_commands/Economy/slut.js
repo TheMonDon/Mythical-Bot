@@ -22,7 +22,7 @@ exports.run = async (interaction) => {
 
   const embed = new EmbedBuilder()
     .setColor(interaction.settings.embedErrorColor)
-    .setAuthor({ name: interaction.user.tag, iconURL: interaction.user.displayAvatarURL() });
+    .setAuthor({ name: interaction.member.displayName, iconURL: interaction.member.displayAvatarURL() });
 
   // Check if the user is on cooldown
   if (userCooldown.active) {

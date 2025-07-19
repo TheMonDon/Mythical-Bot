@@ -18,7 +18,7 @@ class MyLevel extends Command {
 
     const embed = new EmbedBuilder()
       .setColor(msg.settings.embedColor)
-      .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
+      .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
       .addFields([{ name: 'Permission Level', value: `${level} - ${friendly}` }]);
     return msg.channel.send({ embeds: [embed] });
   }

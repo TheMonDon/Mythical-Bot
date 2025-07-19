@@ -74,6 +74,7 @@ class PlayNext extends Command {
           : '`Unknown`';
 
         const em = new EmbedBuilder()
+          .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
           .setTitle('✅ Playlist Added to Queue')
           .setDescription(
             `**${result.tracks.length} tracks** from **${

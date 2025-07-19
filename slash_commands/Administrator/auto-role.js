@@ -45,7 +45,7 @@ exports.run = async (interaction) => {
 
   const embed = new EmbedBuilder()
     .setColor(interaction.settings.embedColor)
-    .setAuthor({ name: interaction.member.displayName, iconURL: interaction.user.displayAvatarURL() });
+    .setAuthor({ name: interaction.member.displayName, iconURL: interaction.member.displayAvatarURL() });
 
   switch (type) {
     case 'add': {

@@ -38,8 +38,10 @@ class CloseTicket extends Command {
       }
     }
 
-    const em = new EmbedBuilder().setTitle('Ticket Closed').setColor('#E65DF4')
-      .setDescription(stripIndents`${msg.author} has requested to close this ticket.
+    const em = new EmbedBuilder()
+      .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
+      .setTitle('Ticket Closed')
+      .setColor('#E65DF4').setDescription(stripIndents`${msg.author} has requested to close this ticket.
       The ticket will close in 5 minutes if no further activity occurs.
       
       Reason: ${reason}`);

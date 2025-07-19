@@ -44,6 +44,7 @@ class AddMember extends Command {
     await msg.channel.permissionOverwrites.edit(mem.id, { ViewChannel: true });
 
     const em = new EmbedBuilder()
+      .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
       .setTitle('Member Added')
       .setColor('#E65DF4')
       .setDescription(`${msg.author} has added a member: \n${mem} (${mem.displayName})`);

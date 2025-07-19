@@ -47,7 +47,7 @@ class Blacklist extends Command {
     const blacklist = await db.get(`servers.${msg.guild.id}.users.${mem.id}.blacklist`);
 
     const embed = new EmbedBuilder()
-      .setAuthor({ name: mem.user.tag, iconURL: msg.author.displayAvatarURL() })
+      .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
       .setColor(msg.settings.embedColor)
       .setTimestamp();
 

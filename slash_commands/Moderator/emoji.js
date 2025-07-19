@@ -96,7 +96,7 @@ exports.run = async (interaction) => {
 
       const em = new EmbedBuilder()
         .setTitle('Emoji Information')
-        .setAuthor({ name: interaction.user.tag, iconURL: interaction.user.displayAvatarURL() })
+        .setAuthor({ name: interaction.member.displayName, iconURL: interaction.member.displayAvatarURL() })
         .setColor(interaction.settings.embedColor)
         .addFields([
           { name: 'Emoji', value: result.toString(), inline: true },

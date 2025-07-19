@@ -36,6 +36,7 @@ class ListPlaylists extends Command {
 
     // Create the embed
     const embed = new EmbedBuilder()
+      .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
       .setTitle('Your Playlists')
       .setDescription(
         paginatedPlaylists

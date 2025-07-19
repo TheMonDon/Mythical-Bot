@@ -50,7 +50,7 @@ exports.run = async (interaction) => {
   }
 
   const points = interaction.options.getInteger('amount') || 0;
-  let reason = interaction.options.getString('reason');
+  const reason = interaction.options.getString('reason');
 
   // Grab the settings for the server
   const ka = (await db.get(`servers.${interaction.guild.id}.warns.kick`)) || 8;
@@ -80,14 +80,12 @@ exports.run = async (interaction) => {
 
   // Check if they have other cases
   let otherCases = otherWarns.length > 0 ? otherWarns.map((w) => `\`${w.warnID}\``).join(', ') : 'No other cases.';
-
-  if (!reason) reason = 'Automated Ban';
   if (!otherCases) otherCases = 'No other cases';
 
   // Send the embed to the users DMS
   const userEmbed = new EmbedBuilder()
     .setColor(color)
-    .setAuthor({ name: interaction.user.tag, iconURL: interaction.user.displayAvatarURL() })
+    .setAuthor({ name: interaction.member.displayName, iconURL: interaction.member.displayAvatarURL() })
     .setTitle(`You have been ${status}`)
     .addFields([
       { name: 'Case ID', value: `\`${warnID}\`` },

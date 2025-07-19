@@ -43,6 +43,7 @@ exports.run = async (interaction) => {
   const otherCases = otherWarns.map((w) => `\`${w.warnID}\``).join(', ');
 
   const userEmbed = new EmbedBuilder()
+    .setAuthor({ name: interaction.member.displayName, iconURL: interaction.member.displayAvatarURL() })
     .setDescription('Warnings Cleared')
     .setColor(color)
     .addFields([
@@ -53,6 +54,7 @@ exports.run = async (interaction) => {
   const userMessage = await mem.send({ embeds: [userEmbed] }).catch(() => null);
 
   const logEmbed = new EmbedBuilder()
+    .setAuthor({ name: interaction.member.displayName, iconURL: interaction.member.displayAvatarURL() })
     .setTitle('Warnings Cleared')
     .setColor(color)
     .addFields([
@@ -64,6 +66,7 @@ exports.run = async (interaction) => {
 
   if (logChan) {
     const channelEmbed = new EmbedBuilder()
+      .setAuthor({ name: interaction.member.displayName, iconURL: interaction.member.displayAvatarURL() })
       .setTitle('Warnings Cleared')
       .setColor(color)
       .addFields([

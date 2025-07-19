@@ -282,7 +282,7 @@ exports.run = async (interaction) => {
       const csCost = interaction.client.util.limitStringLength(currencySymbol + itemCostQuantity, 0, 700);
 
       const purchaseEmbed = new EmbedBuilder()
-        .setAuthor({ name: interaction.member.displayName, iconURL: interaction.user.displayAvatarURL() })
+        .setAuthor({ name: interaction.member.displayName, iconURL: interaction.member.displayAvatarURL() })
         .setTitle('Purchase Successful')
         .setDescription(
           `You have bought ${quantity} ${itemKey}${
@@ -432,7 +432,7 @@ exports.run = async (interaction) => {
 
       const embed = new EmbedBuilder()
         .setColor(interaction.settings.embedColor)
-        .setAuthor({ name: interaction.member.displayName, iconURL: interaction.user.displayAvatarURL() })
+        .setAuthor({ name: interaction.member.displayName, iconURL: interaction.member.displayAvatarURL() })
         .setTitle('Item Info')
         .addFields([
           { name: 'Name', value: itemKey, inline: true },
@@ -652,7 +652,7 @@ exports.run = async (interaction) => {
       // Ask the buyer for confirmation
       const confirmEmbed = new EmbedBuilder()
         .setColor(interaction.settings.embedColor)
-        .setAuthor({ name: interaction.member.displayName, iconURL: interaction.user.displayAvatarURL() })
+        .setAuthor({ name: interaction.member.displayName, iconURL: interaction.member.displayAvatarURL() })
         .setDescription(
           `${interaction.user} wants to sell you ${quantity} ${itemName}${
             quantity > 1 ? "'s" : ''

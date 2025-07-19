@@ -25,7 +25,7 @@ class AutoRole extends Command {
 
     const embed = new EmbedBuilder()
       .setColor(msg.settings.embedColor)
-      .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() });
+      .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() });
 
     if (!msg.guild.members.me.permissions.has('ManageRoles')) {
       return this.client.util.errorEmbed(msg, 'The bot requires Manage Roles permission to use this feature.');

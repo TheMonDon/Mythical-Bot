@@ -30,7 +30,7 @@ exports.run = async (interaction) => {
 
   const embed = new EmbedBuilder()
     .setColor(interaction.settings.embedColor)
-    .setAuthor({ name: interaction.user.tag, iconURL: interaction.user.displayAvatarURL() });
+    .setAuthor({ name: interaction.member.displayName, iconURL: interaction.member.displayAvatarURL() });
 
   let csCashAmount = currencySymbol + cash.toLocaleString();
   csCashAmount = interaction.client.util.limitStringLength(csCashAmount, 0, 1024);

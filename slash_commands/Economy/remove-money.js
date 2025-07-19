@@ -32,7 +32,7 @@ exports.run = async (interaction) => {
 
   const embed = new EmbedBuilder()
     .setColor(interaction.settings.embedErrorColor)
-    .setAuthor({ name: interaction.user.tag, iconURL: interaction.user.displayAvatarURL() });
+    .setAuthor({ name: interaction.member.displayName, iconURL: interaction.member.displayAvatarURL() });
 
   if (isNaN(amount) || amount === Infinity) return interaction.client.util.errorEmbed(interaction, 'Invalid Amount');
 
@@ -98,7 +98,7 @@ exports.run = async (interaction) => {
     csAmount = interaction.client.util.limitStringLength(csAmount, 0, 1024);
 
     const embed = new EmbedBuilder()
-      .setAuthor({ name: interaction.user.tag, iconURL: interaction.user.displayAvatarURL() })
+      .setAuthor({ name: interaction.member.displayName, iconURL: interaction.member.displayAvatarURL() })
       .setColor(interaction.settings.embedColor)
       .setDescription(
         `Removed **${csAmount}** from the ${destination} balance of ${members.length} ${

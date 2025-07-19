@@ -748,7 +748,7 @@ class Setup extends Command {
           \`${msg.settings.prefix}Setup Warnings <channel-name> <Points for kick> <Points for ban>\``,
         },
       ])
-      .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() });
+      .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() });
     return msg.channel.send({ embeds: [embed] });
   }
 }

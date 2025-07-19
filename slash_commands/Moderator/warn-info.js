@@ -27,7 +27,7 @@ exports.run = async (interaction) => {
   const moderator = await interaction.client.users.fetch(mod);
 
   const em = new EmbedBuilder()
-    .setAuthor({ name: interaction.member.displayName, iconURL: interaction.user.displayAvatarURL() })
+    .setAuthor({ name: interaction.member.displayName, iconURL: interaction.member.displayAvatarURL() })
     .setColor(interaction.settings.embedColor)
     .addFields([
       { name: 'Case ID', value: caseID.toString(), inline: true },

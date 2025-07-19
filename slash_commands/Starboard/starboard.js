@@ -316,6 +316,7 @@ exports.run = async (interaction) => {
         const { parseMS } = await import('human-ms');
 
         const mainEmbed = new EmbedBuilder()
+          .setAuthor({ name: interaction.member.displayName, iconURL: interaction.member.displayAvatarURL() })
           .setTitle(`Starboard "${name}"`)
           .setColor(config.color || interaction.settings.embedColor)
           .setDescription(`This starboard is in <#${config.channelId}>.`)

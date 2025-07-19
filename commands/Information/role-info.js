@@ -32,7 +32,7 @@ class RoleInfo extends Command {
     const embed = new EmbedBuilder()
       .setTitle(`${infoRole.name}'s Information`)
       .setColor(infoRole.hexColor)
-      .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
+      .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
       .addFields([
         { name: 'Name', value: infoRole.name, inline: true },
         { name: 'ID', value: infoRole.id.toString(), inline: true },

@@ -328,7 +328,7 @@ class EditItem extends Command {
     const embed = new EmbedBuilder()
       .setTitle('Item Edited')
       .setColor(msg.settings.embedColor)
-      .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
+      .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
       .addFields([
         { name: 'Name', value: itemKey, inline: true },
         { name: 'Price', value: BigInt(item.cost).toLocaleString(), inline: true },

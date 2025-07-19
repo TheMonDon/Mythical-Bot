@@ -44,6 +44,7 @@ class RemoveMember extends Command {
     msg.channel.permissionOverwrites.edit(mem.id, { ViewChannel: null });
 
     const em = new EmbedBuilder()
+      .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
       .setTitle('Member Removed')
       .setColor('#E65DF4')
       .setDescription(`${msg.author} has removed a member: \n${mem} (${mem.displayName})`);

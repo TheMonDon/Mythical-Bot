@@ -44,7 +44,7 @@ class Unban extends Command {
       });
       const embed = new EmbedBuilder()
         .setTitle('Member Unbanned')
-        .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
+        .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
         .setColor(successColor)
         .addFields([
           { name: 'User', value: unbanP.toString() },
@@ -58,7 +58,7 @@ class Unban extends Command {
         const em2 = new EmbedBuilder()
           .setTitle('User unbanned')
           .setColor(successColor)
-          .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
+          .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
           .setDescription('Full info posted in the log channel.');
 
         msg.guild.channels.cache.get(logChan).send({ embeds: [embed] });

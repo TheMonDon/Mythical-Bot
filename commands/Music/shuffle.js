@@ -30,7 +30,7 @@ class Shuffle extends Command {
 
     const em = new EmbedBuilder()
       .setColor(msg.settings.embedSuccessColor)
-      .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
+      .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
       .setDescription('The queue has been shuffled.');
 
     return msg.channel.send({ embeds: [em] });

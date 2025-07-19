@@ -22,7 +22,7 @@ class CleanLeaderboard extends Command {
     const color = msg.settings.embedColor;
 
     const em = new EmbedBuilder()
-      .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
+      .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
       .setColor('#FFA500')
       .setDescription('Please wait, this may take a while for bigger servers.');
     const message = await msg.channel.send({ embeds: [em] });

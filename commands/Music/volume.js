@@ -36,7 +36,7 @@ class Volume extends Command {
 
     const em = new EmbedBuilder()
       .setColor(msg.settings.embedSuccessColor)
-      .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
+      .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
       .setDescription(`The volume has been set to: ${volume}`);
 
     return msg.channel.send({ embeds: [em] });

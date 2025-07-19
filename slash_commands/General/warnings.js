@@ -21,11 +21,11 @@ exports.run = async (interaction) => {
   let mem;
 
   if (!user) {
-    mem = interaction.user;
+    mem = interaction.member;
   } else {
     mem = await interaction.client.util.getMember(interaction, user.id);
-    if (!mem) mem = interaction.user;
-    mem = level > 0 ? mem : interaction.user;
+    if (!mem) mem = interaction.member;
+    mem = level > 0 ? mem : interaction.member;
   }
 
   const otherWarns = await interaction.client.util.getWarns(mem.id, interaction);
@@ -50,5 +50,6 @@ exports.run = async (interaction) => {
     .setColor('#FFA500')
     .setTitle(`Total Warning Points: ${totalPoints}`)
     .setDescription(warns.length ? warns.join('\n') : 'This user is squeaky clean.');
+
   return interaction.editReply({ embeds: [em] });
 };

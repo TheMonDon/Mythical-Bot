@@ -29,7 +29,7 @@ class Deposit extends Command {
 
     const embed = new EmbedBuilder()
       .setColor(msg.settings.embedColor)
-      .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() });
+      .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() });
 
     let csCashAmount = currencySymbol + cash.toLocaleString();
     csCashAmount = this.client.util.limitStringLength(csCashAmount, 0, 1024);

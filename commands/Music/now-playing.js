@@ -48,7 +48,7 @@ class NowPlaying extends Command {
       .setColor(msg.settings.embedColor)
       .setThumbnail(song.info.artworkUrl)
       .setFooter({ text: `Repeat Mode: ${this.client.util.toProperCase(player.repeatMode)}` })
-      .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() });
+      .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() });
 
     return msg.channel.send({ embeds: [em] });
   }

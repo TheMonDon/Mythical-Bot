@@ -43,7 +43,7 @@ exports.run = async (interaction) => {
 
     const embed = new EmbedBuilder()
       .setTitle('Member Unbanned')
-      .setAuthor({ name: interaction.member.displayName, iconURL: interaction.user.displayAvatarURL() })
+      .setAuthor({ name: interaction.member.displayName, iconURL: interaction.member.displayAvatarURL() })
       .setColor(successColor)
       .addFields([
         { name: 'User', value: unbanP.toString() },
@@ -57,7 +57,7 @@ exports.run = async (interaction) => {
       const em2 = new EmbedBuilder()
         .setTitle('User unbanned')
         .setColor(successColor)
-        .setAuthor({ name: interaction.member.displayName, iconURL: interaction.user.displayAvatarURL() })
+        .setAuthor({ name: interaction.member.displayName, iconURL: interaction.member.displayAvatarURL() })
         .setDescription('Full info posted in the log channel.');
 
       interaction.guild.channels.cache.get(logChan).send({ embeds: [embed] });

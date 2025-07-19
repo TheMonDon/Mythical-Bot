@@ -91,7 +91,7 @@ class NewTicket extends Command {
     await db.set(`servers.${msg.guild.id}.tickets.${tixChan.id}.owner`, msg.author.id);
 
     const userEmbed = new EmbedBuilder()
-      .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
+      .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
       .setTitle(`${msg.member.displayName}'s Ticket`)
       .addFields([
         { name: 'Reason', value: reason },
@@ -105,7 +105,7 @@ class NewTicket extends Command {
     msg.delete();
 
     const logEmbed = new EmbedBuilder()
-      .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
+      .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
       .setTitle('New Ticket Created')
       .addFields([
         { name: 'Author', value: `${msg.author} (${msg.author.id})`, inline: false },
@@ -118,7 +118,7 @@ class NewTicket extends Command {
     await logChan.send({ embeds: [logEmbed] });
 
     const chanEmbed = new EmbedBuilder()
-      .setAuthor({ name: msg.member.displayName, iconURL: msg.author.displayAvatarURL() })
+      .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
       .setTitle(`${msg.member.displayName}'s Ticket`)
       .addFields([{ name: 'Reason', value: reason, inline: false }])
       .setDescription('Please wait patiently and our support team will be with you shortly.')
