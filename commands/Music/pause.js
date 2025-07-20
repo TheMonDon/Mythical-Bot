@@ -34,7 +34,7 @@ class Pause extends Command {
     const em = new EmbedBuilder()
       .setColor(msg.settings.embedSuccessColor)
       .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
-      .setDescription('Music has been paused.');
+      .setDescription('⏸️ Music has been paused.');
 
     return msg.channel.send({ embeds: [em] });
   }

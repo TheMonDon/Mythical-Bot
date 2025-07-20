@@ -116,7 +116,7 @@ class Reminders extends Command {
       const collector = message.createMessageComponentCollector({
         filter,
         componentType: ComponentType.Button,
-        time: 180000,
+        time: 2147483647,
       });
 
       collector.on('collect', async (interaction) => {

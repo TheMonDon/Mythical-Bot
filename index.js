@@ -1,4 +1,14 @@
-const { GatewayIntentBits, Collection, Client, EmbedBuilder, Partials } = require('discord.js');
+const {
+  GatewayIntentBits,
+  Collection,
+  Client,
+  EmbedBuilder,
+  Partials,
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  MessageFlags,
+} = require('discord.js');
 const { GiveawaysManager } = require('discord-giveaways');
 const { LavalinkManager } = require('lavalink-client');
 const { readdirSync, statSync } = require('fs');
@@ -388,17 +398,76 @@ const loadLavalink = async () => {
           }
         }
 
+        // Create the buttons
+        const row = new ActionRowBuilder().addComponents(
+          new ButtonBuilder().setCustomId('pause_resume_track').setLabel('⏯️').setStyle(ButtonStyle.Primary),
+          new ButtonBuilder()
+            .setCustomId('skip_track')
+            .setLabel('⏭️')
+            .setStyle(ButtonStyle.Primary)
+            .setDisabled(queueLength === 0),
+        );
+
         const msg =
           player.textChannelId &&
           (await client.channels.cache
             .get(player.textChannelId)
-            ?.send({ embeds: [em] })
+            ?.send({ embeds: [em], components: [row] })
             .catch(() => null));
 
         if (msg) {
           await db.set(`servers.${player.guildId}.music.lastTrack`, {
             id: msg.id,
             channelId: msg.channel.id,
+          });
+
+          const collector = msg.createMessageComponentCollector({
+            filter: (i) => i.guildId === msg.guildId,
+            time: 2147483647,
+          });
+
+          collector.on('collect', async (interaction) => {
+            if (interaction.member.voice?.channelId !== player.voiceChannelId) {
+              return interaction.reply({
+                content: 'You must be in the same voice channel as the bot to use these buttons.',
+                flags: MessageFlags.Ephemeral,
+              });
+            }
+
+            if (interaction.customId === 'pause_resume_track') {
+              await interaction.deferUpdate();
+
+              const em = new EmbedBuilder()
+                .setColor(client.getSettings(player.guildId).embedSuccessColor)
+                .setAuthor({ name: interaction.member.displayName, iconURL: interaction.member.displayAvatarURL() });
+
+              if (player.paused) {
+                player.resume();
+                em.setDescription('▶️ Music has been resumed.');
+              } else {
+                player.pause();
+                player.autoPaused = false;
+                em.setDescription('⏸️ Music has been paused.');
+              }
+
+              await interaction.followUp({ embeds: [em] }).catch(() => {});
+            } else if (interaction.customId === 'skip_track') {
+              await interaction.deferUpdate();
+
+              if (player.queue.tracks.length === 0) {
+                return interaction.followUp('There are no more tracks in the queue to skip to.');
+              }
+
+              const song = player.queue.current;
+              await player.skip();
+
+              const em = new EmbedBuilder()
+                .setColor(client.getSettings(player.guildId).embedSuccessColor)
+                .setAuthor({ name: interaction.member.displayName, iconURL: interaction.member.displayAvatarURL() });
+              if (song) em.addFields([{ name: 'Skipped Song', value: song.info.title, inline: false }]);
+
+              await interaction.followUp({ embeds: [em] }).catch(() => {});
+            }
           });
         }
       } catch (error) {
@@ -433,17 +502,6 @@ const loadLavalink = async () => {
         client.channels.cache
           .get(player.textChannelId)
           ?.send(`Track failed: ${error.exception?.message || error.message}`);
-
-      if (player.queue.tracks.length > 0) {
-        console.log('Waiting 5 seconds before skip...');
-        (await player.textChannelId) &&
-          client.channels.cache.get(player.textChannelId)?.send('Waiting 5 seconds before skipping the broken song.');
-        // eslint-disable-next-line promise/param-names
-        await new Promise((r) => setTimeout(r, 5000));
-        await player.skip().catch(() => {});
-      } else {
-        await player.destroy().catch(() => {});
-      }
     });
 
   // Handle raw Discord events for voice state updates
