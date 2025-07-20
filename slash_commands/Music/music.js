@@ -339,7 +339,7 @@ exports.run = async (interaction) => {
           const totalDuration = result.tracks.reduce((acc, track) => acc + (track.info.duration || 0), 0);
           const durationString = moment
             .duration(totalDuration)
-            .format('y[ years][,] M[ Months][,] d[ days][,] h[ hours][,] m[ minutes][, and] s[ seconds]');
+            .format('y[ years][,] M[ Months][,] d[ days][,] h[ hours][,] m[ minutes][ and] s[ seconds]');
 
           const em = new EmbedBuilder()
             .setTitle('✅ Playlist Added to Queue')
@@ -370,10 +370,10 @@ exports.run = async (interaction) => {
           }
           const timeLeft = moment
             .duration(calculateEstimatedTime)
-            .format('y[ years][,] M[ Months][,] d[ days][,] h[ hours][,] m[ minutes][, and] s[ seconds]');
+            .format('y[ years][,] M[ Months][,] d[ days][,] h[ hours][,] m[ minutes][ and] s[ seconds]');
           const durationString = moment
             .duration(result.tracks[0].info.duration || 0)
-            .format('y[ years][,] M[ Months][,] d[ days][,] h[ hours][,] m[ minutes][, and] s[ seconds]');
+            .format('y[ years][,] M[ Months][,] d[ days][,] h[ hours][,] m[ minutes][ and] s[ seconds]');
 
           const em = new EmbedBuilder()
             .setTitle('✅ Track Added to Queue')
@@ -549,7 +549,7 @@ exports.run = async (interaction) => {
 
       const timeLeft = moment
         .duration(totalMilliseconds)
-        .format('y[ years][,] M[ Months][,] d[ days][,] h[ hours][,] m[ minutes][, and] s[ seconds]');
+        .format('y[ years][,] M[ Months][,] d[ days][,] h[ hours][,] m[ minutes][ and] s[ seconds]');
 
       const embed = new EmbedBuilder()
         .setColor(interaction.settings.embedColor)
@@ -714,7 +714,7 @@ exports.run = async (interaction) => {
       const em = new EmbedBuilder()
         .setColor(interaction.settings.embedSuccessColor)
         .setAuthor({ name: interaction.member.displayName, iconURL: interaction.member.displayAvatarURL() });
-      if (song) em.addFields([{ name: 'Skipped Song', value: song.title, inline: false }]);
+      if (song) em.addFields([{ name: 'Skipped Song', value: song.info.title, inline: false }]);
 
       return interaction.editReply({ embeds: [em] });
     }
