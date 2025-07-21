@@ -186,7 +186,11 @@ exports.run = async (interaction) => {
 
       player.queue.tracks.splice(0);
 
-      const em = new EmbedBuilder().setDescription(':recycle: The music queue has been cleared!');
+      const em = new EmbedBuilder()
+        .setAuthor({ name: interaction.member.displayName, iconURL: interaction.member.displayAvatarURL() })
+        .setColor(interaction.settings.embedSuccessColor)
+        .setDescription(':recycle: The music queue has been cleared!');
+
       return interaction.editReply({ embeds: [em] });
     }
 
@@ -324,9 +328,9 @@ exports.run = async (interaction) => {
         const result = await player.search(
           {
             query,
-            source: 'ytsearch',
+            source: 'spsearch',
           },
-          interaction.author,
+          interaction.user,
         );
 
         if (!result || !result.tracks || result.tracks.length === 0) {
@@ -434,9 +438,9 @@ exports.run = async (interaction) => {
         const result = await player.search(
           {
             query,
-            source: 'ytsearch',
+            source: 'spsearch',
           },
-          interaction.author,
+          interaction.user,
         );
 
         if (!result || !result.tracks || result.tracks.length === 0) {

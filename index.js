@@ -12,7 +12,6 @@ const {
 const { GiveawaysManager } = require('discord-giveaways');
 const { LavalinkManager } = require('lavalink-client');
 const { readdirSync, statSync } = require('fs');
-const { stripIndents } = require('common-tags');
 const { QuickDB } = require('quick.db');
 const config = require('./config.js');
 require('moment-duration-format');
@@ -323,7 +322,7 @@ const loadLavalink = async () => {
     playerOptions: {
       applyVolumeAsFilter: false,
       clientBasedPositionUpdateInterval: 150,
-      defaultSearchPlatform: 'ytsearch',
+      defaultSearchPlatform: 'spsearch',
       volumeDecrementer: 0.75,
       onDisconnect: {
         autoReconnect: true,
@@ -357,31 +356,25 @@ const loadLavalink = async () => {
       try {
         if (player.repeatMode === 'track') return;
 
-        const queueLength = player.queue.tracks.length;
         const durationString = moment
           .duration(track.info.duration || 0)
-          .format('y[ years][,] M[ Months][,] d[ days][,] h[ hours][,] m[ minutes][, and] s[ seconds]');
+          .format('y[ years][,] M[ Months][,] d[ days][,] h[ hours][,] m[ minutes][ and] s[ seconds]');
 
         let title = track.info.title;
-        if (track.info.sourceName === 'spotify') {
-          title = `${track.info.author} - ${track.info.title}`;
+        if (track.info.sourceName === 'youtube') {
+          title = title.replace(/^.*?- */, '');
         }
 
-        const em = new EmbedBuilder()
-          .setTitle('🎵 Now Playing')
-          .setDescription(
-            stripIndents`**[${title}](${track.info.uri})**
-
-              **Duration:** ${durationString}
-              **Requested By:** <@${track.requester.id}>
-              **Tracks in Queue:** ${queueLength}`,
-          )
-          .setColor(client.getSettings(player.guildId).embedColor)
-          .setTimestamp();
-
-        if (track.info.artworkUrl) {
-          em.setThumbnail(track.info.artworkUrl);
-        }
+        const guild = client.guilds.cache.get(player.guildId);
+        const requester = guild.members.cache.get(track.requester.id).displayName;
+        const buffer = await client.util.generateTrackStartCard({
+          title,
+          artist: track.info.author,
+          thumbnailUrl: track.info.artworkUrl,
+          duration: durationString,
+          requestedBy: requester,
+          queueLength: player.queue.tracks.length,
+        });
 
         const oldmsg = (await db.get(`servers.${player.guildId}.music.lastTrack`)) || null;
         if (oldmsg !== null) {
@@ -400,19 +393,17 @@ const loadLavalink = async () => {
 
         // Create the buttons
         const row = new ActionRowBuilder().addComponents(
-          new ButtonBuilder().setCustomId('pause_resume_track').setLabel('⏯️').setStyle(ButtonStyle.Primary),
-          new ButtonBuilder()
-            .setCustomId('skip_track')
-            .setLabel('⏭️')
-            .setStyle(ButtonStyle.Primary)
-            .setDisabled(queueLength === 0),
+          new ButtonBuilder().setCustomId('stop_track').setLabel('🛑').setStyle(ButtonStyle.Secondary),
+          new ButtonBuilder().setCustomId('pause_resume_track').setLabel('⏯️').setStyle(ButtonStyle.Secondary),
+          new ButtonBuilder().setCustomId('skip_track').setLabel('⏭️').setStyle(ButtonStyle.Secondary),
+          new ButtonBuilder().setLabel('🎵 Listen here').setURL(track.info.uri).setStyle(ButtonStyle.Link),
         );
 
         const msg =
           player.textChannelId &&
           (await client.channels.cache
             .get(player.textChannelId)
-            ?.send({ embeds: [em], components: [row] })
+            ?.send({ files: [{ attachment: buffer, name: 'now-playing.png' }], components: [row] })
             .catch(() => null));
 
         if (msg) {
@@ -438,7 +429,7 @@ const loadLavalink = async () => {
               await interaction.deferUpdate();
 
               const em = new EmbedBuilder()
-                .setColor(client.getSettings(player.guildId).embedSuccessColor)
+                .setColor(client.getSettings(interaction.guild).embedSuccessColor)
                 .setAuthor({ name: interaction.member.displayName, iconURL: interaction.member.displayAvatarURL() });
 
               if (player.paused) {
@@ -454,17 +445,30 @@ const loadLavalink = async () => {
             } else if (interaction.customId === 'skip_track') {
               await interaction.deferUpdate();
 
-              if (player.queue.tracks.length === 0) {
-                return interaction.followUp('There are no more tracks in the queue to skip to.');
-              }
-
               const song = player.queue.current;
-              await player.skip();
 
               const em = new EmbedBuilder()
-                .setColor(client.getSettings(player.guildId).embedSuccessColor)
+                .setColor(client.getSettings(interaction.guild).embedSuccessColor)
                 .setAuthor({ name: interaction.member.displayName, iconURL: interaction.member.displayAvatarURL() });
+
+              if (player.queue.tracks.length === 0) {
+                await player.destroy();
+                em.setDescription('⏭️ Skipped to the next track, but the queue is now empty.');
+              } else {
+                await player.skip();
+              }
               if (song) em.addFields([{ name: 'Skipped Song', value: song.info.title, inline: false }]);
+
+              await interaction.followUp({ embeds: [em] }).catch(() => {});
+            } else if (interaction.customId === 'stop_track') {
+              await interaction.deferUpdate();
+
+              await player.destroy();
+
+              const em = new EmbedBuilder()
+                .setColor(client.getSettings(interaction.guild).embedSuccessColor)
+                .setAuthor({ name: interaction.member.displayName, iconURL: interaction.member.displayAvatarURL() })
+                .setDescription('🛑 All music has been stopped.');
 
               await interaction.followUp({ embeds: [em] }).catch(() => {});
             }
@@ -475,15 +479,14 @@ const loadLavalink = async () => {
       }
     })
     .on('queueEnd', (player) => {
+      const guild = client.guilds.cache.get(player.guildId);
       const em = new EmbedBuilder()
         .setTitle('⏹️ Queue Ended')
         .setDescription(
           '**Music has been stopped since the queue has no more tracks.**\n\n' +
-            `Use \`/music play\` or \`${
-              client.getSettings(player.guildId).prefix
-            }play\` to add more music to the queue!`,
+            `Use \`/music play\` or \`${client.getSettings(guild).prefix}play\` to add more music to the queue!`,
         )
-        .setColor(client.getSettings(player.guildId).embedColor)
+        .setColor(client.getSettings(guild).embedColor)
         .setTimestamp();
 
       player.textChannelId &&

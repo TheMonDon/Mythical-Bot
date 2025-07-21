@@ -22,7 +22,7 @@ class BotInfo extends Command {
     await this.client.guilds.cache.forEach((g) => g.available && g.members.fetch());
     const botUptime = moment
       .duration(this.client.uptime)
-      .format('y[ years][,] M[ months][,] d[ days][,] h[ hours][,] m[ minutes][, and] s[ seconds]');
+      .format('y[ years][,] M[ months][,] d[ days][,] h[ hours][,] m[ minutes][ and] s[ seconds]');
 
     const commands = await db.get('global.commands');
     const embed = new EmbedBuilder()

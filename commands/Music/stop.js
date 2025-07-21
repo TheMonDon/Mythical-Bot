@@ -31,7 +31,7 @@ class Stop extends Command {
     const em = new EmbedBuilder()
       .setColor(msg.settings.embedSuccessColor)
       .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
-      .setDescription('All music has been stopped.');
+      .setDescription('🛑 All music has been stopped.');
 
     return msg.channel.send({ embeds: [em] });
   }

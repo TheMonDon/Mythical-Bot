@@ -65,6 +65,7 @@
     "rgb-hex": "^3.0.0",
     "sherlockjs": "^1.4.0",
     "superagent": "^8.0.0",
+    "tinycolor2": "^1.6.0",
     "trev-reborn": "^1.2.0",
     "undici": "^5.28.5",
     "uuid": "^11.0.5",

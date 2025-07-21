@@ -19,8 +19,13 @@ const no = ['no', 'n', 'nah', 'nope', 'fuck off', 'nada', 'cancel', 'stop', 'nuh
 const botInvRegex = /(https?:\/\/)?(www\.|canary\.|ptb\.)?discord(app)?\.com\/(api\/)?oauth2\/authorize\?([^ ]+)\/?/gi;
 const inviteRegex = /(https?:\/\/)?(www\.|canary\.|ptb\.)?discord(\.gg|(app)?\.com\/invite|\.me)\/([^ ]+)\/?/gi;
 
+const { getColorFromURL } = require('color-thief-node');
 const { Message, EmbedBuilder } = require('discord.js');
+const { createCanvas, loadImage, registerFont } = require('canvas');
+const tinycolor = require('tinycolor2');
 const { QuickDB } = require('quick.db');
+const rgbHex = require('rgb-hex');
+const path = require('path');
 const db = new QuickDB();
 
 /**
@@ -394,6 +399,218 @@ function errorEmbed(context, desc = 'An error has occurred.', title = 'Error') {
   }
 }
 
+async function generateTrackStartCard({ title, artist, thumbnailUrl, duration, requestedBy, queueLength }) {
+  registerFont(path.join(__dirname, '../resources/fonts/seguiemj.ttf'), {
+    family: 'Segoe UI Emoji',
+  });
+
+  // ctx: your canvas context
+  // x, y: position of the thumbnail
+  // w, h: width and height of the thumbnail
+
+  async function drawRoundedThumbnail(ctx, imageUrl, x, y, w, h, radius = 20) {
+    const img = await loadImage(imageUrl);
+
+    // Save current context before clipping
+    ctx.save();
+
+    // Shadow for "floating" effect
+    ctx.shadowColor = 'rgba(0,0,0,0.25)';
+    ctx.shadowBlur = 15;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 6;
+
+    // Clip to rounded rectangle
+    ctx.beginPath();
+    roundedRect(ctx, x, y, w, h, radius);
+    ctx.clip();
+
+    // Draw the image inside clipped area
+    ctx.drawImage(img, x, y, w, h);
+
+    // Restore context to remove clipping and shadow for next draw
+    ctx.restore();
+  }
+
+  function roundedRect(ctx, x, y, width, height, radius) {
+    ctx.moveTo(x + radius, y);
+    ctx.lineTo(x + width - radius, y);
+    ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+    ctx.lineTo(x + width, y + height - radius);
+    ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+    ctx.lineTo(x + radius, y + height);
+    ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+    ctx.lineTo(x, y + radius);
+    ctx.quadraticCurveTo(x, y, x + radius, y);
+    ctx.closePath();
+  }
+
+  const width = 1200;
+  const height = 360;
+  const thumbnailSize = 300;
+  const canvas = createCanvas(width, height);
+  const ctx = canvas.getContext('2d');
+  ctx.textDrawingMode = 'glyph';
+
+  // Get dominant RGB color and convert to hex
+  const rgb = await getColorFromURL(thumbnailUrl);
+  const hex = `#${rgbHex(rgb[0], rgb[1], rgb[2])}`;
+  const dominantColor = tinycolor({ r: rgb[0], g: rgb[1], b: rgb[2] });
+
+  // Fill background with dominant color
+  const backgroundColor = tinycolor(hex).setAlpha(0.7).toRgbString();
+  ctx.fillStyle = backgroundColor;
+  ctx.fillRect(0, 0, width, height);
+
+  // OPTIONAL: Add slight overlay for readability
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+  ctx.fillRect(0, 0, width, height);
+
+  // Load and draw album art
+  const thumbnailY = (height - thumbnailSize) / 2; // centers vertically
+  await drawRoundedThumbnail(ctx, thumbnailUrl, 30, thumbnailY, thumbnailSize, thumbnailSize);
+
+  const paddingLeft = 350;
+  const top = 80;
+
+  function fitTextToWidth(ctx, text, maxWidth, initialSize = 48, minSize = 18, fontFamily = 'Segoe UI Emoji') {
+    let fontSize = initialSize;
+
+    do {
+      ctx.font = `${fontSize}px ${fontFamily}`;
+      const { width } = ctx.measureText(text);
+      if (width <= maxWidth || fontSize <= minSize) break;
+      fontSize--;
+    } while (fontSize > minSize);
+
+    return fontSize;
+  }
+
+  const padding = 50;
+  const textStartX = thumbnailSize + padding;
+  const maxTextWidth = width - textStartX - padding;
+
+  // Get a readable font color (white or black)
+  const titleFontColor = dominantColor.isLight() ? '#000000' : '#FFFFFF';
+  const artistFontColor = dominantColor.isLight() ? '#121212' : '#CCCCCC';
+  const otherFontColor = dominantColor.isLight() ? '#1a1a1a' : '#bbbbbb';
+
+  // Title
+  const dynamicFontSize = fitTextToWidth(ctx, title, maxTextWidth);
+  ctx.font = `${dynamicFontSize}px 'Segoe UI Emoji'`;
+  ctx.fillStyle = titleFontColor;
+  ctx.fillText(title, textStartX, 80);
+
+  // Artist
+  ctx.font = "36px 'Segoe UI Emoji'";
+  ctx.fillStyle = artistFontColor;
+  ctx.fillText(artist, paddingLeft, top + 50);
+
+  // Duration
+  ctx.font = "28px 'Segoe UI Emoji'";
+  ctx.fillStyle = otherFontColor;
+  ctx.fillText(`⏱️ Duration: ${duration}`, paddingLeft, top + 110);
+
+  // Requested By
+  ctx.fillText(`👤 Requested By: ${requestedBy}`, paddingLeft, top + 160);
+
+  // Tracks in Queue
+  ctx.fillText(`🎶 Tracks in Queue: ${queueLength}`, paddingLeft, top + 210);
+
+  return canvas.toBuffer('image/png');
+}
+
+/**
+ * Generates a Now Playing image card as a buffer
+ * @param {object} options
+ * @param {object} options.song - The song object from lavalink
+ * @param {number} options.position - Current playback position in ms
+ * @param {object} options.requester - Discord user who requested the song
+ * @param {string} options.repeatMode - Player repeat mode (None, Song, Queue, etc.)
+ * @param {string} options.username - The display name of the user running the command
+ * @param {string} options.avatarURL - The display avatar URL of the user
+ * @returns {Promise<Buffer>}
+ */
+async function generateNowPlayingCard({ song, position, requester, repeatMode, username, avatarURL }) {
+  registerFont(path.join(__dirname, '../resources/fonts/seguiemj.ttf'), {
+    family: 'Segoe UI Emoji',
+  });
+
+  const canvas = createCanvas(1200, 360);
+  const ctx = canvas.getContext('2d');
+
+  // Get dominant color
+  const rgb = await getColorFromURL(song.info.artworkUrl);
+  const dominantColor = `#${rgbHex(rgb.join(','))}`;
+  ctx.fillStyle = dominantColor;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Optional overlay for readability
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Draw artwork
+  const artwork = await loadImage(song.info.artworkUrl);
+  ctx.save();
+  ctx.beginPath();
+  ctx.roundRect(30, 30, 300, 300, 30);
+  ctx.clip();
+  ctx.drawImage(artwork, 30, 30, 300, 300);
+  ctx.restore();
+
+  // Determine text color
+  const textColor = tinycolor.mostReadable(dominantColor, ['#ffffff', '#000000']).toHexString();
+  ctx.fillStyle = textColor;
+
+  // Title
+  let title = song.info.title;
+  if (song.info.sourceName === 'youtube') {
+    title = title.replace(/^.*?- */, '');
+  }
+
+  ctx.font = "bold 48px 'Segoe UI Emoji'";
+  ctx.fillText(title, 360, 80);
+
+  // Author
+  ctx.font = "36px 'Segoe UI Emoji'";
+  ctx.fillText(song.info.author, 360, 130);
+
+  // Progress Bar
+  const duration = song.info.duration;
+  const progress = Math.round((position / duration) * 20);
+  const bar = '▬'.repeat(progress) + '🔘' + '▬'.repeat(20 - progress);
+
+  ctx.font = "32px 'Segoe UI Emoji'";
+  ctx.fillText(bar, 360, 200);
+
+  const formatTime = (ms) => {
+    const m = Math.floor(ms / 60000);
+    const s = Math.floor((ms % 60000) / 1000);
+    return `${m}:${s.toString().padStart(2, '0')}`;
+  };
+
+  ctx.font = '28px Arial';
+  ctx.fillText(`${formatTime(position)} / ${formatTime(duration)}`, 360, 240);
+
+  // Requested by
+  ctx.font = '28px Arial';
+  ctx.fillText(`Requested By: ${requester.tag}`, 360, 290);
+
+  // Repeat mode
+  ctx.font = '24px Arial';
+  ctx.fillText(`Repeat Mode: ${repeatMode}`, 360, 330);
+
+  // Avatar
+  const avatar = await loadImage(avatarURL);
+  ctx.beginPath();
+  ctx.arc(1140, 60, 40, 0, Math.PI * 2);
+  ctx.closePath();
+  ctx.clip();
+  ctx.drawImage(avatar, 1100, 20, 80, 80);
+
+  return canvas.toBuffer();
+}
+
 module.exports = {
   yes,
   no,
@@ -417,4 +634,6 @@ module.exports = {
   getTickets,
   awaitReply,
   errorEmbed,
+  generateTrackStartCard,
+  generateNowPlayingCard,
 };

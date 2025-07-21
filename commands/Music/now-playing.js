@@ -22,6 +22,19 @@ class NowPlaying extends Command {
       return this.client.util.errorEmbed(msg, 'There is nothing playing.');
     }
 
+
+
+    const requester = msg.guild.members.cache.get(song.requester.id);
+    const buffer = await this.client.util.generateNowPlayingCard({
+      song,
+      position: player.position,
+      requester: requester.displayName,
+      repeatMode: this.client.util.toProperCase(player.repeatMode),
+      username: msg.member.displayName,
+      avatarURL: requester.displayAvatarURL({ extension: 'png', size: 128 }),
+    });
+
+    await msg.channel.send({ files: [{ attachment: buffer, name: 'nowplaying.png' }] });
     // Create a simple progress bar
     const position = player.position;
     const duration = song.info.duration;

@@ -17,7 +17,7 @@ export async function run(client, oldState, newState) {
     if (nonBotMembers.size === 0 && !player.paused) {
       // Start 10s timeout to pause
       const timeout = setTimeout(async () => {
-        if (!player.playing && !player.queue.track.length) return;
+        if (!player.playing && !player.queue.tracks?.length) return;
 
         const updatedMembers = botVoiceChannel.members.filter((m) => !m.user.bot);
 
