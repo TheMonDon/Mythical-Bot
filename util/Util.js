@@ -24,7 +24,6 @@ const { Message, EmbedBuilder } = require('discord.js');
 const { createCanvas, loadImage, registerFont } = require('canvas');
 const tinycolor = require('tinycolor2');
 const { QuickDB } = require('quick.db');
-const rgbHex = require('rgb-hex');
 const path = require('path');
 const db = new QuickDB();
 
@@ -399,7 +398,15 @@ function errorEmbed(context, desc = 'An error has occurred.', title = 'Error') {
   }
 }
 
-async function generateTrackStartCard({ title, artist, thumbnailUrl, duration, requestedBy, queueLength }) {
+async function generateTrackStartCard({
+  title,
+  artist,
+  thumbnailUrl,
+  duration,
+  requestedBy,
+  queueLength,
+  requesterAvatarUrl,
+}) {
   registerFont(path.join(__dirname, '../resources/fonts/seguiemj.ttf'), {
     family: 'Segoe UI Emoji',
   });
@@ -452,19 +459,32 @@ async function generateTrackStartCard({ title, artist, thumbnailUrl, duration, r
   const ctx = canvas.getContext('2d');
   ctx.textDrawingMode = 'glyph';
 
-  // Get dominant RGB color and convert to hex
-  const rgb = await getColorFromURL(thumbnailUrl);
-  const hex = `#${rgbHex(rgb[0], rgb[1], rgb[2])}`;
-  const dominantColor = tinycolor({ r: rgb[0], g: rgb[1], b: rgb[2] });
+  const rgbColors = await getColorFromURL(thumbnailUrl);
+  const primaryColor = tinycolor({ r: rgbColors[0], g: rgbColors[1], b: rgbColors[2] });
 
-  // Fill background with dominant color
-  const backgroundColor = tinycolor(hex).setAlpha(0.7).toRgbString();
-  ctx.fillStyle = backgroundColor;
+  const secondaryColor = primaryColor.clone().spin(30).lighten(10);
+
+  const gradient = ctx.createLinearGradient(0, 0, width, height);
+  const color1 = primaryColor.clone().setAlpha(0.7).toRgbString();
+  const color2 = secondaryColor.clone().setAlpha(0.5).toRgbString();
+  const color3 = primaryColor.clone().lighten(15).setAlpha(0.4).toRgbString();
+
+  gradient.addColorStop(0, color1);
+  gradient.addColorStop(0.6, color2);
+  gradient.addColorStop(1, color3);
+
+  ctx.fillStyle = gradient;
   ctx.fillRect(0, 0, width, height);
 
-  // OPTIONAL: Add slight overlay for readability
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+  const glassGradient = ctx.createLinearGradient(0, 0, 0, height);
+  glassGradient.addColorStop(0, 'rgba(255, 255, 255, 0.1)');
+  glassGradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.05)');
+  glassGradient.addColorStop(1, 'rgba(0, 0, 0, 0.15)');
+
+  ctx.fillStyle = glassGradient;
   ctx.fillRect(0, 0, width, height);
+
+  const dominantColor = primaryColor;
 
   // Load and draw album art
   const thumbnailY = (height - thumbnailSize) / 2; // centers vertically
@@ -512,103 +532,40 @@ async function generateTrackStartCard({ title, artist, thumbnailUrl, duration, r
   ctx.fillText(`⏱️ Duration: ${duration}`, paddingLeft, top + 110);
 
   // Requested By
-  ctx.fillText(`👤 Requested By: ${requestedBy}`, paddingLeft, top + 160);
+  const textBefore = '👤 Requested By:';
+  const avatarSize = 32;
+
+  // Measure width of the textBefore so we can place the avatar right after it
+  ctx.font = '28px Arial'; // Use your actual font here
+  const textBeforeWidth = ctx.measureText(textBefore).width;
+
+  const textY = top + 160;
+  const avatarX = paddingLeft + textBeforeWidth + 10; // 10px padding after the text
+  const avatarY = textY - avatarSize + 6; // Align avatar vertically with text
+
+  // Draw the initial text
+  ctx.fillText(textBefore, paddingLeft, textY);
+
+  // Load and draw the avatar
+  const avatar = await loadImage(requesterAvatarUrl);
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(avatarX + avatarSize / 2, avatarY + avatarSize / 2, avatarSize / 2, 0, Math.PI * 2);
+  ctx.closePath();
+  ctx.clip();
+  ctx.drawImage(avatar, avatarX, avatarY, avatarSize, avatarSize);
+  ctx.restore();
+
+  // Draw the requester's name after the avatar
+  const requesterNameX = avatarX + avatarSize + 10; // Space after avatar
+  ctx.fillText(requestedBy, requesterNameX, textY);
+
+  // ctx.fillText(`👤 Requested By: ${requestedBy}`, paddingLeft, top + 160);
 
   // Tracks in Queue
   ctx.fillText(`🎶 Tracks in Queue: ${queueLength}`, paddingLeft, top + 210);
 
   return canvas.toBuffer('image/png');
-}
-
-/**
- * Generates a Now Playing image card as a buffer
- * @param {object} options
- * @param {object} options.song - The song object from lavalink
- * @param {number} options.position - Current playback position in ms
- * @param {object} options.requester - Discord user who requested the song
- * @param {string} options.repeatMode - Player repeat mode (None, Song, Queue, etc.)
- * @param {string} options.username - The display name of the user running the command
- * @param {string} options.avatarURL - The display avatar URL of the user
- * @returns {Promise<Buffer>}
- */
-async function generateNowPlayingCard({ song, position, requester, repeatMode, username, avatarURL }) {
-  registerFont(path.join(__dirname, '../resources/fonts/seguiemj.ttf'), {
-    family: 'Segoe UI Emoji',
-  });
-
-  const canvas = createCanvas(1200, 360);
-  const ctx = canvas.getContext('2d');
-
-  // Get dominant color
-  const rgb = await getColorFromURL(song.info.artworkUrl);
-  const dominantColor = `#${rgbHex(rgb.join(','))}`;
-  ctx.fillStyle = dominantColor;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  // Optional overlay for readability
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  // Draw artwork
-  const artwork = await loadImage(song.info.artworkUrl);
-  ctx.save();
-  ctx.beginPath();
-  ctx.roundRect(30, 30, 300, 300, 30);
-  ctx.clip();
-  ctx.drawImage(artwork, 30, 30, 300, 300);
-  ctx.restore();
-
-  // Determine text color
-  const textColor = tinycolor.mostReadable(dominantColor, ['#ffffff', '#000000']).toHexString();
-  ctx.fillStyle = textColor;
-
-  // Title
-  let title = song.info.title;
-  if (song.info.sourceName === 'youtube') {
-    title = title.replace(/^.*?- */, '');
-  }
-
-  ctx.font = "bold 48px 'Segoe UI Emoji'";
-  ctx.fillText(title, 360, 80);
-
-  // Author
-  ctx.font = "36px 'Segoe UI Emoji'";
-  ctx.fillText(song.info.author, 360, 130);
-
-  // Progress Bar
-  const duration = song.info.duration;
-  const progress = Math.round((position / duration) * 20);
-  const bar = '▬'.repeat(progress) + '🔘' + '▬'.repeat(20 - progress);
-
-  ctx.font = "32px 'Segoe UI Emoji'";
-  ctx.fillText(bar, 360, 200);
-
-  const formatTime = (ms) => {
-    const m = Math.floor(ms / 60000);
-    const s = Math.floor((ms % 60000) / 1000);
-    return `${m}:${s.toString().padStart(2, '0')}`;
-  };
-
-  ctx.font = '28px Arial';
-  ctx.fillText(`${formatTime(position)} / ${formatTime(duration)}`, 360, 240);
-
-  // Requested by
-  ctx.font = '28px Arial';
-  ctx.fillText(`Requested By: ${requester.tag}`, 360, 290);
-
-  // Repeat mode
-  ctx.font = '24px Arial';
-  ctx.fillText(`Repeat Mode: ${repeatMode}`, 360, 330);
-
-  // Avatar
-  const avatar = await loadImage(avatarURL);
-  ctx.beginPath();
-  ctx.arc(1140, 60, 40, 0, Math.PI * 2);
-  ctx.closePath();
-  ctx.clip();
-  ctx.drawImage(avatar, 1100, 20, 80, 80);
-
-  return canvas.toBuffer();
 }
 
 module.exports = {
@@ -635,5 +592,4 @@ module.exports = {
   awaitReply,
   errorEmbed,
   generateTrackStartCard,
-  generateNowPlayingCard,
 };

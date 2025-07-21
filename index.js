@@ -366,14 +366,15 @@ const loadLavalink = async () => {
         }
 
         const guild = client.guilds.cache.get(player.guildId);
-        const requester = guild.members.cache.get(track.requester.id).displayName;
+        const requester = guild.members.cache.get(track.requester.id);
         const buffer = await client.util.generateTrackStartCard({
           title,
           artist: track.info.author,
           thumbnailUrl: track.info.artworkUrl,
           duration: durationString,
-          requestedBy: requester,
+          requestedBy: requester.displayName,
           queueLength: player.queue.tracks.length,
+          requesterAvatarUrl: requester.displayAvatarURL({ extension: 'png', size: 128 }),
         });
 
         const oldmsg = (await db.get(`servers.${player.guildId}.music.lastTrack`)) || null;
