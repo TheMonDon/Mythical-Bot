@@ -517,7 +517,7 @@ async function generateTrackStartCard({
 
   // Title
   const dynamicFontSize = fitTextToWidth(ctx, title, maxTextWidth);
-  ctx.font = `${dynamicFontSize}px 'Segoe UI Emoji'`;
+  ctx.font = `bold ${dynamicFontSize}px 'Segoe UI Emoji'`;
   ctx.fillStyle = titleFontColor;
   ctx.fillText(title, textStartX, 80);
 
