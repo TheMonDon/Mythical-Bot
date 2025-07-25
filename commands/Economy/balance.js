@@ -32,7 +32,10 @@ class Balance extends Command {
       mem = mem.user ? mem.user : mem;
     }
 
-    const embed = new EmbedBuilder().setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() });
+    const embed = new EmbedBuilder().setAuthor({
+      name: msg.member.displayName,
+      iconURL: msg.member.displayAvatarURL(),
+    });
 
     if (!mem) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Member');
 
