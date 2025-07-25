@@ -18,7 +18,10 @@ class Withdraw extends Command {
 
   async run(msg, args) {
     let amount = args.join(' ');
-    const embed = new EmbedBuilder().setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() });
+    const embed = new EmbedBuilder().setAuthor({
+      name: msg.member.displayName,
+      iconURL: msg.member.displayAvatarURL(),
+    });
 
     const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
     const bank = BigInt((await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`)) || 0);

@@ -56,7 +56,7 @@ class Play extends Command {
       const result = await player.search(
         {
           query,
-          source: 'ytsearch',
+          source: 'spsearch',
         },
         msg.author,
       );
@@ -71,7 +71,7 @@ class Play extends Command {
         const totalDuration = result.tracks.reduce((acc, track) => acc + (track.info.duration || 0), 0);
         const durationString = moment
           .duration(totalDuration)
-          .format('y[ years][,] M[ Months][,] d[ days][,] h[ hours][,] m[ minutes][, and] s[ seconds]');
+          .format('y[ years][,] M[ Months][,] d[ days][,] h[ hours][,] m[ minutes][ and] s[ seconds]');
 
         const em = new EmbedBuilder()
           .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
@@ -103,10 +103,10 @@ class Play extends Command {
         }
         const timeLeft = moment
           .duration(calculateEstimatedTime)
-          .format('y[ years][,] M[ Months][,] d[ days][,] h[ hours][,] m[ minutes][, and] s[ seconds]');
+          .format('y[ years][,] M[ Months][,] d[ days][,] h[ hours][,] m[ minutes][ and] s[ seconds]');
         const durationString = moment
           .duration(result.tracks[0].info.duration || 0)
-          .format('y[ years][,] M[ Months][,] d[ days][,] h[ hours][,] m[ minutes][, and] s[ seconds]');
+          .format('y[ years][,] M[ Months][,] d[ days][,] h[ hours][,] m[ minutes][ and] s[ seconds]');
 
         const em = new EmbedBuilder()
           .setTitle('✅ Track Added to Queue')

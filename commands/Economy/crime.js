@@ -37,7 +37,7 @@ class Crime extends Command {
       } else {
         const timeLeft = moment
           .duration(timeleft)
-          .format('y[ years][,] M[ Months][,] d[ days][,] h[ hours][,] m[ minutes][, and] s[ seconds]'); // format to any format
+          .format('y[ years][,] M[ Months][,] d[ days][,] h[ hours][,] m[ minutes][ and] s[ seconds]'); // format to any format
         embed.setDescription(`You cannot commit a crime for ${timeLeft}`);
         return msg.channel.send({ embeds: [embed] });
       }

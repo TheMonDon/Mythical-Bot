@@ -53,7 +53,7 @@ class PlayNext extends Command {
       const result = await player.search(
         {
           query,
-          source: 'ytsearch',
+          source: 'spsearch',
         },
         msg.author,
       );

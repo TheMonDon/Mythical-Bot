@@ -1,6 +1,4 @@
 const Command = require('../../base/Command.js');
-const { EmbedBuilder } = require('discord.js');
-const { stripIndents } = require('common-tags');
 
 class NowPlaying extends Command {
   constructor(client) {
@@ -22,35 +20,10 @@ class NowPlaying extends Command {
       return this.client.util.errorEmbed(msg, 'There is nothing playing.');
     }
 
-    // Create a simple progress bar
-    const position = player.position;
-    const duration = song.info.duration;
-    const progress = Math.round((position / duration) * 20);
-    const progressBar = '▬'.repeat(progress) + '🔘' + '▬'.repeat(20 - progress);
+    const requester = msg.guild.members.cache.get(song.requester.id);
+    const buffer = await this.client.util.generateNowPlayingCard({ player, song, requester });
 
-    // Format time
-    const formatTime = (ms) => {
-      const minutes = Math.floor(ms / 60000);
-      const seconds = Math.floor((ms % 60000) / 1000);
-      return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-    };
-
-    const em = new EmbedBuilder()
-      .setDescription(
-        stripIndents`
-          Currently ${player.playing ? 'Playing' : 'Paused'} ♪: [${song.info.title}](${song.info.uri})
-
-          ${progressBar} [${formatTime(position)}/${formatTime(duration)}]
-
-          Requested By: ${this.client.users.cache.get(song.requester.id)}
-      `,
-      )
-      .setColor(msg.settings.embedColor)
-      .setThumbnail(song.info.artworkUrl)
-      .setFooter({ text: `Repeat Mode: ${this.client.util.toProperCase(player.repeatMode)}` })
-      .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() });
-
-    return msg.channel.send({ embeds: [em] });
+    return msg.channel.send({ files: [{ attachment: buffer, name: 'now-playing.png' }] });
   }
 }
 

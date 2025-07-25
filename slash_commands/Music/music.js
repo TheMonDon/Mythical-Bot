@@ -184,9 +184,13 @@ exports.run = async (interaction) => {
         return interaction.client.util.errorEmbed(interaction, 'There is nothing in the queue.');
       }
 
-      player.queue.tracks.splice(0);
+      await player.queue.tracks.splice(0);
 
-      const em = new EmbedBuilder().setDescription(':recycle: The music queue has been cleared!');
+      const em = new EmbedBuilder()
+        .setAuthor({ name: interaction.member.displayName, iconURL: interaction.member.displayAvatarURL() })
+        .setColor(interaction.settings.embedSuccessColor)
+        .setDescription(':recycle: The music queue has been cleared!');
+
       return interaction.editReply({ embeds: [em] });
     }
 
@@ -239,35 +243,10 @@ exports.run = async (interaction) => {
         return interaction.client.util.errorEmbed(interaction, 'There is nothing playing.');
       }
 
-      // Create a simple progress bar
-      const position = player.position;
-      const duration = song.info.duration;
-      const progress = Math.round((position / duration) * 20);
-      const progressBar = '▬'.repeat(progress) + '🔘' + '▬'.repeat(20 - progress);
+      const requester = interaction.guild.members.cache.get(song.requester.id);
+      const buffer = await interaction.client.util.generateNowPlayingCard({ player, song, requester });
 
-      // Format time
-      const formatTime = (ms) => {
-        const minutes = Math.floor(ms / 60000);
-        const seconds = Math.floor((ms % 60000) / 1000);
-        return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-      };
-
-      const em = new EmbedBuilder()
-        .setDescription(
-          stripIndents`
-            Currently ${player.playing ? 'Playing' : 'Paused'} ♪: [${song.info.title}](${song.info.uri})
-  
-            ${progressBar} [${formatTime(position)}/${formatTime(duration)}]
-  
-            Requested By: ${this.client.users.cache.get(song.requester.id)}
-        `,
-        )
-        .setColor(interaction.settings.embedColor)
-        .setThumbnail(song.info.artworkUrl)
-        .setFooter({ text: `Repeat Mode: ${interaction.client.util.toProperCase(player.repeatMode)}` })
-        .setAuthor({ name: interaction.member.displayName, iconURL: interaction.member.displayAvatarURL() });
-
-      return interaction.editReply({ embeds: [em] });
+      return interaction.editReply({ files: [{ attachment: buffer, name: 'now-playing.png' }] });
     }
 
     case 'pause': {
@@ -324,9 +303,9 @@ exports.run = async (interaction) => {
         const result = await player.search(
           {
             query,
-            source: 'ytsearch',
+            source: 'spsearch',
           },
-          interaction.author,
+          interaction.user,
         );
 
         if (!result || !result.tracks || result.tracks.length === 0) {
@@ -434,9 +413,9 @@ exports.run = async (interaction) => {
         const result = await player.search(
           {
             query,
-            source: 'ytsearch',
+            source: 'spsearch',
           },
-          interaction.author,
+          interaction.user,
         );
 
         if (!result || !result.tracks || result.tracks.length === 0) {

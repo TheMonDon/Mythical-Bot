@@ -53,7 +53,7 @@ class Queue extends Command {
 
     const timeLeft = moment
       .duration(totalMilliseconds)
-      .format('y[ years][,] M[ Months][,] d[ days][,] h[ hours][,] m[ minutes][, and] s[ seconds]');
+      .format('y[ years][,] M[ Months][,] d[ days][,] h[ hours][,] m[ minutes][ and] s[ seconds]');
 
     const embed = new EmbedBuilder()
       .setColor(msg.settings.embedColor)

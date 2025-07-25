@@ -28,7 +28,11 @@ class ClearQueue extends Command {
 
     player.queue.tracks.splice(0);
 
-    const em = new EmbedBuilder().setDescription(':recycle: The music queue has been cleared!');
+    const em = new EmbedBuilder()
+      .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
+      .setColor(msg.settings.embedSuccessColor)
+      .setDescription(':recycle: The music queue has been cleared!');
+
     return msg.channel.send({ embeds: [em] });
   }
 }
