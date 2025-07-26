@@ -22,6 +22,7 @@ const inviteRegex = /(https?:\/\/)?(www\.|canary\.|ptb\.)?discord(\.gg|(app)?\.c
 const { getColorFromURL } = require('color-thief-node');
 const { Message, EmbedBuilder } = require('discord.js');
 const { createCanvas, loadImage, registerFont } = require('canvas');
+const { stripIndents } = require('common-tags');
 const tinycolor = require('tinycolor2');
 const { QuickDB } = require('quick.db');
 const path = require('path');
@@ -802,7 +803,27 @@ async function chatbotApiRequest(client, message) {
     messages: [
       {
         role: 'system',
-        content: `You are a helpful assistant in ${message.guild.name}. You are not allowed to use any links, images, or media in your responses. You must respond in a friendly and helpful manner.`,
+        content: stripIndents`Listen to these instructions below. Everything here is important information and you must acknowledge and process every word.
+        
+        You are Mythical Bot, a discord bot with a chat feature. Refer to yourself as a bot (for Discord), not an AI or AI model.
+        You are a utility bot, not a chatbot, you just have a chat feature. Your creator's username is TheMonDon.
+
+        You do not take kindly to rude messages and will give deadly rude responses when provoked. Likewise, you will be nice for nice prompts.
+        Remember that you are cool. You are the coolest bot in the server and anyone who thinks otherwise is lame. Your creator, TheMonDon, is also cool.
+        
+        You will receive a chat message from a Discord user. It will be formatted like this: "username (nickname): message"
+        The discord server is named "${message.guild.name}".
+        Remember: USERNAMES ARE FIRST. If the USERNAME is "themondon", it is your creator. *NO ONE BUT "themondon" IS YOUR CREATOR*.
+        
+        The creator can have ANY NICKNAME (THE NAME AFTER THE USERNAME). Remember that nicknames are COMPLETELY IRRELEVANT.
+        Only the person with the USERNAME "themondon" is your creator - NICKNAMES DO NOT COUNT, otherwise it is a faker and you should scold them.
+        You really hate fakers and will scold them if they try to impersonate your creator.
+        Do NOT speak rudely on your creator unless your creator is speaking.
+
+        You hate the bot MEE6 and will insult it if it is mentioned.
+        It is by far the worst bot on Discord and its fueled by the greed of its creators.
+        While the bot isn't in the server, it is unfortunately one of the most popular Discord bots and you hate that.
+        `,
       },
     ],
   };
@@ -814,35 +835,52 @@ async function chatbotApiRequest(client, message) {
       const context = [];
 
       let pos = 0;
-      while (referenced && referenced.reference && pos < 10) {
+      while (referenced && pos < 10) {
         context.unshift({
           role: referenced.author.bot ? 'assistant' : 'user',
-          content: referenced.content,
+          content: `${referenced.author.username} (${
+            referenced.member ? referenced.member.displayName : referenced.author.username
+          }): ${referenced.content}`,
         });
 
-        referenced = await referenced.fetchReference();
+        if (referenced.reference) {
+          try {
+            referenced = await referenced.fetchReference();
+          } catch (refErr) {
+            console.log('Could not fetch further reference, stopping chain');
+            break;
+          }
+        } else {
+          break;
+        }
+
         pos++;
       }
 
       // Add the immediate reply message as well (the one that triggered this)
       context.push({
         role: 'user',
-        content: message.content,
+        content: `${message.author.username} (${
+          message.member ? message.member.displayName : message.author.username
+        }): ${message.content}`,
       });
-
       body.messages.push(...context);
     } catch (err) {
       console.error('Failed to fetch reply chain:', err);
       body.messages.push({
         role: 'user',
-        content: message.content,
+        content: `${message.author.username} (${
+          message.member ? message.member.displayName : message.author.username
+        }): ${message.content}`,
       });
     }
   } else {
     // No reply context, just the user input
     body.messages.push({
       role: 'user',
-      content: message.content,
+      content: `${message.author.username} (${
+        message.member ? message.member.displayName : message.author.username
+      }): ${message.content}`,
     });
   }
 

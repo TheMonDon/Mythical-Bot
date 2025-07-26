@@ -45,6 +45,27 @@ async function handleEconomyEvent(message) {
   }, cooldown * 1000);
 }
 
+async function handleChatbot(client, message) {
+  try {
+    // Check if bot is mentioned anywhere in the message or if it's a reply to the bot with mention
+    const shouldTriggerChatbot =
+      message.mentions.has(client.user) || (message.reference && message.mentions.has(client.user));
+
+    if (shouldTriggerChatbot) {
+      const chatbotResponse = await client.util.chatbotApiRequest(client, message);
+      if (chatbotResponse) {
+        const reply = chatbotResponse.choices[0].message.content;
+        await message.reply({
+          content: reply,
+          allowedMentions: { repliedUser: false },
+        });
+      }
+    }
+  } catch (err) {
+    console.error('Chatbot error:', err);
+  }
+}
+
 export async function run(client, message) {
   if (message.author.bot) return;
   if (!(await hasPermissionToSendMessage(client, message))) return;
@@ -54,24 +75,23 @@ export async function run(client, message) {
   let prefix = settings.prefix;
 
   const prefixMention = new RegExp(`^(<@!?${client.user.id}>)(\\s+)?`);
+  let isCommand = false;
+
   if (message.guild && message.content.match(prefixMention)) {
     prefix = String(message.guild.members.me);
-  } else if (message.content.indexOf(settings.prefix) !== 0) {
+    isCommand = true;
+  } else if (message.content.indexOf(settings.prefix) === 0) {
+    isCommand = true;
+  }
+
+  // Handle chatbot before economy event if not a command
+  if (!isCommand) {
+    await handleChatbot(client, message);
     await handleEconomyEvent(message);
-    const chatbotResponse = await client.util.chatbotApiRequest(client, message);
-    if (chatbotResponse) {
-      const reply = chatbotResponse.choices[0].message.content;
-      message.channel.send(reply);
-    }
     return;
   }
 
-  const chatbotResponse = await client.util.chatbotApiRequest(client, message);
-  if (chatbotResponse) {
-    const reply = chatbotResponse.choices[0].message.content;
-    message.channel.send(reply);
-  }
-
+  // Command handling
   const args = message.content.slice(prefix.length).trim().split(/\s+/g);
   const commandName = args.shift().toLowerCase();
   if (!commandName && prefix === String(message.guild?.me)) {
@@ -82,7 +102,12 @@ export async function run(client, message) {
 
   const level = await client.permlevel(message);
   const command = client.commands.get(commandName) || client.commands.get(client.aliases.get(commandName));
-  if (!command) return;
+
+  // If no command found but bot was mentioned, handle chatbot
+  if (!command) {
+    await handleChatbot(client, message);
+    return;
+  }
 
   if (message.guild) {
     const isBlacklisted = await db.get(`servers.${message.guild.id}.users.${message.author.id}.blacklist`);
