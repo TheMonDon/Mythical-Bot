@@ -790,6 +790,73 @@ async function generateNowPlayingCard({ player, song, requester }) {
   return buffer;
 }
 
+async function chatbotApiRequest(client, message) {
+  if (!message.guild) return;
+  if (!client.config.chatbotServerIds.includes(message.guild.id)) return;
+  if (!client.config.chatbotApi) return;
+  if (!message.mentions.has(client.user)) return;
+
+  await message.channel.sendTyping();
+
+  const body = {
+    messages: [
+      {
+        role: 'system',
+        content: `You are a helpful assistant in ${message.guild.name}. You are not allowed to use any links, images, or media in your responses. You must respond in a friendly and helpful manner.`,
+      },
+    ],
+  };
+
+  if (message.reference) {
+    try {
+      // Start with the message this one is replying to
+      let referenced = await message.fetchReference();
+      const context = [];
+
+      let pos = 0;
+      while (referenced && referenced.reference && pos < 10) {
+        context.unshift({
+          role: referenced.author.bot ? 'assistant' : 'user',
+          content: referenced.content,
+        });
+
+        referenced = await referenced.fetchReference();
+        pos++;
+      }
+
+      // Add the immediate reply message as well (the one that triggered this)
+      context.push({
+        role: 'user',
+        content: message.content,
+      });
+
+      body.messages.push(...context);
+    } catch (err) {
+      console.error('Failed to fetch reply chain:', err);
+      body.messages.push({
+        role: 'user',
+        content: message.content,
+      });
+    }
+  } else {
+    // No reply context, just the user input
+    body.messages.push({
+      role: 'user',
+      content: message.content,
+    });
+  }
+
+  const response = await fetch(client.config.chatbotApi, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  });
+
+  return response.json();
+}
+
 module.exports = {
   yes,
   no,
@@ -815,4 +882,5 @@ module.exports = {
   errorEmbed,
   generateTrackStartCard,
   generateNowPlayingCard,
+  chatbotApiRequest,
 };

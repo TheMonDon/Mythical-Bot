@@ -11,7 +11,7 @@ async function hasPermissionToSendMessage(client, message) {
   return message.channel.permissionsFor(client.user.id).has('SendMessages');
 }
 
-async function handleEconomyEvent(message, settings) {
+async function handleEconomyEvent(message) {
   if (message.channel.type === ChannelType.DM) return;
   if (!message.guild) return;
 
@@ -57,8 +57,19 @@ export async function run(client, message) {
   if (message.guild && message.content.match(prefixMention)) {
     prefix = String(message.guild.members.me);
   } else if (message.content.indexOf(settings.prefix) !== 0) {
-    await handleEconomyEvent(message, settings);
+    await handleEconomyEvent(message);
+    const chatbotResponse = await client.util.chatbotApiRequest(client, message);
+    if (chatbotResponse) {
+      const reply = chatbotResponse.choices[0].message.content;
+      message.channel.send(reply);
+    }
     return;
+  }
+
+  const chatbotResponse = await client.util.chatbotApiRequest(client, message);
+  if (chatbotResponse) {
+    const reply = chatbotResponse.choices[0].message.content;
+    message.channel.send(reply);
   }
 
   const args = message.content.slice(prefix.length).trim().split(/\s+/g);
