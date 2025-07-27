@@ -47,20 +47,14 @@ async function handleEconomyEvent(message) {
 
 async function handleChatbot(client, message) {
   try {
-    // Check if bot is mentioned anywhere in the message or if it's a reply to the bot with mention
-    const shouldTriggerChatbot =
-      message.mentions.has(client.user) || (message.reference && message.mentions.has(client.user));
-
-    if (shouldTriggerChatbot) {
-      const chatbotResponse = await client.util.chatbotApiRequest(client, message);
-      if (chatbotResponse) {
-        const reply = chatbotResponse.choices?.[0]?.message?.content;
-        if (!reply) return;
-        await message.reply({
-          content: reply,
-          allowedMentions: { repliedUser: false },
-        });
-      }
+    const chatbotResponse = await client.util.chatbotApiRequest(client, message);
+    if (chatbotResponse) {
+      const reply = chatbotResponse.choices?.[0]?.message?.content;
+      if (!reply) return;
+      await message.reply({
+        content: reply,
+        allowedMentions: { repliedUser: false },
+      });
     }
   } catch (err) {
     console.error('Chatbot error:', err);

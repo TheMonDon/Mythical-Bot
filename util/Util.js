@@ -794,7 +794,7 @@ async function chatbotApiRequest(client, message) {
   if (!message.guild) return;
   if (!client.config.chatbotServerIds.includes(message.guild.id)) return;
   if (!client.config.chatbotApi) return;
-  if (!message.mentions.has(client.user)) return;
+  if (message.channel.id !== client.config.chatbotThreadId && !message.mentions.has(client.user)) return;
 
   await message.channel.sendTyping();
 
@@ -817,9 +817,9 @@ async function chatbotApiRequest(client, message) {
       while (referenced && pos < 10) {
         context.unshift({
           role: referenced.author.bot ? 'assistant' : 'user',
-          content: `${referenced.author.username} (${
-            referenced.member ? referenced.member.displayName : referenced.author.username
-          }): ${referenced.content}`,
+          content: `${referenced.author.username} (${referenced.member?.displayName || referenced.author.username}): ${
+            referenced.content
+          }`,
         });
 
         if (referenced.reference) {
@@ -838,28 +838,41 @@ async function chatbotApiRequest(client, message) {
       // Add the immediate reply message as well (the one that triggered this)
       context.push({
         role: 'user',
-        content: `${message.author.username} (${
-          message.member ? message.member.displayName : message.author.username
-        }): ${message.content}`,
+        content: `${message.author.username} (${message.member?.displayName || message.author.username}): ${
+          message.content
+        }`,
       });
       body.messages.push(...context);
     } catch (err) {
       console.error('Failed to fetch reply chain:', err);
       body.messages.push({
         role: 'user',
-        content: `${message.author.username} (${
-          message.member ? message.member.displayName : message.author.username
-        }): ${message.content}`,
+        content: `${message.author.username} (${message.member?.displayName || message.author.username}): ${
+          message.content
+        }`,
       });
     }
   } else {
-    // No reply context, just the user input
-    body.messages.push({
-      role: 'user',
-      content: `${message.author.username} (${
-        message.member ? message.member.displayName : message.author.username
-      }): ${message.content}`,
-    });
+    if (message.channel.id === client.config.chatbotThreadId) {
+      const messages = await message.channel.messages.fetch({ limit: 10 });
+
+      const context = messages
+        .map((msg) => ({
+          role: msg.author.bot ? 'assistant' : 'user',
+          content: `${msg.author.username} (${msg.member?.displayName || msg.author.username}): ${msg.content}`,
+        }))
+        .reverse();
+
+      body.messages.push(...context);
+    } else {
+      // No reply context, just the user input
+      body.messages.push({
+        role: 'user',
+        content: `${message.author.username} (${message.member?.displayName || message.author.username}): ${
+          message.content
+        }`,
+      });
+    }
   }
 
   const response = await fetch(client.config.chatbotApi, {
