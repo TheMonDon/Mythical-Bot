@@ -49,8 +49,8 @@ async function handleChatbot(client, message) {
   try {
     const chatbotResponse = await client.util.chatbotApiRequest(client, message);
     if (chatbotResponse) {
-      const reply = chatbotResponse.choices?.[0]?.message?.content;
-      if (!reply) return;
+      const reply = chatbotResponse.choices?.[0]?.message?.content?.replace('{message.guild.name}', message.guild.name);
+      if (!reply) return console.warn('No reply from chatbot API');
       await message.reply({
         content: reply,
         allowedMentions: { repliedUser: false },

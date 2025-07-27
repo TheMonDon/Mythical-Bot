@@ -842,6 +842,7 @@ async function chatbotApiRequest(client, message) {
           message.content
         }`,
       });
+
       body.messages.push(...context);
     } catch (err) {
       console.error('Failed to fetch reply chain:', err);
