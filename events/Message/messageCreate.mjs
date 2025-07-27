@@ -54,7 +54,8 @@ async function handleChatbot(client, message) {
     if (shouldTriggerChatbot) {
       const chatbotResponse = await client.util.chatbotApiRequest(client, message);
       if (chatbotResponse) {
-        const reply = chatbotResponse.choices[0].message.content;
+        const reply = chatbotResponse.choices?.[0]?.message?.content;
+        if (!reply) return;
         await message.reply({
           content: reply,
           allowedMentions: { repliedUser: false },

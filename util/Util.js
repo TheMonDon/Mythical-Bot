@@ -825,8 +825,7 @@ async function chatbotApiRequest(client, message) {
         if (referenced.reference) {
           try {
             referenced = await referenced.fetchReference();
-          } catch (refErr) {
-            console.log('Could not fetch further reference, stopping chain');
+          } catch (_e) {
             break;
           }
         } else {
