@@ -20,7 +20,7 @@ const botInvRegex = /(https?:\/\/)?(www\.|canary\.|ptb\.)?discord(app)?\.com\/(a
 const inviteRegex = /(https?:\/\/)?(www\.|canary\.|ptb\.)?discord(\.gg|(app)?\.com\/invite|\.me)\/([^ ]+)\/?/gi;
 
 const { getColorFromURL } = require('color-thief-node');
-const { Message, EmbedBuilder } = require('discord.js');
+const { Message, EmbedBuilder, MessageFlagsBitField } = require('discord.js');
 const { createCanvas, loadImage, registerFont } = require('canvas');
 const tinycolor = require('tinycolor2');
 const { QuickDB } = require('quick.db');
@@ -795,6 +795,7 @@ async function chatbotApiRequest(client, message) {
   if (!client.config.chatbotServerIds.includes(message.guild.id)) return;
   if (!client.config.chatbotApi) return;
   if (message.channel.id !== client.config.chatbotThreadId && !message.mentions.has(client.user)) return;
+  if (message.flags.has(MessageFlagsBitField.Flags.SuppressNotifications)) return;
 
   await message.channel.sendTyping();
 
