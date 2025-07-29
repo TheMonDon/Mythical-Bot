@@ -50,11 +50,46 @@ async function handleChatbot(client, message) {
     const chatbotResponse = await client.util.chatbotApiRequest(client, message);
     if (chatbotResponse) {
       const reply = chatbotResponse.choices?.[0]?.message?.content?.replace('{message.guild.name}', message.guild.name);
+
       if (!reply) return console.warn('No reply from chatbot API');
-      await message.reply({
-        content: reply,
-        allowedMentions: { repliedUser: false },
-      });
+
+      function splitMessage(text, maxLength = 2000) {
+        const lines = text.split('\n');
+        const chunks = [];
+        let current = '';
+
+        for (const line of lines) {
+          if ((current + '\n' + line).length > maxLength) {
+            if (current) chunks.push(current);
+            if (line.length > maxLength) {
+              // Split long line further
+              const parts = line.match(new RegExp(`.{1,${maxLength}}`, 'g'));
+              chunks.push(...parts);
+              current = '';
+            } else {
+              current = line;
+            }
+          } else {
+            current += (current ? '\n' : '') + line;
+          }
+        }
+
+        if (current) chunks.push(current);
+        return chunks;
+      }
+
+      const chunks = splitMessage(reply);
+
+      for (let i = 0; i < chunks.length; i++) {
+        if (i === 0) {
+          await message.reply({
+            content: chunks[i],
+            allowedMentions: { repliedUser: false },
+          });
+        } else {
+          await message.channel.send({ content: chunks[i] });
+        }
+      }
     }
   } catch (err) {
     console.error('Chatbot error:', err);

@@ -798,6 +798,36 @@ async function chatbotApiRequest(client, message) {
   if (message.flags.has(MessageFlagsBitField.Flags.SuppressNotifications)) return;
 
   await message.channel.sendTyping();
+  const date = new Date();
+  const formatted = date.toLocaleString('en-US');
+  let commandPrompt = `Below are the commands that you have as a bot. You have a total of ${client.commands.size} commands and ${client.slashCommands.size} Slash Commands. You must read and understand each one and its properties.\n\n`;
+
+  for (const [name, command] of client.commands) {
+    const aliases = command.conf?.aliases?.length ? command.conf.aliases.map((a) => `\`${a}\``).join(', ') : 'None';
+    const usage = command.help?.usage || 'No usage provided';
+    const permLevel = command.conf?.permLevel;
+    const description = command.help?.description || 'No description provided';
+    const longDescription = command.help?.longDescription || 'No long description provided';
+    const examples = command.help?.examples;
+
+    commandPrompt += `${name}:\n`;
+    commandPrompt += `  Aliases: ${aliases}\n`;
+    commandPrompt += `  Usage: ${usage}\n`;
+    commandPrompt += `  Permission Level: ${permLevel}`;
+    commandPrompt += `  Description: ${description}\n`;
+    commandPrompt += `  Long Description: ${longDescription}\n`;
+    commandPrompt += `  Examples: ${examples}\n\n`;
+  }
+
+  commandPrompt +=
+    "Below are the slash commands you have. Slash commands are funny and you can't get the properties of them.";
+
+  for (const [name, command] of client.slashCommands) {
+    const permLevel = command.conf?.permLevel;
+
+    commandPrompt += `${name}:\n`;
+    commandPrompt += `  Permission Level: ${permLevel}\n\n`;
+  }
 
   const body = {
     messages: [
@@ -805,10 +835,18 @@ async function chatbotApiRequest(client, message) {
         role: 'system',
         content: client.config.chatbotPrompt.replace('{message.guild.name}', message.guild.name),
       },
+      {
+        role: 'system',
+        content: `The date is currently ${formatted} in your time (Central Time). The Discord channel you are speaking in is ${message.channel.name}. There are ${message.guild.memberCount} server members.`,
+      },
+      {
+        role: 'system',
+        content: commandPrompt,
+      },
     ],
   };
 
-  if (message.reference) {
+  if (message.reference && !message.content.endsWith('/nc')) {
     try {
       // Start with the message this one is replying to
       let referenced = await message.fetchReference();
@@ -816,12 +854,39 @@ async function chatbotApiRequest(client, message) {
 
       let pos = 0;
       while (referenced && pos < 10) {
+        let referencedContent = `${referenced.author.username} (${
+          referenced.member?.displayName || referenced.author.username
+        }): ${referenced.content}`;
+
+        if (referenced.attachments.first()) {
+          referencedContent = [
+            {
+              type: 'text',
+              text: `${referenced.author.username} (${referenced.member?.displayName || referenced.author.username}): ${
+                referenced.content
+              }`,
+            },
+            {
+              type: 'image_url',
+              image_url: {
+                url: referenced.attachments.first().url,
+              },
+            },
+          ];
+        }
+
         context.unshift({
           role: referenced.author.bot ? 'assistant' : 'user',
-          content: `${referenced.author.username} (${referenced.member?.displayName || referenced.author.username}): ${
-            referenced.content
-          }`,
+          content: referencedContent,
         });
+
+        // Check if message contains image
+        if (referenced.attachments.first()) {
+          context.unshift({
+            role: referenced.author.bot ? 'assistant' : 'user',
+            content: '',
+          });
+        }
 
         if (referenced.reference) {
           try {
@@ -855,7 +920,7 @@ async function chatbotApiRequest(client, message) {
       });
     }
   } else {
-    if (message.channel.id === client.config.chatbotThreadId) {
+    if (message.channel.id === client.config.chatbotThreadId && !message.content.endsWith('/nc')) {
       const messages = await message.channel.messages.fetch({ limit: 10 });
 
       const context = messages
