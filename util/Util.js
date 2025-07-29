@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 const yes = [
   'yes',
   'y',
@@ -24,6 +25,7 @@ const { Message, EmbedBuilder, MessageFlagsBitField } = require('discord.js');
 const { createCanvas, loadImage, registerFont } = require('canvas');
 const tinycolor = require('tinycolor2');
 const { QuickDB } = require('quick.db');
+const https = require('https');
 const path = require('path');
 const db = new QuickDB();
 
@@ -829,6 +831,14 @@ async function chatbotApiRequest(client, message) {
     commandPrompt += `  Permission Level: ${permLevel}\n\n`;
   }
 
+  // Enable commandPrompt if wanted
+  /*
+      {
+        role: 'system',
+        content: commandPrompt,
+      },
+  */
+
   const body = {
     messages: [
       {
@@ -838,10 +848,6 @@ async function chatbotApiRequest(client, message) {
       {
         role: 'system',
         content: `The date is currently ${formatted} in your time (Central Time). The Discord channel you are speaking in is ${message.channel.name}. There are ${message.guild.memberCount} server members.`,
-      },
-      {
-        role: 'system',
-        content: commandPrompt,
       },
     ],
   };
@@ -854,22 +860,22 @@ async function chatbotApiRequest(client, message) {
 
       let pos = 0;
       while (referenced && pos < 10) {
-        let referencedContent = `${referenced.author.username} (${
-          referenced.member?.displayName || referenced.author.username
-        }): ${referenced.content}`;
+        const contentPrefix = referenced.author.bot
+          ? ''
+          : `${referenced.author.username} (${referenced.member?.displayName || referenced.author.username})`;
+        let referencedContent = `${contentPrefix} ${referenced.content}`;
 
         if (referenced.attachments.first()) {
+          const base64 = await toBase64FromUrl(referenced.attachments.first().url);
           referencedContent = [
             {
               type: 'text',
-              text: `${referenced.author.username} (${referenced.member?.displayName || referenced.author.username}): ${
-                referenced.content
-              }`,
+              text: `${contentPrefix} ${referenced.content}`,
             },
             {
               type: 'image_url',
               image_url: {
-                url: referenced.attachments.first().url,
+                url: base64,
               },
             },
           ];
@@ -879,14 +885,6 @@ async function chatbotApiRequest(client, message) {
           role: referenced.author.bot ? 'assistant' : 'user',
           content: referencedContent,
         });
-
-        // Check if message contains image
-        if (referenced.attachments.first()) {
-          context.unshift({
-            role: referenced.author.bot ? 'assistant' : 'user',
-            content: '',
-          });
-        }
 
         if (referenced.reference) {
           try {
@@ -904,40 +902,106 @@ async function chatbotApiRequest(client, message) {
       // Add the immediate reply message as well (the one that triggered this)
       context.push({
         role: 'user',
-        content: `${message.author.username} (${message.member?.displayName || message.author.username}): ${
-          message.content
-        }`,
+        content: `${
+          message.author.bot
+            ? ''
+            : `${message.author.username} (${message.member?.displayName || message.author.username}):`
+        } ${message.content}`,
       });
 
       body.messages.push(...context);
     } catch (err) {
       console.error('Failed to fetch reply chain:', err);
+      const contentPrefix = message.author.bot
+        ? ''
+        : `${message.author.username} (${message.member?.displayName || message.author.username}):`;
+      let messageContent = `${contentPrefix} ${message.content}`;
+
+      if (message.attachments.first()) {
+        const base64 = await toBase64FromUrl(message.attachments.first().url);
+        messageContent = [
+          {
+            type: 'text',
+            text: `${contentPrefix} ${message.content}`,
+          },
+          {
+            type: 'image_url',
+            image_url: {
+              url: base64,
+            },
+          },
+        ];
+      }
+
       body.messages.push({
         role: 'user',
-        content: `${message.author.username} (${message.member?.displayName || message.author.username}): ${
-          message.content
-        }`,
+        content: messageContent,
       });
     }
   } else {
     if (message.channel.id === client.config.chatbotThreadId && !message.content.endsWith('/nc')) {
       const messages = await message.channel.messages.fetch({ limit: 10 });
 
-      const context = messages
-        .map((msg) => ({
-          role: msg.author.bot ? 'assistant' : 'user',
-          content: `${msg.author.username} (${msg.member?.displayName || msg.author.username}): ${msg.content}`,
-        }))
-        .reverse();
+      const context = await Promise.all(
+        messages.map(async (msg) => {
+          const contentPrefix = msg.author.bot
+            ? ''
+            : `${msg.author.username} (${msg.member?.displayName || msg.author.username}):`;
+
+          if (msg.attachments.first()) {
+            const base64 = await toBase64FromUrl(msg.attachments.first().url);
+            return {
+              role: msg.author.bot ? 'assistant' : 'user',
+              content: [
+                {
+                  type: 'text',
+                  text: `${contentPrefix} ${msg.content}`,
+                },
+                {
+                  type: 'image_url',
+                  image_url: { url: base64 },
+                },
+              ],
+            };
+          }
+
+          return {
+            role: msg.author.bot ? 'assistant' : 'user',
+            content: `${contentPrefix} ${msg.content}`,
+          };
+        }),
+      );
+
+      context.reverse();
 
       body.messages.push(...context);
     } else {
       // No reply context, just the user input
+
+      const contentPrefix = message.author.bot
+        ? ''
+        : `${message.author.username} (${message.member?.displayName || message.author.username}):`;
+      let messageContent = `${contentPrefix} ${message.content}`;
+
+      if (message.attachments.first()) {
+        const base64 = await toBase64FromUrl(message.attachments.first().url);
+        messageContent = [
+          {
+            type: 'text',
+            text: `${contentPrefix} ${message.content}`,
+          },
+          {
+            type: 'image_url',
+            image_url: {
+              url: base64,
+            },
+          },
+        ];
+      }
+
       body.messages.push({
         role: 'user',
-        content: `${message.author.username} (${message.member?.displayName || message.author.username}): ${
-          message.content
-        }`,
+        content: messageContent,
       });
     }
   }
@@ -951,6 +1015,28 @@ async function chatbotApiRequest(client, message) {
   });
 
   return response.json();
+
+  async function toBase64FromUrl(imageUrl) {
+    return new Promise((resolve, reject) => {
+      https
+        .get(imageUrl, (res) => {
+          const data = [];
+
+          res.on('data', (chunk) => {
+            data.push(chunk);
+          });
+
+          res.on('end', () => {
+            const buffer = Buffer.concat(data);
+            const base64String = `data:${res.headers['content-type']};base64,${buffer.toString('base64')}`;
+            resolve(base64String);
+          });
+
+          res.on('error', (err) => reject(err));
+        })
+        .on('error', (err) => reject(err));
+    });
+  }
 }
 
 module.exports = {
