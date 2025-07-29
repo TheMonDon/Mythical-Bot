@@ -82,10 +82,14 @@ async function handleChatbot(client, message) {
 
       for (let i = 0; i < chunks.length; i++) {
         if (i === 0) {
-          await message.reply({
-            content: chunks[i],
-            allowedMentions: { repliedUser: false },
-          });
+          try {
+            await message.reply({
+              content: chunks[i],
+              allowedMentions: { repliedUser: false },
+            });
+          } catch (_e) {
+            await message.channel.send({ content: chunks[i] });
+          }
         } else {
           await message.channel.send({ content: chunks[i] });
         }
