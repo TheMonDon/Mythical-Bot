@@ -801,8 +801,7 @@ async function chatbotApiRequest(client, message) {
 
   await message.channel.sendTyping();
   const date = new Date();
-  const formatted = date.toLocaleString('en-US');
-  let commandPrompt = `Below are the commands that you have as a bot. You have a total of ${client.commands.size} commands and ${client.slashCommands.size} Slash Commands. You must read and understand each one and its properties.\n\n`;
+  let commandPrompt = `Below are the commands that you have as a bot. You have a total of ${client.commands.size} commands and ${client.slashCommands.size} slash commands. You must read and understand each one and its properties.\n\n`;
 
   for (const [name, command] of client.commands) {
     const aliases = command.conf?.aliases?.length ? command.conf.aliases.map((a) => `\`${a}\``).join(', ') : 'None';
@@ -839,6 +838,27 @@ async function chatbotApiRequest(client, message) {
       },
   */
 
+  function parseEmbeds(embeds) {
+    return embeds.map((embed, i) => {
+      const lines = [];
+
+      lines.push('Below is a discord embed that you can see.');
+      if (embed.title) lines.push(`**${embed.title}**`);
+      if (embed.description) lines.push(embed.description);
+
+      if (embed.fields?.length) {
+        for (const field of embed.fields) {
+          lines.push(`**${field.name}**: ${field.value}`);
+        }
+      }
+
+      if (embed.footer?.text) lines.push(`_Footer: ${embed.footer.text}_`);
+      if (embed.author?.name) lines.push(`_Author: ${embed.author.name}_`);
+
+      return lines.join('\n');
+    });
+  }
+
   const body = {
     messages: [
       {
@@ -847,7 +867,9 @@ async function chatbotApiRequest(client, message) {
       },
       {
         role: 'system',
-        content: `The date is currently ${formatted} in your time (Central Time). The Discord channel you are speaking in is ${message.channel.name}. There are ${message.guild.memberCount} server members.`,
+        content: `The time and date is currently ${new Date().toString()}. The Discord channel you are speaking in is ${
+          message.channel.name
+        }. There are ${message.guild.memberCount} server members.`,
       },
     ],
   };
@@ -864,6 +886,10 @@ async function chatbotApiRequest(client, message) {
           ? ''
           : `${referenced.author.username} (${referenced.member?.displayName || referenced.author.username})`;
         let referencedContent = `${contentPrefix} ${referenced.content}`;
+        if (referenced.embeds.length > 0) {
+          const embedText = parseEmbeds(referenced.embeds).join('\n\n');
+          referencedContent += `\n${embedText}`;
+        }
 
         if (referenced.attachments.first()) {
           const base64 = await toBase64FromUrl(referenced.attachments.first().url);
@@ -916,6 +942,10 @@ async function chatbotApiRequest(client, message) {
         ? ''
         : `${message.author.username} (${message.member?.displayName || message.author.username}):`;
       let messageContent = `${contentPrefix} ${message.content}`;
+      if (message.embeds.length > 0) {
+        const embedText = parseEmbeds(message.embeds).join('\n\n');
+        messageContent += `\n${embedText}`;
+      }
 
       if (message.attachments.first()) {
         const base64 = await toBase64FromUrl(message.attachments.first().url);
@@ -965,9 +995,15 @@ async function chatbotApiRequest(client, message) {
             };
           }
 
+          let messageContent = `${contentPrefix} ${msg.content}`;
+          if (msg.embeds.length > 0) {
+            const embedText = parseEmbeds(msg.embeds).join('\n\n');
+            messageContent += `\n${embedText}`;
+          }
+
           return {
             role: msg.author.bot ? 'assistant' : 'user',
-            content: `${contentPrefix} ${msg.content}`,
+            content: messageContent,
           };
         }),
       );
