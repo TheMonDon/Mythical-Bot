@@ -404,7 +404,11 @@ const loadLavalink = async () => {
           player.textChannelId &&
           (await client.channels.cache
             .get(player.textChannelId)
-            ?.send({ files: [{ attachment: buffer, name: 'now-playing.png' }], components: [row] })
+            ?.send({
+              files: [{ attachment: buffer, name: 'now-playing.png' }],
+              components: [row],
+              flags: MessageFlags.SuppressNotifications,
+            })
             .catch(() => null));
 
         if (msg) {
