@@ -44,6 +44,9 @@ exports.commandData = new SlashCommandBuilder()
           .setAutocomplete(true)
           .setMinLength(1)
           .setMaxLength(50),
+      )
+      .addBooleanOption((option) =>
+        option.setName('shuffle').setDescription('Shuffle the playlist before adding to queue'),
       ),
   )
   .addSubcommand((subcommand) =>
@@ -183,7 +186,28 @@ exports.run = async (interaction) => {
           await player.connect();
         }
 
-        player.queue.add(userPlaylist.tracks);
+        const shuffle = interaction.options.getBoolean('shuffle');
+        if (shuffle) {
+          function shufflePlaylist(playlist) {
+            const shuffledTracks = [...playlist.tracks];
+
+            for (let i = shuffledTracks.length - 1; i > 0; i--) {
+              const j = Math.floor(Math.random() * (i + 1));
+              [shuffledTracks[i], shuffledTracks[j]] = [shuffledTracks[j], shuffledTracks[i]];
+            }
+
+            return {
+              ...playlist,
+              tracks: shuffledTracks,
+            };
+          }
+
+          const shuffledPlaylist = shufflePlaylist(userPlaylist);
+
+          player.queue.add(shuffledPlaylist.tracks);
+        } else {
+          player.queue.add(userPlaylist.tracks);
+        }
 
         if (!player.playing && !player.paused) {
           await player.play();
