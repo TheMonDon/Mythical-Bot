@@ -165,7 +165,7 @@ exports.run = async (interaction) => {
       const currentPlaylists = (await db.get(`users.${interaction.user.id}.playlists`)) || [];
 
       // Find the playlist by name
-      const userPlaylist = currentPlaylists.find((p) => p.name.toLowerCase() === playlistName.toLowerCase());
+      let userPlaylist = currentPlaylists.find((p) => p.name.toLowerCase() === playlistName.toLowerCase());
 
       if (!userPlaylist) {
         return interaction.client.util.errorEmbed(interaction, `You don't have a playlist named \`${playlistName}\`.`);
@@ -202,9 +202,9 @@ exports.run = async (interaction) => {
             };
           }
 
-          const shuffledPlaylist = shufflePlaylist(userPlaylist);
+          userPlaylist = shufflePlaylist(userPlaylist);
 
-          player.queue.add(shuffledPlaylist.tracks);
+          player.queue.add(userPlaylist.tracks);
         } else {
           player.queue.add(userPlaylist.tracks);
         }

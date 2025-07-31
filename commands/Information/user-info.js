@@ -1,7 +1,7 @@
 const Command = require('../../base/Command.js');
 const { EmbedBuilder } = require('discord.js');
-const moment = require('moment');
 require('moment-duration-format');
+const moment = require('moment');
 
 class UserInfo extends Command {
   constructor(client) {
