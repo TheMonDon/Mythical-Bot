@@ -14,7 +14,7 @@ export async function run(client, oldEmoji, newEmoji) {
   const embed = new EmbedBuilder()
     .setTitle('Emoji Updated')
     .setColor(client.getSettings(oldEmoji.guild).embedSuccessColor)
-    .setThumbnail(oldEmoji.url)
+    .setThumbnail(oldEmoji.imageURL())
     .setTimestamp()
     .addFields([
       { name: 'Emoji ID', value: oldEmoji.id, inline: true },

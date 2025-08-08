@@ -12,7 +12,7 @@ export async function run(client, emoji) {
   const embed = new EmbedBuilder()
     .setTitle('Emoji Created')
     .setColor(client.getSettings(emoji.guild).embedSuccessColor)
-    .setThumbnail(emoji.url)
+    .setThumbnail(emoji.imageURL())
     .addFields([
       { name: 'Name', value: emoji.name },
       { name: 'Identifier', value: emoji.identifier },

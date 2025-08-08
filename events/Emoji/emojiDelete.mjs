@@ -12,7 +12,7 @@ export async function run(client, emoji) {
   const embed = new EmbedBuilder()
     .setTitle('Emoji Deleted')
     .setColor(client.getSettings(emoji.guild).embedErrorColor)
-    .setThumbnail(emoji.url)
+    .setThumbnail(emoji.imageURL())
     .addFields([
       { name: 'Name', value: emoji.name, inline: true },
       { name: 'Identifier', value: emoji.identifier, inline: true },
