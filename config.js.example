@@ -11,9 +11,6 @@ const config = {
   // Your Bots Token. Available on https://discordapp.com/developers/applications/me
   token: '',
 
-  // Auth token for BotList.me
-  BotListToken: '',
-
   // Github API Token
   github: '',
 
@@ -24,19 +21,28 @@ const config = {
   OpenWeather: '',
 
   // Discord webhook to send bot logs to
+  // Leave blank to not send logs to a webhook.
   botLogsWebhookURL: '',
 
-  // Bot panel ID
+  // botpanel.xyz configuration
+  // This is completely optional.
   BotPanelID: '',
-
-  // Bot panel secret
   BotPanelSecret: '',
+  BotPanelURL: 'https://botpanel.xyz/dashboard/Mythical',
 
   // Web server port
   Port: 7777,
 
   // Wordnik API Token
   Wordnik: '',
+
+  // MySQL Database Configuration
+  mysql: {
+    host: 'localhost',
+    user: 'mythical',
+    password: 'youshallnotpass',
+    database: 'MythicalBot',
+  },
 
   // Lavalink nodes
   nodes: [

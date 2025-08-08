@@ -830,14 +830,6 @@ async function chatbotApiRequest(client, message) {
     commandPrompt += `  Permission Level: ${permLevel}\n\n`;
   }
 
-  // Enable commandPrompt if wanted
-  /*
-      {
-        role: 'system',
-        content: commandPrompt,
-      },
-  */
-
   function parseEmbeds(embeds) {
     return embeds.map((embed, i) => {
       const lines = [];
@@ -871,6 +863,10 @@ async function chatbotApiRequest(client, message) {
           message.channel.name
         }. There are ${message.guild.memberCount} server members.`,
       },
+      {
+        role: 'system',
+        content: commandPrompt,
+      },
     ],
   };
 
@@ -891,7 +887,12 @@ async function chatbotApiRequest(client, message) {
           referencedContent += `\n${embedText}`;
         }
 
-        if (referenced.attachments.first()) {
+        if (
+          referenced.attachments.first() &&
+          ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp'].includes(
+            referenced.attachments.first()?.contentType,
+          )
+        ) {
           const base64 = await toBase64FromUrl(referenced.attachments.first().url);
           referencedContent = [
             {
@@ -947,7 +948,12 @@ async function chatbotApiRequest(client, message) {
         messageContent += `\n${embedText}`;
       }
 
-      if (message.attachments.first()) {
+      if (
+        message.attachments.first() &&
+        ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp'].includes(
+          message.attachments.first()?.contentType,
+        )
+      ) {
         const base64 = await toBase64FromUrl(message.attachments.first().url);
         messageContent = [
           {
@@ -978,7 +984,12 @@ async function chatbotApiRequest(client, message) {
             ? ''
             : `${msg.author.username} (${msg.member?.displayName || msg.author.username}):`;
 
-          if (msg.attachments.first()) {
+          if (
+            msg.attachments.first() &&
+            ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp'].includes(
+              msg.attachments.first()?.contentType,
+            )
+          ) {
             const base64 = await toBase64FromUrl(msg.attachments.first().url);
             return {
               role: msg.author.bot ? 'assistant' : 'user',
@@ -1019,7 +1030,12 @@ async function chatbotApiRequest(client, message) {
         : `${message.author.username} (${message.member?.displayName || message.author.username}):`;
       let messageContent = `${contentPrefix} ${message.content}`;
 
-      if (message.attachments.first()) {
+      if (
+        message.attachments.first() &&
+        ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp'].includes(
+          message.attachments.first()?.contentType,
+        )
+      ) {
         const base64 = await toBase64FromUrl(message.attachments.first().url);
         messageContent = [
           {
@@ -1050,7 +1066,7 @@ async function chatbotApiRequest(client, message) {
     body: JSON.stringify(body),
   });
 
-  return response.json();
+  return await response.json();
 
   async function toBase64FromUrl(imageUrl) {
     return new Promise((resolve, reject) => {

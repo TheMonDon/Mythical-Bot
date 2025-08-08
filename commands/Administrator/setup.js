@@ -44,9 +44,17 @@ class Setup extends Command {
       }
 
       // Check if the system is setup already
-      const ticketData = await db.get(`servers.${msg.guild.id}.tickets`);
-      if (ticketData) {
-        const { catID, roleID } = await db.get(`servers.${msg.guild.id}.tickets`);
+      const connection = await this.client.db.getConnection();
+      const [rows] = await connection.execute(`SELECT * FROM ticket_settings WHERE server_id = ?`, [msg.guild.id]);
+
+      if (rows.length > 0) {
+        const config = rows[0];
+        console.log(config.ticket_limit, config.role_id, config.cat_id, config.log_id);
+      }
+      if (rows.length > 0) {
+        const catID = rows[0].cat_id;
+        const roleID = rows[0].role_id;
+
         if (catID) {
           await msg.channel.send(stripIndents`
             The ticket system is already set up in this server. Would you like to:
@@ -77,6 +85,7 @@ class Setup extends Command {
               errors: ['time'],
             });
             if (!collectedMaxTicketsQuestion) {
+              connection.release();
               return this.client.util.errorEmbed(msg, 'You did not reply in time, the command has been cancelled.');
             }
             let ticketLimit = parseInt(collectedMaxTicketsQuestion.first().content.toLowerCase());
@@ -87,6 +96,7 @@ class Setup extends Command {
                 'How many tickets should a user be able to open? Please respond in number form, the default is 3.',
               );
               if (!ticketLimit) {
+                connection.release();
                 return this.client.util.errorEmbed(msg, 'You did not reply in time, the command has been cancelled.');
               }
               ticketLimit = parseInt(ticketLimit);
@@ -98,7 +108,8 @@ class Setup extends Command {
 
           // Disable the ticket system
           if (choice === '3') {
-            await db.delete(`servers.${msg.guild.id}.tickets`);
+            // Delete the database entry (Hopefully this works, copilot wrote it)
+            await connection.execute(`DELETE FROM ticket_settings WHERE server_id = ?`, [msg.guild.id]);
             return msg.channel.send(
               'The ticket system has been removed from the bots memory, you will need to delete the channels manually.',
             );
@@ -406,7 +417,9 @@ class Setup extends Command {
           return msg.channel.send('You selected an invalid response, please re-run the setup command.');
         }
       }
+      // End of checking if the system is setup already
 
+      // Start of ticket setup
       await msg.channel.send(stripIndents`What is the name of the role you want to use for support team?
       You have 60 seconds.
 
@@ -573,6 +586,15 @@ class Setup extends Command {
     }
     // End of ticket setup.
 
+    // Random spaces to I know where to stop for mysql conversion
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    // Start of logging setup
     if (['logging', 'log', 'logs'].includes(type)) {
       const embed = new EmbedBuilder();
 

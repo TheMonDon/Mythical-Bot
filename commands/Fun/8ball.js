@@ -10,6 +10,7 @@ class EightBall extends Command {
       description: 'Ask the 8ball something',
       usage: '8ball <question>',
       category: 'Fun',
+      requiredArgs: 1,
     });
   }
 

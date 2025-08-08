@@ -311,6 +311,8 @@ const loadGiveaways = async () => {
 };
 
 const loadLavalink = async () => {
+  if (!Array.isArray(config.nodes) || config.nodes.length === 0) return;
+
   client.lavalink = new LavalinkManager({
     nodes: config.nodes,
     sendToShard: (guildId, payload) => client.guilds.cache.get(guildId)?.shard?.send(payload),
@@ -394,10 +396,23 @@ const loadLavalink = async () => {
 
         // Create the buttons
         const row = new ActionRowBuilder().addComponents(
-          new ButtonBuilder().setCustomId('stop_track').setLabel('🛑').setStyle(ButtonStyle.Secondary),
-          new ButtonBuilder().setCustomId('pause_resume_track').setLabel('⏯️').setStyle(ButtonStyle.Secondary),
-          new ButtonBuilder().setCustomId('skip_track').setLabel('⏭️').setStyle(ButtonStyle.Secondary),
-          new ButtonBuilder().setLabel('🎵 Listen here').setURL(track.info.uri).setStyle(ButtonStyle.Link),
+          new ButtonBuilder()
+            .setCustomId('stop_track')
+            .setEmoji('<:stop_button:1403460977424470036>')
+            .setStyle(ButtonStyle.Secondary),
+          new ButtonBuilder()
+            .setCustomId('pause_resume_track')
+            .setEmoji('<:play_pause_button:1403460978640814171>')
+            .setStyle(ButtonStyle.Secondary),
+          new ButtonBuilder()
+            .setCustomId('skip_track')
+            .setEmoji('<:skip_button:1403460975486701618>')
+            .setStyle(ButtonStyle.Secondary),
+          new ButtonBuilder()
+            .setLabel('Listen here')
+            .setEmoji('<:music_link_button:1403460974027079720>')
+            .setURL(track.info.uri)
+            .setStyle(ButtonStyle.Link),
         );
 
         const msg =
@@ -439,11 +454,11 @@ const loadLavalink = async () => {
 
               if (player.paused) {
                 player.resume();
-                em.setDescription('▶️ Music has been resumed.');
+                em.setDescription('<:play_button:1403460972697489569> Music has been resumed.');
               } else {
                 player.pause();
                 player.autoPaused = false;
-                em.setDescription('⏸️ Music has been paused.');
+                em.setDescription('<:pause_button:1403460971367759872> Music has been paused.');
               }
 
               await interaction.followUp({ embeds: [em] }).catch(() => {});
@@ -458,7 +473,9 @@ const loadLavalink = async () => {
 
               if (player.queue.tracks.length === 0) {
                 await player.destroy();
-                em.setDescription('⏭️ Skipped to the next track, but the queue is now empty.');
+                em.setDescription(
+                  '<:skip_button:1403460975486701618> Skipped to the next track, but the queue is now empty.',
+                );
               } else {
                 await player.skip();
               }
@@ -473,7 +490,7 @@ const loadLavalink = async () => {
               const em = new EmbedBuilder()
                 .setColor(client.getSettings(interaction.guild).embedSuccessColor)
                 .setAuthor({ name: interaction.member.displayName, iconURL: interaction.member.displayAvatarURL() })
-                .setDescription('🛑 All music has been stopped.');
+                .setDescription('<:stop_button:1403460977424470036> All music has been stopped.');
 
               await interaction.followUp({ embeds: [em] }).catch(() => {});
             }
@@ -522,6 +539,160 @@ const loadLavalink = async () => {
     console.log('Initializing Lavalink...');
     client.lavalink.init(client.user);
   });
+};
+
+const loadMysql = async () => {
+  if (!config.mysql?.host && !config.mysql?.database) {
+    console.error('MySQL configuration not found, skipping MySQL setup.');
+    console.error('Some features may not work as intended.');
+    return;
+  }
+
+  const mysql = require('mysql2/promise');
+
+  const pool = mysql.createPool({
+    host: config.mysql.host,
+    user: config.mysql.user,
+    password: config.mysql.password,
+    multipleStatements: true,
+  });
+
+  client.db = pool;
+
+  const connection = await pool.getConnection();
+
+  // Check if the database exists, if not create it
+  await connection.execute(`CREATE DATABASE IF NOT EXISTS ${config.mysql.database}`);
+  await connection.execute(`USE ${config.mysql.database}`);
+
+  // Create tables if they do not exist
+  await connection.execute(`
+    CREATE TABLE IF NOT EXISTS command_aliases (
+      alias_name VARCHAR(100) NOT NULL,
+      base_command VARCHAR(100) DEFAULT NULL,
+      uses INT DEFAULT 0,
+      PRIMARY KEY (alias_name)
+    );
+  `);
+
+  await connection.execute(`
+    CREATE TABLE IF NOT EXISTS command_stats (
+      command_name VARCHAR(100) NOT NULL,
+      total_runs INT DEFAULT 0,
+      text_runs INT DEFAULT 0,
+      slash_runs INT DEFAULT 0,
+      PRIMARY KEY (command_name)
+    );
+  `);
+
+  await connection.execute(`
+    CREATE TABLE IF NOT EXISTS chatbot_stats (
+      id int NOT NULL,
+      total_runs int DEFAULT 0,
+      PRIMARY KEY (id)
+    );
+  `);
+
+  await connection.execute(`
+    CREATE TABLE IF NOT EXISTS chatbot_daily_stats (
+      date date NOT NULL,
+      total_runs int DEFAULT 0,
+      PRIMARY KEY (date),
+      UNIQUE KEY date_UNIQUE (date)
+    );
+  `);
+
+  const [triggers] = await connection.query(
+    `
+    SELECT TRIGGER_NAME FROM information_schema.TRIGGERS
+    WHERE TRIGGER_SCHEMA = ? AND TRIGGER_NAME = ?`,
+    [config.mysql.database, 'chatbot_stats_AFTER_INSERT'],
+  );
+
+  if (triggers.length === 0) {
+    await connection.query(`
+      CREATE TRIGGER chatbot_stats_AFTER_INSERT
+      AFTER UPDATE ON chatbot_stats
+      FOR EACH ROW
+      BEGIN
+        INSERT IGNORE INTO chatbot_daily_stats (date, total_runs)
+        VALUES (CURDATE(), 0);
+      
+        UPDATE chatbot_daily_stats
+        SET total_runs = total_runs + 1
+        WHERE date = CURDATE();
+      END
+    `);
+  }
+
+  // This isn't used yet but will be in the future
+  await connection.execute(`
+    CREATE TABLE IF NOT EXISTS ticket_settings (
+      server_id BIGINT PRIMARY KEY,
+      ticket_limit INT DEFAULT 3,
+      role_id BIGINT DEFAULT NULL,
+      category_id BIGINT DEFAULT NULL,
+      logging_id BIGINT DEFAULT NULL
+    );
+  `);
+
+  const [views] = await connection.query(`SHOW FULL TABLES IN ${config.mysql.database} WHERE TABLE_TYPE LIKE 'VIEW'`);
+  const viewExists = views.some((row) => Object.values(row).includes('globalruns'));
+
+  if (!viewExists) {
+    await connection.execute(`
+      CREATE 
+          ALGORITHM = UNDEFINED 
+          SQL SECURITY DEFINER
+      VIEW globalruns AS
+          SELECT 
+              (SUM(command_stats.text_runs) + SUM(command_stats.slash_runs)) AS TOTAL_COMMANDS,
+              SUM(command_stats.text_runs) AS TEXT_RUNS,
+              SUM(command_stats.slash_runs) AS SLASH_RUNS
+          FROM command_stats;
+    `);
+  }
+
+  const [procedures] = await connection.query(
+    `
+      SELECT ROUTINE_NAME
+      FROM information_schema.ROUTINES
+      WHERE ROUTINE_TYPE = 'PROCEDURE'
+        AND ROUTINE_SCHEMA = ?
+        AND ROUTINE_NAME = 'updateCommandStats'
+    `,
+    [config.mysql.database],
+  );
+
+  if (procedures.length === 0) {
+    await connection.query(`
+      CREATE PROCEDURE updateCommandStats(
+        p_command_name LONGTEXT,
+        p_text_runs INT,
+        p_slash_runs INT,
+        p_isAlias BOOLEAN,
+        p_aliasName LONGTEXT
+      )
+      BEGIN
+        INSERT INTO command_stats (command_name, total_runs, text_runs, slash_runs)
+          VALUES (p_command_name, 1, p_text_runs, p_slash_runs)
+          ON DUPLICATE KEY UPDATE
+            total_runs = total_runs + 1,
+            text_runs = text_runs + VALUES(text_runs),
+            slash_runs = slash_runs + VALUES(slash_runs);
+  
+        IF (p_isAlias = 1) THEN
+          INSERT INTO command_aliases (alias_name, base_command, uses)
+            VALUES (p_aliasName, p_command_name, 1)
+            ON DUPLICATE KEY UPDATE uses = uses + 1;
+        END IF;
+      END
+    `);
+  }
+
+  connection.release();
+
+  console.log('MySQL connection established.');
 };
 
 const init = async function init() {
@@ -589,6 +760,7 @@ const init = async function init() {
 
 loadGiveaways();
 loadLavalink();
+loadMysql();
 init();
 
 client.on('error', (e) => client.logger.error(e));

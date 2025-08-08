@@ -70,7 +70,21 @@ export async function run(client, interaction) {
 
     try {
       await slashCommand.run(interaction, level);
-      await db.add('global.commands', 1);
+      const isText = false;
+      const isSlash = true;
+      const isAlias = false;
+      const aliasName = null;
+
+      const connection = await client.db.getConnection();
+      await connection.query('CALL updateCommandStats(?, ?, ?, ?, ?)', [
+        interaction.commandName,
+        isText ? 1 : 0,
+        isSlash ? 1 : 0,
+        isAlias ? 1 : 0,
+        aliasName || null,
+      ]);
+
+      connection.release();
     } catch (error) {
       client.logger.error(error);
       if (interaction.replied) {
