@@ -62,7 +62,7 @@ class Starboard extends Command {
         if (!channel || !channel.permissionsFor(msg.guild.members.me).has(['SendMessages', 'ViewChannel'])) {
           return this.client.util.errorEmbed(
             msg,
-            'Please specify a valid channel where I have permission to send messages.',
+            'I need permission to view and send messages in that channel. Please re-run the command when this is fixed.',
           );
         }
 

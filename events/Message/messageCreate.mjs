@@ -1,7 +1,5 @@
 import { ChannelType, EmbedBuilder } from 'discord.js';
 import { QuickDB } from 'quick.db';
-import 'moment-duration-format';
-import moment from 'moment';
 
 const db = new QuickDB();
 
@@ -49,27 +47,14 @@ async function handleEconomyEvent(message) {
 
 async function handleChatbot(client, message) {
   try {
-    const cooldown = (await db.get('global.chatbot.cooldown')) || 5; // seconds
-    let userCooldown = (await db.get(`servers.${message.guild.id}.users.${message.member.id}.chatbot.cooldown`)) || {};
-
-    // Check if the user is on cooldown
-    if (userCooldown.active) {
-      const timeleft = userCooldown.time - Date.now();
-      if (timeleft <= 1 || timeleft > cooldown * 1000) {
-        userCooldown = {};
-        userCooldown.active = false;
-        await db.set(`servers.${message.guild.id}.users.${message.member.id}.chatbot.cooldown`, userCooldown);
-      } else {
-        const timeLeft = moment.duration(timeleft).format('m[ minutes][ and] s[ seconds]');
-
-        return message.reply({
-          content: `Please wait ${timeLeft} before using the chatbot again.`,
-          allowedMentions: { repliedUser: false },
-        });
-      }
-    }
-
     const chatbotResponse = await client.util.chatbotApiRequest(client, message);
+    if (chatbotResponse?.toString().startsWith('Please wait')) {
+      await message.reply({
+        content: chatbotResponse,
+        allowedMentions: { repliedUser: false },
+      });
+      return;
+    }
     const reply = chatbotResponse?.choices?.[0]?.message?.content?.replace('{message.guild.name}', message.guild.name);
     if (reply) {
       function splitMessage(text, maxLength = 2000) {
@@ -121,17 +106,6 @@ async function handleChatbot(client, message) {
         ON DUPLICATE KEY UPDATE total_runs = total_runs + 1;
       `);
       connection.release();
-
-      userCooldown.time = Date.now() + cooldown * 1000;
-      userCooldown.active = true;
-      await db.set(`servers.${message.guild.id}.users.${message.member.id}.chatbot.cooldown`, userCooldown);
-
-      // remove the cooldown after the specified time
-      setTimeout(async () => {
-        userCooldown = {};
-        userCooldown.active = false;
-        await db.set(`servers.${message.guild.id}.users.${message.member.id}.chatbot.cooldown`, userCooldown);
-      }, cooldown * 1000);
     } else if (chatbotResponse && !reply) {
       console.error('Chatbot response is empty or malformed:', chatbotResponse);
 

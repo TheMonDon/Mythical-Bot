@@ -25,6 +25,8 @@ const { Message, EmbedBuilder, MessageFlagsBitField } = require('discord.js');
 const { createCanvas, loadImage, registerFont } = require('canvas');
 const tinycolor = require('tinycolor2');
 const { QuickDB } = require('quick.db');
+require('moment-duration-format');
+const moment = require('moment');
 const https = require('https');
 const path = require('path');
 const db = new QuickDB();
@@ -799,6 +801,23 @@ async function chatbotApiRequest(client, message) {
   if (message.channel.id !== client.config.chatbotThreadId && !message.mentions.has(client.user)) return;
   if (message.flags.has(MessageFlagsBitField.Flags.SuppressNotifications)) return;
 
+  const cooldown = (await db.get('global.chatbot.cooldown')) || 5; // seconds
+  let userCooldown = (await db.get(`servers.${message.guild.id}.users.${message.member.id}.chatbot.cooldown`)) || {};
+
+  // Check if the user is on cooldown
+  if (userCooldown.active) {
+    const timeleft = userCooldown.time - Date.now();
+    if (timeleft <= 1 || timeleft > cooldown * 1000) {
+      userCooldown = {};
+      userCooldown.active = false;
+      await db.set(`servers.${message.guild.id}.users.${message.member.id}.chatbot.cooldown`, userCooldown);
+    } else {
+      const timeLeft = moment.duration(timeleft).format('m[ minutes][ and] s[ seconds]');
+
+      return `Please wait ${timeLeft} before using the chatbot again.`;
+    }
+  }
+
   await message.channel.sendTyping();
   const date = new Date();
   let commandPrompt = `Below are the commands that you have as a bot. You have a total of ${client.commands.size} commands and ${client.slashCommands.size} slash commands. You must read and understand each one and its properties.\n\n`;
@@ -1065,6 +1084,17 @@ async function chatbotApiRequest(client, message) {
     },
     body: JSON.stringify(body),
   });
+
+  userCooldown.time = Date.now() + cooldown * 1000;
+  userCooldown.active = true;
+  await db.set(`servers.${message.guild.id}.users.${message.member.id}.chatbot.cooldown`, userCooldown);
+
+  // remove the cooldown after the specified time
+  setTimeout(async () => {
+    userCooldown = {};
+    userCooldown.active = false;
+    await db.set(`servers.${message.guild.id}.users.${message.member.id}.chatbot.cooldown`, userCooldown);
+  }, cooldown * 1000);
 
   return await response.json();
 

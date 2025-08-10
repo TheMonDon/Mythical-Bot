@@ -6,7 +6,7 @@ class persistentRoles extends Command {
   constructor(client) {
     super(client, {
       name: 'persistent-roles',
-      description: 'Enable/Disable the persistent roles system for your guild',
+      description: 'Enable/Disable the persistent roles system for the server',
       longDescription:
         'When persistent roles is enabled users who leave the guild will have their roles automatically returned when they come back.',
       category: 'Administrator',
