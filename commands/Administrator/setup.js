@@ -44,10 +44,14 @@ class Setup extends Command {
       }
 
       // Check if the system is setup already
-      const ticketData = await db.get(`servers.${msg.guild.id}.tickets`);
-      if (ticketData) {
-        const { catID, roleID } = await db.get(`servers.${msg.guild.id}.tickets`);
-        if (catID) {
+      const connection = await this.client.db.getConnection();
+      const [rows] = await connection.execute(`SELECT * FROM ticket_settings WHERE server_id = ?`, [msg.guild.id]);
+
+      if (rows.length > 0) {
+        const catID = rows[0].category_id;
+        const roleID = rows[0].role_id;
+
+        if (catID && msg.guild.channels.cache.get(catID)) {
           await msg.channel.send(stripIndents`
             The ticket system is already set up in this server. Would you like to:
             1️⃣ Reuse existing ticket channels and just update the menu.
@@ -58,10 +62,16 @@ class Setup extends Command {
             `);
 
           const collected = await msg.channel.awaitMessages({ filter, max: 1, time: 60000, errors: ['time'] });
-          if (!collected) return msg.channel.send('Setup cancelled due to no response.');
+          if (!collected) {
+            connection.release();
+            return msg.channel.send('Setup cancelled due to no response.');
+          }
 
           const choice = collected.first().content.toLowerCase();
-          if (choice === 'cancel') return msg.channel.send('Got it! Setup cancelled.');
+          if (choice === 'cancel') {
+            connection.release();
+            return msg.channel.send('Got it! Setup cancelled.');
+          }
 
           // Update the max number of tickets
           if (choice === '4') {
@@ -77,6 +87,7 @@ class Setup extends Command {
               errors: ['time'],
             });
             if (!collectedMaxTicketsQuestion) {
+              connection.release();
               return this.client.util.errorEmbed(msg, 'You did not reply in time, the command has been cancelled.');
             }
             let ticketLimit = parseInt(collectedMaxTicketsQuestion.first().content.toLowerCase());
@@ -87,18 +98,26 @@ class Setup extends Command {
                 'How many tickets should a user be able to open? Please respond in number form, the default is 3.',
               );
               if (!ticketLimit) {
+                connection.release();
                 return this.client.util.errorEmbed(msg, 'You did not reply in time, the command has been cancelled.');
               }
               ticketLimit = parseInt(ticketLimit);
             }
-            await db.set(`servers.${msg.guild.id}.tickets.limit`, ticketLimit);
+            await connection.execute(`UPDATE ticket_settings SET ticket_limit = ? WHERE server_id = ?`, [
+              ticketLimit,
+              msg.guild.id,
+            ]);
+            connection.release();
             return msg.channel.send(`The ticket limit has been updated to ${ticketLimit}.`);
           }
           // End of updating max number of tickets
 
           // Disable the ticket system
           if (choice === '3') {
-            await db.delete(`servers.${msg.guild.id}.tickets`);
+            // Delete the database entry (Hopefully this works, copilot wrote it)
+            await connection.execute(`DELETE FROM ticket_settings WHERE server_id = ?`, [msg.guild.id]);
+            await connection.execute('DELETE FROM user_tickets WHERE server_id = ?', [msg.guild.id]);
+            connection.release();
             return msg.channel.send(
               'The ticket system has been removed from the bots memory, you will need to delete the channels manually.',
             );
@@ -129,6 +148,7 @@ class Setup extends Command {
                 return collected.channels.first(); // Return the selected channel
               } catch (err) {
                 await menuMessage.delete();
+                connection.release();
                 return msg.channel.send('Channel selection timed out.');
               }
             }
@@ -139,7 +159,10 @@ class Setup extends Command {
               'What channel do you want to use for logging?',
             );
 
-            await db.set(`servers.${msg.guild.id}.tickets.logID`, newLoggingChannel.id);
+            await connection.execute(`UPDATE ticket_settings SET logging_id = ? WHERE server_id = ?`, [
+              newLoggingChannel.id,
+              msg.guild.id,
+            ]);
 
             await msg.channel.send(stripIndents`Do you want to create a ticket creation menu? (yes/no)
               You have 60 seconds.
@@ -153,14 +176,16 @@ class Setup extends Command {
               errors: ['time'],
             });
             if (!collectedCreationQuestion) {
+              connection.release();
               return this.client.util.errorEmbed(msg, 'You did not reply in time, the command has been cancelled.');
             }
             const response1 = collectedCreationQuestion.first().content.toLowerCase();
 
             if (response1 === 'cancel') {
+              connection.release();
               return collectedCreationQuestion.first().reply('Got it! The command has been cancelled.');
             }
-            const ticketCreationMenu = ['yes', 'y'].includes(response1) ? 'yes' : 'no';
+            const ticketCreationMenu = this.client.util.yes.includes(response1) ? 'yes' : 'no';
 
             const catPerms = [
               {
@@ -195,7 +220,10 @@ class Setup extends Command {
             const category = newLoggingChannel.parent;
             category.permissionOverwrites.set(catPerms);
             newLoggingChannel.permissionOverwrites.set(logPerms);
-            await db.set(`servers.${msg.guild.id}.tickets.catID`, category.id);
+            await connection.execute(`UPDATE ticket_settings SET category_id = ? WHERE server_id = ?`, [
+              category.id,
+              msg.guild.id,
+            ]);
             await msg.channel.send(
               'I have set the ticket channels category to the new logging channels category and updated the category and logging channel permissions.',
             );
@@ -241,6 +269,7 @@ class Setup extends Command {
                 errors: ['time'],
               });
               if (!collectedCreationMessage) {
+                connection.release();
                 return this.client.util.errorEmbed(msg, 'You did not reply in time, the command has been cancelled.');
               }
 
@@ -250,7 +279,7 @@ class Setup extends Command {
               // Create the persistent button
               const button = new ButtonBuilder()
                 .setCustomId('create_ticket')
-                .setLabel('Open a Ticket')
+                .setLabel('Create Ticket')
                 .setStyle(ButtonStyle.Primary);
               const row = new ActionRowBuilder().addComponents(button);
 
@@ -263,13 +292,14 @@ class Setup extends Command {
               await newMenuChannel.send({ embeds: [embed], components: [row] });
             }
 
+            connection.release();
             return msg.channel.send(stripIndents`The ticket system is now fully re-functional.
 
               New Log Channel: ${newLoggingChannel}
               New Ticket Creation Channel: ${ticketCreationMenu === 'yes' ? newMenuChannel : 'Skipped'} ${
                 renamed === true ? `Renamed from \`${oldChannelName}\`` : ''
               }
-              `);
+            `);
           }
           // End of select new ticket creation and log channels
 
@@ -406,8 +436,11 @@ class Setup extends Command {
           return msg.channel.send('You selected an invalid response, please re-run the setup command.');
         }
       }
+      // End of checking if the system is setup already
 
-      await msg.channel.send(stripIndents`What is the name of the role you want to use for support team?
+      // Start of ticket setup
+      await msg.channel
+        .send(stripIndents`What is the name of the role you want to use for support team? This can be a new or existing role.
       You have 60 seconds.
 
       Type \`cancel\` to exit.`);
@@ -420,6 +453,7 @@ class Setup extends Command {
       });
 
       if (!collected) {
+        connection.release();
         return this.client.util.errorEmbed(msg, 'You did not reply in time, the command has been cancelled.');
       }
       const response = collected.first().content;
@@ -431,10 +465,9 @@ class Setup extends Command {
       if (role) {
         collected.first().reply(`I found the following role to use: ${role.name} (${role.id})`);
       } else {
-        collected.first().reply(`I will create a role named ${response}`);
-        role = await msg.guild.roles.create({ name: response, color: 'Blue', reason: 'Ticket System' });
+        collected.first().reply(`I will create a role named \`${response}\``);
+        role = await msg.guild.roles.create({ name: response, color: '#0099CC', reason: 'Ticket System' });
       }
-      await db.set(`servers.${msg.guild.id}.tickets.roleID`, role.id);
 
       await msg.channel.send(stripIndents`Do you want to create a ticket creation menu? (yes/no)
         You have 60 seconds.
@@ -448,14 +481,16 @@ class Setup extends Command {
         errors: ['time'],
       });
       if (!collectedCreationQuestion) {
+        connection.release();
         return this.client.util.errorEmbed(msg, 'You did not reply in time, the command has been cancelled.');
       }
       const response1 = collectedCreationQuestion.first().content.toLowerCase();
 
       if (response1 === 'cancel') {
+        connection.release();
         return collectedCreationQuestion.first().reply('Got it! The command has been cancelled.');
       }
-      const ticketCreationMenu = ['yes', 'y'].includes(response1) ? 'yes' : 'no';
+      const ticketCreationMenu = this.client.util.yes.includes(response1) ? 'yes' : 'no';
 
       const catPerms = [
         {
@@ -493,7 +528,6 @@ class Setup extends Command {
         reason: 'Setting up tickets system',
         permissionOverwrites: catPerms,
       });
-      await db.set(`servers.${msg.guild.id}.tickets.catID`, category.id);
 
       let ticketCreationChannel;
 
@@ -526,6 +560,7 @@ class Setup extends Command {
           errors: ['time'],
         });
         if (!collectedCreationMessage) {
+          connection.release();
           return this.client.util.errorEmbed(msg, 'You did not reply in time, the command has been cancelled.');
         }
 
@@ -563,7 +598,19 @@ class Setup extends Command {
         reason: 'Setting up tickets system',
       });
 
-      await db.set(`servers.${msg.guild.id}.tickets.logID`, tixLog.id);
+      await connection.execute(
+        `
+        INSERT INTO ticket_settings (server_id, ticket_limit, role_id, category_id, logging_id)
+        VALUES (?, ?, ?, ?, ?)
+        ON DUPLICATE KEY UPDATE
+          ticket_limit = VALUES(ticket_limit),
+          role_id = VALUES(role_id),
+          category_id = VALUES(category_id),
+          logging_id = VALUES(logging_id)
+      `,
+        [msg.guild.id, 3, role.id, category.id, tixLog.id],
+      );
+      connection.release();
 
       return msg.channel.send(stripIndents`The ticket system is now fully functional.
         To change settings or disable the system re-run the setup.
@@ -573,6 +620,7 @@ class Setup extends Command {
     }
     // End of ticket setup.
 
+    // Start of logging setup
     if (['logging', 'log', 'logs'].includes(type)) {
       const embed = new EmbedBuilder();
 

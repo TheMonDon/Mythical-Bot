@@ -17,8 +17,13 @@ class forceClose extends Command {
   }
 
   async run(msg, args) {
-    if (!(await db.get(`servers.${msg.guild.id}.tickets`)))
+    const connection = await this.client.db.getConnection();
+    const [rows] = await connection.execute(`SELECT * FROM ticket_settings WHERE server_id = ?`, [msg.guild.id]);
+
+    if (rows.length === 0) {
+      connection.release();
       return msg.channel.send('The ticket system has not been setup in this server.');
+    }
 
     let tID;
     let reason;
@@ -36,6 +41,7 @@ class forceClose extends Command {
       }
     } else {
       if (!args[0]) {
+        connection.release();
         return msg.channel.send(`Incorrect Usage: ${msg.settings.prefix}force-close [Ticket Channel ID] [Reason]`);
       }
       tID = args[0];
@@ -43,27 +49,44 @@ class forceClose extends Command {
       reason = args?.join(' ') || 'No reason specified';
     }
 
-    const { logID, roleID } = await db.get(`servers.${msg.guild.id}.tickets`);
+    const logID = rows[0].logging_id;
+    const roleID = rows[0].role_id;
 
-    const owner = await db.get(`servers.${msg.guild.id}.tickets.${tID}.owner`);
+    const [ownerRows] = await connection.execute(
+      `SELECT user_id FROM user_tickets WHERE server_id = ? AND channel_id = ?`,
+      [msg.guild.id, msg.channel.id],
+    );
+    const owner = ownerRows[0]?.user_id;
+
     msg.guild.members.fetch(owner);
     const role = msg.guild.roles.cache.get(roleID);
 
     if (!msg.channel.name.startsWith('ticket')) {
-      if (owner !== msg.author.id || !msg.member.roles.cache.some((r) => r.id === roleID))
+      if (owner !== msg.author.id || !msg.member.roles.cache.some((r) => r.id === roleID)) {
+        connection.release();
         return msg.channel.send(`You need to be a member of ${role.name} to use this command.`);
+      }
 
-      if (!tID && !msg.channel.name.startsWith('ticket'))
+      if (!tID && !msg.channel.name.startsWith('ticket')) {
+        connection.release();
         return msg.channel.send('You need to supply the ticket channel ID.');
+      }
 
-      if (!owner) return msg.channel.send('That is not a valid ticket. Please try again.');
+      if (!owner) {
+        connection.release();
+        return msg.channel.send('That is not a valid ticket. Please try again.');
+      }
     } else {
       if (owner !== msg.author.id) {
         if (!msg.member.roles.cache.some((r) => r.id === roleID)) {
+          connection.release();
           return msg.channel.send(`You need to be the ticket owner or a member of ${role.name} to use this command.`);
         }
       }
-      if (!owner) return msg.channel.send('That is not a valid ticket. Please try again.');
+      if (!owner) {
+        connection.release();
+        return msg.channel.send('That is not a valid ticket. Please try again.');
+      }
     }
 
     const channel = await msg.guild.channels.cache.get(tID);
@@ -106,7 +129,8 @@ class forceClose extends Command {
       .send({ embeds: [logEmbed], files: [attachment] })
       .catch(() => {});
 
-    await db.delete(`servers.${msg.guild.id}.tickets.${tID}`);
+    await connection.execute(`DELETE FROM user_tickets WHERE server_id = ? AND channel_id = ?`, [msg.guild.id, tID]);
+    connection.release();
     return msg.channel.delete();
   }
 }

@@ -87,14 +87,18 @@ class Set extends Command {
       const embed = new EmbedBuilder()
         .setTitle('Current Guild Setting')
         .setDescription(`\`\`\`asciidoc\n${array.join('\n')}\`\`\``)
-        .addFields([
+        .setFooter({ text: `For help use \`${message.settings.prefix}help set\`` });
+
+      if (this.client.config.BotPanelURL) {
+        embed.addFields([
           {
             name: 'Bot Panel',
-            value: 'You can also use the new bot panel here: https://botpanel.xyz/dashboard/Mythical',
+            value: `You can also use the bot panel here: ${this.client.config.BotPanelURL}`,
             inline: true,
           },
-        ])
-        .setFooter({ text: `For help use \`${message.settings.prefix}help set\`` });
+        ]);
+      }
+
       return message.channel.send({ embeds: [embed] });
     }
   }

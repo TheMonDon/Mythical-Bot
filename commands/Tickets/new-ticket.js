@@ -1,7 +1,5 @@
 const Command = require('../../base/Command.js');
-const { EmbedBuilder, ChannelType } = require('discord.js');
-const { QuickDB } = require('quick.db');
-const db = new QuickDB();
+const { EmbedBuilder, ChannelType, ButtonBuilder, ButtonStyle, ActionRowBuilder } = require('discord.js');
 
 class NewTicket extends Command {
   constructor(client) {
@@ -16,40 +14,58 @@ class NewTicket extends Command {
   }
 
   async run(msg, args) {
-    if (!(await db.get(`servers.${msg.guild.id}.tickets`))) {
+    const connection = await this.client.db.getConnection();
+    const [rows] = await connection.execute(`SELECT * FROM ticket_settings WHERE server_id = ?`, [msg.guild.id]);
+
+    if (rows.length === 0) {
+      connection.release();
       return msg.channel.send('The ticket system has not been setup in this server.');
     }
-    const { catID, logID, roleID } = await db.get(`servers.${msg.guild.id}.tickets`);
+
+    const catID = rows[0].category_id;
+    const roleID = rows[0].role_id;
+    const logID = rows[0].logging_id;
+    const ticketLimit = rows[0].ticket_limit;
 
     if (!msg.guild.channels.cache.get(catID)) {
+      connection.release();
       return msg.channel.send('Please re-run `setup`, the ticket category is missing.');
     }
 
     if (!msg.guild.members.me.permissions.has('ManageChannels')) {
+      connection.release();
       return msg.channel.send('Please let a server administrator know the bot is missing Manage Channels permission.');
     }
     if (!msg.guild.members.me.permissions.has('ManageRoles')) {
+      connection.release();
       return msg.channel.send('Please let a server administrator know the bot is missing Manage Roles permission');
     }
     if (!msg.guild.members.me.permissions.has('ManageMessages')) {
+      connection.release();
       return msg.channel.send('Please let a server administrator know the bot is missing Manage Messages permission');
     }
-
-    if (msg.channel.name.startsWith('ticket')) return msg.channel.send("You're already in a ticket, silly.");
+    if (msg.channel.name.startsWith('ticket')) {
+      connection.release();
+      return msg.channel.send("You're already in a ticket, silly.");
+    }
     if (!args || args.length < 1) {
+      connection.release();
       return msg.channel.send(`Please provide a reason. Usage: ${msg.settings.prefix}new-ticket <reason>`);
     }
 
-    const userTickets = await this.client.util.getTickets(msg.author.id, msg);
-    const ticketLimit = (await db.get(`servers.${msg.guild.id}.tickets.limit`)) || 3;
-    if (userTickets.length >= ticketLimit) {
+    const userTickets = await this.client.util.getTickets(this.client, msg.author.id, msg);
+    if (userTickets >= ticketLimit) {
+      connection.release();
       return msg.reply(
-        `Sorry ${msg.member.displayName}, you already have ${userTickets.length} of ${ticketLimit} tickets open. Please close one before making a new one.`,
+        `Sorry ${msg.member.displayName}, you already have ${userTickets} of ${ticketLimit} tickets open. Please close one before making a new one.`,
       );
     }
 
     const reason = args.join(' ');
-    if (reason.length > 1024) return msg.channel.send('Your reason must be less than 1024 characters.');
+    if (reason.length > 1024) {
+      connection.release();
+      return msg.channel.send('Your reason must be less than 1024 characters.');
+    }
 
     const perms = [
       {
@@ -88,7 +104,11 @@ class NewTicket extends Command {
       topic: reason,
     });
 
-    await db.set(`servers.${msg.guild.id}.tickets.${tixChan.id}.owner`, msg.author.id);
+    await connection.execute(
+      `INSERT INTO user_tickets (server_id, channel_id, user_id)
+       VALUES (?, ?, ?)`,
+      [msg.guild.id, tixChan.id, msg.author.id],
+    );
 
     const userEmbed = new EmbedBuilder()
       .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
@@ -125,16 +145,24 @@ class NewTicket extends Command {
       .setColor('#E65DF4')
       .setTimestamp();
 
+    // Create the persistent close button
+    const button = new ButtonBuilder()
+      .setCustomId('close_ticket')
+      .setLabel('Close')
+      .setEmoji('🔒')
+      .setStyle(ButtonStyle.Success);
+    const row = new ActionRowBuilder().addComponents(button);
+
     const role = msg.guild.roles.cache.get(roleID);
     if (!role.mentionable) {
       if (!tixChan.permissionsFor(this.client.user.id).has('MentionEveryone')) {
         role.setMentionable(true);
-        tixChan.send({ content: role.toString(), embeds: [chanEmbed] });
+        tixChan.send({ content: role.toString(), embeds: [chanEmbed], components: [row] });
         return role.setMentionable(false);
       }
     }
 
-    return tixChan.send({ content: role.toString(), embeds: [chanEmbed] });
+    return tixChan.send({ content: role.toString(), embeds: [chanEmbed], components: [row] });
   }
 }
 

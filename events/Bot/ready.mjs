@@ -5,9 +5,7 @@ import express from 'express';
 import cors from 'cors';
 import { scheduleJob } from 'node-schedule';
 import { Client } from 'botpanel.js';
-import * as botlistmePackage from 'botlist.me.js';
-const BotlistMe = botlistmePackage.default || botlistmePackage;
-const { BotListToken, BotPanelID, BotPanelSecret, Port } = pkg;
+const { BotPanelID, BotPanelSecret, Port } = pkg;
 const db = new QuickDB();
 
 export async function run(client) {
@@ -114,19 +112,6 @@ export async function run(client) {
     });
 
     BotPanelClient.login();
-  }
-
-  if (BotListToken?.length > 0) {
-    const botlistme = new BotlistMe(BotListToken, client);
-    botlistme.postStats(client.guilds.cache.size);
-
-    botlistme.on('posted', () => {
-      console.log('Server count posted!');
-    });
-
-    botlistme.on('error', (e) => {
-      console.log(`Oops! ${e}`);
-    });
   }
 
   // Web server

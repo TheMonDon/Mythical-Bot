@@ -1,7 +1,5 @@
 const Command = require('../../base/Command.js');
 const { EmbedBuilder } = require('discord.js');
-const { QuickDB } = require('quick.db');
-const db = new QuickDB();
 
 class RemoveMember extends Command {
   constructor(client) {
@@ -17,37 +15,64 @@ class RemoveMember extends Command {
   }
 
   async run(msg, args) {
-    if (!(await db.get(`servers.${msg.guild.id}.tickets`)))
-      return msg.channel.send('The ticket system has not been setup in this server.');
+    const connection = await this.client.db.getConnection();
+    const [rows] = await connection.execute(`SELECT * FROM ticket_settings WHERE server_id = ?`, [msg.guild.id]);
 
-    if (!msg.channel.name.startsWith('ticket'))
+    if (rows.length === 0) {
+      connection.release();
+      return msg.channel.send('The ticket system has not been setup in this server.');
+    }
+
+    if (!msg.channel.name.startsWith('ticket')) {
+      connection.release();
       return msg.channel.send('You need to be inside the ticket you want to remove a member from.');
+    }
 
     const mem = await this.client.util.getMember(msg, args.join(' '));
-    if (!mem) return msg.channel.send('That is not a valid member.');
-    if (mem.id === msg.author.id)
+    if (!mem) {
+      connection.release();
+      return msg.channel.send('That is not a valid member.');
+    }
+    if (mem.id === msg.author.id) {
+      connection.release();
       return msg.channel.send(`Are you trying to close your ticket? Use \`${msg.settings.prefix}close\` instead`);
+    }
 
-    const { roleID } = await db.get(`servers.${msg.guild.id}.tickets`);
+    const roleID = rows[0].role_id;
     const role = msg.guild.roles.cache.get(roleID);
-    const owner = await db.get(`servers.${msg.guild.id}.tickets.${msg.channel.id}.owner`);
+    const [ownerRows] = await connection.execute(
+      `SELECT user_id FROM user_tickets WHERE server_id = ? AND channel_id = ?`,
+      [msg.guild.id, msg.channel.id],
+    );
+    const owner = ownerRows[0]?.user_id;
+
+    if (!owner) {
+      connection.release();
+      return msg.channel.send('This ticket does not have an owner.');
+    }
 
     // Do they have the support role or are owner?
     if (owner !== msg.author.id) {
       if (!msg.member.roles.cache.some((r) => r.id === roleID)) {
+        connection.release();
         return msg.channel.send(`You need to be the ticket owner or a member of ${role.name} to remove a user.`);
       }
     }
 
-    if (!msg.channel.members.get(mem.id)) return msg.channel.send('That person has not been added to this ticket.');
+    if (!msg.channel.members.get(mem.id)) {
+      connection.release();
+      return msg.channel.send('That person has not been added to this ticket.');
+    }
 
     msg.channel.permissionOverwrites.edit(mem.id, { ViewChannel: null });
 
     const em = new EmbedBuilder()
       .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
       .setTitle('Member Removed')
-      .setColor('#E65DF4')
+      .setColor(msg.settings.embedColor)
       .setDescription(`${msg.author} has removed a member: \n${mem} (${mem.displayName})`);
+
+    connection.release();
     return msg.channel.send({ embeds: [em] });
   }
 }

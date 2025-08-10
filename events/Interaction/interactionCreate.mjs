@@ -70,7 +70,21 @@ export async function run(client, interaction) {
 
     try {
       await slashCommand.run(interaction, level);
-      await db.add('global.commands', 1);
+      const isText = false;
+      const isSlash = true;
+      const isAlias = false;
+      const aliasName = null;
+
+      const connection = await client.db.getConnection();
+      await connection.query('CALL updateCommandStats(?, ?, ?, ?, ?)', [
+        interaction.commandName,
+        isText ? 1 : 0,
+        isSlash ? 1 : 0,
+        isAlias ? 1 : 0,
+        aliasName || null,
+      ]);
+
+      connection.release();
     } catch (error) {
       client.logger.error(error);
       if (interaction.replied) {
@@ -99,7 +113,13 @@ export async function run(client, interaction) {
 
   if (interaction.isButton()) {
     if (interaction.customId === 'create_ticket') {
-      if (!(await db.get(`servers.${interaction.guild.id}.tickets`))) {
+      const connection = await client.db.getConnection();
+      const [rows] = await connection.execute(`SELECT * FROM ticket_settings WHERE server_id = ?`, [
+        interaction.guild.id,
+      ]);
+
+      if (rows.length === 0) {
+        connection.release();
         return interaction.reply({
           content:
             'The ticket system has not been setup in this server. Please contact a server administrator to re-run the setup command.',
@@ -117,37 +137,43 @@ export async function run(client, interaction) {
           .setDescription(
             `Sorry ${interaction.user.username}, you are currently blacklisted from using tickets in this server.`,
           );
+
+        connection.release();
         return interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
       }
 
-      const userTickets = await interaction.client.util.getTickets(interaction.user.id, interaction);
-      const ticketLimit = (await db.get(`servers.${interaction.guild.id}.tickets.limit`)) || 3;
-      if (userTickets.length >= ticketLimit) {
+      const userTickets = await client.util.getTickets(client, interaction.user.id, interaction);
+      if (userTickets >= rows[0].ticket_limit) {
+        connection.release();
         return interaction.reply({
-          content: `Sorry ${interaction.member.displayName}, you already have ${userTickets.length} of ${ticketLimit} tickets open. Please close one before making a new one.`,
+          content: `Sorry ${interaction.member.displayName}, you already have ${userTickets} of ${rows[0].ticket_limit} tickets open. Please close one before making a new one.`,
           flags: MessageFlags.Ephemeral,
         });
       }
 
       // Create the modal
-      const modal = new ModalBuilder().setCustomId('ticket_reason').setTitle('Ticket Reason');
       const reasonInput = new TextInputBuilder()
-        .setMaxLength(1024)
         .setMinLength(1)
+        .setMaxLength(1024)
         .setCustomId('reasonInput')
         .setLabel('Reason')
         .setStyle(TextInputStyle.Paragraph)
         .setRequired(true);
 
       const ActionRow = new ActionRowBuilder().addComponents(reasonInput);
-
-      modal.addComponents(ActionRow);
+      const modal = new ModalBuilder().setCustomId('ticket_reason').setTitle('Ticket Reason').addComponents(ActionRow);
 
       await interaction.showModal(modal);
     }
 
     if (interaction.customId === 'close_ticket') {
-      if (!(await db.get(`servers.${interaction.guild.id}.tickets`))) {
+      const connection = await client.db.getConnection();
+      const [rows] = await connection.execute(`SELECT * FROM ticket_settings WHERE server_id = ?`, [
+        interaction.guild.id,
+      ]);
+
+      if (rows.length === 0) {
+        connection.release();
         return interaction.reply({
           content:
             'The ticket system has not been setup in this server. Please contact a server administrator to re-run the setup command.',
@@ -156,10 +182,10 @@ export async function run(client, interaction) {
       }
 
       // Create the modal
-      const modal = new ModalBuilder().setCustomId('close_ticket_reason').setTitle('Ticket Close Reason');
+
       const reasonInput = new TextInputBuilder()
-        .setMaxLength(1024)
         .setMinLength(1)
+        .setMaxLength(1024)
         .setCustomId('reasonInput')
         .setLabel('Reason')
         .setStyle(TextInputStyle.Paragraph)
@@ -167,15 +193,25 @@ export async function run(client, interaction) {
 
       const ActionRow = new ActionRowBuilder().addComponents(reasonInput);
 
-      modal.addComponents(ActionRow);
+      const modal = new ModalBuilder()
+        .setCustomId('close_ticket_reason')
+        .setTitle('Ticket Close Reason')
+        .addComponents(ActionRow);
 
       await interaction.showModal(modal);
     }
   }
 
   if (interaction.isModalSubmit()) {
+    // Handle modal submissions for ticket creation
     if (interaction.customId === 'ticket_reason') {
-      if (!(await db.get(`servers.${interaction.guild.id}.tickets`))) {
+      const connection = await client.db.getConnection();
+      const [rows] = await connection.execute(`SELECT * FROM ticket_settings WHERE server_id = ?`, [
+        interaction.guild.id,
+      ]);
+
+      if (rows.length === 0) {
+        connection.release();
         return interaction.reply({
           content:
             'The ticket system has not been setup in this server. Please contact a server administrator to re-run the setup command.',
@@ -185,7 +221,9 @@ export async function run(client, interaction) {
 
       await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
-      const { catID, logID, roleID } = await db.get(`servers.${interaction.guild.id}.tickets`);
+      const catID = rows[0].category_id;
+      const roleID = rows[0].role_id;
+      const logID = rows[0].logging_id;
 
       if (!interaction.guild.members.me.permissions.has('ManageChannels')) {
         return interaction.editReply('The bot is missing `Manage Channels` permission.');
@@ -238,7 +276,11 @@ export async function run(client, interaction) {
         topic: reason,
       });
 
-      await db.set(`servers.${interaction.guild.id}.tickets.${tixChan.id}.owner`, member.id);
+      await connection.execute(
+        `INSERT INTO user_tickets (server_id, channel_id, user_id)
+         VALUES (?, ?, ?)`,
+        [interaction.guild.id, tixChan.id, member.id],
+      );
 
       const logEmbed = new EmbedBuilder()
         .setAuthor({ name: member.displayName, iconURL: member.user.displayAvatarURL() })
@@ -286,8 +328,15 @@ export async function run(client, interaction) {
       return chanMessage.pin();
     }
 
+    // Handle modal submissions for ticket closing
     if (interaction.customId === 'close_ticket_reason') {
-      if (!(await db.get(`servers.${interaction.guild.id}.tickets`))) {
+      const connection = await client.db.getConnection();
+      const [rows] = await connection.execute(`SELECT * FROM ticket_settings WHERE server_id = ?`, [
+        interaction.guild.id,
+      ]);
+
+      if (rows.length === 0) {
+        connection.release();
         return interaction.reply({
           content:
             'The ticket system has not been setup in this server. Please contact a server administrator to re-run the setup command.',
@@ -296,16 +345,20 @@ export async function run(client, interaction) {
       }
 
       await interaction.deferReply();
-      const { logID, roleID } = await db.get(`servers.${interaction.guild.id}.tickets`);
+      const logID = rows[0].logging_id;
+      const roleID = rows[0].role_id;
 
       const tName = interaction.channel.name;
       const role = interaction.guild.roles.cache.get(roleID);
-      const owner = await db.get(`servers.${interaction.guild.id}.tickets.${interaction.channel.id}.owner`);
+      const [ownerRows] = await connection.execute(
+        `SELECT user_id FROM user_tickets WHERE server_id = ? AND channel_id = ?`,
+        [interaction.guild.id, interaction.channel.id],
+      );
+      const owner = ownerRows[0].user_id;
+
       if (owner !== interaction.user.id) {
         if (!interaction.member.roles.cache.some((r) => r.id === roleID)) {
-          return interaction.editReply(
-            `You need to be the ticket owner or a member of ${role.name} to use force-close.`,
-          );
+          return interaction.editReply(`You need to be the ticket owner or a member of ${role.name} to use this.`);
         }
       }
 
@@ -313,9 +366,10 @@ export async function run(client, interaction) {
 
       const em = new EmbedBuilder().setTitle('Ticket Closed').setColor('#E65DF4')
         .setDescription(stripIndents`${interaction.user} has requested to close this ticket.
-        The ticket will close in 5 minutes if no further activity occurs.
+          The ticket will close in 5 minutes if no further activity occurs.
 
-        Reason: ${reason}`);
+          Reason: ${reason}
+        `);
       await interaction.editReply({ embeds: [em] });
 
       const filter = (m) => m.content?.length > 0;
@@ -341,7 +395,7 @@ export async function run(client, interaction) {
             { name: 'Server', value: interaction.guild.name, inline: false },
           ])
           .setTimestamp();
-        const user = await interaction.client.users.fetch(owner);
+        const user = await client.users.fetch(owner);
         await user.send({ embeds: [userEmbed], files: [attachment] }).catch(() => {
           received = 'no';
         });
@@ -361,9 +415,15 @@ export async function run(client, interaction) {
         await interaction.guild.channels.cache
           .get(logID)
           .send({ embeds: [logEmbed], files: [attachment] })
-          .catch((e) => this.client.logger.error(e));
+          .catch((e) => client.logger.error(e));
 
-        await db.delete(`servers.${interaction.guild.id}.tickets.${interaction.channel.id}`);
+        await connection.execute(
+          `DELETE FROM user_tickets 
+             WHERE server_id = ? AND channel_id = ?`,
+          [interaction.guild.id, interaction.channel.id],
+        );
+        connection.release();
+
         return interaction.channel.delete();
       }
 
@@ -379,6 +439,7 @@ export async function run(client, interaction) {
         .setColor('#E65DF4')
         .setTimestamp();
 
+      connection.release();
       return interaction.channel.send({ embeds: [embed] });
     }
   }
