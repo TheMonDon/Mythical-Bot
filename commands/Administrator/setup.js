@@ -600,7 +600,7 @@ class Setup extends Command {
 
       await connection.execute(
         `
-        INSERT INTO tickets (server_id, ticket_limit, role_id, category_id, logging_id)
+        INSERT INTO ticket_settings (server_id, ticket_limit, role_id, category_id, logging_id)
         VALUES (?, ?, ?, ?, ?)
         ON DUPLICATE KEY UPDATE
           ticket_limit = VALUES(ticket_limit),
