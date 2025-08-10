@@ -50,6 +50,7 @@ class Setup extends Command {
       if (rows.length > 0) {
         const catID = rows[0].category_id;
         const roleID = rows[0].role_id;
+        const originalTicketLimit = rows[0].ticket_limit;
 
         if (catID && msg.guild.channels.cache.get(catID)) {
           await msg.channel.send(stripIndents`
@@ -77,7 +78,7 @@ class Setup extends Command {
           if (choice === '4') {
             // code goes here
             await msg.channel.send(
-              'How many tickets should a user be able to open? Please respond in number form, the default is 3.',
+              `How many tickets should a user be able to open? Please respond in number form, the default is 3 and the current is ${originalTicketLimit}.`,
             );
 
             const collectedMaxTicketsQuestion = await msg.channel.awaitMessages({
@@ -419,7 +420,7 @@ class Setup extends Command {
             // Create the persistent button
             const button = new ButtonBuilder()
               .setCustomId('create_ticket')
-              .setLabel('Open a Ticket')
+              .setLabel('Create Ticket')
               .setStyle(ButtonStyle.Primary);
             const row = new ActionRowBuilder().addComponents(button);
 
