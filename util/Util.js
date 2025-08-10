@@ -329,21 +329,21 @@ function randomString(length) {
 
 /**
  *
- * @param {userID} userID
- * @param {Message} context
+ * @param {Client} client Bot Client
+ * @param {userID} userID User ID to get tickets for
+ * @param {Message} context A Message or Interaction object
  */
-async function getTickets(userID, context) {
-  const tickets = await db.get(`servers.${context.guild.id}.tickets`);
-  const userTickets = [];
-  if (tickets) {
-    Object.values(tickets).forEach((val) => {
-      if (val?.owner === userID) {
-        userTickets.push(val);
-      }
-    });
-  }
-  if (!userTickets) return;
-  return userTickets;
+async function getTickets(client, userID, context) {
+  const connection = await client.db.getConnection();
+  const [rows] = await connection.execute(
+    `SELECT COUNT(*) AS ticket_count
+     FROM user_tickets
+     WHERE server_id = ? AND user_id = ?`,
+    [context.guild.id, userID],
+  );
+  connection.release();
+  if (rows.length === 0) return 0;
+  return rows[0].ticket_count;
 }
 
 /**

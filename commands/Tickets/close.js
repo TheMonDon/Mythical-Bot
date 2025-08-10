@@ -2,8 +2,6 @@ const discordTranscripts = require('discord-html-transcripts');
 const Command = require('../../base/Command.js');
 const { stripIndents } = require('common-tags');
 const { EmbedBuilder } = require('discord.js');
-const { QuickDB } = require('quick.db');
-const db = new QuickDB();
 
 class CloseTicket extends Command {
   constructor(client) {
@@ -20,20 +18,43 @@ class CloseTicket extends Command {
   async run(msg, args) {
     const reason = args.join(' ') || 'No reason specified';
 
-    if (!(await db.get(`servers.${msg.guild.id}.tickets`))) {
+    const connection = await this.client.db.getConnection();
+    const [rows] = await connection.execute(`SELECT * FROM ticket_settings WHERE server_id = ?`, [msg.guild.id]);
+
+    if (rows.length === 0) {
+      connection.release();
       return msg.channel.send('The ticket system has not been setup in this server.');
     }
-    const { logID, roleID } = await db.get(`servers.${msg.guild.id}.tickets`);
+
+    if (!msg.guild.members.me.permissions.has('ManageChannels')) {
+      connection.release();
+      return msg.channel.send('Please let a server administrator know the bot is missing Manage Channels permission.');
+    }
+
+    const logID = rows[0].logging_id;
+    const roleID = rows[0].role_id;
 
     if (!msg.channel.name.startsWith('ticket')) {
+      connection.release();
       return msg.channel.send('You need to be inside the ticket you want to close.');
     }
 
     const tName = msg.channel.name;
     const role = msg.guild.roles.cache.get(roleID);
-    const owner = await db.get(`servers.${msg.guild.id}.tickets.${msg.channel.id}.owner`);
+    const [ownerRows] = await connection.execute(
+      `SELECT user_id FROM user_tickets WHERE server_id = ? AND channel_id = ?`,
+      [msg.guild.id, msg.channel.id],
+    );
+    const owner = ownerRows[0]?.user_id;
+
+    if (!owner) {
+      connection.release();
+      return msg.channel.send('This ticket does not have an owner.');
+    }
+
     if (owner !== msg.author.id) {
       if (!msg.member.roles.cache.some((r) => r.id === roleID)) {
+        connection.release();
         return msg.channel.send(`You need to be the ticket owner or a member of ${role.name} to use this command.`);
       }
     }
@@ -42,9 +63,10 @@ class CloseTicket extends Command {
       .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
       .setTitle('Ticket Closed')
       .setColor('#E65DF4').setDescription(stripIndents`${msg.author} has requested to close this ticket.
-      The ticket will close in 5 minutes if no further activity occurs.
+        The ticket will close in 5 minutes if no further activity occurs.
       
-      Reason: ${reason}`);
+        Reason: ${reason}
+      `);
     await msg.channel.send({ embeds: [em] });
 
     const filter = (m) => m.content?.length > 0;
@@ -92,7 +114,13 @@ class CloseTicket extends Command {
         .send({ embeds: [logEmbed], files: [attachment] })
         .catch((e) => this.client.logger.error(e));
 
-      await db.delete(`servers.${msg.guild.id}.tickets.${msg.channel.id}`);
+      await connection.execute(
+        `DELETE FROM user_tickets 
+           WHERE server_id = ? AND channel_id = ?`,
+        [msg.guild.id, msg.channel.id],
+      );
+      connection.release();
+
       return msg.channel.delete();
     }
 
@@ -108,6 +136,7 @@ class CloseTicket extends Command {
       .setColor('#E65DF4')
       .setTimestamp();
 
+    connection.release();
     return msg.channel.send({ embeds: [embed] });
   }
 }

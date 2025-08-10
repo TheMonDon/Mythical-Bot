@@ -550,20 +550,26 @@ const loadMysql = async () => {
 
   const mysql = require('mysql2/promise');
 
+  const tempConn = await mysql.createConnection({
+    host: config.mysql.host,
+    user: config.mysql.user,
+    password: config.mysql.password,
+  });
+
+  await tempConn.query(`CREATE DATABASE IF NOT EXISTS ${config.mysql.database}`);
+  await tempConn.end();
+
   const pool = mysql.createPool({
     host: config.mysql.host,
     user: config.mysql.user,
     password: config.mysql.password,
     multipleStatements: true,
+    database: config.mysql.database,
   });
 
   client.db = pool;
 
   const connection = await pool.getConnection();
-
-  // Check if the database exists, if not create it
-  await connection.execute(`CREATE DATABASE IF NOT EXISTS ${config.mysql.database}`);
-  await connection.execute(`USE ${config.mysql.database}`);
 
   // Create tables if they do not exist
   await connection.execute(`
@@ -625,14 +631,24 @@ const loadMysql = async () => {
     `);
   }
 
-  // This isn't used yet but will be in the future
   await connection.execute(`
     CREATE TABLE IF NOT EXISTS ticket_settings (
-      server_id BIGINT PRIMARY KEY,
+      server_id VARCHAR(100) PRIMARY KEY,
       ticket_limit INT DEFAULT 3,
-      role_id BIGINT DEFAULT NULL,
-      category_id BIGINT DEFAULT NULL,
-      logging_id BIGINT DEFAULT NULL
+      role_id VARCHAR(100) DEFAULT NULL,
+      category_id VARCHAR(100) DEFAULT NULL,
+      logging_id VARCHAR(100) DEFAULT NULL
+    );
+  `);
+
+  await connection.execute(`
+    CREATE TABLE IF NOT EXISTS user_tickets (
+      server_id VARCHAR(100) NOT NULL,
+      channel_id VARCHAR(100) NOT NULL,
+      user_id VARCHAR(100) NOT NULL,
+      topic_cooldown BOOLEAN DEFAULT FALSE,
+      cooldown_until BIGINT DEFAULT NULL,
+      PRIMARY KEY (server_id, channel_id)
     );
   `);
 

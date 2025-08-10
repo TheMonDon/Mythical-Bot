@@ -18,17 +18,31 @@ class Topic extends Command {
   }
 
   async run(msg, args) {
-    const server = msg.guild;
-    if (!(await db.get(`servers.${msg.guild.id}.tickets`)))
-      return msg.channel.send('The ticket system has not been setup in this server.');
+    const connection = await this.client.db.getConnection();
+    const [rows] = await connection.execute(`SELECT * FROM ticket_settings WHERE server_id = ?`, [msg.guild.id]);
+    const [cooldownRows] = await connection.execute(`SELECT * FROM user_tickets WHERE server_id = ? AND user_id = ?`, [
+      msg.guild.id,
+      msg.author.id,
+    ]);
+    const channelCooldown = {
+      active: cooldownRows[0]?.topic_cooldown || false,
+      time: cooldownRows[0]?.cooldown_until || null,
+    };
 
-    if (!msg.channel.name.startsWith('ticket'))
+    if (rows.length === 0) {
+      connection.release();
+      return msg.channel.send('The ticket system has not been setup in this server.');
+    }
+
+    if (!msg.channel.name.startsWith('ticket')) {
+      connection.release();
       return msg.channel.send('You need to be inside the ticket you want to change the topic of.');
+    }
 
     let topic = args.join(' ');
     topic = topic.slice(0, 1024);
 
-    const { roleID } = await db.get(`servers.${msg.guild.id}.tickets`);
+    const roleID = rows[0].role_id;
     const role = msg.guild.roles.cache.get(roleID);
     const owner = await db.get(`servers.${msg.guild.id}.tickets.${msg.channel.id}.owner`);
 
@@ -39,25 +53,25 @@ class Topic extends Command {
     }
 
     const cooldown = 300; // 5 minutes
-    let channelCooldown = (await db.get(`servers.${server.id}.tickets.${msg.channel.id}.tCooldown`)) || {};
 
     if (channelCooldown.active) {
       const timeleft = channelCooldown.time - Date.now();
       if (timeleft < 0 || timeleft > cooldown * 1000) {
-        // this is to check if the bot restarted before their cooldown was set.
-        channelCooldown = {};
-        channelCooldown.active = false;
-        await db.set(`servers.${server.id}.tickets.${msg.channel.id}.tCooldown`, channelCooldown);
+        await connection.execute(
+          `UPDATE user_tickets
+           SET topic_cooldown = FALSE, cooldown_until = NULL
+           WHERE server_id = ? AND channel_id = ? AND user_id = ?`,
+          [msg.guild.id, msg.channel.id, msg.author.id],
+        );
       } else {
-        const tLeft = moment
-          .duration(timeleft)
-          .format('y[ years][,] M[ Months][,] d[ days][,] h[ hours][,] m[ minutes][ and] s[ seconds]'); // format to any format
+        const tLeft = moment.duration(timeleft).format('m[ minutes][ and] s[ seconds]');
 
         const embed = new EmbedBuilder()
           .setColor(msg.settings.embedErrorColor)
           .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
           .setDescription(`You can't change the topic for another ${tLeft}`);
 
+        connection.release();
         return msg.channel.send({ embeds: [embed] });
       }
     }
@@ -66,17 +80,29 @@ class Topic extends Command {
 
     const em = new EmbedBuilder()
       .setTitle('Topic Changed')
-      .setColor('#E65DF4')
+      .setColor(msg.settings.embedColor)
       .setDescription(`${msg.author} has changed the topic to: \n${topic}`);
     await msg.channel.send({ embeds: [em] });
 
-    channelCooldown.time = Date.now() + cooldown * 1000;
-    channelCooldown.active = true;
-    await db.set(`servers.${server.id}.tickets.${msg.channel.id}.tCooldown`, channelCooldown);
+    await connection.execute(
+      `INSERT INTO user_tickets (server_id, channel_id, user_id, topic_cooldown, cooldown_until)
+       VALUES (?, ?, ?, TRUE, ?)
+       ON DUPLICATE KEY UPDATE
+         topic_cooldown = TRUE,
+         cooldown_until = VALUES(cooldown_until)`,
+      [msg.guild.id, msg.channel.id, msg.author.id, Date.now() + cooldown * 1000],
+    );
+    connection.release();
 
     setTimeout(async () => {
-      channelCooldown = { active: false };
-      await db.set(`servers.${server.id}.tickets.${msg.channel.id}.tCooldown`, channelCooldown);
+      const connection = await this.client.db.getConnection();
+      await connection.execute(
+        `UPDATE user_tickets
+         SET topic_cooldown = FALSE, cooldown_until = NULL
+         WHERE server_id = ? AND channel_id = ? AND user_id = ?`,
+        [msg.guild.id, msg.channel.id, msg.author.id],
+      );
+      connection.release();
     }, cooldown * 1000);
   }
 }
