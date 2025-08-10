@@ -1,4 +1,4 @@
-import { ChannelType, EmbedBuilder } from 'discord.js';
+import { EmbedBuilder } from 'discord.js';
 import { QuickDB } from 'quick.db';
 const db = new QuickDB();
 

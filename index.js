@@ -379,18 +379,21 @@ const loadLavalink = async () => {
           requesterAvatarUrl: requester.displayAvatarURL({ extension: 'png', size: 128 }),
         });
 
-        const oldmsg = (await db.get(`servers.${player.guildId}.music.lastTrack`)) || null;
+        const connection = await client.db.getConnection();
+        const [rows] = await connection.execute(`SELECT * FROM music_last_track WHERE server_id = ?`, [player.guildId]);
+        const oldmsg = rows[0] || null;
+
         if (oldmsg !== null) {
           try {
-            const channel = client.channels.cache.get(oldmsg.channelId);
+            const channel = client.channels.cache.get(oldmsg.channel_id);
             if (channel) {
-              const message = await channel.messages.fetch(oldmsg.id).catch(() => null);
+              const message = await channel.messages.fetch(oldmsg.message_id).catch(() => null);
               if (message) {
                 await message.delete().catch(() => {});
               }
             }
           } catch {
-            await db.delete(`servers.${player.guildId}.music.lastTrack`);
+            await connection.execute(`DELETE FROM music_last_track WHERE server_id = ?`, [player.guildId]);
           }
         }
 
@@ -426,76 +429,77 @@ const loadLavalink = async () => {
             })
             .catch(() => null));
 
-        if (msg) {
-          await db.set(`servers.${player.guildId}.music.lastTrack`, {
-            id: msg.id,
-            channelId: msg.channel.id,
-          });
+        await connection.execute(
+          `
+          INSERT INTO music_last_track (server_id, channel_id, message_id) 
+          VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE channel_id = VALUES(channel_id), message_id = VALUES(message_id)`,
+          [player.guildId, msg.channel.id, msg.id],
+        );
+        connection.release();
 
-          const collector = msg.createMessageComponentCollector({
-            filter: (i) => i.guildId === msg.guildId,
-            time: 2147483647,
-          });
+        const collector = msg.createMessageComponentCollector({
+          filter: (i) => i.guildId === msg.guildId,
+          time: 2147483647,
+        });
 
-          collector.on('collect', async (interaction) => {
-            if (interaction.member.voice?.channelId !== player.voiceChannelId) {
-              return interaction.reply({
-                content: 'You must be in the same voice channel as the bot to use these buttons.',
-                flags: MessageFlags.Ephemeral,
-              });
+        collector.on('collect', async (interaction) => {
+          if (interaction.member.voice?.channelId !== player.voiceChannelId) {
+            return interaction.reply({
+              content: 'You must be in the same voice channel as the bot to use these buttons.',
+              flags: MessageFlags.Ephemeral,
+            });
+          }
+
+          if (interaction.customId === 'pause_resume_track') {
+            await interaction.deferUpdate();
+
+            const em = new EmbedBuilder()
+              .setColor(client.getSettings(interaction.guild).embedSuccessColor)
+              .setAuthor({ name: interaction.member.displayName, iconURL: interaction.member.displayAvatarURL() });
+
+            if (player.paused) {
+              player.resume();
+              em.setDescription('<:play_button:1403460972697489569> Music has been resumed.');
+            } else {
+              player.pause();
+              player.autoPaused = false;
+              em.setDescription('<:pause_button:1403460971367759872> Music has been paused.');
             }
 
-            if (interaction.customId === 'pause_resume_track') {
-              await interaction.deferUpdate();
+            await interaction.followUp({ embeds: [em] }).catch(() => {});
+          } else if (interaction.customId === 'skip_track') {
+            await interaction.deferUpdate();
 
-              const em = new EmbedBuilder()
-                .setColor(client.getSettings(interaction.guild).embedSuccessColor)
-                .setAuthor({ name: interaction.member.displayName, iconURL: interaction.member.displayAvatarURL() });
+            const song = player.queue.current;
 
-              if (player.paused) {
-                player.resume();
-                em.setDescription('<:play_button:1403460972697489569> Music has been resumed.');
-              } else {
-                player.pause();
-                player.autoPaused = false;
-                em.setDescription('<:pause_button:1403460971367759872> Music has been paused.');
-              }
+            const em = new EmbedBuilder()
+              .setColor(client.getSettings(interaction.guild).embedSuccessColor)
+              .setAuthor({ name: interaction.member.displayName, iconURL: interaction.member.displayAvatarURL() });
 
-              await interaction.followUp({ embeds: [em] }).catch(() => {});
-            } else if (interaction.customId === 'skip_track') {
-              await interaction.deferUpdate();
-
-              const song = player.queue.current;
-
-              const em = new EmbedBuilder()
-                .setColor(client.getSettings(interaction.guild).embedSuccessColor)
-                .setAuthor({ name: interaction.member.displayName, iconURL: interaction.member.displayAvatarURL() });
-
-              if (player.queue.tracks.length === 0) {
-                await player.destroy();
-                em.setDescription(
-                  '<:skip_button:1403460975486701618> Skipped to the next track, but the queue is now empty.',
-                );
-              } else {
-                await player.skip();
-              }
-              if (song) em.addFields([{ name: 'Skipped Song', value: song.info.title, inline: false }]);
-
-              await interaction.followUp({ embeds: [em] }).catch(() => {});
-            } else if (interaction.customId === 'stop_track') {
-              await interaction.deferUpdate();
-
+            if (player.queue.tracks.length === 0) {
               await player.destroy();
-
-              const em = new EmbedBuilder()
-                .setColor(client.getSettings(interaction.guild).embedSuccessColor)
-                .setAuthor({ name: interaction.member.displayName, iconURL: interaction.member.displayAvatarURL() })
-                .setDescription('<:stop_button:1403460977424470036> All music has been stopped.');
-
-              await interaction.followUp({ embeds: [em] }).catch(() => {});
+              em.setDescription(
+                '<:skip_button:1403460975486701618> Skipped to the next track, but the queue is now empty.',
+              );
+            } else {
+              await player.skip();
             }
-          });
-        }
+            if (song) em.addFields([{ name: 'Skipped Song', value: song.info.title, inline: false }]);
+
+            await interaction.followUp({ embeds: [em] }).catch(() => {});
+          } else if (interaction.customId === 'stop_track') {
+            await interaction.deferUpdate();
+
+            await player.destroy();
+
+            const em = new EmbedBuilder()
+              .setColor(client.getSettings(interaction.guild).embedSuccessColor)
+              .setAuthor({ name: interaction.member.displayName, iconURL: interaction.member.displayAvatarURL() })
+              .setDescription('<:stop_button:1403460977424470036> All music has been stopped.');
+
+            await interaction.followUp({ embeds: [em] }).catch(() => {});
+          }
+        });
       } catch (error) {
         console.error(error);
       }
@@ -649,6 +653,15 @@ const loadMysql = async () => {
       topic_cooldown BOOLEAN DEFAULT FALSE,
       cooldown_until BIGINT DEFAULT NULL,
       PRIMARY KEY (server_id, channel_id)
+    );
+  `);
+
+  await connection.execute(`
+    CREATE TABLE IF NOT EXISTS music_last_track (
+      server_id VARCHAR(100) NOT NULL,
+      channel_id VARCHAR(100) NOT NULL,
+      message_id VARCHAR(100) NOT NULL,
+      PRIMARY KEY (server_id)
     );
   `);
 
