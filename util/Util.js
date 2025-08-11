@@ -801,20 +801,20 @@ async function chatbotApiRequest(client, message) {
   if (message.channel.id !== client.config.chatbotThreadId && !message.mentions.has(client.user)) return;
   if (message.flags.has(MessageFlagsBitField.Flags.SuppressNotifications)) return;
 
-  const cooldown = (await db.get('global.chatbot.cooldown')) || 5; // seconds
+  const cooldown = (await db.get('global.chatbot.cooldown')) || 7; // seconds
   let userCooldown = (await db.get(`servers.${message.guild.id}.users.${message.member.id}.chatbot.cooldown`)) || {};
 
   // Check if the user is on cooldown
   if (userCooldown.active) {
     const timeleft = userCooldown.time - Date.now();
-    if (timeleft <= 1 || timeleft > cooldown * 1000) {
-      userCooldown = {};
-      userCooldown.active = false;
-      await db.set(`servers.${message.guild.id}.users.${message.member.id}.chatbot.cooldown`, userCooldown);
-    } else {
-      const timeLeft = moment.duration(timeleft).format('m[ minutes][ and] s[ seconds]');
 
-      return `Please wait ${timeLeft} before using the chatbot again.`;
+    if (timeleft > 0 && timeleft <= cooldown * 1000) {
+      const timeLeftFormatted = moment.duration(timeleft).format('m[ minutes][ and] s[ seconds]');
+      return `Please wait ${timeLeftFormatted} before using the chatbot again.`;
+    } else {
+      // Cooldown expired — clear it
+      userCooldown = { active: false };
+      await db.set(`servers.${message.guild.id}.users.${message.member.id}.chatbot.cooldown`, userCooldown);
     }
   }
 

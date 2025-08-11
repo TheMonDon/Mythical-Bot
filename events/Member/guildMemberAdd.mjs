@@ -32,25 +32,57 @@ export async function run(client, member) {
     channel.send({ embeds: [embed] }).catch(() => {});
   }
 
-  async function PersistentRoles(member) {
+  async function PersistentRoles(client, member) {
     if (!member || !member.guild) return;
+    if (!member.guild.members.me.permissions.has('ManageRoles')) return;
+    if (member.user.bot) return;
+
+    const connection = await client.db.getConnection();
+
     try {
-      const toggle = (await db.get(`servers.${member.guild.id}.proles.system`)) || false;
-      if (!toggle) return;
+      const [toggleRows] = await connection.execute(
+        `SELECT persistent_roles FROM server_settings WHERE server_id = ?`,
+        [member.guild.id],
+      );
 
-      if (!member.guild.members.me.permissions.has('ManageRoles')) return;
-      if (member.user.bot) return;
-
-      const roles = await db.get(`servers.${member.guild.id}.proles.users.${member.user.id}`);
-      if (!roles) return;
-
-      for (let i = 0; i < roles.length; i++) {
-        await member.roles.add(roles[i]).catch((error) => console.error(error));
-        await setTimeoutPromise(1000);
+      const toggle = toggleRows[0]?.persistent_roles === 1;
+      if (!toggle) {
+        connection.release();
+        return;
       }
 
-      await db.delete(`servers.${member.guild.id}.proles.users.${member.user.id}`);
+      const [rolesRows] = await connection.execute(
+        `SELECT roles FROM persistent_roles WHERE server_id = ? AND user_id = ?`,
+        [member.guild.id, member.user.id],
+      );
+      const roles = rolesRows[0]?.roles ? JSON.parse(rolesRows[0].roles) : [];
+      if (!roles) return;
+
+      const reason = 'Added from persistent-roles system';
+      try {
+        // Try bulk add first
+        await member.roles.add(roles, reason);
+      } catch (error) {
+        console.warn(`Bulk role add failed: ${error.message}`);
+
+        // Fallback: add each role individually
+        for (const roleId of roles) {
+          try {
+            await member.roles.add(roleId, reason);
+            await setTimeoutPromise(1000);
+          } catch (err) {
+            console.warn(`Failed to add role ${roleId}: ${err.message}`);
+          }
+        }
+      }
+
+      await connection.execute(`DELETE FROM persistent_roles WHERE server_id = ? AND user_id = ?`, [
+        member.guild.id,
+        member.user.id,
+      ]);
+      connection.release();
     } catch (error) {
+      connection.release();
       console.error(error);
     }
   }
@@ -109,6 +141,6 @@ export async function run(client, member) {
   // Run the functions
   WelcomeSystem(client, member);
   await LogSystem(member);
-  await PersistentRoles(member);
+  await PersistentRoles(client, member);
   await AssignAutoRoles(member);
 }

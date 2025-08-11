@@ -29,17 +29,16 @@ class Slut extends Command {
 
     if (userCooldown.active) {
       const timeleft = userCooldown.time - Date.now();
-      if (timeleft <= 1 || timeleft > cooldown * 1000) {
-        // this is to check if the bot restarted before their cooldown was set.
-        userCooldown = {};
-        userCooldown.active = false;
-        await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.${type}.cooldown`, userCooldown);
-      } else {
+
+      if (timeleft > 0 && timeleft <= cooldown * 1000) {
         const tLeft = moment
           .duration(timeleft)
           .format('y[ years][,] M[ Months][,] d[ days][,] h[ hours][,] m[ minutes][ and] s[ seconds]'); // format to any format
         embed.setDescription(`Please wait ${tLeft} to be a slut again.`);
         return msg.channel.send({ embeds: [embed] });
+      } else {
+        userCooldown = { active: false};
+        await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.${type}.cooldown`, userCooldown);
       }
     }
 

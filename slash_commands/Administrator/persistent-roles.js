@@ -1,6 +1,5 @@
-const { SlashCommandBuilder, InteractionContextType } = require('discord.js');
-const { QuickDB } = require('quick.db');
-const db = new QuickDB();
+const { SlashCommandBuilder, InteractionContextType, EmbedBuilder } = require('discord.js');
+const { stripIndents } = require('common-tags');
 
 exports.conf = {
   permLevel: 'Administrator',
@@ -8,7 +7,7 @@ exports.conf = {
 
 exports.commandData = new SlashCommandBuilder()
   .setName('persistent-roles')
-  .setDescription('Enable/Disable Persistent-Roles')
+  .setDescription('Control the persistent roles system for the server')
   .addStringOption((option) =>
     option
       .setName('type')
@@ -34,21 +33,60 @@ exports.run = async (interaction) => {
     );
   }
 
+  const connection = await interaction.client.db.getConnection();
+  const [toggleRows] = await connection.execute(`SELECT persistent_roles FROM server_settings WHERE server_id = ?`, [
+    interaction.guild.id,
+  ]);
+  const toggle = toggleRows[0]?.persistent_roles === 1;
+
   switch (type) {
     case 'enable': {
-      await db.set(`servers.${interaction.guild.id}.proles.system`, true);
+      if (toggle) {
+        connection.release();
+        return interaction.editReply('The persistent role system for this server is already enabled');
+      }
+
+      await connection.execute(
+        `
+        INSERT INTO server_settings (server_id, persistent_roles)
+        VALUES (?, ?)
+        ON DUPLICATE KEY UPDATE persistent_roles = VALUES(persistent_roles)`,
+        [interaction.guild.id, true],
+      );
+      connection.release();
+
       return interaction.editReply('The persistent role system for this server has been enabled');
     }
 
     case 'disable': {
-      await db.set(`servers.${interaction.guild.id}.proles.system`, false);
+      if (!toggle) {
+        connection.release();
+        return interaction.editReply('The persistent role system for this server is already disabled');
+      }
+
+      await connection.execute(
+        `
+        INSERT INTO server_settings (server_id, persistent_roles)
+        VALUES (?, ?)
+        ON DUPLICATE KEY UPDATE persistent_roles = VALUES(persistent_roles)`,
+        [interaction.guild.id, false],
+      );
+      connection.release();
+
       return interaction.editReply('The persistent role system for this server has been disabled');
     }
 
     case 'information': {
-      return interaction.editReply(
-        'When persistent roles is enabled users who leave the guild will have their roles automatically returned when they come back.',
-      );
+      connection.release();
+
+      const embed = new EmbedBuilder().setTitle('Persistent Roles System').setColor(interaction.settings.embedColor)
+        .setDescription(stripIndents`The persistent roles system is currently **${toggle ? 'enabled' : 'disabled'}**.
+          Use \`/persistent-roles [enable | disable]\` to change the status.
+          
+          When persistent roles is enabled users who leave the guild will have their roles automatically returned when they come back.
+        `);
+
+      return interaction.editReply({ embeds: [embed] });
     }
   }
 };

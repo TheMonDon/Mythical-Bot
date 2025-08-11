@@ -665,6 +665,23 @@ const loadMysql = async () => {
     );
   `);
 
+  await connection.execute(`
+    CREATE TABLE IF NOT EXISTS server_settings (
+      server_id VARCHAR(100) NOT NULL,
+      persistent_roles BOOLEAN DEFAULT FALSE,
+      PRIMARY KEY (server_id)
+    );
+  `);
+
+  await connection.execute(`
+    CREATE TABLE IF NOT EXISTS persistent_roles (
+      server_id VARCHAR(100) NOT NULL,
+      user_id VARCHAR(100) NOT NULL,
+      roles JSON,
+      PRIMARY KEY (server_id, user_id)
+    );
+  `);
+
   const [views] = await connection.query(`SHOW FULL TABLES IN ${config.mysql.database} WHERE TABLE_TYPE LIKE 'VIEW'`);
   const viewExists = views.some((row) => Object.values(row).includes('globalruns'));
 

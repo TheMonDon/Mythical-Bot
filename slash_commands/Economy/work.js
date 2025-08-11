@@ -25,19 +25,19 @@ exports.run = async (interaction) => {
   // Check if the user is on cooldown
   if (userCooldown.active) {
     const timeleft = userCooldown.time - Date.now();
-    if (timeleft <= 1 || timeleft > cooldown * 1000) {
-      userCooldown = {};
-      userCooldown.active = false;
-      await db.set(
-        `servers.${interaction.guild.id}.users.${interaction.member.id}.economy.work.cooldown`,
-        userCooldown,
-      );
-    } else {
+
+    if (timeleft > 0 && timeleft <= cooldown * 1000) {
       const tLeft = moment
         .duration(timeleft)
         .format('y[ years][,] M[ Months][,] d[ days][,] h[ hours][,] m[ minutes][ and] s[ seconds]');
       embed.setDescription(`You cannot work for ${tLeft}`);
       return interaction.editReply({ embeds: [embed] });
+    } else {
+      userCooldown = { active: false };
+      await db.set(
+        `servers.${interaction.guild.id}.users.${interaction.member.id}.economy.work.cooldown`,
+        userCooldown,
+      );
     }
   }
 

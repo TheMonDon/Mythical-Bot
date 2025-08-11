@@ -21,6 +21,7 @@ exports.run = async (interaction) => {
   const db = new QuickDB();
   const DiscordJS = require('discord.js');
   const util = interaction.client.util;
+  const client = interaction.client;
   let promise = false;
 
   const embed = new EmbedBuilder().setFooter({

@@ -37,23 +37,45 @@ export async function run(client, member) {
     channel.send({ embeds: [embed] }).catch(() => {});
   }
 
-  async function AutoRole(client, member) {
+  async function PersistentRoles(client, member) {
     if (!member || !member.guild) return;
+    if (!member.guild.members.me.permissions.has('ManageRoles')) return;
+    if (member.user.bot) return;
+
+    const connection = await client.db.getConnection();
+
     try {
-      if (!member.guild) return;
+      const [toggleRows] = await connection.execute(
+        `SELECT persistent_roles FROM server_settings WHERE server_id = ?`,
+        [member.guild.id],
+      );
 
-      const toggle = (await db.get(`servers.${member.guild.id}.proles.system`)) || false;
-      if (!toggle) return;
+      const toggle = toggleRows[0]?.persistent_roles === 1;
+      if (!toggle) {
+        connection.release();
+        return;
+      }
 
-      if (!member.guild.members.me.permissions.has('ManageRoles')) return;
-      if (member.user.bot) return;
+      const bans = await member.guild.bans.fetch();
+      const bannedUser = bans.find((ban) => ban.user.id === member.id);
+      if (bannedUser) {
+        connection.release();
+        return;
+      }
 
       const roles = [...member.roles.cache.values()];
       if (roles.length === 1) return;
       const arr = roles.filter((role) => role.id !== member.guild.id).map((role) => role.id);
 
-      await db.set(`servers.${member.guild.id}.proles.users.${member.user.id}`, arr);
+      connection.execute(
+        `INSERT INTO prole_users (guild_id, user_id, roles)
+         VALUES (?, ?, ?)
+         ON DUPLICATE KEY UPDATE roles = VALUES(roles)`,
+        [member.guild.id, member.user.id, JSON.stringify(arr)],
+      );
+      connection.release();
     } catch (error) {
+      connection.release();
       client.logger.error(error);
       console.error(error);
     }
@@ -89,5 +111,5 @@ export async function run(client, member) {
   // Run the functions
   LeaveSystem(client, member);
   await LogSystem(member);
-  await AutoRole(client, member);
+  await PersistentRoles(client, member);
 }

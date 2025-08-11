@@ -21,6 +21,7 @@ class Eval extends Command {
     const DiscordJS = require('discord.js');
     const util = this.client.util;
     const db = new QuickDB();
+    const client = this.client;
     let promise = false;
 
     const embed = new EmbedBuilder().setFooter({ text: msg.author.tag, iconURL: msg.author.displayAvatarURL() });

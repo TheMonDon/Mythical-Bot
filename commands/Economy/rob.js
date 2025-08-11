@@ -31,17 +31,17 @@ class Rob extends Command {
     // Check if the user is on cooldown
     if (userCooldown.active) {
       const timeleft = userCooldown.time - Date.now();
-      if (timeleft <= 1 || timeleft > cooldown * 1000) {
-        userCooldown = {};
-        userCooldown.active = false;
-        await db.set(`servers.${msg.guild.id}.users.${msg.author.id}.economy.${type}.cooldown`, userCooldown);
-      } else {
+
+      if (timeleft > 0 && timeleft <= cooldown * 1000) {
         const tLeft = moment
           .duration(timeleft)
           .format('y[ years][,] M[ Months][,] d[ days][,] h[ hours][,] m[ minutes][ and] s[ seconds]'); // format to any format
 
         embed.setDescription(`You cannot rob for ${tLeft}`);
         return msg.channel.send({ embeds: [embed] });
+      } else {
+        userCooldown = { active: false };
+        await db.set(`servers.${msg.guild.id}.users.${msg.author.id}.economy.${type}.cooldown`, userCooldown);
       }
     }
 
