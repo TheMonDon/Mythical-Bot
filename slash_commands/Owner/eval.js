@@ -22,6 +22,7 @@ exports.run = async (interaction) => {
   const DiscordJS = require('discord.js');
   const util = interaction.client.util;
   const client = interaction.client;
+  const msg = interaction;
   let promise = false;
 
   const embed = new EmbedBuilder().setFooter({

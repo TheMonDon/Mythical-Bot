@@ -1,19 +1,17 @@
 const Command = require('../../base/Command.js');
 const { EmbedBuilder } = require('discord.js');
-const { QuickDB } = require('quick.db');
-const db = new QuickDB();
 
 class GlobalBlacklist extends Command {
   constructor(client) {
     super(client, {
       name: 'global-blacklist',
-      description: 'Blacklist someone from using the bot',
+      description: 'Add, remove, or check if a user is on the global blacklist',
       usage: 'global-blacklist <Add | Remove | Check> <User> <Reason>',
       examples: ['global-blacklist check bunny', 'global-blacklist add bunny Being naughty'],
-      requiredArgs: 2,
       category: 'Bot Support',
       permLevel: 'Bot Support',
       aliases: ['gbl', 'g-blacklist', 'gblacklist'],
+      requiredArgs: 2,
       guildOnly: true,
     });
   }
@@ -67,7 +65,9 @@ class GlobalBlacklist extends Command {
     args.shift();
     const reason = args.join(' ') || false;
 
-    const blacklist = await db.get(`users.${mem.id}.blacklist`);
+    const connection = await this.client.db.getConnection();
+    const [blacklistRows] = await connection.execute(`SELECT * FROM global_blacklists WHERE user_id = ?`, [mem.id]);
+    const blacklisted = blacklistRows[0]?.blacklisted;
 
     const embed = new EmbedBuilder()
       .setAuthor({ name: mem.tag, iconURL: mem.displayAvatarURL() })
@@ -76,62 +76,96 @@ class GlobalBlacklist extends Command {
 
     switch (type) {
       case 'add': {
-        if (blacklist) {
+        if (blacklisted) {
+          connection.release();
           return msg.channel.send('That user is already blacklisted.');
         }
+
         if (!reason) {
+          connection.release();
           return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Reason');
         }
 
-        await db.set(`users.${mem.id}.blacklist`, true);
-        await db.set(`users.${mem.id}.blacklistReason`, reason);
+        if (reason.length > 1024) {
+          connection.release();
+          return this.client.util.errorEmbed(
+            msg,
+            'The reason provided is too long. Please keep it under 1024 characters.',
+            'Reason Too Long',
+          );
+        }
+
+        await connection.execute(
+          `INSERT INTO global_blacklists (user_id, blacklisted, reason)
+          VALUES (?, ?, ?)
+          ON DUPLICATE KEY UPDATE blacklisted = VALUES(blacklisted), reason = VALUES(reason)`,
+          [mem.id, true, reason],
+        );
 
         embed.setTitle(`${mem.tag} has been added to the global blacklist.`).addFields([
           { name: 'User:', value: `${mem.tag} \n(${mem.id})` },
           { name: 'Reason:', value: reason },
         ]);
 
+        connection.release();
         msg.channel.send({ embeds: [embed] });
-        mem.send({ embeds: [embed] }).catch(() => {});
-        break;
+        return mem.send({ embeds: [embed] }).catch(() => {});
       }
 
       case 'remove': {
-        if (!blacklist) {
+        if (!blacklisted) {
+          connection.release();
           return msg.channel.send('That user is not blacklisted');
         }
+
         if (!reason) {
+          connection.release();
           return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Reason');
         }
 
-        await db.set(`users.${mem.id}.blacklist`, false);
-        await db.set(`users.${mem.id}.blacklistReason`, reason);
+        if (reason.length > 1024) {
+          connection.release();
+          return this.client.util.errorEmbed(
+            msg,
+            'The reason provided is too long. Please keep it under 1024 characters.',
+            'Reason Too Long',
+          );
+        }
+
+        await connection.execute(
+          `INSERT INTO global_blacklists (user_id, blacklisted, reason)
+          VALUES (?, ?, ?)
+          ON DUPLICATE KEY UPDATE blacklisted = VALUES(blacklisted), reason = VALUES(reason)`,
+          [mem.id, false, reason],
+        );
 
         embed.setTitle(`${mem.tag} has been removed from the global blacklist.`).addFields([
           { name: 'User:', value: `${mem.tag} \n(${mem.id})` },
           { name: 'Reason:', value: reason },
         ]);
 
+        connection.release();
         msg.channel.send({ embeds: [embed] });
-        mem.send({ embeds: [embed] }).catch(() => {});
-        break;
+        return mem.send({ embeds: [embed] }).catch(() => {});
       }
 
       case 'check': {
-        const reason = (await db.get(`users.${mem.id}.blacklistReason`)) || 'No reason specified';
+        const blacklistReason = blacklistRows[0]?.reason || 'No reason provided';
 
         embed.setTitle(`${mem.tag} blacklist check`).addFields([
           { name: 'User:', value: `${mem.tag} (${mem.id})`, inline: true },
-          { name: 'Is Blacklisted?', value: blacklist ? 'True' : 'False', inline: true },
-          { name: 'Reason', value: reason, inline: true },
+          { name: 'Is Blacklisted?', value: blacklisted ? 'True' : 'False', inline: true },
+          { name: 'Reason', value: blacklistReason, inline: true },
         ]);
 
-        msg.channel.send({ embeds: [embed] });
-        break;
+        connection.release();
+        return msg.channel.send({ embeds: [embed] });
       }
 
-      default:
+      default: {
+        connection.release();
         return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Incorrect Usage');
+      }
     }
   }
 }

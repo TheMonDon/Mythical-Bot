@@ -170,21 +170,51 @@ export async function run(client, message) {
   }
 
   if (message.guild) {
-    const isBlacklisted = await db.get(`servers.${message.guild.id}.users.${message.author.id}.blacklist`);
-    if (isBlacklisted && level < 4 && (command.help.name !== 'blacklist' || command.help.name !== 'global-blacklist')) {
-      return message.channel.send(
-        `Sorry ${message.member.displayName}, you are currently blacklisted from using commands in this server.`,
-      );
+    const connection = await client.db.getConnection();
+    const [blacklistRows] = await connection.execute(
+      `SELECT * FROM server_blacklists WHERE server_id = ? AND user_id = ?`,
+      [message.guild.id, message.author.id],
+    );
+    connection.release();
+
+    const blacklisted = blacklistRows[0]?.blacklisted;
+    const reason = blacklistRows[0]?.reason || 'No reason provided';
+
+    if (blacklisted && level < 4 && (command.help.name !== 'blacklist' || command.help.name !== 'global-blacklist')) {
+      const embed = new EmbedBuilder()
+        .setTitle('Server Blacklisted')
+        .setAuthor({ name: message.author.tag, iconURL: message.author.displayAvatarURL() })
+        .setColor(message.settings.embedErrorColor)
+        .setDescription(
+          `Sorry ${message.author.username}, you are currently blacklisted from using commands in this server.`,
+        )
+        .addFields([{ name: 'Reason', value: reason, inline: false }]);
+
+      return message.channel.send({ embeds: [embed] });
     }
   }
 
-  const globalBlacklisted = await db.get(`users.${message.author.id}.blacklist`);
+  const connection = await client.db.getConnection();
+  const [gblacklistRows] = await connection.execute(`SELECT * FROM global_blacklists WHERE user_id = ?`, [
+    message.author.id,
+  ]);
+  connection.release();
+  const globalBlacklisted = gblacklistRows[0]?.blacklisted;
+
   if (
     globalBlacklisted &&
     level < 8 &&
     (command.help.name !== 'blacklist' || command.help.name !== 'global-blacklist')
   ) {
-    return message.channel.send(`Sorry ${message.author.username}, you are currently blacklisted from using commands.`);
+    const blacklistReason = gblacklistRows[0]?.reason || 'No reason provided';
+    const embed = new EmbedBuilder()
+      .setTitle('Global Blacklisted')
+      .setAuthor({ name: message.author.tag, iconURL: message.author.displayAvatarURL() })
+      .setColor(message.settings.embedErrorColor)
+      .setDescription(`Sorry ${message.author.username}, you are currently blacklisted from using commands.`)
+      .addFields([{ name: 'Reason', value: blacklistReason, inline: false }]);
+
+    return message.channel.send({ embeds: [embed] });
   }
 
   if (!message.guild && command.conf.guildOnly) {

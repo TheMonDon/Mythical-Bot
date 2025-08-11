@@ -18,27 +18,49 @@ export async function run(client, interaction) {
   interaction.settings = client.getSettings(interaction.guild);
   const level = await client.permlevel(interaction);
 
-  const globalBlacklisted = (await db.get(`users.${interaction.user.id}.blacklist`)) || false;
+  // Check for global blacklist
+  const connection = await interaction.client.db.getConnection();
+  const [gblacklistRows] = await connection.execute(`SELECT * FROM global_blacklists WHERE user_id = ?`, [
+    interaction.user.id,
+  ]);
+  connection.release();
+  const globalBlacklisted = gblacklistRows[0]?.blacklisted;
+
   if (globalBlacklisted && level < 8) {
+    const blacklistReason = gblacklistRows[0]?.reason || 'No reason provided';
+
     const embed = new EmbedBuilder()
-      .setTitle('Blacklisted')
+      .setTitle('Global Blacklisted')
       .setAuthor({ name: interaction.user.tag, iconURL: interaction.user.displayAvatarURL() })
       .setColor(interaction.settings.embedErrorColor)
-      .setDescription(`Sorry ${interaction.user.username}, you are currently blacklisted from using commands.`);
+      .setDescription(`Sorry ${interaction.user.username}, you are currently blacklisted from using commands.`)
+      .addFields([{ name: 'Reason', value: blacklistReason, inline: false }]);
+
     return interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
   }
 
+  // Check for server blacklist
   if (interaction.guild) {
-    const blacklisted =
-      (await db.get(`servers.${interaction.guild.id}.users.${interaction.user.id}.blacklist`)) || false;
+    const connection = await client.db.getConnection();
+    const [blacklistRows] = await connection.execute(
+      `SELECT * FROM server_blacklists WHERE server_id = ? AND user_id = ?`,
+      [interaction.guild.id, interaction.user.id],
+    );
+    connection.release();
+
+    const blacklisted = blacklistRows[0]?.blacklisted;
+    const reason = blacklistRows[0]?.reason || 'No reason provided';
+
     if (blacklisted && level < 4) {
       const embed = new EmbedBuilder()
-        .setTitle('Blacklisted')
+        .setTitle('Server Blacklisted')
         .setAuthor({ name: interaction.user.tag, iconURL: interaction.user.displayAvatarURL() })
         .setColor(interaction.settings.embedErrorColor)
         .setDescription(
           `Sorry ${interaction.user.username}, you are currently blacklisted from using commands in this server.`,
-        );
+        )
+        .addFields([{ name: 'Reason', value: reason, inline: false }]);
+
       return interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
     }
   }

@@ -1,6 +1,4 @@
 const { EmbedBuilder, SlashCommandBuilder, MessageFlags } = require('discord.js');
-const { QuickDB } = require('quick.db');
-const db = new QuickDB();
 
 exports.conf = {
   permLevel: 'Bot Support',
@@ -8,7 +6,7 @@ exports.conf = {
 
 exports.commandData = new SlashCommandBuilder()
   .setName('global-blacklist')
-  .setDescription('Add/Remove/Check if a user from the global blacklist')
+  .setDescription('Add, remove, or check if a user is on the global blacklist')
   .addSubcommand((subcommand) =>
     subcommand
       .setName('add')
@@ -17,7 +15,12 @@ exports.commandData = new SlashCommandBuilder()
         option.setName('user').setDescription('The user to add to the blacklist').setRequired(true),
       )
       .addStringOption((option) =>
-        option.setName('reason').setDescription('The reason to add the user to the blacklist').setRequired(true),
+        option
+          .setName('reason')
+          .setDescription('The reason to add the user to the blacklist')
+          .setMinLength(1)
+          .setMaxLength(1024)
+          .setRequired(true),
       ),
   )
   .addSubcommand((subcommand) =>
@@ -28,7 +31,12 @@ exports.commandData = new SlashCommandBuilder()
         option.setName('user').setDescription('The user to remove from the blacklist').setRequired(true),
       )
       .addStringOption((option) =>
-        option.setName('reason').setDescription('The reason to remove the user from the blacklist').setRequired(true),
+        option
+          .setName('reason')
+          .setDescription('The reason to remove the user from the blacklist')
+          .setMinLength(1)
+          .setMaxLength(1024)
+          .setRequired(true),
       ),
   )
   .addSubcommand((subcommand) =>
@@ -44,7 +52,9 @@ exports.run = async (interaction) => {
   const type = interaction.options.getSubcommand();
   const reason = interaction.options.getString('reason');
 
-  const blacklist = await db.get(`users.${user.id}.blacklist`);
+  const connection = await interaction.client.db.getConnection();
+  const [blacklistRows] = await connection.execute(`SELECT * FROM global_blacklists WHERE user_id = ?`, [user.id]);
+  const blacklisted = blacklistRows[0]?.blacklisted;
 
   const embed = new EmbedBuilder()
     .setAuthor({ name: user.tag, iconURL: user.displayAvatarURL() })
@@ -53,52 +63,62 @@ exports.run = async (interaction) => {
 
   switch (type) {
     case 'add': {
-      if (blacklist) {
+      if (blacklisted) {
+        connection.release();
         return interaction.editReply('That user is already blacklisted.');
       }
 
-      await db.set(`users.${user.id}.blacklist`, true);
-      await db.set(`users.${user.id}.blacklistReason`, reason);
+      await connection.execute(
+        `INSERT INTO global_blacklists (user_id, blacklisted, reason)
+        VALUES (?, ?, ?)
+        ON DUPLICATE KEY UPDATE blacklisted = VALUES(blacklisted), reason = VALUES(reason)`,
+        [user.id, true, reason],
+      );
 
       embed.setTitle(`${user.tag} has been added to the global blacklist.`).addFields([
-        { name: 'User:', value: `${user.tag} \n(${user.id})` },
-        { name: 'Reason:', value: reason },
+        { name: 'User', value: `${user.tag} \n(${user.id})` },
+        { name: 'Reason', value: reason },
       ]);
 
+      connection.release();
       interaction.editReply({ embeds: [embed] });
-      user.send({ embeds: [embed] }).catch(() => {});
-      break;
+      return user.send({ embeds: [embed] }).catch(() => {});
     }
 
     case 'remove': {
-      if (!blacklist) {
+      if (!blacklisted) {
+        connection.release();
         return interaction.editReply('That user not blacklisted.');
       }
 
-      await db.set(`users.${user.id}.blacklist`, false);
-      await db.set(`users.${user.id}.blacklistReason`, reason);
+      await connection.execute(
+        `INSERT INTO global_blacklists (user_id, blacklisted, reason)
+        VALUES (?, ?, ?)
+        ON DUPLICATE KEY UPDATE blacklisted = VALUES(blacklisted), reason = VALUES(reason)`,
+        [user.id, false, reason],
+      );
 
       embed.setTitle(`${user.tag} has been removed from the global blacklist.`).addFields([
-        { name: 'User:', value: `${user.tag} \n(${user.id})` },
-        { name: 'Reason:', value: reason },
+        { name: 'User', value: `${user.tag} \n(${user.id})` },
+        { name: 'Reason', value: reason },
       ]);
 
+      connection.release();
       interaction.editReply({ embeds: [embed] });
-      user.send({ embeds: [embed] }).catch(() => {});
-      break;
+      return user.send({ embeds: [embed] }).catch(() => {});
     }
 
     case 'check': {
-      const reason = (await db.get(`users.${user.id}.blacklistReason`)) || 'No reason specified';
+      const blacklistReason = blacklistRows[0]?.reason || 'No reason provided';
 
       embed.setTitle(`${user.tag} blacklist check`).addFields([
-        { name: 'User:', value: `${user.tag} (${user.id})`, inline: true },
-        { name: 'Is Blacklisted?', value: blacklist ? 'True' : 'False', inline: true },
-        { name: 'Reason', value: reason, inline: true },
+        { name: 'User', value: `${user.tag} (${user.id})`, inline: true },
+        { name: 'Is Blacklisted?', value: blacklisted ? 'True' : 'False', inline: true },
+        { name: 'Reason', value: blacklistReason, inline: true },
       ]);
 
-      interaction.editReply({ embeds: [embed] });
-      break;
+      connection.release();
+      return interaction.editReply({ embeds: [embed] });
     }
   }
 };

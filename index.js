@@ -669,6 +669,7 @@ const loadMysql = async () => {
     CREATE TABLE IF NOT EXISTS server_settings (
       server_id VARCHAR(100) NOT NULL,
       persistent_roles BOOLEAN DEFAULT FALSE,
+      premium BOOLEAN DEFAULT FALSE,
       PRIMARY KEY (server_id)
     );
   `);
@@ -679,6 +680,25 @@ const loadMysql = async () => {
       user_id VARCHAR(100) NOT NULL,
       roles JSON,
       PRIMARY KEY (server_id, user_id)
+    );
+  `);
+
+  await connection.execute(`
+    CREATE TABLE IF NOT EXISTS server_blacklists (
+      server_id VARCHAR(100) NOT NULL,
+      user_id VARCHAR(100) NOT NULL,
+      blacklisted BOOLEAN DEFAULT FALSE,
+      reason LONGTEXT,
+      PRIMARY KEY (server_id, user_id)
+    );
+  `);
+
+  await connection.execute(`
+    CREATE TABLE IF NOT EXISTS global_blacklists (
+      user_id VARCHAR(100) NOT NULL,
+      blacklisted BOOLEAN DEFAULT FALSE,
+      reason LONGTEXT,
+      PRIMARY KEY (user_id)
     );
   `);
 

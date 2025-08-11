@@ -132,19 +132,47 @@ export async function run(client, oldMessage, newMessage) {
 
     // Check if the member is blacklisted from using commands in this guild.
     if (newMessage.guild) {
-      const blacklist = await db.get(`servers.${newMessage.guild.id}.users.${newMessage.member.id}.blacklist`);
-      if (blacklist && level < 4 && (cmd.help.name !== 'blacklist' || cmd.help.name !== 'global-blacklist')) {
-        return newMessage.channel.send(
-          `Sorry ${newMessage.member.displayName}, you are currently blacklisted from using commands in this server.`,
-        );
+      const connection = await client.db.getConnection();
+      const [blacklistRows] = await connection.execute(
+        `SELECT * FROM server_blacklists WHERE server_id = ? AND user_id = ?`,
+        [newMessage.guild.id, newMessage.author.id],
+      );
+      connection.release();
+
+      const blacklisted = blacklistRows[0]?.blacklisted;
+      const reason = blacklistRows[0]?.reason || 'No reason provided';
+
+      if (blacklisted && level < 4 && (command.help.name !== 'blacklist' || command.help.name !== 'global-blacklist')) {
+        const embed = new EmbedBuilder()
+          .setTitle('Server Blacklisted')
+          .setAuthor({ name: newMessage.author.tag, iconURL: newMessage.author.displayAvatarURL() })
+          .setColor(newMessage.settings.embedErrorColor)
+          .setDescription(
+            `Sorry ${newMessage.author.username}, you are currently blacklisted from using commands in this server.`,
+          )
+          .addFields([{ name: 'Reason', value: reason, inline: false }]);
+
+        return newMessage.channel.send({ embeds: [embed] });
       }
     }
 
-    const globalBlacklisted = await db.get(`users.${newMessage.author.id}.blacklist`);
+    const connection = await client.db.getConnection();
+    const [gblacklistRows] = await connection.execute(`SELECT * FROM global_blacklists WHERE user_id = ?`, [
+      newMessage.author.id,
+    ]);
+    connection.release();
+    const globalBlacklisted = gblacklistRows[0]?.blacklisted;
+
     if (globalBlacklisted && level < 8 && (cmd.help.name !== 'blacklist' || cmd.help.name !== 'global-blacklist')) {
-      return newMessage.channel.send(
-        `Sorry ${newMessage.author.username}, you are currently blacklisted from using commands.`,
-      );
+      const blacklistReason = gblacklistRows[0]?.reason || 'No reason provided';
+      const embed = new EmbedBuilder()
+        .setTitle('Global Blacklisted')
+        .setAuthor({ name: newMessage.author.tag, iconURL: newMessage.author.displayAvatarURL() })
+        .setColor(newMessage.settings.embedErrorColor)
+        .setDescription(`Sorry ${newMessage.author.username}, you are currently blacklisted from using commands.`)
+        .addFields([{ name: 'Reason', value: blacklistReason, inline: false }]);
+
+      return newMessage.channel.send({ embeds: [embed] });
     }
 
     // Some commands may not be useable in DMs. This check prevents those commands from running

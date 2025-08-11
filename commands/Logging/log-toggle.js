@@ -20,8 +20,9 @@ class LogToggle extends Command {
   async run(msg, args) {
     const query = args.join(' ').toLowerCase();
 
-    if (!(await await db.get(`servers.${msg.guild.id}.logs.channel`)))
+    if (!(await await db.get(`servers.${msg.guild.id}.logs.channel`))) {
       return msg.channel.send(`The log system is not set up! Use \`${msg.settings.prefix}setup logging\``);
+    }
 
     // define regex
     const cc = /^(channel[-]?created)/gi;

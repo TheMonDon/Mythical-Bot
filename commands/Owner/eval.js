@@ -22,6 +22,7 @@ class Eval extends Command {
     const util = this.client.util;
     const db = new QuickDB();
     const client = this.client;
+    const interaction = msg;
     let promise = false;
 
     const embed = new EmbedBuilder().setFooter({ text: msg.author.tag, iconURL: msg.author.displayAvatarURL() });

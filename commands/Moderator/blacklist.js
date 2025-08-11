@@ -1,7 +1,5 @@
 const Command = require('../../base/Command.js');
 const { EmbedBuilder } = require('discord.js');
-const { QuickDB } = require('quick.db');
-const db = new QuickDB();
 
 class Blacklist extends Command {
   constructor(client) {
@@ -9,6 +7,7 @@ class Blacklist extends Command {
       name: 'blacklist',
       description: 'Blacklist someone from using the bot in your server',
       usage: 'blacklist <Add | Remove | Check> <User> <Reason>',
+      examples: ['blacklist check bunny', 'blacklist add bunny Being naughty'],
       requiredArgs: 1,
       category: 'Moderator',
       permLevel: 'Moderator',
@@ -44,7 +43,13 @@ class Blacklist extends Command {
     args.shift();
     const reason = args.join(' ') || false;
 
-    const blacklist = await db.get(`servers.${msg.guild.id}.users.${mem.id}.blacklist`);
+    const connection = await this.client.db.getConnection();
+    const [blacklistRows] = await connection.execute(
+      `SELECT * FROM server_blacklists WHERE server_id = ? AND user_id = ?`,
+      [msg.guild.id, mem.id],
+    );
+
+    const blacklisted = blacklistRows[0]?.blacklisted;
 
     const embed = new EmbedBuilder()
       .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
@@ -53,13 +58,31 @@ class Blacklist extends Command {
 
     switch (type) {
       case 'add': {
-        if (blacklist) {
+        if (blacklisted) {
+          connection.release();
           return msg.channel.send('That user is already blacklisted.');
         }
-        if (!reason) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Reason');
 
-        await db.set(`servers.${msg.guild.id}.users.${mem.id}.blacklist`, true);
-        await db.set(`servers.${msg.guild.id}.users.${mem.id}.blacklistReason`, reason);
+        if (!reason) {
+          connection.release();
+          return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Reason');
+        }
+
+        if (reason.length > 1024) {
+          connection.release();
+          return this.client.util.errorEmbed(
+            msg,
+            msg.settings.prefix + this.help.usage,
+            'Reason must be less than 1024 characters',
+          );
+        }
+
+        await connection.execute(
+          `INSERT INTO server_blacklists (server_id, user_id, blacklisted, reason)
+          VALUES (?, ?, ?, ?)
+          ON DUPLICATE KEY UPDATE blacklisted = VALUES(blacklisted), reason = VALUES(reason)`,
+          [msg.guild.id, mem.id, true, reason],
+        );
 
         embed.setTitle(`${mem.user.tag} has been added to the blacklist.`).addFields([
           { name: 'Reason:', value: reason },
@@ -67,16 +90,37 @@ class Blacklist extends Command {
           { name: 'Server:', value: `${msg.guild.name} \n(${msg.guild.id})` },
         ]);
 
+        connection.release();
         msg.channel.send({ embeds: [embed] });
         return mem.send({ embeds: [embed] });
       }
 
       case 'remove': {
-        if (!blacklist) return msg.channel.send('That user is not blacklisted');
-        if (!reason) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Reason');
+        if (!blacklisted) {
+          connection.release();
+          return msg.channel.send('That user is not blacklisted');
+        }
 
-        await db.set(`servers.${msg.guild.id}.users.${mem.id}.blacklist`, false);
-        await db.set(`servers.${msg.guild.id}.users.${mem.id}.blacklistReason`, reason);
+        if (!reason) {
+          connection.release();
+          return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Reason');
+        }
+
+        if (reason.length > 1024) {
+          connection.release();
+          return this.client.util.errorEmbed(
+            msg,
+            msg.settings.prefix + this.help.usage,
+            'Reason must be less than 1024 characters',
+          );
+        }
+
+        await connection.execute(
+          `INSERT INTO server_blacklists (server_id, user_id, blacklisted, reason)
+          VALUES (?, ?, ?, ?)
+          ON DUPLICATE KEY UPDATE blacklisted = VALUES(blacklisted), reason = VALUES(reason)`,
+          [msg.guild.id, mem.id, false, reason],
+        );
 
         embed.setTitle(`${mem.user.tag} has been removed from the blacklist.`).addFields([
           { name: 'Reason:', value: reason },
@@ -84,19 +128,21 @@ class Blacklist extends Command {
           { name: 'Server:', value: `${msg.guild.name} \n(${msg.guild.id})` },
         ]);
 
+        connection.release();
         msg.channel.send({ embeds: [embed] });
         return mem.send({ embeds: [embed] });
       }
 
       case 'check': {
-        const reason = (await db.get(`servers.${msg.guild.id}.users.${mem.id}.blacklistReason`)) || false;
+        const blacklistReason = blacklistRows[0]?.reason || 'No reason provided';
 
         embed.setTitle(`${mem.user.tag} blacklist check`).addFields([
           { name: 'Member:', value: `${mem.user.tag} (${mem.id})`, inline: true },
-          { name: 'Is Blacklisted?', value: blacklist ? 'True' : 'False' },
+          { name: 'Is Blacklisted?', value: blacklisted ? 'True' : 'False' },
+          { name: 'Reason', value: blacklistReason, inline: true },
         ]);
-        if (reason) embed.addFields([{ name: 'Reason', value: reason, inline: true }]);
 
+        connection.release();
         return msg.channel.send({ embeds: [embed] });
       }
     }
