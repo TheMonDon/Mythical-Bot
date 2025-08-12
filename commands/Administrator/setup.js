@@ -45,7 +45,17 @@ class Setup extends Command {
 
       // Check if the system is setup already
       const connection = await this.client.db.getConnection();
-      const [rows] = await connection.execute(`SELECT * FROM ticket_settings WHERE server_id = ?`, [msg.guild.id]);
+      const [rows] = await connection.execute(
+        /* sql */ `
+          SELECT
+            *
+          FROM
+            ticket_settings
+          WHERE
+            server_id = ?
+        `,
+        [msg.guild.id],
+      );
 
       if (rows.length > 0) {
         const catID = rows[0].category_id;
@@ -104,10 +114,16 @@ class Setup extends Command {
               }
               ticketLimit = parseInt(ticketLimit);
             }
-            await connection.execute(`UPDATE ticket_settings SET ticket_limit = ? WHERE server_id = ?`, [
-              ticketLimit,
-              msg.guild.id,
-            ]);
+            await connection.execute(
+              /* sql */ `
+                UPDATE ticket_settings
+                SET
+                  ticket_limit = ?
+                WHERE
+                  server_id = ?
+              `,
+              [ticketLimit, msg.guild.id],
+            );
             connection.release();
             return msg.channel.send(`The ticket limit has been updated to ${ticketLimit}.`);
           }
@@ -116,7 +132,14 @@ class Setup extends Command {
           // Disable the ticket system
           if (choice === '3') {
             // Delete the database entry (Hopefully this works, copilot wrote it)
-            await connection.execute(`DELETE FROM ticket_settings WHERE server_id = ?`, [msg.guild.id]);
+            await connection.execute(
+              /* sql */ `
+                DELETE FROM ticket_settings
+                WHERE
+                  server_id = ?
+              `,
+              [msg.guild.id],
+            );
             await connection.execute('DELETE FROM user_tickets WHERE server_id = ?', [msg.guild.id]);
             connection.release();
             return msg.channel.send(
@@ -160,10 +183,16 @@ class Setup extends Command {
               'What channel do you want to use for logging?',
             );
 
-            await connection.execute(`UPDATE ticket_settings SET logging_id = ? WHERE server_id = ?`, [
-              newLoggingChannel.id,
-              msg.guild.id,
-            ]);
+            await connection.execute(
+              /* sql */ `
+                UPDATE ticket_settings
+                SET
+                  logging_id = ?
+                WHERE
+                  server_id = ?
+              `,
+              [newLoggingChannel.id, msg.guild.id],
+            );
 
             await msg.channel.send(stripIndents`Do you want to create a ticket creation menu? (yes/no)
               You have 60 seconds.
@@ -221,10 +250,16 @@ class Setup extends Command {
             const category = newLoggingChannel.parent;
             category.permissionOverwrites.set(catPerms);
             newLoggingChannel.permissionOverwrites.set(logPerms);
-            await connection.execute(`UPDATE ticket_settings SET category_id = ? WHERE server_id = ?`, [
-              category.id,
-              msg.guild.id,
-            ]);
+            await connection.execute(
+              /* sql */ `
+                UPDATE ticket_settings
+                SET
+                  category_id = ?
+                WHERE
+                  server_id = ?
+              `,
+              [category.id, msg.guild.id],
+            );
             await msg.channel.send(
               'I have set the ticket channels category to the new logging channels category and updated the category and logging channel permissions.',
             );

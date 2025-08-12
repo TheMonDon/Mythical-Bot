@@ -256,7 +256,9 @@ exports.run = async (interaction) => {
         }
 
         if (!channel.permissionsFor(interaction.guild.members.me).has(['SendMessages', 'ViewChannel'])) {
-          return interaction.editReply('I need permission to view and send messages in that channel. Please re-run the command when this is fixed.');
+          return interaction.editReply(
+            'I need permission to view and send messages in that channel. Please re-run the command when this is fixed.',
+          );
         }
 
         await db.set(`servers.${interaction.guildId}.starboards.${name}`, {

@@ -9,8 +9,8 @@
   },
   "scripts": {
     "lint": "eslint --fix --cache commands/** events/** slash_commands/** base/** util/**",
-    "prettier:check": "prettier **/**.{js,json} --check --ignore-unknown",
-    "prettier:fix": "prettier **/**.{js,json} --write --ignore-unknown"
+    "prettier:check": "prettier \"*.{js,json}\" \"**/*.{js,json}\" --check --ignore-unknown",
+    "prettier:fix": "prettier \"*.{js,json}\" \"**/*.{js,json}\" --write --ignore-unknown"
   },
   "license": "MIT",
   "dependencies": {
@@ -76,6 +76,8 @@
     "eslint-plugin-import": "^2.29.0",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^6.1.1",
-    "prettier": "^3.1.0"
+    "prettier": "^3.6.2",
+    "prettier-plugin-embed": "^0.5.0",
+    "prettier-plugin-sql": "^0.19.2"
   }
 }

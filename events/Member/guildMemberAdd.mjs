@@ -76,10 +76,15 @@ export async function run(client, member) {
         }
       }
 
-      await connection.execute(`DELETE FROM persistent_roles WHERE server_id = ? AND user_id = ?`, [
-        member.guild.id,
-        member.user.id,
-      ]);
+      await connection.execute(
+        /* sql */ `
+          DELETE FROM persistent_roles
+          WHERE
+            server_id = ?
+            AND user_id = ?
+        `,
+        [member.guild.id, member.user.id],
+      );
       connection.release();
     } catch (error) {
       connection.release();

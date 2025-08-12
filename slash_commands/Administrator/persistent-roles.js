@@ -34,9 +34,17 @@ exports.run = async (interaction) => {
   }
 
   const connection = await interaction.client.db.getConnection();
-  const [toggleRows] = await connection.execute(`SELECT persistent_roles FROM server_settings WHERE server_id = ?`, [
-    interaction.guild.id,
-  ]);
+  const [toggleRows] = await connection.execute(
+    /* sql */ `
+      SELECT
+        persistent_roles
+      FROM
+        server_settings
+      WHERE
+        server_id = ?
+    `,
+    [interaction.guild.id],
+  );
   const toggle = toggleRows[0]?.persistent_roles === 1;
 
   switch (type) {

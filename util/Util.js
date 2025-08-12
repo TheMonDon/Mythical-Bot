@@ -401,6 +401,15 @@ function errorEmbed(context, desc = 'An error has occurred.', title = 'Error') {
   }
 }
 
+/**
+ *
+ * @param {BigInt} value BigInt value to get absolute value of
+ * @returns {BigInt} Returns the absolute value of the BigInt
+ */
+function bigIntAbs(value) {
+  return value < 0n ? -value : value;
+}
+
 async function generateTrackStartCard({
   title,
   artist,
@@ -799,21 +808,65 @@ async function chatbotApiRequest(client, message) {
   if (!client.config.chatbotApi) return;
   if (message.channel.id !== client.config.chatbotThreadId && !message.mentions.has(client.user)) return;
   if (message.flags.has(MessageFlagsBitField.Flags.SuppressNotifications)) return;
+  const connection = await client.db.getConnection();
+
+  const [settingsRows] = await connection.execute(
+    /* sql */ `
+      SELECT
+        *
+      FROM
+        server_settings
+      WHERE
+        server_id = ?
+    `,
+    [message.guild.id],
+  );
+  let enabled = settingsRows[0]?.chatbot === 1;
+
+  if (settingsRows.length === 0) {
+    // If no settings found, create default settings
+    await connection.execute(
+      /* sql */ `
+        INSERT INTO
+          server_settings (server_id, chatbot)
+        VALUES
+          (?, 1)
+      `,
+      [message.guild.id],
+    );
+    enabled = true;
+  }
+
+  if (!enabled) {
+    connection.release();
+    return 'disabled';
+  }
 
   const cooldown = (await db.get('global.chatbot.cooldown')) || 7; // seconds
-  let userCooldown = (await db.get(`servers.${message.guild.id}.users.${message.member.id}.chatbot.cooldown`)) || {};
+
+  const [userCooldownRows] = await connection.execute(
+    /* sql */ `
+      SELECT
+        *
+      FROM
+        cooldowns
+      WHERE
+        user_id = ?
+        AND cooldown_name = 'chatbot'
+        AND expires_at > NOW()
+    `,
+    [message.author.id],
+  );
+  const expiresAt = userCooldownRows[0]?.expires_at;
 
   // Check if the user is on cooldown
-  if (userCooldown.active) {
-    const timeleft = userCooldown.time - Date.now();
-
+  if (expiresAt) {
+    const timeleft = new Date(expiresAt).getTime() - Date.now();
     if (timeleft > 0 && timeleft <= cooldown * 1000) {
       const timeLeftFormatted = moment.duration(timeleft).format('m[ minutes][ and] s[ seconds]');
+
+      connection.release();
       return `Please wait ${timeLeftFormatted} before using the chatbot again.`;
-    } else {
-      // Cooldown expired — clear it
-      userCooldown = { active: false };
-      await db.set(`servers.${message.guild.id}.users.${message.member.id}.chatbot.cooldown`, userCooldown);
     }
   }
 
@@ -1084,17 +1137,20 @@ async function chatbotApiRequest(client, message) {
     body: JSON.stringify(body),
   });
 
-  userCooldown.time = Date.now() + cooldown * 1000;
-  userCooldown.active = true;
-  await db.set(`servers.${message.guild.id}.users.${message.member.id}.chatbot.cooldown`, userCooldown);
+  await connection.execute(
+    /* sql */ `
+      INSERT INTO
+        cooldowns (guild_id, user_id, cooldown_name, expires_at)
+      VALUES
+        (?, ?, ?, NOW() + INTERVAL ? SECOND) ON DUPLICATE KEY
+      UPDATE expires_at =
+      VALUES
+        (expires_at)
+    `,
+    [message.guild.id, message.author.id, 'chatbot', cooldown],
+  );
 
-  // remove the cooldown after the specified time
-  setTimeout(async () => {
-    userCooldown = {};
-    userCooldown.active = false;
-    await db.set(`servers.${message.guild.id}.users.${message.member.id}.chatbot.cooldown`, userCooldown);
-  }, cooldown * 1000);
-
+  connection.release();
   return await response.json();
 
   async function toBase64FromUrl(imageUrl) {
@@ -1143,6 +1199,7 @@ module.exports = {
   getTickets,
   awaitReply,
   errorEmbed,
+  bigIntAbs,
   generateTrackStartCard,
   generateNowPlayingCard,
   chatbotApiRequest,

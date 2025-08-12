@@ -19,14 +19,32 @@ class Topic extends Command {
 
   async run(msg, args) {
     const connection = await this.client.db.getConnection();
-    const [rows] = await connection.execute(`SELECT * FROM ticket_settings WHERE server_id = ?`, [msg.guild.id]);
-    const [cooldownRows] = await connection.execute(`SELECT * FROM user_tickets WHERE server_id = ? AND user_id = ?`, [
-      msg.guild.id,
-      msg.author.id,
-    ]);
+    const [rows] = await connection.execute(
+      /* sql */ `
+        SELECT
+          *
+        FROM
+          ticket_settings
+        WHERE
+          server_id = ?
+      `,
+      [msg.guild.id],
+    );
+    const [userCooldownRows] = await connection.execute(
+      /* sql */ `
+        SELECT
+          *
+        FROM
+          user_tickets
+        WHERE
+          server_id = ?
+          AND user_id = ?
+      `,
+      [msg.guild.id, msg.author.id],
+    );
     const channelCooldown = {
-      active: cooldownRows[0]?.topic_cooldown || false,
-      time: cooldownRows[0]?.cooldown_until || null,
+      active: userCooldownRows[0]?.topic_cooldown || false,
+      time: userCooldownRows[0]?.cooldown_until || null,
     };
 
     if (rows.length === 0) {

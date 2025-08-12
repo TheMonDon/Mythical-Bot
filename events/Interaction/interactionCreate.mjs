@@ -20,9 +20,17 @@ export async function run(client, interaction) {
 
   // Check for global blacklist
   const connection = await interaction.client.db.getConnection();
-  const [gblacklistRows] = await connection.execute(`SELECT * FROM global_blacklists WHERE user_id = ?`, [
-    interaction.user.id,
-  ]);
+  const [gblacklistRows] = await connection.execute(
+    /* sql */ `
+      SELECT
+        *
+      FROM
+        global_blacklists
+      WHERE
+        user_id = ?
+    `,
+    [interaction.user.id],
+  );
   connection.release();
   const globalBlacklisted = gblacklistRows[0]?.blacklisted;
 
@@ -136,9 +144,17 @@ export async function run(client, interaction) {
   if (interaction.isButton()) {
     if (interaction.customId === 'create_ticket') {
       const connection = await client.db.getConnection();
-      const [rows] = await connection.execute(`SELECT * FROM ticket_settings WHERE server_id = ?`, [
-        interaction.guild.id,
-      ]);
+      const [rows] = await connection.execute(
+        /* sql */ `
+          SELECT
+            *
+          FROM
+            ticket_settings
+          WHERE
+            server_id = ?
+        `,
+        [interaction.guild.id],
+      );
 
       if (rows.length === 0) {
         connection.release();
@@ -190,9 +206,17 @@ export async function run(client, interaction) {
 
     if (interaction.customId === 'close_ticket') {
       const connection = await client.db.getConnection();
-      const [rows] = await connection.execute(`SELECT * FROM ticket_settings WHERE server_id = ?`, [
-        interaction.guild.id,
-      ]);
+      const [rows] = await connection.execute(
+        /* sql */ `
+          SELECT
+            *
+          FROM
+            ticket_settings
+          WHERE
+            server_id = ?
+        `,
+        [interaction.guild.id],
+      );
 
       if (rows.length === 0) {
         connection.release();
@@ -228,9 +252,17 @@ export async function run(client, interaction) {
     // Handle modal submissions for ticket creation
     if (interaction.customId === 'ticket_reason') {
       const connection = await client.db.getConnection();
-      const [rows] = await connection.execute(`SELECT * FROM ticket_settings WHERE server_id = ?`, [
-        interaction.guild.id,
-      ]);
+      const [rows] = await connection.execute(
+        /* sql */ `
+          SELECT
+            *
+          FROM
+            ticket_settings
+          WHERE
+            server_id = ?
+        `,
+        [interaction.guild.id],
+      );
 
       if (rows.length === 0) {
         connection.release();
@@ -353,9 +385,17 @@ export async function run(client, interaction) {
     // Handle modal submissions for ticket closing
     if (interaction.customId === 'close_ticket_reason') {
       const connection = await client.db.getConnection();
-      const [rows] = await connection.execute(`SELECT * FROM ticket_settings WHERE server_id = ?`, [
-        interaction.guild.id,
-      ]);
+      const [rows] = await connection.execute(
+        /* sql */ `
+          SELECT
+            *
+          FROM
+            ticket_settings
+          WHERE
+            server_id = ?
+        `,
+        [interaction.guild.id],
+      );
 
       if (rows.length === 0) {
         connection.release();

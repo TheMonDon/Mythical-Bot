@@ -54,7 +54,10 @@ async function handleChatbot(client, message) {
         allowedMentions: { repliedUser: false },
       });
       return;
+    } else if (chatbotResponse?.toString().startsWith('disabled')) {
+      return;
     }
+
     let reply = chatbotResponse?.choices?.[0]?.message?.content?.replace('{message.guild.name}', message.guild.name);
     if (reply) {
       reply = await client.util.clean(client, reply);
@@ -101,10 +104,12 @@ async function handleChatbot(client, message) {
       }
 
       const connection = await client.db.getConnection();
-      await connection.execute(`
-        INSERT INTO chatbot_stats (id,total_runs)
-        VALUES (1,1)
-        ON DUPLICATE KEY UPDATE total_runs = total_runs + 1;
+      await connection.execute(/* sql */ `
+        INSERT INTO
+          chatbot_stats (id, total_runs)
+        VALUES
+          (1, 1) ON DUPLICATE KEY
+        UPDATE total_runs = total_runs + 1;
       `);
       connection.release();
     } else if (chatbotResponse && !reply) {
@@ -196,9 +201,17 @@ export async function run(client, message) {
   }
 
   const connection = await client.db.getConnection();
-  const [gblacklistRows] = await connection.execute(`SELECT * FROM global_blacklists WHERE user_id = ?`, [
-    message.author.id,
-  ]);
+  const [gblacklistRows] = await connection.execute(
+    /* sql */ `
+      SELECT
+        *
+      FROM
+        global_blacklists
+      WHERE
+        user_id = ?
+    `,
+    [message.author.id],
+  );
   connection.release();
   const globalBlacklisted = gblacklistRows[0]?.blacklisted;
 

@@ -157,9 +157,17 @@ export async function run(client, oldMessage, newMessage) {
     }
 
     const connection = await client.db.getConnection();
-    const [gblacklistRows] = await connection.execute(`SELECT * FROM global_blacklists WHERE user_id = ?`, [
-      newMessage.author.id,
-    ]);
+    const [gblacklistRows] = await connection.execute(
+      /* sql */ `
+        SELECT
+          *
+        FROM
+          global_blacklists
+        WHERE
+          user_id = ?
+      `,
+      [newMessage.author.id],
+    );
     connection.release();
     const globalBlacklisted = gblacklistRows[0]?.blacklisted;
 

@@ -380,7 +380,17 @@ const loadLavalink = async () => {
         });
 
         const connection = await client.db.getConnection();
-        const [rows] = await connection.execute(`SELECT * FROM music_last_track WHERE server_id = ?`, [player.guildId]);
+        const [rows] = await connection.execute(
+          /* sql */ `
+            SELECT
+              *
+            FROM
+              music_last_track
+            WHERE
+              server_id = ?
+          `,
+          [player.guildId],
+        );
         const oldmsg = rows[0] || null;
 
         if (oldmsg !== null) {
@@ -393,7 +403,14 @@ const loadLavalink = async () => {
               }
             }
           } catch {
-            await connection.execute(`DELETE FROM music_last_track WHERE server_id = ?`, [player.guildId]);
+            await connection.execute(
+              /* sql */ `
+                DELETE FROM music_last_track
+                WHERE
+                  server_id = ?
+              `,
+              [player.guildId],
+            );
           }
         }
 
@@ -560,7 +577,7 @@ const loadMysql = async () => {
     password: config.mysql.password,
   });
 
-  await tempConn.query(`CREATE DATABASE IF NOT EXISTS ${config.mysql.database}`);
+  await tempConn.query(/* sql */ `CREATE DATABASE IF NOT EXISTS ${config.mysql.database}`);
   await tempConn.end();
 
   const pool = mysql.createPool({
@@ -576,7 +593,7 @@ const loadMysql = async () => {
   const connection = await pool.getConnection();
 
   // Create tables if they do not exist
-  await connection.execute(`
+  await connection.execute(/* sql */ `
     CREATE TABLE IF NOT EXISTS command_aliases (
       alias_name VARCHAR(100) NOT NULL,
       base_command VARCHAR(100) DEFAULT NULL,
@@ -585,7 +602,7 @@ const loadMysql = async () => {
     );
   `);
 
-  await connection.execute(`
+  await connection.execute(/* sql */ `
     CREATE TABLE IF NOT EXISTS command_stats (
       command_name VARCHAR(100) NOT NULL,
       total_runs INT DEFAULT 0,
@@ -595,7 +612,7 @@ const loadMysql = async () => {
     );
   `);
 
-  await connection.execute(`
+  await connection.execute(/* sql */ `
     CREATE TABLE IF NOT EXISTS chatbot_stats (
       id int NOT NULL,
       total_runs int DEFAULT 0,
@@ -603,7 +620,7 @@ const loadMysql = async () => {
     );
   `);
 
-  await connection.execute(`
+  await connection.execute(/* sql */ `
     CREATE TABLE IF NOT EXISTS chatbot_daily_stats (
       date date NOT NULL,
       total_runs int DEFAULT 0,
@@ -613,109 +630,147 @@ const loadMysql = async () => {
   `);
 
   const [triggers] = await connection.query(
+    /* sql */
     `
-    SELECT TRIGGER_NAME FROM information_schema.TRIGGERS
-    WHERE TRIGGER_SCHEMA = ? AND TRIGGER_NAME = ?`,
+      SELECT
+        TRIGGER_NAME
+      FROM
+        information_schema.TRIGGERS
+      WHERE
+        TRIGGER_SCHEMA = ?
+        AND TRIGGER_NAME = ?
+    `,
     [config.mysql.database, 'chatbot_stats_AFTER_INSERT'],
   );
 
   if (triggers.length === 0) {
-    await connection.query(`
+    await connection.query(/* sql */ `
       CREATE TRIGGER chatbot_stats_AFTER_INSERT
-      AFTER UPDATE ON chatbot_stats
-      FOR EACH ROW
-      BEGIN
-        INSERT IGNORE INTO chatbot_daily_stats (date, total_runs)
-        VALUES (CURDATE(), 0);
-      
-        UPDATE chatbot_daily_stats
-        SET total_runs = total_runs + 1
-        WHERE date = CURDATE();
+      AFTER
+      UPDATE ON chatbot_stats FOR EACH ROW
+      BEGIN INSERT IGNORE INTO chatbot_daily_stats (date, total_runs)
+      VALUES
+        (CURDATE (), 0);
+
+      UPDATE chatbot_daily_stats
+      SET
+        total_runs = total_runs + 1
+      WHERE
+        date = CURDATE ();
+
       END
     `);
   }
 
-  await connection.execute(`
+  await connection.execute(/* sql */ `
     CREATE TABLE IF NOT EXISTS ticket_settings (
-      server_id VARCHAR(100) PRIMARY KEY,
+      server_id VARCHAR(30) PRIMARY KEY,
       ticket_limit INT DEFAULT 3,
-      role_id VARCHAR(100) DEFAULT NULL,
-      category_id VARCHAR(100) DEFAULT NULL,
-      logging_id VARCHAR(100) DEFAULT NULL
+      role_id VARCHAR(30) DEFAULT NULL,
+      category_id VARCHAR(30) DEFAULT NULL,
+      logging_id VARCHAR(30) DEFAULT NULL
     );
   `);
 
-  await connection.execute(`
+  await connection.execute(/* sql */ `
     CREATE TABLE IF NOT EXISTS user_tickets (
-      server_id VARCHAR(100) NOT NULL,
-      channel_id VARCHAR(100) NOT NULL,
-      user_id VARCHAR(100) NOT NULL,
+      server_id VARCHAR(30) NOT NULL,
+      channel_id VARCHAR(30) NOT NULL,
+      user_id VARCHAR(30) NOT NULL,
       topic_cooldown BOOLEAN DEFAULT FALSE,
       cooldown_until BIGINT DEFAULT NULL,
       PRIMARY KEY (server_id, channel_id)
     );
   `);
 
-  await connection.execute(`
+  await connection.execute(/* sql */ `
     CREATE TABLE IF NOT EXISTS music_last_track (
-      server_id VARCHAR(100) NOT NULL,
-      channel_id VARCHAR(100) NOT NULL,
-      message_id VARCHAR(100) NOT NULL,
+      server_id VARCHAR(30) NOT NULL,
+      channel_id VARCHAR(30) NOT NULL,
+      message_id VARCHAR(30) NOT NULL,
       PRIMARY KEY (server_id)
     );
   `);
 
-  await connection.execute(`
+  await connection.execute(/* sql */ `
     CREATE TABLE IF NOT EXISTS server_settings (
-      server_id VARCHAR(100) NOT NULL,
+      server_id VARCHAR(30) NOT NULL,
       persistent_roles BOOLEAN DEFAULT FALSE,
       premium BOOLEAN DEFAULT FALSE,
+      chatbot BOOLEAN DEFAULT TRUE,
       PRIMARY KEY (server_id)
     );
   `);
 
-  await connection.execute(`
+  await connection.execute(/* sql */ `
     CREATE TABLE IF NOT EXISTS persistent_roles (
-      server_id VARCHAR(100) NOT NULL,
-      user_id VARCHAR(100) NOT NULL,
+      server_id VARCHAR(30) NOT NULL,
+      user_id VARCHAR(30) NOT NULL,
       roles JSON,
       PRIMARY KEY (server_id, user_id)
     );
   `);
 
-  await connection.execute(`
+  await connection.execute(/* sql */ `
     CREATE TABLE IF NOT EXISTS server_blacklists (
-      server_id VARCHAR(100) NOT NULL,
-      user_id VARCHAR(100) NOT NULL,
+      server_id VARCHAR(30) NOT NULL,
+      user_id VARCHAR(30) NOT NULL,
       blacklisted BOOLEAN DEFAULT FALSE,
       reason LONGTEXT,
       PRIMARY KEY (server_id, user_id)
     );
   `);
 
-  await connection.execute(`
+  await connection.execute(/* sql */ `
     CREATE TABLE IF NOT EXISTS global_blacklists (
-      user_id VARCHAR(100) NOT NULL,
+      user_id VARCHAR(30) NOT NULL,
       blacklisted BOOLEAN DEFAULT FALSE,
       reason LONGTEXT,
       PRIMARY KEY (user_id)
     );
   `);
 
-  const [views] = await connection.query(`SHOW FULL TABLES IN ${config.mysql.database} WHERE TABLE_TYPE LIKE 'VIEW'`);
+  await connection.execute(/* sql */ `
+    CREATE TABLE IF NOT EXISTS cooldowns (
+      id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+      guild_id VARCHAR(30) NOT NULL,
+      user_id VARCHAR(30) NOT NULL,
+      cooldown_name VARCHAR(50) NOT NULL,
+      expires_at DATETIME NOT NULL,
+      PRIMARY KEY (id),
+      UNIQUE KEY unique_cooldown (guild_id, user_id, cooldown_name)
+    )
+  `);
+
+  await connection.execute(/* sql */ `
+    CREATE TABLE IF NOT EXISTS cooldown_settings (
+      id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+      guild_id VARCHAR(30) NOT NULL,
+      cooldown_name VARCHAR(50) NOT NULL,
+      default_duration INT UNSIGNED NOT NULL,
+      PRIMARY KEY (id),
+      UNIQUE KEY unique_cooldown_setting (guild_id, cooldown_name)
+    )
+  `);
+
+  const [views] = await connection.query(/* sql */ `
+    SHOW FULL TABLES IN ${config.mysql.database}
+    WHERE
+      TABLE_TYPE LIKE 'VIEW'
+  `);
   const viewExists = views.some((row) => Object.values(row).includes('globalruns'));
 
   if (!viewExists) {
-    await connection.execute(`
-      CREATE 
-          ALGORITHM = UNDEFINED 
-          SQL SECURITY DEFINER
-      VIEW globalruns AS
-          SELECT 
-              (SUM(command_stats.text_runs) + SUM(command_stats.slash_runs)) AS TOTAL_COMMANDS,
-              SUM(command_stats.text_runs) AS TEXT_RUNS,
-              SUM(command_stats.slash_runs) AS SLASH_RUNS
-          FROM command_stats;
+    await connection.execute(/* sql */ `
+      CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW globalruns AS
+      SELECT
+        (
+          SUM(command_stats.text_runs) + SUM(command_stats.slash_runs)
+        ) AS TOTAL_COMMANDS,
+        SUM(command_stats.text_runs) AS TEXT_RUNS,
+        SUM(command_stats.slash_runs) AS SLASH_RUNS
+      FROM
+        command_stats;
     `);
   }
 
@@ -731,8 +786,8 @@ const loadMysql = async () => {
   );
 
   if (procedures.length === 0) {
-    await connection.query(`
-      CREATE PROCEDURE updateCommandStats(
+    await connection.query(/* sql */ `
+      CREATE PROCEDURE updateCommandStats (
         p_command_name LONGTEXT,
         p_text_runs INT,
         p_slash_runs INT,
@@ -740,18 +795,27 @@ const loadMysql = async () => {
         p_aliasName LONGTEXT
       )
       BEGIN
-        INSERT INTO command_stats (command_name, total_runs, text_runs, slash_runs)
-          VALUES (p_command_name, 1, p_text_runs, p_slash_runs)
-          ON DUPLICATE KEY UPDATE
-            total_runs = total_runs + 1,
-            text_runs = text_runs + VALUES(text_runs),
-            slash_runs = slash_runs + VALUES(slash_runs);
-  
-        IF (p_isAlias = 1) THEN
-          INSERT INTO command_aliases (alias_name, base_command, uses)
-            VALUES (p_aliasName, p_command_name, 1)
-            ON DUPLICATE KEY UPDATE uses = uses + 1;
-        END IF;
+      INSERT INTO
+        command_stats (command_name, total_runs, text_runs, slash_runs)
+      VALUES
+        (p_command_name, 1, p_text_runs, p_slash_runs) ON DUPLICATE KEY
+      UPDATE total_runs = total_runs + 1,
+      text_runs = text_runs +
+      VALUES
+        (text_runs),
+        slash_runs = slash_runs +
+      VALUES
+        (slash_runs);
+
+      IF (p_isAlias = 1) THEN
+      INSERT INTO
+        command_aliases (alias_name, base_command, uses)
+      VALUES
+        (p_aliasName, p_command_name, 1) ON DUPLICATE KEY
+      UPDATE uses = uses + 1;
+
+      END IF;
+
       END
     `);
   }

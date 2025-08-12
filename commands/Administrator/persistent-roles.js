@@ -27,9 +27,17 @@ class persistentRoles extends Command {
     }
 
     const connection = await this.client.db.getConnection();
-    const [toggleRows] = await connection.execute(`SELECT persistent_roles FROM server_settings WHERE server_id = ?`, [
-      msg.guild.id,
-    ]);
+    const [toggleRows] = await connection.execute(
+      /* sql */ `
+        SELECT
+          persistent_roles
+        FROM
+          server_settings
+        WHERE
+          server_id = ?
+      `,
+      [msg.guild.id],
+    );
     const toggle = toggleRows[0]?.persistent_roles === 1;
 
     if (!args || args.length < 1) {

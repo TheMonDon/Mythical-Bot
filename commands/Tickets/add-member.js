@@ -16,7 +16,17 @@ class AddMember extends Command {
 
   async run(msg, args) {
     const connection = await this.client.db.getConnection();
-    const [rows] = await connection.execute(`SELECT * FROM ticket_settings WHERE server_id = ?`, [msg.guild.id]);
+    const [rows] = await connection.execute(
+      /* sql */ `
+        SELECT
+          *
+        FROM
+          ticket_settings
+        WHERE
+          server_id = ?
+      `,
+      [msg.guild.id],
+    );
 
     if (rows.length === 0) {
       connection.release();

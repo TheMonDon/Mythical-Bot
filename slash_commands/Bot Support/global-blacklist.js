@@ -53,7 +53,17 @@ exports.run = async (interaction) => {
   const reason = interaction.options.getString('reason');
 
   const connection = await interaction.client.db.getConnection();
-  const [blacklistRows] = await connection.execute(`SELECT * FROM global_blacklists WHERE user_id = ?`, [user.id]);
+  const [blacklistRows] = await connection.execute(
+    /* sql */ `
+      SELECT
+        *
+      FROM
+        global_blacklists
+      WHERE
+        user_id = ?
+    `,
+    [user.id],
+  );
   const blacklisted = blacklistRows[0]?.blacklisted;
 
   const embed = new EmbedBuilder()

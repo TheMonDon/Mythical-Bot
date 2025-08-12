@@ -14,32 +14,41 @@ exports.commandData = new SlashCommandBuilder()
 
 exports.run = async (interaction) => {
   await interaction.deferReply();
+  const connection = await interaction.client.db.getConnection();
   const type = 'slut';
 
   const cooldown = (await db.get(`servers.${interaction.guild.id}.economy.${type}.cooldown`)) || 600;
-  let userCooldown =
-    (await db.get(`servers.${interaction.guild.id}.users.${interaction.member.id}.economy.${type}.cooldown`)) || {};
+
+  const [userCooldownRows] = await connection.execute(
+    /* sql */ `
+      SELECT
+        *
+      FROM
+        cooldowns
+      WHERE
+        user_id = ?
+        AND cooldown_name = 'slut'
+        AND expires_at > NOW()
+    `,
+    [interaction.user.id],
+  );
+  const expiresAt = userCooldownRows[0]?.expires_at;
 
   const embed = new EmbedBuilder()
     .setColor(interaction.settings.embedErrorColor)
     .setAuthor({ name: interaction.member.displayName, iconURL: interaction.member.displayAvatarURL() });
 
   // Check if the user is on cooldown
-  if (userCooldown.active) {
-    const timeleft = userCooldown.time - Date.now();
-
+  if (expiresAt) {
+    const timeleft = new Date(expiresAt) - Date.now();
     if (timeleft > 0 && timeleft <= cooldown * 1000) {
       const tLeft = moment
         .duration(timeleft)
-        .format('y[ years][,] M[ Months][,] d[ days][,] h[ hours][,] m[ minutes][ and] s[ seconds]'); // format to any format
+        .format('y[ years][,] M[ Months][,] d[ days][,] h[ hours][,] m[ minutes][ and] s[ seconds]');
       embed.setDescription(`Please wait ${tLeft} to be a slut again.`);
+
+      connection.release();
       return interaction.editReply({ embeds: [embed] });
-    } else {
-      userCooldown = { active: false };
-      await db.set(
-        `servers.${interaction.guild.id}.users.${interaction.member.id}.economy.${type}.cooldown`,
-        userCooldown,
-      );
     }
   }
 
@@ -64,7 +73,7 @@ exports.run = async (interaction) => {
   const randomFine = BigInt(Math.abs(Math.round(Math.random() * (maxFine - minFine + 1) + minFine)));
 
   // fineAmount is the amount of money the user will lose if they fail the action
-  const fineAmount = bigIntAbs((authNet / BigInt(100)) * randomFine);
+  const fineAmount = interaction.client.util.bigIntAbs((authNet / BigInt(100)) * randomFine);
 
   // failRate is the percentage chance of the user failing the action
   const failRate = (await db.get(`servers.${interaction.guild.id}.economy.${type}.failrate`)) || 35;
@@ -83,7 +92,8 @@ exports.run = async (interaction) => {
     const txt = crimeFail[num].replace('{amount}', csamount);
 
     embed.setDescription(txt).setFooter({ text: `Reply #${num.toLocaleString()}` });
-    interaction.editReply({ embeds: [embed] });
+
+    await interaction.editReply({ embeds: [embed] });
 
     const newAmount = cash - fineAmount;
     await db.set(`servers.${interaction.guild.id}.users.${interaction.member.id}.economy.cash`, newAmount.toString());
@@ -98,27 +108,25 @@ exports.run = async (interaction) => {
       .setDescription(txt)
       .setColor(interaction.settings.embedSuccessColor)
       .setFooter({ text: `Reply #${num.toLocaleString()}` });
-    interaction.editReply({ embeds: [embed] });
+
+    await interaction.editReply({ embeds: [embed] });
 
     const newAmount = cash + amount;
     await db.set(`servers.${interaction.guild.id}.users.${interaction.member.id}.economy.cash`, newAmount.toString());
   }
 
-  userCooldown.time = Date.now() + cooldown * 1000;
-  userCooldown.active = true;
-  await db.set(`servers.${interaction.guild.id}.users.${interaction.member.id}.economy.${type}.cooldown`, userCooldown);
+  await connection.execute(
+    /* sql */ `
+      INSERT INTO
+        cooldowns (guild_id, user_id, cooldown_name, expires_at)
+      VALUES
+        (?, ?, ?, NOW() + INTERVAL ? SECOND) ON DUPLICATE KEY
+      UPDATE expires_at =
+      VALUES
+        (expires_at)
+    `,
+    [interaction.guild.id, interaction.user.id, 'slut', cooldown],
+  );
 
-  setTimeout(async () => {
-    userCooldown = {};
-    userCooldown.active = false;
-    await db.set(
-      `servers.${interaction.guild.id}.users.${interaction.member.id}.economy.${type}.cooldown`,
-      userCooldown,
-    );
-  }, cooldown * 1000);
-
-  // Custom BigInt absolute function
-  function bigIntAbs(value) {
-    return value < 0n ? -value : value;
-  }
+  connection.release();
 };

@@ -18,30 +18,40 @@ class Rob extends Command {
   }
 
   async run(msg, args) {
-    const errorColor = msg.settings.embedErrorColor;
-    const type = 'rob';
+    const connection = await this.client.db.getConnection();
 
-    const cooldown = (await db.get(`servers.${msg.guild.id}.economy.${type}.cooldown`)) || 600; // get cooldown from database or set to 600 seconds (10 minutes)
-    let userCooldown = (await db.get(`servers.${msg.guild.id}.users.${msg.author.id}.economy.${type}.cooldown`)) || {};
+    const cooldown = (await db.get(`servers.${msg.guild.id}.economy.rob.cooldown`)) || 600;
+    const [userCooldownRows] = await connection.execute(
+      /* sql */ `
+        SELECT
+          *
+        FROM
+          cooldowns
+        WHERE
+          user_id = ?
+          AND cooldown_name = 'rob'
+          AND expires_at > NOW()
+      `,
+      [msg.author.id],
+    );
+    const expiresAt = userCooldownRows[0]?.expires_at;
 
     const embed = new EmbedBuilder()
-      .setColor(errorColor)
+      .setColor(msg.settings.embedErrorColor)
       .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() });
 
     // Check if the user is on cooldown
-    if (userCooldown.active) {
-      const timeleft = userCooldown.time - Date.now();
-
+    if (expiresAt) {
+      const timeleft = new Date(expiresAt) - Date.now();
       if (timeleft > 0 && timeleft <= cooldown * 1000) {
         const tLeft = moment
           .duration(timeleft)
           .format('y[ years][,] M[ Months][,] d[ days][,] h[ hours][,] m[ minutes][ and] s[ seconds]'); // format to any format
 
-        embed.setDescription(`You cannot rob for ${tLeft}`);
+        embed.setDescription(`Please wait ${tLeft} before robbing someone again.`);
+
+        connection.release();
         return msg.channel.send({ embeds: [embed] });
-      } else {
-        userCooldown = { active: false };
-        await db.set(`servers.${msg.guild.id}.users.${msg.author.id}.economy.${type}.cooldown`, userCooldown);
       }
     }
 
@@ -55,19 +65,27 @@ class Rob extends Command {
       } catch (_) {}
     }
 
-    if (!mem) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Member');
-    if (mem.id === msg.author.id) return this.client.util.errorEmbed(msg, "You can't rob yourself.", 'Invalid Member');
+    if (!mem) {
+      connection.release();
+      return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Member');
+    }
+    if (mem.id === msg.author.id) {
+      connection.release();
+      return this.client.util.errorEmbed(msg, "You can't rob yourself.", 'Invalid Member');
+    }
 
-    const cashValue = await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`);
-    const startBalance = BigInt((await db.get(`servers.${msg.guild.id}.economy.startBalance`)) || 0);
-    const authCash = cashValue === undefined ? startBalance : BigInt(cashValue);
-
+    const authCash = BigInt(
+      (await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`)) ||
+        (await db.get(`servers.${msg.guild.id}.economy.startBalance`)) ||
+        0,
+    );
     const authBank = BigInt((await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`)) || 0);
     const authNet = authCash + authBank;
 
     const memCash = BigInt((await db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`)) || 0);
 
     if (memCash <= BigInt(0)) {
+      connection.release();
       return this.client.util.errorEmbed(msg, `${mem} does not have anything to rob`, 'No Money');
     }
 
@@ -95,7 +113,7 @@ class Rob extends Command {
     const randomFine = BigInt(Math.round(Math.random() * (maxFine - minFine + 1) + minFine));
 
     // fineAmount is the amount of money the user will lose if they fail the robbery
-    const fineAmount = bigIntAbs((authNet / BigInt(100)) * randomFine);
+    const fineAmount = this.client.util.bigIntAbs((authNet / BigInt(100)) * randomFine);
 
     const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
 
@@ -105,8 +123,10 @@ class Rob extends Command {
 
       let csFineAmount = currencySymbol + fineAmount.toLocaleString();
       csFineAmount = this.client.util.limitStringLength(csFineAmount, 0, 1024);
+
       embed.setDescription(`You were caught attempting to rob ${mem} and have been fined **${csFineAmount}**`);
-      msg.channel.send({ embeds: [embed] });
+
+      await msg.channel.send({ embeds: [embed] });
     } else {
       // Calculate a random amount to rob, without exceeding extremely large values
       const maxRobAmount = Math.min(Number(memCash), Number.MAX_SAFE_INTEGER);
@@ -139,24 +159,25 @@ class Rob extends Command {
             value: `${csMemCash}`,
           },
         ]);
-      msg.channel.send({ embeds: [embed] });
+
+      await msg.channel.send({ embeds: [embed] });
     }
 
-    userCooldown.time = Date.now() + cooldown * 1000;
-    userCooldown.active = true;
-    await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.${type}.cooldown`, userCooldown);
+    await connection.execute(
+      /* sql */ `
+        INSERT INTO
+          cooldowns (guild_id, user_id, cooldown_name, expires_at)
+        VALUES
+          (?, ?, ?, NOW() + INTERVAL ? SECOND) ON DUPLICATE KEY
+        UPDATE expires_at =
+        VALUES
+          (expires_at)
+      `,
+      [msg.guild.id, msg.author.id, 'rob', cooldown],
+    );
 
-    setTimeout(async () => {
-      userCooldown = {};
-      userCooldown.active = false;
-      await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.${type}.cooldown`, userCooldown);
-    }, cooldown * 1000);
+    connection.release();
   }
-}
-
-// Custom BigInt absolute function
-function bigIntAbs(value) {
-  return value < 0n ? -value : value;
 }
 
 module.exports = Rob;

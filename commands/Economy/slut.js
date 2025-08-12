@@ -18,34 +18,49 @@ class Slut extends Command {
   }
 
   async run(msg) {
+    const connection = await this.client.db.getConnection();
     const type = 'slut';
 
     const cooldown = (await db.get(`servers.${msg.guild.id}.economy.${type}.cooldown`)) || 600;
-    let userCooldown = (await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.${type}.cooldown`)) || {};
+
+    const [userCooldownRows] = await connection.execute(
+      /* sql */ `
+        SELECT
+          *
+        FROM
+          cooldowns
+        WHERE
+          user_id = ?
+          AND cooldown_name = 'slut'
+          AND expires_at > NOW()
+      `,
+      [msg.author.id],
+    );
+    const expiresAt = userCooldownRows[0]?.expires_at;
 
     const embed = new EmbedBuilder()
       .setColor(msg.settings.embedErrorColor)
       .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() });
 
-    if (userCooldown.active) {
-      const timeleft = userCooldown.time - Date.now();
-
+    // Check if the user is on cooldown
+    if (expiresAt) {
+      const timeleft = new Date(expiresAt) - Date.now();
       if (timeleft > 0 && timeleft <= cooldown * 1000) {
         const tLeft = moment
           .duration(timeleft)
-          .format('y[ years][,] M[ Months][,] d[ days][,] h[ hours][,] m[ minutes][ and] s[ seconds]'); // format to any format
+          .format('y[ years][,] M[ Months][,] d[ days][,] h[ hours][,] m[ minutes][ and] s[ seconds]');
         embed.setDescription(`Please wait ${tLeft} to be a slut again.`);
+
+        connection.release();
         return msg.channel.send({ embeds: [embed] });
-      } else {
-        userCooldown = { active: false};
-        await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.${type}.cooldown`, userCooldown);
       }
     }
 
-    const cashValue = await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`);
-    const startBalance = BigInt((await db.get(`servers.${msg.guild.id}.economy.startBalance`)) || 0);
-    const cash = cashValue === undefined ? startBalance : BigInt(cashValue);
-
+    const cash = BigInt(
+      (await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`)) ||
+        (await db.get(`servers.${msg.guild.id}.economy.startBalance`)) ||
+        0,
+    );
     const bank = BigInt((await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`)) || 0);
     const authNet = cash + bank;
 
@@ -57,7 +72,7 @@ class Slut extends Command {
     const randomFine = BigInt(Math.abs(Math.round(Math.random() * (maxFine - minFine + 1) + minFine)));
 
     // fineAmount is the amount of money the user will lose if they fail the action
-    const fineAmount = bigIntAbs((authNet / BigInt(100)) * randomFine);
+    const fineAmount = this.client.util.bigIntAbs((authNet / BigInt(100)) * randomFine);
 
     // failRate is the percentage chance of the user failing the action
     const failRate = (await db.get(`servers.${msg.guild.id}.economy.${type}.failrate`)) || 35;
@@ -78,7 +93,8 @@ class Slut extends Command {
       const txt = crimeFail[num].replace('{amount}', csAmount);
 
       embed.setDescription(txt).setFooter({ text: `Reply #${num.toLocaleString()}` });
-      msg.channel.send({ embeds: [embed] });
+
+      await msg.channel.send({ embeds: [embed] });
 
       const newAmount = cash - fineAmount;
       await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAmount.toString());
@@ -98,27 +114,28 @@ class Slut extends Command {
         .setDescription(txt)
         .setColor(msg.settings.embedSuccessColor)
         .setFooter({ text: `Reply #${num.toLocaleString()}` });
-      msg.channel.send({ embeds: [embed] });
+
+      await msg.channel.send({ embeds: [embed] });
 
       const newAmount = cash + amount;
       await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAmount.toString());
     }
 
-    userCooldown.time = Date.now() + cooldown * 1000;
-    userCooldown.active = true;
-    await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.${type}.cooldown`, userCooldown);
+    await connection.execute(
+      /* sql */ `
+        INSERT INTO
+          cooldowns (guild_id, user_id, cooldown_name, expires_at)
+        VALUES
+          (?, ?, ?, NOW() + INTERVAL ? SECOND) ON DUPLICATE KEY
+        UPDATE expires_at =
+        VALUES
+          (expires_at)
+      `,
+      [msg.guild.id, msg.author.id, 'slut', cooldown],
+    );
 
-    setTimeout(async () => {
-      userCooldown = {};
-      userCooldown.active = false;
-      await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.${type}.cooldown`, userCooldown);
-    }, cooldown * 1000);
+    connection.release();
   }
-}
-
-// Custom BigInt absolute function
-function bigIntAbs(value) {
-  return value < 0n ? -value : value;
 }
 
 module.exports = Slut;

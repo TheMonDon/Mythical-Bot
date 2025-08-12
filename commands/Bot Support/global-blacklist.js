@@ -66,7 +66,17 @@ class GlobalBlacklist extends Command {
     const reason = args.join(' ') || false;
 
     const connection = await this.client.db.getConnection();
-    const [blacklistRows] = await connection.execute(`SELECT * FROM global_blacklists WHERE user_id = ?`, [mem.id]);
+    const [blacklistRows] = await connection.execute(
+      /* sql */ `
+        SELECT
+          *
+        FROM
+          global_blacklists
+        WHERE
+          user_id = ?
+      `,
+      [mem.id],
+    );
     const blacklisted = blacklistRows[0]?.blacklisted;
 
     const embed = new EmbedBuilder()

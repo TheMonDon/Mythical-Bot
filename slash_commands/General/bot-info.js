@@ -18,7 +18,12 @@ exports.run = async (interaction) => {
     .format('y[ years][,] M[ months][,] d[ days][,] h[ hours][,] m[ minutes][ and] s[ seconds]');
 
   const connection = await interaction.client.db.getConnection();
-  const [rows] = await connection.query(`SELECT * FROM globalruns`);
+  const [rows] = await connection.query(/* sql */ `
+    SELECT
+      *
+    FROM
+      globalruns
+  `);
   connection.release();
 
   const totalCommands = rows[0]?.TOTAL_COMMANDS || 0;
