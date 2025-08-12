@@ -55,8 +55,9 @@ async function handleChatbot(client, message) {
       });
       return;
     }
-    const reply = chatbotResponse?.choices?.[0]?.message?.content?.replace('{message.guild.name}', message.guild.name);
+    let reply = chatbotResponse?.choices?.[0]?.message?.content?.replace('{message.guild.name}', message.guild.name);
     if (reply) {
+      reply = await client.util.clean(client, reply);
       function splitMessage(text, maxLength = 2000) {
         const lines = text.split('\n');
         const chunks = [];

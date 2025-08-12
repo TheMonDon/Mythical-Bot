@@ -49,18 +49,20 @@ export async function run(client, channel, newChannel) {
   if (channel.topic !== newChannel.topic) {
     const oldTopic = channel.topic?.substring(0, 1020) || 'None';
     const newTopic = newChannel.topic?.substring(0, 1020) || 'None';
-    embed.addFields([
-      {
-        name: 'Old Topic',
-        value: oldTopic.length === 1020 ? `${oldTopic}...` : oldTopic,
-        inline: true,
-      },
-      {
-        name: 'New Topic',
-        value: newTopic.length === 1020 ? `${newTopic}...` : newTopic,
-        inline: true,
-      },
-    ]);
+    if (oldTopic !== newTopic) {
+      embed.addFields([
+        {
+          name: 'Old Topic',
+          value: oldTopic.length === 1020 ? `${oldTopic}...` : oldTopic,
+          inline: true,
+        },
+        {
+          name: 'New Topic',
+          value: newTopic.length === 1020 ? `${newTopic}...` : newTopic,
+          inline: true,
+        },
+      ]);
+    }
   }
 
   if (catUp)

@@ -251,10 +251,7 @@ async function clean(client, text) {
     newText = require('util').inspect(text, { depth: 1 });
   }
 
-  newText = newText
-    .replace(/`/g, '`' + String.fromCharCode(8203))
-    .replace(/@/g, '@' + String.fromCharCode(8203))
-    .replace(client.token, '*'.repeat(client.token.length));
+  newText = newText.replace(/`/g, '`' + String.fromCharCode(8203)).replace(/@/g, '@' + String.fromCharCode(8203));
 
   const config = client.config;
   const secrets = [
@@ -266,6 +263,8 @@ async function clean(client, text) {
     config.botLogsWebhookURL,
     config.youtubeCookie,
     config.Wordnik,
+    config.mysql,
+    config.nodes,
   ];
 
   for (let i = 0; i < secrets.length; i++) {

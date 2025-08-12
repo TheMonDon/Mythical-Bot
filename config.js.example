@@ -30,8 +30,8 @@ const config = {
   BotPanelSecret: '',
   BotPanelURL: 'https://botpanel.xyz/dashboard/Mythical',
 
-  // Web server port
-  Port: 7777,
+  // Web server port (Leave blank, used for sending data to the mythical website)
+  Port: '',
 
   // Wordnik API Token
   Wordnik: '',
