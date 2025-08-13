@@ -74,24 +74,30 @@ class Leaderboard extends Command {
       : 'You are not on the leaderboard';
 
     // Create embed content
+    const description =
+      (
+        await Promise.all(
+          sortedLeaderboard.map(async (entry, index) => {
+            const user = this.client.users.cache.get(entry.userId) ||
+              (await this.client.users.fetch(entry.userId).catch(() => null)) || { tag: 'Unknown User' };
+
+            const neg = entry.money < 0n;
+            const money = neg ? -entry.money : entry.money;
+
+            return `**${offset + index + 1}.** ${user.tag}: ${
+              entry.money < 0n ? '-' : ''
+            }${currencySymbol}${this.client.util.limitStringLength(money.toLocaleString(), 0, 150)}`;
+          }),
+        )
+      ).join('\n') || 'None';
+
     const embed = new EmbedBuilder()
       .setColor(msg.settings.embedColor)
       .setTitle(
         `${msg.guild.name} ${cashOrBank === 'cash' ? 'Cash' : cashOrBank === 'bank' ? 'Bank' : 'Total'} Leaderboard`,
       )
       .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
-      .setDescription(
-        sortedLeaderboard
-          .map((entry, index) => {
-            const user = this.client.users.cache.get(entry.userId) || { tag: 'Unknown User' };
-            const neg = entry.money < 0n;
-            const money = neg ? -entry.money : entry.money;
-            return `**${offset + index + 1}.** ${user.tag}: ${
-              entry.money < 0n ? '-' : ''
-            }${currencySymbol}${this.client.util.limitStringLength(money.toLocaleString(), 0, 150)}`;
-          })
-          .join('\n') || 'None',
-      )
+      .setDescription(description)
       .setFooter({ text: `Page ${page} / ${maxPages} • ${userRankDisplay}` })
       .setTimestamp();
 
@@ -129,7 +135,9 @@ class Leaderboard extends Command {
       // Fetch user data for the current page asynchronously
       const displayedLeaderboard = await Promise.all(
         currentPageLeaderboard.map(async (entry, index) => {
-          const user = await this.client.users.fetch(entry.userId).catch(() => null);
+          const user =
+            this.client.users.cache.get(entry.userId) ||
+            (await this.client.users.fetch(entry.userId).catch(() => null));
           const formattedMoney = this.client.util.limitStringLength(entry.money.toLocaleString(), 0, 150);
           return user
             ? `**${offset + index + 1}.** ${user.tag}: ${currencySymbol}${formattedMoney}`

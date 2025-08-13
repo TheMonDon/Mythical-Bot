@@ -86,6 +86,23 @@ exports.run = async (interaction) => {
     ? `Your leaderboard rank: ${getOrdinalSuffix(userRank.rank)}`
     : 'You are not on the leaderboard';
 
+  const description =
+    (
+      await Promise.all(
+        sortedLeaderboard.map(async (entry, index) => {
+          const user = interaction.client.users.cache.get(entry.userId) ||
+            (await interaction.client.users.fetch(entry.userId).catch(() => null)) || { tag: 'Unknown User' };
+
+          const neg = entry.money < 0n;
+          const money = neg ? -entry.money : entry.money;
+
+          return `**${offset + index + 1}.** ${user.tag}: ${
+            entry.money < 0n ? '-' : ''
+          }${currencySymbol}${interaction.client.util.limitStringLength(money.toLocaleString(), 0, 150)}`;
+        }),
+      )
+    ).join('\n') || 'None';
+
   const embed = new EmbedBuilder()
     .setColor(interaction.settings.embedColor)
     .setTitle(
@@ -94,18 +111,7 @@ exports.run = async (interaction) => {
       } Leaderboard`,
     )
     .setAuthor({ name: interaction.user.tag, iconURL: interaction.user.displayAvatarURL() })
-    .setDescription(
-      sortedLeaderboard
-        .map((entry, index) => {
-          const user = interaction.client.users.cache.get(entry.userId) || { tag: 'Unknown User' };
-          const neg = entry.money < 0n;
-          const money = neg ? -entry.money : entry.money;
-          return `**${offset + index + 1}.** ${user.tag}: ${
-            entry.money < 0n ? '-' : ''
-          }${currencySymbol}${interaction.client.util.limitStringLength(money.toLocaleString(), 0, 150)}`;
-        })
-        .join('\n') || 'None',
-    )
+    .setDescription(description)
     .setFooter({ text: `Page ${page} / ${maxPages} • ${userRankDisplay}` })
     .setTimestamp();
 
