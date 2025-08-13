@@ -11,24 +11,64 @@ async function hasPermissionToSendMessage(client, message) {
   return message.channel.permissionsFor(client.user.id).has('SendMessages');
 }
 
-async function handleEconomyEvent(message) {
+async function handleEconomyEvent(client, message) {
   if (message.channel.type === ChannelType.DM) return;
   if (!message.guild) return;
+  const connection = await client.db.getConnection();
 
   const min = (await db.get(`servers.${message.guild.id}.economy.chat.min`)) || 10;
   const max = (await db.get(`servers.${message.guild.id}.economy.chat.max`)) || 100;
 
-  const now = Date.now();
-  const cooldown = (await db.get(`servers.${message.guild.id}.economy.chat.cooldown`)) || 60;
-  let userCooldown =
-    (await db.get(`servers.${message.guild.id}.users.${message.author.id}.economy.chat.cooldown`)) || {};
+  const [cooldownRows] = await connection.execute(
+    /* sql */ `
+      SELECT
+        duration
+      FROM
+        cooldown_settings
+      WHERE
+        guild_id = ?
+        AND cooldown_name = 'chat'
+    `,
+    [message.guild.id],
+  );
+  const cooldown = cooldownRows[0]?.duration || 60;
 
-  if (userCooldown.active && userCooldown.time - now > 0 && userCooldown.time - now < cooldown * 1000) {
-    return;
+  const [userCooldownRows] = await connection.execute(
+    /* sql */ `
+      SELECT
+        *
+      FROM
+        cooldowns
+      WHERE
+        user_id = ?
+        AND cooldown_name = 'slut'
+        AND expires_at > NOW()
+    `,
+    [message.author.id],
+  );
+  const expiresAt = userCooldownRows[0]?.expires_at;
+
+  if (expiresAt) {
+    const timeleft = new Date(expiresAt) - Date.now();
+    if (timeleft > 0 && timeleft <= cooldown * 1000) {
+      connection.release();
+      return;
+    }
   }
 
-  userCooldown = { active: true, time: now + cooldown * 1000 };
-  await db.set(`servers.${message.guild.id}.users.${message.author.id}.economy.chat.cooldown`, userCooldown);
+  await connection.execute(
+    /* sql */ `
+      INSERT INTO
+        cooldowns (guild_id, user_id, cooldown_name, expires_at)
+      VALUES
+        (?, ?, ?, NOW() + INTERVAL ? SECOND) ON DUPLICATE KEY
+      UPDATE expires_at =
+      VALUES
+        (expires_at)
+    `,
+    [message.guild.id, message.author.id, 'chat', cooldown],
+  );
+  connection.release();
 
   const amount = BigInt(Math.floor(Math.random() * (max - min + 1) + min));
   const cash = BigInt(
@@ -38,11 +78,6 @@ async function handleEconomyEvent(message) {
   );
   const newAmount = cash + amount;
   await db.set(`servers.${message.guild.id}.users.${message.author.id}.economy.cash`, newAmount.toString());
-
-  setTimeout(async () => {
-    if (!message.guild) return;
-    await db.set(`servers.${message.guild.id}.users.${message.author.id}.economy.chat.cooldown`, { active: false });
-  }, cooldown * 1000);
 }
 
 async function handleChatbot(client, message) {
@@ -146,7 +181,7 @@ export async function run(client, message) {
   // Handle chatbot before economy event if not a command
   if (!isCommand) {
     await handleChatbot(client, message);
-    await handleEconomyEvent(message);
+    await handleEconomyEvent(client, message);
     return;
   }
 

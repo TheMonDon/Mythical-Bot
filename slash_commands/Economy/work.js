@@ -14,7 +14,19 @@ exports.commandData = new SlashCommandBuilder()
 
 exports.run = async (interaction) => {
   await interaction.deferReply();
-  const cooldown = (await db.get(`servers.${interaction.guild.id}.economy.work.cooldown`)) || 300; // get cooldown from database or set to 300 seconds
+  const [cooldownRows] = await db.execute(
+    /* sql */ `
+      SELECT
+        duration
+      FROM
+        cooldown_settings
+      WHERE
+        guild_id = ?
+        AND cooldown_name = 'work'
+    `,
+    [interaction.guild.id],
+  );
+  const cooldown = cooldownRows[0]?.duration || 300;
 
   const connection = await interaction.client.db.getConnection();
   const [userCooldownRows] = await connection.execute(

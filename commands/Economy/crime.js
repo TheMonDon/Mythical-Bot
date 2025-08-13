@@ -21,7 +21,20 @@ class Crime extends Command {
     const connection = await this.client.db.getConnection();
     const type = 'crime';
 
-    const cooldown = (await db.get(`servers.${msg.guild.id}.economy.${type}.cooldown`)) || 600;
+    const [cooldownRows] = await db.execute(
+      /* sql */ `
+        SELECT
+          duration
+        FROM
+          cooldown_settings
+        WHERE
+          guild_id = ?
+          AND cooldown_name = 'crime'
+      `,
+      [msg.guild.id],
+    );
+    const cooldown = cooldownRows[0]?.duration || 600;
+
     const [userCooldownRows] = await connection.execute(
       /* sql */ `
         SELECT

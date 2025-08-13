@@ -747,7 +747,7 @@ const loadMysql = async () => {
       id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
       guild_id VARCHAR(30) NOT NULL,
       cooldown_name VARCHAR(50) NOT NULL,
-      default_duration INT UNSIGNED NOT NULL,
+      duration INT UNSIGNED NOT NULL,
       PRIMARY KEY (id),
       UNIQUE KEY unique_cooldown_setting (guild_id, cooldown_name)
     )

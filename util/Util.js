@@ -842,7 +842,19 @@ async function chatbotApiRequest(client, message) {
     return 'disabled';
   }
 
-  const cooldown = (await db.get('global.chatbot.cooldown')) || 7; // seconds
+  const [cooldownRows] = await db.execute(
+    /* sql */ `
+      SELECT
+        duration
+      FROM
+        cooldown_settings
+      WHERE
+        guild_id = ?
+        AND cooldown_name = 'chatbot'
+    `,
+    [message.guild.id],
+  );
+  const cooldown = cooldownRows[0]?.duration || 5;
 
   const [userCooldownRows] = await connection.execute(
     /* sql */ `

@@ -17,7 +17,20 @@ exports.run = async (interaction) => {
   const connection = await interaction.client.db.getConnection();
   const type = 'crime';
 
-  const cooldown = (await db.get(`servers.${interaction.guild.id}.economy.${type}.cooldown`)) || 600;
+  const [cooldownRows] = await db.execute(
+    /* sql */ `
+      SELECT
+        duration
+      FROM
+        cooldown_settings
+      WHERE
+        guild_id = ?
+        AND cooldown_name = 'crime'
+    `,
+    [interaction.guild.id],
+  );
+  const cooldown = cooldownRows[0]?.duration || 600;
+
   const [userCooldownRows] = await connection.execute(
     /* sql */ `
       SELECT

@@ -16,7 +16,19 @@ class Work extends Command {
   }
 
   async run(msg) {
-    const cooldown = (await db.get(`servers.${msg.guild.id}.economy.work.cooldown`)) || 300; // get cooldown from database or set to 300 seconds
+    const [cooldownRows] = await db.execute(
+      /* sql */ `
+        SELECT
+          duration
+        FROM
+          cooldown_settings
+        WHERE
+          guild_id = ?
+          AND cooldown_name = 'work'
+      `,
+      [msg.guild.id],
+    );
+    const cooldown = cooldownRows[0]?.duration || 300;
 
     const connection = await this.client.db.getConnection();
     const [userCooldownRows] = await connection.execute(

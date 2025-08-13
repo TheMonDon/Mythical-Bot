@@ -1,15 +1,13 @@
 const Command = require('../../base/Command.js');
 const { stripIndents } = require('common-tags');
 const { EmbedBuilder } = require('discord.js');
-const { QuickDB } = require('quick.db');
-const db = new QuickDB();
 
 class SetCooldown extends Command {
   constructor(client) {
     super(client, {
       name: 'set-cooldown',
       category: 'Economy',
-      description: 'Set the cooldown of economy modules',
+      description: 'Set the cooldown of economy commands',
       longDescription: 'Minimum cooldown is 30 seconds. \nMaximum cooldown is 2 weeks.',
       usage: 'set-cooldown <work | rob | crime | slut | chat> <cooldown>',
       aliases: ['setcooldown'],
@@ -20,15 +18,44 @@ class SetCooldown extends Command {
   }
 
   async run(msg, args) {
+    const connection = await this.client.db.getConnection();
     const types = ['rob', 'work', 'crime', 'slut', 'chat'];
-    let type;
+
+    // Defaults
+    const defaultCooldowns = {
+      work: 300,
+      rob: 600,
+      crime: 600,
+      slut: 600,
+      chat: 60,
+    };
 
     // Get the cooldowns from the database
-    const robCooldown = (await db.get(`servers.${msg.guild.id}.economy.rob.cooldown`)) || 600;
-    const workCooldown = (await db.get(`servers.${msg.guild.id}.economy.work.cooldown`)) || 300;
-    const slutCooldown = (await db.get(`servers.${msg.guild.id}.economy.slut.cooldown`)) || 600;
-    const crimeCooldown = (await db.get(`servers.${msg.guild.id}.economy.crime.cooldown`)) || 600;
-    const chatCooldown = (await db.get(`servers.${msg.guild.id}.economy.chat.cooldown`)) || 60;
+    const [rows] = await connection.execute(
+      /* sql */
+      `
+        SELECT
+          cooldown_name,
+          duration
+        FROM
+          cooldown_settings
+        WHERE
+          guild_id = ?
+      `,
+      [msg.guild.id],
+    );
+
+    // Convert DB results into lookup
+    const dbCooldowns = {};
+    for (const row of rows) {
+      dbCooldowns[row.cooldown_name] = row.duration;
+    }
+
+    // Merge with defaults
+    const cooldowns = {};
+    for (const [name, defVal] of Object.entries(defaultCooldowns)) {
+      cooldowns[name] = dbCooldowns[name] ?? defVal;
+    }
 
     const embed = new EmbedBuilder()
       .setColor(msg.settings.embedErrorColor)
@@ -38,24 +65,27 @@ class SetCooldown extends Command {
 
     if (!args || args.length < 1) {
       embed.setColor(msg.settings.embedColor).setDescription(stripIndents`
-      The current cooldowns are set to: 
-      
-      \`Work\`   - ${parseMS(workCooldown * 1000)}
-      \`Rob\`    - ${parseMS(robCooldown * 1000)}
-      \`Crime\`  - ${parseMS(crimeCooldown * 1000)}
-      \`Slut\`   - ${parseMS(slutCooldown * 1000)}
-      \`Chat\`   - ${parseMS(chatCooldown * 1000)}
-      
-      Usage: \`${msg.settings.prefix + this.help.usage}\`
-      Examples: ${this.help.examples.map((a) => `\`${a}\``).join('\n')}
+        The current cooldowns are set to: 
+  
+        \`Work\`   - ${parseMS(cooldowns.work * 1000)}
+        \`Rob\`    - ${parseMS(cooldowns.rob * 1000)}
+        \`Crime\`  - ${parseMS(cooldowns.crime * 1000)}
+        \`Slut\`   - ${parseMS(cooldowns.slut * 1000)}
+        \`Chat\`   - ${parseMS(cooldowns.chat * 1000)}
+  
+        Usage: \`${msg.settings.prefix + this.help.usage}\`
+        Examples: ${this.help.examples.map((a) => `\`${a}\``).join('\n')}
 
       `);
+
+      connection.release();
       return msg.channel.send({ embeds: [embed] });
-    } else {
-      type = args[0].toLowerCase();
-      if (!types.includes(type)) {
-        return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Incorrect Usage');
-      }
+    }
+
+    const type = args[0].toLowerCase();
+    if (!types.includes(type)) {
+      connection.release();
+      return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Incorrect Usage');
     }
 
     args.shift();
@@ -65,21 +95,37 @@ class SetCooldown extends Command {
     const properCase = this.client.util.toProperCase(type);
 
     if (isNaN(cooldown)) {
+      connection.release();
       return this.client.util.errorEmbed(msg, 'Please provide a valid cooldown time.', 'Invalid Cooldown');
     }
 
     if (cooldown > 1209600000) {
+      connection.release();
       return this.client.util.errorEmbed(msg, "Cooldowns can't be longer than 2 weeks.", 'Invalid Cooldown');
     } else if (cooldown < 30000) {
+      connection.release();
       return this.client.util.errorEmbed(msg, "Cooldowns can't be shorter than 30 seconds.", 'Invalid Cooldown');
     }
 
-    const cd = cooldown / 1000;
-    await db.set(`servers.${msg.guild.id}.economy.${type}.cooldown`, cd);
+    const duration = cooldown / 1000;
+    await connection.execute(
+      /* sql */ `
+        INSERT INTO
+          cooldown_settings (guild_id, cooldown_name, duration)
+        VALUES
+          (?, ?, ?) ON DUPLICATE KEY
+        UPDATE duration =
+        VALUES
+          (duration)
+      `,
+      [msg.guild.id, type, duration],
+    );
 
     embed
       .setColor(msg.settings.embedSuccessColor)
       .setDescription(`The cooldown of \`${properCase}\` has been set to ${parseMS(cooldown)}.`);
+
+    connection.release();
     return msg.channel.send({ embeds: [embed] });
   }
 }
