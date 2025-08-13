@@ -20,7 +20,7 @@ class Rob extends Command {
   async run(msg, args) {
     const connection = await this.client.db.getConnection();
 
-    const [cooldownRows] = await db.execute(
+    const [cooldownRows] = await connection.execute(
       /* sql */ `
         SELECT
           duration

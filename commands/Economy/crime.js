@@ -21,7 +21,7 @@ class Crime extends Command {
     const connection = await this.client.db.getConnection();
     const type = 'crime';
 
-    const [cooldownRows] = await db.execute(
+    const [cooldownRows] = await connection.execute(
       /* sql */ `
         SELECT
           duration

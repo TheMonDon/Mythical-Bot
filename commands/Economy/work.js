@@ -16,7 +16,9 @@ class Work extends Command {
   }
 
   async run(msg) {
-    const [cooldownRows] = await db.execute(
+    const connection = await this.client.db.getConnection();
+
+    const [cooldownRows] = await connection.execute(
       /* sql */ `
         SELECT
           duration
@@ -30,7 +32,6 @@ class Work extends Command {
     );
     const cooldown = cooldownRows[0]?.duration || 300;
 
-    const connection = await this.client.db.getConnection();
     const [userCooldownRows] = await connection.execute(
       /* sql */ `
         SELECT

@@ -17,7 +17,7 @@ exports.run = async (interaction) => {
   const connection = await interaction.client.db.getConnection();
   const type = 'slut';
 
-  const [cooldownRows] = await db.execute(
+  const [cooldownRows] = await connection.execute(
     /* sql */ `
       SELECT
         duration

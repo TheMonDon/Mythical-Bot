@@ -21,7 +21,7 @@ class Slut extends Command {
     const connection = await this.client.db.getConnection();
     const type = 'slut';
 
-    const [cooldownRows] = await db.execute(
+    const [cooldownRows] = await connection.execute(
       /* sql */ `
         SELECT
           duration

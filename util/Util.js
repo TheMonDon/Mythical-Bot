@@ -842,7 +842,7 @@ async function chatbotApiRequest(client, message) {
     return 'disabled';
   }
 
-  const [cooldownRows] = await db.execute(
+  const [cooldownRows] = await connection.execute(
     /* sql */ `
       SELECT
         duration

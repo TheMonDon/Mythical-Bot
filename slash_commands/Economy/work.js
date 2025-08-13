@@ -14,7 +14,9 @@ exports.commandData = new SlashCommandBuilder()
 
 exports.run = async (interaction) => {
   await interaction.deferReply();
-  const [cooldownRows] = await db.execute(
+  const connection = await interaction.client.db.getConnection();
+
+  const [cooldownRows] = await connection.execute(
     /* sql */ `
       SELECT
         duration
@@ -28,7 +30,6 @@ exports.run = async (interaction) => {
   );
   const cooldown = cooldownRows[0]?.duration || 300;
 
-  const connection = await interaction.client.db.getConnection();
   const [userCooldownRows] = await connection.execute(
     /* sql */ `
       SELECT
