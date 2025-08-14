@@ -1,5 +1,7 @@
 import { ChannelType, EmbedBuilder } from 'discord.js';
 import { QuickDB } from 'quick.db';
+import { promisify } from 'util';
+const setTimeoutPromise = promisify(setTimeout);
 
 const db = new QuickDB();
 
@@ -16,8 +18,20 @@ async function handleEconomyEvent(client, message) {
   if (!message.guild) return;
   const connection = await client.db.getConnection();
 
-  const min = (await db.get(`servers.${message.guild.id}.economy.chat.min`)) || 10;
-  const max = (await db.get(`servers.${message.guild.id}.economy.chat.max`)) || 100;
+  const [economyRows] = await connection.execute(
+    /* sql */ `
+      SELECT
+        *
+      FROM
+        economy_settings
+      WHERE
+        guild_id = ?
+    `,
+    [message.guild.id],
+  );
+
+  const min = economyRows[0]?.chat_min || 10;
+  const max = economyRows[0]?.chat_max || 100;
 
   const [cooldownRows] = await connection.execute(
     /* sql */ `
@@ -73,7 +87,7 @@ async function handleEconomyEvent(client, message) {
   const amount = BigInt(Math.floor(Math.random() * (max - min + 1) + min));
   const cash = BigInt(
     (await db.get(`servers.${message.guild.id}.users.${message.author.id}.economy.cash`)) ||
-      (await db.get(`servers.${message.guild.id}.economy.startBalance`)) ||
+      economyRows[0]?.start_balance ||
       0,
   );
   const newAmount = cash + amount;
@@ -134,6 +148,7 @@ async function handleChatbot(client, message) {
             await message.channel.send({ content: chunks[i] });
           }
         } else {
+          await setTimeoutPromise(2000);
           await message.channel.send({ content: chunks[i] });
         }
       }

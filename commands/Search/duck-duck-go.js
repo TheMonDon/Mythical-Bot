@@ -31,14 +31,19 @@ class DuckDuckGo extends Command {
       return obj; // Return as is for other types (e.g., numbers, null)
     }
 
+    let failed = false;
     const searchResults = await DDG.search(query, {
       safeSearch: DDG.SafeSearchType.STRICT,
-    }).catch(() => {
-      return this.client.util.errorEmbed(msg, 'An error occurred while searching DuckDuckGo.');
+    }).catch((err) => {
+      failed = true;
+      console.error(err);
+      return this.client.util.errorEmbed(msg, err.message, 'An error occurred while searching DuckDuckGo.');
     });
 
-    const results = searchResults.results;
-    if (searchResults.noResults) {
+    if (failed) return;
+
+    const results = searchResults?.results;
+    if (!results || searchResults.noResults) {
       return this.client.util.errorEmbed(msg, 'No search results were found.');
     }
 

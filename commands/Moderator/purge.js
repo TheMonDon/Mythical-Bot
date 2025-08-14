@@ -96,7 +96,7 @@ class Purge extends Command {
       return this.client.util.errorEmbed(msg, usage);
     }
 
-    await msg.delete();
+    await msg.delete().catch(() => {});
 
     switch (type) {
       case 'default': {

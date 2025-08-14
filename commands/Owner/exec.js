@@ -1,4 +1,6 @@
 const Command = require('../../base/Command.js');
+const { promisify } = require('util');
+const setTimeoutPromise = promisify(setTimeout);
 
 class Exec extends Command {
   constructor(client) {
@@ -17,7 +19,7 @@ class Exec extends Command {
     if (!code) return msg.channel.send('You must include a code to execute!');
 
     const { exec } = require('child_process');
-    exec(code, (err, stdout, stderr) => {
+    exec(code, async (err, stdout, stderr) => {
       let text;
       if (err) text = err;
       if (stderr) text = stderr;
@@ -31,6 +33,7 @@ class Exec extends Command {
         text = text.substring(maxLength);
 
         msg.channel.send(`\`\`\`bash\n${content}\n\`\`\``);
+        await setTimeoutPromise(2000);
       }
     });
   }

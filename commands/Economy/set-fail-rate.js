@@ -45,7 +45,7 @@ class SetFailRate extends Command {
         \`Crime\` - ${crimeFail}%
         \`Slut\`  - ${slutFail}%
     
-        Usage: \`${this.help.usage}\`
+        Usage: \`${msg.settings.prefix + this.help.usage}\`
         `);
 
       connection.release();
