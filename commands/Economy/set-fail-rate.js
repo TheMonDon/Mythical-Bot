@@ -45,7 +45,7 @@ class SetFailRate extends Command {
         \`Crime\` - ${crimeFail}%
         \`Slut\`  - ${slutFail}%
     
-        Usage: ${this.help.usage}
+        Usage: \`${this.help.usage}\`
         `);
 
       connection.release();
@@ -85,7 +85,7 @@ class SetFailRate extends Command {
         `,
         [msg.guild.id, percentage],
       );
-      embed.setDescription(`The fail rate for \`Crime\` has been set to ${percentage}%.`);
+      embed.setDescription(`The fail rate for \`crime\` has been set to ${percentage}%.`);
 
       return msg.channel.send({ embeds: [embed] });
     } else if (type === 'slut') {
@@ -101,7 +101,7 @@ class SetFailRate extends Command {
         `,
         [msg.guild.id, percentage],
       );
-      embed.setDescription(`The fail rate for \`Slut\` has been set to ${percentage}%.`);
+      embed.setDescription(`The fail rate for \`slut\` has been set to ${percentage}%.`);
     }
 
     connection.release();
