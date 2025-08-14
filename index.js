@@ -538,16 +538,17 @@ const loadLavalink = async () => {
           ?.send({ embeds: [em] })
           .catch(() => {});
     })
-    .on('playerError', (player, error) => {
+    .on('playerError', async (player, error) => {
       console.log(`Something went wrong: ${error}`);
-      player.textChannelId && client.channels.cache.get(player.textChannelId)?.send(`Something went wrong: ${error}`);
+      (await player.textChannelId) &&
+        client.channels.cache.get(player.textChannelId)?.send(`Something went wrong: ${error}`);
     })
     .on('trackError', async (player, track, error) => {
       console.log(`Track failed: ${error.exception?.message || error.message}`);
       (await player.textChannelId) &&
         client.channels.cache
           .get(player.textChannelId)
-          ?.send(`Track failed: ${error.exception?.message || error.message}`);
+          ?.send(`Track failed: ${error.exception?.message || error.message} \nSong: ${track.info.title}`);
     });
 
   // Handle raw Discord events for voice state updates
@@ -751,6 +752,31 @@ const loadMysql = async () => {
       PRIMARY KEY (id),
       UNIQUE KEY unique_cooldown_setting (guild_id, cooldown_name)
     )
+  `);
+
+  await connection.execute(/* sql */ `
+    CREATE TABLE IF NOT EXISTS economy_settings (
+      guild_id VARCHAR(30) NOT NULL,
+      crime_fine_min INT UNSIGNED DEFAULT 10,
+      crime_fine_max INT UNSIGNED DEFAULT 40,
+      slut_fine_min INT UNSIGNED DEFAULT 10,
+      slut_fine_max INT UNSIGNED DEFAULT 20,
+      rob_fine_min INT UNSIGNED DEFAULT 10,
+      rob_fine_max INT UNSIGNED DEFAULT 30,
+      crime_fail_rate INT UNSIGNED DEFAULT 45,
+      slut_fail_rate INT UNSIGNED DEFAULT 35,
+      start_balance BIGINT UNSIGNED DEFAULT 0,
+      work_min BIGINT UNSIGNED DEFAULT 20,
+      work_max BIGINT UNSIGNED DEFAULT 250,
+      slut_min BIGINT UNSIGNED DEFAULT 100,
+      slut_max BIGINT UNSIGNED DEFAULT 400,
+      crime_min BIGINT UNSIGNED DEFAULT 250,
+      crime_max BIGINT UNSIGNED DEFAULT 700,
+      chat_min BIGINT UNSIGNED DEFAULT 10,
+      chat_max BIGINT UNSIGNED DEFAULT 100,
+      symbol VARCHAR(50) DEFAULT '$',
+      PRIMARY KEY (guild_id)
+    ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE utf8mb4_unicode_ci;
   `);
 
   const [views] = await connection.query(/* sql */ `

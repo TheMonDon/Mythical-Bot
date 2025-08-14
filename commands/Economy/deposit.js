@@ -19,11 +19,26 @@ class Deposit extends Command {
 
   async run(msg, args) {
     let amount = args.join(' ');
-    const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
+    const connection = await this.client.db.getConnection();
 
-    const cashValue = await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`);
-    const startBalance = BigInt((await db.get(`servers.${msg.guild.id}.economy.startBalance`)) || 0);
-    const cash = cashValue === undefined ? startBalance : BigInt(cashValue);
+    const [economyRows] = await connection.execute(
+      /* sql */ `
+        SELECT
+          *
+        FROM
+          economy_settings
+        WHERE
+          guild_id = ?
+      `,
+      [msg.guild.id],
+    );
+    const currencySymbol = economyRows[0]?.symbol || '$';
+
+    const cash = BigInt(
+      (await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`)) ||
+        economyRows[0]?.start_balance ||
+        0,
+    );
 
     const bank = BigInt((await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`)) || 0);
 

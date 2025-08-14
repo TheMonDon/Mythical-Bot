@@ -16,13 +16,29 @@ exports.commandData = new SlashCommandBuilder()
 
 exports.run = async (interaction) => {
   await interaction.deferReply();
+  const connection = await interaction.client.db.getConnection();
+
+  const [economyRows] = await connection.execute(
+    /* sql */ `
+      SELECT
+        *
+      FROM
+        economy_settings
+      WHERE
+        guild_id = ?
+    `,
+    [interaction.guild.id],
+  );
+  const currencySymbol = economyRows[0]?.symbol || '$';
+  connection.release();
 
   const amount = BigInt(interaction.options.getInteger('amount'));
-  const currencySymbol = (await db.get(`servers.${interaction.guild.id}.economy.symbol`)) || '$';
 
-  const cashValue = await db.get(`servers.${interaction.guild.id}.users.${interaction.member.id}.economy.cash`);
-  const startBalance = BigInt((await db.get(`servers.${interaction.guild.id}.economy.startBalance`)) || 0);
-  const cash = cashValue === undefined ? startBalance : BigInt(cashValue);
+  const cash = BigInt(
+    (await db.get(`servers.${interaction.guild.id}.users.${interaction.member.id}.economy.cash`)) ||
+      economyRows[0]?.start_balance ||
+      0,
+  );
 
   const bank = BigInt(
     (await db.get(`servers.${interaction.guild.id}.users.${interaction.member.id}.economy.bank`)) || 0,
@@ -57,6 +73,8 @@ exports.run = async (interaction) => {
 
   let csAmount = currencySymbol + amount.toLocaleString();
   csAmount = interaction.client.util.limitStringLength(csAmount, 0, 1024);
+
   embed.setDescription(`Deposited ${csAmount} to your bank.`);
+
   return interaction.editReply({ embeds: [embed] });
 };

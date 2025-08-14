@@ -15,8 +15,22 @@ class ResetMoney extends Command {
   }
 
   async run(msg, args, level) {
+    const connection = await this.client.db.getConnection();
+
+    const [economyRows] = await connection.execute(
+      /* sql */ `
+        SELECT
+          *
+        FROM
+          economy_settings
+        WHERE
+          guild_id = ?
+      `,
+      [msg.guild.id],
+    );
+
     async function resetBalance(msg, mem) {
-      const amount = (await db.get(`servers.${msg.guild.id}.economy.startBalance`)) || '0';
+      const amount = economyRows[0]?.start_balance || '0';
       await db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, amount);
       await db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`, '0');
       return true;

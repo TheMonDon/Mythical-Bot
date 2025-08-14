@@ -19,7 +19,6 @@ class Crime extends Command {
 
   async run(msg) {
     const connection = await this.client.db.getConnection();
-    const type = 'crime';
 
     const [cooldownRows] = await connection.execute(
       /* sql */ `
@@ -43,7 +42,7 @@ class Crime extends Command {
           cooldowns
         WHERE
           user_id = ?
-          AND cooldown_name = 'slut'
+          AND cooldown_name = 'crime'
           AND expires_at > NOW()
       `,
       [msg.author.id],
@@ -68,22 +67,34 @@ class Crime extends Command {
       }
     }
 
+    const [economyRows] = await connection.execute(
+      /* sql */ `
+        SELECT
+          *
+        FROM
+          economy_settings
+        WHERE
+          guild_id = ?
+      `,
+      [msg.guild.id],
+    );
+
     // Get the user's net worth
     const cash = BigInt(
       (await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`)) ||
-        (await db.get(`servers.${msg.guild.id}.economy.startBalance`)) ||
+        economyRows[0]?.start_balance ||
         0,
     );
     const bank = BigInt((await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`)) || 0);
     const authNet = cash + bank;
 
     // Get the min and max amounts of money the user can get
-    const min = Number(await db.get(`servers.${msg.guild.id}.economy.${type}.min`)) || 250;
-    const max = Number(await db.get(`servers.${msg.guild.id}.economy.${type}.max`)) || 700;
+    const min = economyRows[0]?.crime_min || 250;
+    const max = economyRows[0]?.crime_max || 700;
 
     // Get the min and max fine percentages
-    const minFine = Number(await db.get(`servers.${msg.guild.id}.economy.${type}.fine.min`)) || 20;
-    const maxFine = Number(await db.get(`servers.${msg.guild.id}.economy.${type}.fine.max`)) || 40;
+    const minFine = economyRows[0]?.crime_fine_min || 20;
+    const maxFine = economyRows[0]?.crime_fine_max || 40;
 
     // randomFine is a random number between the minimum and maximum fail rate
     const randomFine = BigInt(Math.abs(Math.round(Math.random() * (maxFine - minFine + 1) + minFine)));
@@ -91,17 +102,15 @@ class Crime extends Command {
     // fineAmount is the amount of money the user will lose if they fail the action
     const fineAmount = this.client.util.bigIntAbs((authNet / BigInt(100)) * randomFine);
 
-    const failRate = (await db.get(`servers.${msg.guild.id}.economy.${type}.failrate`)) || 45;
+    const failRate = economyRows[0]?.crime_fail_rate || 45;
     const ranNum = Math.random() * 100;
 
-    const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
-
-    delete require.cache[require.resolve('../../resources/messages/crime_success.json')];
-    delete require.cache[require.resolve('../../resources/messages/crime_fail.json')];
-    const crimeSuccess = require('../../resources/messages/crime_success.json');
-    const crimeFail = require('../../resources/messages/crime_fail.json');
+    const currencySymbol = economyRows[0]?.symbol || '$';
 
     if (ranNum < failRate) {
+      delete require.cache[require.resolve('../../resources/messages/crime_fail.json')];
+      const crimeFail = require('../../resources/messages/crime_fail.json');
+
       const csamount = currencySymbol + fineAmount.toLocaleString();
       const num = Math.floor(Math.random() * (crimeFail.length - 1)) + 1;
 
@@ -115,6 +124,9 @@ class Crime extends Command {
       const newAmount = cash - fineAmount;
       await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAmount.toString());
     } else {
+      delete require.cache[require.resolve('../../resources/messages/crime_success.json')];
+      const crimeSuccess = require('../../resources/messages/crime_success.json');
+
       const amount = BigInt(Math.abs(Math.floor(Math.random() * (max - min + 1) + min)));
       const csamount = currencySymbol + amount.toLocaleString();
       const num = Math.floor(Math.random() * (crimeSuccess.length - 1)) + 1;

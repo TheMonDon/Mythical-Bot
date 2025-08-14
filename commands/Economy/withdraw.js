@@ -17,13 +17,27 @@ class Withdraw extends Command {
   }
 
   async run(msg, args) {
+    const connection = await this.client.db.getConnection();
+
     let amount = args.join(' ');
     const embed = new EmbedBuilder().setAuthor({
       name: msg.member.displayName,
       iconURL: msg.member.displayAvatarURL(),
     });
 
-    const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
+    const [economyRows] = await connection.execute(
+      /* sql */ `
+        SELECT
+          *
+        FROM
+          economy_settings
+        WHERE
+          guild_id = ?
+      `,
+      [msg.guild.id],
+    );
+    const currencySymbol = economyRows[0]?.symbol || '$';
+
     const bank = BigInt((await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`)) || 0);
     const cash = BigInt((await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`)) || 0);
 

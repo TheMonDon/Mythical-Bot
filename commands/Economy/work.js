@@ -64,11 +64,23 @@ class Work extends Command {
       }
     }
 
-    const min = Number(await db.get(`servers.${msg.guild.id}.economy.work.min`)) || 20;
-    const max = Number(await db.get(`servers.${msg.guild.id}.economy.work.max`)) || 250;
+    const [economyRows] = await connection.execute(
+      /* sql */ `
+        SELECT
+          *
+        FROM
+          economy_settings
+        WHERE
+          guild_id = ?
+      `,
+      [msg.guild.id],
+    );
 
+    const min = economyRows[0]?.work_min || 20;
+    const max = economyRows[0]?.work_max || 250;
+
+    const currencySymbol = economyRows[0]?.symbol || '$';
     const amount = Math.abs(Math.floor(Math.random() * (max - min + 1) + min));
-    const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
     const csamount = currencySymbol + amount.toLocaleString();
 
     delete require.cache[require.resolve('../../resources/messages/work_jobs.json')];
@@ -94,7 +106,7 @@ class Work extends Command {
 
     const oldBalance = BigInt(
       (await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`)) ||
-        (await db.get(`servers.${msg.guild.id}.economy.startBalance`)) ||
+        economyRows[0]?.start_balance ||
         0,
     );
 

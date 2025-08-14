@@ -20,23 +20,36 @@ class SetPayout extends Command {
   }
 
   async run(msg, args) {
+    const connection = await this.client.db.getConnection();
     const types = ['work', 'crime', 'slut', 'chat'];
-    const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
 
-    const workMin = (await db.get(`servers.${msg.guild.id}.economy.work.min`)) || 20;
-    const workMax = (await db.get(`servers.${msg.guild.id}.economy.work.max`)) || 250;
-    const slutMin = (await db.get(`servers.${msg.guild.id}.economy.slut.min`)) || 100;
-    const slutMax = (await db.get(`servers.${msg.guild.id}.economy.slut.max`)) || 400;
-    const crimeMin = (await db.get(`servers.${msg.guild.id}.economy.crime.min`)) || 250;
-    const crimeMax = (await db.get(`servers.${msg.guild.id}.economy.crime.max`)) || 700;
-    const chatMin = (await db.get(`servers.${msg.guild.id}.economy.chat.min`)) || 10;
-    const chatMax = (await db.get(`servers.${msg.guild.id}.economy.chat.max`)) || 100;
+    const [economyRows] = await connection.execute(
+      /* sql */ `
+        SELECT
+          *
+        FROM
+          economy_settings
+        WHERE
+          guild_id = ?
+      `,
+      [msg.guild.id],
+    );
+    const currencySymbol = economyRows[0]?.symbol || '$';
 
     const embed = new EmbedBuilder()
       .setColor(msg.settings.embedErrorColor)
       .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() });
 
     if (!args || args.length < 1) {
+      const workMin = (await db.get(`servers.${msg.guild.id}.economy.work.min`)) || 20;
+      const workMax = (await db.get(`servers.${msg.guild.id}.economy.work.max`)) || 250;
+      const slutMin = (await db.get(`servers.${msg.guild.id}.economy.slut.min`)) || 100;
+      const slutMax = (await db.get(`servers.${msg.guild.id}.economy.slut.max`)) || 400;
+      const crimeMin = (await db.get(`servers.${msg.guild.id}.economy.crime.min`)) || 250;
+      const crimeMax = (await db.get(`servers.${msg.guild.id}.economy.crime.max`)) || 700;
+      const chatMin = (await db.get(`servers.${msg.guild.id}.economy.chat.min`)) || 10;
+      const chatMax = (await db.get(`servers.${msg.guild.id}.economy.chat.max`)) || 100;
+
       embed.setColor(msg.settings.embedColor).setDescription(stripIndents`
           The current payout ranges are: 
         
@@ -47,6 +60,7 @@ class SetPayout extends Command {
     
           Usage: ${msg.settings.prefix + this.help.usage}
         `);
+
       return msg.channel.send({ embeds: [embed] });
     }
 

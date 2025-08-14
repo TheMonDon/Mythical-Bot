@@ -14,21 +14,31 @@ exports.commandData = new SlashCommandBuilder()
 
 exports.run = async (interaction) => {
   await interaction.deferReply();
+  const connection = await interaction.client.db.getConnection();
+
   let mem = interaction.options?.get('user')?.member || interaction.options?.get('user')?.user;
   if (!mem) mem = interaction.user;
 
-  const cash = BigInt(
-    parseInt(
-      (await db.get(`servers.${interaction.guildId}.users.${mem.id}.economy.cash`)) ||
-        (await db.get(`servers.${interaction.guildId}.economy.startBalance`)) ||
-        0,
-      10,
-    ),
+  const [economyRows] = await connection.execute(
+    /* sql */ `
+      SELECT
+        *
+      FROM
+        economy_settings
+      WHERE
+        guild_id = ?
+    `,
+    [interaction.guild.id],
   );
-  const bank = BigInt(parseInt((await db.get(`servers.${interaction.guildId}.users.${mem.id}.economy.bank`)) || 0, 10));
+  connection.release();
+
+  const cash = BigInt(
+    (await db.get(`servers.${interaction.guildId}.users.${mem.id}.economy.cash`)) || economyRows[0]?.start_balance || 0,
+  );
+  const bank = BigInt((await db.get(`servers.${interaction.guildId}.users.${mem.id}.economy.bank`)) || 0);
   const netWorth = cash + bank;
 
-  const currencySymbol = (await db.get(`servers.${interaction.guildId}.economy.symbol`)) || '$';
+  const currencySymbol = economyRows[0]?.symbol || '$';
 
   function formatCurrency(amount, symbol) {
     if (amount < 0) {
@@ -61,8 +71,8 @@ exports.run = async (interaction) => {
     try {
       const user = await interaction.client.users.cache.get(userId);
       if (user) {
-        const userCash = BigInt(parseInt(usersData[userId].economy.cash || 0, 10));
-        const userBank = BigInt(parseInt(usersData[userId].economy.bank || 0, 10));
+        const userCash = BigInt(usersData[userId].economy.cash || economyRows[0]?.start_balance || 0);
+        const userBank = BigInt(usersData[userId].economy.bank || economyRows[0]?.start_balance || 0);
         const userMoney = userCash + userBank;
         leaderboard.push({ user: user.tag, userId: user.id, money: userMoney });
       }

@@ -1,6 +1,4 @@
 const Command = require('../../base/Command.js');
-const { QuickDB } = require('quick.db');
-const db = new QuickDB();
 
 class SetCurrency extends Command {
   constructor(client) {
@@ -17,26 +15,59 @@ class SetCurrency extends Command {
 
   async run(msg, args) {
     const symbol = args.join(' ').trim();
-    const oldSymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
+    const connection = await this.client.db.getConnection();
 
-    if (!symbol)
+    const [economyRows] = await connection.execute(
+      /* sql */ `
+        SELECT
+          *
+        FROM
+          economy_settings
+        WHERE
+          guild_id = ?
+      `,
+      [msg.guild.id],
+    );
+    const oldSymbol = economyRows[0]?.symbol || '$';
+
+    if (!symbol) {
+      connection.release();
       return msg.channel.send(
         `The currency symbol for this server is: ${oldSymbol} \nUsage: ${msg.settings.prefix}set-currency <symbol>`,
       );
+    }
 
     // Remove custom emojis before checking for numbers
     const filteredSymbol = symbol.replace(/<a?:\w+:\d+>/g, '');
 
     if (/\d/.test(filteredSymbol)) {
+      connection.release();
       return msg.channel.send('The currency symbol cannot contain numbers.');
     }
 
     if (filteredSymbol.length > 50) {
+      connection.release();
       return msg.channel.send('The maximum length for the currency symbol is 50 characters.');
     }
-    if (filteredSymbol === oldSymbol) return msg.channel.send('That is already the currency symbol.');
 
-    await db.set(`servers.${msg.guild.id}.economy.symbol`, symbol);
+    if (filteredSymbol === oldSymbol) {
+      connection.release();
+      return msg.channel.send('That is already the currency symbol.');
+    }
+
+    await connection.execute(
+      /* sql */ `
+        INSERT INTO
+          economy_settings (guild_id, symbol)
+        VALUES
+          (?, ?) ON DUPLICATE KEY
+        UPDATE symbol =
+        VALUES
+          (symbol)
+      `,
+      [msg.guild.id, symbol],
+    );
+    connection.release();
 
     return msg.channel.send(`The currency symbol has been changed to: ${symbol}`);
   }

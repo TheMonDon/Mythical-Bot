@@ -25,6 +25,7 @@ class CleanLeaderboard extends Command {
       .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
       .setColor('#FFA500')
       .setDescription('Please wait, this may take a while for bigger servers.');
+
     const message = await msg.channel.send({ embeds: [em] });
 
     await msg.guild.members.fetch();
@@ -40,6 +41,7 @@ class CleanLeaderboard extends Command {
     em.setColor(color).setDescription(
       `This will reset the balance and remove ${toRemove.length} members from the leaderboard. \nDo you wish to continue? (yes/no)`,
     );
+
     await message.edit({ embeds: [em] });
     const verified = await this.client.util.verify(msg.channel, msg.author);
 

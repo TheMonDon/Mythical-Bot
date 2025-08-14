@@ -15,7 +15,6 @@ exports.commandData = new SlashCommandBuilder()
 exports.run = async (interaction) => {
   await interaction.deferReply();
   const connection = await interaction.client.db.getConnection();
-  const type = 'slut';
 
   const [cooldownRows] = await connection.execute(
     /* sql */ `
@@ -64,9 +63,21 @@ exports.run = async (interaction) => {
     }
   }
 
+  const [economyRows] = await connection.execute(
+    /* sql */ `
+      SELECT
+        *
+      FROM
+        economy_settings
+      WHERE
+        guild_id = ?
+    `,
+    [interaction.guild.id],
+  );
+
   const cash = BigInt(
     (await db.get(`servers.${interaction.guild.id}.users.${interaction.member.id}.economy.cash`)) ||
-      (await db.get(`servers.${interaction.guild.id}.economy.startBalance`)) ||
+      economyRows[0]?.start_balance ||
       0,
   );
   const bank = BigInt(
@@ -74,12 +85,12 @@ exports.run = async (interaction) => {
   );
   const authNet = cash + bank;
 
-  const min = (await db.get(`servers.${interaction.guild.id}.economy.${type}.min`)) || 500;
-  const max = (await db.get(`servers.${interaction.guild.id}.economy.${type}.max`)) || 2000;
+  const min = economyRows[0]?.slut_min || 100;
+  const max = economyRows[0]?.slut_max || 400;
 
   // Get the min and max fine percentages
-  const minFine = (await db.get(`servers.${interaction.guild.id}.economy.${type}.fine.min`)) || 10;
-  const maxFine = (await db.get(`servers.${interaction.guild.id}.economy.${type}.fine.max`)) || 30;
+  const minFine = economyRows[0]?.slut_fine_min || 10;
+  const maxFine = economyRows[0]?.slut_fine_max || 20;
 
   // randomFine is a random number between the minimum and maximum fail rate
   const randomFine = BigInt(Math.abs(Math.round(Math.random() * (maxFine - minFine + 1) + minFine)));
@@ -88,20 +99,18 @@ exports.run = async (interaction) => {
   const fineAmount = interaction.client.util.bigIntAbs((authNet / BigInt(100)) * randomFine);
 
   // failRate is the percentage chance of the user failing the action
-  const failRate = (await db.get(`servers.${interaction.guild.id}.economy.${type}.failrate`)) || 35;
+  const failRate = economyRows[0]?.slut_fail_rate || 35;
   const ranNum = Math.random() * 100;
 
-  const currencySymbol = (await db.get(`servers.${interaction.guild.id}.economy.symbol`)) || '$';
-
-  delete require.cache[require.resolve('../../resources/messages/slut_success.json')];
-  delete require.cache[require.resolve('../../resources/messages/slut_fail.json')];
-  const crimeSuccess = require('../../resources/messages/slut_success.json');
-  const crimeFail = require('../../resources/messages/slut_fail.json');
+  const currencySymbol = economyRows[0]?.symbol || '$';
 
   if (ranNum < failRate) {
-    const csamount = currencySymbol + fineAmount.toLocaleString();
-    const num = Math.floor(Math.random() * (crimeFail.length - 1)) + 1;
-    const txt = crimeFail[num].replace('{amount}', csamount);
+    delete require.cache[require.resolve('../../resources/messages/slut_fail.json')];
+    const slutFail = require('../../resources/messages/slut_fail.json');
+
+    const csAmount = currencySymbol + fineAmount.toLocaleString();
+    const num = Math.floor(Math.random() * (slutFail.length - 1)) + 1;
+    const txt = slutFail[num].replace('{amount}', csAmount);
 
     embed.setDescription(txt).setFooter({ text: `Reply #${num.toLocaleString()}` });
 
@@ -110,11 +119,14 @@ exports.run = async (interaction) => {
     const newAmount = cash - fineAmount;
     await db.set(`servers.${interaction.guild.id}.users.${interaction.member.id}.economy.cash`, newAmount.toString());
   } else {
-    const amount = BigInt(Math.abs(Math.floor(Math.random() * (max - min + 1) + min)));
-    const csamount = currencySymbol + amount.toLocaleString();
+    delete require.cache[require.resolve('../../resources/messages/slut_success.json')];
+    const slutSuccess = require('../../resources/messages/slut_success.json');
 
-    const num = Math.floor(Math.random() * (crimeSuccess.length - 1)) + 1;
-    const txt = crimeSuccess[num].replace('{amount}', csamount);
+    const amount = BigInt(Math.abs(Math.floor(Math.random() * (max - min + 1) + min)));
+    const csAmount = currencySymbol + amount.toLocaleString();
+
+    const num = Math.floor(Math.random() * (slutSuccess.length - 1)) + 1;
+    const txt = slutSuccess[num].replace('{amount}', csAmount);
 
     embed
       .setDescription(txt)

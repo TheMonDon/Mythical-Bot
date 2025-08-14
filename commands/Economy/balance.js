@@ -16,6 +16,8 @@ class Balance extends Command {
   }
 
   async run(msg, args) {
+    const connection = await this.client.db.getConnection();
+
     let mem = msg.author;
 
     if (args && args.length > 0) {
@@ -26,6 +28,7 @@ class Balance extends Command {
         try {
           mem = await this.client.users.fetch(fid);
         } catch (err) {
+          connection.release();
           return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid User');
         }
       }
@@ -37,16 +40,35 @@ class Balance extends Command {
       iconURL: msg.member.displayAvatarURL(),
     });
 
-    if (!mem) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Member');
+    if (!mem) {
+      connection.release();
+      return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Member');
+    } else if (mem.bot) {
+      connection.release();
+      return this.client.util.errorEmbed(msg, 'Bots do not have a balance.', 'Invalid Member');
+    }
 
-    const cashValue = await db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`);
-    const startBalance = BigInt((await db.get(`servers.${msg.guild.id}.economy.startBalance`)) || 0);
-    const cash = cashValue === undefined ? startBalance : BigInt(cashValue);
+    const [economyRows] = await connection.execute(
+      /* sql */ `
+        SELECT
+          *
+        FROM
+          economy_settings
+        WHERE
+          guild_id = ?
+      `,
+      [msg.guild.id],
+    );
+    connection.release();
+
+    const cash = BigInt(
+      (await db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`)) || economyRows[0]?.start_balance || 0,
+    );
 
     const bank = BigInt((await db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`)) || 0);
     const netWorth = cash + bank;
 
-    const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
+    const currencySymbol = economyRows[0]?.symbol || '$';
 
     function formatCurrency(amount, symbol) {
       if (amount < 0) {

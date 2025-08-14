@@ -1,4 +1,5 @@
 const { EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, MessageFlags } = require('discord.js');
+const { Blackjack } = require('blackjack-n-deck');
 const Command = require('../../base/Command.js');
 const { QuickDB } = require('quick.db');
 const db = new QuickDB();
@@ -18,7 +19,7 @@ class BlackJack extends Command {
   }
 
   async run(msg, args) {
-    const { Blackjack } = require('blackjack-n-deck');
+    const connection = await this.client.db.getConnection();
 
     // array of all my card emojis in my private server
     // These are also inside the bots files to host yourself!
@@ -101,10 +102,25 @@ class BlackJack extends Command {
       }
     }
 
-    const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
-    const cashValue = await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`);
-    const startBalance = BigInt((await db.get(`servers.${msg.guild.id}.economy.startBalance`)) || 0);
-    const cash = cashValue === undefined ? startBalance : BigInt(cashValue);
+    const [economyRows] = await connection.execute(
+      /* sql */ `
+        SELECT
+          *
+        FROM
+          economy_settings
+        WHERE
+          guild_id = ?
+      `,
+      [msg.guild.id],
+    );
+    const currencySymbol = economyRows[0]?.symbol || '$';
+    connection.release();
+
+    const cash = BigInt(
+      (await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`)) ||
+        economyRows[0]?.start_balance ||
+        0,
+    );
 
     const Arguments = args.join(' ').toLowerCase();
 

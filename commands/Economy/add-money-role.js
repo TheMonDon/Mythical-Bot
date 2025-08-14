@@ -20,6 +20,8 @@ class AddMoneyRole extends Command {
   }
 
   async run(msg, args) {
+    const connection = await this.client.db.getConnection();
+
     const errEmbed = new EmbedBuilder()
       .setColor(msg.settings.embedErrorColor)
       .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() });
@@ -28,7 +30,19 @@ class AddMoneyRole extends Command {
     let role;
     let amount;
 
-    const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
+    const [economyRows] = await connection.execute(
+      /* sql */ `
+        SELECT
+          *
+        FROM
+          economy_settings
+        WHERE
+          guild_id = ?
+      `,
+      [msg.guild.id],
+    );
+    const currencySymbol = economyRows[0]?.symbol || '$';
+    connection.release();
 
     if (args.length === 2) {
       role = this.client.util.getRole(msg, args[0]);
@@ -38,10 +52,12 @@ class AddMoneyRole extends Command {
         .replace(/,/g, ''); // Remove commas
     } else {
       role = this.client.util.getRole(msg, args[1]);
-      amount = args[2]
-        .replace(/\..*/, '') // Remove everything after the first period
-        .replace(/[^0-9,]/g, '') // Keep only digits and commas
-        .replace(/,/g, ''); // Remove commas
+      amount = parseInt(
+        args[2]
+          .replace(/\..*/, '') // Remove everything after the first period
+          .replace(/[^0-9,]/g, '') // Keep only digits and commas
+          .replace(/,/g, ''), // Remove commas
+      );
     }
 
     if (['cash', 'bank'].includes(args[0].toLowerCase())) {
@@ -62,9 +78,11 @@ class AddMoneyRole extends Command {
       return msg.channel.send({ embeds: [errEmbed] });
     }
 
+    // Ensure the members cache is populated
+    await msg.guild.members.fetch();
     const members = [...role.members.values()];
 
-    amount = BigInt(parseInt(amount));
+    amount = BigInt(amount);
     if (type === 'bank') {
       members.forEach(async (mem) => {
         if (!mem.user.bot) {
@@ -78,7 +96,7 @@ class AddMoneyRole extends Command {
         if (!mem.user.bot) {
           const cash = BigInt(
             (await db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`)) ||
-              (await db.get(`servers.${msg.guild.id}.economy.startBalance`)) ||
+              economyRows[0]?.start_balance ||
               0,
           );
           const newAmount = cash + amount;

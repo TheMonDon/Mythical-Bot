@@ -15,7 +15,6 @@ exports.commandData = new SlashCommandBuilder()
 exports.run = async (interaction) => {
   await interaction.deferReply();
   const connection = await interaction.client.db.getConnection();
-  const type = 'crime';
 
   const [cooldownRows] = await connection.execute(
     /* sql */ `
@@ -64,10 +63,22 @@ exports.run = async (interaction) => {
     }
   }
 
+  const [economyRows] = await connection.execute(
+    /* sql */ `
+      SELECT
+        *
+      FROM
+        economy_settings
+      WHERE
+        guild_id = ?
+    `,
+    [interaction.guild.id],
+  );
+
   // Get the user's net worth
   const cash = BigInt(
     (await db.get(`servers.${interaction.guild.id}.users.${interaction.member.id}.economy.cash`)) ||
-      (await db.get(`servers.${interaction.guild.id}.economy.startBalance`)) ||
+      economyRows[0]?.start_balance ||
       0,
   );
   const bank = BigInt(
@@ -76,12 +87,12 @@ exports.run = async (interaction) => {
   const authNet = cash + bank;
 
   // Get the min and max amounts of money the user can get
-  const min = (await db.get(`servers.${interaction.guild.id}.economy.${type}.min`)) || 500;
-  const max = (await db.get(`servers.${interaction.guild.id}.economy.${type}.max`)) || 2000;
+  const min = economyRows[0]?.crime_min || 500;
+  const max = economyRows[0]?.crime_max || 2000;
 
   // Get the min and max fine percentages
-  const minFine = (await db.get(`servers.${interaction.guild.id}.economy.${type}.fine.min`)) || 10;
-  const maxFine = (await db.get(`servers.${interaction.guild.id}.economy.${type}.fine.max`)) || 30;
+  const minFine = economyRows[0]?.crime_fine_min || 10;
+  const maxFine = economyRows[0]?.crime_fine_max || 30;
 
   // randomFine is a random number between the minimum and maximum fail rate
   const randomFine = BigInt(Math.abs(Math.round(Math.random() * (maxFine - minFine + 1) + minFine)));
@@ -89,17 +100,15 @@ exports.run = async (interaction) => {
   // fineAmount is the amount of money the user will lose if they fail the action
   const fineAmount = interaction.client.util.bigIntAbs((authNet / BigInt(100)) * randomFine);
 
-  const failRate = (await db.get(`servers.${interaction.guild.id}.economy.${type}.failrate`)) || 45;
+  const failRate = economyRows[0]?.crime_fail_rate || 45;
   const ranNum = Math.random() * 100;
 
-  const currencySymbol = (await db.get(`servers.${interaction.guild.id}.economy.symbol`)) || '$';
-
-  delete require.cache[require.resolve('../../resources/messages/crime_success.json')];
-  delete require.cache[require.resolve('../../resources/messages/crime_fail.json')];
-  const crimeSuccess = require('../../resources/messages/crime_success.json');
-  const crimeFail = require('../../resources/messages/crime_fail.json');
+  const currencySymbol = economyRows[0]?.symbol || '$';
 
   if (ranNum < failRate) {
+    delete require.cache[require.resolve('../../resources/messages/crime_fail.json')];
+    const crimeFail = require('../../resources/messages/crime_fail.json');
+
     const csamount = currencySymbol + fineAmount.toLocaleString();
     const num = Math.floor(Math.random() * (crimeFail.length - 1)) + 1;
 
@@ -113,6 +122,9 @@ exports.run = async (interaction) => {
     const newAmount = cash - fineAmount;
     await db.set(`servers.${interaction.guild.id}.users.${interaction.member.id}.economy.cash`, newAmount.toString());
   } else {
+    delete require.cache[require.resolve('../../resources/messages/crime_success.json')];
+    const crimeSuccess = require('../../resources/messages/crime_success.json');
+
     const amount = BigInt(Math.abs(Math.floor(Math.random() * (max - min + 1) + min)));
     const csamount = currencySymbol + amount.toLocaleString();
     const num = Math.floor(Math.random() * (crimeSuccess.length - 1)) + 1;

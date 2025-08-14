@@ -20,6 +20,8 @@ class RemoveMoney extends Command {
   }
 
   async run(msg, args) {
+    const connection = await this.client.db.getConnection();
+
     const embed = new EmbedBuilder()
       .setColor(msg.settings.embedErrorColor)
       .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() });
@@ -28,7 +30,19 @@ class RemoveMoney extends Command {
     let mem;
     let amount;
 
-    const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
+    const [economyRows] = await connection.execute(
+      /* sql */ `
+        SELECT
+          *
+        FROM
+          economy_settings
+        WHERE
+          guild_id = ?
+      `,
+      [msg.guild.id],
+    );
+    const currencySymbol = economyRows[0]?.symbol || '$';
+    connection.release();
 
     if (args.length === 2) {
       mem = await this.client.util.getMember(msg, args[0]);
@@ -57,10 +71,9 @@ class RemoveMoney extends Command {
       const newAmount = bank - amount;
       await db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`, newAmount.toString());
     } else {
-      const cashValue = await db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`);
-      const startBalance = BigInt((await db.get(`servers.${msg.guild.id}.economy.startBalance`)) || 0);
-
-      const cash = cashValue === undefined ? startBalance : BigInt(cashValue);
+      const cash = BigInt(
+        (await db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`)) || economyRows[0]?.start_balance || 0,
+      );
 
       const newAmount = cash - amount;
       await db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, newAmount.toString());

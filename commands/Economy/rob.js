@@ -87,15 +87,29 @@ class Rob extends Command {
       return this.client.util.errorEmbed(msg, "You can't rob yourself.", 'Invalid Member');
     }
 
+    const [economyRows] = await connection.execute(
+      /* sql */ `
+        SELECT
+          *
+        FROM
+          economy_settings
+        WHERE
+          guild_id = ?
+      `,
+      [msg.guild.id],
+    );
+
     const authCash = BigInt(
       (await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`)) ||
-        (await db.get(`servers.${msg.guild.id}.economy.startBalance`)) ||
+        economyRows[0]?.start_balance ||
         0,
     );
     const authBank = BigInt((await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`)) || 0);
     const authNet = authCash + authBank;
 
-    const memCash = BigInt((await db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`)) || 0);
+    const memCash = BigInt(
+      (await db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`)) || economyRows[0]?.start_balance || 0,
+    );
 
     if (memCash <= BigInt(0)) {
       connection.release();
@@ -119,16 +133,16 @@ class Rob extends Command {
     const ranNum = Math.floor(Math.random() * 100);
 
     // Minimum fine is 10% of the amount of money the user has, maximum fine is 30% of the amount of money the user has
-    const minFine = (await db.get(`servers.${msg.guild.id}.economy.rob.fine.min`)) || 10;
-    const maxFine = (await db.get(`servers.${msg.guild.id}.economy.rob.fine.max`)) || 30;
+    const minFine = economyRows[0]?.rob_fine_min || 10;
+    const maxFine = economyRows[0]?.rob_fine_max || 30;
 
-    // randomFine is a random number between 10 and 30
+    // randomFine is a random number between the minimum and maximum fail rate
     const randomFine = BigInt(Math.round(Math.random() * (maxFine - minFine + 1) + minFine));
 
     // fineAmount is the amount of money the user will lose if they fail the robbery
     const fineAmount = this.client.util.bigIntAbs((authNet / BigInt(100)) * randomFine);
 
-    const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
+    const currencySymbol = economyRows[0]?.symbol || '$';
 
     if (ranNum <= failRate) {
       const newAmount = authCash - fineAmount;

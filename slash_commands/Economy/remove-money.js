@@ -25,10 +25,25 @@ exports.commandData = new SlashCommandBuilder()
 
 exports.run = async (interaction) => {
   await interaction.deferReply();
+  const connection = await interaction.client.db.getConnection();
+
   const target = interaction.options.getMentionable('target');
   const destination = interaction.options.getString('destination') || 'cash';
   let amount = interaction.options.getInteger('amount');
-  const currencySymbol = (await db.get(`servers.${interaction.guild.id}.economy.symbol`)) || '$';
+
+  const [economyRows] = await connection.execute(
+    /* sql */ `
+      SELECT
+        symbol
+      FROM
+        economy_settings
+      WHERE
+        guild_id = ?
+    `,
+    [interaction.guild.id],
+  );
+  const currencySymbol = economyRows[0]?.symbol || '$';
+  connection.release();
 
   const embed = new EmbedBuilder()
     .setColor(interaction.settings.embedErrorColor)
@@ -69,6 +84,8 @@ exports.run = async (interaction) => {
 
     if (isNaN(amount)) return interaction.client.util.errorEmbed(interaction, 'Incorrect Usage');
 
+    // Ensure the members cache is populated
+    await interaction.guild.members.fetch();
     const members = [...role.members.values()];
 
     amount = BigInt(amount);

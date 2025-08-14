@@ -30,28 +30,53 @@ exports.commandData = new SlashCommandBuilder()
 
 exports.run = async (interaction) => {
   await interaction.deferReply();
+  const connection = await interaction.client.db.getConnection();
+
   const target = interaction.options.getMentionable('target');
   const destination = interaction.options.getString('destination') || 'cash';
   let amount = interaction.options.getInteger('amount');
-  const currencySymbol = (await db.get(`servers.${interaction.guild.id}.economy.symbol`)) || '$';
+
+  const [economyRows] = await connection.execute(
+    /* sql */ `
+      SELECT
+        *
+      FROM
+        economy_settings
+      WHERE
+        guild_id = ?
+    `,
+    [interaction.guild.id],
+  );
+  const currencySymbol = economyRows[0]?.symbol || '$';
 
   const embed = new EmbedBuilder()
     .setColor(interaction.settings.embedErrorColor)
     .setAuthor({ name: interaction.member.displayName, iconURL: interaction.member.displayAvatarURL() });
 
-  if (isNaN(amount)) return interaction.client.util.errorEmbed(interaction, 'Invalid Amount');
-  if (amount > 1000000000000)
+  if (isNaN(amount)) {
+    connection.release();
+    return interaction.client.util.errorEmbed(interaction, 'Invalid Amount');
+  }
+  if (amount > 1000000000000) {
+    connection.release();
     return interaction.client.util.errorEmbed(
       interaction,
       "You can't add more than 1 Trillion to a member",
       'Invalid Amount',
     );
+  }
 
   if (target.user) {
-    if (!target.user) return interaction.client.util.errorEmbed(interaction, 'Invalid Member');
-    if (target.user.bot) return interaction.client.util.errorEmbed(interaction, "You can't add money to a bot.");
+    if (!target.user) {
+      connection.release();
+      return interaction.client.util.errorEmbed(interaction, 'Invalid Member');
+    }
+    if (target.user.bot) {
+      connection.release();
+      return interaction.client.util.errorEmbed(interaction, "You can't add money to a bot.");
+    }
 
-    amount = BigInt(parseInt(amount));
+    amount = BigInt(amount);
     if (destination === 'bank') {
       const bank = BigInt((await db.get(`servers.${interaction.guild.id}.users.${target.user.id}.economy.bank`)) || 0);
       const newAmount = bank + amount;
@@ -59,7 +84,7 @@ exports.run = async (interaction) => {
     } else {
       const cash = BigInt(
         (await db.get(`servers.${interaction.guild.id}.users.${target.user.id}.economy.cash`)) ||
-          (await db.get(`servers.${interaction.guild.id}.economy.startBalance`)) ||
+          economyRows[0]?.start_balance ||
           0,
       );
       const newAmount = cash + amount;
@@ -73,15 +98,23 @@ exports.run = async (interaction) => {
       .setColor(interaction.settings.embedColor)
       .setDescription(`Added **${csAmount}** to ${target.user}'s ${destination} balance.`)
       .setTimestamp();
+
+    connection.release();
     return interaction.editReply({ embeds: [embed] });
   } else {
     const role = target;
-    const currencySymbol = (await db.get(`servers.${interaction.guild.id}.economy.symbol`)) || '$';
 
-    if (isNaN(amount)) return interaction.client.util.errorEmbed(interaction, 'Incorrect Usage');
-    if (amount === Infinity)
+    if (isNaN(amount)) {
+      connection.release();
+      return interaction.client.util.errorEmbed(interaction, 'Incorrect Usage');
+    }
+    if (amount === Infinity) {
+      connection.release();
       return interaction.client.util.errorEmbed(interaction, "You can't add Infinity to a member", 'Invalid Amount');
+    }
 
+    // Ensure the members cache is populated
+    await interaction.guild.members.fetch();
     const members = [...role.members.values()];
 
     amount = BigInt(amount);
@@ -98,7 +131,7 @@ exports.run = async (interaction) => {
         if (!mem.user.bot) {
           const cash = BigInt(
             (await db.get(`servers.${interaction.guild.id}.users.${mem.id}.economy.cash`)) ||
-              (await db.get(`servers.${interaction.guild.id}.economy.startBalance`)) ||
+              economyRows[0]?.start_balance ||
               0,
           );
           const newAmount = cash + amount;
@@ -120,6 +153,7 @@ exports.run = async (interaction) => {
       )
       .setTimestamp();
 
+    connection.release();
     return interaction.editReply({ embeds: [embed] });
   }
 };

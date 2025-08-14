@@ -17,6 +17,8 @@ class GiveMoney extends Command {
   }
 
   async run(msg, args) {
+    const connection = await this.client.db.getConnection();
+
     const embed = new EmbedBuilder()
       .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
       .setColor(msg.settings.embedErrorColor);
@@ -24,16 +26,32 @@ class GiveMoney extends Command {
     const mem = await this.client.util.getMember(msg, args[0]);
 
     if (!mem) {
+      connection.release();
       return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Member');
     } else if (mem.id === msg.author.id) {
+      connection.release();
       return this.client.util.errorEmbed(msg, 'You cannot trade money with yourself. That would be pointless.');
     } else if (mem.user.bot) {
+      connection.release();
       return this.client.util.errorEmbed(msg, "You can't give bots money.");
     }
 
-    const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
+    const [economyRows] = await connection.execute(
+      /* sql */ `
+        SELECT
+          *
+        FROM
+          economy_settings
+        WHERE
+          guild_id = ?
+      `,
+      [msg.guild.id],
+    );
+    const currencySymbol = economyRows[0]?.symbol || '$';
+    connection.release();
+
     const cashValue = await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`);
-    const startBalance = BigInt((await db.get(`servers.${msg.guild.id}.economy.startBalance`)) || 0);
+    const startBalance = BigInt(economyRows[0]?.start_balance || 0);
 
     const authCash = cashValue === undefined ? startBalance : BigInt(cashValue);
 
@@ -95,9 +113,7 @@ class GiveMoney extends Command {
     const newAuthCash = authCash - amount;
     await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAuthCash.toString());
     const memCash = BigInt(
-      (await db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`)) ||
-        (await db.get(`servers.${msg.guild.id}.economy.startBalance`)) ||
-        0,
+      (await db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`)) || economyRows[0]?.start_balance || 0,
     );
     const newMemCash = memCash + amount;
     await db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, newMemCash.toString());

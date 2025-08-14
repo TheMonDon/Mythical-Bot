@@ -63,11 +63,23 @@ exports.run = async (interaction) => {
     }
   }
 
-  const min = parseFloat((await db.get(`servers.${interaction.guild.id}.economy.work.min`)) || 50);
-  const max = parseFloat((await db.get(`servers.${interaction.guild.id}.economy.work.max`)) || 500);
+  const [economyRows] = await connection.execute(
+    /* sql */ `
+      SELECT
+        *
+      FROM
+        economy_settings
+      WHERE
+        guild_id = ?
+    `,
+    [interaction.guild.id],
+  );
 
+  const min = economyRows[0]?.work_min || 20;
+  const max = economyRows[0]?.work_max || 250;
+
+  const currencySymbol = economyRows[0]?.symbol || '$';
   const amount = Math.abs(Math.floor(Math.random() * (max - min + 1) + min));
-  const currencySymbol = (await db.get(`servers.${interaction.guild.id}.economy.symbol`)) || '$';
   const csamount = currencySymbol + amount.toLocaleString();
 
   delete require.cache[require.resolve('../../resources/messages/work_jobs.json')];
@@ -93,7 +105,7 @@ exports.run = async (interaction) => {
 
   const oldBalance = BigInt(
     (await db.get(`servers.${interaction.guild.id}.users.${interaction.member.id}.economy.cash`)) ||
-      (await db.get(`servers.${interaction.guild.id}.economy.startBalance`)) ||
+      economyRows[0]?.start_balance ||
       0,
   );
 

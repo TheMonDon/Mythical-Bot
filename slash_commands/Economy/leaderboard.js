@@ -23,24 +23,42 @@ exports.commandData = new SlashCommandBuilder()
   .addStringOption((option) =>
     option
       .setName('type')
-      .setDescription('Choose between Bank or Cash.')
+      .setDescription('Show only cash or bank balances')
       .addChoices({ name: 'Bank', value: 'bank' }, { name: 'Cash', value: 'cash' }),
   );
 
 exports.run = async (interaction) => {
   await interaction.deferReply();
+  const connection = await interaction.client.db.getConnection();
+
   let page = interaction.options.getInteger('page') || 1;
   const cashOrBank = interaction.options.getString('type') || 'total';
   await interaction.guild.members.fetch();
+  /*
   const usersCount = (await db.get(`servers.${interaction.guild.id}.users`))
     ? Object.keys(await db.get(`servers.${interaction.guild.id}.users`)).length
     : 0;
+*/
+  const usersCount = Object.keys((await db.get(`servers.${interaction.guild.id}.users`)) || {}).length;
   const itemsPerPage = 10;
   const maxPages = Math.ceil(usersCount / itemsPerPage);
 
   if (page > maxPages) page = maxPages;
 
-  const currencySymbol = (await db.get(`servers.${interaction.guild.id}.economy.symbol`)) || '$';
+  const [economyRows] = await connection.execute(
+    /* sql */ `
+      SELECT
+        *
+      FROM
+        economy_settings
+      WHERE
+        guild_id = ?
+    `,
+    [interaction.guild.id],
+  );
+  const currencySymbol = economyRows[0]?.symbol || '$';
+  const startingBalance = economyRows[0]?.start_balance || 0;
+  connection.release();
 
   // Fetch data for the current page
   const offset = (page - 1) * itemsPerPage;
@@ -48,7 +66,7 @@ exports.run = async (interaction) => {
 
   const sortedLeaderboard = Object.entries(usersData)
     .map(([userId, data]) => {
-      const cash = BigInt(data.economy?.cash || 0);
+      const cash = BigInt(data.economy?.cash || startingBalance);
       const bank = BigInt(data.economy?.bank || 0);
       const total = cash + bank;
 
@@ -67,7 +85,7 @@ exports.run = async (interaction) => {
 
   const fullLeaderboard = Object.entries(usersData)
     .map(([userId, data]) => {
-      const cash = BigInt(data.economy?.cash || 0);
+      const cash = BigInt(data.economy?.cash || startingBalance);
       const bank = BigInt(data.economy?.bank || 0);
       const total = cash + bank;
 

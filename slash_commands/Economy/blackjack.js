@@ -7,6 +7,7 @@ const {
   ActionRowBuilder,
   MessageFlags,
 } = require('discord.js');
+const { Blackjack } = require('blackjack-n-deck');
 const { QuickDB } = require('quick.db');
 const db = new QuickDB();
 
@@ -24,7 +25,7 @@ exports.commandData = new SlashCommandBuilder()
 
 exports.run = async (interaction) => {
   await interaction.deferReply();
-  const { Blackjack } = require('blackjack-n-deck');
+  const connection = await interaction.client.db.getConnection();
 
   // array of all my card emojis in my private server
   // These are also inside the bots files to host yourself!
@@ -107,10 +108,24 @@ exports.run = async (interaction) => {
     }
   }
 
-  const currencySymbol = (await db.get(`servers.${interaction.guild.id}.economy.symbol`)) || '$';
-  const cashValue = await db.get(`servers.${interaction.guild.id}.users.${interaction.member.id}.economy.cash`);
-  const startBalance = BigInt((await db.get(`servers.${interaction.guild.id}.economy.startBalance`)) || 0);
-  const cash = cashValue === undefined ? startBalance : BigInt(cashValue);
+  const [economyRows] = await connection.execute(
+    /* sql */ `
+      SELECT
+        *
+      FROM
+        economy_settings
+      WHERE
+        guild_id = ?
+    `,
+    [interaction.guild.id],
+  );
+
+  const currencySymbol = economyRows[0]?.symbol || '$';
+  const cash = BigInt(
+    (await db.get(`servers.${interaction.guild.id}.users.${interaction.member.id}.economy.cash`)) ||
+      economyRows[0]?.start_balance ||
+      0,
+  );
 
   const bet = interaction.options.getInteger('bet');
   if (bet === Infinity) {

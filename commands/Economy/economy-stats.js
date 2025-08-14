@@ -18,7 +18,22 @@ class EconomyStats extends Command {
 
   async run(msg, _args) {
     await msg.guild.members.fetch();
-    const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
+    const connection = await this.client.db.getConnection();
+
+    const [economyRows] = await connection.execute(
+      /* sql */ `
+        SELECT
+          *
+        FROM
+          economy_settings
+        WHERE
+          guild_id = ?
+      `,
+      [msg.guild.id],
+    );
+    const currencySymbol = economyRows[0]?.symbol || '$';
+    connection.release();
+
     const usersData = (await db.get(`servers.${msg.guild.id}.users`)) || {};
 
     let totalCash = 0n;

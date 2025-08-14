@@ -21,49 +21,49 @@ class SetCooldown extends Command {
     const connection = await this.client.db.getConnection();
     const types = ['rob', 'work', 'crime', 'slut', 'chat'];
 
-    // Defaults
-    const defaultCooldowns = {
-      work: 300,
-      rob: 600,
-      crime: 600,
-      slut: 600,
-      chat: 60,
-    };
-
-    // Get the cooldowns from the database
-    const [rows] = await connection.execute(
-      /* sql */
-      `
-        SELECT
-          cooldown_name,
-          duration
-        FROM
-          cooldown_settings
-        WHERE
-          guild_id = ?
-      `,
-      [msg.guild.id],
-    );
-
-    // Convert DB results into lookup
-    const dbCooldowns = {};
-    for (const row of rows) {
-      dbCooldowns[row.cooldown_name] = row.duration;
-    }
-
-    // Merge with defaults
-    const cooldowns = {};
-    for (const [name, defVal] of Object.entries(defaultCooldowns)) {
-      cooldowns[name] = dbCooldowns[name] ?? defVal;
-    }
-
     const embed = new EmbedBuilder()
-      .setColor(msg.settings.embedErrorColor)
+      .setColor(msg.settings.embedSuccessColor)
       .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() });
 
     const { parseMS } = await import('human-ms');
 
     if (!args || args.length < 1) {
+      // Defaults
+      const defaultCooldowns = {
+        work: 300,
+        rob: 600,
+        crime: 600,
+        slut: 600,
+        chat: 60,
+      };
+
+      // Get the cooldowns from the database
+      const [rows] = await connection.execute(
+        /* sql */
+        `
+          SELECT
+            cooldown_name,
+            duration
+          FROM
+            cooldown_settings
+          WHERE
+            guild_id = ?
+        `,
+        [msg.guild.id],
+      );
+
+      // Convert DB results into lookup
+      const dbCooldowns = {};
+      for (const row of rows) {
+        dbCooldowns[row.cooldown_name] = row.duration;
+      }
+
+      // Merge with defaults
+      const cooldowns = {};
+      for (const [name, defVal] of Object.entries(defaultCooldowns)) {
+        cooldowns[name] = dbCooldowns[name] ?? defVal;
+      }
+
       embed.setColor(msg.settings.embedColor).setDescription(stripIndents`
         The current cooldowns are set to: 
   
@@ -121,9 +121,7 @@ class SetCooldown extends Command {
       [msg.guild.id, type, duration],
     );
 
-    embed
-      .setColor(msg.settings.embedSuccessColor)
-      .setDescription(`The cooldown of \`${properCase}\` has been set to ${parseMS(cooldown)}.`);
+    embed.setDescription(`The cooldown of \`${properCase}\` has been set to ${parseMS(cooldown)}.`);
 
     connection.release();
     return msg.channel.send({ embeds: [embed] });

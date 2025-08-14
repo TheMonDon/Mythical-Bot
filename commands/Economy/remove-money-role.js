@@ -15,15 +15,18 @@ class RemoveMoneyRole extends Command {
       permLevel: 'Administrator',
       requiredArgs: 2,
       examples: [
-        'remove-money-role cash Admin 100',
-        'remove-money-role bank @memberRole1 420',
-        'remove-money-role Owner 100',
+        'remove-money-role cash bunny 100',
+        'remove-money-role cash Admin 200',
+        'remove-money-role Owner 300',
+        'remove-money-role bank @memberOrRole 420',
       ],
       guildOnly: true,
     });
   }
 
   async run(msg, args) {
+    const connection = await this.client.db.getConnection();
+
     const embed = new EmbedBuilder()
       .setColor(msg.settings.embedErrorColor)
       .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() });
@@ -45,10 +48,28 @@ class RemoveMoneyRole extends Command {
     }
 
     if (isNaN(amount) || amount === Infinity) {
+      connection.release();
       return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Amount');
     }
-    if (!role) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Role');
+    if (!role) {
+      connection.release();
+      return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Role');
+    }
 
+    const [economyRows] = await connection.execute(
+      /* sql */ `
+        SELECT
+          *
+        FROM
+          economy_settings
+        WHERE
+          guild_id = ?
+      `,
+      [msg.guild.id],
+    );
+
+    // Ensure the members cache is populated
+    await msg.guild.members.fetch();
     const members = [...role.members.values()];
 
     amount = BigInt(parseInt(amount));
@@ -61,7 +82,7 @@ class RemoveMoneyRole extends Command {
       } else {
         const cash = BigInt(
           (await db.get(`servers.${msg.guild.id}.users.${member.id}.economy.cash`)) ||
-            (await db.get(`servers.${msg.guild.id}.economy.startBalance`)) ||
+            economyRows[0]?.start_balance ||
             0,
         );
         const newAmount = cash - amount;
@@ -69,7 +90,9 @@ class RemoveMoneyRole extends Command {
       }
     });
 
-    const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
+    const currencySymbol = economyRows[0]?.symbol || '$';
+    connection.release();
+
     let csAmount = currencySymbol + amount.toLocaleString();
     csAmount = this.client.util.limitStringLength(csAmount, 0, 1024);
 
@@ -78,7 +101,7 @@ class RemoveMoneyRole extends Command {
       .setDescription(
         `Removed **${csAmount}** from the ${type} balance of ${members.length} ${
           members.length > 1 ? 'members' : 'member'
-        } with the ${role}.`,
+        } with the ${role} role.`,
       )
       .setTimestamp();
     return msg.channel.send({ embeds: [embed] });
