@@ -111,7 +111,7 @@ class SetCooldown extends Command {
     await connection.execute(
       /* sql */ `
         INSERT INTO
-          cooldown_settings (guild_id, cooldown_name, duration)
+          cooldown_settings (server_id, cooldown_name, duration)
         VALUES
           (?, ?, ?) ON DUPLICATE KEY
         UPDATE duration =

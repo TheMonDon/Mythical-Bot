@@ -76,7 +76,7 @@ class SetFailRate extends Command {
       await connection.execute(
         /* sql */ `
           INSERT INTO
-            economy_settings (guild_id, crime_fail_rate)
+            economy_settings (server_id, crime_fail_rate)
           VALUES
             (?, ?) ON DUPLICATE KEY
           UPDATE crime_fail_rate =
@@ -92,7 +92,7 @@ class SetFailRate extends Command {
       await connection.execute(
         /* sql */ `
           INSERT INTO
-            economy_settings (guild_id, slut_fail_rate)
+            economy_settings (server_id, slut_fail_rate)
           VALUES
             (?, ?) ON DUPLICATE KEY
           UPDATE slut_fail_rate =

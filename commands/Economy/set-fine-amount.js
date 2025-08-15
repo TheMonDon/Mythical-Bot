@@ -119,7 +119,7 @@ class SetFineAmount extends Command {
       /* sql */ `
         INSERT INTO
           economy_settings (
-            guild_id,
+            server_id,
             ${type}_fine_${minMax}
           )
         VALUES

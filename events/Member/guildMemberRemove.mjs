@@ -68,7 +68,7 @@ export async function run(client, member) {
       const arr = roles.filter((role) => role.id !== member.guild.id).map((role) => role.id);
 
       connection.execute(
-        `INSERT INTO prole_users (guild_id, user_id, roles)
+        `INSERT INTO prole_users (server_id, user_id, roles)
          VALUES (?, ?, ?)
          ON DUPLICATE KEY UPDATE roles = VALUES(roles)`,
         [member.guild.id, member.user.id, JSON.stringify(arr)],

@@ -48,7 +48,7 @@ class SetStartBalance extends Command {
     await connection.execute(
       /* sql */ `
         INSERT INTO
-          economy_settings (guild_id, start_balance)
+          economy_settings (server_id, start_balance)
         VALUES
           (?, ?) ON DUPLICATE KEY
         UPDATE start_balance =

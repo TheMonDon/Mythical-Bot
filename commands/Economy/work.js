@@ -92,7 +92,7 @@ class Work extends Command {
     await connection.execute(
       /* sql */ `
         INSERT INTO
-          cooldowns (guild_id, user_id, cooldown_name, expires_at)
+          cooldowns (server_id, user_id, cooldown_name, expires_at)
         VALUES
           (?, ?, ?, NOW() + INTERVAL ? SECOND) ON DUPLICATE KEY
         UPDATE expires_at =
