@@ -25,7 +25,7 @@ async function handleEconomyEvent(client, message) {
       FROM
         economy_settings
       WHERE
-        guild_id = ?
+        server_id = ?
     `,
     [message.guild.id],
   );
@@ -40,7 +40,7 @@ async function handleEconomyEvent(client, message) {
       FROM
         cooldown_settings
       WHERE
-        guild_id = ?
+        server_id = ?
         AND cooldown_name = 'chat'
     `,
     [message.guild.id],

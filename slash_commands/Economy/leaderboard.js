@@ -52,7 +52,7 @@ exports.run = async (interaction) => {
       FROM
         economy_settings
       WHERE
-        guild_id = ?
+        server_id = ?
     `,
     [interaction.guild.id],
   );

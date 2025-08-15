@@ -28,7 +28,7 @@ class SetPayout extends Command {
         FROM
           economy_settings
         WHERE
-          guild_id = ?
+          server_id = ?
       `,
       [msg.guild.id],
     );
@@ -92,7 +92,7 @@ class SetPayout extends Command {
           SET
             ${type}_${minMax} = DEFAULT
           WHERE
-            guild_id = ?
+            server_id = ?
         `,
         [msg.guild.id],
       );
@@ -122,7 +122,7 @@ class SetPayout extends Command {
         SET
           ${type}_${minMax} = ?
         WHERE
-          guild_id = ?
+          server_id = ?
       `,
       [amount, msg.guild.id],
     );

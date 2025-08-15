@@ -47,7 +47,7 @@ class SetCooldown extends Command {
           FROM
             cooldown_settings
           WHERE
-            guild_id = ?
+            server_id = ?
         `,
         [msg.guild.id],
       );

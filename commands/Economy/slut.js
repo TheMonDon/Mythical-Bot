@@ -28,7 +28,7 @@ class Slut extends Command {
         FROM
           cooldown_settings
         WHERE
-          guild_id = ?
+          server_id = ?
           AND cooldown_name = 'slut'
       `,
       [msg.guild.id],
@@ -75,7 +75,7 @@ class Slut extends Command {
         FROM
           economy_settings
         WHERE
-          guild_id = ?
+          server_id = ?
       `,
       [msg.guild.id],
     );

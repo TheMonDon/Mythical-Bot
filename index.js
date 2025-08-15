@@ -699,6 +699,7 @@ const loadMysql = async () => {
       persistent_roles BOOLEAN DEFAULT FALSE,
       premium BOOLEAN DEFAULT FALSE,
       chatbot BOOLEAN DEFAULT TRUE,
+      leave_timestamp BIGINT UNSIGNED DEFAULT NULL,
       PRIMARY KEY (server_id)
     );
   `);
@@ -734,29 +735,29 @@ const loadMysql = async () => {
   await connection.execute(/* sql */ `
     CREATE TABLE IF NOT EXISTS cooldowns (
       id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-      guild_id VARCHAR(30) NOT NULL,
+      server_id VARCHAR(30) NOT NULL,
       user_id VARCHAR(30) NOT NULL,
       cooldown_name VARCHAR(50) NOT NULL,
       expires_at DATETIME NOT NULL,
       PRIMARY KEY (id),
-      UNIQUE KEY unique_cooldown (guild_id, user_id, cooldown_name)
+      UNIQUE KEY unique_cooldown (server_id, user_id, cooldown_name)
     )
   `);
 
   await connection.execute(/* sql */ `
     CREATE TABLE IF NOT EXISTS cooldown_settings (
       id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-      guild_id VARCHAR(30) NOT NULL,
+      server_id VARCHAR(30) NOT NULL,
       cooldown_name VARCHAR(50) NOT NULL,
       duration INT UNSIGNED NOT NULL,
       PRIMARY KEY (id),
-      UNIQUE KEY unique_cooldown_setting (guild_id, cooldown_name)
+      UNIQUE KEY unique_cooldown_setting (server_id, cooldown_name)
     )
   `);
 
   await connection.execute(/* sql */ `
     CREATE TABLE IF NOT EXISTS economy_settings (
-      guild_id VARCHAR(30) NOT NULL,
+      server_id VARCHAR(30) NOT NULL,
       crime_fine_min INT UNSIGNED DEFAULT 10,
       crime_fine_max INT UNSIGNED DEFAULT 40,
       slut_fine_min INT UNSIGNED DEFAULT 10,
@@ -775,7 +776,7 @@ const loadMysql = async () => {
       chat_min BIGINT UNSIGNED DEFAULT 10,
       chat_max BIGINT UNSIGNED DEFAULT 100,
       symbol VARCHAR(50) DEFAULT '$',
-      PRIMARY KEY (guild_id)
+      PRIMARY KEY (server_id)
     ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE utf8mb4_unicode_ci;
   `);
 

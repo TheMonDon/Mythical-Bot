@@ -27,7 +27,7 @@ class Crime extends Command {
         FROM
           cooldown_settings
         WHERE
-          guild_id = ?
+          server_id = ?
           AND cooldown_name = 'crime'
       `,
       [msg.guild.id],
@@ -74,7 +74,7 @@ class Crime extends Command {
         FROM
           economy_settings
         WHERE
-          guild_id = ?
+          server_id = ?
       `,
       [msg.guild.id],
     );

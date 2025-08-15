@@ -23,7 +23,7 @@ exports.run = async (interaction) => {
       FROM
         cooldown_settings
       WHERE
-        guild_id = ?
+        server_id = ?
         AND cooldown_name = 'work'
     `,
     [interaction.guild.id],
@@ -70,7 +70,7 @@ exports.run = async (interaction) => {
       FROM
         economy_settings
       WHERE
-        guild_id = ?
+        server_id = ?
     `,
     [interaction.guild.id],
   );

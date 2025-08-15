@@ -31,7 +31,7 @@ class SetFailRate extends Command {
           FROM
             economy_settings
           WHERE
-            guild_id = ?
+            server_id = ?
         `,
         [msg.guild.id],
       );

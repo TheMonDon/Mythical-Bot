@@ -25,7 +25,7 @@ class Work extends Command {
         FROM
           cooldown_settings
         WHERE
-          guild_id = ?
+          server_id = ?
           AND cooldown_name = 'work'
       `,
       [msg.guild.id],
@@ -71,7 +71,7 @@ class Work extends Command {
         FROM
           economy_settings
         WHERE
-          guild_id = ?
+          server_id = ?
       `,
       [msg.guild.id],
     );

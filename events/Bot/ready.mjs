@@ -149,9 +149,13 @@ export async function run(client) {
 
   // Delete server data scheduler (every day at midnight) after 30 days of leaving
   scheduleJob('DeleteServerData', '0 0 * * *', async () => {
-    const servers = (await db.get('servers')) || {};
-    if (servers) {
-      for (const [serverId] of Object.entries(servers)) {
+    const connection = await client.db.getConnection();
+    const 
+    const quickdbServers = (await db.get('servers')) || {};
+
+    // Leave in until complete migration
+    if (quickdbServers) {
+      for (const [serverId] of Object.entries(quickdbServers)) {
         const leaveTimestamp = await db.get(`servers.${serverId}.leave_timestamp`);
         if (leaveTimestamp) {
           const timeDiff = Date.now() - leaveTimestamp;
@@ -168,6 +172,7 @@ export async function run(client) {
   // Reminder scheduler
   scheduleJob('Reminders', '* * * * *', async () => {
     const reminders = (await db.get('global.reminders')) || [];
+
     if (reminders) {
       for (const { createdAt, triggerOn, reminder, channelID, userID, color, remID } of Object.values(reminders)) {
         const now = Date.now();

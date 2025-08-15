@@ -849,7 +849,7 @@ async function chatbotApiRequest(client, message) {
       FROM
         cooldown_settings
       WHERE
-        guild_id = ?
+        server_id = ?
         AND cooldown_name = 'chatbot'
     `,
     [message.guild.id],

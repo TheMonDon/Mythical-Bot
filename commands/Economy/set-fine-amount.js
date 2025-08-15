@@ -33,7 +33,7 @@ class SetFineAmount extends Command {
           FROM
             economy_settings
           WHERE
-            guild_id = ?
+            server_id = ?
         `,
         [msg.guild.id],
       );
@@ -89,7 +89,7 @@ class SetFineAmount extends Command {
           SET
             ${type}_fine_${minMax} = DEFAULT
           WHERE
-            guild_id = ?
+            server_id = ?
         `,
         [msg.guild.id],
       );

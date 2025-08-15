@@ -27,7 +27,7 @@ class Rob extends Command {
         FROM
           cooldown_settings
         WHERE
-          guild_id = ?
+          server_id = ?
           AND cooldown_name = 'rob'
       `,
       [msg.guild.id],
@@ -94,7 +94,7 @@ class Rob extends Command {
         FROM
           economy_settings
         WHERE
-          guild_id = ?
+          server_id = ?
       `,
       [msg.guild.id],
     );
