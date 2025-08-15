@@ -1,10 +1,8 @@
 const Command = require('../../base/Command.js');
 const { stripIndents } = require('common-tags');
 const { EmbedBuilder } = require('discord.js');
-const { QuickDB } = require('quick.db');
 require('moment-duration-format');
 const moment = require('moment');
-const db = new QuickDB();
 
 class LoadPlaylist extends Command {
   constructor(client) {
@@ -20,13 +18,31 @@ class LoadPlaylist extends Command {
   }
 
   async run(msg, args) {
+    const connection = await this.client.db.getConnection();
     const playlistName = args.join(' ').trim();
 
     if (playlistName.length === 0 || playlistName.length >= 50) {
+      connection.release();
       return msg.channel.send('Please provide a valid playlist name (1-50 characters).');
     }
 
-    const currentPlaylists = (await db.get(`users.${msg.author.id}.playlists`)) || [];
+    const [playlistRows] = await connection.execute(
+      /* sql */ `
+        SELECT
+          *
+        FROM
+          user_playlists
+        WHERE
+          user_id = ?
+      `,
+      [msg.author.id],
+    );
+    connection.release();
+
+    let currentPlaylists = [];
+    if (playlistRows.length) {
+      currentPlaylists = JSON.parse(playlistRows[0].playlists);
+    }
 
     // Find the playlist by name
     const userPlaylist = currentPlaylists.find((p) => p.name.toLowerCase() === playlistName.toLowerCase());
@@ -50,15 +66,13 @@ class LoadPlaylist extends Command {
           selfDeaf: true,
           selfMute: false,
         });
+      }
 
+      if (!player.connected) {
         await player.connect();
       }
 
       player.queue.add(userPlaylist.tracks);
-
-      if (!player.playing && !player.paused) {
-        await player.play();
-      }
 
       const tracksDuration = userPlaylist.tracks.reduce((acc, track) => acc + (track.info.duration || 0), 0);
       const totalDuration = moment
@@ -72,7 +86,6 @@ class LoadPlaylist extends Command {
           stripIndents`**${userPlaylist.tracks.length} tracks** from **${playlistName}** have been added to the queue
 
             **Total Duration:** ${totalDuration}
-            **Requested By:** <@${userPlaylist.tracks[0].requester.id}>
             **Queue Length:** ${player.queue.tracks.length} tracks`,
         )
         .setColor(msg.settings.embedColor)
@@ -82,10 +95,14 @@ class LoadPlaylist extends Command {
         em.setThumbnail(userPlaylist.tracks[0].info.artworkUrl);
       }
 
-      msg.channel.send({ embeds: [em] });
+      if (!player.playing && !player.paused) {
+        await player.play();
+      }
+
+      return msg.channel.send({ embeds: [em] });
     } catch (error) {
       console.error('Load Playlist Error:', error);
-      msg.channel.send('An error occurred while loading the queue.');
+      return msg.channel.send(`An error occurred while loading the playlist: ${error.message}`);
     }
   }
 }

@@ -779,6 +779,13 @@ const loadMysql = async () => {
     ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE utf8mb4_unicode_ci;
   `);
 
+  await connection.execute(/* sql */ `
+    CREATE TABLE IF NOT EXISTS user_playlists (
+      user_id VARCHAR(30) PRIMARY KEY,
+      playlists JSON NOT NULL
+    ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+  `);
+
   const [views] = await connection.query(/* sql */ `
     SHOW FULL TABLES IN ${config.mysql.database}
     WHERE

@@ -1,7 +1,5 @@
 const Command = require('../../base/Command.js');
-const { QuickDB } = require('quick.db');
 const { v4: uuidv4 } = require('uuid');
-const db = new QuickDB();
 
 class SavePlaylist extends Command {
   constructor(client) {
@@ -18,46 +16,84 @@ class SavePlaylist extends Command {
 
   async run(msg, args) {
     const player = this.client.lavalink.getPlayer(msg.guild.id);
+    const connection = await this.client.db.getConnection();
 
     if (!player || player.queue.tracks.length < 1) {
+      connection.release();
       return this.client.util.errorEmbed(msg, 'There are no tracks in the queue to save to a playlist.');
     }
 
     const playlistName = args.join(' ').trim();
 
     if (playlistName.length === 0 || playlistName.length >= 50) {
+      connection.release();
       return this.client.util.errorEmbed(msg, 'Please provide a valid playlist name (1-50 characters).');
     }
 
-    const currentPlaylists = (await db.get(`users.${msg.author.id}.playlists`)) || [];
+    if (!/^[a-zA-Z0-9 ]+$/.test(playlistName)) {
+      connection.release();
+      return this.client.util.errorEmbed(msg, 'Playlist names can only contain letters, numbers, and spaces.');
+    }
+
+    const [playlistRows] = await connection.execute(
+      /* sql */ `
+        SELECT
+          *
+        FROM
+          user_playlists
+        WHERE
+          user_id = ?
+      `,
+      [msg.author.id],
+    );
+
+    let currentPlaylists = [];
+    if (playlistRows.length) {
+      currentPlaylists = JSON.parse(playlistRows[0].playlists);
+    }
 
     if (currentPlaylists.some((p) => p.name === playlistName)) {
+      connection.release();
       return this.client.util.errorEmbed(msg, 'You already have a playlist with that name.');
     }
 
     if (currentPlaylists.length >= 20) {
+      connection.release();
       return this.client.util.errorEmbed(msg, 'You have reached the maximum number of playlists allowed (20).');
     }
-
-    const queue = await player.queue.QueueSaver.get(msg.guild.id);
 
     const newPlaylist = {
       id: uuidv4(),
       name: playlistName,
       createdAt: new Date().toISOString(),
-      tracks: queue.tracks,
+      tracks: player.queue.tracks,
     };
 
     try {
-      await db.push(`users.${msg.author.id}.playlists`, newPlaylist);
+      currentPlaylists.push(newPlaylist);
+      await connection.execute(
+        /* sql */
+        `
+          INSERT INTO
+            user_playlists (user_id, playlists)
+          VALUES
+            (?, ?) ON DUPLICATE KEY
+          UPDATE playlists =
+          VALUES
+            (playlists)
+        `,
+        [msg.author.id, JSON.stringify(currentPlaylists)],
+      );
+
+      connection.release();
       return msg.channel.send(
-        `I have successfully created the playlist \`${playlistName}\` with ${
-          queue.tracks.length
-        } tracks. You can play it using the \`load-playlist\` command. (${currentPlaylists.length + 1}/50)`,
+        `I have successfully created the playlist \`${playlistName}\` with ${player.queue.tracks.length} tracks. You can play it using the \`load-playlist\` command. (${currentPlaylists.length}/50)`,
       );
     } catch (error) {
+      connection.release();
+
       console.error('Save Playlist Error:', error);
-      return msg.channel.send('An error occurred while saving your playlist.');
+      return msg.channel.send(`An error occurred while saving your playlist: ${error.message}`);
     }
   }
 }

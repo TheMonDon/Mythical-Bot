@@ -1,7 +1,5 @@
 const Command = require('../../base/Command.js');
 const { EmbedBuilder } = require('discord.js');
-const { QuickDB } = require('quick.db');
-const db = new QuickDB();
 
 class ListPlaylists extends Command {
   constructor(client) {
@@ -17,8 +15,25 @@ class ListPlaylists extends Command {
 
   async run(msg, args) {
     let page = parseInt(args[0]) || 1;
+    const connection = await this.client.db.getConnection();
 
-    const playlists = (await db.get(`users.${msg.author.id}.playlists`)) || [];
+    const [playlistRows] = await connection.execute(
+      /* sql */ `
+        SELECT
+          *
+        FROM
+          user_playlists
+        WHERE
+          user_id = ?
+      `,
+      [msg.author.id],
+    );
+    connection.release();
+
+    let playlists = [];
+    if (playlistRows.length) {
+      playlists = JSON.parse(playlistRows[0].playlists);
+    }
 
     if (!playlists || playlists.length === 0) {
       return this.client.util.errorEmbed(msg, "You don't currently have any saved playlists.");
