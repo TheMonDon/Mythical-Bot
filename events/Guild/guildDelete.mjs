@@ -13,7 +13,7 @@ export async function run(client, guild) {
     );
     client.logger.log(`Left guild: ${guild.name} (${guild.id}) with ${guild.memberCount} members`);
 
-    await connection.execute(/* sql */ `INSERT`)
+    // await connection.execute(/* sql */ `INSERT`)
     await db.set(`servers.${guild.id}.leave_timestamp`, Date.now());
   } catch (error) {
     connection.release();

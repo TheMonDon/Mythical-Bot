@@ -150,7 +150,7 @@ export async function run(client) {
   // Delete server data scheduler (every day at midnight) after 30 days of leaving
   scheduleJob('DeleteServerData', '0 0 * * *', async () => {
     const connection = await client.db.getConnection();
-    const 
+    // const [rows] = await connection.execute();
     const quickdbServers = (await db.get('servers')) || {};
 
     // Leave in until complete migration
