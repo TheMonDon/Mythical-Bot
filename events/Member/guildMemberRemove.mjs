@@ -51,33 +51,26 @@ export async function run(client, member) {
       );
 
       const toggle = toggleRows[0]?.persistent_roles === 1;
-      if (!toggle) {
-        connection.release();
-        return;
-      }
+      if (!toggle) return;
 
       const bans = await member.guild.bans.fetch();
       const bannedUser = bans.find((ban) => ban.user.id === member.id);
-      if (bannedUser) {
-        connection.release();
-        return;
-      }
+      if (bannedUser) return;
 
       const roles = [...member.roles.cache.values()];
       if (roles.length === 1) return;
       const arr = roles.filter((role) => role.id !== member.guild.id).map((role) => role.id);
 
       connection.execute(
-        `INSERT INTO prole_users (server_id, user_id, roles)
+        `INSERT INTO persistent_roles (server_id, user_id, roles)
          VALUES (?, ?, ?)
          ON DUPLICATE KEY UPDATE roles = VALUES(roles)`,
         [member.guild.id, member.user.id, JSON.stringify(arr)],
       );
-      connection.release();
     } catch (error) {
-      connection.release();
       client.logger.error(error);
-      console.error(error);
+    } finally {
+      connection.release();
     }
   }
 

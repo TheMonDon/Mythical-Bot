@@ -804,6 +804,14 @@ const loadMysql = async () => {
     ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
   `);
 
+  await connection.execute(/* sql */ `
+    CREATE TABLE IF NOT EXISTS auto_roles (
+      server_id VARCHAR(30) NOT NULL,
+      roles JSON,
+      PRIMARY KEY (server_id)
+    )
+  `);
+
   const [views] = await connection.query(/* sql */ `
     SHOW FULL TABLES IN ${config.mysql.database}
     WHERE

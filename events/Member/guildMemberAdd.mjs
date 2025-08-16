@@ -5,7 +5,7 @@ const setTimeoutPromise = promisify(setTimeout);
 const db = new QuickDB();
 
 export async function run(client, member) {
-  async function LogSystem(member) {
+  async function LogSystem(client, member) {
     const logChan = await db.get(`servers.${member.guild.id}.logs.channel`);
     if (!logChan) return;
 
@@ -46,33 +46,26 @@ export async function run(client, member) {
       );
 
       const toggle = toggleRows[0]?.persistent_roles === 1;
-      if (!toggle) {
-        connection.release();
-        return;
-      }
+      if (!toggle) return;
 
       const [rolesRows] = await connection.execute(
         `SELECT roles FROM persistent_roles WHERE server_id = ? AND user_id = ?`,
         [member.guild.id, member.user.id],
       );
       const roles = rolesRows[0]?.roles ? JSON.parse(rolesRows[0].roles) : [];
-      if (!roles) return;
+      if (!roles.length) return;
 
       const reason = 'Added from persistent-roles system';
       try {
         // Try bulk add first
         await member.roles.add(roles, reason);
       } catch (error) {
-        console.warn(`Bulk role add failed: ${error.message}`);
-
         // Fallback: add each role individually
         for (const roleId of roles) {
           try {
             await member.roles.add(roleId, reason);
             await setTimeoutPromise(1000);
-          } catch (err) {
-            console.warn(`Failed to add role ${roleId}: ${err.message}`);
-          }
+          } catch (err) {}
         }
       }
 
@@ -85,30 +78,52 @@ export async function run(client, member) {
         `,
         [member.guild.id, member.user.id],
       );
-      connection.release();
     } catch (error) {
+      client.logger.error(error);
+    } finally {
       connection.release();
-      console.error(error);
     }
   }
 
-  async function AssignAutoRoles(member) {
+  async function AssignAutoRoles(client, member) {
     if (!member || !member.guild) return;
     if (!member.guild.members.me.permissions.has('ManageRoles')) return;
 
+    const connection = await client.db.getConnection();
+
     try {
-      const autoRoles = (await db.get(`servers.${member.guild.id}.autoRoles`)) || [];
+      const [autoRoleRows] = await connection.execute(
+        /* sql */ `
+          SELECT
+            roles
+          FROM
+            auto_roles
+          WHERE
+            server_id = ?
+        `,
+        [member.guild.id],
+      );
+
+      const autoRoles = autoRoleRows[0]?.roles ? JSON.parse(autoRoleRows[0].roles) : [];
       if (!autoRoles.length) return;
 
-      for (const roleId of autoRoles) {
-        const role = member.guild.roles.cache.get(roleId);
-        if (role) {
-          await member.roles.add(role).catch((error) => console.error(error));
-          await setTimeoutPromise(1000);
+      const reason = 'Added from persistent-roles system';
+      try {
+        // Try bulk add first
+        await member.roles.add(autoRoles, reason);
+      } catch (error) {
+        // Fallback: add each role individually
+        for (const roleId of autoRoles) {
+          try {
+            await member.roles.add(roleId, reason);
+            await setTimeoutPromise(1000);
+          } catch (err) {}
         }
       }
     } catch (error) {
       console.error('Error assigning auto-roles:', error);
+    } finally {
+      connection.release();
     }
   }
 
@@ -140,12 +155,12 @@ export async function run(client, member) {
     const context = { guild: member.guild };
     const channel = client.util.getChannel(context, settings.welcomeChannel);
     if (!channel) return;
-    channel.send({ embeds: [embed] }).catch(() => {});
+    return channel.send({ embeds: [embed] }).catch(() => {});
   }
 
   // Run the functions
   WelcomeSystem(client, member);
-  await LogSystem(member);
+  await LogSystem(client, member);
   await PersistentRoles(client, member);
-  await AssignAutoRoles(member);
+  await AssignAutoRoles(client, member);
 }

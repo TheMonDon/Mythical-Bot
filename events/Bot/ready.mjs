@@ -150,80 +150,87 @@ export async function run(client) {
   // Delete server data scheduler (every day at midnight) after 30 days of leaving
   scheduleJob('DeleteServerData', '0 0 * * *', async () => {
     const connection = await client.db.getConnection();
-    const [settingsRows] = await connection.execute(/* sql */ `
-      SELECT
-        server_id
-      FROM
-        server_settings
-      WHERE
-        leave_timestamp IS NOT NULL
-    `);
 
-    if (settingsRows.length) {
-      const serverIds = settingsRows.map((row) => row.server_id);
-      for (const serverId of serverIds) {
-        const [timestampRows] = await connection.execute(
-          /* sql */
-          `
-            SELECT
-              leave_timestamp
-            FROM
-              server_settings
-            WHERE
-              server_id = ?
-          `,
-          [serverId],
-        );
+    try {
+      const [settingsRows] = await connection.execute(/* sql */ `
+        SELECT
+          server_id
+        FROM
+          server_settings
+        WHERE
+          leave_timestamp IS NOT NULL
+      `);
 
-        const leaveTimestamp = timestampRows[0]?.leave_timestamp;
-        if (!leaveTimestamp) continue;
+      if (settingsRows.length) {
+        const serverIds = settingsRows.map((row) => row.server_id);
+        for (const serverId of serverIds) {
+          const [timestampRows] = await connection.execute(
+            /* sql */
+            `
+              SELECT
+                leave_timestamp
+              FROM
+                server_settings
+              WHERE
+                server_id = ?
+            `,
+            [serverId],
+          );
 
-        const timeDiff = Date.now() - leaveTimestamp;
-        if (timeDiff >= 2592000000) {
-          const [tables] = await connection.execute(/* sql */
-          `
-            SELECT
-              TABLE_NAME
-            FROM
-              INFORMATION_SCHEMA.COLUMNS
-            WHERE
-              COLUMN_NAME = 'server_id'
-              AND TABLE_SCHEMA = DATABASE ()
-          `);
+          const leaveTimestamp = timestampRows[0]?.leave_timestamp;
+          if (!leaveTimestamp) continue;
 
-          for (const { TABLE_NAME } of tables) {
-            await connection.execute(`DELETE FROM \`${TABLE_NAME}\` WHERE server_id = ?`, [serverId]);
-          }
-
-          client.settings.delete(serverId);
-          client.logger.log(`Deleted mysql server data for ${serverId}`);
-        }
-      }
-    }
-    connection.release();
-
-    const quickDbServers = (await db.get('servers')) || {};
-
-    // Leave in until complete migration
-    if (quickDbServers) {
-      for (const [serverId] of Object.entries(quickDbServers)) {
-        const leaveTimestamp = await db.get(`servers.${serverId}.leave_timestamp`);
-        if (leaveTimestamp) {
           const timeDiff = Date.now() - leaveTimestamp;
           if (timeDiff >= 2592000000) {
-            await db.delete(`servers.${serverId}`);
+            const [tables] = await connection.execute(/* sql */
+            `
+              SELECT
+                TABLE_NAME
+              FROM
+                INFORMATION_SCHEMA.COLUMNS
+              WHERE
+                COLUMN_NAME = 'server_id'
+                AND TABLE_SCHEMA = DATABASE ()
+            `);
+
+            for (const { TABLE_NAME } of tables) {
+              await connection.execute(`DELETE FROM \`${TABLE_NAME}\` WHERE server_id = ?`, [serverId]);
+            }
 
             client.settings.delete(serverId);
-            client.logger.log(`Deleted quickdb server data for ${serverId}.`);
+            client.logger.log(`Deleted mysql server data for ${serverId}`);
           }
         }
       }
+
+      const quickDbServers = (await db.get('servers')) || {};
+
+      // Leave in until complete migration
+      if (quickDbServers) {
+        for (const [serverId] of Object.entries(quickDbServers)) {
+          const leaveTimestamp = await db.get(`servers.${serverId}.leave_timestamp`);
+          if (leaveTimestamp) {
+            const timeDiff = Date.now() - leaveTimestamp;
+            if (timeDiff >= 2592000000) {
+              await db.delete(`servers.${serverId}`);
+
+              client.settings.delete(serverId);
+              client.logger.log(`Deleted quickdb server data for ${serverId}.`);
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error deleting server data:', error);
+    } finally {
+      connection.release();
     }
   });
 
   // Reminder scheduler
   scheduleJob('Reminders', '* * * * *', async () => {
     const connection = await client.db.getConnection();
+
     try {
       const [reminders] = await connection.execute(
         `
