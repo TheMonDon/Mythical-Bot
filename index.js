@@ -787,6 +787,23 @@ const loadMysql = async () => {
     ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
   `);
 
+  // Use guild_id so reminders don't get deleted when a servers data is deleted.
+  await connection.execute(/* sql */ `
+    CREATE TABLE IF NOT EXISTS reminders (
+      reminder_id VARCHAR(10) NOT NULL,
+      color VARCHAR(6) DEFAULT NULL,
+      original_message_id VARCHAR(30) DEFAULT NULL,
+      user_id VARCHAR(30) DEFAULT NULL,
+      channel_id VARCHAR(30) DEFAULT NULL,
+      guild_id VARCHAR(30) DEFAULT NULL,
+      reminder_text LONGTEXT DEFAULT NULL,
+      created_at BIGINT UNSIGNED NOT NULL,
+      trigger_on BIGINT UNSIGNED NOT NULL,
+      direct_message BOOLEAN DEFAULT FALSE,
+      PRIMARY KEY (reminder_id)
+    ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+  `);
+
   const [views] = await connection.query(/* sql */ `
     SHOW FULL TABLES IN ${config.mysql.database}
     WHERE

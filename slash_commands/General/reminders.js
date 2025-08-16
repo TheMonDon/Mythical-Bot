@@ -6,9 +6,7 @@ const {
   ButtonStyle,
   ComponentType,
 } = require('discord.js');
-const { QuickDB } = require('quick.db');
 const moment = require('moment');
-const db = new QuickDB();
 
 exports.conf = {
   permLevel: 'User',
@@ -21,6 +19,8 @@ exports.commandData = new SlashCommandBuilder()
 
 exports.run = async (interaction) => {
   await interaction.deferReply();
+  const connection = await interaction.client.db.getConnection();
+
   const reminderID = interaction.options.getString('reminder_id');
 
   const emoji = {
@@ -49,15 +49,25 @@ exports.run = async (interaction) => {
     emoji[9],
     emoji[10],
   ];
-  const errorColor = interaction.settings.embedErrorColor;
-
-  let reminders = await db.get('global.reminders');
-  if (!Array.isArray(reminders)) {
-    reminders = Object.values(reminders || {});
-  }
 
   if (!reminderID) {
-    const userReminders = reminders.filter((rem) => rem.userID === interaction.user.id);
+    const [userReminders] = await connection.execute(
+      /* sql */ `
+        SELECT
+          reminder_id AS reminderID,
+          reminder_text AS reminderText,
+          trigger_on AS triggerOn
+        FROM
+          reminders
+        WHERE
+          user_id = ?
+        ORDER BY
+          created_at ASC
+      `,
+      [interaction.user.id],
+    );
+    connection.release();
+
     const pages = [];
     let i = 1;
 
@@ -67,7 +77,7 @@ exports.run = async (interaction) => {
         .setColor(interaction.settings.embedColor)
         .setAuthor({ name: interaction.user.username, iconURL: interaction.user.displayAvatarURL() });
 
-      userReminders.splice(0, 25).forEach(({ triggerOn, reminder, remID }) => {
+      userReminders.splice(0, 25).forEach(({ triggerOn, reminderText, reminderID }) => {
         const numberEmojiArray = [];
 
         if (i in numbers) {
@@ -83,8 +93,8 @@ exports.run = async (interaction) => {
           {
             name: `**${numberEmojiArray.join('') + '.'}** I'll remind you ${moment(
               triggerOn,
-            ).fromNow()} (ID: ${remID})`,
-            value: reminder.slice(0, 200),
+            ).fromNow()} (ID: ${reminderID})`,
+            value: reminderText.slice(0, 200),
           },
         ]);
         i += 1;
@@ -95,7 +105,7 @@ exports.run = async (interaction) => {
 
     if (pages.length === 0) {
       const noReminderEmbed = new EmbedBuilder()
-        .setColor(errorColor)
+        .setColor(interaction.settings.embedErrorColor)
         .setDescription(
           `${interaction.user.username}, you don't have any reminders, use the **remindme** command to create a new one!`,
         );
@@ -163,18 +173,28 @@ exports.run = async (interaction) => {
     return;
   }
 
-  const reminder = await db.get(`global.reminders.${reminderID}`);
-
-  const em = new EmbedBuilder();
-
-  if (!reminderID || !reminder || reminder.userID !== interaction.user.id) {
-    em.setColor(errorColor).setDescription(`${interaction.user.username}, that isn't a valid reminder.`);
-  } else {
-    await db.delete(`global.reminders.${reminderID}`);
-    em.setColor(interaction.settings.embedSuccessColor).setDescription(
-      `${interaction.user.username}, you've successfully deleted your reminder.`,
-    );
+  if (!reminderID) {
+    return interaction.client.util.errorEmbed(interaction, `Please input a valid reminder ID.`, 'Invalid Args');
   }
+
+  const [result] = await connection.execute(
+    /* sql */ `
+      DELETE FROM reminders
+      WHERE
+        reminder_id = ?
+        AND user_id = ?
+    `,
+    [reminderID, interaction.user.id],
+  );
+  connection.release();
+
+  if (result.affectedRows === 0) {
+    return interaction.client.util.errorEmbed(interaction, `A reminder with the ID \`${reminderID}\` was not found.`);
+  }
+
+  const em = new EmbedBuilder()
+    .setColor(interaction.settings.embedSuccessColor)
+    .setDescription(`${interaction.user.username}, you've successfully deleted your reminder.`);
 
   return interaction.editReply({ embeds: [em] });
 };

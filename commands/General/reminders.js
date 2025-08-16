@@ -1,9 +1,7 @@
 const Command = require('../../base/Command.js');
 const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType } = require('discord.js');
-const { QuickDB } = require('quick.db');
 require('moment-duration-format');
 const moment = require('moment');
-const db = new QuickDB();
 
 class Reminders extends Command {
   constructor(client) {
@@ -16,6 +14,8 @@ class Reminders extends Command {
   }
 
   async run(msg, args) {
+    const connection = await this.client.db.getConnection();
+
     const emoji = {
       0: '0⃣',
       1: '1⃣',
@@ -42,15 +42,25 @@ class Reminders extends Command {
       emoji[9],
       emoji[10],
     ];
-    const errorColor = msg.settings.embedErrorColor;
-
-    let reminders = await db.get('global.reminders');
-    if (!Array.isArray(reminders)) {
-      reminders = Object.values(reminders || {});
-    }
 
     if (!args[0]) {
-      const userReminders = reminders.filter((rem) => rem.userID === msg.author.id);
+      const [userReminders] = await connection.execute(
+        /* sql */ `
+          SELECT
+            reminder_id AS reminderID,
+            reminder_text AS reminderText,
+            trigger_on AS triggerOn
+          FROM
+            reminders
+          WHERE
+            user_id = ?
+          ORDER BY
+            created_at ASC
+        `,
+        [msg.author.id],
+      );
+      connection.release();
+
       const pages = [];
       let i = 1;
 
@@ -60,7 +70,7 @@ class Reminders extends Command {
           .setColor(msg.settings.embedColor)
           .setAuthor({ name: msg.author.username, iconURL: msg.author.displayAvatarURL() });
 
-        userReminders.splice(0, 25).forEach(({ triggerOn, reminder, remID }) => {
+        userReminders.splice(0, 25).forEach(({ triggerOn, reminderText, reminderID }) => {
           const numberEmojiArray = [];
 
           if (i in numbers) {
@@ -76,8 +86,8 @@ class Reminders extends Command {
             {
               name: `**${numberEmojiArray.join('') + '.'}** I'll remind you ${moment(
                 triggerOn,
-              ).fromNow()} (ID: ${remID})`,
-              value: this.client.util.limitStringLength(reminder, 0, 200),
+              ).fromNow()} (ID: ${reminderID})`,
+              value: this.client.util.limitStringLength(reminderText, 0, 200),
             },
           ]);
           i += 1;
@@ -88,7 +98,7 @@ class Reminders extends Command {
 
       if (pages.length === 0) {
         const noReminderEmbed = new EmbedBuilder()
-          .setColor(errorColor)
+          .setColor(msg.settings.embedErrorColor)
           .setDescription(
             `${msg.author.username}, you don't have any reminders, use the **remindme** command to create a new one!`,
           );
@@ -156,19 +166,29 @@ class Reminders extends Command {
       return;
     }
 
-    const ID = args[0];
-    const reminder = await db.get(`global.reminders.${ID}`);
-
-    const em = new EmbedBuilder();
-
-    if (!ID || !reminder || reminder.userID !== msg.author.id) {
-      em.setColor(errorColor).setDescription(`${msg.author.username}, that isn't a valid reminder.`);
-    } else {
-      await db.delete(`global.reminders.${ID}`);
-      em.setColor(msg.settings.embedSuccessColor).setDescription(
-        `${msg.author.username}, you've successfully deleted your reminder.`,
-      );
+    const remID = args[0];
+    if (!remID) {
+      return this.client.util.errorEmbed(msg, `Please input a valid reminder ID.`, 'Invalid Args');
     }
+
+    const [result] = await connection.execute(
+      /* sql */ `
+        DELETE FROM reminders
+        WHERE
+          reminder_id = ?
+          AND user_id = ?
+      `,
+      [remID, msg.author.id],
+    );
+    connection.release();
+
+    if (result.affectedRows === 0) {
+      return this.client.util.errorEmbed(msg, `A reminder with the ID \`${remID}\` was not found.`);
+    }
+
+    const em = new EmbedBuilder()
+      .setColor(msg.settings.embedSuccessColor)
+      .setDescription(`${msg.author.username}, you've successfully deleted your reminder.`);
 
     return msg.channel.send({ embeds: [em] });
   }

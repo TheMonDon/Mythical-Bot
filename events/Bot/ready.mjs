@@ -1,5 +1,5 @@
 import pkg from '../../config.js';
-import { EmbedBuilder, ChannelType } from 'discord.js';
+import { EmbedBuilder, ChannelType, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
 import { QuickDB } from 'quick.db';
 import express from 'express';
 import cors from 'cors';
@@ -199,8 +199,8 @@ export async function run(client) {
           client.logger.log(`Deleted mysql server data for ${serverId}`);
         }
       }
-      connection.release();
     }
+    connection.release();
 
     const quickDbServers = (await db.get('servers')) || {};
 
@@ -223,36 +223,116 @@ export async function run(client) {
 
   // Reminder scheduler
   scheduleJob('Reminders', '* * * * *', async () => {
-    const reminders = (await db.get('global.reminders')) || [];
+    const connection = await client.db.getConnection();
+    try {
+      const [reminders] = await connection.execute(
+        `
+          SELECT 
+            reminder_id AS reminderID, 
+            created_at AS createdAt, 
+            trigger_on, 
+            reminder_text AS reminderText, 
+            channel_id AS channelID, 
+            user_id AS userID, 
+            color,
+            direct_message AS directMessage,
+            guild_id AS guildID,
+            original_message_id AS originalMessageID
+          FROM reminders
+          WHERE trigger_on <= ?
+        `,
+        [Date.now()],
+      );
 
-    if (reminders) {
-      for (const { createdAt, triggerOn, reminder, channelID, userID, color, remID } of Object.values(reminders)) {
-        const now = Date.now();
+      for (const r of reminders) {
+        const {
+          reminderID,
+          createdAt,
+          reminderText,
+          channelID,
+          userID,
+          color,
+          directMessage,
+          guildID,
+          originalMessageID,
+        } = r;
 
-        if (triggerOn <= now) {
-          try {
-            const channel = client.channels.cache.get(channelID);
-            const user = await client.users.fetch(userID);
-            if (!user) return;
+        try {
+          const user = await client.users.fetch(userID).catch(() => null);
+          if (!user) continue;
 
-            const em = new EmbedBuilder()
-              .setAuthor({ name: user.username, iconURL: user.displayAvatarURL() })
-              .setColor(color)
-              .addFields([{ name: 'Reminder', value: `\`\`\`${reminder}\`\`\`` }])
-              .setFooter({ text: 'You created this reminder @' })
-              .setTimestamp(createdAt);
-            channel
-              ? channel.send({ embeds: [em], content: `<@${userID}>, here's your reminder:` }).catch((_error) => {
-                  user.send({ embeds: [em], content: `${user.username}, here's your reminder:` });
-                })
-              : user.send({ embeds: [em], content: `${user.username}, here's your reminder:` });
+          const embed = new EmbedBuilder()
+            .setAuthor({ name: user.username, iconURL: user.displayAvatarURL() })
+            .setColor(color)
+            .addFields([{ name: 'Reminder', value: `\`\`\`${reminderText}\`\`\`` }])
+            .setFooter({ text: 'You created this reminder @' })
+            .setTimestamp(createdAt);
 
-            await db.delete(`global.reminders.${remID}`);
-          } catch (err) {
-            console.error(err);
+          const components = [];
+
+          // Only try to add the "Jump" button if it's from a guild
+          if (guildID && originalMessageID) {
+            let channel = client.channels.cache.get(channelID);
+            if (!channel) {
+              channel = await client.channels.fetch(channelID).catch(() => null);
+            }
+
+            if (channel) {
+              const originalMsg = await channel.messages.fetch(originalMessageID).catch(() => null);
+
+              if (originalMsg) {
+                components.push(
+                  new ActionRowBuilder().addComponents(
+                    new ButtonBuilder().setLabel('Jump to Message').setStyle(ButtonStyle.Link).setURL(originalMsg.url),
+                  ),
+                );
+              } else {
+                components.push(
+                  new ActionRowBuilder().addComponents(
+                    new ButtonBuilder()
+                      .setLabel('Message Unavailable')
+                      .setStyle(ButtonStyle.Secondary)
+                      .setDisabled(true),
+                  ),
+                );
+              }
+            } else {
+              components.push(
+                new ActionRowBuilder().addComponents(
+                  new ButtonBuilder().setLabel('Channel Unavailable').setStyle(ButtonStyle.Secondary).setDisabled(true),
+                ),
+              );
+            }
           }
+
+          if (directMessage) {
+            await user.send({ embeds: [embed], content: `${user.username}, here's your reminder:`, components });
+          } else {
+            let channel = client.channels.cache.get(channelID);
+            if (!channel) {
+              channel = await client.channels.fetch(channelID).catch(() => null);
+            }
+
+            if (channel) {
+              await channel
+                .send({ embeds: [embed], content: `<@${userID}>, here's your reminder:`, components })
+                .catch(() => {
+                  user.send({ embeds: [embed], content: `${user.username}, here's your reminder:`, components });
+                });
+            } else {
+              await user.send({ embeds: [embed], content: `${user.username}, here's your reminder:`, components });
+            }
+          }
+
+          await connection.execute(`DELETE FROM reminders WHERE reminder_id = ?`, [reminderID]);
+        } catch (err) {
+          console.error(`Error sending reminder ${reminderID}:`, err);
         }
       }
+    } catch (err) {
+      console.error('Error checking reminders:', err);
+    } finally {
+      connection.release();
     }
   });
 
