@@ -180,7 +180,24 @@ export async function run(client, interaction) {
         return interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
       }
 
-      const userTickets = await client.util.getTickets(client, interaction.user.id, interaction);
+      const [userTicketRows] = await connection.execute(
+        /* sql */
+        `
+          SELECT
+            COUNT(*) AS ticket_count
+          FROM
+            user_tickets
+          WHERE
+            server_id = ?
+            AND user_id = ?
+        `,
+        [interaction.guild.id, interaction.user.id],
+      );
+      let userTickets = 0;
+      if (userTicketRows.length) {
+        userTickets = userTicketRows[0].ticket_count;
+      }
+
       if (userTickets >= rows[0].ticket_limit) {
         connection.release();
         return interaction.reply({

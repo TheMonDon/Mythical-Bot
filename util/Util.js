@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 const yes = [
   'yes',
   'y',
@@ -17,19 +16,15 @@ const yes = [
   'true',
 ];
 const no = ['no', 'n', 'nah', 'nope', 'fuck off', 'nada', 'cancel', 'stop', 'nuh uh', 'nu', 'fuck no', 'false'];
-const botInvRegex = /(https?:\/\/)?(www\.|canary\.|ptb\.)?discord(app)?\.com\/(api\/)?oauth2\/authorize\?([^ ]+)\/?/gi;
-const inviteRegex = /(https?:\/\/)?(www\.|canary\.|ptb\.)?discord(\.gg|(app)?\.com\/invite|\.me)\/([^ ]+)\/?/gi;
 
 const { getColorFromURL } = require('color-thief-node');
 const { Message, EmbedBuilder, MessageFlagsBitField } = require('discord.js');
 const { createCanvas, loadImage, registerFont } = require('canvas');
 const tinycolor = require('tinycolor2');
-const { QuickDB } = require('quick.db');
 require('moment-duration-format');
 const moment = require('moment');
 const https = require('https');
 const path = require('path');
-const db = new QuickDB();
 
 /**
  * Turns an array into a list with definable ending conjunction
@@ -53,7 +48,7 @@ function list(array, conj = 'and') {
  * @returns {String} - Returns true or false
  */
 async function verify(channel, user, { time = 120000, extraYes = [], extraNo = [] } = {}) {
-  if (!channel || !user) return false;
+  if (!channel && !user) return false;
 
   const filter = (res) => {
     const value = res.content.toLowerCase();
@@ -98,21 +93,6 @@ function wait(ms) {
 }
 
 /**
- * Strip invites from messages.
- * @param {String} str - String to find invites in
- * @param {Boolean} guild - Boolean whether to check for guild invite type.
- * @param {Boolean} bot - Boolean whether to check for bot invite type.
- * @param {String} text - Text to replace the invite with
- * @returns {String} - String without invites in it
- */
-function stripInvites(str, { guild = true, bot = true, text = '[redacted invite]' } = {}) {
-  let string = str;
-  if (guild) string = str.replace(inviteRegex, text);
-  if (bot) string = str.replace(botInvRegex, text);
-  return string;
-}
-
-/**
  *
  * @param {*} context - Message or Interaction object
  * @param {String} memberString - memberStringing to use to find the member
@@ -138,8 +118,8 @@ async function getMember(context, memberString) {
 
 /**
  *
- * @param {*} context - Message or Interaction object
- * @param {String} roleString - String to use to find the role
+ * @param {*} context Message or Interaction object
+ * @param {String} roleString The string to use to find the role
  * @returns {?GuildRole}
  */
 function getRole(context, roleString) {
@@ -156,8 +136,8 @@ function getRole(context, roleString) {
 
 /**
  *
- * @param {Message} context - Message or Interaction object
- * @param {String} channelString - string to use to find the channel
+ * @param {Message} context Message or Interaction object
+ * @param {String} channelString The string to use to find the channel
  * @returns {?GuildChannel}
  */
 function getChannel(context, channelString) {
@@ -173,43 +153,6 @@ function getChannel(context, channelString) {
     context.guild.channels.cache.find((c) => c.name.toLowerCase() === channelString.toLowerCase()) ||
     context.guild.channels.cache.find((c) => c.name.toLowerCase().includes(channelString.toLowerCase()))
   );
-}
-
-/**
- *
- * @param {Number} userID - User ID to get warns for
- * @param {Message} msg - Message Object
- * @returns {?Array}
- */
-async function getWarns(userID, msg) {
-  const warns = await db.get(`servers.${msg.guild.id}.warns.warnings`);
-  const userCases = [];
-  if (warns) {
-    Object.values(warns).forEach((val) => {
-      if (val?.user === userID) {
-        userCases.push(val);
-      }
-    });
-  }
-  if (!userCases) return;
-  return userCases;
-}
-
-/**
- *
- * @param {Number} userID - User ID to get points for
- * @param {Message} msg - Message Object
- * @returns {Number}
- */
-async function getTotalPoints(userID, msg) {
-  const warns = await this.getWarns(userID, msg);
-  let total = 0;
-  if (warns) {
-    Object.keys(warns).forEach((c) => {
-      total += Number(warns[c].points);
-    });
-  }
-  return total;
 }
 
 /**
@@ -324,27 +267,8 @@ function findWithAttr(array, attr, value) {
  */
 function randomString(length) {
   let str = '';
-  for (; str.length < length; ) str += Math.random().toString(36).substr(2);
-  return str.substr(0, length);
-}
-
-/**
- *
- * @param {Client} client Bot Client
- * @param {userID} userID User ID to get tickets for
- * @param {Message} context A Message or Interaction object
- */
-async function getTickets(client, userID, context) {
-  const connection = await client.db.getConnection();
-  const [rows] = await connection.execute(
-    `SELECT COUNT(*) AS ticket_count
-     FROM user_tickets
-     WHERE server_id = ? AND user_id = ?`,
-    [context.guild.id, userID],
-  );
-  connection.release();
-  if (rows.length === 0) return 0;
-  return rows[0].ticket_count;
+  for (; str.length < length; ) str += Math.random().toString(36).substring(2);
+  return str.substring(0, length);
 }
 
 /**
@@ -883,7 +807,6 @@ async function chatbotApiRequest(client, message) {
   }
 
   await message.channel.sendTyping();
-  const date = new Date();
   let commandPrompt = `Below are the commands that you have as a bot. You have a total of ${client.commands.size} commands and ${client.slashCommands.size} slash commands. You must read and understand each one and its properties.\n\n`;
 
   for (const [name, command] of client.commands) {
@@ -1195,12 +1118,9 @@ module.exports = {
   verify,
   toProperCase,
   wait,
-  stripInvites,
   getMember,
   getRole,
   getChannel,
-  getWarns,
-  getTotalPoints,
   limitStringLength,
   replaceAll,
   clean,
@@ -1208,7 +1128,6 @@ module.exports = {
   getJoinPosition,
   findWithAttr,
   randomString,
-  getTickets,
   awaitReply,
   errorEmbed,
   bigIntAbs,

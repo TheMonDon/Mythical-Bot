@@ -15,7 +15,7 @@ exports.commandData = new SlashCommandBuilder()
     option.setName('query').setDescription('The code you want to evaluate').setRequired(true),
   );
 
-exports.run = async (interaction) => {
+exports.run = async (interaction, level) => {
   await interaction.deferReply();
 
   const db = new QuickDB();

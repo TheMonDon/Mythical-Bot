@@ -63,7 +63,24 @@ class NewTicket extends Command {
       return msg.channel.send(`Please provide a reason. Usage: ${msg.settings.prefix}new-ticket <reason>`);
     }
 
-    const userTickets = await this.client.util.getTickets(this.client, msg.author.id, msg);
+    const [userTicketRows] = await connection.execute(
+      /* sql */
+      `
+        SELECT
+          COUNT(*) AS ticket_count
+        FROM
+          user_tickets
+        WHERE
+          server_id = ?
+          AND user_id = ?
+      `,
+      [msg.guild.id, msg.author.id],
+    );
+    let userTickets = 0;
+    if (userTicketRows.length) {
+      userTickets = userTicketRows[0].ticket_count;
+    }
+
     if (userTickets >= ticketLimit) {
       connection.release();
       return msg.reply(

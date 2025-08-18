@@ -1,7 +1,4 @@
 const { EmbedBuilder, SlashCommandBuilder, InteractionContextType, MessageFlags } = require('discord.js');
-const { QuickDB } = require('quick.db');
-const moment = require('moment');
-const db = new QuickDB();
 
 exports.conf = {
   permLevel: 'Moderator',
@@ -17,26 +14,57 @@ exports.commandData = new SlashCommandBuilder()
 
 exports.run = async (interaction) => {
   await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-  const caseID = interaction.options.getString('case_id');
-  const warn = await db.get(`servers.${interaction.guild.id}.warns.warnings.${caseID}`);
+  const connection = await interaction.client.db.getConnection();
 
-  if (!warn) return interaction.editReply("I couldn't find any case with that ID.");
+  try {
+    const caseID = interaction.options.getString('case_id');
+    const [[warn]] = await connection.execute(
+      /* sql */ `
+        SELECT
+          *
+        FROM
+          warns
+        WHERE
+          server_id = ?
+          AND warn_id = ?
+        LIMIT
+          1
+      `,
+      [interaction.guild.id, caseID],
+    );
 
-  const { mod, points, reason, user, timestamp, messageURL } = warn;
-  const victim = await interaction.client.users.fetch(user);
-  const moderator = await interaction.client.users.fetch(mod);
+    if (!warn) return interaction.editReply("I couldn't find any case with that ID.");
 
-  const em = new EmbedBuilder()
-    .setAuthor({ name: interaction.member.displayName, iconURL: interaction.member.displayAvatarURL() })
-    .setColor(interaction.settings.embedColor)
-    .addFields([
-      { name: 'Case ID', value: caseID.toString(), inline: true },
-      { name: 'User', value: victim.toString(), inline: true },
-      { name: 'Points', value: points.toString(), inline: true },
-      { name: 'Moderator', value: moderator.toString(), inline: true },
-      { name: 'Warned on', value: moment(timestamp).format('LLL'), inline: true },
-      { name: 'Message URL', value: messageURL, inline: true },
-      { name: 'Reason', value: reason, inline: false },
-    ]);
-  return interaction.editReply({ embeds: [em] });
+    let victim = interaction.client.users.cache.get(warn.user_id);
+    if (!victim) {
+      victim = await interaction.client.users.fetch(warn.user_id);
+    }
+
+    let moderator = interaction.client.users.cache.get(warn.mod_id);
+    if (!moderator) {
+      moderator = await interaction.client.users.fetch(warn.mod_id);
+    }
+
+    const unixTimestamp = Math.floor(Number(warn.timestamp) / 1000);
+
+    const embed = new EmbedBuilder()
+      .setAuthor({ name: interaction.member.displayName, iconURL: interaction.member.displayAvatarURL() })
+      .setColor(interaction.settings.embedColor)
+      .addFields([
+        { name: 'Case ID', value: warn.warn_id.toString(), inline: true },
+        { name: 'User', value: victim.toString(), inline: true },
+        { name: 'Points', value: warn.points.toString(), inline: true },
+        { name: 'Moderator', value: moderator.toString(), inline: true },
+        { name: 'Warned on', value: `<t:${unixTimestamp}:f>`, inline: true },
+        { name: 'Message URL', value: warn.message_url, inline: true },
+        { name: 'Reason', value: warn.reason, inline: false },
+      ]);
+
+    return interaction.editReply({ embeds: [embed] });
+  } catch (error) {
+    console.error('Warn-Info Error:', error);
+    return interaction.editReply(`An error occurred: ${error.message}`);
+  } finally {
+    connection.release();
+  }
 };

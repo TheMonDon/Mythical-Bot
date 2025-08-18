@@ -700,6 +700,9 @@ const loadMysql = async () => {
       premium BOOLEAN DEFAULT FALSE,
       chatbot BOOLEAN DEFAULT TRUE,
       leave_timestamp BIGINT UNSIGNED DEFAULT NULL,
+      warn_kick_threshold INT NOT NULL DEFAULT 8,
+      warn_ban_threshold INT NOT NULL DEFAULT 10,
+      warn_log_channel VARCHAR(30) NULL,
       PRIMARY KEY (server_id)
     );
   `);
@@ -810,6 +813,21 @@ const loadMysql = async () => {
       roles JSON,
       PRIMARY KEY (server_id)
     )
+  `);
+
+  await connection.execute(/* sql */ `
+    CREATE TABLE IF NOT EXISTS warns (
+      warn_id VARCHAR(50) NOT NULL,
+      server_id VARCHAR(30) NOT NULL,
+      user_id VARCHAR(30) NOT NULL,
+      mod_id VARCHAR(30) NOT NULL,
+      points INT NOT NULL DEFAULT 0,
+      reason TEXT,
+      message_url TEXT,
+      timestamp BIGINT NOT NULL,
+      PRIMARY KEY (warn_id),
+      INDEX idx_server_user (server_id, user_id)
+    );
   `);
 
   const [views] = await connection.query(/* sql */ `

@@ -1,8 +1,5 @@
 const Command = require('../../base/Command.js');
 const { EmbedBuilder } = require('discord.js');
-const { QuickDB } = require('quick.db');
-const moment = require('moment');
-const db = new QuickDB();
 
 class WarnInfo extends Command {
   constructor(client) {
@@ -20,27 +17,80 @@ class WarnInfo extends Command {
 
   async run(msg, args) {
     const caseID = args.join(' ');
-    const warn = await db.get(`servers.${msg.guild.id}.warns.warnings.${caseID}`);
+    const connection = await this.client.db.getConnection();
 
-    if (!warn) return msg.channel.send("I couldn't find any case with that ID.");
+    try {
+      await msg.delete();
 
-    const { mod, points, reason, user, timestamp, messageURL } = warn;
-    const victim = await this.client.users.fetch(user);
-    const moderator = await this.client.users.fetch(mod);
+      const [settingsRows] = await connection.execute(
+        /* sql */ `
+          SELECT
+            warn_log_channel
+          FROM
+            server_settings
+          WHERE
+            server_id = ?
+        `,
+        [msg.guild.id],
+      );
+      const logChan = settingsRows[0]?.warn_log_channel;
 
-    const em = new EmbedBuilder()
-      .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
-      .setColor(msg.settings.embedColor)
-      .addFields([
-        { name: 'Case ID', value: caseID.toString(), inline: true },
-        { name: 'User', value: victim.toString(), inline: true },
-        { name: 'Points', value: points.toString(), inline: true },
-        { name: 'Moderator', value: moderator.toString(), inline: true },
-        { name: 'Warned on', value: moment(timestamp).format('LLL'), inline: true },
-        { name: 'Message URL', value: messageURL, inline: true },
-        { name: 'Reason', value: reason, inline: false },
-      ]);
-    return msg.channel.send({ embeds: [em] });
+      const [[warn]] = await connection.execute(
+        /* sql */ `
+          SELECT
+            *
+          FROM
+            warns
+          WHERE
+            server_id = ?
+            AND warn_id = ?
+          LIMIT
+            1
+        `,
+        [msg.guild.id, caseID],
+      );
+
+      if (!warn) {
+        return this.client.util.errorEmbed(msg, 'No warn found with that case ID.');
+      }
+
+      let victim = this.client.users.cache.get(warn.user_id);
+      if (!victim) {
+        victim = await this.client.users.fetch(warn.user_id);
+      }
+
+      let moderator = this.client.users.cache.get(warn.mod_id);
+      if (!moderator) {
+        moderator = await this.client.users.fetch(warn.mod_id);
+      }
+
+      const unixTimestamp = Math.floor(Number(warn.timestamp) / 1000);
+
+      const embed = new EmbedBuilder()
+        .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
+        .setColor(msg.settings.embedColor)
+        .addFields([
+          { name: 'Case ID', value: warn.warn_id.toString(), inline: true },
+          { name: 'User', value: victim.toString(), inline: true },
+          { name: 'Points', value: warn.points.toString(), inline: true },
+          { name: 'Moderator', value: moderator.toString(), inline: true },
+          { name: 'Warned on', value: `<t:${unixTimestamp}:f>`, inline: true },
+          { name: 'Message URL', value: warn.message_url, inline: true },
+          { name: 'Reason', value: warn.reason, inline: false },
+        ]);
+
+      if (msg.channel.id === logChan) {
+        return msg.channel.send({ embeds: [embed] });
+      } else {
+        msg.author.send({ embeds: [embed] }).catch(() => {
+          return msg.channel.send(`Please use <#${logChan}> or allow DMs from the bot to view warn information.`);
+        });
+      }
+    } catch (error) {
+      console.error('Warn-Info Error:', error);
+    } finally {
+      connection.release();
+    }
   }
 }
 
