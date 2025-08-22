@@ -817,7 +817,7 @@ const loadMysql = async () => {
 
   await connection.execute(/* sql */ `
     CREATE TABLE IF NOT EXISTS warns (
-      warn_id VARCHAR(50) NOT NULL,
+      warn_id VARCHAR(10) NOT NULL,
       server_id VARCHAR(30) NOT NULL,
       user_id VARCHAR(30) NOT NULL,
       mod_id VARCHAR(30) NOT NULL,
@@ -828,6 +828,38 @@ const loadMysql = async () => {
       PRIMARY KEY (warn_id),
       INDEX idx_server_user (server_id, user_id)
     );
+  `);
+
+  await connection.execute(/* sql */ `
+    CREATE TABLE IF NOT EXISTS log_settings (
+      server_id VARCHAR(30) NOT NULL PRIMARY KEY,
+      channel_id VARCHAR(30) NULL,
+      all_enabled BOOLEAN DEFAULT FALSE,
+      bulk_messages_deleted BOOLEAN DEFAULT FALSE,
+      channel_created BOOLEAN DEFAULT FALSE,
+      channel_deleted BOOLEAN DEFAULT FALSE,
+      channel_updated BOOLEAN DEFAULT FALSE,
+      emoji_created BOOLEAN DEFAULT FALSE,
+      emoji_deleted BOOLEAN DEFAULT FALSE,
+      emoji_updated BOOLEAN DEFAULT FALSE,
+      member_join BOOLEAN DEFAULT FALSE,
+      member_leave BOOLEAN DEFAULT FALSE,
+      member_timeout BOOLEAN DEFAULT FALSE,
+      message_deleted BOOLEAN DEFAULT FALSE,
+      message_updated BOOLEAN DEFAULT FALSE,
+      role_created BOOLEAN DEFAULT FALSE,
+      role_deleted BOOLEAN DEFAULT FALSE,
+      role_updated BOOLEAN DEFAULT FALSE,
+      sticker_created BOOLEAN DEFAULT FALSE,
+      sticker_deleted BOOLEAN DEFAULT FALSE,
+      sticker_updated BOOLEAN DEFAULT FALSE,
+      thread_created BOOLEAN DEFAULT FALSE,
+      thread_deleted BOOLEAN DEFAULT FALSE,
+      thread_updated BOOLEAN DEFAULT FALSE,
+      voice_channel_created BOOLEAN DEFAULT FALSE,
+      voice_channel_deleted BOOLEAN DEFAULT FALSE,
+      no_log_channels JSON
+    )
   `);
 
   const [views] = await connection.query(/* sql */ `

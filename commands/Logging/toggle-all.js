@@ -1,6 +1,4 @@
 const Command = require('../../base/Command.js');
-const { QuickDB } = require('quick.db');
-const db = new QuickDB();
 
 class ToggleAll extends Command {
   constructor(client) {
@@ -16,48 +14,62 @@ class ToggleAll extends Command {
   }
 
   async run(msg) {
-    if (!(await db.get(`servers.${msg.guild.id}.logs.channel`)))
-      return msg.channel.send(`The log system is not set up! Use \`${msg.settings.prefix}setup logging <channel>\``);
+    const connection = await this.client.db.getConnection();
 
-    const all = await db.get(`servers.${msg.guild.id}.logs.logSystem.all`);
-    const logSystem = {
-      'bulk-messages-deleted': 'enabled',
-      'channel-created': 'enabled',
-      'channel-deleted': 'enabled',
-      'channel-updated': 'enabled',
-      emoji: 'enabled',
-      'member-join': 'enabled',
-      'member-leave': 'enabled',
-      'member-timeout': 'enabled',
-      'message-deleted': 'enabled',
-      'message-edited': 'enabled',
-      'role-created': 'enabled',
-      'role-deleted': 'enabled',
-      'role-updated': 'enabled',
-      'stage-channel-updated': 'enabled',
-      'stage-channel-created': 'enabled',
-      'stage-channel-deleted': 'enabled',
-      'v-channel-created': 'enabled',
-      'v-channel-deleted': 'enabled',
-      sticker: 'enabled',
-      all: 'enabled',
-    };
+    try {
+      // Check if log system is set up
+      const [rows] = await connection.execute('SELECT * FROM log_settings WHERE server_id = ?', [msg.guild.id]);
 
-    if (all === 'enabled') {
-      Object.keys(logSystem).forEach((key) => {
-        logSystem[key] = 'disabled';
-      });
+      if (rows.length === 0 || !rows[0].channel_id) {
+        return msg.channel.send(`The log system is not set up! Use \`${msg.settings.prefix}Setup Logging <Channel>\``);
+      }
 
-      await db.set(`servers.${msg.guild.id}.logs.logSystem`, logSystem);
-      return msg.channel.send('Everything has been disabled.');
-    } else if (all === 'disabled') {
-      await db.set(`servers.${msg.guild.id}.logs.logSystem`, logSystem);
-      return msg.channel.send('Everything has been enabled.');
+      const allEnabled = rows[0].all_enabled === 1;
+
+      // List of log columns we want to toggle
+      const logColumns = [
+        'all_enabled',
+        'bulk_messages_deleted',
+        'channel_created',
+        'channel_deleted',
+        'channel_updated',
+        'emoji_created',
+        'emoji_deleted',
+        'emoji_updated',
+        'member_join',
+        'member_leave',
+        'member_timeout',
+        'message_deleted',
+        'message_updated',
+        'role_created',
+        'role_deleted',
+        'role_updated',
+        'sticker_created',
+        'sticker_deleted',
+        'sticker_updated',
+        'thread_created',
+        'thread_deleted',
+        'thread_updated',
+        'voice_channel_created',
+        'voice_channel_deleted',
+      ];
+
+      // Build SQL update for all log columns + all_enabled
+      const fields = [...logColumns, 'all_enabled'].map((col) => `${col} = ?`).join(', ');
+
+      const newValue = !allEnabled;
+      const params = Array(logColumns.length + 1).fill(newValue); // fill all with newValue
+      params.push(msg.guild.id);
+
+      await connection.execute(`UPDATE log_settings SET ${fields} WHERE server_id = ?`, params);
+
+      return msg.channel.send(allEnabled ? 'Everything has been disabled.' : 'Everything has been enabled.');
+    } catch (error) {
+      this.client.logger.error(error);
+      return msg.channel.send(`An error occurred: ${error.message}`);
+    } finally {
+      connection.release();
     }
-
-    return msg.channel.send(
-      'An error occurred, this is probably due to the log system not being setup in this server.',
-    );
   }
 }
 

@@ -1,34 +1,62 @@
 import { EmbedBuilder } from 'discord.js';
-import { QuickDB } from 'quick.db';
-const db = new QuickDB();
 
 export async function run(client, oldRole, newRole) {
   if (oldRole === newRole) return;
   if (oldRole.name === newRole.name && oldRole.hexColor === newRole.hexColor) return;
 
-  const logChan = await db.get(`servers.${newRole.guild.id}.logs.channel`);
-  if (!logChan) return;
+  const connection = await client.db.getConnection();
 
-  const logSystem = await db.get(`servers.${newRole.guild.id}.logs.logSystem.role-updated`);
-  if (logSystem !== 'enabled') return;
+  try {
+    const [logRows] = await connection.execute(
+      /* sql */ `
+        SELECT
+          channel_id,
+          role_updated
+        FROM
+          log_settings
+        WHERE
+          server_id = ?
+      `,
+      [oldRole.guild.id],
+    );
+    if (!logRows.length) return;
 
-  const embed = new EmbedBuilder()
-    .setTitle(`Role "${oldRole.name}" Updated`)
-    .setColor(newRole.hexColor)
-    .setFooter({ text: `ID: ${newRole.id}` })
-    .setTimestamp();
+    const logChannelID = logRows[0].channel_id;
+    if (!logChannelID) return;
 
-  if (oldRole.name !== newRole.name) embed.addFields([{ name: 'New Name', value: newRole.name, inline: true }]);
-  if (oldRole.hexColor !== newRole.hexColor)
-    embed.addFields([
-      { name: 'Old Color', value: oldRole.hexColor.toString(), inline: true },
-      { name: 'New Color', value: newRole.hexColor.toString(), inline: true },
-    ]);
+    const logSystem = logRows[0].role_updated;
+    if (logSystem !== 1) return;
 
-  if (embed.data.fields?.length === 0) return;
+    const embed = new EmbedBuilder()
+      .setTitle(`Role "${oldRole.name}" Updated`)
+      .setColor(newRole.hexColor)
+      .setFooter({ text: `ID: ${newRole.id}` })
+      .setTimestamp();
 
-  return newRole.guild.channels.cache
-    .get(logChan)
-    .send({ embeds: [embed] })
-    .catch(() => {});
+    if (oldRole.name !== newRole.name) {
+      embed.addFields([{ name: 'New Name', value: newRole.name, inline: true }]);
+    }
+
+    if (oldRole.hexColor !== newRole.hexColor) {
+      embed.addFields([
+        { name: 'Old Color', value: oldRole.hexColor.toString(), inline: true },
+        { name: 'New Color', value: newRole.hexColor.toString(), inline: true },
+      ]);
+    }
+
+    if (embed.data.fields?.length === 0) return;
+
+    let logChannel = oldRole.guild.channels.cache.get(logChannelID);
+    if (!logChannel) {
+      logChannel = await oldRole.guild.channels.fetch(logChannelID);
+    }
+
+    if (!logChannel) return;
+
+    return logChannel.send({ embeds: [embed] }).catch(() => {});
+  } catch (error) {
+    client.logger.error(error);
+  } finally {
+    connection.release();
+  }
 }

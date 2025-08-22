@@ -1,32 +1,53 @@
 import { ChannelType, EmbedBuilder } from 'discord.js';
-import { QuickDB } from 'quick.db';
-const db = new QuickDB();
 
 export async function run(client, channel) {
   if (channel.type === ChannelType.DM) return;
 
-  const logChannelId = await db.get(`servers.${channel.guild.id}.logs.channel`);
-  if (!logChannelId) return;
+  const connection = await client.db.getConnection();
 
-  const logSystem = await db.get(`servers.${channel.guild.id}.logs.logSystem.channel-created`);
-  if (logSystem !== 'enabled') return;
-  if (channel.name.startsWith('ticket-')) return;
+  try { 
+    const [logRows] = await connection.execute(
+      /* sql */ `
+        SELECT
+          channel_id,
+          channel_created
+        FROM
+          log_settings
+        WHERE
+          server_id = ?
+      `,
+      [channel.guild.id],
+    );
+    if (!logRows.length) return;
 
-  const noLogChans = (await db.get(`servers.${channel.guild.id}.logs.noLogChans`)) || [];
-  if (noLogChans.includes(channel.id)) return;
+    const logChannelID = logRows[0].channel_id;
+    if (!logChannelID) return;
 
-  const embed = new EmbedBuilder()
-    .setTitle('Channel Created')
-    .setColor('#20fc3a')
-    .addFields([
-      { name: 'Name', value: channel.name },
-      { name: 'Category', value: channel.parent?.name || 'None' },
-    ])
-    .setFooter({ text: `ID: ${channel.id}` })
-    .setTimestamp();
+    const logSystem = logRows[0].channel_created;
+    if (logSystem !== 1) return;
+    if (channel.name.startsWith('ticket-')) return;
 
-  channel.guild.channels.cache
-    .get(logChannelId)
-    .send({ embeds: [embed] })
-    .catch(() => {});
+    const embed = new EmbedBuilder()
+      .setTitle('Channel Created')
+      .setColor(client.getSettings(channel.guild).embedSuccessColor)
+      .addFields([
+        { name: 'Name', value: channel.name },
+        { name: 'Category', value: channel.parent?.name || 'None' },
+      ])
+      .setFooter({ text: `ID: ${channel.id}` })
+      .setTimestamp();
+
+    let logChannel = channel.guild.channels.cache.get(logChannelID);
+    if (!logChannel) {
+      logChannel = await channel.guild.channels.fetch(logChannelID);
+    }
+
+    if (!logChannel) return;
+
+    return logChannel.send({ embeds: [embed] }).catch(() => {});
+  } catch (error) {
+    client.logger.error(error);
+  } finally {
+    connection.release();
+  }
 }

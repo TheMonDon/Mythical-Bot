@@ -1,35 +1,60 @@
 import { EmbedBuilder } from 'discord.js';
-import { QuickDB } from 'quick.db';
 import { promisify } from 'util';
 const setTimeoutPromise = promisify(setTimeout);
-const db = new QuickDB();
 
 export async function run(client, member) {
   async function LogSystem(client, member) {
-    const logChan = await db.get(`servers.${member.guild.id}.logs.channel`);
-    if (!logChan) return;
+    const connection = await client.db.getConnection();
 
-    const logSys = await db.get(`servers.${member.guild.id}.logs.logSystem.member-join`);
-    if (!logSys || logSys !== 'enabled') return;
+    try {
+      const [logRows] = await connection.execute(
+        /* sql */ `
+          SELECT
+            channel_id,
+            member_join
+          FROM
+            log_settings
+          WHERE
+            server_id = ?
+        `,
+        [member.guild.id],
+      );
+      if (!logRows.length) return;
 
-    const embed = new EmbedBuilder()
-      .setTitle('Member Joined')
-      .setColor('#3dd0f4')
-      .setAuthor({ name: member.user.tag, iconURL: member.user.displayAvatarURL() })
-      .setThumbnail(member.user.displayAvatarURL())
-      .addFields([
-        {
-          name: 'User',
-          value: `${member.toString()} \`${member.user.tag}\` `,
-        },
-        { name: 'Member Count', value: member.guild.memberCount.toString() },
-      ])
-      .setFooter({ text: `ID: ${member.user.id}` })
-      .setTimestamp();
+      const logChannelID = logRows[0].channel_id;
+      if (!logChannelID) return;
 
-    const channel = member.guild.channels.cache.get(logChan);
-    if (!channel) return;
-    channel.send({ embeds: [embed] }).catch(() => {});
+      const logSystem = logRows[0].member_join;
+      if (logSystem !== 1) return;
+
+      const embed = new EmbedBuilder()
+        .setTitle('Member Joined')
+        .setColor(client.getSettings(member.guild).embedSuccessColor)
+        .setAuthor({ name: member.user.tag, iconURL: member.user.displayAvatarURL() })
+        .setThumbnail(member.user.displayAvatarURL())
+        .addFields([
+          {
+            name: 'User',
+            value: `${member.toString()} \`${member.user.tag}\` `,
+          },
+          { name: 'Member Count', value: member.guild.memberCount.toString() },
+        ])
+        .setFooter({ text: `ID: ${member.user.id}` })
+        .setTimestamp();
+
+      let logChannel = member.guild.channels.cache.get(logChannelID);
+      if (!logChannel) {
+        logChannel = await member.guild.channels.fetch(logChannelID);
+      }
+
+      if (!logChannel) return;
+
+      return logChannel.send({ embeds: [embed] }).catch(() => {});
+    } catch (error) {
+      client.logger.error(error);
+    } finally {
+      connection.release();
+    }
   }
 
   async function PersistentRoles(client, member) {

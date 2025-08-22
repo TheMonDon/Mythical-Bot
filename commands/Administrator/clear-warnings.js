@@ -33,7 +33,7 @@ class ClearWarnings extends Command {
           return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Member');
         }
       }
- 
+
       const [settingsRows] = await connection.execute(
         /* sql */ `
           SELECT

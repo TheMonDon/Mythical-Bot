@@ -1,28 +1,54 @@
 import { EmbedBuilder } from 'discord.js';
-import { QuickDB } from 'quick.db';
-const db = new QuickDB();
 
 export async function run(client, role) {
-  const logChan = await db.get(`servers.${role.guild.id}.logs.channel`);
-  if (!logChan) return;
+  const connection = await client.db.getConnection();
 
-  const logSys = await db.get(`servers.${role.guild.id}.logs.logSystem.role-deleted`);
-  if (logSys !== 'enabled') return;
+  try {
+    const [logRows] = await connection.execute(
+      /* sql */ `
+        SELECT
+          channel_id,
+          role_deleted
+        FROM
+          log_settings
+        WHERE
+          server_id = ?
+      `,
+      [role.guild.id],
+    );
+    if (!logRows.length) return;
 
-  const embed = new EmbedBuilder()
-    .setTitle('Role Deleted')
-    .setColor('#FF0000')
-    .addFields([
-      { name: 'Name', value: role.name, inline: true },
-      { name: 'Managed', value: role.managed.toString(), inline: true },
-    ])
-    .setFooter({ text: `Role ID: ${role.id}` })
-    .setTimestamp();
+    const logChannelID = logRows[0].channel_id;
+    if (!logChannelID) return;
 
-  if (role.hexColor.toString() !== '#000000') embed.addFields({ name: 'Color', value: role.hexColor.toString() });
+    const logSystem = logRows[0].role_deleted;
+    if (logSystem !== 1) return;
 
-  return role.guild.channels.cache
-    .get(logChan)
-    .send({ embeds: [embed] })
-    .catch(() => {});
+    const embed = new EmbedBuilder()
+      .setTitle('Role Deleted')
+      .setColor(client.getSettings(role.guild).embedErrorColor)
+      .addFields([
+        { name: 'Name', value: role.name, inline: true },
+        { name: 'Managed', value: client.util.toProperCase(role.managed.toString()), inline: true },
+      ])
+      .setFooter({ text: `Role ID: ${role.id}` })
+      .setTimestamp();
+
+    if (role.hexColor.toString() !== '#000000') {
+      embed.addFields({ name: 'Color', value: role.hexColor.toString() });
+    }
+
+    let logChannel = role.guild.channels.cache.get(logChannelID);
+    if (!logChannel) {
+      logChannel = await role.guild.channels.fetch(logChannelID);
+    }
+
+    if (!logChannel) return;
+
+    return logChannel.send({ embeds: [embed] }).catch(() => {});
+  } catch (error) {
+    client.logger.error(error);
+  } finally {
+    connection.release();
+  }
 }

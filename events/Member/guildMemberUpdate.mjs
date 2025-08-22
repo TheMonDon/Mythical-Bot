@@ -1,14 +1,28 @@
 import { EmbedBuilder } from 'discord.js';
-import { QuickDB } from 'quick.db';
-const db = new QuickDB();
 
 export async function run(client, oldMember, newMember) {
-  async function TimeoutLogs(oldMember, newMember) {
-    const logChan = await db.get(`servers.${oldMember.guild.id}.logs.channel`);
-    if (!logChan) return;
+  const connection = await client.db.getConnection();
 
-    const logSys = await db.get(`servers.${oldMember.guild.id}.logs.logSystem.member-timeout`);
-    if (!logSys || logSys !== 'enabled') return;
+  try {
+    const [logRows] = await connection.execute(
+      /* sql */ `
+        SELECT
+          channel_id,
+          member_timeout
+        FROM
+          log_settings
+        WHERE
+          server_id = ?
+      `,
+      [oldMember.guild.id],
+    );
+    if (!logRows.length) return;
+
+    const logChannelID = logRows[0].channel_id;
+    if (!logChannelID) return;
+
+    const logSystem = logRows[0].member_timeout;
+    if (logSystem !== 1) return;
 
     // Fetch all members
     await oldMember.guild.members.fetch();
@@ -47,14 +61,17 @@ export async function run(client, oldMember, newMember) {
       if (executor) embed.addFields([{ name: 'Moderator', value: executor.toString() }]);
     }
 
-    const channel = oldMember.guild.channels.cache.get(logChan);
-    if (!channel) return;
-    channel.send({ embeds: [embed] }).catch(() => {});
-  }
+    let logChannel = oldMember.guild.channels.cache.get(logChannelID);
+    if (!logChannel) {
+      logChannel = await oldMember.guild.channels.fetch(logChannelID);
+    }
 
-  try {
-    await TimeoutLogs(oldMember, newMember);
-  } catch (err) {
-    return client.logger.error(err);
+    if (!logChannel) return;
+
+    return logChannel.send({ embeds: [embed] }).catch(() => {});
+  } catch (error) {
+    client.logger.error(error);
+  } finally {
+    connection.release();
   }
 }

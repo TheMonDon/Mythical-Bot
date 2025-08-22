@@ -1,7 +1,5 @@
 const Command = require('../../base/Command.js');
 const { EmbedBuilder } = require('discord.js');
-const { QuickDB } = require('quick.db');
-const db = new QuickDB();
 
 class logSystem extends Command {
   constructor(client) {
@@ -17,60 +15,64 @@ class logSystem extends Command {
   }
 
   async run(msg) {
-    if (!(await db.get(`servers.${msg.guild.id}.logs.channel`))) {
-      return msg.channel.send(`The log system is not set up! Use \`${msg.settings.prefix}Setup Logging <Channel>\``);
-    }
+    const connection = await this.client.db.getConnection();
 
-    async function getLogInfo(guildId, logType) {
-      const logValue = await db.get(`servers.${guildId}.logs.logSystem.${logType}`);
-      return logValue === 'enabled' ? '✅' : '❌';
-    }
+    try {
+      // Check if log system is set up
+      const [rows] = await connection.execute(`SELECT * FROM log_settings WHERE server_id = ?`, [msg.guild.id]);
 
-    async function getAllLogInfo(msg) {
-      const logTypes = [
-        'bulk-messages-deleted',
-        'channel-created',
-        'channel-deleted',
-        'channel-updated',
-        'emoji',
-        'member-join',
-        'member-leave',
-        'member-timeout',
-        'message-edited',
-        'message-deleted',
-        'thread-created',
-        'thread-deleted',
-        'v-channel-created',
-        'v-channel-deleted',
-        'role-created',
-        'role-deleted',
-        'role-updated',
-        'sticker',
-      ];
-
-      const logInfo = [];
-      for (const logType of logTypes) {
-        const logValue = await getLogInfo(msg.guild.id, logType);
-        const formattedLogType = logType.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
-        const correctedLogType = formattedLogType
-          .replace('V', 'Voice')
-          .replace('Emoji', 'Emojis')
-          .replace('Sticker', 'Stickers');
-        logInfo.push(`**${correctedLogType}:** ${logValue}`);
+      if (rows.length === 0 || !rows[0].channel_id) {
+        return msg.channel.send(`The log system is not set up! Use \`${msg.settings.prefix}Setup Logging <Channel>\``);
       }
 
-      return logInfo.join('\n');
+      const settings = rows[0];
+
+      function formatLogType(logType, value) {
+        const formatted = logType.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+
+        return `**${formatted}:** ${value ? '✅' : '❌'}`;
+      }
+
+      const logTypes = [
+        'bulk_messages_deleted',
+        'channel_created',
+        'channel_deleted',
+        'channel_updated',
+        'emoji_created',
+        'emoji_deleted',
+        'emoji_updated',
+        'member_join',
+        'member_leave',
+        'member_timeout',
+        'message_updated',
+        'message_deleted',
+        'role_created',
+        'role_deleted',
+        'role_updated',
+        'sticker_created',
+        'sticker_deleted',
+        'sticker_updated',
+        'thread_created',
+        'thread_deleted',
+        'thread_updated',
+        'voice_channel_created',
+        'voice_channel_deleted',
+      ];
+
+      const logInfo = logTypes.map((type) => formatLogType(type, settings[type]));
+
+      const embed = new EmbedBuilder().setColor(msg.settings.embedColor).addFields([
+        { name: 'Toggle Status', value: logInfo.join('\n'), inline: true },
+        { name: 'Log Channel', value: `<#${settings.channel_id}>` },
+      ]);
+
+      return msg.channel.send({ embeds: [embed] });
+    } catch (error) {
+      this.client.logger.error(error);
+      return msg.channel.send(`An error occurred: ${error.message}`);
+    } finally {
+      connection.release();
     }
-
-    const logOutput = await getAllLogInfo(msg);
-    const logChannel = await db.get(`servers.${msg.guild.id}.logs.channel`);
-
-    const embed = new EmbedBuilder().setColor(msg.settings.embedColor).addFields([
-      { name: 'Toggle Status', value: logOutput, inline: true },
-      { name: 'Log Channel', value: `<#${logChannel}>` },
-    ]);
-
-    return msg.channel.send({ embeds: [embed] });
   }
 }
 

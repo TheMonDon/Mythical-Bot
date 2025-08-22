@@ -1,40 +1,65 @@
 import { EmbedBuilder } from 'discord.js';
-import { QuickDB } from 'quick.db';
-const db = new QuickDB();
 
 export async function run(client, member) {
-  async function LogSystem(member) {
-    const logChan = await db.get(`servers.${member.guild.id}.logs.channel`);
-    if (!logChan) return;
+  async function LogSystem(client, member) {
+    const connection = await client.db.getConnection();
 
-    const logSys = await db.get(`servers.${member.guild.id}.logs.logSystem.member-leave`);
-    if (!logSys || logSys !== 'enabled') return;
+    try {
+      const [logRows] = await connection.execute(
+        /* sql */ `
+          SELECT
+            channel_id,
+            member_leave
+          FROM
+            log_settings
+          WHERE
+            server_id = ?
+        `,
+        [member.guild.id],
+      );
+      if (!logRows.length) return;
 
-    const roles = [...member.roles.cache.values()];
-    const roleString = roles
-      .sort((a, b) => a.position - b.position)
-      .map((role) => role.name)
-      .join(', ');
+      const logChannelID = logRows[0].channel_id;
+      if (!logChannelID) return;
 
-    const embed = new EmbedBuilder()
-      .setTitle('Member Left')
-      .setColor('#3dd0f4')
-      .setAuthor({ name: member.user.tag, iconURL: member.user.displayAvatarURL() })
-      .setThumbnail(member.user.displayAvatarURL())
-      .addFields([
-        {
-          name: 'User',
-          value: `${member.toString()} \`${member.user.tag}\` `,
-        },
-        { name: 'Member Count', value: member.guild.memberCount.toString() },
-        { name: 'Roles', value: roleString },
-      ])
-      .setFooter({ text: `ID: ${member.user.id}` })
-      .setTimestamp();
+      const logSystem = logRows[0].member_leave;
+      if (logSystem !== 1) return;
 
-    const channel = member.guild.channels.cache.get(logChan);
-    if (!channel) return;
-    channel.send({ embeds: [embed] }).catch(() => {});
+      const roles = [...member.roles.cache.values()];
+      const roleString = roles
+        .sort((a, b) => a.position - b.position)
+        .map((role) => role.name)
+        .join(', ');
+
+      const embed = new EmbedBuilder()
+        .setTitle('Member Left')
+        .setColor(client.getSettings(member.guild).embedErrorColor)
+        .setAuthor({ name: member.user.tag, iconURL: member.user.displayAvatarURL() })
+        .setThumbnail(member.user.displayAvatarURL())
+        .addFields([
+          {
+            name: 'User',
+            value: `${member.toString()} \`${member.user.tag}\` `,
+          },
+          { name: 'Member Count', value: member.guild.memberCount.toString() },
+          { name: 'Roles', value: roleString },
+        ])
+        .setFooter({ text: `ID: ${member.user.id}` })
+        .setTimestamp();
+
+      let logChannel = member.guild.channels.cache.get(logChannelID);
+      if (!logChannel) {
+        logChannel = await member.guild.channels.fetch(logChannelID);
+      }
+
+      if (!logChannel) return;
+
+      return logChannel.send({ embeds: [embed] }).catch(() => {});
+    } catch (error) {
+      client.logger.error(error);
+    } finally {
+      connection.release();
+    }
   }
 
   async function PersistentRoles(client, member) {
@@ -61,7 +86,7 @@ export async function run(client, member) {
       if (roles.length === 1) return;
       const arr = roles.filter((role) => role.id !== member.guild.id).map((role) => role.id);
 
-      connection.execute(
+      await connection.execute(
         `INSERT INTO persistent_roles (server_id, user_id, roles)
          VALUES (?, ?, ?)
          ON DUPLICATE KEY UPDATE roles = VALUES(roles)`,
@@ -103,6 +128,6 @@ export async function run(client, member) {
 
   // Run the functions
   LeaveSystem(client, member);
-  await LogSystem(member);
+  await LogSystem(client, member);
   await PersistentRoles(client, member);
 }

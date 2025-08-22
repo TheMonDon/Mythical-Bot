@@ -9,8 +9,6 @@ const {
 } = require('discord.js');
 const Command = require('../../base/Command.js');
 const { stripIndents } = require('common-tags');
-const { QuickDB } = require('quick.db');
-const db = new QuickDB();
 
 class Setup extends Command {
   constructor(client) {
@@ -656,83 +654,173 @@ class Setup extends Command {
 
     // Start of logging setup
     if (['logging', 'log', 'logs'].includes(type)) {
-      const embed = new EmbedBuilder();
+      const connection = await this.client.db.getConnection();
 
-      const logSystem = {
-        'channel-created': 'enabled',
-        'channel-deleted': 'enabled',
-        'channel-updated': 'enabled',
-        'thread-created': 'enabled',
-        'thread-deleted': 'enabled',
-        'member-join': 'enabled',
-        'member-leave': 'enabled',
-        'member-timeout': 'enabled',
-        'message-deleted': 'enabled',
-        'message-edited': 'enabled',
-        'role-created': 'enabled',
-        'role-deleted': 'enabled',
-        'role-updated': 'enabled',
-        'v-channel-created': 'enabled',
-        'v-channel-deleted': 'enabled',
-        emoji: 'enabled',
-        sticker: 'enabled',
-        'bulk-messages-deleted': 'enabled',
-        all: 'enabled',
-      };
+      try {
+        args.shift();
+        let text = args.join('');
+        let chan = this.client.util.getChannel(msg, text);
 
-      args.shift();
-      let text = args.join('');
-      let chan = this.client.util.getChannel(msg, text);
-
-      if (!args || args.length < 1) {
-        text = await this.client.util.awaitReply(msg, 'What channel do you want to setup logging in?');
-        if (!text) {
-          return this.client.util.errorEmbed(msg, 'You did not reply in time, the command has been cancelled.');
+        if (!args || args.length < 1) {
+          text = await this.client.util.awaitReply(msg, 'What channel do you want to setup logging in?');
+          if (!text) {
+            return this.client.util.errorEmbed(msg, 'You did not reply in time, the command has been cancelled.');
+          }
+          chan = this.client.util.getChannel(msg, text);
         }
-        chan = this.client.util.getChannel(msg, text);
-      }
 
-      let i = 2;
-      while (!chan) {
-        text = await this.client.util.awaitReply(
-          msg,
-          `That channel was not found, please try again with a valid server channel. Try #${i}`,
+        let i = 2;
+        while (!chan) {
+          text = await this.client.util.awaitReply(
+            msg,
+            `That channel was not found, please try again with a valid server channel. Try #${i}`,
+          );
+          if (!text) {
+            return this.client.util.errorEmbed(msg, 'You did not reply in time, the command has been cancelled.');
+          }
+          chan = this.client.util.getChannel(msg, text);
+
+          i++;
+        }
+
+        const [settingsRows] = await connection.execute(
+          /* sql */ `
+            SELECT
+              channel_id
+            FROM
+              log_settings
+            WHERE
+              server_id = ?
+          `,
+          [msg.guild.id],
         );
-        if (!text) {
-          return this.client.util.errorEmbed(msg, 'You did not reply in time, the command has been cancelled.');
+
+        if (settingsRows.length) {
+          await connection.execute(
+            /* sql */ `
+              UPDATE log_settings
+              SET
+                channel_id = ?
+              WHERE
+                server_id = ?
+            `,
+            [chan.id, msg.guild.id],
+          );
+
+          const embed = new EmbedBuilder()
+            .setTitle('Successfully Updated')
+            .setColor(successColor)
+            .setThumbnail('https://i.cisn.xyz/piqe4/MovoNohA60/raw.png')
+            .setDescription(
+              `Everything related to logs will be posted in ${chan} from now on. \n\nUse ${msg.settings.prefix}help logging to see how to fine-tune the logging.`,
+            )
+            .setTimestamp();
+
+          return msg.channel.send({ embeds: [embed] });
+        } else {
+          await connection.execute(
+            /* sql */
+            `
+              INSERT INTO
+                log_settings (
+                  server_id,
+                  channel_id,
+                  all_enabled,
+                  bulk_messages_deleted,
+                  channel_created,
+                  channel_deleted,
+                  channel_updated,
+                  emoji_created,
+                  emoji_deleted,
+                  emoji_updated,
+                  member_join,
+                  member_leave,
+                  member_timeout,
+                  message_deleted,
+                  message_updated,
+                  role_created,
+                  role_deleted,
+                  role_updated,
+                  sticker_created,
+                  sticker_deleted,
+                  sticker_updated,
+                  thread_created,
+                  thread_deleted,
+                  voice_channel_created,
+                  voice_channel_deleted
+                )
+              VALUES
+                (
+                  ?,
+                  ?,
+                  TRUE, -- all_enabled
+                  TRUE, -- bulk_messages_deleted
+                  TRUE, -- channel_created
+                  TRUE, -- channel_deleted
+                  TRUE, -- channel_updated
+                  TRUE, -- emoji_created
+                  TRUE, -- emoji_deleted
+                  TRUE, -- emoji_updated
+                  TRUE, -- member_join
+                  TRUE, -- member_leave
+                  TRUE, -- member_timeout
+                  TRUE, -- message_deleted
+                  TRUE, -- message_updated
+                  TRUE, -- role_created
+                  TRUE, -- role_deleted
+                  TRUE, -- role_updated
+                  TRUE, -- sticker_created
+                  TRUE, -- sticker_deleted
+                  TRUE, -- sticker_updated
+                  TRUE, -- thread_created
+                  TRUE, -- thread_deleted
+                  TRUE, -- voice_channel_created
+                  TRUE -- voice_channel_deleted
+                ) ON DUPLICATE KEY
+              UPDATE all_enabled = TRUE,
+              bulk_messages_deleted = TRUE,
+              channel_created = TRUE,
+              channel_deleted = TRUE,
+              channel_updated = TRUE,
+              emoji_created = TRUE,
+              emoji_deleted = TRUE,
+              emoji_updated = TRUE,
+              member_join = TRUE,
+              member_leave = TRUE,
+              member_timeout = TRUE,
+              message_deleted = TRUE,
+              message_updated = TRUE,
+              role_created = TRUE,
+              role_deleted = TRUE,
+              role_updated = TRUE,
+              sticker_created = TRUE,
+              sticker_deleted = TRUE,
+              sticker_updated = TRUE,
+              thread_created = TRUE,
+              thread_deleted = TRUE,
+              voice_channel_created = TRUE,
+              voice_channel_deleted = TRUE
+            `,
+            [msg.guild.id, chan.id],
+          );
+
+          const embed = new EmbedBuilder()
+            .setTitle('Successfully Set')
+            .setColor(successColor)
+            .setThumbnail('https://i.cisn.xyz/piqe4/MovoNohA60/raw.png')
+            .setDescription(
+              `Everything related to logs will be posted in ${chan}. \n\nUse ${msg.settings.prefix}help logging to see how to fine-tune the logging.`,
+            )
+            .setTimestamp();
+
+          return msg.channel.send({ embeds: [embed] });
         }
-        chan = this.client.util.getChannel(msg, text);
-
-        i++;
+      } catch (error) {
+        this.client.logger.error(error);
+        return msg.channel.send(`An error occurred: ${error.message}`);
+      } finally {
+        connection.release();
       }
-
-      const currentChan = await db.get(`servers.${msg.guild.id}.logs.channel`);
-
-      if (currentChan) {
-        await db.set(`servers.${msg.guild.id}.logs.logSystem`, logSystem);
-        embed
-          .setTitle('Successfully Changed')
-          .setColor(successColor)
-          .setThumbnail('https://i.cisn.xyz/piqe4/MovoNohA60/raw.png')
-          .setDescription(
-            `Everything related to logs will be posted in ${chan} from now on. \n\nUse ${msg.settings.prefix}help logging to see how to fine-tune the logging.`,
-          )
-          .setTimestamp();
-        await msg.channel.send({ embeds: [embed] });
-      } else {
-        await db.set(`servers.${msg.guild.id}.logs.logSystem`, logSystem);
-        embed
-          .setTitle('Successfully Set')
-          .setColor(successColor)
-          .setThumbnail('https://i.cisn.xyz/piqe4/MovoNohA60/raw.png')
-          .setDescription(
-            `Everything related to logs will be posted in ${chan}. \n\nUse ${msg.settings.prefix}help logging to see how to fine-tune the logging.`,
-          )
-          .setTimestamp();
-        await msg.channel.send({ embeds: [embed] });
-      }
-      await db.set(`servers.${msg.guild.id}.logs.channel`, chan.id);
-      return;
     }
     // End of logging setup
 
@@ -844,13 +932,14 @@ class Setup extends Command {
           \`${msg.settings.prefix}Setup Logging <Channel Mention>\``,
         },
         {
-          name: 'Warns',
+          name: 'Warnings',
           value: stripIndents`
           To setup the warnings system please use:
-          \`${msg.settings.prefix}Setup Warnings [Channel Mention] [Points for kick] [Points for ban]\``,
+          \`${msg.settings.prefix}Setup Warnings [Channel mention] [Points for kick] [Points for ban]\``,
         },
       ])
       .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() });
+
     return msg.channel.send({ embeds: [embed] });
   }
 }

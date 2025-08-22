@@ -8,84 +8,108 @@ export async function run(client, oldMessage, newMessage) {
     if (oldMessage.author?.bot) return;
     if (!newMessage.guild) return;
     if (!oldMessage.author) return;
-
-    const logChan = await db.get(`servers.${newMessage.guild.id}.logs.channel`);
-    if (!logChan) return;
-
-    const logSys = await db.get(`servers.${newMessage.guild.id}.logs.logSystem.message-edited`);
-    if (!logSys || logSys !== 'enabled') return;
-
-    const noLogChans = (await db.get(`servers.${newMessage.guild.id}.logs.noLogChans`)) || [];
-    if (noLogChans.includes(newMessage.channel.id)) return;
-
-    const logChannel = newMessage.guild.channels.cache.get(logChan);
-    if (!logChannel.permissionsFor(client.user.id).has('SendMessages')) return;
     if (oldMessage.content === newMessage.content) return;
 
-    let oldContent = ' ';
-    let newContent = ' ';
+    const connection = await client.db.getConnection();
 
-    if (oldMessage.content) {
-      oldContent =
-        oldMessage.content.length <= 1024 ? oldMessage.content : `${oldMessage.content.substring(0, 1020)}...`;
-    }
-    if (newMessage.content) {
-      newContent =
-        newMessage.content.length <= 1024 ? newMessage.content : `${newMessage.content.substring(0, 1020)}...`;
-    }
+    try {
+      const [logRows] = await connection.execute(
+        /* sql */ `
+          SELECT
+            channel_id,
+            message_updated,
+            no_log_channels
+          FROM
+            log_settings
+          WHERE
+            server_id = ?
+        `,
+        [newMessage.guild.id],
+      );
+      if (!logRows.length) return;
 
-    const embed = new EmbedBuilder()
-      .setTitle('Message Edited')
-      .setURL(newMessage.url)
-      .setAuthor({ name: oldMessage.author.tag, iconURL: oldMessage.author.displayAvatarURL() })
-      .setColor('#EE82EE')
-      .setThumbnail(oldMessage.author.displayAvatarURL())
-      .addFields([
-        {
-          name: 'Original Message',
-          value: oldContent,
-        },
-        {
-          name: 'Edited Message',
-          value: newContent,
-        },
-        { name: 'Channel', value: oldMessage.channel.toString(), inline: true },
-        { name: 'Message Author', value: `${oldMessage.author} (${oldMessage.author.tag})` },
-      ])
-      .setTimestamp();
+      const logChannelID = logRows[0].channel_id;
+      if (!logChannelID) return;
 
-    if (newMessage.mentions.users.size !== 0 || newMessage.mentions.users.size !== oldMessage.mentions.users.size) {
-      if (newMessage.mentions.users.size !== oldMessage.mentions.users.size) {
-        embed.addFields([
-          {
-            name: 'Old Mentioned Users',
-            value: `Mentioned Users Count: ${[...oldMessage.mentions.users.values()].length} \nMentioned Users List: ${[
-              ...oldMessage.mentions.users.values(),
-            ]}`,
-          },
-          {
-            name: 'New Mentioned Users',
-            value: `Mentioned Users Count: ${[...newMessage.mentions.users.values()].length} \nMentioned Users List: ${[
-              ...newMessage.mentions.users.values(),
-            ]}`,
-          },
-        ]);
-      } else if (newMessage.mentions.users.size !== 0) {
-        embed.addFields([
-          {
-            name: 'Mentioned Users',
-            value: `Mentioned Users Count: ${[...newMessage.mentions.users.values()].length} \nMentioned Users List: ${[
-              ...newMessage.mentions.users.values(),
-            ]}`,
-          },
-        ]);
+      const logSystem = logRows[0].message_updated;
+      if (logSystem !== 1) return;
+
+      const noLogChans = JSON.parse(logRows[0].no_log_channels || '[]');
+      if (noLogChans.includes(newMessage.channel.id)) return;
+
+      let oldContent = ' ';
+      let newContent = ' ';
+
+      if (oldMessage.content) {
+        oldContent =
+          oldMessage.content.length <= 1024 ? oldMessage.content : `${oldMessage.content.substring(0, 1020)}...`;
       }
-    }
+      if (newMessage.content) {
+        newContent =
+          newMessage.content.length <= 1024 ? newMessage.content : `${newMessage.content.substring(0, 1020)}...`;
+      }
 
-    return newMessage.guild.channels.cache
-      .get(logChan)
-      .send({ embeds: [embed] })
-      .catch(() => {});
+      const embed = new EmbedBuilder()
+        .setTitle('Message Updated')
+        .setURL(newMessage.url)
+        .setAuthor({ name: oldMessage.author.tag, iconURL: oldMessage.author.displayAvatarURL() })
+        .setColor('#EE82EE')
+        .setThumbnail(oldMessage.author.displayAvatarURL())
+        .addFields([
+          {
+            name: 'Original Message',
+            value: oldContent,
+          },
+          {
+            name: 'Edited Message',
+            value: newContent,
+          },
+          { name: 'Channel', value: oldMessage.channel.toString(), inline: true },
+          { name: 'Message Author', value: `${oldMessage.author} (${oldMessage.author.tag})` },
+        ])
+        .setTimestamp();
+
+      if (newMessage.mentions.users.size !== 0 || newMessage.mentions.users.size !== oldMessage.mentions.users.size) {
+        if (newMessage.mentions.users.size !== oldMessage.mentions.users.size) {
+          embed.addFields([
+            {
+              name: 'Old Mentioned Users',
+              value: `Mentioned Users Count: ${[...oldMessage.mentions.users.values()].length} \nMentioned Users List: ${[
+                ...oldMessage.mentions.users.values(),
+              ]}`,
+            },
+            {
+              name: 'New Mentioned Users',
+              value: `Mentioned Users Count: ${[...newMessage.mentions.users.values()].length} \nMentioned Users List: ${[
+                ...newMessage.mentions.users.values(),
+              ]}`,
+            },
+          ]);
+        } else if (newMessage.mentions.users.size !== 0) {
+          embed.addFields([
+            {
+              name: 'Mentioned Users',
+              value: `Mentioned Users Count: ${[...newMessage.mentions.users.values()].length} \nMentioned Users List: ${[
+                ...newMessage.mentions.users.values(),
+              ]}`,
+            },
+          ]);
+        }
+      }
+
+      let logChannel = newMessage.guild.channels.cache.get(logChannelID);
+      if (!logChannel) {
+        logChannel = await newMessage.guild.channels.fetch(logChannelID);
+      }
+
+      if (!logChannel) return;
+
+      return logChannel.send({ embeds: [embed] }).catch(() => {});
+    } catch (error) {
+      client.logger.error(error);
+    } finally {
+      connection.release();
+    }
   }
 
   async function CommandUpdate(client, oldMessage, newMessage) {
@@ -94,145 +118,182 @@ export async function run(client, oldMessage, newMessage) {
     const re = /'http'/;
 
     if (re.test(newMessage.content)) return;
-    if (oldMessage.content === newMessage.content || oldMessage === newMessage) return;
-    if (newMessage.guild && !newMessage.channel.permissionsFor(newMessage.guild.members.me).missing('SendMessages'))
+    // Return if content didn’t change
+    if (oldMessage.content === newMessage.content) return;
+
+    // Also return if this is just a pin/unpin update
+    if (oldMessage.pinned !== newMessage.pinned) return;
+
+    // Also return if embeds/attachments changed but content didn’t
+    if (oldMessage.embeds.length !== newMessage.embeds.length) return;
+    if (oldMessage.attachments.size !== newMessage.attachments.size) return;
+    if (newMessage.guild && !newMessage.channel.permissionsFor(newMessage.guild.members.me).missing('SendMessages')) {
       return;
+    }
     if (newMessage.guild && newMessage.guild.members.me.isCommunicationDisabled()) return;
 
-    const settings = client.getSettings(newMessage.guild);
-    newMessage.settings = settings;
-    let tag = settings.prefix;
+    const connection = await client.db.getConnection();
 
-    const prefixMention = new RegExp(`^(<@!?${client.user.id}>)(\\s+)?`);
-    if (newMessage.guild && newMessage.content.match(prefixMention)) {
-      tag = String(newMessage.guild.members.me);
-    } else if (newMessage.content.indexOf(settings.prefix) !== 0) {
-      bool = false;
-      return;
-    }
+    try {
+      const settings = client.getSettings(newMessage.guild);
+      newMessage.settings = settings;
+      let tag = settings.prefix;
 
-    if (!bool) return;
+      const prefixMention = new RegExp(`^(<@!?${client.user.id}>)(\\s+)?`);
+      if (newMessage.guild && newMessage.content.match(prefixMention)) {
+        tag = String(newMessage.guild.members.me);
+      } else if (newMessage.content.indexOf(settings.prefix) !== 0) {
+        bool = false;
+        return;
+      }
 
-    const args = newMessage.content.slice(tag.length).trim().split(/\s+/g);
-    const command = args.shift().toLowerCase();
-    if (!command && tag === String(newMessage.guild?.members.me)) {
-      if (!args || args.length < 1)
-        return newMessage.channel.send(`The current prefix is: ${newMessage.settings.prefix}`);
-    }
+      if (!bool) return;
 
-    // If the member on a guild is invisible or not cached, fetch them.
-    if (newMessage.guild && !newMessage.member) {
-      await newMessage.guild.members.fetch(newMessage.author.id);
-    }
-    // Get the user or member's permission level from the elevation
-    const level = await client.permlevel(newMessage);
+      const args = newMessage.content.slice(tag.length).trim().split(/\s+/g);
+      const command = args.shift().toLowerCase();
+      if (!command && tag === String(newMessage.guild?.members.me)) {
+        if (!args || args.length < 1) {
+          return newMessage.channel.send(`The current prefix is: ${newMessage.settings.prefix}`);
+        }
+      }
 
-    const cmd = client.commands.get(command) || client.commands.get(client.aliases.get(command));
-    if (!cmd) return;
+      // If the member on a guild is invisible or not cached, fetch them.
+      if (newMessage.guild && !newMessage.member) {
+        await newMessage.guild.members.fetch(newMessage.author.id);
+      }
+      // Get the user or member's permission level from the elevation
+      const level = await client.permlevel(newMessage);
 
-    // Check if the member is blacklisted from using commands in this guild.
-    if (newMessage.guild) {
-      const connection = await client.db.getConnection();
-      const [blacklistRows] = await connection.execute(
-        `SELECT * FROM server_blacklists WHERE server_id = ? AND user_id = ?`,
-        [newMessage.guild.id, newMessage.author.id],
+      let isAlias = false;
+      let aliasName = null;
+      let cmd = client.commands.get(command);
+      if (!cmd) {
+        cmd = client.commands.get(client.aliases.get(command));
+        aliasName = command;
+        isAlias = !!client.aliases.get(command);
+      }
+
+      if (!cmd) return;
+
+      // Check if the member is blacklisted from using commands in this guild.
+      if (newMessage.guild) {
+        const [blacklistRows] = await connection.execute(
+          `SELECT * FROM server_blacklists WHERE server_id = ? AND user_id = ?`,
+          [newMessage.guild.id, newMessage.author.id],
+        );
+
+        const blacklisted = blacklistRows[0]?.blacklisted;
+        const reason = blacklistRows[0]?.reason || 'No reason provided';
+
+        if (
+          blacklisted &&
+          level < 4 &&
+          (command.help.name !== 'blacklist' || command.help.name !== 'global-blacklist')
+        ) {
+          const embed = new EmbedBuilder()
+            .setTitle('Server Blacklisted')
+            .setAuthor({ name: newMessage.author.tag, iconURL: newMessage.author.displayAvatarURL() })
+            .setColor(newMessage.settings.embedErrorColor)
+            .setDescription(
+              `Sorry ${newMessage.author.username}, you are currently blacklisted from using commands in this server.`,
+            )
+            .addFields([{ name: 'Reason', value: reason, inline: false }]);
+
+          return newMessage.channel.send({ embeds: [embed] });
+        }
+      }
+
+      const [gblacklistRows] = await connection.execute(
+        /* sql */ `
+          SELECT
+            *
+          FROM
+            global_blacklists
+          WHERE
+            user_id = ?
+        `,
+        [newMessage.author.id],
       );
-      connection.release();
+      const globalBlacklisted = gblacklistRows[0]?.blacklisted;
 
-      const blacklisted = blacklistRows[0]?.blacklisted;
-      const reason = blacklistRows[0]?.reason || 'No reason provided';
-
-      if (blacklisted && level < 4 && (command.help.name !== 'blacklist' || command.help.name !== 'global-blacklist')) {
+      if (globalBlacklisted && level < 8 && (cmd.help.name !== 'blacklist' || cmd.help.name !== 'global-blacklist')) {
+        const blacklistReason = gblacklistRows[0]?.reason || 'No reason provided';
         const embed = new EmbedBuilder()
-          .setTitle('Server Blacklisted')
+          .setTitle('Global Blacklisted')
           .setAuthor({ name: newMessage.author.tag, iconURL: newMessage.author.displayAvatarURL() })
           .setColor(newMessage.settings.embedErrorColor)
-          .setDescription(
-            `Sorry ${newMessage.author.username}, you are currently blacklisted from using commands in this server.`,
-          )
-          .addFields([{ name: 'Reason', value: reason, inline: false }]);
+          .setDescription(`Sorry ${newMessage.author.username}, you are currently blacklisted from using commands.`)
+          .addFields([{ name: 'Reason', value: blacklistReason, inline: false }]);
 
         return newMessage.channel.send({ embeds: [embed] });
       }
-    }
 
-    const connection = await client.db.getConnection();
-    const [gblacklistRows] = await connection.execute(
-      /* sql */ `
-        SELECT
-          *
-        FROM
-          global_blacklists
-        WHERE
-          user_id = ?
-      `,
-      [newMessage.author.id],
-    );
-    connection.release();
-    const globalBlacklisted = gblacklistRows[0]?.blacklisted;
+      // Some commands may not be useable in DMs. This check prevents those commands from running
+      // and return a friendly error message.
+      if (!newMessage.guild && cmd.conf.guildOnly) {
+        return newMessage.channel.send(
+          'This command is unavailable via private message. Please run this command in a guild.',
+        );
+      }
 
-    if (globalBlacklisted && level < 8 && (cmd.help.name !== 'blacklist' || cmd.help.name !== 'global-blacklist')) {
-      const blacklistReason = gblacklistRows[0]?.reason || 'No reason provided';
-      const embed = new EmbedBuilder()
-        .setTitle('Global Blacklisted')
-        .setAuthor({ name: newMessage.author.tag, iconURL: newMessage.author.displayAvatarURL() })
-        .setColor(newMessage.settings.embedErrorColor)
-        .setDescription(`Sorry ${newMessage.author.username}, you are currently blacklisted from using commands.`)
-        .addFields([{ name: 'Reason', value: blacklistReason, inline: false }]);
+      if (level < client.levelCache[cmd.conf.permLevel]) {
+        if (settings.systemNotice === 'true') {
+          const embed = new EmbedBuilder()
+            .setTitle('Missing Permission')
+            .setAuthor({ name: newMessage.author.tag, iconURL: newMessage.author.displayAvatarURL() })
+            .setColor(newMessage.settings.embedErrorColor)
+            .addFields([
+              {
+                name: 'Your Level',
+                value: `${level} (${client.permLevels.find((l) => l.level === level).name})`,
+                inline: true,
+              },
+              {
+                name: 'Required Level',
+                value: `${client.levelCache[cmd.conf.permLevel]} (${cmd.conf.permLevel})`,
+                inline: true,
+              },
+            ]);
 
-      return newMessage.channel.send({ embeds: [embed] });
-    }
+          return newMessage.channel.send({ embeds: [embed] });
+        } else {
+          return;
+        }
+      }
+      newMessage.author.permLevel = level;
 
-    // Some commands may not be useable in DMs. This check prevents those commands from running
-    // and return a friendly error message.
-    if (!newMessage.guild && cmd.conf.guildOnly) {
-      return newMessage.channel.send(
-        'This command is unavailable via private message. Please run this command in a guild.',
-      );
-    }
-
-    if (level < client.levelCache[cmd.conf.permLevel]) {
-      if (settings.systemNotice === 'true') {
+      if (cmd.conf.requiredArgs > args.length) {
         const embed = new EmbedBuilder()
-          .setTitle('Missing Permission')
-          .setAuthor({ name: newMessage.author.tag, iconURL: newMessage.author.displayAvatarURL() })
+          .setAuthor({ name: newMessage.author.username, iconURL: newMessage.author.displayAvatarURL() })
           .setColor(newMessage.settings.embedErrorColor)
+          .setTitle('Missing Command Arguments')
+          .setFooter({ text: '[] = optional, <> = required' })
           .addFields([
-            {
-              name: 'Your Level',
-              value: `${level} (${client.permLevels.find((l) => l.level === level).name})`,
-              inline: true,
-            },
-            {
-              name: 'Required Level',
-              value: `${client.levelCache[cmd.conf.permLevel]} (${cmd.conf.permLevel})`,
-              inline: true,
-            },
+            { name: 'Incorrect Usage', value: newMessage.settings.prefix + cmd.help.usage },
+            { name: 'Examples', value: cmd.help.examples?.join('\n') || 'None' },
           ]);
 
         return newMessage.channel.send({ embeds: [embed] });
-      } else {
-        return;
       }
-    }
-    newMessage.author.permLevel = level;
 
-    if (cmd.conf.requiredArgs > args.length) {
-      const embed = new EmbedBuilder()
-        .setAuthor({ name: newMessage.author.username, iconURL: newMessage.author.displayAvatarURL() })
-        .setColor(newMessage.settings.embedErrorColor)
-        .setTitle('Missing Command Arguments')
-        .setFooter({ text: '[] = optional, <> = required' })
-        .addFields([
-          { name: 'Incorrect Usage', value: newMessage.settings.prefix + cmd.help.usage },
-          { name: 'Examples', value: cmd.help.examples?.join('\n') || 'None' },
-        ]);
-      return newMessage.channel.send({ embeds: [embed] });
-    }
+      // If the command exists, **AND** the user has permission, run it.
+      await cmd.run(newMessage, args, level);
 
-    // If the command exists, **AND** the user has permission, run it.
-    await db.add('global.commands', 1);
-    cmd.run(newMessage, args, level);
+      const isText = true;
+      const isSlash = false;
+
+      await connection.query('CALL updateCommandStats(?, ?, ?, ?, ?)', [
+        command.help.name,
+        isText ? 1 : 0,
+        isSlash ? 1 : 0,
+        isAlias ? 1 : 0,
+        aliasName || null,
+      ]);
+    } catch (error) {
+      client.logger.error(error);
+    } finally {
+      connection.release();
+    }
   }
 
   async function StarMessageUpdate(client, oldMessage, newMessage) {
