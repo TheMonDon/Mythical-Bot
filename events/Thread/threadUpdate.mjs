@@ -49,11 +49,13 @@ export async function run(client, oldThread, newThread) {
         name: oldThread.name,
         archived: oldThread.archived,
         locked: oldThread.locked,
+        parent: oldThread.parent,
       },
       current: {
         name: newThread.name,
         archived: newThread.archived,
         locked: newThread.locked,
+        parent: newThread.parent,
       },
     };
 
