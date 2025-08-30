@@ -1,7 +1,5 @@
 /* eslint-disable prefer-regex-literals */
 import { EmbedBuilder } from 'discord.js';
-import { QuickDB } from 'quick.db';
-const db = new QuickDB();
 
 export async function run(client, oldMessage, newMessage) {
   async function LogSystem(client, oldMessage, newMessage) {
@@ -299,136 +297,190 @@ export async function run(client, oldMessage, newMessage) {
   async function StarMessageUpdate(client, oldMessage, newMessage) {
     if (!newMessage.guild) return;
     if (!oldMessage.author) return;
-    if (newMessage.partial) await newMessage.fetch(); // Ensure we have full message data
 
-    const starboards = (await db.get(`servers.${oldMessage.guild.id}.starboards`)) || {};
-    const overrides = (await db.get(`servers.${oldMessage.guild.id}.overrides`)) || {};
+    const connection = await client.db.getConnection();
 
-    const getStarboardConfig = (starboardName, channelId) => {
-      const baseConfig = starboards[starboardName];
-      if (!baseConfig) return null;
+    try {
+      if (newMessage.partial) await newMessage.fetch(); // Ensure we have full message data
 
-      // Find the first override that applies to this channel
-      for (const [overrideName, overrideConfig] of Object.entries(overrides)) {
-        if (overrideConfig.starboard === starboardName && overrideConfig.channels.includes(channelId)) {
-          return { ...baseConfig, ...overrideConfig, overrideName };
-        }
-      }
-
-      return baseConfig; // Default config if no override applies
-    };
-
-    for (const name of Object.keys(starboards)) {
-      const config = getStarboardConfig(name, newMessage.channel.id);
-      // Now you can use `config`, which will either be the default starboard config or an overridden one
-
-      if (!config.enabled) continue;
-      if (!config['link-edits']) continue;
-      if (oldMessage.author.bot && !config['allow-bots']) continue;
-
-      const starChannel = newMessage.guild.channels.cache.get(config.channelId);
-      if (!starChannel) continue;
-      if (!starChannel.permissionsFor(newMessage.guild.members.me).has(['SendMessages', 'ViewChannel'])) continue;
-
-      if (starChannel === newMessage.channel) continue;
-
-      const existingStarMsg = await db.get(
-        `servers.${newMessage.guild.id}.starboards.${name}.messages.${newMessage.id}.starboardMsgId`,
+      const [starboards] = await connection.query(
+        /* sql */ `
+          SELECT
+            *
+          FROM
+            starboards
+          WHERE
+            server_id = ?
+        `,
+        [newMessage.guild.id],
       );
-      if (!existingStarMsg) continue;
+      const [overrides] = await connection.query(
+        /* sql */
+        `
+          SELECT
+            o.*,
+            s.name AS starboard_name
+          FROM
+            starboard_overrides o
+            JOIN starboards s ON s.id = o.starboard_id
+          WHERE
+            s.server_id = ?
+        `,
+        [newMessage.guild.id],
+      );
 
-      const starMessage = await starChannel.messages.fetch(existingStarMsg).catch(() => null);
-      if (!starMessage) continue;
-      const existingFooter = starMessage.embeds[0].footer.text.split('|')[0].trim();
+      function getStarboardConfig(starboardName, channelID) {
+        const base = starboards.find((s) => s.name === starboardName);
+        if (!base) return null;
 
-      const embeds = [];
-      const settings = client.getSettings(newMessage.guild);
+        const override = overrides.find(
+          (o) => o.starboard_name === starboardName && JSON.parse(o.channels || '[]').includes(channelID),
+        );
 
-      // Function to process attachments
-      const processAttachments = (attachments, embed, embedsArray) => {
-        const attachmentMessage = [];
+        if (!override) return base;
 
-        if (attachments.length > 0 && attachments[0].contentType?.startsWith('image')) {
-          embed.setImage(attachments[0].url);
-        }
-
-        for (const attachment of attachments.slice(1)) {
-          if (attachment.contentType?.startsWith('image')) {
-            const attachmentEmbed = new EmbedBuilder()
-              .setImage(attachment.url)
-              .setColor(config.color || settings.embedColor);
-            embedsArray.push(attachmentEmbed);
-          } else {
-            attachmentMessage.push(`[${attachment.name}](${attachment.url})`);
+        // Merge: override fields that are not null
+        const merged = { ...base };
+        for (const key in override) {
+          if (override[key] !== null && key !== 'channels' && key !== 'starboard_name') {
+            merged[key] = override[key];
           }
         }
 
-        if (attachmentMessage.length > 0) {
-          embed.addFields([{ name: 'Attachments', value: attachmentMessage.join('\n'), inline: true }]);
+        return merged;
+      }
+
+      for (const sb of starboards) {
+        const config = getStarboardConfig(sb.name, newMessage.channel.id);
+        // Now you can use `config`, which will either be the default starboard config or an overridden one
+
+        if (!config.enabled) continue;
+        if (!config.link_edits) continue;
+        if (newMessage.author.bot && !config.allow_bots) continue;
+
+        const starChannel = newMessage.guild.channels.cache.get(config.channel_id);
+        if (!starChannel) continue;
+        if (!starChannel.permissionsFor(newMessage.guild.members.me).has(['SendMessages', 'ViewChannel'])) continue;
+
+        if (starChannel === newMessage.channel) continue;
+
+        // Fetch existing starboard message ID (if any)
+        const [rows] = await connection.query(
+          /* sql */
+          `
+            SELECT
+              starboard_msg_id
+            FROM
+              starboard_messages
+            WHERE
+              starboard_id = ?
+              AND original_msg_id = ?
+          `,
+          [sb.id, newMessage.id],
+        );
+
+        const existingStarMsgId = rows.length ? rows[0].starboard_msg_id : null;
+        if (!existingStarMsgId) continue;
+
+        const starMessage = await starChannel.messages.fetch(existingStarMsgId).catch(() => null);
+        if (!starMessage) continue;
+        const existingFooter = starMessage.embeds[0].footer.text;
+
+        const embeds = [];
+        const settings = client.getSettings(newMessage.guild);
+
+        // Function to process attachments
+        const processAttachments = (attachments, embed, embedsArray) => {
+          const attachmentMessage = [];
+
+          if (attachments.length > 0 && attachments[0].contentType?.startsWith('image')) {
+            embed.setImage(attachments[0].url);
+          }
+
+          for (const attachment of attachments.slice(1)) {
+            if (attachment.contentType?.startsWith('image')) {
+              const attachmentEmbed = new EmbedBuilder()
+                .setImage(attachment.url)
+                .setColor(config.color || settings.embedColor);
+              embedsArray.push(attachmentEmbed);
+            } else {
+              attachmentMessage.push(`[${attachment.name}](${attachment.url})`);
+            }
+          }
+
+          if (attachmentMessage.length > 0) {
+            embed.addFields([{ name: 'Attachments', value: attachmentMessage.join('\n'), inline: true }]);
+          }
+        };
+
+        // If replied-to is enabled and the message has a reference
+        let replyEmbed;
+        if (config.replied_to && newMessage.reference) {
+          const replyMessage = await newMessage.channel.messages
+            .fetch(newMessage.reference.messageId)
+            .catch(() => null);
+
+          if (replyMessage) {
+            const replyAttachments = [...replyMessage.attachments.values()];
+            replyEmbed = new EmbedBuilder()
+              .setAuthor({
+                name: `Replying to ${replyMessage.author.tag}`,
+                iconURL: replyMessage.author.displayAvatarURL(),
+              })
+              .setThumbnail(replyMessage.author.displayAvatarURL())
+              .setDescription(replyMessage.content || null)
+              .setURL(replyMessage.url)
+              .addFields([
+                { name: 'Author', value: replyMessage.author.toString(), inline: true },
+                { name: 'Channel', value: `<#${replyMessage.channel.id}>`, inline: true },
+                { name: 'Message', value: `[Jump To](${replyMessage.url})`, inline: true },
+              ])
+              .setColor(config.color || settings.embedColor)
+              .setFooter({ text: replyMessage.id.toString() })
+              .setTimestamp();
+
+            processAttachments(replyAttachments, replyEmbed, embeds);
+            embeds.unshift(replyEmbed);
+          }
         }
-      };
 
-      // If replied-to is enabled and the message has a reference
-      let replyEmbed;
-      if (config['replied-to'] && newMessage.reference) {
-        const replyMessage = await newMessage.channel.messages.fetch(newMessage.reference.messageId).catch(() => null);
+        // Process the main message
+        const attachments = [...newMessage.attachments.values()];
+        const embed = new EmbedBuilder()
+          .setAuthor({ name: newMessage.author.tag, iconURL: newMessage.author.displayAvatarURL() })
+          .setThumbnail(newMessage.author.displayAvatarURL())
+          .setDescription(newMessage.content || null)
+          .setURL(newMessage.url)
+          .addFields([
+            { name: 'Author', value: newMessage.author.toString(), inline: true },
+            { name: 'Channel', value: `<#${newMessage.channel.id}>`, inline: true },
+            { name: 'Message', value: `[Jump To](${newMessage.url})`, inline: true },
+          ])
+          .setColor(config.color || settings.embedColor)
+          .setFooter({ text: existingFooter })
+          .setTimestamp();
 
-        if (replyMessage) {
-          const replyAttachments = [...replyMessage.attachments.values()];
-          replyEmbed = new EmbedBuilder()
-            .setAuthor({
-              name: `Replying to ${replyMessage.author.tag}`,
-              iconURL: replyMessage.author.displayAvatarURL(),
-            })
-            .setThumbnail(replyMessage.author.displayAvatarURL())
-            .setDescription(replyMessage.content || null)
-            .setURL(replyMessage.url)
-            .addFields([
-              { name: 'Author', value: replyMessage.author.toString(), inline: true },
-              { name: 'Channel', value: `<#${replyMessage.channel.id}>`, inline: true },
-              { name: 'Message', value: `[Jump To](${replyMessage.url})`, inline: true },
-            ])
-            .setColor(config.color || settings.embedColor)
-            .setFooter({ text: replyMessage.id.toString() })
-            .setTimestamp();
-
-          processAttachments(replyAttachments, replyEmbed, embeds);
+        processAttachments(attachments, embed, embeds);
+        embeds.unshift(embed);
+        if (replyEmbed) {
           embeds.unshift(replyEmbed);
         }
-      }
 
-      // Process the main message
-      const attachments = [...newMessage.attachments.values()];
-      const embed = new EmbedBuilder()
-        .setAuthor({ name: newMessage.author.tag, iconURL: newMessage.author.displayAvatarURL() })
-        .setThumbnail(newMessage.author.displayAvatarURL())
-        .setDescription(newMessage.content || null)
-        .setURL(newMessage.url)
-        .addFields([
-          { name: 'Author', value: newMessage.author.toString(), inline: true },
-          { name: 'Channel', value: `<#${newMessage.channel.id}>`, inline: true },
-          { name: 'Message', value: `[Jump To](${newMessage.url})`, inline: true },
-        ])
-        .setColor(config.color || settings.embedColor)
-        .setFooter({ text: `${existingFooter} | ${newMessage.id}` })
-        .setTimestamp();
-
-      processAttachments(attachments, embed, embeds);
-      embeds.unshift(embed);
-      if (replyEmbed) {
-        embeds.unshift(replyEmbed);
-      }
-
-      // Add any existing message embeds AFTER the original embed
-      if (newMessage.embeds?.length > 0) {
-        if (config['extra-embeds']) {
-          newMessage.embeds.forEach((msgEmbed) => embeds.push(EmbedBuilder.from(msgEmbed)));
+        // Add any existing message embeds AFTER the original embed
+        if (newMessage.embeds?.length > 0) {
+          if (config.extra_embeds) {
+            newMessage.embeds.forEach((msgEmbed) => embeds.push(EmbedBuilder.from(msgEmbed)));
+          }
         }
+
+        const content = config.ping_author ? `<@${newMessage.author.id}>` : null;
+
+        await starMessage.edit({ content, embeds });
       }
-
-      const content = config['ping-author'] ? `<@${newMessage.author.id}>` : null;
-
-      await starMessage.edit({ content, embeds });
+    } catch (error) {
+      client.logger.error(error);
+    } finally {
+      connection.release();
     }
   }
 

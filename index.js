@@ -862,6 +862,86 @@ const loadMysql = async () => {
     )
   `);
 
+  await connection.execute(/* sql */ `
+    CREATE TABLE IF NOT EXISTS starboards (
+      id BIGINT AUTO_INCREMENT PRIMARY KEY,
+      server_id VARCHAR(30) NOT NULL,
+      name VARCHAR(255) NOT NULL,
+      enabled BOOLEAN DEFAULT TRUE,
+      channel_id VARCHAR(30) NOT NULL,
+      threshold INT DEFAULT 3,
+      threshold_remove INT DEFAULT 0,
+      color VARCHAR(10),
+      emoji VARCHAR(60),
+      display_emoji VARCHAR(60),
+      downvote_emoji VARCHAR(60),
+      allow_bots BOOLEAN DEFAULT TRUE,
+      self_vote BOOLEAN DEFAULT FALSE,
+      ping_author BOOLEAN DEFAULT FALSE,
+      replied_to BOOLEAN DEFAULT TRUE,
+      link_deletes BOOLEAN DEFAULT FALSE,
+      link_edits BOOLEAN DEFAULT TRUE,
+      autoreact_upvote BOOLEAN DEFAULT TRUE,
+      autoreact_downvote BOOLEAN DEFAULT TRUE,
+      remove_invalid_reactions BOOLEAN DEFAULT TRUE,
+      require_image BOOLEAN DEFAULT FALSE,
+      extra_embeds BOOLEAN DEFAULT TRUE,
+      use_server_profile BOOLEAN DEFAULT TRUE,
+      show_thumbnail BOOLEAN DEFAULT TRUE,
+      older_than BIGINT NULL,
+      newer_than BIGINT NULL,
+      attachments_list BOOLEAN DEFAULT TRUE,
+      UNIQUE KEY (server_id, name)
+    ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+  `);
+
+  await connection.execute(/* sql */ `
+    CREATE TABLE IF NOT EXISTS starboard_overrides (
+      id BIGINT AUTO_INCREMENT PRIMARY KEY,
+      starboard_id BIGINT NOT NULL,
+      name VARCHAR(255) NOT NULL,
+      channels JSON NULL,
+      threshold INT NULL,
+      threshold_remove INT NULL,
+      emoji VARCHAR(60) NULL,
+      display_emoji VARCHAR(60) NULL,
+      downvote_emoji VARCHAR(60) NULL,
+      self_vote BOOLEAN NULL,
+      allow_bots BOOLEAN NULL,
+      require_image BOOLEAN NULL,
+      older_than BIGINT NULL,
+      newer_than BIGINT NULL,
+      enabled BOOLEAN NULL,
+      autoreact_upvote BOOLEAN NULL,
+      autoreact_downvote BOOLEAN NULL,
+      link_deletes BOOLEAN NULL,
+      link_edits BOOLEAN NULL,
+      remove_invalid_reactions BOOLEAN NULL,
+      ping_author BOOLEAN NULL,
+      extra_embeds BOOLEAN NULL,
+      use_server_profile BOOLEAN NULL,
+      color VARCHAR(10) NULL,
+      replied_to BOOLEAN NULL,
+      attachments_list BOOLEAN NULL,
+      show_thumbnail BOOLEAN NULL,
+      FOREIGN KEY (starboard_id) REFERENCES starboards (id) ON DELETE CASCADE,
+      UNIQUE KEY (starboard_id, name)
+    ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+  `);
+
+  await connection.execute(/* sql */ `
+    CREATE TABLE IF NOT EXISTS starboard_messages (
+      starboard_id BIGINT NOT NULL,
+      original_msg_id VARCHAR(30) NOT NULL,
+      starboard_msg_id VARCHAR(30) NOT NULL,
+      stars INT DEFAULT 0,
+      author_id VARCHAR(30) NOT NULL,
+      channel_id VARCHAR(30) NOT NULL,
+      PRIMARY KEY (starboard_id, original_msg_id),
+      FOREIGN KEY (starboard_id) REFERENCES starboards (id) ON DELETE CASCADE
+    ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+  `);
+
   const [views] = await connection.query(/* sql */ `
     SHOW FULL TABLES IN ${config.mysql.database}
     WHERE
