@@ -495,6 +495,7 @@ exports.run = async (interaction) => {
                 so.name AS override_name,
                 so.channels AS override_channels,
                 so.threshold AS override_threshold,
+                so.threshold_remove AS override_threshold_remove,
                 so.color AS override_color,
                 so.emoji AS override_emoji,
                 so.display_emoji AS override_display_emoji,
@@ -521,6 +522,7 @@ exports.run = async (interaction) => {
                 s.enabled AS starboard_enabled,
                 s.channel_id AS starboard_channel_id,
                 s.threshold AS starboard_threshold,
+                s.threshold_remove AS starboard_threshold_remove,
                 s.color AS starboard_color,
                 s.emoji AS starboard_emoji,
                 s.display_emoji AS starboard_display_emoji,
@@ -597,7 +599,7 @@ exports.run = async (interaction) => {
                 name: 'Requirements',
                 value: stripIndents`
                   Threshold: ${config.threshold}
-                  Threshold-Remove: ${config.threshold_remove ? config.threshold_remove : 'None'}
+                  Threshold-Remove: ${config.threshold_remove || config.threshold_remove === 0 ? config.threshold_remove : 'None'}
                   Upvote-Emoji: ${config.emoji}
                   Downvote-Emoji: ${config.downvote_emoji ? config.downvote_emoji : 'None'}
                   Self-Vote: ${config.self_vote ? 'True' : 'False'}

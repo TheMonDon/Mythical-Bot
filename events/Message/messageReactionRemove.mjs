@@ -196,7 +196,7 @@ export async function run(client, messageReaction, user) {
           .edit({ embeds: replyEmbed ? [replyEmbed, newEmbed, ...newEmbeds] : [newEmbed, ...newEmbeds] })
           .catch((e) => console.error('Error updating starboard message:', e));
 
-        if (config.threshold_remove && netVotes <= config.threshold_remove) {
+        if ((config.threshold_remove || config.threshold_remove === 0) && netVotes <= config.threshold_remove) {
           await msg.delete().catch(() => null);
 
           await connection.query(
@@ -322,7 +322,7 @@ export async function run(client, messageReaction, user) {
             [netVotes, sb.id, msg.id],
           );
         }
-      } else if (config.threshold_remove && netVotes <= config.threshold_remove) {
+      } else if ((config.threshold_remove || config.threshold_remove === 0) && netVotes <= config.threshold_remove) {
         // Remove starboard message from Discord
         const verifyMessage = await starChannel.messages.fetch(existingStarMsgId).catch(() => null);
         if (verifyMessage && verifyMessage.id === existingStarMsgId) {
