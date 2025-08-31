@@ -181,7 +181,7 @@ export async function run(client, messageReaction, user) {
         const newEmbed = EmbedBuilder.from(msg.embeds[embed === 1 ? 1 : 0]);
 
         newEmbed.setFooter({
-          text: `${config.emoji} ${netVotes} | ${originalMsgId}`,
+          text: `${config.display_emoji} ${netVotes} | ${originalMsgId}`,
         });
 
         let newEmbeds = [];
@@ -274,7 +274,7 @@ export async function run(client, messageReaction, user) {
         const newEmbeds = starMessage.embeds.map((embed) => EmbedBuilder.from(embed));
 
         newEmbeds[0].setFooter({
-          text: `${config.emoji} ${netVotes} | ${msg.id}`,
+          text: `${config.display_emoji} ${netVotes} | ${msg.id}`,
         });
 
         const content = config.ping_author ? `<@${msg.author.id}>` : null;
@@ -296,6 +296,32 @@ export async function run(client, messageReaction, user) {
           `,
           [netVotes, sb.id, msg.id],
         );
+      } else if (existingStarMsgId) {
+        // This is the new block for updating the embed when votes fall below threshold
+        const starMessage = await starChannel.messages.fetch(existingStarMsgId).catch(() => null);
+        if (starMessage) {
+          const newEmbeds = starMessage.embeds.map((embed) => EmbedBuilder.from(embed));
+          newEmbeds[0].setFooter({
+            text: `${config.display_emoji} ${netVotes} | ${msg.id}`,
+          });
+
+          await starMessage
+            .edit({ embeds: newEmbeds })
+            .catch((e) => console.error('Error updating starboard message with new vote count:', e));
+
+          await connection.query(
+            /* sql */
+            `
+              UPDATE starboard_messages
+              SET
+                stars = ?
+              WHERE
+                starboard_id = ?
+                AND original_msg_id = ?
+            `,
+            [netVotes, sb.id, msg.id],
+          );
+        }
       } else if (config.threshold_remove && netVotes <= config.threshold_remove) {
         // Remove starboard message from Discord
         const verifyMessage = await starChannel.messages.fetch(existingStarMsgId).catch(() => null);
