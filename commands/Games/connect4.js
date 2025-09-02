@@ -92,8 +92,9 @@ class Connect4 extends Command {
       const hasEmoji = new RegExp(`^(?:${emojiRegex().source})$`).test(color);
       const hasCustom = color.match(customEmojiRegex);
       if (hasCustom && !msg.guild) return msg.channel.send('You can only use custom emojis in a server.');
-      if (hasCustom && msg.guild && !msg.guild.emojis.cache.has(hasCustom[2]))
+      if (hasCustom && msg.guild && !msg.guild.emojis.cache.has(hasCustom[2])) {
         return msg.channel.send('You can only use custom emojis from this server.');
+      }
       if (!hasCustom && !hasEmoji && !colors[color.toLowerCase()]) {
         return msg.channel.send(
           `Sorry that is not valid, please use an emoji or one of the following: ${client.util.list(
