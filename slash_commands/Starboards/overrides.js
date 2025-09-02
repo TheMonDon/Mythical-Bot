@@ -1,5 +1,6 @@
 const { EmbedBuilder, SlashCommandBuilder } = require('discord.js');
 const { stripIndents } = require('common-tags');
+const emojiRegex = require('emoji-regex');
 
 exports.conf = {
   permLevel: 'Administrator',
@@ -146,7 +147,9 @@ exports.commandData = new SlashCommandBuilder()
               .setAutocomplete(true),
           )
           .addStringOption((option) =>
-            option.setName('display-emoji').setDescription('New display-emoji to use (default: ⭐)'),
+            option
+              .setName('display-emoji')
+              .setDescription('The emoji shown next to the number of points on a starboard post. (default: ⭐)'),
           )
           .addBooleanOption((option) =>
             option
@@ -657,7 +660,9 @@ exports.run = async (interaction) => {
         `
           SELECT
             o.id,
-            o.name
+            o.name,
+            o.threshold AS overrides_threshold,
+            s.threshold AS starboard_threshold
           FROM
             starboard_overrides o
             JOIN starboards s ON o.starboard_id = s.id
@@ -675,7 +680,17 @@ exports.run = async (interaction) => {
       }
 
       const overrideId = rows[0].id;
-      const overrideName = rows[0].name; // actual stored casing
+      const overrideName = rows[0].name;
+      const existingThreshold = rows[0].overrides_threshold ?? rows[0].starboard_threshold;
+
+      function isValidStarboardEmoji(content) {
+        content = content.trim();
+
+        const regex = emojiRegex();
+        const matches = [...content.matchAll(regex)];
+
+        return matches.length === 1 && matches[0][0] === content;
+      }
 
       const updates = {};
 
@@ -692,7 +707,23 @@ exports.run = async (interaction) => {
           const requireImage = interaction.options.getBoolean('require-image');
           const downvoteEmoji = interaction.options.getString('downvote-emoji');
 
-          if (threshold) updates.threshold = threshold;
+          if (threshold !== null) {
+            if (!isNaN(parseInt(thresholdRemove))) {
+              const thresholdUpdate = parseInt(threshold);
+
+              if (thresholdUpdate < 1 || thresholdUpdate > 10000) {
+                await interaction.channel.send(
+                  'You provided an invalid threshold, it must be between 1 and 10,000. It has been skipped.',
+                );
+              } else {
+                updates.threshold_remove = thresholdUpdate;
+              }
+            } else {
+              await interaction.channel.send(
+                'You provided an invalid threshold, it must be between 1 and 10,000. It has been skipped.',
+              );
+            }
+          }
 
           if (thresholdRemove !== null) {
             if (thresholdRemove.toLowerCase() === 'none') {
@@ -705,7 +736,13 @@ exports.run = async (interaction) => {
                   'You provided an invalid threshold remove, it must be between -10,000 and 10,000. It has been skipped.',
                 );
               } else {
-                updates.threshold_remove = thresholdRemoveUpdate;
+                const thresholdToCheck = updates.threshold ?? existingThreshold;
+
+                if (thresholdToCheck !== null && thresholdRemoveUpdate >= thresholdToCheck) {
+                  await interaction.channel.send('Threshold-remove must be less than threshold. It has been skipped.');
+                } else {
+                  updates.threshold_remove = thresholdRemoveUpdate;
+                }
               }
             } else {
               await interaction.channel.send(
@@ -715,27 +752,22 @@ exports.run = async (interaction) => {
           }
 
           if (upvoteEmoji !== null) {
-            if (upvoteEmoji.startsWith('<') && upvoteEmoji.endsWith('>')) {
-              const emojiId = upvoteEmoji.split(':')[2].slice(0, -1);
-              if (!interaction.guild.emojis.cache.has(emojiId)) {
-                await interaction.channel.send(
-                  'You provided an invalid upvote emoji that is not available in this server, it has been skipped.',
-                );
-              }
+            if (!isValidStarboardEmoji(upvoteEmoji)) {
+              await interaction.channel.send(
+                'You provided an invalid upvote-emoji, it must be a single default emoji. It has been skipped.',
+              );
+            } else {
+              updates.emoji = upvoteEmoji;
             }
-            updates.emoji = upvoteEmoji;
           }
 
           if (downvoteEmoji !== null) {
             if (downvoteEmoji.toLowerCase() === 'none') {
               updates.downvote_emoji = null;
-            } else if (downvoteEmoji.startsWith('<') && downvoteEmoji.endsWith('>')) {
-              const emojiId = downvoteEmoji.split(':')[2].slice(0, 1);
-              if (!interaction.guild.emojis.cache.has(emojiId)) {
-                await interaction.channel.send(
-                  'You provided an invalid downvote emoji that is not available in this server, it has been skipped.',
-                );
-              }
+            } else if (!isValidStarboardEmoji(downvoteEmoji)) {
+              await interaction.channel.send(
+                'You provided an invalid downvote-emoji, it must be a single default emoji. It has been skipped.',
+              );
             } else {
               updates.downvote_emoji = downvoteEmoji;
             }
@@ -778,13 +810,10 @@ exports.run = async (interaction) => {
           if (displayEmoji !== null) {
             if (displayEmoji.toLowerCase() === 'none') {
               updates.display_emoji = null;
-            } else if (displayEmoji.startsWith('<') && displayEmoji.endsWith('>')) {
-              const emojiId = displayEmoji.split(':')[2].slice(0, 1);
-              if (!interaction.guild.emojis.cache.has(emojiId)) {
-                await interaction.channel.send(
-                  'You provided an invalid display emoji that is not available in this server, it has been skipped.',
-                );
-              }
+            } else if (!isValidStarboardEmoji(displayEmoji)) {
+              await interaction.channel.send(
+                'You provided an invalid display-emoji, it must be a single default emoji. It has been skipped.',
+              );
             } else {
               updates.display_emoji = displayEmoji;
             }
@@ -831,10 +860,12 @@ exports.run = async (interaction) => {
           if (color !== null) {
             const hexRegex = /(^(#|0x)?([a-fA-F0-9]){6}$)|(^(#|0x)?([a-fA-F0-9]){3}$)/;
             if (!hexRegex.test(color)) {
-              await interaction.channel.send(`You provided an invalid hex code for color and it has been skipped.`);
+              await interaction.channel.send(
+                'You provided an invalid hex code for the color option. It has been skipped.',
+              );
+            } else {
+              updates.color = color;
             }
-
-            updates.color = color;
           }
 
           if (repliedTo !== null) updates.replied_to = repliedTo;
