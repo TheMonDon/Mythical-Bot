@@ -50,12 +50,14 @@ export async function run(client, oldThread, newThread) {
         archived: oldThread.archived,
         locked: oldThread.locked,
         parent: oldThread.parent,
+        id: oldThread.id,
       },
       current: {
         name: newThread.name,
         archived: newThread.archived,
         locked: newThread.locked,
         parent: newThread.parent,
+        id: newThread.id,
       },
     };
 
@@ -94,6 +96,7 @@ async function flushThreadUpdate(threadId, guild, logChannelID) {
   const embed = new EmbedBuilder()
     .setTitle(`Thread "${old.name}" Updated`)
     .setColor('#EE82EE')
+    .setDescription(`<#${current.id}>`)
     .setFooter({ text: `ID: ${current.id}` })
     .setTimestamp();
 
