@@ -366,12 +366,14 @@ export async function run(client, messageReaction, user) {
                 }
 
                 if (config.use_server_profile) {
-                  replyEmbed.setAuthor({
-                    name: `Replying to ${replyMessage.member.displayName}`,
-                    iconURL: replyMessage.member.displayAvatarURL(),
-                  });
-                  if (config.show_thumbnail) {
-                    replyEmbed.setThumbnail(replyMessage.member.displayAvatarURL());
+                  if (replyMessage.member) {
+                    replyEmbed.setAuthor({
+                      name: `Replying to ${replyMessage.member.displayName}`,
+                      iconURL: replyMessage.member.displayAvatarURL(),
+                    });
+                    if (config.show_thumbnail) {
+                      replyEmbed.setThumbnail(replyMessage.member.displayAvatarURL());
+                    }
                   }
                 }
 
@@ -427,28 +429,34 @@ export async function run(client, messageReaction, user) {
           const content = config.ping_author ? `<@${msg.author.id}>` : null;
 
           if (existingStarMsgId) {
-            // Try to fetch the message in Discord
             const starMessage = await starChannel.messages.fetch(existingStarMsgId).catch(() => null);
 
             if (starMessage) {
-              // Update existing starboard message in Discord
-              await starMessage.edit({ content, embeds }).catch((err) => {
-                console.error('Error updating starboard message:', err);
-              });
+              const embedsToUpdate = starMessage.embeds.map((embed) => EmbedBuilder.from(embed));
+              const mainEmbed = embedsToUpdate.find((embed) => embed.data.footer?.text.endsWith(msg.id));
 
-              // Update DB (stars count only, since starboard_msg_id already exists)
-              await connection.query(
-                /* sql */
-                `
-                  UPDATE starboard_messages
-                  SET
-                    stars = ?
-                  WHERE
-                    starboard_id = ?
-                    AND original_msg_id = ?
-                `,
-                [netVotes, sb.id, msg.id],
-              );
+              if (mainEmbed) {
+                mainEmbed.setFooter({
+                  text: `${config.display_emoji} ${netVotes} | ${msg.id}`,
+                });
+
+                await starMessage
+                  .edit({ embeds: embedsToUpdate })
+                  .catch((e) => console.error('Error updating starboard message with new vote count:', e));
+
+                await connection.query(
+                  /* sql */
+                  `
+                    UPDATE starboard_messages
+                    SET
+                      stars = ?
+                    WHERE
+                      starboard_id = ?
+                      AND original_msg_id = ?
+                  `,
+                  [netVotes, sb.id, msg.id],
+                );
+              }
             } else {
               // Starboard message was deleted in Discord, create a new one
               try {
@@ -559,8 +567,8 @@ export async function run(client, messageReaction, user) {
           }
         } else if (
           existingStarMsgId &&
-          (config.threshold_remove || config.threshold_remove === 0) &&
-          netVotes <= config.threshold_remove
+          config.threshold_remove !== 'unset' &&
+          netVotes <= Number(config.threshold_remove)
         ) {
           try {
             const starMessage = await starChannel.messages.fetch(existingStarMsgId).catch(() => null);

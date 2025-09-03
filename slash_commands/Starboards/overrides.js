@@ -602,7 +602,7 @@ exports.run = async (interaction) => {
                 name: 'Requirements',
                 value: stripIndents`
                   Threshold: ${config.threshold}
-                  Threshold-Remove: ${config.threshold_remove || config.threshold_remove === 0 ? config.threshold_remove : 'None'}
+                  Threshold-Remove: ${config.threshold_remove}
                   Upvote-Emoji: ${config.emoji}
                   Downvote-Emoji: ${config.downvote_emoji ? config.downvote_emoji : 'None'}
                   Self-Vote: ${config.self_vote ? 'True' : 'False'}
@@ -727,13 +727,13 @@ exports.run = async (interaction) => {
 
           if (thresholdRemove !== null) {
             if (thresholdRemove.toLowerCase() === 'none') {
-              updates.threshold_remove = null;
+              updates.threshold_remove = 'unset';
             } else if (!isNaN(parseInt(thresholdRemove))) {
               const thresholdRemoveUpdate = parseInt(thresholdRemove);
 
               if (thresholdRemoveUpdate < -10000 || thresholdRemoveUpdate > 10000) {
                 await interaction.channel.send(
-                  'You provided an invalid threshold remove, it must be between -10,000 and 10,000. It has been skipped.',
+                  'You provided an invalid threshold-remove, it must be between -10,000 and 10,000. It has been skipped.',
                 );
               } else {
                 const thresholdToCheck = updates.threshold ?? existingThreshold;
@@ -741,12 +741,12 @@ exports.run = async (interaction) => {
                 if (thresholdToCheck !== null && thresholdRemoveUpdate >= thresholdToCheck) {
                   await interaction.channel.send('Threshold-remove must be less than threshold. It has been skipped.');
                 } else {
-                  updates.threshold_remove = thresholdRemoveUpdate;
+                  updates.threshold_remove = String(thresholdRemoveUpdate);
                 }
               }
             } else {
               await interaction.channel.send(
-                'You provided an invalid threshold remove, it must be between -10,000 and 10,000. It has been skipped.',
+                'You provided an invalid threshold-remove, it must be between -10,000 and 10,000. It has been skipped.',
               );
             }
           }
