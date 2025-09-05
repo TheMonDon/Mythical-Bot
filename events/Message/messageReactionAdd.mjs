@@ -140,6 +140,26 @@ export async function run(client, messageReaction, user) {
 
         // Reaction on a message in the starboard channel
         if (isStarboardChannel) {
+          // Fetch the original message's channel ID from the database entry
+          const [rows] = await connection.query(
+            /* sql */
+            `
+              SELECT
+                channel_id
+              FROM
+                starboard_messages
+              WHERE
+                starboard_id = ?
+                AND starboard_msg_id = ?
+            `,
+            [sb.id, msg.id],
+          );
+
+          const originalChannelId = rows[0]?.channel_id;
+
+          // Use this fetched ID to get the correct starboard configuration
+          const config = getStarboardConfig(sb.name, originalChannelId);
+
           let embed = 0;
           if (msg.embeds[0]?.author?.name.startsWith('Replying to')) {
             embed = 1;
@@ -216,7 +236,10 @@ export async function run(client, messageReaction, user) {
             .edit({ embeds: replyEmbed ? [replyEmbed, newEmbed, ...newEmbeds] : [newEmbed, ...newEmbeds] })
             .catch((e) => console.error('Error updating starboard message:', e));
 
-          if ((config.threshold_remove || config.threshold_remove === 0) && netVotes <= config.threshold_remove) {
+          console.log('Net Votes:', netVotes);
+          console.log('Threshold Remove:', Number(config.threshold_remove));
+
+          if (config.threshold_remove !== 'unset' && netVotes <= Number(config.threshold_remove)) {
             await msg.delete().catch(() => null);
 
             await connection.query(
@@ -428,6 +451,28 @@ export async function run(client, messageReaction, user) {
 
           const content = config.ping_author ? `<@${msg.author.id}>` : null;
 
+          if (existingStarMsgId && config.threshold_remove !== 'unset' && netVotes <= Number(config.threshold_remove)) {
+            try {
+              const starMessage = await starChannel.messages.fetch(existingStarMsgId).catch(() => null);
+              if (starMessage) {
+                await starMessage.delete();
+                await connection.query(
+                  /* sql */
+                  `
+                    DELETE FROM starboard_messages
+                    WHERE
+                      starboard_id = ?
+                      AND original_msg_id = ?
+                  `,
+                  [sb.id, msg.id],
+                );
+              }
+            } catch (err) {
+              console.error('Error deleting starboard message:', err);
+            }
+            continue;
+          }
+
           if (existingStarMsgId) {
             const starMessage = await starChannel.messages.fetch(existingStarMsgId).catch(() => null);
 
@@ -466,7 +511,7 @@ export async function run(client, messageReaction, user) {
                   await starMessage.react(config.emoji);
                 }
 
-                if (config.downvote_emoji && config.autoreact_downvote) {
+                if (config.downvote_emoji && config.downvote_emoji !== 'None' && config.autoreact_downvote) {
                   await starMessage.react(config.downvote_emoji);
                 }
 
@@ -564,29 +609,6 @@ export async function run(client, messageReaction, user) {
               `,
               [netVotes, sb.id, msg.id],
             );
-          }
-        } else if (
-          existingStarMsgId &&
-          config.threshold_remove !== 'unset' &&
-          netVotes <= Number(config.threshold_remove)
-        ) {
-          try {
-            const starMessage = await starChannel.messages.fetch(existingStarMsgId).catch(() => null);
-            if (starMessage) {
-              await starMessage.delete();
-              await connection.query(
-                /* sql */
-                `
-                  DELETE FROM starboard_messages
-                  WHERE
-                    starboard_id = ?
-                    AND original_msg_id = ?
-                `,
-                [sb.id, msg.id],
-              );
-            }
-          } catch (err) {
-            console.error('Error deleting starboard message:', err);
           }
         }
       }

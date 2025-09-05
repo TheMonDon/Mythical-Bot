@@ -763,7 +763,7 @@ exports.run = async (interaction) => {
 
           if (downvoteEmoji !== null) {
             if (downvoteEmoji.toLowerCase() === 'none') {
-              updates.downvote_emoji = null;
+              updates.downvote_emoji = 'None';
             } else if (!isValidStarboardEmoji(downvoteEmoji)) {
               await interaction.channel.send(
                 'You provided an invalid downvote-emoji, it must be a single default emoji. It has been skipped.',

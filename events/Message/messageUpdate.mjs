@@ -67,7 +67,7 @@ export async function run(client, oldMessage, newMessage) {
         ])
         .setTimestamp();
 
-      if (newMessage.mentions.users.size !== 0 || newMessage.mentions.users.size !== oldMessage.mentions.users.size) {
+      if (newMessage.mentions.users.size !== 0 && newMessage.mentions.users.size !== oldMessage.mentions.users.size) {
         if (newMessage.mentions.users.size !== oldMessage.mentions.users.size) {
           embed.addFields([
             {
@@ -183,11 +183,7 @@ export async function run(client, oldMessage, newMessage) {
         const blacklisted = blacklistRows[0]?.blacklisted;
         const reason = blacklistRows[0]?.reason || 'No reason provided';
 
-        if (
-          blacklisted &&
-          level < 4 &&
-          (command.help.name !== 'blacklist' || command.help.name !== 'global-blacklist')
-        ) {
+        if (blacklisted && level < 4 && (cmd.help.name !== 'blacklist' || cmd.help.name !== 'global-blacklist')) {
           const embed = new EmbedBuilder()
             .setTitle('Server Blacklisted')
             .setAuthor({ name: newMessage.author.tag, iconURL: newMessage.author.displayAvatarURL() })
@@ -281,7 +277,7 @@ export async function run(client, oldMessage, newMessage) {
       const isSlash = false;
 
       await connection.query('CALL updateCommandStats(?, ?, ?, ?, ?)', [
-        command.help.name,
+        cmd.help.name,
         isText ? 1 : 0,
         isSlash ? 1 : 0,
         isAlias ? 1 : 0,

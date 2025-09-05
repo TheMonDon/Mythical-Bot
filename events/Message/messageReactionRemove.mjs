@@ -133,6 +133,26 @@ export async function run(client, messageReaction, user) {
 
       // Reaction removed from a message in the starboard channel
       if (isStarboardChannel) {
+        // Fetch the original message's channel ID from the database entry
+        const [rows] = await connection.query(
+          /* sql */
+          `
+            SELECT
+              channel_id
+            FROM
+              starboard_messages
+            WHERE
+              starboard_id = ?
+              AND starboard_msg_id = ?
+          `,
+          [sb.id, msg.id],
+        );
+
+        const originalChannelId = rows[0]?.channel_id;
+
+        // Use this fetched ID to get the correct starboard configuration
+        const config = getStarboardConfig(sb.name, originalChannelId);
+
         let embed = 0;
         if (msg.embeds[0]?.author?.name.startsWith('Replying to')) {
           embed = 1;
