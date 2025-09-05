@@ -1,4 +1,4 @@
-import { EmbedBuilder } from 'discord.js';
+import { EmbedBuilder, AuditLogEvent } from 'discord.js';
 import { QuickDB } from 'quick.db';
 const db = new QuickDB();
 
@@ -44,12 +44,18 @@ export async function run(client, message) {
 
       let delby;
       if (message.guild.members.me.permissions.has('ViewAuditLog')) {
-        await message.guild
-          .fetchAuditLogs()
-          .then((audit) => {
-            delby = audit.entries.first().executor;
-          })
-          .catch(console.error);
+        const audit = await message.guild.fetchAuditLogs({
+          type: AuditLogEvent.MessageDelete,
+          limit: 1,
+        });
+        const entry = audit.entries.first();
+
+        if (entry && entry.target.id === message.author.id && Date.now() - entry.createdTimestamp < 5000) {
+          delby = entry.executor;
+        } else {
+          // Message was probably deleted by the author
+          delby = message.author;
+        }
       }
 
       const embed = new EmbedBuilder()
