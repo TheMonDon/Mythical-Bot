@@ -1,4 +1,4 @@
-import { EmbedBuilder } from 'discord.js';
+import { EmbedBuilder, AuditLogEvent } from 'discord.js';
 
 // Temp cache for delayed updates
 const threadUpdateQueue = new Map();
@@ -129,12 +129,19 @@ async function flushThreadUpdate(threadId, guild, logChannelID) {
 
   let updatedBy;
   if (guild.members.me.permissions.has('ViewAuditLog')) {
-    await guild
-      .fetchAuditLogs()
-      .then((audit) => {
-        updatedBy = audit.entries.first().executor;
-      })
-      .catch(console.error);
+    const audit = await guild.fetchAuditLogs({
+      type: AuditLogEvent.ThreadUpdate,
+      limit: 1,
+    });
+    const entry = audit.entries.first();
+
+    if (entry && entry.target.id === current.id && Date.now() - entry.createdTimestamp < 10000) {
+      if (!entry.executor || entry.executor.system) {
+        updatedBy = 'System (Auto-Archive)';
+      } else {
+        updatedBy = entry.executor;
+      }
+    }
   }
 
   if (embed.data.fields?.length === 0) return;
