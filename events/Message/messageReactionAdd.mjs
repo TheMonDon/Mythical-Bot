@@ -84,15 +84,6 @@ export async function run(client, messageReaction, user) {
         if (config.older_than !== null && messageAge < config.older_than) continue;
         if (config.newer_than !== null && messageAge > config.newer_than) continue;
 
-        const matchEmoji = (reaction, emojiConfig) => {
-          if (emojiConfig.startsWith('<') && emojiConfig.endsWith('>')) {
-            const emojiId = emojiConfig.split(':')[2].slice(0, -1);
-            return reaction.emoji.id === emojiId;
-          } else {
-            return reaction.emoji.name === emojiConfig;
-          }
-        };
-
         const getReactionUsers = async (reactions, emojiConfig) => {
           if (!reactions) return [];
           let reaction;
@@ -117,8 +108,8 @@ export async function run(client, messageReaction, user) {
           }
         };
 
-        const isStarboardReaction = matchEmoji(messageReaction, config.emoji);
-        const isAntiStarboardReaction = config.downvote_emoji && matchEmoji(messageReaction, config.downvote_emoji);
+        const isStarboardReaction = messageReaction.emoji.name === config.emoji;
+        const isAntiStarboardReaction = config.downvote_emoji && messageReaction.emoji.name === config.downvote_emoji;
 
         if (!isStarboardReaction && !isAntiStarboardReaction) continue;
 
@@ -190,6 +181,9 @@ export async function run(client, messageReaction, user) {
           if (config.downvote_emoji) {
             const starboardDownvoters = await getReactionUsers(msg.reactions.cache, config.downvote_emoji);
             starboardDownvoters.forEach((id) => downVoteCounter.add(id));
+
+            const originalDownvoters = await getReactionUsers(msg.reactions.cache, config.downvote_emoji);
+            originalDownvoters.forEach((id) => downVoteCounter.add(id));
           }
 
           try {
@@ -236,10 +230,11 @@ export async function run(client, messageReaction, user) {
             .edit({ embeds: replyEmbed ? [replyEmbed, newEmbed, ...newEmbeds] : [newEmbed, ...newEmbeds] })
             .catch((e) => console.error('Error updating starboard message:', e));
 
-          console.log('Net Votes:', netVotes);
-          console.log('Threshold Remove:', Number(config.threshold_remove));
-
-          if (config.threshold_remove !== 'unset' && netVotes <= Number(config.threshold_remove)) {
+          if (
+            config.threshold_remove &&
+            config.threshold_remove !== 'unset' &&
+            netVotes <= Number(config.threshold_remove)
+          ) {
             await msg.delete().catch(() => null);
 
             await connection.query(

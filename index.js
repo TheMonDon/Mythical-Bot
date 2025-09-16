@@ -888,8 +888,8 @@ const loadMysql = async () => {
       extra_embeds BOOLEAN DEFAULT TRUE,
       use_server_profile BOOLEAN DEFAULT TRUE,
       show_thumbnail BOOLEAN DEFAULT TRUE,
-      older_than BIGINT NULL,
-      newer_than BIGINT NULL,
+      older_than VARCHAR(20) NULL,
+      newer_than VARCHAR(20) NULL,
       attachments_list BOOLEAN DEFAULT TRUE,
       UNIQUE KEY (server_id, name)
     ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
@@ -909,8 +909,8 @@ const loadMysql = async () => {
       self_vote BOOLEAN NULL,
       allow_bots BOOLEAN NULL,
       require_image BOOLEAN NULL,
-      older_than BIGINT NULL,
-      newer_than BIGINT NULL,
+      older_than VARCHAR(20) NULL,
+      newer_than VARCHAR(20) NULL,
       enabled BOOLEAN NULL,
       autoreact_upvote BOOLEAN NULL,
       autoreact_downvote BOOLEAN NULL,

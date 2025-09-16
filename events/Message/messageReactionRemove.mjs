@@ -80,25 +80,9 @@ export async function run(client, messageReaction, user) {
       if (!config.enabled) continue;
       if (msg.author.bot && !config.allow_bots) continue;
 
-      const matchEmoji = (reaction, emojiConfig) => {
-        if (emojiConfig.startsWith('<') && emojiConfig.endsWith('>')) {
-          const emojiId = emojiConfig.split(':')[2].slice(0, -1);
-          return reaction.emoji.id === emojiId;
-        } else {
-          return reaction.emoji.name === emojiConfig;
-        }
-      };
-
       const getReactionUsers = async (reactions, emojiConfig) => {
         if (!reactions) return [];
-        let reaction;
-
-        if (emojiConfig.startsWith('<') && emojiConfig.endsWith('>')) {
-          const emojiId = emojiConfig.split(':')[2].slice(0, -1);
-          reaction = reactions.find((r) => r.emoji.id === emojiId);
-        } else {
-          reaction = reactions.find((r) => r.emoji.name === emojiConfig);
-        }
+        const reaction = reactions.find((r) => r.emoji.name === emojiConfig);
 
         if (!reaction) return [];
 
@@ -113,8 +97,8 @@ export async function run(client, messageReaction, user) {
         }
       };
 
-      const isStarboardReaction = matchEmoji(messageReaction, config.emoji);
-      const isAntiStarboardReaction = config.downvote_emoji && matchEmoji(messageReaction, config.downvote_emoji);
+      const isStarboardReaction = messageReaction.emoji.name === config.emoji;
+      const isAntiStarboardReaction = config.downvote_emoji && messageReaction.emoji.name === config.downvote_emoji;
 
       if (!isStarboardReaction && !isAntiStarboardReaction) continue;
 
@@ -187,6 +171,11 @@ export async function run(client, messageReaction, user) {
           if (originalMsg) {
             const originalUpvoters = await getReactionUsers(originalMsg.reactions.cache, config.emoji);
             originalUpvoters.forEach((id) => upVoteCounter.add(id));
+
+            if (config.downvote_emoji) {
+              const originalDownvoters = await getReactionUsers(originalMsg.reactions.cache, config.downvote_emoji);
+              originalDownvoters.forEach((id) => downVoteCounter.add(id));
+            }
           }
         } catch (err) {
           console.error('Failed to fetch original message:', err);
@@ -216,7 +205,11 @@ export async function run(client, messageReaction, user) {
           .edit({ embeds: replyEmbed ? [replyEmbed, newEmbed, ...newEmbeds] : [newEmbed, ...newEmbeds] })
           .catch((e) => console.error('Error updating starboard message:', e));
 
-        if ((config.threshold_remove || config.threshold_remove === 0) && netVotes <= config.threshold_remove) {
+        if (
+          config.threshold_remove &&
+          config.threshold_remove !== 'unset' &&
+          netVotes <= Number(config.threshold_remove)
+        ) {
           await msg.delete().catch(() => null);
 
           await connection.query(
@@ -283,6 +276,9 @@ export async function run(client, messageReaction, user) {
       if (config.downvote_emoji) {
         const starboardDownvoters = await getReactionUsers(starMessage.reactions.cache, config.downvote_emoji);
         starboardDownvoters.forEach((id) => downVoteCounter.add(id));
+
+        const originalDownvoters = await getReactionUsers(msg.reactions.cache, config.downvote_emoji);
+        originalDownvoters.forEach((id) => downVoteCounter.add(id));
       }
 
       upVoteCounter.delete(client.user.id);

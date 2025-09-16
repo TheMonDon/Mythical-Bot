@@ -783,7 +783,7 @@ exports.run = async (interaction) => {
             const time = parse(olderThan);
 
             if (time === 0) {
-              updates.older_than = null;
+              updates.older_than = 'Disabled';
             } else {
               updates.older_than = time;
             }
@@ -792,7 +792,7 @@ exports.run = async (interaction) => {
           if (newerThan !== null) {
             const time = parse(newerThan);
             if (time === 0) {
-              updates.newer_than = null;
+              updates.newer_than = 'Disabled';
             } else {
               updates.newer_than = time;
             }
