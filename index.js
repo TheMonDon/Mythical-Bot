@@ -1082,8 +1082,14 @@ loadLavalink();
 loadMysql();
 init();
 
-client.on('error', (e) => client.logger.error(e));
-client.on('warn', (info) => client.logger.warn(info));
+client.on('error', (e) => {
+  console.error(e);
+  client.logger.error(e);
+});
+client.on('warn', (info) => {
+  console.log(info);
+  client.logger.warn(info);
+});
 
 process.on('uncaughtException', (err) => {
   console.error(err);
