@@ -647,7 +647,7 @@ exports.run = async (interaction) => {
                   'You provided an invalid threshold, it must be between 1 and 10,000. It has been skipped.',
                 );
               } else {
-                updates.threshold_remove = thresholdUpdate;
+                updates.threshold = thresholdUpdate;
               }
             } else {
               await interaction.channel.send(
