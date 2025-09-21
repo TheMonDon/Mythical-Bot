@@ -39,6 +39,7 @@ const config = {
   // MySQL Database Configuration
   mysql: {
     host: 'localhost',
+    port: '3306',
     user: 'mythical',
     password: 'youshallnotpass',
     database: 'MythicalBot',
