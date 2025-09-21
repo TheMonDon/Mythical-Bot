@@ -50,7 +50,6 @@ class Help extends Command {
       image: 'images',
       info: 'information',
       playlist: 'playlists',
-      starboard: 'starboards',
       star: 'starboards',
       ticket: 'tickets',
     };

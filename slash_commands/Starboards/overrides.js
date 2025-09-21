@@ -708,7 +708,7 @@ exports.run = async (interaction) => {
           const downvoteEmoji = interaction.options.getString('downvote-emoji');
 
           if (threshold !== null) {
-            if (!isNaN(parseInt(thresholdRemove))) {
+            if (!isNaN(parseInt(threshold))) {
               const thresholdUpdate = parseInt(threshold);
 
               if (thresholdUpdate < 1 || thresholdUpdate > 10000) {
