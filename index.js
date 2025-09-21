@@ -574,6 +574,7 @@ const loadMysql = async () => {
 
   const tempConn = await mysql.createConnection({
     host: config.mysql.host,
+    port: config.mysql.port,
     user: config.mysql.user,
     password: config.mysql.password,
   });
@@ -583,6 +584,7 @@ const loadMysql = async () => {
 
   const pool = mysql.createPool({
     host: config.mysql.host,
+    port: config.mysql.port,
     user: config.mysql.user,
     password: config.mysql.password,
     multipleStatements: true,
