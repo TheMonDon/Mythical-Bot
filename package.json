@@ -39,7 +39,7 @@
     "duck-duck-scrape": "^2.2.7",
     "emoji-regex": "^10.4.0",
     "enmap": "^5.9.10",
-    "express": "^4.21.2",
+    "express": "^4.22.1",
     "fluent-ffmpeg": "^2.1.2",
     "genius-lyrics": "^4.4.7",
     "https": "^1.0.0",
