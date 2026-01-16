@@ -15,7 +15,7 @@
   "license": "MIT",
   "dependencies": {
     "@discordjs/voice": "^0.18.0",
-    "@mapbox/node-pre-gyp": "^1.0.9",
+    "@mapbox/node-pre-gyp": "^2.0.3",
     "@twemoji/api": "^15.1.0",
     "better-sqlite3": "^11.8.0",
     "bgutils-js": "^3.2.0",
