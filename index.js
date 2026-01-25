@@ -999,9 +999,9 @@ const init = async function init() {
   client.login(config.token);
 };
 
+loadMysql();
 loadGiveaways();
 loadLavalink();
-loadMysql();
 init();
 
 client.on('error', (e) => {
