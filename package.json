@@ -14,7 +14,7 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@discordjs/voice": "^0.18.0",
+    "@discordjs/voice": "^0.19.0",
     "@mapbox/node-pre-gyp": "^2.0.3",
     "@twemoji/api": "^15.1.0",
     "better-sqlite3": "^11.8.0",
@@ -46,7 +46,7 @@
     "human-ms": "^0.0.2",
     "is-image-url": "^1.1.8",
     "is-url": "^1.2.4",
-    "lavalink-client": "^2.5.7",
+    "lavalink-client": "^2.9.6",
     "luxon": "^3.1.1",
     "mathjs": "^13.0.3",
     "moment": "^2.29.4",
