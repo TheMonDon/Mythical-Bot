@@ -24,8 +24,6 @@ export async function run(client, oldMember, newMember) {
     const logSystem = logRows[0].member_timeout;
     if (logSystem !== 1) return;
 
-    // Fetch all members
-    await oldMember.guild.members.fetch();
     if (oldMember.isCommunicationDisabled() === newMember.isCommunicationDisabled()) return;
 
     let executor;

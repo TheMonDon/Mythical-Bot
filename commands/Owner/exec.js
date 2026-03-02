@@ -29,7 +29,7 @@ class Exec extends Command {
       const maxLength = 1980;
 
       while (text.length > 0) {
-        const content = text.substring(0, maxLength);
+        const content = await this.client.util.clean(this.client, text.substring(0, maxLength));
         text = text.substring(maxLength);
 
         msg.channel.send(`\`\`\`bash\n${content}\n\`\`\``);

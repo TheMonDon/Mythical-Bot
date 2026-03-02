@@ -555,7 +555,7 @@ const loadLavalink = async () => {
   client.on('raw', (d) => client.lavalink.sendRawData(d));
 
   // Initialize lavalink when the bot is ready
-  client.once('ready', () => {
+  client.once('clientReady', () => {
     // Update client ID now that the bot is ready
     client.lavalink.options.client.id = client.user.id;
     console.log('Initializing Lavalink...');
@@ -1079,9 +1079,9 @@ const init = async function init() {
   client.login(config.token);
 };
 
+loadMysql();
 loadGiveaways();
 loadLavalink();
-loadMysql();
 init();
 
 client.on('error', (e) => {
