@@ -204,10 +204,20 @@ async function clean(client, text) {
     config.BotListToken,
     config.OpenWeather,
     config.botLogsWebhookURL,
+    config.BotPanelID,
+    config.BotPanelSecret,
     config.youtubeCookie,
     config.Wordnik,
-    config.mysql,
-    config.nodes,
+    config.chatbotPrompt,
+    config.mysql.host,
+    config.mysql.port,
+    config.mysql.user,
+    config.mysql.password,
+    config.mysql.database,
+    config.nodes.map((node) => node.authorization).join(' '),
+    config.nodes.map((node) => node.host).join(' '),
+    config.nodes.map((node) => node.port).join(' '),
+    config.nodes.map((node) => node.id).join(' '),
   ];
 
   for (let i = 0; i < secrets.length; i++) {
