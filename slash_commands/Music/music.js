@@ -314,7 +314,6 @@ exports.run = async (interaction) => {
 
         // Add track(s) to queue
         if (result.loadType === 'playlist') {
-          await player.queue.add(result.tracks);
           const totalDuration = result.tracks.reduce((acc, track) => acc + (track.info.duration || 0), 0);
           const durationString = moment
             .duration(totalDuration)
@@ -338,10 +337,9 @@ exports.run = async (interaction) => {
             em.setThumbnail(result.tracks[0].info.artworkUrl);
           }
 
+          await player.queue.add(result.tracks);
           await interaction.editReply({ embeds: [em] });
         } else {
-          await player.queue.add(result.tracks[0]);
-
           const queuePosition = player.queue.tracks.length;
           let calculateEstimatedTime = player.queue.tracks.reduce((acc, track) => acc + (track.info.duration || 0), 0);
           if (player?.queue?.current) {
@@ -362,7 +360,7 @@ exports.run = async (interaction) => {
                   **Duration:** ${durationString}
                   **Requested By:** ${interaction.user}
                   **Queue Position:** ${queuePosition}
-                  **Estimated Time Until Playing:** ${timeLeft}`,
+                  ${timeLeft === '0 seconds' ? '**Playing Next!**' : '**Estimated Time Until Playing:** ' + timeLeft}`,
             )
             .setColor(interaction.settings.embedColor)
             .setTimestamp();
@@ -371,6 +369,7 @@ exports.run = async (interaction) => {
             em.setThumbnail(result.tracks[0].info.artworkUrl);
           }
 
+          await player.queue.add(result.tracks[0]);
           await interaction.editReply({ embeds: [em] });
         }
 
@@ -424,7 +423,6 @@ exports.run = async (interaction) => {
 
         // Add track(s) to queue
         if (result.loadType === 'playlist') {
-          await player.queue.add(result.tracks, 0);
           const totalDuration = result.tracks.reduce((acc, track) => acc + (track.info.duration || 0), 0);
           const durationStr = totalDuration
             ? `\`${Math.floor(totalDuration / 60000)}:${String(Math.floor((totalDuration % 60000) / 1000)).padStart(
@@ -451,10 +449,9 @@ exports.run = async (interaction) => {
             em.setThumbnail(result.tracks[0].info.artworkUrl);
           }
 
+          await player.queue.add(result.tracks, 0);
           await interaction.editReply({ embeds: [em] });
         } else {
-          await player.queue.add(result.tracks[0], 0);
-
           const duration = result.tracks[0].info.duration
             ? `\`${Math.floor(result.tracks[0].info.duration / 60000)}:${String(
                 Math.floor((result.tracks[0].info.duration % 60000) / 1000),
@@ -476,6 +473,7 @@ exports.run = async (interaction) => {
             em.setThumbnail(result.tracks[0].info.artworkUrl);
           }
 
+          await player.queue.add(result.tracks[0], 0);
           await interaction.editReply({ embeds: [em] });
         }
 
