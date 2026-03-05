@@ -303,7 +303,7 @@ exports.run = async (interaction) => {
         const result = await player.search(
           {
             query,
-            source: 'spsearch',
+            source: 'dzsearch',
           },
           interaction.user,
         );
@@ -412,7 +412,7 @@ exports.run = async (interaction) => {
         const result = await player.search(
           {
             query,
-            source: 'spsearch',
+            source: 'dzsearch',
           },
           interaction.user,
         );

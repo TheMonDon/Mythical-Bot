@@ -56,7 +56,7 @@ class Play extends Command {
       const result = await player.search(
         {
           query,
-          source: 'spsearch',
+          source: 'dzsearch',
         },
         msg.author,
       );
