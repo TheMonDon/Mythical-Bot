@@ -446,28 +446,6 @@ export async function run(client, messageReaction, user) {
 
           const content = config.ping_author ? `<@${msg.author.id}>` : null;
 
-          if (existingStarMsgId && config.threshold_remove !== 'unset' && netVotes <= Number(config.threshold_remove)) {
-            try {
-              const starMessage = await starChannel.messages.fetch(existingStarMsgId).catch(() => null);
-              if (starMessage) {
-                await starMessage.delete();
-                await connection.query(
-                  /* sql */
-                  `
-                    DELETE FROM starboard_messages
-                    WHERE
-                      starboard_id = ?
-                      AND original_msg_id = ?
-                  `,
-                  [sb.id, msg.id],
-                );
-              }
-            } catch (err) {
-              console.error('Error deleting starboard message:', err);
-            }
-            continue;
-          }
-
           if (existingStarMsgId) {
             const starMessage = await starChannel.messages.fetch(existingStarMsgId).catch(() => null);
 
@@ -580,30 +558,50 @@ export async function run(client, messageReaction, user) {
             }
           }
         } else if (existingStarMsgId) {
-          // This is the new block for updating the embed when votes fall below threshold
-          const starMessage = await starChannel.messages.fetch(existingStarMsgId).catch(() => null);
-          if (starMessage) {
-            const newEmbeds = starMessage.embeds.map((embed) => EmbedBuilder.from(embed));
-            newEmbeds[0].setFooter({
-              text: `${config.display_emoji} ${netVotes} | ${msg.id}`,
-            });
+          if (config.threshold_remove !== 'unset' && netVotes <= Number(config.threshold_remove)) {
+            try {
+              const starMessage = await starChannel.messages.fetch(existingStarMsgId).catch(() => null);
+              if (starMessage) {
+                await starMessage.delete();
+                await connection.query(
+                  /* sql */
+                  `
+                    DELETE FROM starboard_messages
+                    WHERE
+                      starboard_id = ?
+                      AND original_msg_id = ?
+                  `,
+                  [sb.id, msg.id],
+                );
+              }
+            } catch (err) {
+              console.error('Error deleting starboard message:', err);
+            }
+          } else {
+            const starMessage = await starChannel.messages.fetch(existingStarMsgId).catch(() => null);
+            if (starMessage) {
+              const newEmbeds = starMessage.embeds.map((embed) => EmbedBuilder.from(embed));
+              newEmbeds[0].setFooter({
+                text: `${config.display_emoji} ${netVotes} | ${msg.id}`,
+              });
 
-            await starMessage
-              .edit({ embeds: newEmbeds })
-              .catch((e) => console.error('Error updating starboard message with new vote count:', e));
+              await starMessage
+                .edit({ embeds: newEmbeds })
+                .catch((e) => console.error('Error updating starboard message with new vote count:', e));
 
-            await connection.query(
-              /* sql */
-              `
-                UPDATE starboard_messages
-                SET
-                  stars = ?
-                WHERE
-                  starboard_id = ?
-                  AND original_msg_id = ?
-              `,
-              [netVotes, sb.id, msg.id],
-            );
+              await connection.query(
+                /* sql */
+                `
+                  UPDATE starboard_messages
+                  SET
+                    stars = ?
+                  WHERE
+                    starboard_id = ?
+                    AND original_msg_id = ?
+                `,
+                [netVotes, sb.id, msg.id],
+              );
+            }
           }
         }
       }
