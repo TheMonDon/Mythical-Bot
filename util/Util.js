@@ -584,7 +584,17 @@ async function generateNowPlayingCard({ player, song, requester }) {
     ctx.closePath();
   }
 
-  const rgbColors = await getColorFromURL(song.info.artworkUrl);
+  let artworkUrl = song.info.artworkUrl;
+  if (!artworkUrl) {
+    // Use youtube image if source is youtube and artworkUrl is missing
+    if (song.info.sourceName === 'youtube') {
+      artworkUrl = `https://img.youtube.com/vi/${song.info.identifier}/maxresdefault.jpg`;
+    } else {
+      // Fallback to a default image if artworkUrl is missing and source is not youtube
+      artworkUrl = 'https://i.cisn.xyz/piqe4/BixUhUYA41/raw.png';
+    }
+  }
+  const rgbColors = await getColorFromURL(artworkUrl);
   const primaryColor = tinycolor({ r: rgbColors[0], g: rgbColors[1], b: rgbColors[2] });
 
   const secondaryColor = primaryColor.clone().spin(30).lighten(10);
@@ -617,7 +627,7 @@ async function generateNowPlayingCard({ player, song, requester }) {
 
   // Load and draw album art
   const thumbnailY = (height - thumbnailSize) / 2; // centers vertically
-  await drawRoundedThumbnail(ctx, song.info.artworkUrl, 30, thumbnailY, thumbnailSize, thumbnailSize);
+  await drawRoundedThumbnail(ctx, artworkUrl, 30, thumbnailY, thumbnailSize, thumbnailSize);
 
   // Title
   let title = song.info.title;
@@ -667,7 +677,6 @@ async function generateNowPlayingCard({ player, song, requester }) {
     }
   }
 
-  // Usage:
   const fontColor = getBestReadableColor(dominantColor, fontColors);
 
   // Title

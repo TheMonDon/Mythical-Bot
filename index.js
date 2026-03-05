@@ -369,10 +369,20 @@ const loadLavalink = async () => {
 
         const guild = client.guilds.cache.get(player.guildId);
         const requester = guild.members.cache.get(track.requester.id);
+        let thumbnailUrl = track.info.artworkUrl;
+        if (!thumbnailUrl) {
+          // Use youtube image if source is youtube and artworkUrl is missing
+          if (track.info.sourceName === 'youtube') {
+            thumbnailUrl = `https://img.youtube.com/vi/${track.info.identifier}/maxresdefault.jpg`;
+          } else {
+            // Fallback to a default image if artworkUrl is missing and source is not youtube
+            thumbnailUrl = 'https://i.cisn.xyz/piqe4/BixUhUYA41/raw.png';
+          }
+        }
         const buffer = await client.util.generateTrackStartCard({
           title,
           artist: track.info.author,
-          thumbnailUrl: track.info.artworkUrl,
+          thumbnailUrl,
           duration: durationString,
           requestedBy: requester.displayName,
           queueLength: player.queue.tracks.length,
