@@ -32,7 +32,7 @@ class Help extends Command {
       'tickets',
     ];
     const modCategories = ['moderator', 'logging'];
-    const adminCategories = ['administrator', 'starboard'];
+    const adminCategories = ['administrator', 'starboards'];
     const botSupportCategories = ['bot support'];
     const botAdminCategories = ['bot admin'];
     const botOwnerCategories = ['owner'];
@@ -50,7 +50,7 @@ class Help extends Command {
       image: 'images',
       info: 'information',
       playlist: 'playlists',
-      star: 'starboard',
+      star: 'starboards',
       ticket: 'tickets',
     };
 

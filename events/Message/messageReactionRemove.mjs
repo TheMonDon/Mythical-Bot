@@ -1,11 +1,11 @@
 import { EmbedBuilder } from 'discord.js';
-import { QuickDB } from 'quick.db';
-const db = new QuickDB();
 
 export async function run(client, messageReaction, user) {
   if (user?.bot) return;
   if (!messageReaction) return;
   const msg = messageReaction.message;
+
+  const connection = await client.db.getConnection();
 
   try {
     if (messageReaction.partial) {
@@ -26,49 +26,63 @@ export async function run(client, messageReaction, user) {
       }
     }
 
-    const starboards = (await db.get(`servers.${msg.guild.id}.starboards`)) || {};
-    const overrides = (await db.get(`servers.${msg.guild.id}.overrides`)) || {};
+    const [starboards] = await connection.query(
+      /* sql */ `
+        SELECT
+          *
+        FROM
+          starboards
+        WHERE
+          server_id = ?
+      `,
+      [msg.guild.id],
+    );
+    const [overrides] = await connection.query(
+      /* sql */
+      `
+        SELECT
+          o.*,
+          s.name AS starboard_name
+        FROM
+          starboard_overrides o
+          JOIN starboards s ON s.id = o.starboard_id
+        WHERE
+          s.server_id = ?
+      `,
+      [msg.guild.id],
+    );
 
-    const getStarboardConfig = (starboardName, channelId) => {
-      const baseConfig = starboards[starboardName];
-      if (!baseConfig) return null;
+    function getStarboardConfig(starboardName, channelId) {
+      const base = starboards.find((s) => s.name === starboardName);
+      if (!base) return null;
 
-      // Find the first override that applies to this channel
-      for (const [overrideName, overrideConfig] of Object.entries(overrides)) {
-        if (overrideConfig.starboard === starboardName && overrideConfig.channels.includes(channelId)) {
-          return { ...baseConfig, ...overrideConfig, overrideName };
+      const override = overrides.find(
+        (o) => o.starboard_name === starboardName && JSON.parse(o.channels || '[]').includes(channelId),
+      );
+
+      if (!override) return base;
+
+      // Merge: override fields that are not null
+      const merged = { ...base };
+      for (const key in override) {
+        if (override[key] !== null && key !== 'channels' && key !== 'starboard_name') {
+          merged[key] = override[key];
         }
       }
 
-      return baseConfig; // Default config if no override applies
-    };
+      return merged;
+    }
 
-    for (const name of Object.keys(starboards)) {
-      const config = getStarboardConfig(name, msg.channel.id);
+    for (const sb of starboards) {
+      const config = getStarboardConfig(sb.name, msg.channel.id);
       // Now you can use `config`, which will either be the default starboard config or an overridden one
 
       if (!config.enabled) continue;
-      if (msg.author.bot && !config['allow-bots']) continue;
-
-      const matchEmoji = (reaction, emojiConfig) => {
-        if (emojiConfig.startsWith('<') && emojiConfig.endsWith('>')) {
-          const emojiId = emojiConfig.split(':')[2].slice(0, -1);
-          return reaction.emoji.id === emojiId;
-        } else {
-          return reaction.emoji.name === emojiConfig;
-        }
-      };
+      if (msg.author.bot && !config.allow_bots) continue;
 
       const getReactionUsers = async (reactions, emojiConfig) => {
         if (!reactions) return [];
-        let reaction;
-
-        if (emojiConfig.startsWith('<') && emojiConfig.endsWith('>')) {
-          const emojiId = emojiConfig.split(':')[2].slice(0, -1);
-          reaction = reactions.find((r) => r.emoji.id === emojiId);
-        } else {
-          reaction = reactions.find((r) => r.emoji.name === emojiConfig);
-        }
+        const reaction = reactions.find((r) => r.emoji.name === emojiConfig);
 
         if (!reaction) return [];
 
@@ -83,12 +97,12 @@ export async function run(client, messageReaction, user) {
         }
       };
 
-      const isStarboardReaction = matchEmoji(messageReaction, config.emoji);
-      const isAntiStarboardReaction = config['downvote-emoji'] && matchEmoji(messageReaction, config['downvote-emoji']);
+      const isStarboardReaction = messageReaction.emoji.name === config.emoji;
+      const isAntiStarboardReaction = config.downvote_emoji && messageReaction.emoji.name === config.downvote_emoji;
 
       if (!isStarboardReaction && !isAntiStarboardReaction) continue;
 
-      const starChannel = msg.guild.channels.cache.get(config.channelId);
+      const starChannel = msg.guild.channels.cache.get(config.channel_id);
 
       if (msg.channel.nsfw && !starChannel.nsfw) continue;
 
@@ -99,10 +113,30 @@ export async function run(client, messageReaction, user) {
         continue;
       }
 
-      const isStarboardChannel = msg.channel.id === config.channelId;
+      const isStarboardChannel = msg.channel.id === config.channel_id;
 
       // Reaction removed from a message in the starboard channel
       if (isStarboardChannel) {
+        // Fetch the original message's channel ID from the database entry
+        const [rows] = await connection.query(
+          /* sql */
+          `
+            SELECT
+              channel_id
+            FROM
+              starboard_messages
+            WHERE
+              starboard_id = ?
+              AND starboard_msg_id = ?
+          `,
+          [sb.id, msg.id],
+        );
+
+        const originalChannelId = rows[0]?.channel_id;
+
+        // Use this fetched ID to get the correct starboard configuration
+        const config = getStarboardConfig(sb.name, originalChannelId);
+
         let embed = 0;
         if (msg.embeds[0]?.author?.name.startsWith('Replying to')) {
           embed = 1;
@@ -127,8 +161,8 @@ export async function run(client, messageReaction, user) {
         const starboardUpvoters = await getReactionUsers(msg.reactions.cache, config.emoji);
         starboardUpvoters.forEach((id) => upVoteCounter.add(id));
 
-        if (config['downvote-emoji']) {
-          const starboardDownvoters = await getReactionUsers(msg.reactions.cache, config['downvote-emoji']);
+        if (config.downvote_emoji) {
+          const starboardDownvoters = await getReactionUsers(msg.reactions.cache, config.downvote_emoji);
           starboardDownvoters.forEach((id) => downVoteCounter.add(id));
         }
 
@@ -137,6 +171,11 @@ export async function run(client, messageReaction, user) {
           if (originalMsg) {
             const originalUpvoters = await getReactionUsers(originalMsg.reactions.cache, config.emoji);
             originalUpvoters.forEach((id) => upVoteCounter.add(id));
+
+            if (config.downvote_emoji) {
+              const originalDownvoters = await getReactionUsers(originalMsg.reactions.cache, config.downvote_emoji);
+              originalDownvoters.forEach((id) => downVoteCounter.add(id));
+            }
           }
         } catch (err) {
           console.error('Failed to fetch original message:', err);
@@ -145,17 +184,17 @@ export async function run(client, messageReaction, user) {
         upVoteCounter.delete(client.user.id);
         downVoteCounter.delete(client.user.id);
 
-        const netVotes = config['downvote-emoji'] ? upVoteCounter.size - downVoteCounter.size : upVoteCounter.size;
+        const netVotes = config.downvote_emoji ? upVoteCounter.size - downVoteCounter.size : upVoteCounter.size;
 
         const replyEmbed = embed === 1 ? EmbedBuilder.from(msg.embeds[0]) : null;
         const newEmbed = EmbedBuilder.from(msg.embeds[embed === 1 ? 1 : 0]);
 
         newEmbed.setFooter({
-          text: `${config.emoji} ${netVotes} | ${originalMsgId}`,
+          text: `${config.display_emoji} ${netVotes} | ${originalMsgId}`,
         });
 
         let newEmbeds = [];
-        if (config['extra-embeds'] && msg.embeds?.length > (embed === 1 ? 2 : 1)) {
+        if (config.extra_embeds && msg.embeds?.length > (embed === 1 ? 2 : 1)) {
           newEmbeds = msg.embeds
             .slice(embed === 1 ? 2 : 1)
             .map((embed) => EmbedBuilder.from(embed))
@@ -166,20 +205,60 @@ export async function run(client, messageReaction, user) {
           .edit({ embeds: replyEmbed ? [replyEmbed, newEmbed, ...newEmbeds] : [newEmbed, ...newEmbeds] })
           .catch((e) => console.error('Error updating starboard message:', e));
 
-        if (netVotes < config.threshold) {
+        if (
+          config.threshold_remove &&
+          config.threshold_remove !== 'unset' &&
+          netVotes <= Number(config.threshold_remove)
+        ) {
           await msg.delete().catch(() => null);
-          await db.delete(`servers.${msg.guild.id}.starboards.${name}.messages.${originalMsgId}`);
+
+          await connection.query(
+            /* sql */
+            `
+              DELETE FROM starboard_messages
+              WHERE
+                starboard_id = ?
+                AND original_msg_id = ?
+            `,
+            [sb.id, originalMsgId],
+          );
         } else {
-          await db.set(`servers.${msg.guild.id}.starboards.${name}.messages.${originalMsgId}.stars`, netVotes);
+          // Update existing stars count
+          await connection.query(
+            /* sql */
+            `
+              UPDATE starboard_messages
+              SET
+                stars = ?
+              WHERE
+                starboard_id = ?
+                AND original_msg_id = ?
+            `,
+            [netVotes, sb.id, originalMsgId],
+          );
         }
 
         continue;
       }
 
       // Reaction removed from a regular message
-      const existingStarMsgId = await db.get(
-        `servers.${msg.guild.id}.starboards.${name}.messages.${msg.id}.starboardMsgId`,
+
+      // Fetch existing starboard message ID (if any)
+      const [rows] = await connection.query(
+        /* sql */
+        `
+          SELECT
+            starboard_msg_id
+          FROM
+            starboard_messages
+          WHERE
+            starboard_id = ?
+            AND original_msg_id = ?
+        `,
+        [sb.id, msg.id],
       );
+
+      const existingStarMsgId = rows.length ? rows[0].starboard_msg_id : null;
       if (!existingStarMsgId) continue;
 
       const starMessage = await starChannel.messages.fetch(existingStarMsgId).catch(() => null);
@@ -194,38 +273,101 @@ export async function run(client, messageReaction, user) {
       const starboardUpvoters = await getReactionUsers(starMessage.reactions.cache, config.emoji);
       starboardUpvoters.forEach((id) => upVoteCounter.add(id));
 
-      if (config['downvote-emoji']) {
-        const starboardDownvoters = await getReactionUsers(starMessage.reactions.cache, config['downvote-emoji']);
+      if (config.downvote_emoji) {
+        const starboardDownvoters = await getReactionUsers(starMessage.reactions.cache, config.downvote_emoji);
         starboardDownvoters.forEach((id) => downVoteCounter.add(id));
+
+        const originalDownvoters = await getReactionUsers(msg.reactions.cache, config.downvote_emoji);
+        originalDownvoters.forEach((id) => downVoteCounter.add(id));
       }
 
       upVoteCounter.delete(client.user.id);
       downVoteCounter.delete(client.user.id);
 
-      const netVotes = config['downvote-emoji'] ? upVoteCounter.size - downVoteCounter.size : upVoteCounter.size;
+      const netVotes = config.downvote_emoji ? upVoteCounter.size - downVoteCounter.size : upVoteCounter.size;
+
+      if (existingStarMsgId && config.threshold_remove !== 'unset' && netVotes <= Number(config.threshold_remove)) {
+        // Remove starboard message from Discord
+        const verifyMessage = await starChannel.messages.fetch(existingStarMsgId).catch(() => null);
+        if (verifyMessage && verifyMessage.id === existingStarMsgId) {
+          await verifyMessage.delete().catch(() => null);
+        }
+
+        // Delete row from MySQL
+        await connection.query(
+          /* sql */
+          `
+            DELETE FROM starboard_messages
+            WHERE
+              starboard_id = ?
+              AND original_msg_id = ?
+          `,
+          [sb.id, msg.id],
+        );
+        continue;
+      }
 
       if (netVotes >= config.threshold) {
         const newEmbeds = starMessage.embeds.map((embed) => EmbedBuilder.from(embed));
 
         newEmbeds[0].setFooter({
-          text: `${config.emoji} ${netVotes} | ${msg.id}`,
+          text: `${config.display_emoji} ${netVotes} | ${msg.id}`,
         });
 
-        const content = config['ping-author'] ? `<@${msg.author.id}>` : null;
+        const content = config.ping_author ? `<@${msg.author.id}>` : null;
 
         await starMessage
           .edit({ content, embeds: newEmbeds })
           .catch((e) => console.error('Error updating starboard message:', e));
-        await db.set(`servers.${msg.guild.id}.starboards.${name}.messages.${msg.id}.stars`, netVotes);
-      } else {
-        const verifyMessage = await starChannel.messages.fetch(existingStarMsgId).catch(() => null);
-        if (verifyMessage && verifyMessage.id === existingStarMsgId) {
-          await verifyMessage.delete().catch((e) => console.error('Error deleting starboard message:', e));
+
+        // Update the stars in MySQL
+        await connection.query(
+          /* sql */
+          `
+            UPDATE starboard_messages
+            SET
+              stars = ?
+            WHERE
+              starboard_id = ?
+              AND original_msg_id = ?
+          `,
+          [netVotes, sb.id, msg.id],
+        );
+      } else if (existingStarMsgId) {
+        const starMessage = await starChannel.messages.fetch(existingStarMsgId).catch(() => null);
+
+        if (starMessage) {
+          const embedsToUpdate = starMessage.embeds.map((embed) => EmbedBuilder.from(embed));
+          const mainEmbed = embedsToUpdate.find((embed) => embed.data.footer?.text.endsWith(msg.id));
+
+          if (mainEmbed) {
+            mainEmbed.setFooter({
+              text: `${config.display_emoji} ${netVotes} | ${msg.id}`,
+            });
+
+            await starMessage
+              .edit({ embeds: embedsToUpdate })
+              .catch((e) => console.error('Error updating starboard message with new vote count:', e));
+
+            await connection.query(
+              /* sql */
+              `
+                UPDATE starboard_messages
+                SET
+                  stars = ?
+                WHERE
+                  starboard_id = ?
+                  AND original_msg_id = ?
+              `,
+              [netVotes, sb.id, msg.id],
+            );
+          }
         }
-        await db.delete(`servers.${msg.guild.id}.starboards.${name}.messages.${msg.id}`);
       }
     }
   } catch (error) {
     console.error('Starboard reaction remove error:', error);
+  } finally {
+    connection.release();
   }
 }
