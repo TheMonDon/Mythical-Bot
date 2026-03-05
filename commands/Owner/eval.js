@@ -31,14 +31,34 @@ class Eval extends Command {
     const code = (lang, code) =>
       `\`\`\`${lang}\n${String(code).slice(0, 4000) + (code.length >= 4000 ? '...' : '')}\n\`\`\``;
 
-    if (!query) return msg.channel.send('Please, write something so I can evaluate!');
+    // Function to fetch attachment text
+    async function getAttachmentCode() {
+      if (!msg.attachments.size) return null;
+      const attachment = msg.attachments.first();
+      if (!attachment.name.endsWith('.txt') && !attachment.name.endsWith('.js')) return null;
+
+      const response = await fetch(attachment.url);
+      if (!response.ok) return null;
+
+      return await response.text();
+    }
+
+    let evalCode = query;
+
+    // If no query but there is an attachment, use its text content
+    if (!evalCode) {
+      const attachmentCode = await getAttachmentCode();
+      if (!attachmentCode) return msg.channel.send('Please provide code to evaluate either as text or attachment!');
+      evalCode = attachmentCode;
+    }
 
     try {
-      let evald = eval(query);
+      let evald = eval(evalCode);
       if (evald instanceof Promise) {
         evald = await evald;
         promise = true;
       }
+
       const res = typeof evald === 'string' ? evald : inspect(evald, { depth: 0 });
       const res2 = await util.clean(this.client, res);
 

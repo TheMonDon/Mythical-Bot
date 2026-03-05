@@ -1,6 +1,4 @@
 import { EmbedBuilder, AuditLogEvent } from 'discord.js';
-import { QuickDB } from 'quick.db';
-const db = new QuickDB();
 
 export async function run(client, message) {
   if (!message.guild) return;
@@ -108,26 +106,98 @@ export async function run(client, message) {
   };
 
   const starboardSystem = async function (client, message) {
-    const starboards = (await db.get(`servers.${message.guild.id}.starboards`)) || {};
+    if (!message.guild) return;
 
-    for (const [name, config] of Object.entries(starboards)) {
-      if (!config.enabled) continue;
-      if (!config['link-deletes']) continue;
-      if (message.author.bot && !config['allow-bots']) continue;
+    const connection = await client.db.getConnection();
+    try {
+      if (!message.guild) return;
 
-      const starChannel = message.guild.channels.cache.get(config.channelId);
-      if (!starChannel) continue;
+      const connection = await client.db.getConnection();
+      const guildId = message.guild.id;
 
-      const existingStarMsg = await db.get(
-        `servers.${message.guild.id}.starboards.${name}.messages.${message.id}.starboardMsgId`,
+      const [asStarboard] = await connection.execute(
+        /* sql */
+        `
+          SELECT
+            starboard_id,
+            original_msg_id
+          FROM
+            starboard_messages
+          WHERE
+            starboard_msg_id = ?
+          LIMIT
+            1
+        `,
+        [message.id],
       );
-      if (!existingStarMsg) continue;
 
-      const starMessage = await starChannel.messages.fetch(existingStarMsg).catch(() => null);
-      if (starMessage) {
-        await db.delete(`servers.${message.guild.id}.starboards.${name}.messages.${message.id}`);
-        await starMessage.delete();
+      if (asStarboard.length > 0) {
+        const record = asStarboard[0];
+
+        await connection.execute(
+          /* sql */
+          `
+            DELETE FROM starboard_messages
+            WHERE
+              starboard_id = ?
+              AND original_msg_id = ?
+          `,
+          [record.starboard_id, record.original_msg_id],
+        );
+        return;
       }
+
+      const [starredRows] = await connection.execute(
+        /* sql */
+        `
+          SELECT
+            sm.starboard_id,
+            sm.starboard_msg_id,
+            s.channel_id,
+            s.link_deletes,
+            s.enabled,
+            s.allow_bots
+          FROM
+            starboard_messages sm
+            JOIN starboards s ON sm.starboard_id = s.id
+          WHERE
+            sm.original_msg_id = ?
+            AND s.server_id = ?
+        `,
+        [message.id, guildId],
+      );
+
+      if (starredRows.length === 0) return;
+
+      for (const row of starredRows) {
+        if (!row.enabled) continue;
+        if (!row.link_deletes) continue;
+        if (message.author?.bot && !row.allow_bots) continue;
+
+        const starChannel = message.guild.channels.cache.get(row.channel_id);
+        if (!starChannel) continue;
+
+        const starMessage = await starChannel.messages.fetch(row.starboard_msg_id).catch(() => null);
+
+        await connection.execute(
+          /* sql */
+          `
+            DELETE FROM starboard_messages
+            WHERE
+              starboard_id = ?
+              AND original_msg_id = ?
+          `,
+          [row.starboard_id, message.id],
+        );
+
+        if (starMessage) {
+          await starMessage.delete().catch(() => null);
+        }
+      }
+    } catch (error) {
+      client.logger.error(error);
+    } finally {
+      connection.release();
     }
   };
 
