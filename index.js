@@ -795,6 +795,18 @@ const loadMysql = async () => {
     ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE utf8mb4_unicode_ci;
   `);
 
+  // Economy balances mysql conversion soon™️
+  // await connection.execute(/* sql */ `
+  /*  CREATE TABLE IF NOT EXISTS economy_balances (
+      server_id VARCHAR(30) NOT NULL,
+      user_id VARCHAR(30) NOT NULL,
+      cash BIGINT DEFAULT 0,
+      bank BIGINT DEFAULT 0,
+      PRIMARY KEY (server_id, user_id)
+    ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE utf8mb4_unicode_ci;
+  `);
+  */
+
   await connection.execute(/* sql */ `
     CREATE TABLE IF NOT EXISTS user_playlists (
       user_id VARCHAR(30) PRIMARY KEY,
@@ -1111,4 +1123,19 @@ process.on('uncaughtException', (err) => {
 process.on('unhandledRejection', (err) => {
   console.log(err);
   return client.logger.error(`Unhandled Rejection: ${err}`);
+});
+
+const { Status } = require('discord.js');
+
+setInterval(() => {
+  const status = client.ws.status;
+  // If using discord.js v14+, status is a number enum. Map it to human words:
+  const statusText = Object.entries(Status).find(([key, val]) => val === status)?.[0] || status;
+  client.logger.log(`[GATEWAY STATUS]: ${statusText} (${status})`);
+}, 30_000);
+
+const blocked = require('blocked-at');
+
+blocked((time, stack) => {
+  console.log(`Blocked for ${time}ms, operation started here:`, stack);
 });

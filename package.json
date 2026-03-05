@@ -20,6 +20,7 @@
     "better-sqlite3": "^11.8.0",
     "bgutils-js": "^3.2.0",
     "blackjack-n-deck": "^1.0.1",
+    "blocked-at": "^1.2.0",
     "botpanel.js": "^1.2.9",
     "canvas": "^3.0.1",
     "chalk": "^4.1.1",
