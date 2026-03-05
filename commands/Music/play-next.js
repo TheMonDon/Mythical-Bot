@@ -53,7 +53,7 @@ class PlayNext extends Command {
       const result = await player.search(
         {
           query,
-          source: 'spsearch',
+          source: 'dzsearch',
         },
         msg.author,
       );
@@ -64,7 +64,6 @@ class PlayNext extends Command {
 
       // Add track(s) to queue
       if (result.loadType === 'playlist') {
-        await player.queue.add(result.tracks, 0);
         const totalDuration = result.tracks.reduce((acc, track) => acc + (track.info.duration || 0), 0);
         const durationStr = totalDuration
           ? `\`${Math.floor(totalDuration / 60000)}:${String(Math.floor((totalDuration % 60000) / 1000)).padStart(
@@ -91,10 +90,9 @@ class PlayNext extends Command {
           em.setThumbnail(result.tracks[0].info.artworkUrl);
         }
 
+        await player.queue.add(result.tracks, 0);
         msg.channel.send({ embeds: [em] });
       } else {
-        await player.queue.add(result.tracks[0], 0);
-
         if (player.playing) {
           const duration = result.tracks[0].info.duration
             ? `\`${Math.floor(result.tracks[0].info.duration / 60000)}:${String(
@@ -118,6 +116,8 @@ class PlayNext extends Command {
 
           msg.channel.send({ embeds: [em] });
         }
+
+        await player.queue.add(result.tracks[0], 0);
       }
 
       // Start playing if not already playing

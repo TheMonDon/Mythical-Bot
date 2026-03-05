@@ -56,7 +56,7 @@ class Play extends Command {
       const result = await player.search(
         {
           query,
-          source: 'spsearch',
+          source: 'dzsearch',
         },
         msg.author,
       );
@@ -94,8 +94,6 @@ class Play extends Command {
 
         msg.channel.send({ embeds: [em] });
       } else {
-        await player.queue.add(result.tracks[0]);
-
         const queuePosition = player.queue.tracks.length;
         let calculateEstimatedTime = player.queue.tracks.reduce((acc, track) => acc + (track.info.duration || 0), 0);
         if (player?.queue?.current) {
@@ -116,7 +114,7 @@ class Play extends Command {
                 **Duration:** ${durationString}
                 **Requested By:** ${msg.author}
                 **Queue Position:** ${queuePosition}\n
-                **Estimated Time Until Playing:** ${timeLeft}`,
+                ${timeLeft === '0 seconds' ? '**Playing Next!**' : '**Estimated Time Until Playing:** ' + timeLeft}`,
           )
           .setColor(msg.settings.embedColor)
           .setTimestamp();
@@ -125,6 +123,7 @@ class Play extends Command {
           em.setThumbnail(result.tracks[0].info.artworkUrl);
         }
 
+        await player.queue.add(result.tracks[0]);
         msg.channel.send({ embeds: [em] });
       }
 
