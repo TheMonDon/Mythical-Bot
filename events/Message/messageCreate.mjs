@@ -209,6 +209,7 @@ export async function run(client, message) {
       await handleEconomyEvent(client, message);
       return;
     }
+    console.log('[DEBUG] messageCreate fired:', message.content);
 
     // Command handling
     const args = message.content.slice(prefix.length).trim().split(/\s+/g);

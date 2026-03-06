@@ -1125,17 +1125,10 @@ process.on('unhandledRejection', (err) => {
   return client.logger.error(`Unhandled Rejection: ${err}`);
 });
 
-const { Status } = require('discord.js');
-
-setInterval(() => {
-  const status = client.ws.status;
-  // If using discord.js v14+, status is a number enum. Map it to human words:
-  const statusText = Object.entries(Status).find(([key, val]) => val === status)?.[0] || status;
-  client.logger.log(`[GATEWAY STATUS]: ${statusText} (${status})`);
-}, 30_000);
-
 const blocked = require('blocked-at');
 
 blocked((time, stack) => {
-  console.log(`Blocked for ${time}ms, operation started here:`, stack);
+  if (time > 100) {
+    console.warn(`Event loop blocked for ${time}ms, operation started here:`, stack);
+  }
 });
