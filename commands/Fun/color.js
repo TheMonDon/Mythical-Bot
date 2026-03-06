@@ -1,8 +1,8 @@
 const { EmbedBuilder, AttachmentBuilder } = require('discord.js');
-const { getColorFromURL } = require('color-thief-node');
 const Command = require('../../base/Command.js');
 const colorNameList = require('color-name-list');
 const { stripIndent } = require('common-tags');
+const { getColor } = require('colorthief');
 const { createCanvas } = require('canvas');
 const isImageURL = require('is-image-url');
 const convert = require('color-convert');
@@ -44,8 +44,18 @@ class Color extends Command {
     if (isURL(input)) {
       if (isImageURL(input)) {
         // Get the RGB color from the image and convert it to hex
-        const rgb = await getColorFromURL(input);
-        input = rgbHex(rgb.join(','));
+        // Fetch the image as a buffer
+        const response = await fetch(input);
+        if (!response.ok) throw new Error(`Failed to fetch image: ${response.statusText}`);
+
+        const arrayBuffer = await response.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+
+        // Get the dominant color from the image buffer
+        const rgb = await getColor(buffer);
+
+        const rgbArray = [rgb._r, rgb._g, rgb._b];
+        input = rgbHex(rgbArray.join(','));
         embed.setTitle('Dominant Color From Image');
       }
     }

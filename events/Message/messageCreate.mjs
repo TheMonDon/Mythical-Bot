@@ -186,31 +186,31 @@ export async function run(client, message) {
   if (message.author.bot) return;
   if (!(await hasPermissionToSendMessage(client, message))) return;
 
+  const settings = client.getSettings(message.guild);
+  message.settings = settings;
+  let prefix = settings.prefix;
+
+  const prefixMention = new RegExp(`^(<@!?${client.user.id}>)(\\s+)?`);
+  let isCommand = false;
+
+  if (message.guild && message.content.match(prefixMention)) {
+    prefix = String(message.guild.members.me);
+    isCommand = true;
+  } else if (message.content.indexOf(settings.prefix) === 0) {
+    isCommand = true;
+  }
+
+  // Handle chatbot before economy event if not a command
+  if (!isCommand) {
+    await handleChatbot(client, message);
+    await handleEconomyEvent(client, message);
+    return;
+  }
+  console.log('[DEBUG] messageCreate fired:', message.content);
+
   const connection = await client.db.getConnection();
 
   try {
-    const settings = client.getSettings(message.guild);
-    message.settings = settings;
-    let prefix = settings.prefix;
-
-    const prefixMention = new RegExp(`^(<@!?${client.user.id}>)(\\s+)?`);
-    let isCommand = false;
-
-    if (message.guild && message.content.match(prefixMention)) {
-      prefix = String(message.guild.members.me);
-      isCommand = true;
-    } else if (message.content.indexOf(settings.prefix) === 0) {
-      isCommand = true;
-    }
-
-    // Handle chatbot before economy event if not a command
-    if (!isCommand) {
-      await handleChatbot(client, message);
-      await handleEconomyEvent(client, message);
-      return;
-    }
-    console.log('[DEBUG] messageCreate fired:', message.content);
-
     // Command handling
     const args = message.content.slice(prefix.length).trim().split(/\s+/g);
     const commandName = args.shift().toLowerCase();
@@ -354,6 +354,6 @@ export async function run(client, message) {
     console.error('Error running command:', error);
     return message.channel.send('There was an error executing that command.');
   } finally {
-    connection.release();
+    if (connection) connection.release();
   }
 }

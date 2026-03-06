@@ -17,7 +17,7 @@ const yes = [
 ];
 const no = ['no', 'n', 'nah', 'nope', 'fuck off', 'nada', 'cancel', 'stop', 'nuh uh', 'nu', 'fuck no', 'false'];
 
-const { getColorFromURL } = require('color-thief-node');
+const { getColor } = require('colorthief');
 const { Message, EmbedBuilder, MessageFlagsBitField } = require('discord.js');
 const { createCanvas, loadImage, registerFont } = require('canvas');
 const tinycolor = require('tinycolor2');
@@ -405,8 +405,16 @@ async function generateTrackStartCard({
   const ctx = canvas.getContext('2d');
   ctx.textDrawingMode = 'glyph';
 
-  const rgbColors = await getColorFromURL(thumbnailUrl);
-  const primaryColor = tinycolor({ r: rgbColors[0], g: rgbColors[1], b: rgbColors[2] });
+  // Fetch the image as a buffer
+  const response = await fetch(thumbnailUrl);
+  if (!response.ok) throw new Error(`Failed to fetch image: ${response.statusText}`);
+
+  const arrayBuffer = await response.arrayBuffer();
+  const buffer = Buffer.from(arrayBuffer);
+
+  // Get the dominant color from the image buffer
+  const rgbColors = await getColor(buffer);
+  const primaryColor = tinycolor({ r: rgbColors._r, g: rgbColors._g, b: rgbColors._b });
 
   const secondaryColor = primaryColor.clone().spin(30).lighten(10);
 
@@ -594,8 +602,16 @@ async function generateNowPlayingCard({ player, song, requester }) {
       artworkUrl = 'https://i.cisn.xyz/piqe4/BixUhUYA41/raw.png';
     }
   }
-  const rgbColors = await getColorFromURL(artworkUrl);
-  const primaryColor = tinycolor({ r: rgbColors[0], g: rgbColors[1], b: rgbColors[2] });
+  // Fetch the image as a buffer
+  const response = await fetch(artworkUrl);
+  if (!response.ok) throw new Error(`Failed to fetch image: ${response.statusText}`);
+
+  const arrayBuffer = await response.arrayBuffer();
+  const buffer = Buffer.from(arrayBuffer);
+
+  // Get the dominant color from the image buffer
+  const rgbColors = await getColor(buffer);
+  const primaryColor = tinycolor({ r: rgbColors._r, g: rgbColors._g, b: rgbColors._b });
 
   const secondaryColor = primaryColor.clone().spin(30).lighten(10);
 
@@ -741,8 +757,8 @@ async function generateNowPlayingCard({ player, song, requester }) {
   ctx.font = '24px Arial';
   ctx.fillText(`Repeat Mode: ${this.toProperCase(player.repeatMode)}`, 360, 330);
 
-  const buffer = canvas.toBuffer();
-  return buffer;
+  const buffer2 = canvas.toBuffer();
+  return buffer2;
 }
 
 async function chatbotApiRequest(client, message) {

@@ -150,78 +150,56 @@ export async function run(client) {
   // Delete server data scheduler (every day at midnight) after 30 days of leaving
   scheduleJob('DeleteServerData', '0 0 * * *', async () => {
     const connection = await client.db.getConnection();
+    const thirtyDaysInMs = 2592000000;
+    const cutoffTimestamp = Date.now() - thirtyDaysInMs;
 
     try {
-      const [settingsRows] = await connection.execute(/* sql */ `
-        SELECT
-          server_id
+      // 1. Identify which servers need to be deleted first
+      // This handles the filtering at the database level instead of in Node.js memory
+      const [expiredServers] = await connection.execute(
+        /* sql */
+        `
+          SELECT
+            server_id
+          FROM
+            server_settings
+          WHERE
+            leave_timestamp <= ?
+        `,
+        [cutoffTimestamp],
+      );
+
+      if (expiredServers.length === 0) return;
+
+      const serverIds = expiredServers.map((row) => row.server_id);
+
+      // 2. Get all tables that contain a 'server_id' column once
+      const [tables] = await connection.execute(/* sql */ `
+        SELECT DISTINCT
+          TABLE_NAME
         FROM
-          server_settings
+          INFORMATION_SCHEMA.COLUMNS
         WHERE
-          leave_timestamp IS NOT NULL
+          COLUMN_NAME = 'server_id'
+          AND TABLE_SCHEMA = DATABASE ()
       `);
 
-      if (settingsRows.length) {
-        const serverIds = settingsRows.map((row) => row.server_id);
-        for (const serverId of serverIds) {
-          const [timestampRows] = await connection.execute(
-            /* sql */
-            `
-              SELECT
-                leave_timestamp
-              FROM
-                server_settings
-              WHERE
-                server_id = ?
-            `,
-            [serverId],
-          );
+      // 3. Perform bulk deletes
+      // We use WHERE server_id IN (...) to delete data for all expired servers at once
+      const idList = serverIds.map(() => '?').join(',');
 
-          const leaveTimestamp = timestampRows[0]?.leave_timestamp;
-          if (!leaveTimestamp) continue;
-
-          const timeDiff = Date.now() - leaveTimestamp;
-          if (timeDiff >= 2592000000) {
-            const [tables] = await connection.execute(/* sql */
-            `
-              SELECT
-                TABLE_NAME
-              FROM
-                INFORMATION_SCHEMA.COLUMNS
-              WHERE
-                COLUMN_NAME = 'server_id'
-                AND TABLE_SCHEMA = DATABASE ()
-            `);
-
-            for (const { TABLE_NAME } of tables) {
-              await connection.execute(`DELETE FROM \`${TABLE_NAME}\` WHERE server_id = ?`, [serverId]);
-            }
-
-            client.settings.delete(serverId);
-            client.logger.log(`Deleted mysql server data for ${serverId}`);
-          }
-        }
+      for (const { TABLE_NAME } of tables) {
+        await connection.execute(`DELETE FROM \`${TABLE_NAME}\` WHERE server_id IN (${idList})`, serverIds);
       }
 
-      const quickDbServers = (await db.get('servers')) || {};
-
-      // Leave in until complete migration
-      if (quickDbServers) {
-        for (const [serverId] of Object.entries(quickDbServers)) {
-          const leaveTimestamp = await db.get(`servers.${serverId}.leave_timestamp`);
-          if (leaveTimestamp) {
-            const timeDiff = Date.now() - leaveTimestamp;
-            if (timeDiff >= 2592000000) {
-              await db.delete(`servers.${serverId}`);
-
-              client.settings.delete(serverId);
-              client.logger.log(`Deleted quickdb server data for ${serverId}.`);
-            }
-          }
-        }
+      // 4. Clean up the local cache
+      for (const serverId of serverIds) {
+        client.settings.delete(serverId);
       }
+
+      client.logger.log(`Bulk deleted MySQL data for ${serverIds.length} servers.`);
     } catch (error) {
-      console.error('Error deleting server data:', error);
+      client.logger.error('Error in DeleteServerData scheduler:', error);
     } finally {
       connection.release();
     }

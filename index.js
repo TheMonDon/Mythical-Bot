@@ -355,6 +355,7 @@ const loadLavalink = async () => {
   // Set up event handlers
   client.lavalink
     .on('trackStart', async (player, track) => {
+      let connection;
       try {
         if (player.repeatMode === 'track') return;
 
@@ -389,7 +390,7 @@ const loadLavalink = async () => {
           requesterAvatarUrl: requester.displayAvatarURL({ extension: 'png', size: 128 }),
         });
 
-        const connection = await client.db.getConnection();
+        connection = await client.db.getConnection();
         const [rows] = await connection.execute(
           /* sql */ `
             SELECT
@@ -462,7 +463,6 @@ const loadLavalink = async () => {
           VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE channel_id = VALUES(channel_id), message_id = VALUES(message_id)`,
           [player.guildId, msg.channel.id, msg.id],
         );
-        connection.release();
 
         const collector = msg.createMessageComponentCollector({
           filter: (i) => i.guildId === msg.guildId,
@@ -529,6 +529,8 @@ const loadLavalink = async () => {
         });
       } catch (error) {
         console.error(error);
+      } finally {
+        if (connection) connection.release();
       }
     })
     .on('queueEnd', (player) => {
@@ -562,7 +564,13 @@ const loadLavalink = async () => {
     });
 
   // Handle raw Discord events for voice state updates
-  client.on('raw', (d) => client.lavalink.sendRawData(d));
+  client.on('raw', async (d) => {
+    try {
+      await client.lavalink.sendRawData(d);
+    } catch (error) {
+      console.error('Error sending raw data to Lavalink:', error);
+    }
+  });
 
   // Initialize lavalink when the bot is ready
   client.once('clientReady', () => {
@@ -597,8 +605,9 @@ const loadMysql = async () => {
     port: config.mysql.port,
     user: config.mysql.user,
     password: config.mysql.password,
-    multipleStatements: true,
     database: config.mysql.database,
+    multipleStatements: true,
+    enableKeepAlive: true,
   });
 
   client.db = pool;
@@ -1123,12 +1132,4 @@ process.on('uncaughtException', (err) => {
 process.on('unhandledRejection', (err) => {
   console.log(err);
   return client.logger.error(`Unhandled Rejection: ${err}`);
-});
-
-const blocked = require('blocked-at');
-
-blocked((time, stack) => {
-  if (time > 100) {
-    console.warn(`Event loop blocked for ${time}ms, operation started here:`, stack);
-  }
 });
