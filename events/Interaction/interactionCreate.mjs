@@ -15,12 +15,11 @@ import * as discordTranscripts from 'discord-html-transcripts';
 export async function run(client, interaction) {
   interaction.settings = client.getSettings(interaction.guild);
   const level = await client.permlevel(interaction);
-  console.log('[DEBUG] interactionCreate fired:', interaction.type);
 
-  // Check for global blacklist
   const connection = await interaction.client.db.getConnection();
 
   try {
+    // Check for global blacklist
     const [gblacklistRows] = await connection.execute(
       /* sql */ `
         SELECT

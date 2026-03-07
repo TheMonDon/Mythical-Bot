@@ -206,7 +206,6 @@ export async function run(client, message) {
     await handleEconomyEvent(client, message);
     return;
   }
-  console.log('[DEBUG] messageCreate fired:', message.content);
 
   const connection = await client.db.getConnection();
 
@@ -354,6 +353,6 @@ export async function run(client, message) {
     console.error('Error running command:', error);
     return message.channel.send('There was an error executing that command.');
   } finally {
-    if (connection) connection.release();
+    connection.release();
   }
 }

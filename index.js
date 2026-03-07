@@ -608,6 +608,7 @@ const loadMysql = async () => {
     database: config.mysql.database,
     multipleStatements: true,
     enableKeepAlive: true,
+    connectionLimit: 50,
   });
 
   client.db = pool;
