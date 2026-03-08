@@ -78,9 +78,10 @@ class AddMember extends Command {
       return msg.channel.send({ embeds: [em] });
     } catch (err) {
       this.client.logger.error(err);
-      this.client.util
-        .errorEmbed(msg, 'An error occurred while trying to add a member to this ticket.')
-        .catch(() => null);
+      this.client.util.errorEmbed(
+        msg,
+        'An error occurred while trying to add a member to this ticket. Please try again later.',
+      );
     } finally {
       connection.release();
     }

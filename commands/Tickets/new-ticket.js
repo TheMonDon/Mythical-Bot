@@ -185,9 +185,9 @@ class NewTicket extends Command {
       }
 
       return tixChan.send({ content: role.toString(), embeds: [chanEmbed], components: [row] });
-    } catch (e) {
-      this.client.logger.error(e);
-      return msg.channel.send('An error occurred while creating the ticket. Please try again later.');
+    } catch (err) {
+      this.client.logger.error(err);
+      this.client.util.errorEmbed(msg, 'An error occurred while creating the ticket. Please try again later.');
     } finally {
       connection.release();
     }

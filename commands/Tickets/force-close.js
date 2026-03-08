@@ -154,6 +154,12 @@ class forceClose extends Command {
       );
 
       await channel.delete();
+    } catch (err) {
+      this.client.logger.error(err);
+      this.client.util.errorEmbed(
+        msg,
+        'An error occurred while trying to force close the ticket. Please try again later.',
+      );
     } finally {
       connection.release();
     }
