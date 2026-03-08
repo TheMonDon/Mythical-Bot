@@ -52,7 +52,16 @@ class CloseTicket extends Command {
     const tName = msg.channel.name;
     const role = msg.guild.roles.cache.get(roleID);
     const [ownerRows] = await connection.execute(
-      `SELECT user_id FROM user_tickets WHERE server_id = ? AND channel_id = ?`,
+      /* sql */
+      `
+        SELECT
+          user_id
+        FROM
+          user_tickets
+        WHERE
+          server_id = ?
+          AND channel_id = ?
+      `,
       [msg.guild.id, msg.channel.id],
     );
     const owner = ownerRows[0]?.user_id;
@@ -125,8 +134,13 @@ class CloseTicket extends Command {
         .catch((e) => this.client.logger.error(e));
 
       await connection.execute(
-        `DELETE FROM user_tickets 
-           WHERE server_id = ? AND channel_id = ?`,
+        /* sql */
+        `
+          DELETE FROM user_tickets
+          WHERE
+            server_id = ?
+            AND channel_id = ?
+        `,
         [msg.guild.id, msg.channel.id],
       );
       connection.release();

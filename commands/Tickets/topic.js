@@ -1,9 +1,6 @@
 const Command = require('../../base/Command.js');
 const { EmbedBuilder } = require('discord.js');
-const { QuickDB } = require('quick.db');
-require('moment-duration-format');
-const moment = require('moment');
-const db = new QuickDB();
+const { Duration } = require('luxon');
 
 class Topic extends Command {
   constructor(client) {
@@ -62,11 +59,30 @@ class Topic extends Command {
 
     const roleID = rows[0].role_id;
     const role = msg.guild.roles.cache.get(roleID);
-    const owner = await db.get(`servers.${msg.guild.id}.tickets.${msg.channel.id}.owner`);
+    const [ownerRows] = await connection.execute(
+      /* sql */
+      `
+        SELECT
+          user_id
+        FROM
+          user_tickets
+        WHERE
+          server_id = ?
+          AND channel_id = ?
+      `,
+      [msg.guild.id, msg.channel.id],
+    );
+    const owner = ownerRows[0]?.user_id;
+
+    if (!owner) {
+      connection.release();
+      return msg.channel.send('This ticket does not have an owner.');
+    }
 
     if (owner !== msg.author.id) {
       if (!msg.member.roles.cache.some((r) => r.id === roleID)) {
-        return msg.channel.send(`You need to be the ticket owner or a member of ${role.name} to change the topic.`);
+        connection.release();
+        return msg.channel.send(`You need to be the ticket owner or a member of ${role.name} to use this command.`);
       }
     }
 
@@ -76,13 +92,21 @@ class Topic extends Command {
       const timeleft = channelCooldown.time - Date.now();
       if (timeleft < 0 || timeleft > cooldown * 1000) {
         await connection.execute(
-          `UPDATE user_tickets
-           SET topic_cooldown = FALSE, cooldown_until = NULL
-           WHERE server_id = ? AND channel_id = ? AND user_id = ?`,
+          /* sql */
+          `
+            UPDATE user_tickets
+            SET
+              topic_cooldown = FALSE,
+              cooldown_until = NULL
+            WHERE
+              server_id = ?
+              AND channel_id = ?
+              AND user_id = ?
+          `,
           [msg.guild.id, msg.channel.id, msg.author.id],
         );
       } else {
-        const tLeft = moment.duration(timeleft).format('m[ minutes][ and] s[ seconds]');
+        const tLeft = Duration.fromMillis(timeleft).shiftTo('minutes', 'seconds').toHuman({ showZeros: false });
 
         const embed = new EmbedBuilder()
           .setColor(msg.settings.embedErrorColor)
@@ -103,11 +127,23 @@ class Topic extends Command {
     await msg.channel.send({ embeds: [em] });
 
     await connection.execute(
-      `INSERT INTO user_tickets (server_id, channel_id, user_id, topic_cooldown, cooldown_until)
-       VALUES (?, ?, ?, TRUE, ?)
-       ON DUPLICATE KEY UPDATE
-         topic_cooldown = TRUE,
-         cooldown_until = VALUES(cooldown_until)`,
+      /* sql */
+      `
+        INSERT INTO
+          user_tickets (
+            server_id,
+            channel_id,
+            user_id,
+            topic_cooldown,
+            cooldown_until
+          )
+        VALUES
+          (?, ?, ?, TRUE, ?) ON DUPLICATE KEY
+        UPDATE topic_cooldown = TRUE,
+        cooldown_until =
+        VALUES
+          (cooldown_until)
+      `,
       [msg.guild.id, msg.channel.id, msg.author.id, Date.now() + cooldown * 1000],
     );
     connection.release();
@@ -115,9 +151,17 @@ class Topic extends Command {
     setTimeout(async () => {
       const connection = await this.client.db.getConnection();
       await connection.execute(
-        `UPDATE user_tickets
-         SET topic_cooldown = FALSE, cooldown_until = NULL
-         WHERE server_id = ? AND channel_id = ? AND user_id = ?`,
+        /* sql */
+        `
+          UPDATE user_tickets
+          SET
+            topic_cooldown = FALSE,
+            cooldown_until = NULL
+          WHERE
+            server_id = ?
+            AND channel_id = ?
+            AND user_id = ?
+        `,
         [msg.guild.id, msg.channel.id, msg.author.id],
       );
       connection.release();
