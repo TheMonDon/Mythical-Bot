@@ -20,6 +20,17 @@ export async function run(client) {
   client.games.clear();
   client.logger.log(`${client.user.tag}, ready to serve ${client.guilds.cache.size} guilds.`, 'ready');
 
+  for (const [, guild] of client.guilds.cache) {
+    try {
+      // This fetches all members and stores them in guild.members.cache
+      await guild.members.fetch();
+    } catch (err) {
+      console.error(`❌ Failed to fetch members for ${guild.name}:`, err);
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 500));
+  }
+
   if (BotPanelID?.length > 0 && BotPanelSecret?.length > 0) {
     const BotPanelClient = new Client({ id: BotPanelID, secret: BotPanelSecret });
 

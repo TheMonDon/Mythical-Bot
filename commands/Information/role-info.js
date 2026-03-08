@@ -25,8 +25,6 @@ class RoleInfo extends Command {
     const time = then.from(moment());
     const ca = then.format('dddd, MMMM Do, YYYY, h:mm a');
 
-    await msg.guild.members.fetch();
-
     const hexColor = infoRole.hexColor.toString().toUpperCase();
     const color = hexColor === '#000000' ? 'None' : hexColor;
     const embed = new EmbedBuilder()
@@ -38,7 +36,6 @@ class RoleInfo extends Command {
         { name: 'ID', value: infoRole.id.toString(), inline: true },
         { name: 'Mention', value: `\`${infoRole}\``, inline: true },
         { name: 'Color', value: color, inline: true },
-        { name: 'Members', value: infoRole.members.size.toLocaleString(), inline: true },
         { name: 'Position', value: `${infoRole.position}/${msg.guild.roles.cache.size}`, inline: true },
         { name: 'Mentionable', value: infoRole.mentionable.toString(), inline: true },
         { name: 'Managed', value: infoRole.managed.toString(), inline: true },

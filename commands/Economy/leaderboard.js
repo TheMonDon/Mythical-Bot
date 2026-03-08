@@ -49,7 +49,6 @@ class Leaderboard extends Command {
 
     // Fetch data for the current page
     const offset = (page - 1) * itemsPerPage;
-    await msg.guild.members.fetch();
     const usersData = (await db.get(`servers.${msg.guild.id}.users`)) || {};
 
     const sortedLeaderboard = Object.entries(usersData)

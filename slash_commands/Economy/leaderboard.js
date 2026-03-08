@@ -33,7 +33,7 @@ exports.run = async (interaction) => {
 
   let page = interaction.options.getInteger('page') || 1;
   const cashOrBank = interaction.options.getString('type') || 'total';
-  await interaction.guild.members.fetch();
+
   /*
   const usersCount = (await db.get(`servers.${interaction.guild.id}.users`))
     ? Object.keys(await db.get(`servers.${interaction.guild.id}.users`)).length

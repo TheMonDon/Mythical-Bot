@@ -84,8 +84,6 @@ exports.run = async (interaction) => {
 
     if (isNaN(amount)) return interaction.client.util.errorEmbed(interaction, 'Incorrect Usage');
 
-    // Ensure the members cache is populated
-    await interaction.guild.members.fetch();
     const members = [...role.members.values()];
 
     amount = BigInt(amount);

@@ -20,7 +20,6 @@ class Permissions extends Command {
 
     // If a user is mentioned, fetch them and set them as the infoMemOrRole
     if (args?.length > 0) {
-      await msg.guild.members.fetch();
       infoMemOrRole = await this.client.util.getMember(msg, args.join(' '));
     }
 

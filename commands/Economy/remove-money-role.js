@@ -68,8 +68,6 @@ class RemoveMoneyRole extends Command {
       [msg.guild.id],
     );
 
-    // Ensure the members cache is populated
-    await msg.guild.members.fetch();
     const members = [...role.members.values()];
 
     amount = BigInt(parseInt(amount));

@@ -113,8 +113,6 @@ exports.run = async (interaction) => {
       return interaction.client.util.errorEmbed(interaction, "You can't add Infinity to a member", 'Invalid Amount');
     }
 
-    // Ensure the members cache is populated
-    await interaction.guild.members.fetch();
     const members = [...role.members.values()];
 
     amount = BigInt(amount);

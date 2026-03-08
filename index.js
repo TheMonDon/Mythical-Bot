@@ -193,7 +193,13 @@ class Bot extends Client {
   }
 
   async loadEvent(eventModule, eventName) {
-    client.on(eventName, (...args) => eventModule.run(client, ...args));
+    client.on(eventName, async (...args) => {
+      try {
+        await eventModule.run(client, ...args);
+      } catch (error) {
+        console.error(`[ERROR ${new Date().toISOString()}] Error in ${eventName} event:`, error);
+      }
+    });
   }
 
   /* SETTINGS FUNCTIONS
@@ -609,6 +615,10 @@ const loadMysql = async () => {
     multipleStatements: true,
     enableKeepAlive: true,
     connectionLimit: 50,
+    keepAliveInitialDelay: 10000,
+    waitForConnections: true,
+    idleTimeout: 60000,
+    maxIdle: 10,
   });
 
   client.db = pool;

@@ -78,8 +78,6 @@ class AddMoneyRole extends Command {
       return msg.channel.send({ embeds: [errEmbed] });
     }
 
-    // Ensure the members cache is populated
-    await msg.guild.members.fetch();
     const members = [...role.members.values()];
 
     amount = BigInt(amount);

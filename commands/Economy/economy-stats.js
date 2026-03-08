@@ -17,7 +17,6 @@ class EconomyStats extends Command {
   }
 
   async run(msg, _args) {
-    await msg.guild.members.fetch();
     const connection = await this.client.db.getConnection();
 
     const [economyRows] = await connection.execute(

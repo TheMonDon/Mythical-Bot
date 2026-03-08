@@ -100,7 +100,6 @@ function wait(ms) {
  */
 async function getMember(context, memberString) {
   if (!context.guild || !memberString) return false;
-  await context.guild.members.fetch();
 
   if (context instanceof Message) {
     if (context.mentions.members.first()) return context.mentions.members.first();
@@ -241,7 +240,12 @@ function random(array) {
  * @param {guild} guild Guild Object
  */
 async function getJoinPosition(id, guild) {
-  await guild.members.fetch();
+  let member = guild.members.cache.get(id);
+  if (!member) {
+    member = await guild.members
+      .fetch(id)
+      .catch(() => console.error(`Failed to fetch member with ID ${id} for join position calculation.`));
+  }
   if (!guild.members.cache.get(id)) return;
   const array = [...guild.members.cache.values()];
   array.sort((a, b) => a.joinedAt - b.joinedAt);

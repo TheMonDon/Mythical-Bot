@@ -28,7 +28,6 @@ class CleanLeaderboard extends Command {
 
     const message = await msg.channel.send({ embeds: [em] });
 
-    await msg.guild.members.fetch();
     for (const i in users) {
       if (!msg.guild.members.cache.get(i)) toRemove.push(i);
     }

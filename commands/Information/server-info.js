@@ -32,7 +32,6 @@ class ServerInfo extends Command {
         'Invalid Server',
       );
     if (!server.available) return this.client.util.errorEmbed(msg, 'That server is currently unavailable');
-    await server.members.fetch();
 
     // Get the server's creation date and format it
     const then = moment(server.createdAt);
