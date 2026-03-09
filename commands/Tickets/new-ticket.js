@@ -14,10 +14,8 @@ class NewTicket extends Command {
   }
 
   async run(msg, args) {
-    const connection = await this.client.db.getConnection();
-
     try {
-      const [rows] = await connection.execute(
+      const [rows] = await this.client.db.execute(
         /* sql */ `
           SELECT
             *
@@ -60,7 +58,7 @@ class NewTicket extends Command {
         return msg.channel.send(`Please provide a reason. Usage: ${msg.settings.prefix}new-ticket <reason>`);
       }
 
-      const [userTicketRows] = await connection.execute(
+      const [userTicketRows] = await this.client.db.execute(
         /* sql */
         `
           SELECT
@@ -126,9 +124,14 @@ class NewTicket extends Command {
         topic: reason,
       });
 
-      await connection.execute(
-        `INSERT INTO user_tickets (server_id, channel_id, user_id)
-       VALUES (?, ?, ?)`,
+      await this.client.db.execute(
+        /* sql */
+        `
+          INSERT INTO
+            user_tickets (server_id, channel_id, user_id)
+          VALUES
+            (?, ?, ?)
+        `,
         [msg.guild.id, tixChan.id, msg.author.id],
       );
 
@@ -188,8 +191,6 @@ class NewTicket extends Command {
     } catch (err) {
       this.client.logger.error(err);
       this.client.util.errorEmbed(msg, 'An error occurred while creating the ticket. Please try again later.');
-    } finally {
-      connection.release();
     }
   }
 }

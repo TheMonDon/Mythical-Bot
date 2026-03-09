@@ -16,26 +16,22 @@ class SavePlaylist extends Command {
 
   async run(msg, args) {
     const player = this.client.lavalink.getPlayer(msg.guild.id);
-    const connection = await this.client.db.getConnection();
 
     if (!player || player.queue.tracks.length < 1) {
-      connection.release();
       return this.client.util.errorEmbed(msg, 'There are no tracks in the queue to save to a playlist.');
     }
 
     const playlistName = args.join(' ').trim();
 
     if (playlistName.length === 0 || playlistName.length >= 50) {
-      connection.release();
       return this.client.util.errorEmbed(msg, 'Please provide a valid playlist name (1-50 characters).');
     }
 
     if (!/^[a-zA-Z0-9 ]+$/.test(playlistName)) {
-      connection.release();
       return this.client.util.errorEmbed(msg, 'Playlist names can only contain letters, numbers, and spaces.');
     }
 
-    const [playlistRows] = await connection.execute(
+    const [playlistRows] = await this.client.db.execute(
       /* sql */ `
         SELECT
           *
@@ -53,12 +49,10 @@ class SavePlaylist extends Command {
     }
 
     if (currentPlaylists.some((p) => p.name === playlistName)) {
-      connection.release();
       return this.client.util.errorEmbed(msg, 'You already have a playlist with that name.');
     }
 
     if (currentPlaylists.length >= 20) {
-      connection.release();
       return this.client.util.errorEmbed(msg, 'You have reached the maximum number of playlists allowed (20).');
     }
 
@@ -71,7 +65,7 @@ class SavePlaylist extends Command {
 
     try {
       currentPlaylists.push(newPlaylist);
-      await connection.execute(
+      await this.client.db.execute(
         /* sql */
         `
           INSERT INTO
@@ -85,13 +79,10 @@ class SavePlaylist extends Command {
         [msg.author.id, JSON.stringify(currentPlaylists)],
       );
 
-      connection.release();
       return msg.channel.send(
         `I have successfully created the playlist \`${playlistName}\` with ${player.queue.tracks.length} tracks. You can play it using the \`load-playlist\` command. (${currentPlaylists.length}/50)`,
       );
     } catch (error) {
-      connection.release();
-
       console.error('Save Playlist Error:', error);
       return msg.channel.send(`An error occurred while saving your playlist: ${error.message}`);
     }

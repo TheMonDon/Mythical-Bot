@@ -14,11 +14,19 @@ class ToggleAll extends Command {
   }
 
   async run(msg) {
-    const connection = await this.client.db.getConnection();
-
     try {
       // Check if log system is set up
-      const [rows] = await connection.execute('SELECT * FROM log_settings WHERE server_id = ?', [msg.guild.id]);
+      const [rows] = await this.client.db.execute(
+        /* sql */ `
+          SELECT
+            *
+          FROM
+            log_settings
+          WHERE
+            server_id = ?
+        `,
+        [msg.guild.id],
+      );
 
       if (rows.length === 0 || !rows[0].channel_id) {
         return msg.channel.send(`The log system is not set up! Use \`${msg.settings.prefix}Setup Logging <Channel>\``);
@@ -61,14 +69,12 @@ class ToggleAll extends Command {
       const params = Array(logColumns.length + 1).fill(newValue); // fill all with newValue
       params.push(msg.guild.id);
 
-      await connection.execute(`UPDATE log_settings SET ${fields} WHERE server_id = ?`, params);
+      await this.client.db.execute(`UPDATE log_settings SET ${fields} WHERE server_id = ?`, params);
 
       return msg.channel.send(allEnabled ? 'Everything has been disabled.' : 'Everything has been enabled.');
     } catch (error) {
       this.client.logger.error(error);
       return msg.channel.send(`An error occurred: ${error.message}`);
-    } finally {
-      connection.release();
     }
   }
 }

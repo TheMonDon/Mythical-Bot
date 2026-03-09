@@ -21,8 +21,6 @@ exports.commandData = new SlashCommandBuilder()
   .addChannelOption((option) => option.setName('channel').setDescription('Filter by channel').setRequired(false));
 
 exports.autoComplete = async (interaction) => {
-  const connection = await interaction.client.db.getConnection();
-
   try {
     const focused = interaction.options.getFocused(true); // { name, value }
     const query = (typeof focused?.value === 'string' ? focused.value : '').trim();
@@ -30,7 +28,7 @@ exports.autoComplete = async (interaction) => {
     let rows;
     if (query === '') {
       // show all names for this server (up to 25)
-      const [r] = await connection.execute(
+      const [r] = await interaction.client.db.execute(
         /* sql */ `
           SELECT
             name
@@ -50,7 +48,7 @@ exports.autoComplete = async (interaction) => {
       // escape %, _ and \
       const like = `%${query.replace(/[\\%_]/g, '\\$&')}%`.toLowerCase();
 
-      const [r] = await connection.execute(
+      const [r] = await interaction.client.db.execute(
         /* sql */
         `
           SELECT
@@ -74,20 +72,16 @@ exports.autoComplete = async (interaction) => {
     await interaction.respond(choices).catch(() => {});
   } catch (error) {
     return interaction.respond([]).catch(() => {});
-  } finally {
-    connection.release();
   }
 };
 
 exports.run = async (interaction) => {
-  const connection = await interaction.client.db.getConnection();
-
   const name = interaction.options.getString('name');
   const author = interaction.options.getUser('author');
   const channel = interaction.options.getChannel('channel');
 
   try {
-    const [starboardRows] = await connection.execute(
+    const [starboardRows] = await interaction.client.db.execute(
       /* sql */
       `
         SELECT
@@ -148,7 +142,7 @@ exports.run = async (interaction) => {
       params.push(channel.id);
     }
 
-    const [messageRows] = await connection.execute(query, params);
+    const [messageRows] = await interaction.client.db.execute(query, params);
 
     if (messageRows.length === 0) {
       return interaction.editReply('No matching starred messages found.');
@@ -220,7 +214,5 @@ exports.run = async (interaction) => {
     });
   } catch (error) {
     return interaction.editReply(`An error occurred: ${error.message}`);
-  } finally {
-    connection.release();
   }
 };

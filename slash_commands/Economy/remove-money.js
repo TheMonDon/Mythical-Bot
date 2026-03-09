@@ -25,13 +25,12 @@ exports.commandData = new SlashCommandBuilder()
 
 exports.run = async (interaction) => {
   await interaction.deferReply();
-  const connection = await interaction.client.db.getConnection();
 
   const target = interaction.options.getMentionable('target');
   const destination = interaction.options.getString('destination') || 'cash';
   let amount = interaction.options.getInteger('amount');
 
-  const [economyRows] = await connection.execute(
+  const [economyRows] = await interaction.client.db.execute(
     /* sql */ `
       SELECT
         symbol
@@ -43,7 +42,6 @@ exports.run = async (interaction) => {
     [interaction.guild.id],
   );
   const currencySymbol = economyRows[0]?.symbol || '$';
-  connection.release();
 
   const embed = new EmbedBuilder()
     .setColor(interaction.settings.embedErrorColor)

@@ -14,9 +14,8 @@ exports.commandData = new SlashCommandBuilder()
 
 exports.run = async (interaction) => {
   await interaction.deferReply();
-  const connection = await interaction.client.db.getConnection();
 
-  const [cooldownRows] = await connection.execute(
+  const [cooldownRows] = await interaction.client.db.execute(
     /* sql */ `
       SELECT
         duration
@@ -30,7 +29,7 @@ exports.run = async (interaction) => {
   );
   const cooldown = cooldownRows[0]?.duration || 300;
 
-  const [userCooldownRows] = await connection.execute(
+  const [userCooldownRows] = await interaction.client.db.execute(
     /* sql */ `
       SELECT
         *
@@ -58,12 +57,11 @@ exports.run = async (interaction) => {
         .format('y[ years][,] M[ Months][,] d[ days][,] h[ hours][,] m[ minutes][ and] s[ seconds]');
       embed.setDescription(`Please wait ${tLeft} to work again.`);
 
-      connection.release();
       return interaction.editReply({ embeds: [embed] });
     }
   }
 
-  const [economyRows] = await connection.execute(
+  const [economyRows] = await interaction.client.db.execute(
     /* sql */ `
       SELECT
         *
@@ -88,7 +86,7 @@ exports.run = async (interaction) => {
   const num = Math.floor(Math.random() * (jobs.length - 1)) + 1;
   const job = jobs[num].replace('{amount}', csamount);
 
-  await connection.execute(
+  await interaction.client.db.execute(
     /* sql */ `
       INSERT INTO
         cooldowns (server_id, user_id, cooldown_name, expires_at)
@@ -100,8 +98,6 @@ exports.run = async (interaction) => {
     `,
     [interaction.guild.id, interaction.user.id, 'work', cooldown],
   );
-
-  connection.release();
 
   const oldBalance = BigInt(
     (await db.get(`servers.${interaction.guild.id}.users.${interaction.member.id}.economy.cash`)) ||

@@ -15,10 +15,8 @@ class AddMember extends Command {
   }
 
   async run(msg, args) {
-    const connection = await this.client.db.getConnection();
-
     try {
-      const [rows] = await connection.execute(
+      const [rows] = await this.client.db.execute(
         /* sql */ `
           SELECT
             *
@@ -45,8 +43,17 @@ class AddMember extends Command {
 
       const roleID = rows[0].role_id;
       const role = msg.guild.roles.cache.get(roleID);
-      const [ownerRows] = await connection.execute(
-        `SELECT user_id FROM user_tickets WHERE server_id = ? AND channel_id = ?`,
+      const [ownerRows] = await this.client.db.execute(
+        /* sql */
+        `
+          SELECT
+            user_id
+          FROM
+            user_tickets
+          WHERE
+            server_id = ?
+            AND channel_id = ?
+        `,
         [msg.guild.id, msg.channel.id],
       );
       const owner = ownerRows[0]?.user_id;
@@ -82,8 +89,6 @@ class AddMember extends Command {
         msg,
         'An error occurred while trying to add a member to this ticket. Please try again later.',
       );
-    } finally {
-      connection.release();
     }
   }
 }

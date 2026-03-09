@@ -23,8 +23,6 @@ class Warn extends Command {
     let member = true;
     let logMessage;
 
-    const connection = await this.client.db.getConnection();
-
     try {
       await msg.delete();
       mem = await this.client.util.getMember(msg, args[0]);
@@ -70,7 +68,7 @@ class Warn extends Command {
       }
 
       // Grab the settings for the server
-      const [settingsRows] = await connection.execute(
+      const [settingsRows] = await this.client.db.execute(
         /* sql */ `
           SELECT
             warn_kick_threshold,
@@ -90,7 +88,7 @@ class Warn extends Command {
       // Make sure that the ID doesn't exist on that server
       let warnID = this.client.util.randomString(5);
 
-      let [rows] = await connection.execute(
+      let [rows] = await this.client.db.execute(
         /* sql */ `
           SELECT
             1
@@ -106,7 +104,7 @@ class Warn extends Command {
 
       while (rows.length > 0) {
         warnID = this.client.util.randomString(5);
-        [rows] = await connection.execute(
+        [rows] = await this.client.db.execute(
           /* sql */ `
             SELECT
               1
@@ -122,7 +120,7 @@ class Warn extends Command {
       }
 
       // Get the users current warns and total points
-      const [otherWarns] = await connection.execute(
+      const [otherWarns] = await this.client.db.execute(
         /* sql */
         `
           SELECT
@@ -138,7 +136,7 @@ class Warn extends Command {
         [msg.guild.id, mem.id],
       );
 
-      const [[pointsRow]] = await connection.execute(
+      const [[pointsRow]] = await this.client.db.execute(
         /* sql */
         `
           SELECT
@@ -221,7 +219,7 @@ class Warn extends Command {
       }
 
       // Add the warn to the database
-      await connection.execute(
+      await this.client.db.execute(
         /* sql */
         `
           INSERT INTO
@@ -259,8 +257,6 @@ class Warn extends Command {
     } catch (error) {
       console.error('Warn user error:', error);
       return msg.channel.send(`An error occurred: ${error.message}`);
-    } finally {
-      connection.release();
     }
   }
 }

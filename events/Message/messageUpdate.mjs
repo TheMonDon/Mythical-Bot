@@ -8,10 +8,8 @@ export async function run(client, oldMessage, newMessage) {
     if (!oldMessage.author) return;
     if (oldMessage.content === newMessage.content) return;
 
-    const connection = await client.db.getConnection();
-
     try {
-      const [logRows] = await connection.execute(
+      const [logRows] = await client.db.execute(
         /* sql */ `
           SELECT
             channel_id,
@@ -105,8 +103,6 @@ export async function run(client, oldMessage, newMessage) {
       return logChannel.send({ embeds: [embed] }).catch(() => {});
     } catch (error) {
       client.logger.error(error);
-    } finally {
-      connection.release();
     }
   }
 
@@ -129,8 +125,6 @@ export async function run(client, oldMessage, newMessage) {
       return;
     }
     if (newMessage.guild && newMessage.guild.members.me.isCommunicationDisabled()) return;
-
-    const connection = await client.db.getConnection();
 
     try {
       const settings = client.getSettings(newMessage.guild);
@@ -175,8 +169,17 @@ export async function run(client, oldMessage, newMessage) {
 
       // Check if the member is blacklisted from using commands in this guild.
       if (newMessage.guild) {
-        const [blacklistRows] = await connection.execute(
-          `SELECT * FROM server_blacklists WHERE server_id = ? AND user_id = ?`,
+        const [blacklistRows] = await client.db.execute(
+          /* sql */
+          `
+            SELECT
+              *
+            FROM
+              server_blacklists
+            WHERE
+              server_id = ?
+              AND user_id = ?
+          `,
           [newMessage.guild.id, newMessage.author.id],
         );
 
@@ -197,7 +200,7 @@ export async function run(client, oldMessage, newMessage) {
         }
       }
 
-      const [gblacklistRows] = await connection.execute(
+      const [gblacklistRows] = await client.db.execute(
         /* sql */ `
           SELECT
             *
@@ -276,7 +279,7 @@ export async function run(client, oldMessage, newMessage) {
       const isText = true;
       const isSlash = false;
 
-      await connection.query('CALL updateCommandStats(?, ?, ?, ?, ?)', [
+      await client.db.query('CALL updateCommandStats(?, ?, ?, ?, ?)', [
         cmd.help.name,
         isText ? 1 : 0,
         isSlash ? 1 : 0,
@@ -285,8 +288,6 @@ export async function run(client, oldMessage, newMessage) {
       ]);
     } catch (error) {
       client.logger.error(error);
-    } finally {
-      connection.release();
     }
   }
 
@@ -294,12 +295,10 @@ export async function run(client, oldMessage, newMessage) {
     if (!newMessage.guild) return;
     if (!oldMessage.author) return;
 
-    const connection = await client.db.getConnection();
-
     try {
       if (newMessage.partial) await newMessage.fetch(); // Ensure we have full message data
 
-      const [starboards] = await connection.query(
+      const [starboards] = await client.db.execute(
         /* sql */ `
           SELECT
             *
@@ -310,7 +309,7 @@ export async function run(client, oldMessage, newMessage) {
         `,
         [newMessage.guild.id],
       );
-      const [overrides] = await connection.query(
+      const [overrides] = await client.db.execute(
         /* sql */
         `
           SELECT
@@ -361,7 +360,7 @@ export async function run(client, oldMessage, newMessage) {
         if (starChannel === newMessage.channel) continue;
 
         // Fetch existing starboard message ID (if any)
-        const [rows] = await connection.query(
+        const [rows] = await client.db.execute(
           /* sql */
           `
             SELECT
@@ -475,12 +474,10 @@ export async function run(client, oldMessage, newMessage) {
       }
     } catch (error) {
       client.logger.error(error);
-    } finally {
-      connection.release();
     }
   }
 
-  await LogSystem(client, oldMessage, newMessage);
-  await CommandUpdate(client, oldMessage, newMessage);
-  await StarMessageUpdate(client, oldMessage, newMessage);
+  LogSystem(client, oldMessage, newMessage);
+  CommandUpdate(client, oldMessage, newMessage);
+  StarMessageUpdate(client, oldMessage, newMessage);
 }

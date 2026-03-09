@@ -29,8 +29,6 @@ exports.run = async (interaction) => {
   let logMessage;
   let mem;
 
-  const connection = await interaction.client.db.getConnection();
-
   try {
     mem = await interaction.client.util.getMember(interaction, user.id);
     if (!mem) {
@@ -54,7 +52,7 @@ exports.run = async (interaction) => {
     const reason = interaction.options.getString('reason');
 
     // Grab the settings for the server
-    const [settingsRows] = await connection.execute(
+    const [settingsRows] = await interaction.client.db.execute(
       /* sql */ `
         SELECT
           warn_kick_threshold,
@@ -74,7 +72,7 @@ exports.run = async (interaction) => {
     // Make sure that the ID doesn't exist on that server
     let warnID = interaction.client.util.randomString(5);
 
-    let [rows] = await connection.execute(
+    let [rows] = await interaction.client.db.execute(
       /* sql */ `
         SELECT
           1
@@ -90,7 +88,7 @@ exports.run = async (interaction) => {
 
     while (rows.length > 0) {
       warnID = interaction.client.util.randomString(5);
-      [rows] = await connection.execute(
+      [rows] = await interaction.client.db.execute(
         /* sql */ `
           SELECT
             1
@@ -106,7 +104,7 @@ exports.run = async (interaction) => {
     }
 
     // Get the users current warns and total points
-    const [otherWarns] = await connection.execute(
+    const [otherWarns] = await interaction.client.db.execute(
       /* sql */
       `
         SELECT
@@ -122,7 +120,7 @@ exports.run = async (interaction) => {
       [interaction.guild.id, mem.id],
     );
 
-    const [[pointsRow]] = await connection.execute(
+    const [[pointsRow]] = await interaction.client.db.execute(
       /* sql */
       `
         SELECT
@@ -195,7 +193,7 @@ exports.run = async (interaction) => {
     }
 
     // Add the warn to the database
-    await connection.execute(
+    await interaction.client.db.execute(
       /* sql */
       `
         INSERT INTO
@@ -233,7 +231,5 @@ exports.run = async (interaction) => {
   } catch (error) {
     console.error('Warn user error:', error);
     interaction.editReply(`An error occurred: ${error.message}`);
-  } finally {
-    connection.release();
   }
 };

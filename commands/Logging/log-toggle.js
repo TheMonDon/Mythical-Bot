@@ -16,12 +16,23 @@ class LogToggle extends Command {
   }
 
   async run(msg, args) {
-    const connection = await this.client.db.getConnection();
     const query = args.join(' ').toLowerCase();
 
     try {
       // Get current settings
-      const [rows] = await connection.query('SELECT * FROM log_settings WHERE server_id = ? LIMIT 1', [msg.guild.id]);
+      const [rows] = await this.client.db.execute(
+        /* sql */ `
+          SELECT
+            *
+          FROM
+            log_settings
+          WHERE
+            server_id = ?
+          LIMIT
+            1
+        `,
+        [msg.guild.id],
+      );
 
       if (!rows.length) {
         return msg.channel.send(`The log system is not set up! Use \`${msg.settings.prefix}setup logging\``);
@@ -46,7 +57,7 @@ class LogToggle extends Command {
 
           if (indx > -1) {
             chans.splice(indx, 1);
-            await connection.execute(
+            await this.client.db.execute(
               /* sql */ `
                 UPDATE log_settings
                 SET
@@ -69,7 +80,7 @@ class LogToggle extends Command {
           }
 
           chans.push(chan.id);
-          await connection.execute(
+          await this.client.db.execute(
             /* sql */ `
               UPDATE log_settings
               SET
@@ -143,22 +154,35 @@ class LogToggle extends Command {
       const newValue = !currentValue;
 
       // Update the column
-      await connection.query(`UPDATE log_settings SET ${matchedColumn} = ? WHERE server_id = ?`, [
-        newValue,
-        msg.guild.id,
-      ]);
+      await this.client.db.query(
+        /* sql */ `
+          UPDATE log_settings
+          SET
+            ${matchedColumn} = ?
+          WHERE
+            server_id = ?
+        `,
+        [newValue, msg.guild.id],
+      );
 
       // If disabling, also flip all_enabled to false
       if (!newValue && settings.all_enabled === 1) {
-        await connection.query(`UPDATE log_settings SET all_enabled = FALSE WHERE server_id = ?`, [msg.guild.id]);
+        await this.client.db.execute(
+          /* sql */ `
+            UPDATE log_settings
+            SET
+              all_enabled = FALSE
+            WHERE
+              server_id = ?
+          `,
+          [msg.guild.id],
+        );
       }
 
       return msg.channel.send(`\`${matchedColumn}\` has been ${newValue ? 'enabled ✅' : 'disabled ❌'}.`);
     } catch (error) {
       this.client.logger.error(error);
       return msg.channel.send(`An error occurred: ${error.message}`);
-    } finally {
-      connection.release();
     }
   }
 }

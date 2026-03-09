@@ -18,10 +18,8 @@ class CloseTicket extends Command {
   async run(msg, args) {
     const reason = args.join(' ') || 'No reason specified';
 
-    const connection = await this.client.db.getConnection();
-
     try {
-      const [rows] = await connection.execute(
+      const [rows] = await this.client.db.execute(
         /* sql */ `
           SELECT
             *
@@ -52,7 +50,7 @@ class CloseTicket extends Command {
 
       const tName = msg.channel.name;
       const role = msg.guild.roles.cache.get(roleID);
-      const [ownerRows] = await connection.execute(
+      const [ownerRows] = await this.client.db.execute(
         /* sql */
         `
           SELECT
@@ -132,7 +130,7 @@ class CloseTicket extends Command {
           .send({ embeds: [logEmbed], files: [attachment] })
           .catch((e) => this.client.logger.error(e));
 
-        await connection.execute(
+        await this.client.db.execute(
           /* sql */
           `
             DELETE FROM user_tickets
@@ -162,8 +160,6 @@ class CloseTicket extends Command {
     } catch (err) {
       this.client.logger.error(err);
       this.client.util.errorEmbed(msg, 'An error occurred while trying to close the ticket. Please try again later.');
-    } finally {
-      connection.release();
     }
   }
 }

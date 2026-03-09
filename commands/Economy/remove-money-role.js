@@ -25,8 +25,6 @@ class RemoveMoneyRole extends Command {
   }
 
   async run(msg, args) {
-    const connection = await this.client.db.getConnection();
-
     const embed = new EmbedBuilder()
       .setColor(msg.settings.embedErrorColor)
       .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() });
@@ -48,15 +46,13 @@ class RemoveMoneyRole extends Command {
     }
 
     if (isNaN(amount) || amount === Infinity) {
-      connection.release();
       return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Amount');
     }
     if (!role) {
-      connection.release();
       return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Role');
     }
 
-    const [economyRows] = await connection.execute(
+    const [economyRows] = await this.client.db.execute(
       /* sql */ `
         SELECT
           *
@@ -89,7 +85,6 @@ class RemoveMoneyRole extends Command {
     });
 
     const currencySymbol = economyRows[0]?.symbol || '$';
-    connection.release();
 
     let csAmount = currencySymbol + amount.toLocaleString();
     csAmount = this.client.util.limitStringLength(csAmount, 0, 1024);

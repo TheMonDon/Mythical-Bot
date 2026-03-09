@@ -1,7 +1,5 @@
 const Command = require('../../base/Command.js');
 const { EmbedBuilder } = require('discord.js');
-const moment = require('moment');
-require('moment-duration-format');
 
 class RoleInfo extends Command {
   constructor(client) {
@@ -20,13 +18,10 @@ class RoleInfo extends Command {
     const infoRole = this.client.util.getRole(msg, args.join(' '));
     if (!infoRole) return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Incorrect Usage');
 
-    // Get the role's creation date and format it
-    const then = moment(infoRole.createdAt);
-    const time = then.from(moment());
-    const ca = then.format('dddd, MMMM Do, YYYY, h:mm a');
-
     const hexColor = infoRole.hexColor.toString().toUpperCase();
     const color = hexColor === '#000000' ? 'None' : hexColor;
+    const unix = Math.floor(infoRole.createdAt.getTime() / 1000);
+
     const embed = new EmbedBuilder()
       .setTitle(`${infoRole.name}'s Information`)
       .setColor(infoRole.hexColor)
@@ -39,7 +34,11 @@ class RoleInfo extends Command {
         { name: 'Position', value: `${infoRole.position}/${msg.guild.roles.cache.size}`, inline: true },
         { name: 'Mentionable', value: infoRole.mentionable.toString(), inline: true },
         { name: 'Managed', value: infoRole.managed.toString(), inline: true },
-        { name: 'Created At', value: `${ca} (${time})`, inline: true },
+        {
+          name: 'Created At',
+          value: `<t:${unix}:F> \n(<t:${unix}:R>)`,
+          inline: true,
+        },
       ]);
 
     return msg.channel.send({ embeds: [embed] });

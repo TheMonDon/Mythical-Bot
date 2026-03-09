@@ -16,11 +16,9 @@ export async function run(client, interaction) {
   interaction.settings = client.getSettings(interaction.guild);
   const level = await client.permlevel(interaction);
 
-  const connection = await interaction.client.db.getConnection();
-
   try {
     // Check for global blacklist
-    const [gblacklistRows] = await connection.execute(
+    const [gblacklistRows] = await client.db.execute(
       /* sql */ `
         SELECT
           *
@@ -48,7 +46,7 @@ export async function run(client, interaction) {
 
     // Check for server blacklist
     if (interaction.guild) {
-      const [blacklistRows] = await connection.execute(
+      const [blacklistRows] = await client.db.execute(
         `SELECT * FROM server_blacklists WHERE server_id = ? AND user_id = ?`,
         [interaction.guild.id, interaction.user.id],
       );
@@ -102,7 +100,7 @@ export async function run(client, interaction) {
         const isAlias = false;
         const aliasName = null;
 
-        await connection.query('CALL updateCommandStats(?, ?, ?, ?, ?)', [
+        await client.db.execute(/* sql */ `CALL updateCommandStats (?, ?, ?, ?, ?)`, [
           interaction.commandName,
           isText ? 1 : 0,
           isSlash ? 1 : 0,
@@ -137,7 +135,7 @@ export async function run(client, interaction) {
 
     if (interaction.isButton()) {
       if (interaction.customId === 'create_ticket') {
-        const [rows] = await connection.execute(
+        const [rows] = await client.db.execute(
           /* sql */ `
             SELECT
               *
@@ -157,7 +155,7 @@ export async function run(client, interaction) {
           });
         }
 
-        const [blacklistRows] = await connection.execute(
+        const [blacklistRows] = await client.db.execute(
           `SELECT * FROM server_blacklists WHERE server_id = ? AND user_id = ?`,
           [interaction.guild.id, interaction.user.id],
         );
@@ -178,7 +176,7 @@ export async function run(client, interaction) {
           return interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
         }
 
-        const [userTicketRows] = await connection.execute(
+        const [userTicketRows] = await client.db.execute(
           /* sql */
           `
             SELECT
@@ -222,7 +220,7 @@ export async function run(client, interaction) {
       }
 
       if (interaction.customId === 'close_ticket') {
-        const [rows] = await connection.execute(
+        const [rows] = await client.db.execute(
           /* sql */ `
             SELECT
               *
@@ -266,7 +264,7 @@ export async function run(client, interaction) {
     if (interaction.isModalSubmit()) {
       // Handle modal submissions for ticket creation
       if (interaction.customId === 'ticket_reason') {
-        const [rows] = await connection.execute(
+        const [rows] = await client.db.execute(
           /* sql */ `
             SELECT
               *
@@ -343,7 +341,7 @@ export async function run(client, interaction) {
           topic: reason,
         });
 
-        await connection.execute(
+        await client.db.execute(
           `INSERT INTO user_tickets (server_id, channel_id, user_id)
          VALUES (?, ?, ?)`,
           [interaction.guild.id, tixChan.id, member.id],
@@ -397,7 +395,7 @@ export async function run(client, interaction) {
 
       // Handle modal submissions for ticket closing
       if (interaction.customId === 'close_ticket_reason') {
-        const [rows] = await connection.execute(
+        const [rows] = await client.db.execute(
           /* sql */ `
             SELECT
               *
@@ -423,8 +421,17 @@ export async function run(client, interaction) {
 
         const tName = interaction.channel.name;
         const role = interaction.guild.roles.cache.get(roleID);
-        const [ownerRows] = await connection.execute(
-          `SELECT user_id FROM user_tickets WHERE server_id = ? AND channel_id = ?`,
+        const [ownerRows] = await client.db.execute(
+          /* sql */
+          `
+            SELECT
+              user_id
+            FROM
+              user_tickets
+            WHERE
+              server_id = ?
+              AND channel_id = ?
+          `,
           [interaction.guild.id, interaction.channel.id],
         );
         const owner = ownerRows[0].user_id;
@@ -490,9 +497,14 @@ export async function run(client, interaction) {
             .send({ embeds: [logEmbed], files: [attachment] })
             .catch((e) => client.logger.error(e));
 
-          await connection.execute(
-            `DELETE FROM user_tickets 
-             WHERE server_id = ? AND channel_id = ?`,
+          await client.db.execute(
+            /* sql */
+            `
+              DELETE FROM user_tickets
+              WHERE
+                server_id = ?
+                AND channel_id = ?
+            `,
             [interaction.guild.id, interaction.channel.id],
           );
 
@@ -516,7 +528,5 @@ export async function run(client, interaction) {
     }
   } catch (error) {
     client.logger.error(error);
-  } finally {
-    connection.release();
   }
 }

@@ -19,9 +19,8 @@ class Deposit extends Command {
 
   async run(msg, args) {
     let amount = args.join(' ');
-    const connection = await this.client.db.getConnection();
 
-    const [economyRows] = await connection.execute(
+    const [economyRows] = await this.client.db.execute(
       /* sql */ `
         SELECT
           *

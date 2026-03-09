@@ -14,12 +14,11 @@ exports.commandData = new SlashCommandBuilder()
 
 exports.run = async (interaction) => {
   await interaction.deferReply();
-  const connection = await interaction.client.db.getConnection();
 
   let mem = interaction.options?.get('user')?.member || interaction.options?.get('user')?.user;
   if (!mem) mem = interaction.user;
 
-  const [economyRows] = await connection.execute(
+  const [economyRows] = await interaction.client.db.execute(
     /* sql */ `
       SELECT
         *
@@ -30,7 +29,6 @@ exports.run = async (interaction) => {
     `,
     [interaction.guild.id],
   );
-  connection.release();
 
   const cash = BigInt(
     (await db.get(`servers.${interaction.guildId}.users.${mem.id}.economy.cash`)) || economyRows[0]?.start_balance || 0,

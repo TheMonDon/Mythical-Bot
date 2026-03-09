@@ -62,12 +62,10 @@ exports.commandData = new SlashCommandBuilder()
   );
 
 exports.autoComplete = async (interaction) => {
-  const connection = await interaction.client.db.getConnection();
-
   try {
     const input = interaction.options.getString('playlist') || ''; // Get user input
 
-    const [playlistRows] = await connection.execute(
+    const [playlistRows] = await interaction.client.db.execute(
       /* sql */ `
         SELECT
           *
@@ -78,7 +76,6 @@ exports.autoComplete = async (interaction) => {
       `,
       [interaction.user.id],
     );
-    connection.release();
 
     let userPlaylists = [];
     if (playlistRows.length) {
@@ -102,8 +99,6 @@ exports.autoComplete = async (interaction) => {
     // Respond with filtered results
     return interaction.respond(results).catch(() => {});
   } catch (error) {
-    connection.release();
-
     console.error('Error in playlist autocomplete:', error);
     return interaction.respond([]).catch(() => {});
   }
@@ -111,12 +106,11 @@ exports.autoComplete = async (interaction) => {
 
 exports.run = async (interaction) => {
   await interaction.deferReply();
-  const connection = await interaction.client.db.getConnection();
 
   const subcommand = interaction.options.getSubcommand();
   const playlistName = interaction.options.getString('playlist');
 
-  const [playlistRows] = await connection.execute(
+  const [playlistRows] = await interaction.client.db.execute(
     /* sql */ `
       SELECT
         *
@@ -154,7 +148,7 @@ exports.run = async (interaction) => {
       playlists.splice(playlistIndex, 1);
 
       // Save the updated playlist array
-      await connection.execute(
+      await interaction.client.db.execute(
         /* sql */
         `
           INSERT INTO
@@ -167,14 +161,11 @@ exports.run = async (interaction) => {
         `,
         [interaction.user.id, JSON.stringify(playlists)],
       );
-      connection.release();
 
       return interaction.editReply(`The playlist \`${playlistName}\` has been deleted.`);
     }
 
     case 'list': {
-      connection.release();
-
       if (!playlists || playlists.length === 0) {
         return interaction.client.util.errorEmbed(interaction, "You don't currently have any saved playlists.");
       }
@@ -213,8 +204,6 @@ exports.run = async (interaction) => {
     }
 
     case 'load': {
-      connection.release();
-
       // Find the playlist by name
       let userPlaylist = playlists.find((p) => p.name.toLowerCase() === playlistName.toLowerCase());
 
@@ -302,7 +291,6 @@ exports.run = async (interaction) => {
       const player = interaction.client.lavalink.getPlayer(interaction.guild.id);
 
       if (!player || player.queue.tracks.length < 1) {
-        connection.release();
         return interaction.client.util.errorEmbed(
           interaction,
           'There are no tracks in the queue to save to a playlist.',
@@ -310,7 +298,6 @@ exports.run = async (interaction) => {
       }
 
       if (playlists.some((p) => p.name === playlistName)) {
-        connection.release();
         return interaction.client.util.errorEmbed(
           interaction,
           `You already have a playlist named \`${playlistName}\`.`,
@@ -318,7 +305,6 @@ exports.run = async (interaction) => {
       }
 
       if (playlists.length >= 20) {
-        connection.release();
         return interaction.client.util.errorEmbed(
           interaction,
           'You have reached the maximum number of playlists allowed (20).',
@@ -334,7 +320,7 @@ exports.run = async (interaction) => {
 
       try {
         playlists.push(newPlaylist);
-        await connection.execute(
+        await interaction.client.db.execute(
           /* sql */
           `
             INSERT INTO
@@ -348,13 +334,10 @@ exports.run = async (interaction) => {
           [interaction.user.id, JSON.stringify(playlists)],
         );
 
-        connection.release();
         return interaction.editReply(
           `I have successfully created the playlist \`${playlistName}\` with ${player.queue.tracks.length} tracks. You can play it using the \`/playlist load\` command. (${playlists.length}/20)`,
         );
       } catch (error) {
-        connection.release();
-
         console.error('Save Playlist Error:', error);
         return interaction.editReply(`An error occurred while saving your playlist: ${error.message}`);
       }

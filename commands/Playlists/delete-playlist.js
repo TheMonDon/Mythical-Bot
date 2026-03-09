@@ -15,14 +15,12 @@ class DeletePlaylist extends Command {
 
   async run(msg, args) {
     const playlistName = args.join(' ').trim();
-    const connection = await this.client.db.getConnection();
 
     if (!playlistName) {
-      connection.release();
       return this.client.util.errorEmbed(msg, 'Please specify the name of the playlist to delete.');
     }
 
-    const [playlistRows] = await connection.execute(
+    const [playlistRows] = await this.client.db.execute(
       /* sql */ `
         SELECT
           *
@@ -40,7 +38,6 @@ class DeletePlaylist extends Command {
     }
 
     if (!userPlaylists || userPlaylists.length === 0) {
-      connection.release();
       return this.client.util.errorEmbed(msg, "You don't currently have any saved playlists.");
     }
 
@@ -48,7 +45,6 @@ class DeletePlaylist extends Command {
     const playlistIndex = userPlaylists.findIndex((p) => p.name.toLowerCase() === playlistName.toLowerCase());
 
     if (playlistIndex === -1) {
-      connection.release();
       return this.client.util.errorEmbed(msg, `No playlist found with the name \`${playlistName}\`.`);
     }
 
@@ -56,7 +52,7 @@ class DeletePlaylist extends Command {
     userPlaylists.splice(playlistIndex, 1);
 
     // Save the updated playlist array
-    await connection.execute(
+    await this.client.db.execute(
       /* sql */
       `
         INSERT INTO
@@ -69,7 +65,6 @@ class DeletePlaylist extends Command {
       `,
       [msg.author.id, JSON.stringify(userPlaylists)],
     );
-    connection.release();
 
     return msg.channel.send(`The playlist \`${playlistName}\` has been deleted.`);
   }

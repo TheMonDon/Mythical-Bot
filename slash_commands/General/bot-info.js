@@ -17,14 +17,12 @@ exports.run = async (interaction) => {
     .duration(interaction.client.uptime)
     .format('y[ years][,] M[ months][,] d[ days][,] h[ hours][,] m[ minutes][ and] s[ seconds]');
 
-  const connection = await interaction.client.db.getConnection();
-  const [rows] = await connection.query(/* sql */ `
+  const [rows] = await interaction.client.db.execute(/* sql */ `
     SELECT
       *
     FROM
       globalruns
   `);
-  connection.release();
 
   const totalCommands = rows[0]?.TOTAL_COMMANDS || 0;
   const totalText = rows[0]?.TEXT_RUNS || 0;

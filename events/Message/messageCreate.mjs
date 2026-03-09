@@ -16,10 +16,9 @@ async function hasPermissionToSendMessage(client, message) {
 async function handleEconomyEvent(client, message) {
   if (message.channel.type === ChannelType.DM) return;
   if (!message.guild) return;
-  const connection = await client.db.getConnection();
 
   try {
-    const [economyRows] = await connection.execute(
+    const [economyRows] = await client.db.query(
       /* sql */ `
         SELECT
           *
@@ -34,7 +33,7 @@ async function handleEconomyEvent(client, message) {
     const min = economyRows[0]?.chat_min || 10;
     const max = economyRows[0]?.chat_max || 100;
 
-    const [cooldownRows] = await connection.execute(
+    const [cooldownRows] = await client.db.query(
       /* sql */ `
         SELECT
           duration
@@ -48,7 +47,7 @@ async function handleEconomyEvent(client, message) {
     );
     const cooldown = cooldownRows[0]?.duration || 60;
 
-    const [userCooldownRows] = await connection.execute(
+    const [userCooldownRows] = await client.db.query(
       /* sql */ `
         SELECT
           *
@@ -66,12 +65,11 @@ async function handleEconomyEvent(client, message) {
     if (expiresAt) {
       const timeleft = new Date(expiresAt) - Date.now();
       if (timeleft > 0 && timeleft <= cooldown * 1000) {
-        connection.release();
         return;
       }
     }
 
-    await connection.execute(
+    await client.db.query(
       /* sql */ `
         INSERT INTO
           cooldowns (server_id, user_id, cooldown_name, expires_at)
@@ -94,14 +92,10 @@ async function handleEconomyEvent(client, message) {
     await db.set(`servers.${message.guild.id}.users.${message.author.id}.economy.cash`, newAmount.toString());
   } catch (error) {
     client.logger.error(error);
-  } finally {
-    connection.release();
   }
 }
 
 async function handleChatbot(client, message) {
-  const connection = await client.db.getConnection();
-
   try {
     const chatbotResponse = await client.util.chatbotApiRequest(client, message);
     if (chatbotResponse?.toString().startsWith('Please wait')) {
@@ -160,7 +154,7 @@ async function handleChatbot(client, message) {
         }
       }
 
-      await connection.execute(/* sql */ `
+      await client.db.execute(/* sql */ `
         INSERT INTO
           chatbot_stats (id, total_runs)
         VALUES
@@ -177,8 +171,6 @@ async function handleChatbot(client, message) {
     }
   } catch (err) {
     console.error('Chatbot error:', err);
-  } finally {
-    connection.release();
   }
 }
 
@@ -202,12 +194,10 @@ export async function run(client, message) {
 
   // Handle chatbot before economy event if not a command
   if (!isCommand) {
-    await handleChatbot(client, message);
-    await handleEconomyEvent(client, message);
+    handleChatbot(client, message);
+    handleEconomyEvent(client, message);
     return;
   }
-
-  const connection = await client.db.getConnection();
 
   try {
     // Command handling
@@ -231,13 +221,22 @@ export async function run(client, message) {
 
     // If no command found but bot was mentioned, handle chatbot
     if (!command) {
-      await handleChatbot(client, message);
+      handleChatbot(client, message);
       return;
     }
 
     if (message.guild) {
-      const [blacklistRows] = await connection.execute(
-        `SELECT * FROM server_blacklists WHERE server_id = ? AND user_id = ?`,
+      const [blacklistRows] = await client.db.query(
+        /* sql */
+        `
+          SELECT
+            *
+          FROM
+            server_blacklists
+          WHERE
+            server_id = ?
+            AND user_id = ?
+        `,
         [message.guild.id, message.author.id],
       );
 
@@ -258,7 +257,7 @@ export async function run(client, message) {
       }
     }
 
-    const [gblacklistRows] = await connection.execute(
+    const [gblacklistRows] = await client.db.query(
       /* sql */ `
         SELECT
           *
@@ -342,7 +341,7 @@ export async function run(client, message) {
     const isText = true;
     const isSlash = false;
 
-    await connection.query('CALL updateCommandStats(?, ?, ?, ?, ?)', [
+    await client.db.query('CALL updateCommandStats(?, ?, ?, ?, ?)', [
       command.help.name,
       isText ? 1 : 0,
       isSlash ? 1 : 0,
@@ -351,8 +350,6 @@ export async function run(client, message) {
     ]);
   } catch (error) {
     console.error('Error running command:', error);
-    return message.channel.send('There was an error executing that command.');
-  } finally {
-    connection.release();
+    return message.channel.send('There was an error executing that command: ' + error.message);
   }
 }

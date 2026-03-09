@@ -15,9 +15,8 @@ class SetCurrency extends Command {
 
   async run(msg, args) {
     const symbol = args.join(' ').trim();
-    const connection = await this.client.db.getConnection();
 
-    const [economyRows] = await connection.execute(
+    const [economyRows] = await this.client.db.execute(
       /* sql */ `
         SELECT
           *
@@ -31,7 +30,6 @@ class SetCurrency extends Command {
     const oldSymbol = economyRows[0]?.symbol || '$';
 
     if (!symbol) {
-      connection.release();
       return msg.channel.send(
         `The currency symbol for this server is: ${oldSymbol} \nUsage: ${msg.settings.prefix}set-currency <symbol>`,
       );
@@ -41,21 +39,18 @@ class SetCurrency extends Command {
     const filteredSymbol = symbol.replace(/<a?:\w+:\d+>/g, '');
 
     if (/\d/.test(filteredSymbol)) {
-      connection.release();
       return msg.channel.send('The currency symbol cannot contain numbers.');
     }
 
     if (filteredSymbol.length > 50) {
-      connection.release();
       return msg.channel.send('The maximum length for the currency symbol is 50 characters.');
     }
 
     if (filteredSymbol === oldSymbol) {
-      connection.release();
       return msg.channel.send('That is already the currency symbol.');
     }
 
-    await connection.execute(
+    await this.client.db.execute(
       /* sql */ `
         INSERT INTO
           economy_settings (server_id, symbol)
@@ -67,7 +62,6 @@ class SetCurrency extends Command {
       `,
       [msg.guild.id, symbol],
     );
-    connection.release();
 
     return msg.channel.send(`The currency symbol has been changed to: ${symbol}`);
   }

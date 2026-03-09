@@ -1,10 +1,8 @@
 import { EmbedBuilder } from 'discord.js';
 
 export async function run(client, role) {
-  const connection = await client.db.getConnection();
-
   try {
-    const [logRows] = await connection.execute(
+    const [logRows] = await client.db.execute(
       /* sql */ `
         SELECT
           channel_id,
@@ -45,7 +43,5 @@ export async function run(client, role) {
     return logChannel.send({ embeds: [embed] }).catch(() => {});
   } catch (error) {
     client.logger.error(error);
-  } finally {
-    connection.release();
   }
 }

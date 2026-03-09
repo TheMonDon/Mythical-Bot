@@ -18,7 +18,6 @@ class SetCooldown extends Command {
   }
 
   async run(msg, args) {
-    const connection = await this.client.db.getConnection();
     const types = ['rob', 'work', 'crime', 'slut', 'chat'];
 
     const embed = new EmbedBuilder()
@@ -38,7 +37,7 @@ class SetCooldown extends Command {
       };
 
       // Get the cooldowns from the database
-      const [rows] = await connection.execute(
+      const [rows] = await this.client.db.execute(
         /* sql */
         `
           SELECT
@@ -78,13 +77,11 @@ class SetCooldown extends Command {
 
       `);
 
-      connection.release();
       return msg.channel.send({ embeds: [embed] });
     }
 
     const type = args[0].toLowerCase();
     if (!types.includes(type)) {
-      connection.release();
       return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Incorrect Usage');
     }
 
@@ -95,20 +92,17 @@ class SetCooldown extends Command {
     const properCase = this.client.util.toProperCase(type);
 
     if (isNaN(cooldown)) {
-      connection.release();
       return this.client.util.errorEmbed(msg, 'Please provide a valid cooldown time.', 'Invalid Cooldown');
     }
 
     if (cooldown > 1209600000) {
-      connection.release();
       return this.client.util.errorEmbed(msg, "Cooldowns can't be longer than 2 weeks.", 'Invalid Cooldown');
     } else if (cooldown < 30000) {
-      connection.release();
       return this.client.util.errorEmbed(msg, "Cooldowns can't be shorter than 30 seconds.", 'Invalid Cooldown');
     }
 
     const duration = cooldown / 1000;
-    await connection.execute(
+    await this.client.db.execute(
       /* sql */ `
         INSERT INTO
           cooldown_settings (server_id, cooldown_name, duration)
@@ -123,7 +117,6 @@ class SetCooldown extends Command {
 
     embed.setDescription(`The cooldown of \`${properCase}\` has been set to ${parseMS(cooldown)}.`);
 
-    connection.release();
     return msg.channel.send({ embeds: [embed] });
   }
 }

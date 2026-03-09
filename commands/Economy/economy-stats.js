@@ -17,9 +17,7 @@ class EconomyStats extends Command {
   }
 
   async run(msg, _args) {
-    const connection = await this.client.db.getConnection();
-
-    const [economyRows] = await connection.execute(
+    const [economyRows] = await this.client.db.execute(
       /* sql */ `
         SELECT
           *
@@ -31,7 +29,6 @@ class EconomyStats extends Command {
       [msg.guild.id],
     );
     const currencySymbol = economyRows[0]?.symbol || '$';
-    connection.release();
 
     const usersData = (await db.get(`servers.${msg.guild.id}.users`)) || {};
 

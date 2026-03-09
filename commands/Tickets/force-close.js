@@ -15,11 +15,10 @@ class forceClose extends Command {
   }
 
   async run(msg, args) {
-    const connection = await this.client.db.getConnection();
 
     try {
       // Get ticket settings
-      const [settingsRows] = await connection.execute(
+      const [settingsRows] = await this.client.db.execute(
         /* sql */
         `
           SELECT
@@ -69,7 +68,7 @@ class forceClose extends Command {
       }
 
       // Get ticket owner
-      const [ticketRows] = await connection.execute(
+      const [ticketRows] = await this.client.db.execute(
         /* sql */
         `
           SELECT
@@ -142,7 +141,7 @@ class forceClose extends Command {
         .catch(() => {});
 
       // Remove ticket from database
-      await connection.execute(
+      await this.client.db.execute(
         /* sql */
         `
           DELETE FROM user_tickets
@@ -160,8 +159,6 @@ class forceClose extends Command {
         msg,
         'An error occurred while trying to force close the ticket. Please try again later.',
       );
-    } finally {
-      connection.release();
     }
   }
 }

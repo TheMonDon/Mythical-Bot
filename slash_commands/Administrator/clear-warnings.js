@@ -12,13 +12,12 @@ exports.commandData = new SlashCommandBuilder()
 
 exports.run = async (interaction) => {
   await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-  const connection = await this.client.db.getConnection();
 
   try {
     const mem = interaction.options.getUser('user');
     let color = interaction.settings.embedColor;
 
-    const [settingsRows] = await connection.execute(
+    const [settingsRows] = await interaction.client.db.execute(
       /* sql */ `
         SELECT
           warn_log_channel
@@ -31,7 +30,7 @@ exports.run = async (interaction) => {
     );
     const logChan = settingsRows[0]?.warn_log_channel;
 
-    const [otherWarns] = await connection.execute(
+    const [otherWarns] = await interaction.client.db.execute(
       /* sql */
       `
         SELECT
@@ -47,7 +46,7 @@ exports.run = async (interaction) => {
       [interaction.guild.id, mem.id],
     );
 
-    const [[beforeRow]] = await connection.execute(
+    const [[beforeRow]] = await interaction.client.db.execute(
       /* sql */
       `
         SELECT
@@ -66,7 +65,7 @@ exports.run = async (interaction) => {
       return interaction.client.util.errorEmbed(interaction, 'That user has no warnings.');
     }
 
-    await connection.execute(
+    await interaction.client.db.execute(
       /* sql */ `
         DELETE FROM warns
         WHERE
@@ -125,7 +124,5 @@ exports.run = async (interaction) => {
   } catch (error) {
     console.error('Clear-Warning Error:', error);
     return interaction.editReply(`An error occurred: ${error.message}`);
-  } finally {
-    connection.release();
   }
 };

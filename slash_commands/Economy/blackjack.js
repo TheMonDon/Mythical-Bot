@@ -25,7 +25,6 @@ exports.commandData = new SlashCommandBuilder()
 
 exports.run = async (interaction) => {
   await interaction.deferReply();
-  const connection = await interaction.client.db.getConnection();
 
   // array of all my card emojis in my private server
   // These are also inside the bots files to host yourself!
@@ -108,7 +107,7 @@ exports.run = async (interaction) => {
     }
   }
 
-  const [economyRows] = await connection.execute(
+  const [economyRows] = await interaction.client.db.execute(
     /* sql */ `
       SELECT
         *

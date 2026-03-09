@@ -17,8 +17,6 @@ class GiveMoney extends Command {
   }
 
   async run(msg, args) {
-    const connection = await this.client.db.getConnection();
-
     const embed = new EmbedBuilder()
       .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
       .setColor(msg.settings.embedErrorColor);
@@ -26,17 +24,14 @@ class GiveMoney extends Command {
     const mem = await this.client.util.getMember(msg, args[0]);
 
     if (!mem) {
-      connection.release();
       return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Member');
     } else if (mem.id === msg.author.id) {
-      connection.release();
       return this.client.util.errorEmbed(msg, 'You cannot trade money with yourself. That would be pointless.');
     } else if (mem.user.bot) {
-      connection.release();
       return this.client.util.errorEmbed(msg, "You can't give bots money.");
     }
 
-    const [economyRows] = await connection.execute(
+    const [economyRows] = await this.client.db.execute(
       /* sql */ `
         SELECT
           *
@@ -48,7 +43,6 @@ class GiveMoney extends Command {
       [msg.guild.id],
     );
     const currencySymbol = economyRows[0]?.symbol || '$';
-    connection.release();
 
     const cashValue = await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`);
     const startBalance = BigInt(economyRows[0]?.start_balance || 0);

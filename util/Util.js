@@ -771,9 +771,8 @@ async function chatbotApiRequest(client, message) {
   if (!client.config.chatbotApi) return;
   if (message.channel.id !== client.config.chatbotThreadId && !message.mentions.has(client.user)) return;
   if (message.flags.has(MessageFlagsBitField.Flags.SuppressNotifications)) return;
-  const connection = await client.db.getConnection();
 
-  const [settingsRows] = await connection.execute(
+  const [settingsRows] = await client.db.execute(
     /* sql */ `
       SELECT
         *
@@ -788,7 +787,7 @@ async function chatbotApiRequest(client, message) {
 
   if (settingsRows.length === 0) {
     // If no settings found, create default settings
-    await connection.execute(
+    await client.db.execute(
       /* sql */ `
         INSERT INTO
           server_settings (server_id, chatbot)
@@ -801,11 +800,10 @@ async function chatbotApiRequest(client, message) {
   }
 
   if (!enabled) {
-    connection.release();
     return 'disabled';
   }
 
-  const [cooldownRows] = await connection.execute(
+  const [cooldownRows] = await client.db.execute(
     /* sql */ `
       SELECT
         duration
@@ -819,7 +817,7 @@ async function chatbotApiRequest(client, message) {
   );
   const cooldown = cooldownRows[0]?.duration || 5;
 
-  const [userCooldownRows] = await connection.execute(
+  const [userCooldownRows] = await client.db.execute(
     /* sql */ `
       SELECT
         *
@@ -840,7 +838,6 @@ async function chatbotApiRequest(client, message) {
     if (timeleft > 0 && timeleft <= cooldown * 1000) {
       const timeLeftFormatted = moment.duration(timeleft).format('m[ minutes][ and] s[ seconds]');
 
-      connection.release();
       return `Please wait ${timeLeftFormatted} before using the chatbot again.`;
     }
   }
@@ -1111,7 +1108,7 @@ async function chatbotApiRequest(client, message) {
     body: JSON.stringify(body),
   });
 
-  await connection.execute(
+  await client.db.execute(
     /* sql */ `
       INSERT INTO
         cooldowns (server_id, user_id, cooldown_name, expires_at)
@@ -1124,7 +1121,6 @@ async function chatbotApiRequest(client, message) {
     [message.guild.id, message.author.id, 'chatbot', cooldown],
   );
 
-  connection.release();
   return await response.json();
 
   async function toBase64FromUrl(imageUrl) {

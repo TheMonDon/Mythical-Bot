@@ -18,10 +18,9 @@ class SetPayout extends Command {
   }
 
   async run(msg, args) {
-    const connection = await this.client.db.getConnection();
     const types = ['work', 'crime', 'slut', 'chat'];
 
-    const [economyRows] = await connection.execute(
+    const [economyRows] = await this.client.db.execute(
       /* sql */ `
         SELECT
           *
@@ -59,19 +58,16 @@ class SetPayout extends Command {
           Usage: ${msg.settings.prefix + this.help.usage}
         `);
 
-      connection.release();
       return msg.channel.send({ embeds: [embed] });
     }
 
     const type = args[0]?.toLowerCase();
     if (!types.includes(type)) {
-      connection.release();
       return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Incorrect Usage');
     }
 
     const minMax = args[1]?.toLowerCase();
     if (!['min', 'max'].includes(minMax)) {
-      connection.release();
       return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Incorrect Usage');
     }
     const longMinMax = minMax === 'min' ? 'minimum' : 'maximum';
@@ -86,7 +82,7 @@ class SetPayout extends Command {
     );
 
     if (!amount) {
-      await connection.execute(
+      await this.client.db.execute(
         /* sql */ `
           UPDATE economy_settings
           SET
@@ -99,24 +95,20 @@ class SetPayout extends Command {
 
       embed.setDescription(`The ${longMinMax} amount for \`${this.client.util.toProperCase(type)}\` has been reset.`);
 
-      connection.release();
       return msg.channel.send({ embeds: [embed] });
     }
 
     if (isNaN(amount)) {
-      connection.release();
       return this.client.util.errorEmbed(msg, 'Please provide a valid number', 'Invalid Payout');
     }
 
     if (amount > 1000000000000) {
-      connection.release();
       return msg.channel.send('The maximum amount for payout is one trillion.');
     } else if (amount < 1) {
-      connection.release();
       return msg.channel.send('The minimum amount for payout is one.');
     }
 
-    await connection.execute(
+    await this.client.db.execute(
       /* sql */ `
         UPDATE economy_settings
         SET
@@ -135,7 +127,6 @@ class SetPayout extends Command {
       )}\` has been changed to ${this.client.util.limitStringLength(amountString, 0, 1024)}`,
     );
 
-    connection.release();
     return msg.channel.send({ embeds: [embed] });
   }
 }

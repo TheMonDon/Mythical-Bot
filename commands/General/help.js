@@ -98,7 +98,7 @@ class Help extends Command {
         { name: 'Current Categories:', value: sortedCategoriesArray.join(', ') },
         {
           name: 'Quick Bits',
-          value: stripIndents`[Invite Link](https://cisn.xyz/mythical)
+          value: stripIndents`[Invite Link](https://cisn.xyz/Mythical)
             [Source Code](https://github.com/TheMonDon/Mythical-Bot)
             [Support Server](https://discord.com/invite/XvHzUNZDdR)
             [Website](https://mythical.cisn.xyz)`,

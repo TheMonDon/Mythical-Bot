@@ -18,15 +18,13 @@ class LoadPlaylist extends Command {
   }
 
   async run(msg, args) {
-    const connection = await this.client.db.getConnection();
     const playlistName = args.join(' ').trim();
 
     if (playlistName.length === 0 || playlistName.length >= 50) {
-      connection.release();
       return msg.channel.send('Please provide a valid playlist name (1-50 characters).');
     }
 
-    const [playlistRows] = await connection.execute(
+    const [playlistRows] = await this.client.db.execute(
       /* sql */ `
         SELECT
           *
@@ -37,7 +35,6 @@ class LoadPlaylist extends Command {
       `,
       [msg.author.id],
     );
-    connection.release();
 
     let currentPlaylists = [];
     if (playlistRows.length) {

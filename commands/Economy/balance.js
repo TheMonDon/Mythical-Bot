@@ -16,8 +16,6 @@ class Balance extends Command {
   }
 
   async run(msg, args) {
-    const connection = await this.client.db.getConnection();
-
     let mem = msg.author;
 
     if (args && args.length > 0) {
@@ -28,7 +26,6 @@ class Balance extends Command {
         try {
           mem = await this.client.users.fetch(fid);
         } catch (err) {
-          connection.release();
           return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid User');
         }
       }
@@ -41,14 +38,12 @@ class Balance extends Command {
     });
 
     if (!mem) {
-      connection.release();
       return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Member');
     } else if (mem.bot) {
-      connection.release();
       return this.client.util.errorEmbed(msg, 'Bots do not have a balance.', 'Invalid Member');
     }
 
-    const [economyRows] = await connection.execute(
+    const [economyRows] = await this.client.db.execute(
       /* sql */ `
         SELECT
           *
@@ -59,7 +54,6 @@ class Balance extends Command {
       `,
       [msg.guild.id],
     );
-    connection.release();
 
     const cash = BigInt(
       (await db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`)) || economyRows[0]?.start_balance || 0,

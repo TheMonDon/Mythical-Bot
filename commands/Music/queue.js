@@ -1,7 +1,6 @@
 const Command = require('../../base/Command.js');
 const { EmbedBuilder } = require('discord.js');
-require('moment-duration-format');
-const moment = require('moment');
+const { Duration } = require('luxon');
 
 class Queue extends Command {
   constructor(client) {
@@ -51,9 +50,9 @@ class Queue extends Command {
 
     const totalMilliseconds = player.queue.tracks.reduce((acc, track) => acc + (track.info.duration || 0), 0);
 
-    const timeLeft = moment
-      .duration(totalMilliseconds)
-      .format('y[ years][,] M[ Months][,] d[ days][,] h[ hours][,] m[ minutes][ and] s[ seconds]');
+    const timeLeft = Duration.fromMillis(totalMilliseconds)
+      .shiftTo('years', 'months', 'days', 'hours', 'minutes', 'seconds')
+      .toHuman({ showZeros: false });
 
     const embed = new EmbedBuilder()
       .setColor(msg.settings.embedColor)

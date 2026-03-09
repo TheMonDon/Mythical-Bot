@@ -16,7 +16,6 @@ class SetFailRate extends Command {
   }
 
   async run(msg, args) {
-    const connection = await this.client.db.getConnection();
     const types = ['crime', 'slut'];
 
     const embed = new EmbedBuilder()
@@ -24,7 +23,7 @@ class SetFailRate extends Command {
       .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() });
 
     if (!args || args.length < 1) {
-      const [economyRows] = await connection.execute(
+      const [economyRows] = await this.client.db.execute(
         /* sql */ `
           SELECT
             *
@@ -48,13 +47,11 @@ class SetFailRate extends Command {
         Usage: \`${msg.settings.prefix + this.help.usage}\`
         `);
 
-      connection.release();
       return msg.channel.send({ embeds: [embed] });
     }
 
     const type = args[0]?.toLowerCase();
     if (!types.includes(type)) {
-      connection.release();
       return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Incorrect Usage');
     }
 
@@ -62,18 +59,15 @@ class SetFailRate extends Command {
     const percentage = parseInt(args.join('').replace('%', '').replace(/-/g, ''), 10);
 
     if (isNaN(percentage)) {
-      connection.release();
       return this.client.util.errorEmbed(msg, 'Please provide a valid number.', 'Invalid Fail Rate');
     } else if (percentage > 100) {
-      connection.release();
       return this.client.util.errorEmbed(msg, "The percentage can't be greater than 100%.", 'Invalid Fail Rate');
     } else if (percentage < 0) {
-      connection.release();
       return this.client.util.errorEmbed(msg, "The percentage can't be less than 0%.", 'Invalid Fail Rate');
     }
 
     if (type === 'crime') {
-      await connection.execute(
+      await this.client.db.execute(
         /* sql */ `
           INSERT INTO
             economy_settings (server_id, crime_fail_rate)
@@ -89,7 +83,7 @@ class SetFailRate extends Command {
 
       return msg.channel.send({ embeds: [embed] });
     } else if (type === 'slut') {
-      await connection.execute(
+      await this.client.db.execute(
         /* sql */ `
           INSERT INTO
             economy_settings (server_id, slut_fail_rate)
@@ -104,7 +98,6 @@ class SetFailRate extends Command {
       embed.setDescription(`The fail rate for \`slut\` has been set to ${percentage}%.`);
     }
 
-    connection.release();
     return msg.channel.send({ embeds: [embed] });
   }
 }

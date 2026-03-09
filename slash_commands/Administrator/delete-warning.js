@@ -12,14 +12,13 @@ exports.commandData = new SlashCommandBuilder()
 
 exports.run = async (interaction) => {
   await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-  const connection = await interaction.client.db.getConnection();
 
   let title = 'Case Cleared';
   let color = interaction.settings.embedColor;
 
   try {
     const caseID = interaction.options.getString('case_id');
-    const [[warning]] = await connection.execute(
+    const [[warning]] = await interaction.client.db.execute(
       /* sql */ `
         SELECT
           *
@@ -36,7 +35,7 @@ exports.run = async (interaction) => {
       return interaction.client.util.errorEmbed(interaction, 'Warning case not found', 'Invalid Case ID');
     }
 
-    const [settingsRows] = await connection.execute(
+    const [settingsRows] = await interaction.client.db.execute(
       /* sql */ `
         SELECT
           warn_log_channel
@@ -51,7 +50,7 @@ exports.run = async (interaction) => {
     const warnReason = warning.reason || 'No reason specified';
 
     // Get total points before
-    const [[beforeRow]] = await connection.execute(
+    const [[beforeRow]] = await interaction.client.db.execute(
       /* sql */
       `
         SELECT
@@ -67,7 +66,7 @@ exports.run = async (interaction) => {
     const previousPoints = Number(beforeRow.totalPoints);
 
     // Get the points of the warn being deleted
-    const [[warnRow]] = await connection.execute(
+    const [[warnRow]] = await interaction.client.db.execute(
       /* sql */ `
         SELECT
           points
@@ -82,7 +81,7 @@ exports.run = async (interaction) => {
     const deletedPoints = warnRow ? Number(warnRow.points) : 0;
 
     // Delete the warn
-    await connection.execute(
+    await interaction.client.db.execute(
       /* sql */ `
         DELETE FROM warns
         WHERE
@@ -161,7 +160,5 @@ exports.run = async (interaction) => {
   } catch (error) {
     console.error('Delete-Warnings Error:', error);
     return interaction.editReply(`An error occurred: ${error.message}`);
-  } finally {
-    connection.release();
   }
 };

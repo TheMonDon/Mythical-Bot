@@ -17,12 +17,11 @@ class WarnInfo extends Command {
 
   async run(msg, args) {
     const caseID = args.join(' ');
-    const connection = await this.client.db.getConnection();
 
     try {
       await msg.delete();
 
-      const [settingsRows] = await connection.execute(
+      const [settingsRows] = await this.client.db.execute(
         /* sql */ `
           SELECT
             warn_log_channel
@@ -35,7 +34,7 @@ class WarnInfo extends Command {
       );
       const logChan = settingsRows[0]?.warn_log_channel;
 
-      const [[warn]] = await connection.execute(
+      const [[warn]] = await this.client.db.execute(
         /* sql */ `
           SELECT
             *
@@ -88,8 +87,6 @@ class WarnInfo extends Command {
       }
     } catch (error) {
       console.error('Warn-Info Error:', error);
-    } finally {
-      connection.release();
     }
   }
 }

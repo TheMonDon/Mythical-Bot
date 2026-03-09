@@ -14,11 +14,10 @@ exports.commandData = new SlashCommandBuilder()
 
 exports.run = async (interaction) => {
   await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-  const connection = await interaction.client.db.getConnection();
 
   try {
     const caseID = interaction.options.getString('case_id');
-    const [[warn]] = await connection.execute(
+    const [[warn]] = await interaction.client.db.execute(
       /* sql */ `
         SELECT
           *
@@ -64,7 +63,5 @@ exports.run = async (interaction) => {
   } catch (error) {
     console.error('Warn-Info Error:', error);
     return interaction.editReply(`An error occurred: ${error.message}`);
-  } finally {
-    connection.release();
   }
 };

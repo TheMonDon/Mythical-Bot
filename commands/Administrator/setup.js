@@ -42,8 +42,7 @@ class Setup extends Command {
       }
 
       // Check if the system is setup already
-      const connection = await this.client.db.getConnection();
-      const [rows] = await connection.execute(
+      const [rows] = await this.client.db.execute(
         /* sql */ `
           SELECT
             *
@@ -109,7 +108,7 @@ class Setup extends Command {
                 }
                 ticketLimit = parseInt(ticketLimit);
               }
-              await connection.execute(
+              await this.client.db.execute(
                 /* sql */ `
                   UPDATE ticket_settings
                   SET
@@ -126,7 +125,7 @@ class Setup extends Command {
             // Disable the ticket system
             if (choice === '3') {
               // Delete the database entry (Hopefully this works, copilot wrote it)
-              await connection.execute(
+              await this.client.db.execute(
                 /* sql */ `
                   DELETE FROM ticket_settings
                   WHERE
@@ -134,7 +133,14 @@ class Setup extends Command {
                 `,
                 [msg.guild.id],
               );
-              await connection.execute(/* sql */ 'DELETE FROM user_tickets WHERE server_id = ?', [msg.guild.id]);
+              await this.client.db.execute(
+                /* sql */ `
+                  DELETE FROM user_tickets
+                  WHERE
+                    server_id = ?
+                `,
+                [msg.guild.id],
+              );
               return msg.channel.send(
                 'The ticket system has been removed from the bots memory, you will need to delete the channels manually.',
               );
@@ -175,7 +181,7 @@ class Setup extends Command {
                 'What channel do you want to use for logging?',
               );
 
-              await connection.execute(
+              await this.client.db.execute(
                 /* sql */ `
                   UPDATE ticket_settings
                   SET
@@ -240,7 +246,7 @@ class Setup extends Command {
               const category = newLoggingChannel.parent;
               category.permissionOverwrites.set(catPerms);
               newLoggingChannel.permissionOverwrites.set(logPerms);
-              await connection.execute(
+              await this.client.db.execute(
                 /* sql */ `
                   UPDATE ticket_settings
                   SET
@@ -295,7 +301,6 @@ class Setup extends Command {
                   errors: ['time'],
                 });
                 if (!collectedCreationMessage) {
-                  connection.release();
                   return this.client.util.errorEmbed(msg, 'You did not reply in time, the command has been cancelled.');
                 }
 
@@ -462,8 +467,6 @@ class Setup extends Command {
           }
         } catch (error) {
           return msg.channel.send('An error occurred during setup:', error);
-        } finally {
-          connection.release();
         }
       }
       // End of checking if the system is setup already
@@ -472,9 +475,9 @@ class Setup extends Command {
       try {
         await msg.channel
           .send(stripIndents`What is the name of the role you want to use for support team? This can be a new or existing role.
-      You have 60 seconds.
+            You have 60 seconds.
 
-      Type \`cancel\` to exit.`);
+            Type \`cancel\` to exit.`);
 
         const collected = await msg.channel.awaitMessages({
           filter,
@@ -626,16 +629,32 @@ class Setup extends Command {
           reason: 'Setting up tickets system',
         });
 
-        await connection.execute(
+        await this.client.db.execute(
+          /* sql */
           `
-        INSERT INTO ticket_settings (server_id, ticket_limit, role_id, category_id, logging_id)
-        VALUES (?, ?, ?, ?, ?)
-        ON DUPLICATE KEY UPDATE
-          ticket_limit = VALUES(ticket_limit),
-          role_id = VALUES(role_id),
-          category_id = VALUES(category_id),
-          logging_id = VALUES(logging_id)
-      `,
+            INSERT INTO
+              ticket_settings (
+                server_id,
+                ticket_limit,
+                role_id,
+                category_id,
+                logging_id
+              )
+            VALUES
+              (?, ?, ?, ?, ?) ON DUPLICATE KEY
+            UPDATE ticket_limit =
+            VALUES
+              (ticket_limit),
+              role_id =
+            VALUES
+              (role_id),
+              category_id =
+            VALUES
+              (category_id),
+              logging_id =
+            VALUES
+              (logging_id)
+          `,
           [msg.guild.id, 3, role.id, category.id, tixLog.id],
         );
 
@@ -646,16 +665,12 @@ class Setup extends Command {
         Ticket Creation Channel: ${ticketCreationMenu === 'yes' ? ticketCreationChannel : 'Skipped'}`);
       } catch (error) {
         return msg.channel.send('An error occurred during setup:', error);
-      } finally {
-        connection.release();
       }
     }
     // End of ticket setup.
 
     // Start of logging setup
     if (['logging', 'log', 'logs'].includes(type)) {
-      const connection = await this.client.db.getConnection();
-
       try {
         args.shift();
         let text = args.join('');
@@ -683,7 +698,7 @@ class Setup extends Command {
           i++;
         }
 
-        const [settingsRows] = await connection.execute(
+        const [settingsRows] = await this.client.db.execute(
           /* sql */ `
             SELECT
               channel_id
@@ -696,7 +711,7 @@ class Setup extends Command {
         );
 
         if (settingsRows.length) {
-          await connection.execute(
+          await this.client.db.execute(
             /* sql */ `
               UPDATE log_settings
               SET
@@ -718,7 +733,7 @@ class Setup extends Command {
 
           return msg.channel.send({ embeds: [embed] });
         } else {
-          await connection.execute(
+          await this.client.db.execute(
             /* sql */
             `
               INSERT INTO
@@ -818,8 +833,6 @@ class Setup extends Command {
       } catch (error) {
         this.client.logger.error(error);
         return msg.channel.send(`An error occurred: ${error.message}`);
-      } finally {
-        connection.release();
       }
     }
     // End of logging setup
@@ -866,9 +879,7 @@ class Setup extends Command {
         banAmount = parseInt(banAmount);
       }
 
-      const connection = await this.client.db.getConnection();
-
-      await connection.execute(
+      await this.client.db.execute(
         /* sql */
         `
           INSERT INTO
@@ -892,8 +903,6 @@ class Setup extends Command {
         `,
         [msg.guild.id, kickAmount, banAmount, logChannel.id],
       );
-
-      await connection.release();
 
       const em = new EmbedBuilder()
         .setTitle('Warns System Setup')

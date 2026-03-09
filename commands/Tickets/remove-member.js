@@ -15,10 +15,8 @@ class RemoveMember extends Command {
   }
 
   async run(msg, args) {
-    const connection = await this.client.db.getConnection();
-
     try {
-      const [rows] = await connection.execute(
+      const [rows] = await this.client.db.execute(
         /* sql */ `
           SELECT
             *
@@ -48,8 +46,17 @@ class RemoveMember extends Command {
 
       const roleID = rows[0].role_id;
       const role = msg.guild.roles.cache.get(roleID);
-      const [ownerRows] = await connection.execute(
-        `SELECT user_id FROM user_tickets WHERE server_id = ? AND channel_id = ?`,
+      const [ownerRows] = await this.client.db.execute(
+        /* sql */
+        `
+          SELECT
+            user_id
+          FROM
+            user_tickets
+          WHERE
+            server_id = ?
+            AND channel_id = ?
+        `,
         [msg.guild.id, msg.channel.id],
       );
       const owner = ownerRows[0]?.user_id;
@@ -84,8 +91,6 @@ class RemoveMember extends Command {
         msg,
         'An error occurred while trying to remove that member from the ticket. Please try again later.',
       );
-    } finally {
-      connection.release();
     }
   }
 }

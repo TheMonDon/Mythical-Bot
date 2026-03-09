@@ -19,8 +19,6 @@ class BlackJack extends Command {
   }
 
   async run(msg, args) {
-    const connection = await this.client.db.getConnection();
-
     // array of all my card emojis in my private server
     // These are also inside the bots files to host yourself!
     const cards = {
@@ -102,7 +100,7 @@ class BlackJack extends Command {
       }
     }
 
-    const [economyRows] = await connection.execute(
+    const [economyRows] = await this.client.db.execute(
       /* sql */ `
         SELECT
           *
@@ -114,7 +112,6 @@ class BlackJack extends Command {
       [msg.guild.id],
     );
     const currencySymbol = economyRows[0]?.symbol || '$';
-    connection.release();
 
     const cash = BigInt(
       (await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`)) ||

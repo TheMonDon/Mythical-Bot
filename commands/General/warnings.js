@@ -14,8 +14,6 @@ class Warnings extends Command {
   }
 
   async run(msg, args, level) {
-    const connection = await this.client.db.getConnection();
-
     const warns = [];
     let mem;
 
@@ -38,7 +36,7 @@ class Warnings extends Command {
         mem = level > 1 ? mem : msg.author;
       }
 
-      const [settingsRows] = await connection.execute(
+      const [settingsRows] = await this.client.db.execute(
         /* sql */ `
           SELECT
             warn_log_channel
@@ -51,7 +49,7 @@ class Warnings extends Command {
       );
       const logChan = settingsRows[0]?.warn_log_channel;
 
-      const [otherWarns] = await connection.execute(
+      const [otherWarns] = await this.client.db.execute(
         /* sql */
         `
           SELECT
@@ -67,7 +65,7 @@ class Warnings extends Command {
         [msg.guild.id, mem.id],
       );
 
-      const [[pointsRow]] = await connection.execute(
+      const [[pointsRow]] = await this.client.db.execute(
         /* sql */
         `
           SELECT
@@ -119,8 +117,6 @@ class Warnings extends Command {
       }
     } catch (error) {
       console.error('Warnings Error:', error);
-    } finally {
-      connection.release();
     }
   }
 }

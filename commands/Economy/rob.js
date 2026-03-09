@@ -18,9 +18,7 @@ class Rob extends Command {
   }
 
   async run(msg, args) {
-    const connection = await this.client.db.getConnection();
-
-    const [cooldownRows] = await connection.execute(
+    const [cooldownRows] = await this.client.db.execute(
       /* sql */ `
         SELECT
           duration
@@ -34,7 +32,7 @@ class Rob extends Command {
     );
     const cooldown = cooldownRows[0]?.duration || 600;
 
-    const [userCooldownRows] = await connection.execute(
+    const [userCooldownRows] = await this.client.db.execute(
       /* sql */ `
         SELECT
           *
@@ -63,7 +61,6 @@ class Rob extends Command {
 
         embed.setDescription(`Please wait ${tLeft} before robbing someone again.`);
 
-        connection.release();
         return msg.channel.send({ embeds: [embed] });
       }
     }
@@ -79,15 +76,13 @@ class Rob extends Command {
     }
 
     if (!mem) {
-      connection.release();
       return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Member');
     }
     if (mem.id === msg.author.id) {
-      connection.release();
       return this.client.util.errorEmbed(msg, "You can't rob yourself.", 'Invalid Member');
     }
 
-    const [economyRows] = await connection.execute(
+    const [economyRows] = await this.client.db.execute(
       /* sql */ `
         SELECT
           *
@@ -112,7 +107,6 @@ class Rob extends Command {
     );
 
     if (memCash <= BigInt(0)) {
-      connection.release();
       return this.client.util.errorEmbed(msg, `${mem} does not have anything to rob`, 'No Money');
     }
 
@@ -190,7 +184,7 @@ class Rob extends Command {
       await msg.channel.send({ embeds: [embed] });
     }
 
-    await connection.execute(
+    await this.client.db.execute(
       /* sql */ `
         INSERT INTO
           cooldowns (server_id, user_id, cooldown_name, expires_at)
@@ -202,8 +196,6 @@ class Rob extends Command {
       `,
       [msg.guild.id, msg.author.id, 'rob', cooldown],
     );
-
-    connection.release();
   }
 }
 

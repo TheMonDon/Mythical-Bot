@@ -17,9 +17,7 @@ class Leaderboard extends Command {
   }
 
   async run(msg, args) {
-    const connection = await this.client.db.getConnection();
-
-    const [economyRows] = await connection.execute(
+    const [economyRows] = await this.client.db.execute(
       /* sql */ `
         SELECT
           *
@@ -32,15 +30,10 @@ class Leaderboard extends Command {
     );
     const currencySymbol = economyRows[0]?.symbol || '$';
     const startingBalance = economyRows[0]?.start_balance || 0;
-    connection.release();
 
     let page = Math.max(parseInt(args[0]) || 1, 1);
     const cashOrBank = args.includes('-cash') ? 'cash' : args.includes('-bank') ? 'bank' : 'total';
-    /*
-    const usersCount = (await db.get(`servers.${msg.guild.id}.users`))
-      ? Object.keys(await db.get(`servers.${msg.guild.id}.users`)).length
-      : 0;
-    */
+
     const usersCount = Object.keys((await db.get(`servers.${msg.guild.id}.users`)) || {}).length;
     const itemsPerPage = 10;
     const maxPages = Math.ceil(usersCount / itemsPerPage);

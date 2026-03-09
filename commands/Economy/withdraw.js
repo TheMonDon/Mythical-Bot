@@ -17,15 +17,13 @@ class Withdraw extends Command {
   }
 
   async run(msg, args) {
-    const connection = await this.client.db.getConnection();
-
     let amount = args.join(' ');
     const embed = new EmbedBuilder().setAuthor({
       name: msg.member.displayName,
       iconURL: msg.member.displayAvatarURL(),
     });
 
-    const [economyRows] = await connection.execute(
+    const [economyRows] = await this.client.db.execute(
       /* sql */ `
         SELECT
           *

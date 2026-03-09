@@ -14,9 +14,7 @@ exports.commandData = new SlashCommandBuilder()
 
 exports.run = async (interaction) => {
   await interaction.deferReply();
-  const connection = await interaction.client.db.getConnection();
-
-  const [cooldownRows] = await connection.execute(
+  const [cooldownRows] = await interaction.client.db.execute(
     /* sql */ `
       SELECT
         duration
@@ -30,7 +28,7 @@ exports.run = async (interaction) => {
   );
   const cooldown = cooldownRows[0]?.duration || 600;
 
-  const [userCooldownRows] = await connection.execute(
+  const [userCooldownRows] = await interaction.client.db.execute(
     /* sql */ `
       SELECT
         *
@@ -58,12 +56,11 @@ exports.run = async (interaction) => {
         .format('y[ years][,] M[ Months][,] d[ days][,] h[ hours][,] m[ minutes][ and] s[ seconds]');
       embed.setDescription(`Please wait ${tLeft} to be a slut again.`);
 
-      connection.release();
       return interaction.editReply({ embeds: [embed] });
     }
   }
 
-  const [economyRows] = await connection.execute(
+  const [economyRows] = await interaction.client.db.execute(
     /* sql */ `
       SELECT
         *
@@ -139,7 +136,7 @@ exports.run = async (interaction) => {
     await db.set(`servers.${interaction.guild.id}.users.${interaction.member.id}.economy.cash`, newAmount.toString());
   }
 
-  await connection.execute(
+  await interaction.client.db.execute(
     /* sql */ `
       INSERT INTO
         cooldowns (server_id, user_id, cooldown_name, expires_at)
@@ -151,6 +148,4 @@ exports.run = async (interaction) => {
     `,
     [interaction.guild.id, interaction.user.id, 'slut', cooldown],
   );
-
-  connection.release();
 };

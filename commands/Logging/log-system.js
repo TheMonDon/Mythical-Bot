@@ -15,11 +15,19 @@ class logSystem extends Command {
   }
 
   async run(msg) {
-    const connection = await this.client.db.getConnection();
-
     try {
       // Check if log system is set up
-      const [rows] = await connection.execute(`SELECT * FROM log_settings WHERE server_id = ?`, [msg.guild.id]);
+      const [rows] = await this.client.db.execute(
+        /* sql */ `
+          SELECT
+            *
+          FROM
+            log_settings
+          WHERE
+            server_id = ?
+        `,
+        [msg.guild.id],
+      );
 
       if (rows.length === 0 || !rows[0].channel_id) {
         return msg.channel.send(`The log system is not set up! Use \`${msg.settings.prefix}Setup Logging <Channel>\``);
@@ -70,8 +78,6 @@ class logSystem extends Command {
     } catch (error) {
       this.client.logger.error(error);
       return msg.channel.send(`An error occurred: ${error.message}`);
-    } finally {
-      connection.release();
     }
   }
 }

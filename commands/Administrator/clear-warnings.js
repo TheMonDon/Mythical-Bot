@@ -16,8 +16,6 @@ class ClearWarnings extends Command {
   }
 
   async run(msg, args) {
-    const connection = await this.client.db.getConnection();
-
     let color = msg.settings.embedColor;
 
     try {
@@ -34,7 +32,7 @@ class ClearWarnings extends Command {
         }
       }
 
-      const [settingsRows] = await connection.execute(
+      const [settingsRows] = await this.client.db.execute(
         /* sql */ `
           SELECT
             warn_log_channel
@@ -47,7 +45,7 @@ class ClearWarnings extends Command {
       );
       const logChan = settingsRows[0]?.warn_log_channel;
 
-      const [otherWarns] = await connection.execute(
+      const [otherWarns] = await this.client.db.execute(
         /* sql */
         `
           SELECT
@@ -63,7 +61,7 @@ class ClearWarnings extends Command {
         [msg.guild.id, mem.id],
       );
 
-      const [[beforeRow]] = await connection.execute(
+      const [[beforeRow]] = await this.client.db.execute(
         /* sql */
         `
           SELECT
@@ -82,7 +80,7 @@ class ClearWarnings extends Command {
         return this.client.util.errorEmbed(msg, 'That user has no warnings.');
       }
 
-      await connection.execute(
+      await this.client.db.execute(
         /* sql */ `
           DELETE FROM warns
           WHERE
@@ -148,8 +146,6 @@ class ClearWarnings extends Command {
       }
     } catch (error) {
       console.error('Clear-Warnings Error:', error);
-    } finally {
-      connection.release();
     }
   }
 }

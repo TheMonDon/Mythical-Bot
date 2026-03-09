@@ -7,10 +7,8 @@ export async function run(client, message) {
   const loggingSystem = async function (client, message) {
     if (message.author?.bot) return;
 
-    const connection = await client.db.getConnection();
-
     try {
-      const [logRows] = await connection.execute(
+      const [logRows] = await client.db.execute(
         /* sql */ `
           SELECT
             channel_id,
@@ -100,22 +98,18 @@ export async function run(client, message) {
       return logChannel.send({ embeds: [embed] }).catch(() => {});
     } catch (error) {
       client.logger.error(error);
-    } finally {
-      connection.release();
     }
   };
 
   const starboardSystem = async function (client, message) {
     if (!message.guild) return;
 
-    const connection = await client.db.getConnection();
     try {
       if (!message.guild) return;
 
-      const connection = await client.db.getConnection();
       const guildId = message.guild.id;
 
-      const [asStarboard] = await connection.execute(
+      const [asStarboard] = await client.db.execute(
         /* sql */
         `
           SELECT
@@ -134,7 +128,7 @@ export async function run(client, message) {
       if (asStarboard.length > 0) {
         const record = asStarboard[0];
 
-        await connection.execute(
+        await client.db.execute(
           /* sql */
           `
             DELETE FROM starboard_messages
@@ -147,7 +141,7 @@ export async function run(client, message) {
         return;
       }
 
-      const [starredRows] = await connection.execute(
+      const [starredRows] = await client.db.execute(
         /* sql */
         `
           SELECT
@@ -179,7 +173,7 @@ export async function run(client, message) {
 
         const starMessage = await starChannel.messages.fetch(row.starboard_msg_id).catch(() => null);
 
-        await connection.execute(
+        await client.db.execute(
           /* sql */
           `
             DELETE FROM starboard_messages
@@ -196,11 +190,9 @@ export async function run(client, message) {
       }
     } catch (error) {
       client.logger.error(error);
-    } finally {
-      connection.release();
     }
   };
 
-  await loggingSystem(client, message);
-  await starboardSystem(client, message);
+  loggingSystem(client, message);
+  starboardSystem(client, message);
 }

@@ -5,8 +5,6 @@ export async function run(client, messageReaction, user) {
   if (!messageReaction) return;
   const msg = messageReaction.message;
 
-  const connection = await client.db.getConnection();
-
   try {
     if (messageReaction.partial) {
       try {
@@ -26,7 +24,7 @@ export async function run(client, messageReaction, user) {
       }
     }
 
-    const [starboards] = await connection.query(
+    const [starboards] = await client.db.execute(
       /* sql */ `
         SELECT
           *
@@ -37,7 +35,7 @@ export async function run(client, messageReaction, user) {
       `,
       [msg.guild.id],
     );
-    const [overrides] = await connection.query(
+    const [overrides] = await client.db.execute(
       /* sql */
       `
         SELECT
@@ -118,7 +116,7 @@ export async function run(client, messageReaction, user) {
       // Reaction removed from a message in the starboard channel
       if (isStarboardChannel) {
         // Fetch the original message's channel ID from the database entry
-        const [rows] = await connection.query(
+        const [rows] = await client.db.execute(
           /* sql */
           `
             SELECT
@@ -212,7 +210,7 @@ export async function run(client, messageReaction, user) {
         ) {
           await msg.delete().catch(() => null);
 
-          await connection.query(
+          await client.db.execute(
             /* sql */
             `
               DELETE FROM starboard_messages
@@ -224,7 +222,7 @@ export async function run(client, messageReaction, user) {
           );
         } else {
           // Update existing stars count
-          await connection.query(
+          await client.db.execute(
             /* sql */
             `
               UPDATE starboard_messages
@@ -244,7 +242,7 @@ export async function run(client, messageReaction, user) {
       // Reaction removed from a regular message
 
       // Fetch existing starboard message ID (if any)
-      const [rows] = await connection.query(
+      const [rows] = await client.db.execute(
         /* sql */
         `
           SELECT
@@ -294,7 +292,7 @@ export async function run(client, messageReaction, user) {
         }
 
         // Delete row from MySQL
-        await connection.query(
+        await client.db.execute(
           /* sql */
           `
             DELETE FROM starboard_messages
@@ -321,7 +319,7 @@ export async function run(client, messageReaction, user) {
           .catch((e) => console.error('Error updating starboard message:', e));
 
         // Update the stars in MySQL
-        await connection.query(
+        await client.db.execute(
           /* sql */
           `
             UPDATE starboard_messages
@@ -349,7 +347,7 @@ export async function run(client, messageReaction, user) {
               .edit({ embeds: embedsToUpdate })
               .catch((e) => console.error('Error updating starboard message with new vote count:', e));
 
-            await connection.query(
+            await client.db.execute(
               /* sql */
               `
                 UPDATE starboard_messages
@@ -367,7 +365,5 @@ export async function run(client, messageReaction, user) {
     }
   } catch (error) {
     console.error('Starboard reaction remove error:', error);
-  } finally {
-    connection.release();
   }
 }

@@ -66,15 +66,8 @@ class UserInfo extends Command {
     if (msg.guild && msg.guild.members.cache.get(infoMem.id)) {
       const joinPosition = await this.client.util.getJoinPosition(infoMem.id, msg.guild);
 
-      // Created At timestamp
-      const createdAtTimestamp = moment(infoMem.user.createdAt);
-      const createdAtDurationFrom = createdAtTimestamp.from(moment());
-      const createdAtFullDate = createdAtTimestamp.format('dddd, MMMM Do, YYYY, h:mm a');
-
-      // Joined At timestamp
-      const joinedAtTimestamp = moment(infoMem.joinedAt);
-      const joinedAtDurationFrom = joinedAtTimestamp.from(moment());
-      const joinedAtFullDate = joinedAtTimestamp.format('dddd, MMMM Do, YYYY, h:mm a');
+      const createdAtUnix = Math.floor(infoMem.user.createdAt.getTime() / 1000);
+      const joinedAtUnix = Math.floor(infoMem.joinedAt.getTime() / 1000);
 
       // Create array of roles
       const roles = infoMem.roles.cache.sort((a, b) => b.position - a.position);
@@ -98,8 +91,8 @@ class UserInfo extends Command {
           { name: 'Username', value: `${infoMem.user.tag} (${infoMem})`, inline: true },
           { name: 'Nickname', value: infoMem.displayName, inline: true },
           { name: 'User ID', value: infoMem.id, inline: true },
-          { name: 'Joined Server', value: `${joinedAtFullDate} \n (${joinedAtDurationFrom})`, inline: true },
-          { name: 'Account Created', value: `${createdAtFullDate} \n (${createdAtDurationFrom})`, inline: true },
+          { name: 'Joined Server', value: `<t:${joinedAtUnix}:F> \n (<t:${joinedAtUnix}:R>)`, inline: true },
+          { name: 'Account Created', value: `<t:${createdAtUnix}:F> \n (<t:${createdAtUnix}:R>)`, inline: true },
           {
             name: 'Join Position',
             value: `${Number(joinPosition)?.toLocaleString()}/${msg.guild.memberCount.toLocaleString()}`,

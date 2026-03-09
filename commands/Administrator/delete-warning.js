@@ -26,8 +26,6 @@ class DeleteWarning extends Command {
   }
 
   async run(msg, args) {
-    const connection = await this.client.db.getConnection();
-
     let title = 'Case Cleared';
     let color = msg.settings.embedColor;
 
@@ -35,7 +33,7 @@ class DeleteWarning extends Command {
       await msg.delete();
 
       const caseID = args.join(' ');
-      const [[warning]] = await connection.execute(
+      const [[warning]] = await this.client.db.execute(
         /* sql */ `
           SELECT
             *
@@ -52,7 +50,7 @@ class DeleteWarning extends Command {
         return this.client.util.errorEmbed(msg, 'Warning case not found', 'Invalid Case ID');
       }
 
-      const [settingsRows] = await connection.execute(
+      const [settingsRows] = await this.client.db.execute(
         /* sql */ `
           SELECT
             warn_log_channel
@@ -67,7 +65,7 @@ class DeleteWarning extends Command {
       const warnReason = warning.reason || 'No reason specified';
 
       // Get total points before
-      const [[beforeRow]] = await connection.execute(
+      const [[beforeRow]] = await this.client.db.execute(
         /* sql */
         `
           SELECT
@@ -83,7 +81,7 @@ class DeleteWarning extends Command {
       const previousPoints = Number(beforeRow.totalPoints);
 
       // Get the points of the warn being deleted
-      const [[warnRow]] = await connection.execute(
+      const [[warnRow]] = await this.client.db.execute(
         /* sql */ `
           SELECT
             points
@@ -98,7 +96,7 @@ class DeleteWarning extends Command {
       const deletedPoints = warnRow ? Number(warnRow.points) : 0;
 
       // Delete the warn
-      await connection.execute(
+      await this.client.db.execute(
         /* sql */ `
           DELETE FROM warns
           WHERE
@@ -184,8 +182,6 @@ class DeleteWarning extends Command {
       }
     } catch (error) {
       console.error('Delete-Warning Error:', error);
-    } finally {
-      connection.release();
     }
   }
 }

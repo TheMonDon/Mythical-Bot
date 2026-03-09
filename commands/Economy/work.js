@@ -16,9 +16,7 @@ class Work extends Command {
   }
 
   async run(msg) {
-    const connection = await this.client.db.getConnection();
-
-    const [cooldownRows] = await connection.execute(
+    const [cooldownRows] = await this.client.db.execute(
       /* sql */ `
         SELECT
           duration
@@ -32,7 +30,7 @@ class Work extends Command {
     );
     const cooldown = cooldownRows[0]?.duration || 300;
 
-    const [userCooldownRows] = await connection.execute(
+    const [userCooldownRows] = await this.client.db.execute(
       /* sql */ `
         SELECT
           *
@@ -59,12 +57,11 @@ class Work extends Command {
           .format('y[ years][,] M[ Months][,] d[ days][,] h[ hours][,] m[ minutes][ and] s[ seconds]');
         embed.setDescription(`Please wait ${tLeft} to work again.`);
 
-        connection.release();
         return msg.channel.send({ embeds: [embed] });
       }
     }
 
-    const [economyRows] = await connection.execute(
+    const [economyRows] = await this.client.db.execute(
       /* sql */ `
         SELECT
           *
@@ -89,7 +86,7 @@ class Work extends Command {
     const num = Math.floor(Math.random() * (jobs.length - 1)) + 1;
     const job = jobs[num].replace('{amount}', csamount);
 
-    await connection.execute(
+    await this.client.db.execute(
       /* sql */ `
         INSERT INTO
           cooldowns (server_id, user_id, cooldown_name, expires_at)
@@ -101,8 +98,6 @@ class Work extends Command {
       `,
       [msg.guild.id, msg.author.id, 'work', cooldown],
     );
-
-    connection.release();
 
     const oldBalance = BigInt(
       (await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`)) ||

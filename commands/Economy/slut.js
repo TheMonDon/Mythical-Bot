@@ -1,8 +1,7 @@
 const Command = require('../../base/Command.js');
 const { EmbedBuilder } = require('discord.js');
-require('moment-duration-format');
-const moment = require('moment');
 const { QuickDB } = require('quick.db');
+const { Duration } = require('luxon');
 const db = new QuickDB();
 
 class Slut extends Command {
@@ -18,10 +17,9 @@ class Slut extends Command {
   }
 
   async run(msg) {
-    const connection = await this.client.db.getConnection();
     const type = 'slut';
 
-    const [cooldownRows] = await connection.execute(
+    const [cooldownRows] = await this.client.db.execute(
       /* sql */ `
         SELECT
           duration
@@ -35,7 +33,7 @@ class Slut extends Command {
     );
     const cooldown = cooldownRows[0]?.duration || 600;
 
-    const [userCooldownRows] = await connection.execute(
+    const [userCooldownRows] = await this.client.db.execute(
       /* sql */ `
         SELECT
           *
@@ -58,17 +56,17 @@ class Slut extends Command {
     if (expiresAt) {
       const timeleft = new Date(expiresAt) - Date.now();
       if (timeleft > 0 && timeleft <= cooldown * 1000) {
-        const tLeft = moment
-          .duration(timeleft)
-          .format('y[ years][,] M[ Months][,] d[ days][,] h[ hours][,] m[ minutes][ and] s[ seconds]');
+        const tLeft = Duration.fromMillis(timeleft)
+          .shiftTo('years', 'months', 'days', 'hours', 'minutes', 'seconds')
+          .toHuman({ showZeros: false });
+
         embed.setDescription(`Please wait ${tLeft} to be a slut again.`);
 
-        connection.release();
         return msg.channel.send({ embeds: [embed] });
       }
     }
 
-    const [economyRows] = await connection.execute(
+    const [economyRows] = await this.client.db.execute(
       /* sql */ `
         SELECT
           *
@@ -145,7 +143,7 @@ class Slut extends Command {
       await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAmount.toString());
     }
 
-    await connection.execute(
+    await this.client.db.execute(
       /* sql */ `
         INSERT INTO
           cooldowns (server_id, user_id, cooldown_name, expires_at)
@@ -157,8 +155,6 @@ class Slut extends Command {
       `,
       [msg.guild.id, msg.author.id, 'slut', cooldown],
     );
-
-    connection.release();
   }
 }
 

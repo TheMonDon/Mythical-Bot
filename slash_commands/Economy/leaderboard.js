@@ -29,7 +29,6 @@ exports.commandData = new SlashCommandBuilder()
 
 exports.run = async (interaction) => {
   await interaction.deferReply();
-  const connection = await interaction.client.db.getConnection();
 
   let page = interaction.options.getInteger('page') || 1;
   const cashOrBank = interaction.options.getString('type') || 'total';
@@ -45,7 +44,7 @@ exports.run = async (interaction) => {
 
   if (page > maxPages) page = maxPages;
 
-  const [economyRows] = await connection.execute(
+  const [economyRows] = await interaction.client.db.execute(
     /* sql */ `
       SELECT
         *
@@ -58,7 +57,6 @@ exports.run = async (interaction) => {
   );
   const currencySymbol = economyRows[0]?.symbol || '$';
   const startingBalance = economyRows[0]?.start_balance || 0;
-  connection.release();
 
   // Fetch data for the current page
   const offset = (page - 1) * itemsPerPage;

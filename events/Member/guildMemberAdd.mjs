@@ -4,10 +4,8 @@ const setTimeoutPromise = promisify(setTimeout);
 
 export async function run(client, member) {
   async function LogSystem(client, member) {
-    const connection = await client.db.getConnection();
-
     try {
-      const [logRows] = await connection.execute(
+      const [logRows] = await client.db.execute(
         /* sql */ `
           SELECT
             channel_id,
@@ -52,8 +50,6 @@ export async function run(client, member) {
       return logChannel.send({ embeds: [embed] }).catch(() => {});
     } catch (error) {
       client.logger.error(error);
-    } finally {
-      connection.release();
     }
   }
 
@@ -62,19 +58,34 @@ export async function run(client, member) {
     if (!member.guild.members.me.permissions.has('ManageRoles')) return;
     if (member.user.bot) return;
 
-    const connection = await client.db.getConnection();
-
     try {
-      const [toggleRows] = await connection.execute(
-        `SELECT persistent_roles FROM server_settings WHERE server_id = ?`,
+      const [toggleRows] = await client.db.execute(
+        /* sql */
+        `
+          SELECT
+            persistent_roles
+          FROM
+            server_settings
+          WHERE
+            server_id = ?
+        `,
         [member.guild.id],
       );
 
       const toggle = toggleRows[0]?.persistent_roles === 1;
       if (!toggle) return;
 
-      const [rolesRows] = await connection.execute(
-        `SELECT roles FROM persistent_roles WHERE server_id = ? AND user_id = ?`,
+      const [rolesRows] = await client.db.execute(
+        /* sql */
+        `
+          SELECT
+            roles
+          FROM
+            persistent_roles
+          WHERE
+            server_id = ?
+            AND user_id = ?
+        `,
         [member.guild.id, member.user.id],
       );
       const roles = rolesRows[0]?.roles ? JSON.parse(rolesRows[0].roles) : [];
@@ -94,7 +105,7 @@ export async function run(client, member) {
         }
       }
 
-      await connection.execute(
+      await client.db.execute(
         /* sql */ `
           DELETE FROM persistent_roles
           WHERE
@@ -105,8 +116,6 @@ export async function run(client, member) {
       );
     } catch (error) {
       client.logger.error(error);
-    } finally {
-      connection.release();
     }
   }
 
@@ -114,10 +123,8 @@ export async function run(client, member) {
     if (!member || !member.guild) return;
     if (!member.guild.members.me.permissions.has('ManageRoles')) return;
 
-    const connection = await client.db.getConnection();
-
     try {
-      const [autoRoleRows] = await connection.execute(
+      const [autoRoleRows] = await client.db.execute(
         /* sql */ `
           SELECT
             roles
@@ -147,8 +154,6 @@ export async function run(client, member) {
       }
     } catch (error) {
       console.error('Error assigning auto-roles:', error);
-    } finally {
-      connection.release();
     }
   }
 
@@ -160,7 +165,6 @@ export async function run(client, member) {
     if (settings.welcomeEnabled !== 'true') return;
 
     // Replace the placeholders in the welcome message with actual data
-
     const welcomeMessage = settings.welcomeMessage
       .replace('{{user}}', member.user.tag)
       .replace('{{userName}}', member.user.tag)
@@ -183,9 +187,8 @@ export async function run(client, member) {
     return channel.send({ embeds: [embed] }).catch(() => {});
   }
 
-  // Run the functions
   WelcomeSystem(client, member);
-  await LogSystem(client, member);
-  await PersistentRoles(client, member);
-  await AssignAutoRoles(client, member);
+  LogSystem(client, member);
+  PersistentRoles(client, member);
+  AssignAutoRoles(client, member);
 }

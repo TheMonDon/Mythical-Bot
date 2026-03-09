@@ -43,9 +43,17 @@ class Blacklist extends Command {
     args.shift();
     const reason = args.join(' ') || false;
 
-    const connection = await this.client.db.getConnection();
-    const [blacklistRows] = await connection.execute(
-      `SELECT * FROM server_blacklists WHERE server_id = ? AND user_id = ?`,
+    const [blacklistRows] = await this.client.db.execute(
+      /* sql */
+      `
+        SELECT
+          *
+        FROM
+          server_blacklists
+        WHERE
+          server_id = ?
+          AND user_id = ?
+      `,
       [msg.guild.id, mem.id],
     );
 
@@ -59,17 +67,14 @@ class Blacklist extends Command {
     switch (type) {
       case 'add': {
         if (blacklisted) {
-          connection.release();
           return msg.channel.send('That user is already blacklisted.');
         }
 
         if (!reason) {
-          connection.release();
           return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Reason');
         }
 
         if (reason.length > 1024) {
-          connection.release();
           return this.client.util.errorEmbed(
             msg,
             msg.settings.prefix + this.help.usage,
@@ -77,10 +82,20 @@ class Blacklist extends Command {
           );
         }
 
-        await connection.execute(
-          `INSERT INTO server_blacklists (server_id, user_id, blacklisted, reason)
-          VALUES (?, ?, ?, ?)
-          ON DUPLICATE KEY UPDATE blacklisted = VALUES(blacklisted), reason = VALUES(reason)`,
+        await this.client.db.execute(
+          /* sql */
+          `
+            INSERT INTO
+              server_blacklists (server_id, user_id, blacklisted, reason)
+            VALUES
+              (?, ?, ?, ?) ON DUPLICATE KEY
+            UPDATE blacklisted =
+            VALUES
+              (blacklisted),
+              reason =
+            VALUES
+              (reason)
+          `,
           [msg.guild.id, mem.id, true, reason],
         );
 
@@ -90,24 +105,20 @@ class Blacklist extends Command {
           { name: 'Server:', value: `${msg.guild.name} \n(${msg.guild.id})` },
         ]);
 
-        connection.release();
         msg.channel.send({ embeds: [embed] });
         return mem.send({ embeds: [embed] });
       }
 
       case 'remove': {
         if (!blacklisted) {
-          connection.release();
           return msg.channel.send('That user is not blacklisted');
         }
 
         if (!reason) {
-          connection.release();
           return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Reason');
         }
 
         if (reason.length > 1024) {
-          connection.release();
           return this.client.util.errorEmbed(
             msg,
             msg.settings.prefix + this.help.usage,
@@ -115,10 +126,20 @@ class Blacklist extends Command {
           );
         }
 
-        await connection.execute(
-          `INSERT INTO server_blacklists (server_id, user_id, blacklisted, reason)
-          VALUES (?, ?, ?, ?)
-          ON DUPLICATE KEY UPDATE blacklisted = VALUES(blacklisted), reason = VALUES(reason)`,
+        await this.client.db.execute(
+          /* sql */
+          `
+            INSERT INTO
+              server_blacklists (server_id, user_id, blacklisted, reason)
+            VALUES
+              (?, ?, ?, ?) ON DUPLICATE KEY
+            UPDATE blacklisted =
+            VALUES
+              (blacklisted),
+              reason =
+            VALUES
+              (reason)
+          `,
           [msg.guild.id, mem.id, false, reason],
         );
 
@@ -128,7 +149,6 @@ class Blacklist extends Command {
           { name: 'Server:', value: `${msg.guild.name} \n(${msg.guild.id})` },
         ]);
 
-        connection.release();
         msg.channel.send({ embeds: [embed] });
         return mem.send({ embeds: [embed] });
       }
@@ -142,7 +162,6 @@ class Blacklist extends Command {
           { name: 'Reason', value: blacklistReason, inline: true },
         ]);
 
-        connection.release();
         return msg.channel.send({ embeds: [embed] });
       }
     }

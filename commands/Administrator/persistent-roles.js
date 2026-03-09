@@ -26,8 +26,7 @@ class persistentRoles extends Command {
       );
     }
 
-    const connection = await this.client.db.getConnection();
-    const [toggleRows] = await connection.execute(
+    const [toggleRows] = await this.client.db.execute(
       /* sql */ `
         SELECT
           persistent_roles
@@ -41,8 +40,6 @@ class persistentRoles extends Command {
     const toggle = toggleRows[0]?.persistent_roles === 1;
 
     if (!args || args.length < 1) {
-      connection.release();
-
       const embed = new EmbedBuilder().setTitle('Persistent Roles System').setColor(msg.settings.embedColor)
         .setDescription(stripIndents`The persistent roles system is currently **${toggle ? 'enabled' : 'disabled'}**.
           Use \`${msg.settings.prefix}persistent-roles [enable | disable]\` to change the status.
@@ -55,40 +52,46 @@ class persistentRoles extends Command {
     const option = args[0].toLowerCase();
 
     if (option !== 'enable' && option !== 'disable') {
-      connection.release();
       return this.client.util.errorEmbed(msg, 'Please use either `enable` or `disable`.', 'Invalid Option');
     }
 
     if (option === 'enable') {
       if (toggle) {
-        connection.release();
         return msg.channel.send('The persistent role system for this server is already enabled.');
       }
 
-      await connection.execute(
+      await this.client.db.execute(
+        /* sql */
         `
-        INSERT INTO server_settings (server_id, persistent_roles)
-        VALUES (?, ?)
-        ON DUPLICATE KEY UPDATE persistent_roles = VALUES(persistent_roles)`,
+          INSERT INTO
+            server_settings (server_id, persistent_roles)
+          VALUES
+            (?, ?) ON DUPLICATE KEY
+          UPDATE persistent_roles =
+          VALUES
+            (persistent_roles)
+        `,
         [msg.guild.id, true],
       );
-      connection.release();
-
       return msg.channel.send('The persistent role system for this server has been enabled.');
     } else if (option === 'disable') {
       if (!toggle) {
-        connection.release();
         return msg.channel.send('The persistent role system for this server is already disabled.');
       }
 
-      await connection.execute(
+      await this.client.db.execute(
+        /* sql */
         `
-        INSERT INTO server_settings (server_id, persistent_roles)
-        VALUES (?, ?)
-        ON DUPLICATE KEY UPDATE persistent_roles = VALUES(persistent_roles)`,
+          INSERT INTO
+            server_settings (server_id, persistent_roles)
+          VALUES
+            (?, ?) ON DUPLICATE KEY
+          UPDATE persistent_roles =
+          VALUES
+            (persistent_roles)
+        `,
         [msg.guild.id, false],
       );
-      connection.release();
 
       return msg.channel.send('The persistent role system for this server has been disabled.');
     }

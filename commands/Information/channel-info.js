@@ -1,7 +1,5 @@
-const Command = require('../../base/Command.js');
 const { ChannelType, EmbedBuilder } = require('discord.js');
-const moment = require('moment');
-require('moment-duration-format');
+const Command = require('../../base/Command.js');
 
 class ChannelInfo extends Command {
   constructor(client) {
@@ -20,11 +18,6 @@ class ChannelInfo extends Command {
 
     if (args?.length > 0) infoChan = this.client.util.getChannel(msg, args.join(' '));
     if (!infoChan) return msg.reply('That is not a valid channel.');
-
-    // Get the time since the channel was created
-    const then = moment(infoChan.createdAt);
-    const time = then.from(moment());
-    const createdAt = then.format('dddd, MMMM Do, YYYY, h:mm a');
 
     const embed = new EmbedBuilder()
       .setTitle('Channel Information')
@@ -50,9 +43,14 @@ class ChannelInfo extends Command {
     if (infoChan.type === ChannelType.GuildCategory)
       embed.addFields([{ name: 'Children', value: infoChan.children.size.toString(), inline: true }]);
 
+    const unix = Math.floor(infoChan.createdAt.getTime() / 1000);
     embed.addFields([
       { name: 'Mention', value: `\`${infoChan}\``, inline: true },
-      { name: 'Created At', value: `${createdAt} \n(${time})`, inline: true },
+      {
+        name: 'Created At',
+        value: `<t:${unix}:F> \n(<t:${unix}:R>)`,
+        inline: true,
+      },
     ]);
 
     if (infoChan.parent)

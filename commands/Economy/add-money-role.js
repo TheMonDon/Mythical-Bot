@@ -20,8 +20,6 @@ class AddMoneyRole extends Command {
   }
 
   async run(msg, args) {
-    const connection = await this.client.db.getConnection();
-
     const errEmbed = new EmbedBuilder()
       .setColor(msg.settings.embedErrorColor)
       .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() });
@@ -30,7 +28,7 @@ class AddMoneyRole extends Command {
     let role;
     let amount;
 
-    const [economyRows] = await connection.execute(
+    const [economyRows] = await this.client.db.execute(
       /* sql */ `
         SELECT
           *
@@ -42,7 +40,6 @@ class AddMoneyRole extends Command {
       [msg.guild.id],
     );
     const currencySymbol = economyRows[0]?.symbol || '$';
-    connection.release();
 
     if (args.length === 2) {
       role = this.client.util.getRole(msg, args[0]);

@@ -16,9 +16,8 @@ exports.commandData = new SlashCommandBuilder()
 
 exports.run = async (interaction) => {
   await interaction.deferReply();
-  const connection = await interaction.client.db.getConnection();
 
-  const [economyRows] = await connection.execute(
+  const [economyRows] = await interaction.client.db.execute(
     /* sql */ `
       SELECT
         *
@@ -30,7 +29,6 @@ exports.run = async (interaction) => {
     [interaction.guild.id],
   );
   const currencySymbol = economyRows[0]?.symbol || '$';
-  connection.release();
 
   const amount = BigInt(interaction.options.getInteger('amount'));
 

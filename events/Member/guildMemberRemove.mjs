@@ -2,10 +2,8 @@ import { EmbedBuilder } from 'discord.js';
 
 export async function run(client, member) {
   async function LogSystem(client, member) {
-    const connection = await client.db.getConnection();
-
     try {
-      const [logRows] = await connection.execute(
+      const [logRows] = await client.db.execute(
         /* sql */ `
           SELECT
             channel_id,
@@ -57,8 +55,6 @@ export async function run(client, member) {
       return logChannel.send({ embeds: [embed] }).catch(() => {});
     } catch (error) {
       client.logger.error(error);
-    } finally {
-      connection.release();
     }
   }
 
@@ -67,11 +63,17 @@ export async function run(client, member) {
     if (!member.guild.members.me.permissions.has('ManageRoles')) return;
     if (member.user.bot) return;
 
-    const connection = await client.db.getConnection();
-
     try {
-      const [toggleRows] = await connection.execute(
-        `SELECT persistent_roles FROM server_settings WHERE server_id = ?`,
+      const [toggleRows] = await client.db.execute(
+        /* sql */
+        `
+          SELECT
+            persistent_roles
+          FROM
+            server_settings
+          WHERE
+            server_id = ?
+        `,
         [member.guild.id],
       );
 
@@ -86,16 +88,21 @@ export async function run(client, member) {
       if (roles.length === 1) return;
       const arr = roles.filter((role) => role.id !== member.guild.id).map((role) => role.id);
 
-      await connection.execute(
-        `INSERT INTO persistent_roles (server_id, user_id, roles)
-         VALUES (?, ?, ?)
-         ON DUPLICATE KEY UPDATE roles = VALUES(roles)`,
+      await client.db.execute(
+        /* sql */
+        `
+          INSERT INTO
+            persistent_roles (server_id, user_id, roles)
+          VALUES
+            (?, ?, ?) ON DUPLICATE KEY
+          UPDATE roles =
+          VALUES
+            (roles)
+        `,
         [member.guild.id, member.user.id, JSON.stringify(arr)],
       );
     } catch (error) {
       client.logger.error(error);
-    } finally {
-      connection.release();
     }
   }
 
@@ -126,8 +133,7 @@ export async function run(client, member) {
     channel.send({ embeds: [em] }).catch(() => {});
   }
 
-  // Run the functions
   LeaveSystem(client, member);
-  await LogSystem(client, member);
-  await PersistentRoles(client, member);
+  LogSystem(client, member);
+  PersistentRoles(client, member);
 }

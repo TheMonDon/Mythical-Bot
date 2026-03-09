@@ -15,9 +15,9 @@ class ListPlaylists extends Command {
 
   async run(msg, args) {
     let page = parseInt(args[0]) || 1;
-    const connection = await this.client.db.getConnection();
 
-    const [playlistRows] = await connection.execute(
+
+    const [playlistRows] = await this.client.db.execute(
       /* sql */ `
         SELECT
           *
@@ -28,7 +28,6 @@ class ListPlaylists extends Command {
       `,
       [msg.author.id],
     );
-    connection.release();
 
     let playlists = [];
     if (playlistRows.length) {

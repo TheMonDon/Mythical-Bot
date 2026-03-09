@@ -1,7 +1,5 @@
-const Command = require('../../base/Command.js');
 const { EmbedBuilder, ThreadChannel } = require('discord.js');
-const moment = require('moment');
-require('moment-duration-format');
+const Command = require('../../base/Command.js');
 
 class ServerInfo extends Command {
   constructor(client) {
@@ -32,11 +30,6 @@ class ServerInfo extends Command {
         'Invalid Server',
       );
     if (!server.available) return this.client.util.errorEmbed(msg, 'That server is currently unavailable');
-
-    // Get the server's creation date and format it
-    const then = moment(server.createdAt);
-    const time = then.from(moment());
-    const ca = then.format('dddd, MMMM Do, YYYY, h:mm a');
 
     // Get the server's roles and format them
     let displayedRoles;
@@ -70,6 +63,7 @@ class ServerInfo extends Command {
 
     const owner = server.members.cache.get(server.ownerId).user;
     const nonThreadChannels = msg.guild.channels.cache.filter((channel) => !(channel instanceof ThreadChannel));
+    const unix = Math.floor(server.createdAt.getTime() / 1000);
 
     const embed = new EmbedBuilder()
       .setTitle(`${server.name}'s Information`)
@@ -82,7 +76,7 @@ class ServerInfo extends Command {
         { name: 'Owner', value: owner.tag, inline: true },
         { name: 'Verification Level', value: verificationLevel[server.verificationLevel], inline: true },
         { name: 'Channels', value: nonThreadChannels.size.toLocaleString(), inline: true },
-        { name: 'Created At', value: `${ca} \n (${time})`, inline: true },
+        { name: 'Created At', value: `<t:${unix}:F> \n(<t:${unix}:R>)`, inline: true },
         { name: 'AFK Channel', value: server.afkChannel?.name || 'No AFK Channel', inline: true },
         { name: 'Members', value: server.members.cache.size.toLocaleString(), inline: true },
         { name: displayRolesName, value: displayedRoles, inline: false },

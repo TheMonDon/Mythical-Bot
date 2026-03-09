@@ -3,10 +3,8 @@ import { EmbedBuilder } from 'discord.js';
 export async function run(client, oldEmoji, newEmoji) {
   if (oldEmoji.name === newEmoji.name && oldEmoji.identifier === newEmoji.identifier) return;
 
-  const connection = await client.db.getConnection();
-
   try {
-    const [logRows] = await connection.execute(
+    const [logRows] = await client.db.execute(
       /* sql */ `
         SELECT
           channel_id,
@@ -58,7 +56,5 @@ export async function run(client, oldEmoji, newEmoji) {
     return logChannel.send({ embeds: [embed] }).catch(() => {});
   } catch (error) {
     client.logger.error(error);
-  } finally {
-    connection.release();
   }
 }

@@ -15,9 +15,7 @@ class SetStartBalance extends Command {
   }
 
   async run(msg, args) {
-    const connection = await this.client.db.getConnection();
-
-    const [economyRows] = await connection.execute(
+    const [economyRows] = await this.client.db.execute(
       /* sql */ `
         SELECT
           *
@@ -35,7 +33,6 @@ class SetStartBalance extends Command {
     if (isNaN(amount) || amount < 0) {
       const oldStartingBalance = economyRows[0].start_balance || 0;
 
-      connection.release();
       return msg.channel.send(
         `The starting balance for this server is: ${currencySymbol}${oldStartingBalance.toLocaleString()} \nTo disable the starting balance, set it to 0. \nUsage: ${
           msg.settings.prefix
@@ -45,7 +42,7 @@ class SetStartBalance extends Command {
 
     if (amount > 1000000000000) return msg.channel.send('The max starting balance is one trillion.');
 
-    await connection.execute(
+    await this.client.db.execute(
       /* sql */ `
         INSERT INTO
           economy_settings (server_id, start_balance)
@@ -65,7 +62,6 @@ class SetStartBalance extends Command {
         `The starting balance for new members has been set to: ${currencySymbol}${amount.toLocaleString()}`,
       );
 
-    connection.release();
     return msg.channel.send({ embeds: [em] });
   }
 }

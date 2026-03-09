@@ -4,10 +4,8 @@ export async function run(client, oldRole, newRole) {
   if (oldRole === newRole) return;
   if (oldRole.name === newRole.name && oldRole.hexColor === newRole.hexColor) return;
 
-  const connection = await client.db.getConnection();
-
   try {
-    const [logRows] = await connection.execute(
+    const [logRows] = await client.db.execute(
       /* sql */ `
         SELECT
           channel_id,
@@ -56,7 +54,5 @@ export async function run(client, oldRole, newRole) {
     return logChannel.send({ embeds: [embed] }).catch(() => {});
   } catch (error) {
     client.logger.error(error);
-  } finally {
-    connection.release();
   }
 }

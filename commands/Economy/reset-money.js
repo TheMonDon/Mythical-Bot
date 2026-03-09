@@ -15,9 +15,7 @@ class ResetMoney extends Command {
   }
 
   async run(msg, args, level) {
-    const connection = await this.client.db.getConnection();
-
-    const [economyRows] = await connection.execute(
+    const [economyRows] = await this.client.db.execute(
       /* sql */ `
         SELECT
           *

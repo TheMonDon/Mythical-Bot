@@ -10,8 +10,10 @@ const db = new QuickDB();
 
 export async function run(client) {
   if (!client.settings.has('default')) {
-    if (!client.config.defaultSettings)
+    if (!client.config.defaultSettings) {
       throw new Error('defaultSettings not preset in config.js or settings database. Bot cannot load.');
+    }
+
     client.settings.set('default', client.config.defaultSettings);
   }
 
@@ -160,14 +162,13 @@ export async function run(client) {
 
   // Delete server data scheduler (every day at midnight) after 30 days of leaving
   scheduleJob('DeleteServerData', '0 0 * * *', async () => {
-    const connection = await client.db.getConnection();
     const thirtyDaysInMs = 2592000000;
     const cutoffTimestamp = Date.now() - thirtyDaysInMs;
 
     try {
       // 1. Identify which servers need to be deleted first
       // This handles the filtering at the database level instead of in Node.js memory
-      const [expiredServers] = await connection.execute(
+      const [expiredServers] = await client.db.execute(
         /* sql */
         `
           SELECT
@@ -185,7 +186,7 @@ export async function run(client) {
       const serverIds = expiredServers.map((row) => row.server_id);
 
       // 2. Get all tables that contain a 'server_id' column once
-      const [tables] = await connection.execute(/* sql */ `
+      const [tables] = await client.db.execute(/* sql */ `
         SELECT DISTINCT
           TABLE_NAME
         FROM
@@ -200,7 +201,7 @@ export async function run(client) {
       const idList = serverIds.map(() => '?').join(',');
 
       for (const { TABLE_NAME } of tables) {
-        await connection.execute(`DELETE FROM \`${TABLE_NAME}\` WHERE server_id IN (${idList})`, serverIds);
+        await client.db.execute(/* sql */ `DELETE FROM \`${TABLE_NAME}\` WHERE server_id IN (${idList})`, serverIds);
       }
 
       // 4. Clean up the local cache
@@ -211,31 +212,30 @@ export async function run(client) {
       client.logger.log(`Bulk deleted MySQL data for ${serverIds.length} servers.`);
     } catch (error) {
       client.logger.error('Error in DeleteServerData scheduler:', error);
-    } finally {
-      connection.release();
     }
   });
 
   // Reminder scheduler
   scheduleJob('Reminders', '* * * * *', async () => {
-    const connection = await client.db.getConnection();
-
     try {
-      const [reminders] = await connection.execute(
+      const [reminders] = await client.db.execute(
+        /* sql */
         `
-          SELECT 
-            reminder_id AS reminderID, 
-            created_at AS createdAt, 
-            trigger_on, 
-            reminder_text AS reminderText, 
-            channel_id AS channelID, 
-            user_id AS userID, 
+          SELECT
+            reminder_id AS reminderID,
+            created_at AS createdAt,
+            trigger_on,
+            reminder_text AS reminderText,
+            channel_id AS channelID,
+            user_id AS userID,
             color,
             direct_message AS directMessage,
             guild_id AS guildID,
             original_message_id AS originalMessageID
-          FROM reminders
-          WHERE trigger_on <= ?
+          FROM
+            reminders
+          WHERE
+            trigger_on <= ?
         `,
         [Date.now()],
       );
@@ -320,15 +320,20 @@ export async function run(client) {
             }
           }
 
-          await connection.execute(`DELETE FROM reminders WHERE reminder_id = ?`, [reminderID]);
+          await client.db.execute(
+            /* sql */ `
+              DELETE FROM reminders
+              WHERE
+                reminder_id = ?
+            `,
+            [reminderID],
+          );
         } catch (err) {
           console.error(`Error sending reminder ${reminderID}:`, err);
         }
       }
     } catch (err) {
       console.error('Error checking reminders:', err);
-    } finally {
-      connection.release();
     }
   });
 

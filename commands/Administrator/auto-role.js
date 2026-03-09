@@ -21,8 +21,6 @@ class AutoRole extends Command {
   }
 
   async run(msg, args) {
-    const connection = await this.client.db.getConnection();
-
     const action = args[0].toLowerCase();
     args.shift();
     const roleName = args.join(' ');
@@ -36,7 +34,7 @@ class AutoRole extends Command {
         return this.client.util.errorEmbed(msg, 'The bot requires Manage Roles permission to use this feature.');
       }
 
-      const [autoRoleRows] = await connection.execute(
+      const [autoRoleRows] = await this.client.db.execute(
         /* sql */ `
           SELECT
             roles
@@ -63,11 +61,17 @@ class AutoRole extends Command {
           }
 
           autoRoles.push(role.id);
-          await connection.execute(
+          await this.client.db.execute(
+            /* sql */
             `
-            INSERT INTO auto_roles (server_id, roles)
-            VALUES (?, ?)
-            ON DUPLICATE KEY UPDATE roles = VALUES(roles)`,
+              INSERT INTO
+                auto_roles (server_id, roles)
+              VALUES
+                (?, ?) ON DUPLICATE KEY
+              UPDATE roles =
+              VALUES
+                (roles)
+            `,
             [msg.guild.id, JSON.stringify(autoRoles)],
           );
 
@@ -88,11 +92,17 @@ class AutoRole extends Command {
           }
 
           autoRoles = autoRoles.filter((r) => r !== role.id);
-          await connection.execute(
+          await this.client.db.execute(
+            /* sql */
             `
-            INSERT INTO auto_roles (server_id, roles)
-            VALUES (?, ?)
-            ON DUPLICATE KEY UPDATE roles = VALUES(roles)`,
+              INSERT INTO
+                auto_roles (server_id, roles)
+              VALUES
+                (?, ?) ON DUPLICATE KEY
+              UPDATE roles =
+              VALUES
+                (roles)
+            `,
             [msg.guild.id, JSON.stringify(autoRoles)],
           );
 
@@ -156,8 +166,6 @@ class AutoRole extends Command {
       }
     } catch (error) {
       console.error('Auto-Role command error:', error);
-    } finally {
-      connection.release();
     }
   }
 }

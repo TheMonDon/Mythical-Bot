@@ -248,8 +248,6 @@ exports.commandData = new SlashCommandBuilder()
   );
 
 exports.autoComplete = async (interaction) => {
-  const connection = await interaction.client.db.getConnection();
-
   try {
     if (interaction.options.getSubcommand() === 'create') {
       const focused = interaction.options.getFocused(true); // { name, value }
@@ -258,7 +256,7 @@ exports.autoComplete = async (interaction) => {
       let rows;
       if (query === '') {
         // show all names for this server (up to 25)
-        const [r] = await connection.execute(
+        const [r] = await interaction.client.db.execute(
           /* sql */ `
             SELECT
               name
@@ -278,7 +276,7 @@ exports.autoComplete = async (interaction) => {
         // escape %, _ and \
         const like = `%${query.replace(/[\\%_]/g, '\\$&')}%`.toLowerCase();
 
-        const [r] = await connection.execute(
+        const [r] = await interaction.client.db.execute(
           /* sql */
           `
             SELECT
@@ -310,7 +308,7 @@ exports.autoComplete = async (interaction) => {
     let rows;
     if (query === '') {
       // no input → show all override names (up to 25) for this guild
-      const [r] = await connection.execute(
+      const [r] = await interaction.client.db.execute(
         /* sql */
         `
           SELECT
@@ -331,7 +329,7 @@ exports.autoComplete = async (interaction) => {
     } else {
       // input → filter overrides by LIKE, case-insensitive
       const like = `%${query.replace(/[\\%_]/g, '\\$&')}%`;
-      const [r] = await connection.execute(
+      const [r] = await interaction.client.db.execute(
         /* sql */
         `
           SELECT
@@ -356,14 +354,10 @@ exports.autoComplete = async (interaction) => {
     await interaction.respond(choices).catch(() => {});
   } catch (error) {
     return interaction.respond([]).catch(() => {});
-  } finally {
-    connection.release();
   }
 };
 
 exports.run = async (interaction) => {
-  const connection = await interaction.client.db.getConnection();
-
   await interaction.deferReply();
 
   const subcommand = interaction.options.getSubcommand();
@@ -377,7 +371,7 @@ exports.run = async (interaction) => {
           const name = interaction.options.getString('name');
 
           // Get the starboard row
-          const [rows] = await connection.execute(
+          const [rows] = await interaction.client.db.execute(
             /* sql */ `
               SELECT
                 id,
@@ -398,7 +392,7 @@ exports.run = async (interaction) => {
           const starboardId = rows[0].id;
 
           // Count overrides for this starboard
-          const [countRows] = await connection.execute(
+          const [countRows] = await interaction.client.db.execute(
             /* sql */
             `
               SELECT
@@ -418,7 +412,7 @@ exports.run = async (interaction) => {
           }
 
           try {
-            await connection.execute(
+            await interaction.client.db.execute(
               /* sql */ `
                 INSERT INTO
                   starboard_overrides (starboard_id, name, channels)
@@ -445,7 +439,7 @@ exports.run = async (interaction) => {
         case 'delete': {
           const overrideName = interaction.options.getString('name');
 
-          const [rows] = await connection.execute(
+          const [rows] = await interaction.client.db.execute(
             /* sql */
             `
               SELECT
@@ -470,7 +464,7 @@ exports.run = async (interaction) => {
           const override = rows[0]; // has id and original name
 
           // Now delete it
-          const [result] = await connection.execute(
+          const [result] = await interaction.client.db.execute(
             /* sql */ `
               DELETE FROM starboard_overrides
               WHERE
@@ -490,7 +484,7 @@ exports.run = async (interaction) => {
           const overrideName = interaction.options.getString('name');
 
           // Find the override and its starboard, case-insensitive
-          const [rows] = await connection.execute(
+          const [rows] = await interaction.client.db.execute(
             /* sql */
             `
               SELECT
@@ -655,7 +649,7 @@ exports.run = async (interaction) => {
     if (subcommandGroup === 'edit') {
       const name = interaction.options.getString('name');
       // check override exists for this server
-      const [rows] = await connection.execute(
+      const [rows] = await interaction.client.db.execute(
         /* sql */
         `
           SELECT
@@ -892,7 +886,7 @@ exports.run = async (interaction) => {
       }
       values.push(overrideId); // last param for WHERE
 
-      await connection.execute(
+      await interaction.client.db.execute(
         /* sql */ `
           UPDATE starboard_overrides
           SET
@@ -911,7 +905,7 @@ exports.run = async (interaction) => {
       const channel = interaction.options.getChannel('channel');
 
       // Find the override for this server + name
-      const [rows] = await connection.execute(
+      const [rows] = await interaction.client.db.execute(
         /* sql */
         `
           SELECT
@@ -945,10 +939,16 @@ exports.run = async (interaction) => {
 
           channels.push(channel.id);
 
-          await connection.execute(`UPDATE starboard_overrides SET channels = ? WHERE id = ?`, [
-            JSON.stringify(channels),
-            override.id,
-          ]);
+          await interaction.client.db.execute(
+            /* sql */ `
+              UPDATE starboard_overrides
+              SET
+                channels = ?
+              WHERE
+                id = ?
+            `,
+            [JSON.stringify(channels), override.id],
+          );
 
           return interaction.editReply(`Added channel ${channel} to override \`${override.name}\`.`);
         }
@@ -960,10 +960,16 @@ exports.run = async (interaction) => {
 
           channels = channels.filter((id) => id !== channel.id);
 
-          await connection.execute(`UPDATE starboard_overrides SET channels = ? WHERE id = ?`, [
-            JSON.stringify(channels),
-            override.id,
-          ]);
+          await interaction.client.db.execute(
+            /* sql */ `
+              UPDATE starboard_overrides
+              SET
+                channels = ?
+              WHERE
+                id = ?
+            `,
+            [JSON.stringify(channels), override.id],
+          );
 
           return interaction.editReply(`Removed channel ${channel} from override \`${override.name}\`.`);
         }
@@ -973,7 +979,5 @@ exports.run = async (interaction) => {
     return interaction.editReply('You messed up, how did you even get here?!');
   } catch (error) {
     return interaction.editReply(`An error occurred: ${error.message}`);
-  } finally {
-    connection.release();
   }
 };

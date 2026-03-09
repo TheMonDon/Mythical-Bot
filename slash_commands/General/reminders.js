@@ -6,7 +6,6 @@ const {
   ButtonStyle,
   ComponentType,
 } = require('discord.js');
-const moment = require('moment');
 
 exports.conf = {
   permLevel: 'User',
@@ -19,7 +18,6 @@ exports.commandData = new SlashCommandBuilder()
 
 exports.run = async (interaction) => {
   await interaction.deferReply();
-  const connection = await interaction.client.db.getConnection();
 
   const reminderID = interaction.options.getString('reminder_id');
 
@@ -51,7 +49,7 @@ exports.run = async (interaction) => {
   ];
 
   if (!reminderID) {
-    const [userReminders] = await connection.execute(
+    const [userReminders] = await interaction.client.db.execute(
       /* sql */ `
         SELECT
           reminder_id AS reminderID,
@@ -66,7 +64,6 @@ exports.run = async (interaction) => {
       `,
       [interaction.user.id],
     );
-    connection.release();
 
     const pages = [];
     let i = 1;
@@ -91,9 +88,7 @@ exports.run = async (interaction) => {
 
         embed.addFields([
           {
-            name: `**${numberEmojiArray.join('') + '.'}** I'll remind you ${moment(
-              triggerOn,
-            ).fromNow()} (ID: ${reminderID})`,
+            name: `**${numberEmojiArray.join('') + '.'}** I'll remind you <t:${Math.floor(triggerOn / 1000)}:R> (ID: ${reminderID})`,
             value: reminderText.slice(0, 200),
           },
         ]);
@@ -177,7 +172,7 @@ exports.run = async (interaction) => {
     return interaction.client.util.errorEmbed(interaction, `Please input a valid reminder ID.`, 'Invalid Args');
   }
 
-  const [result] = await connection.execute(
+  const [result] = await interaction.client.db.execute(
     /* sql */ `
       DELETE FROM reminders
       WHERE
@@ -186,7 +181,6 @@ exports.run = async (interaction) => {
     `,
     [reminderID, interaction.user.id],
   );
-  connection.release();
 
   if (result.affectedRows === 0) {
     return interaction.client.util.errorEmbed(interaction, `A reminder with the ID \`${reminderID}\` was not found.`);

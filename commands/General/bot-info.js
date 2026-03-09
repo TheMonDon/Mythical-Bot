@@ -2,8 +2,7 @@ const { version: botVersion } = require('../../package.json');
 const { version, EmbedBuilder } = require('discord.js');
 const Command = require('../../base/Command.js');
 const { stripIndents } = require('common-tags');
-require('moment-duration-format');
-const moment = require('moment');
+const { Duration } = require('luxon');
 
 class BotInfo extends Command {
   constructor(client) {
@@ -17,18 +16,16 @@ class BotInfo extends Command {
   }
 
   async run(msg) {
-    const botUptime = moment
-      .duration(this.client.uptime)
-      .format('y[ years][,] M[ months][,] d[ days][,] h[ hours][,] m[ minutes][ and] s[ seconds]');
+    const botUptime = Duration.fromMillis(this.client.uptime)
+      .shiftTo('years', 'months', 'days', 'hours', 'minutes', 'seconds')
+      .toHuman({ showZeros: false });
 
-    const connection = await this.client.db.getConnection();
-    const [rows] = await connection.query(/* sql */ `
+    const [rows] = await this.client.db.execute(/* sql */ `
       SELECT
         *
       FROM
         globalruns
     `);
-    connection.release();
 
     const totalCommands = rows[0]?.TOTAL_COMMANDS || 0;
     const totalText = rows[0]?.TEXT_RUNS || 0;

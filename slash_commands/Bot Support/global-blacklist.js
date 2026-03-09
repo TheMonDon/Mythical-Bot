@@ -52,8 +52,7 @@ exports.run = async (interaction) => {
   const type = interaction.options.getSubcommand();
   const reason = interaction.options.getString('reason');
 
-  const connection = await interaction.client.db.getConnection();
-  const [blacklistRows] = await connection.execute(
+  const [blacklistRows] = await interaction.client.db.execute(
     /* sql */ `
       SELECT
         *
@@ -74,14 +73,23 @@ exports.run = async (interaction) => {
   switch (type) {
     case 'add': {
       if (blacklisted) {
-        connection.release();
         return interaction.editReply('That user is already blacklisted.');
       }
 
-      await connection.execute(
-        `INSERT INTO global_blacklists (user_id, blacklisted, reason)
-        VALUES (?, ?, ?)
-        ON DUPLICATE KEY UPDATE blacklisted = VALUES(blacklisted), reason = VALUES(reason)`,
+      await interaction.client.db.execute(
+        /* sql */
+        `
+          INSERT INTO
+            global_blacklists (user_id, blacklisted, reason)
+          VALUES
+            (?, ?, ?) ON DUPLICATE KEY
+          UPDATE blacklisted =
+          VALUES
+            (blacklisted),
+            reason =
+          VALUES
+            (reason)
+        `,
         [user.id, true, reason],
       );
 
@@ -90,21 +98,29 @@ exports.run = async (interaction) => {
         { name: 'Reason', value: reason },
       ]);
 
-      connection.release();
       interaction.editReply({ embeds: [embed] });
       return user.send({ embeds: [embed] }).catch(() => {});
     }
 
     case 'remove': {
       if (!blacklisted) {
-        connection.release();
         return interaction.editReply('That user not blacklisted.');
       }
 
-      await connection.execute(
-        `INSERT INTO global_blacklists (user_id, blacklisted, reason)
-        VALUES (?, ?, ?)
-        ON DUPLICATE KEY UPDATE blacklisted = VALUES(blacklisted), reason = VALUES(reason)`,
+      await interaction.client.db.execute(
+        /* sql */
+        `
+          INSERT INTO
+            global_blacklists (user_id, blacklisted, reason)
+          VALUES
+            (?, ?, ?) ON DUPLICATE KEY
+          UPDATE blacklisted =
+          VALUES
+            (blacklisted),
+            reason =
+          VALUES
+            (reason)
+        `,
         [user.id, false, reason],
       );
 
@@ -113,7 +129,6 @@ exports.run = async (interaction) => {
         { name: 'Reason', value: reason },
       ]);
 
-      connection.release();
       interaction.editReply({ embeds: [embed] });
       return user.send({ embeds: [embed] }).catch(() => {});
     }
@@ -127,7 +142,6 @@ exports.run = async (interaction) => {
         { name: 'Reason', value: blacklistReason, inline: true },
       ]);
 
-      connection.release();
       return interaction.editReply({ embeds: [embed] });
     }
   }

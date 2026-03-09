@@ -33,8 +33,7 @@ exports.run = async (interaction) => {
     );
   }
 
-  const connection = await interaction.client.db.getConnection();
-  const [toggleRows] = await connection.execute(
+  const [toggleRows] = await interaction.client.db.execute(
     /* sql */ `
       SELECT
         persistent_roles
@@ -50,43 +49,49 @@ exports.run = async (interaction) => {
   switch (type) {
     case 'enable': {
       if (toggle) {
-        connection.release();
         return interaction.editReply('The persistent role system for this server is already enabled');
       }
 
-      await connection.execute(
+      await interaction.client.db.execute(
+        /* sql */
         `
-        INSERT INTO server_settings (server_id, persistent_roles)
-        VALUES (?, ?)
-        ON DUPLICATE KEY UPDATE persistent_roles = VALUES(persistent_roles)`,
+          INSERT INTO
+            server_settings (server_id, persistent_roles)
+          VALUES
+            (?, ?) ON DUPLICATE KEY
+          UPDATE persistent_roles =
+          VALUES
+            (persistent_roles)
+        `,
         [interaction.guild.id, true],
       );
-      connection.release();
 
       return interaction.editReply('The persistent role system for this server has been enabled');
     }
 
     case 'disable': {
       if (!toggle) {
-        connection.release();
         return interaction.editReply('The persistent role system for this server is already disabled');
       }
 
-      await connection.execute(
+      await interaction.client.db.execute(
+        /* sql */
         `
-        INSERT INTO server_settings (server_id, persistent_roles)
-        VALUES (?, ?)
-        ON DUPLICATE KEY UPDATE persistent_roles = VALUES(persistent_roles)`,
+          INSERT INTO
+            server_settings (server_id, persistent_roles)
+          VALUES
+            (?, ?) ON DUPLICATE KEY
+          UPDATE persistent_roles =
+          VALUES
+            (persistent_roles)
+        `,
         [interaction.guild.id, false],
       );
-      connection.release();
 
       return interaction.editReply('The persistent role system for this server has been disabled');
     }
 
     case 'information': {
-      connection.release();
-
       const embed = new EmbedBuilder().setTitle('Persistent Roles System').setColor(interaction.settings.embedColor)
         .setDescription(stripIndents`The persistent roles system is currently **${toggle ? 'enabled' : 'disabled'}**.
           Use \`/persistent-roles [enable | disable]\` to change the status.

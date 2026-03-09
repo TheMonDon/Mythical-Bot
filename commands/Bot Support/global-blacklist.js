@@ -65,8 +65,7 @@ class GlobalBlacklist extends Command {
     args.shift();
     const reason = args.join(' ') || false;
 
-    const connection = await this.client.db.getConnection();
-    const [blacklistRows] = await connection.execute(
+    const [blacklistRows] = await this.client.db.execute(
       /* sql */ `
         SELECT
           *
@@ -87,17 +86,14 @@ class GlobalBlacklist extends Command {
     switch (type) {
       case 'add': {
         if (blacklisted) {
-          connection.release();
           return msg.channel.send('That user is already blacklisted.');
         }
 
         if (!reason) {
-          connection.release();
           return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Reason');
         }
 
         if (reason.length > 1024) {
-          connection.release();
           return this.client.util.errorEmbed(
             msg,
             'The reason provided is too long. Please keep it under 1024 characters.',
@@ -105,10 +101,20 @@ class GlobalBlacklist extends Command {
           );
         }
 
-        await connection.execute(
-          `INSERT INTO global_blacklists (user_id, blacklisted, reason)
-          VALUES (?, ?, ?)
-          ON DUPLICATE KEY UPDATE blacklisted = VALUES(blacklisted), reason = VALUES(reason)`,
+        await this.client.db.execute(
+          /* sql */
+          `
+            INSERT INTO
+              global_blacklists (user_id, blacklisted, reason)
+            VALUES
+              (?, ?, ?) ON DUPLICATE KEY
+            UPDATE blacklisted =
+            VALUES
+              (blacklisted),
+              reason =
+            VALUES
+              (reason)
+          `,
           [mem.id, true, reason],
         );
 
@@ -117,24 +123,20 @@ class GlobalBlacklist extends Command {
           { name: 'Reason:', value: reason },
         ]);
 
-        connection.release();
         msg.channel.send({ embeds: [embed] });
         return mem.send({ embeds: [embed] }).catch(() => {});
       }
 
       case 'remove': {
         if (!blacklisted) {
-          connection.release();
           return msg.channel.send('That user is not blacklisted');
         }
 
         if (!reason) {
-          connection.release();
           return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Reason');
         }
 
         if (reason.length > 1024) {
-          connection.release();
           return this.client.util.errorEmbed(
             msg,
             'The reason provided is too long. Please keep it under 1024 characters.',
@@ -142,10 +144,20 @@ class GlobalBlacklist extends Command {
           );
         }
 
-        await connection.execute(
-          `INSERT INTO global_blacklists (user_id, blacklisted, reason)
-          VALUES (?, ?, ?)
-          ON DUPLICATE KEY UPDATE blacklisted = VALUES(blacklisted), reason = VALUES(reason)`,
+        await this.client.db.execute(
+          /* sql */
+          `
+            INSERT INTO
+              global_blacklists (user_id, blacklisted, reason)
+            VALUES
+              (?, ?, ?) ON DUPLICATE KEY
+            UPDATE blacklisted =
+            VALUES
+              (blacklisted),
+              reason =
+            VALUES
+              (reason)
+          `,
           [mem.id, false, reason],
         );
 
@@ -154,7 +166,6 @@ class GlobalBlacklist extends Command {
           { name: 'Reason:', value: reason },
         ]);
 
-        connection.release();
         msg.channel.send({ embeds: [embed] });
         return mem.send({ embeds: [embed] }).catch(() => {});
       }
@@ -168,12 +179,10 @@ class GlobalBlacklist extends Command {
           { name: 'Reason', value: blacklistReason, inline: true },
         ]);
 
-        connection.release();
         return msg.channel.send({ embeds: [embed] });
       }
 
       default: {
-        connection.release();
         return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Incorrect Usage');
       }
     }

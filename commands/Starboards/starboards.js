@@ -16,10 +16,8 @@ class Starboard extends Command {
   }
 
   async run(msg, args) {
-    const connection = await this.client.db.getConnection();
-
     try {
-      const [starboards] = await connection.query(
+      const [starboards] = await this.client.db.execute(
         /* sql */ `
           SELECT
             *
@@ -83,7 +81,7 @@ class Starboard extends Command {
             return this.client.util.errorEmbed(msg, 'The name for the starboard must be less than 255 characters.');
           }
 
-          await connection.execute(
+          await this.client.db.execute(
             /* sql */ `
               INSERT INTO
                 starboards (
@@ -261,7 +259,7 @@ class Starboard extends Command {
             return msg.channel.send(`No starboard named \`${name}\` exists.`);
           }
 
-          await connection.execute(
+          await this.client.db.execute(
             /* sql */ `
               DELETE FROM starboards
               WHERE
@@ -279,8 +277,6 @@ class Starboard extends Command {
       }
     } catch (error) {
       return msg.channel.send(`An error occurred: ${error.message}`);
-    } finally {
-      connection.release();
     }
   }
 }

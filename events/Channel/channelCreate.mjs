@@ -3,10 +3,8 @@ import { ChannelType, EmbedBuilder } from 'discord.js';
 export async function run(client, channel) {
   if (channel.type === ChannelType.DM) return;
 
-  const connection = await client.db.getConnection();
-
-  try { 
-    const [logRows] = await connection.execute(
+  try {
+    const [logRows] = await client.db.execute(
       /* sql */ `
         SELECT
           channel_id,
@@ -47,7 +45,5 @@ export async function run(client, channel) {
     return logChannel.send({ embeds: [embed] }).catch(() => {});
   } catch (error) {
     client.logger.error(error);
-  } finally {
-    connection.release();
   }
 }

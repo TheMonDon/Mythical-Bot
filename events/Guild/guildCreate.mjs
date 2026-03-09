@@ -4,7 +4,6 @@ const db = new QuickDB();
 export async function run(client, guild) {
   // Wait 1 second to try and solve guild somehow being undefined
   client.util.wait(1000);
-  const connection = await client.db.getConnection();
 
   try {
     client.user.setActivity(
@@ -17,7 +16,7 @@ export async function run(client, guild) {
       await db.delete(`servers.${guild.id}.leave_timestamp`);
     }
 
-    const [timestampRows] = await connection.execute(
+    const [timestampRows] = await client.db.execute(
       /* sql */ `
         SELECT
           leave_timestamp
@@ -32,7 +31,7 @@ export async function run(client, guild) {
     const mysqlLeaveTimestamp = timestampRows[0]?.leave_timestamp;
 
     if (mysqlLeaveTimestamp) {
-      await connection.execute(
+      await client.db.execute(
         /* sql */ `
           UPDATE server_settings
           SET
@@ -43,10 +42,7 @@ export async function run(client, guild) {
         [guild.id],
       );
     }
-
-    connection.release();
   } catch (error) {
-    connection.release();
     client.logger.error(`GuildCreate: ${error}`);
   }
 }

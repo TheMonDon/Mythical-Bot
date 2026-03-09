@@ -233,8 +233,6 @@ exports.commandData = new SlashCommandBuilder()
   );
 
 exports.autoComplete = async (interaction) => {
-  const connection = await interaction.client.db.getConnection();
-
   try {
     const focused = interaction.options.getFocused(true); // { name, value }
     const query = (typeof focused?.value === 'string' ? focused.value : '').trim();
@@ -242,7 +240,7 @@ exports.autoComplete = async (interaction) => {
     let rows;
     if (query === '') {
       // show all names for this server (up to 25)
-      const [r] = await connection.execute(
+      const [r] = await interaction.client.db.execute(
         /* sql */ `
           SELECT
             name
@@ -262,7 +260,7 @@ exports.autoComplete = async (interaction) => {
       // escape %, _ and \
       const like = `%${query.replace(/[\\%_]/g, '\\$&')}%`.toLowerCase();
 
-      const [r] = await connection.execute(
+      const [r] = await interaction.client.db.execute(
         /* sql */
         `
           SELECT
@@ -286,17 +284,14 @@ exports.autoComplete = async (interaction) => {
     await interaction.respond(choices).catch(() => {});
   } catch (error) {
     return interaction.respond([]).catch(() => {});
-  } finally {
-    connection.release();
   }
 };
 
 exports.run = async (interaction) => {
   await interaction.deferReply();
-  const connection = await interaction.client.db.getConnection();
 
   try {
-    const [starboards] = await connection.query(
+    const [starboards] = await interaction.client.db.execute(
       /* sql */ `
         SELECT
           *
@@ -336,7 +331,7 @@ exports.run = async (interaction) => {
             );
           }
 
-          await connection.execute(
+          await interaction.client.db.execute(
             /* sql */ `
               INSERT INTO
                 starboards (
@@ -510,7 +505,7 @@ exports.run = async (interaction) => {
             return interaction.editReply(`No starboard named \`${name}\` exists.`);
           }
 
-          await connection.execute(
+          await interaction.client.db.execute(
             /* sql */ `
               DELETE FROM starboards
               WHERE
@@ -816,7 +811,7 @@ exports.run = async (interaction) => {
 
         const values = Object.values(updates);
 
-        await connection.query(
+        await interaction.client.db.query(
           /* sql */ `
             UPDATE starboards
             SET
@@ -835,7 +830,5 @@ exports.run = async (interaction) => {
     return interaction.editReply('You messed up, how did you get here?!');
   } catch (error) {
     return interaction.client.util.errorEmbed(interaction, error.message);
-  } finally {
-    connection.release();
   }
 };

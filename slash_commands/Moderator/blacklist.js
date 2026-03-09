@@ -56,9 +56,17 @@ exports.run = async (interaction) => {
   const mem = await interaction.client.util.getMember(interaction, user.id);
   if (!mem) return interaction.editReply('That user is not in this server.');
 
-  const connection = await this.client.db.getConnection();
-  const [blacklistRows] = await connection.execute(
-    `SELECT * FROM server_blacklists WHERE server_id = ? AND user_id = ?`,
+  const [blacklistRows] = await interaction.client.db.execute(
+    /* sql */
+    `
+      SELECT
+        *
+      FROM
+        server_blacklists
+      WHERE
+        server_id = ?
+        AND user_id = ?
+    `,
     [interaction.guild.id, mem.id],
   );
 
@@ -72,14 +80,23 @@ exports.run = async (interaction) => {
   switch (type) {
     case 'add': {
       if (blacklisted) {
-        connection.release();
         return interaction.editReply('That user is already blacklisted.');
       }
 
-      await connection.execute(
-        `INSERT INTO server_blacklists (server_id, user_id, blacklisted, reason)
-        VALUES (?, ?, ?, ?)
-        ON DUPLICATE KEY UPDATE blacklisted = VALUES(blacklisted), reason = VALUES(reason)`,
+      await interaction.client.db.execute(
+        /* sql */
+        `
+          INSERT INTO
+            server_blacklists (server_id, user_id, blacklisted, reason)
+          VALUES
+            (?, ?, ?, ?) ON DUPLICATE KEY
+          UPDATE blacklisted =
+          VALUES
+            (blacklisted),
+            reason =
+          VALUES
+            (reason)
+        `,
         [interaction.guild.id, mem.id, true, reason],
       );
 
@@ -89,21 +106,29 @@ exports.run = async (interaction) => {
         { name: 'Server', value: `${interaction.guild.name} \n(${interaction.guild.id})` },
       ]);
 
-      connection.release();
       interaction.editReply({ embeds: [embed] });
       return mem.send({ embeds: [embed] });
     }
 
     case 'remove': {
       if (!blacklisted) {
-        connection.release();
         return interaction.editReply('That user is not blacklisted');
       }
 
-      await connection.execute(
-        `INSERT INTO server_blacklists (server_id, user_id, blacklisted, reason)
-        VALUES (?, ?, ?, ?)
-        ON DUPLICATE KEY UPDATE blacklisted = VALUES(blacklisted), reason = VALUES(reason)`,
+      await interaction.client.db.execute(
+        /* sql */
+        `
+          INSERT INTO
+            server_blacklists (server_id, user_id, blacklisted, reason)
+          VALUES
+            (?, ?, ?, ?) ON DUPLICATE KEY
+          UPDATE blacklisted =
+          VALUES
+            (blacklisted),
+            reason =
+          VALUES
+            (reason)
+        `,
         [interaction.guild.id, mem.id, false, reason],
       );
 
@@ -113,7 +138,6 @@ exports.run = async (interaction) => {
         { name: 'Server', value: `${interaction.guild.name} \n(${interaction.guild.id})` },
       ]);
 
-      connection.release();
       interaction.editReply({ embeds: [embed] });
       return mem.send({ embeds: [embed] });
     }
@@ -127,7 +151,6 @@ exports.run = async (interaction) => {
         { name: 'Reason', value: blacklistReason, inline: true },
       ]);
 
-      connection.release();
       return interaction.editReply({ embeds: [embed] });
     }
   }

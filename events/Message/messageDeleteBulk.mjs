@@ -5,10 +5,8 @@ export async function run(client, messages) {
   const server = messages.first().guild;
   const channel = messages.first().channel;
 
-  const connection = await client.db.getConnection();
-
   try {
-    const [logRows] = await connection.execute(
+    const [logRows] = await client.db.execute(
       /* sql */ `
         SELECT
           channel_id,
@@ -107,7 +105,5 @@ export async function run(client, messages) {
     return logChannel.send({ embeds: [embed], files: [attachment] }).catch(() => {});
   } catch (error) {
     client.logger.error(error);
-  } finally {
-    connection.release();
   }
 }

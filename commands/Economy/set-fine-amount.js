@@ -18,7 +18,6 @@ class SetFineAmount extends Command {
   }
 
   async run(msg, args) {
-    const connection = await this.client.db.getConnection();
     const types = ['crime', 'slut', 'rob'];
 
     const embed = new EmbedBuilder()
@@ -26,7 +25,7 @@ class SetFineAmount extends Command {
       .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() });
 
     if (!args || args.length < 1) {
-      const [fineRows] = await connection.execute(
+      const [fineRows] = await this.client.db.execute(
         /* sql */ `
           SELECT
             *
@@ -55,21 +54,18 @@ class SetFineAmount extends Command {
           Usage: ${msg.settings.prefix + this.help.usage}
         `);
 
-      connection.release();
       return msg.channel.send({ embeds: [embed] });
     }
 
     // Check if args[0] is inside types
     const type = args[0]?.toLowerCase();
     if (!types.includes(type)) {
-      connection.release();
       return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Incorrect Usage');
     }
 
     // Check if min or max is inside args[1]
     const minMax = args[1]?.toLowerCase();
     if (!['min', 'max'].includes(minMax)) {
-      connection.release();
       return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Incorrect Usage');
     }
 
@@ -83,7 +79,7 @@ class SetFineAmount extends Command {
     const longMinMax = minMax === 'min' ? 'minimum' : 'maximum';
 
     if (!amount) {
-      await connection.execute(
+      await this.client.db.execute(
         /* sql */ `
           UPDATE economy_settings
           SET
@@ -93,7 +89,6 @@ class SetFineAmount extends Command {
         `,
         [msg.guild.id],
       );
-      connection.release();
 
       embed
         .setDescription(`The ${longMinMax} amount for \`${this.client.util.toProperCase(type)}\` has been reset.`)
@@ -103,19 +98,16 @@ class SetFineAmount extends Command {
     }
 
     if (isNaN(amount)) {
-      connection.release();
       return this.client.util.errorEmbed(msg, 'Please provide a valid number', 'Invalid Fine Amount');
     }
 
     if (amount > 100) {
-      connection.release();
       return msg.channel.send('The maximum fine amount is one hundred percent.');
     } else if (amount < 1) {
-      connection.release();
       return msg.channel.send('The minimum fine amount is one percent.');
     }
 
-    await connection.execute(
+    await this.client.db.execute(
       /* sql */ `
         INSERT INTO
           economy_settings (
@@ -137,7 +129,6 @@ class SetFineAmount extends Command {
       `The ${longMinMax} amount for \`${this.client.util.toProperCase(type)}\` has been changed to ${amount}%`,
     );
 
-    connection.release();
     return msg.channel.send({ embeds: [embed] });
   }
 }

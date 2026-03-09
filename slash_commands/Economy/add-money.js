@@ -30,13 +30,12 @@ exports.commandData = new SlashCommandBuilder()
 
 exports.run = async (interaction) => {
   await interaction.deferReply();
-  const connection = await interaction.client.db.getConnection();
 
   const target = interaction.options.getMentionable('target');
   const destination = interaction.options.getString('destination') || 'cash';
   let amount = interaction.options.getInteger('amount');
 
-  const [economyRows] = await connection.execute(
+  const [economyRows] = await interaction.client.db.execute(
     /* sql */ `
       SELECT
         *
@@ -54,11 +53,9 @@ exports.run = async (interaction) => {
     .setAuthor({ name: interaction.member.displayName, iconURL: interaction.member.displayAvatarURL() });
 
   if (isNaN(amount)) {
-    connection.release();
     return interaction.client.util.errorEmbed(interaction, 'Invalid Amount');
   }
   if (amount > 1000000000000) {
-    connection.release();
     return interaction.client.util.errorEmbed(
       interaction,
       "You can't add more than 1 Trillion to a member",
@@ -68,11 +65,9 @@ exports.run = async (interaction) => {
 
   if (target.user) {
     if (!target.user) {
-      connection.release();
       return interaction.client.util.errorEmbed(interaction, 'Invalid Member');
     }
     if (target.user.bot) {
-      connection.release();
       return interaction.client.util.errorEmbed(interaction, "You can't add money to a bot.");
     }
 
@@ -99,17 +94,14 @@ exports.run = async (interaction) => {
       .setDescription(`Added **${csAmount}** to ${target.user}'s ${destination} balance.`)
       .setTimestamp();
 
-    connection.release();
     return interaction.editReply({ embeds: [embed] });
   } else {
     const role = target;
 
     if (isNaN(amount)) {
-      connection.release();
       return interaction.client.util.errorEmbed(interaction, 'Incorrect Usage');
     }
     if (amount === Infinity) {
-      connection.release();
       return interaction.client.util.errorEmbed(interaction, "You can't add Infinity to a member", 'Invalid Amount');
     }
 
@@ -151,7 +143,6 @@ exports.run = async (interaction) => {
       )
       .setTimestamp();
 
-    connection.release();
     return interaction.editReply({ embeds: [embed] });
   }
 };

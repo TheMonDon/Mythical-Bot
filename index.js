@@ -14,8 +14,7 @@ const { LavalinkManager } = require('lavalink-client');
 const { readdirSync, statSync } = require('fs');
 const { QuickDB } = require('quick.db');
 const config = require('./config.js');
-require('moment-duration-format');
-const moment = require('moment');
+const { Duration } = require('luxon');
 const Enmap = require('enmap');
 const path = require('path');
 
@@ -361,13 +360,12 @@ const loadLavalink = async () => {
   // Set up event handlers
   client.lavalink
     .on('trackStart', async (player, track) => {
-      let connection;
       try {
         if (player.repeatMode === 'track') return;
 
-        const durationString = moment
-          .duration(track.info.duration || 0)
-          .format('y[ years][,] M[ Months][,] d[ days][,] h[ hours][,] m[ minutes][ and] s[ seconds]');
+        const durationString = Duration.fromMillis(track.info.duration || 0)
+          .shiftTo('years', 'months', 'days', 'hours', 'minutes', 'seconds')
+          .toHuman({ showZeros: false });
 
         let title = track.info.title;
         if (track.info.sourceName === 'youtube') {
@@ -395,9 +393,7 @@ const loadLavalink = async () => {
           queueLength: player.queue.tracks.length,
           requesterAvatarUrl: requester.displayAvatarURL({ extension: 'png', size: 128 }),
         });
-
-        connection = await client.db.getConnection();
-        const [rows] = await connection.execute(
+        const [rows] = await client.db.execute(
           /* sql */ `
             SELECT
               *
@@ -420,7 +416,7 @@ const loadLavalink = async () => {
               }
             }
           } catch {
-            await connection.execute(
+            await client.db.execute(
               /* sql */ `
                 DELETE FROM music_last_track
                 WHERE
@@ -463,10 +459,20 @@ const loadLavalink = async () => {
             })
             .catch(() => null));
 
-        await connection.execute(
+        await client.db.execute(
+          /* sql */
           `
-          INSERT INTO music_last_track (server_id, channel_id, message_id) 
-          VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE channel_id = VALUES(channel_id), message_id = VALUES(message_id)`,
+            INSERT INTO
+              music_last_track (server_id, channel_id, message_id)
+            VALUES
+              (?, ?, ?) ON DUPLICATE KEY
+            UPDATE channel_id =
+            VALUES
+              (channel_id),
+              message_id =
+            VALUES
+              (message_id)
+          `,
           [player.guildId, msg.channel.id, msg.id],
         );
 
@@ -535,8 +541,6 @@ const loadLavalink = async () => {
         });
       } catch (error) {
         console.error(error);
-      } finally {
-        if (connection) connection.release();
       }
     })
     .on('queueEnd', (player) => {
@@ -625,199 +629,200 @@ const loadMysql = async () => {
 
   const connection = await pool.getConnection();
 
-  // Create tables if they do not exist
-  await connection.execute(/* sql */ `
-    CREATE TABLE IF NOT EXISTS command_aliases (
-      alias_name VARCHAR(100) NOT NULL,
-      base_command VARCHAR(100) DEFAULT NULL,
-      uses INT DEFAULT 0,
-      PRIMARY KEY (alias_name)
-    );
-  `);
-
-  await connection.execute(/* sql */ `
-    CREATE TABLE IF NOT EXISTS command_stats (
-      command_name VARCHAR(100) NOT NULL,
-      total_runs INT DEFAULT 0,
-      text_runs INT DEFAULT 0,
-      slash_runs INT DEFAULT 0,
-      PRIMARY KEY (command_name)
-    );
-  `);
-
-  await connection.execute(/* sql */ `
-    CREATE TABLE IF NOT EXISTS chatbot_stats (
-      id int NOT NULL,
-      total_runs int DEFAULT 0,
-      PRIMARY KEY (id)
-    );
-  `);
-
-  await connection.execute(/* sql */ `
-    CREATE TABLE IF NOT EXISTS chatbot_daily_stats (
-      date date NOT NULL,
-      total_runs int DEFAULT 0,
-      PRIMARY KEY (date),
-      UNIQUE KEY date_UNIQUE (date)
-    );
-  `);
-
-  const [triggers] = await connection.query(
-    /* sql */
-    `
-      SELECT
-        TRIGGER_NAME
-      FROM
-        information_schema.TRIGGERS
-      WHERE
-        TRIGGER_SCHEMA = ?
-        AND TRIGGER_NAME = ?
-    `,
-    [config.mysql.database, 'chatbot_stats_AFTER_INSERT'],
-  );
-
-  if (triggers.length === 0) {
-    await connection.query(/* sql */ `
-      CREATE TRIGGER chatbot_stats_AFTER_INSERT
-      AFTER
-      UPDATE ON chatbot_stats FOR EACH ROW
-      BEGIN INSERT IGNORE INTO chatbot_daily_stats (date, total_runs)
-      VALUES
-        (CURDATE (), 0);
-
-      UPDATE chatbot_daily_stats
-      SET
-        total_runs = total_runs + 1
-      WHERE
-        date = CURDATE ();
-
-      END
+  try {
+    // Create tables if they do not exist
+    await connection.execute(/* sql */ `
+      CREATE TABLE IF NOT EXISTS command_aliases (
+        alias_name VARCHAR(100) NOT NULL,
+        base_command VARCHAR(100) DEFAULT NULL,
+        uses INT DEFAULT 0,
+        PRIMARY KEY (alias_name)
+      );
     `);
-  }
 
-  await connection.execute(/* sql */ `
-    CREATE TABLE IF NOT EXISTS ticket_settings (
-      server_id VARCHAR(30) PRIMARY KEY,
-      ticket_limit INT DEFAULT 3,
-      role_id VARCHAR(30) DEFAULT NULL,
-      category_id VARCHAR(30) DEFAULT NULL,
-      logging_id VARCHAR(30) DEFAULT NULL
+    await connection.execute(/* sql */ `
+      CREATE TABLE IF NOT EXISTS command_stats (
+        command_name VARCHAR(100) NOT NULL,
+        total_runs INT DEFAULT 0,
+        text_runs INT DEFAULT 0,
+        slash_runs INT DEFAULT 0,
+        PRIMARY KEY (command_name)
+      );
+    `);
+
+    await connection.execute(/* sql */ `
+      CREATE TABLE IF NOT EXISTS chatbot_stats (
+        id int NOT NULL,
+        total_runs int DEFAULT 0,
+        PRIMARY KEY (id)
+      );
+    `);
+
+    await connection.execute(/* sql */ `
+      CREATE TABLE IF NOT EXISTS chatbot_daily_stats (
+        date date NOT NULL,
+        total_runs int DEFAULT 0,
+        PRIMARY KEY (date),
+        UNIQUE KEY date_UNIQUE (date)
+      );
+    `);
+
+    const [triggers] = await connection.query(
+      /* sql */
+      `
+        SELECT
+          TRIGGER_NAME
+        FROM
+          information_schema.TRIGGERS
+        WHERE
+          TRIGGER_SCHEMA = ?
+          AND TRIGGER_NAME = ?
+      `,
+      [config.mysql.database, 'chatbot_stats_AFTER_INSERT'],
     );
-  `);
 
-  await connection.execute(/* sql */ `
-    CREATE TABLE IF NOT EXISTS user_tickets (
-      server_id VARCHAR(30) NOT NULL,
-      channel_id VARCHAR(30) NOT NULL,
-      user_id VARCHAR(30) NOT NULL,
-      topic_cooldown BOOLEAN DEFAULT FALSE,
-      cooldown_until BIGINT DEFAULT NULL,
-      PRIMARY KEY (server_id, channel_id)
-    );
-  `);
+    if (triggers.length === 0) {
+      await connection.query(/* sql */ `
+        CREATE TRIGGER chatbot_stats_AFTER_INSERT
+        AFTER
+        UPDATE ON chatbot_stats FOR EACH ROW
+        BEGIN INSERT IGNORE INTO chatbot_daily_stats (date, total_runs)
+        VALUES
+          (CURDATE (), 0);
 
-  await connection.execute(/* sql */ `
-    CREATE TABLE IF NOT EXISTS music_last_track (
-      server_id VARCHAR(30) NOT NULL,
-      channel_id VARCHAR(30) NOT NULL,
-      message_id VARCHAR(30) NOT NULL,
-      PRIMARY KEY (server_id)
-    );
-  `);
+        UPDATE chatbot_daily_stats
+        SET
+          total_runs = total_runs + 1
+        WHERE
+          date = CURDATE ();
 
-  await connection.execute(/* sql */ `
-    CREATE TABLE IF NOT EXISTS server_settings (
-      server_id VARCHAR(30) NOT NULL,
-      persistent_roles BOOLEAN DEFAULT FALSE,
-      premium BOOLEAN DEFAULT FALSE,
-      chatbot BOOLEAN DEFAULT TRUE,
-      leave_timestamp BIGINT UNSIGNED DEFAULT NULL,
-      warn_kick_threshold INT NOT NULL DEFAULT 8,
-      warn_ban_threshold INT NOT NULL DEFAULT 10,
-      warn_log_channel VARCHAR(30) NULL,
-      PRIMARY KEY (server_id)
-    );
-  `);
+        END
+      `);
+    }
 
-  await connection.execute(/* sql */ `
-    CREATE TABLE IF NOT EXISTS persistent_roles (
-      server_id VARCHAR(30) NOT NULL,
-      user_id VARCHAR(30) NOT NULL,
-      roles JSON,
-      PRIMARY KEY (server_id, user_id)
-    );
-  `);
+    await connection.execute(/* sql */ `
+      CREATE TABLE IF NOT EXISTS ticket_settings (
+        server_id VARCHAR(30) PRIMARY KEY,
+        ticket_limit INT DEFAULT 3,
+        role_id VARCHAR(30) DEFAULT NULL,
+        category_id VARCHAR(30) DEFAULT NULL,
+        logging_id VARCHAR(30) DEFAULT NULL
+      );
+    `);
 
-  await connection.execute(/* sql */ `
-    CREATE TABLE IF NOT EXISTS server_blacklists (
-      server_id VARCHAR(30) NOT NULL,
-      user_id VARCHAR(30) NOT NULL,
-      blacklisted BOOLEAN DEFAULT FALSE,
-      reason LONGTEXT,
-      PRIMARY KEY (server_id, user_id)
-    );
-  `);
+    await connection.execute(/* sql */ `
+      CREATE TABLE IF NOT EXISTS user_tickets (
+        server_id VARCHAR(30) NOT NULL,
+        channel_id VARCHAR(30) NOT NULL,
+        user_id VARCHAR(30) NOT NULL,
+        topic_cooldown BOOLEAN DEFAULT FALSE,
+        cooldown_until BIGINT DEFAULT NULL,
+        PRIMARY KEY (server_id, channel_id)
+      );
+    `);
 
-  await connection.execute(/* sql */ `
-    CREATE TABLE IF NOT EXISTS global_blacklists (
-      user_id VARCHAR(30) NOT NULL,
-      blacklisted BOOLEAN DEFAULT FALSE,
-      reason LONGTEXT,
-      PRIMARY KEY (user_id)
-    );
-  `);
+    await connection.execute(/* sql */ `
+      CREATE TABLE IF NOT EXISTS music_last_track (
+        server_id VARCHAR(30) NOT NULL,
+        channel_id VARCHAR(30) NOT NULL,
+        message_id VARCHAR(30) NOT NULL,
+        PRIMARY KEY (server_id)
+      );
+    `);
 
-  await connection.execute(/* sql */ `
-    CREATE TABLE IF NOT EXISTS cooldowns (
-      id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-      server_id VARCHAR(30) NOT NULL,
-      user_id VARCHAR(30) NOT NULL,
-      cooldown_name VARCHAR(50) NOT NULL,
-      expires_at DATETIME NOT NULL,
-      PRIMARY KEY (id),
-      UNIQUE KEY unique_cooldown (server_id, user_id, cooldown_name)
-    )
-  `);
+    await connection.execute(/* sql */ `
+      CREATE TABLE IF NOT EXISTS server_settings (
+        server_id VARCHAR(30) NOT NULL,
+        persistent_roles BOOLEAN DEFAULT FALSE,
+        premium BOOLEAN DEFAULT FALSE,
+        chatbot BOOLEAN DEFAULT TRUE,
+        leave_timestamp BIGINT UNSIGNED DEFAULT NULL,
+        warn_kick_threshold INT NOT NULL DEFAULT 8,
+        warn_ban_threshold INT NOT NULL DEFAULT 10,
+        warn_log_channel VARCHAR(30) NULL,
+        PRIMARY KEY (server_id)
+      );
+    `);
 
-  await connection.execute(/* sql */ `
-    CREATE TABLE IF NOT EXISTS cooldown_settings (
-      id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-      server_id VARCHAR(30) NOT NULL,
-      cooldown_name VARCHAR(50) NOT NULL,
-      duration INT UNSIGNED NOT NULL,
-      PRIMARY KEY (id),
-      UNIQUE KEY unique_cooldown_setting (server_id, cooldown_name)
-    )
-  `);
+    await connection.execute(/* sql */ `
+      CREATE TABLE IF NOT EXISTS persistent_roles (
+        server_id VARCHAR(30) NOT NULL,
+        user_id VARCHAR(30) NOT NULL,
+        roles JSON,
+        PRIMARY KEY (server_id, user_id)
+      );
+    `);
 
-  await connection.execute(/* sql */ `
-    CREATE TABLE IF NOT EXISTS economy_settings (
-      server_id VARCHAR(30) NOT NULL,
-      crime_fine_min INT UNSIGNED DEFAULT 10,
-      crime_fine_max INT UNSIGNED DEFAULT 40,
-      slut_fine_min INT UNSIGNED DEFAULT 10,
-      slut_fine_max INT UNSIGNED DEFAULT 20,
-      rob_fine_min INT UNSIGNED DEFAULT 10,
-      rob_fine_max INT UNSIGNED DEFAULT 30,
-      crime_fail_rate INT UNSIGNED DEFAULT 45,
-      slut_fail_rate INT UNSIGNED DEFAULT 35,
-      start_balance BIGINT UNSIGNED DEFAULT 0,
-      work_min BIGINT UNSIGNED DEFAULT 20,
-      work_max BIGINT UNSIGNED DEFAULT 250,
-      slut_min BIGINT UNSIGNED DEFAULT 100,
-      slut_max BIGINT UNSIGNED DEFAULT 400,
-      crime_min BIGINT UNSIGNED DEFAULT 250,
-      crime_max BIGINT UNSIGNED DEFAULT 700,
-      chat_min BIGINT UNSIGNED DEFAULT 10,
-      chat_max BIGINT UNSIGNED DEFAULT 100,
-      symbol VARCHAR(50) DEFAULT '$',
-      PRIMARY KEY (server_id)
-    ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE utf8mb4_unicode_ci;
-  `);
+    await connection.execute(/* sql */ `
+      CREATE TABLE IF NOT EXISTS server_blacklists (
+        server_id VARCHAR(30) NOT NULL,
+        user_id VARCHAR(30) NOT NULL,
+        blacklisted BOOLEAN DEFAULT FALSE,
+        reason LONGTEXT,
+        PRIMARY KEY (server_id, user_id)
+      );
+    `);
 
-  // Economy balances mysql conversion soon™️
-  // await connection.execute(/* sql */ `
-  /*  CREATE TABLE IF NOT EXISTS economy_balances (
+    await connection.execute(/* sql */ `
+      CREATE TABLE IF NOT EXISTS global_blacklists (
+        user_id VARCHAR(30) NOT NULL,
+        blacklisted BOOLEAN DEFAULT FALSE,
+        reason LONGTEXT,
+        PRIMARY KEY (user_id)
+      );
+    `);
+
+    await connection.execute(/* sql */ `
+      CREATE TABLE IF NOT EXISTS cooldowns (
+        id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+        server_id VARCHAR(30) NOT NULL,
+        user_id VARCHAR(30) NOT NULL,
+        cooldown_name VARCHAR(50) NOT NULL,
+        expires_at DATETIME NOT NULL,
+        PRIMARY KEY (id),
+        UNIQUE KEY unique_cooldown (server_id, user_id, cooldown_name)
+      )
+    `);
+
+    await connection.execute(/* sql */ `
+      CREATE TABLE IF NOT EXISTS cooldown_settings (
+        id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+        server_id VARCHAR(30) NOT NULL,
+        cooldown_name VARCHAR(50) NOT NULL,
+        duration INT UNSIGNED NOT NULL,
+        PRIMARY KEY (id),
+        UNIQUE KEY unique_cooldown_setting (server_id, cooldown_name)
+      )
+    `);
+
+    await connection.execute(/* sql */ `
+      CREATE TABLE IF NOT EXISTS economy_settings (
+        server_id VARCHAR(30) NOT NULL,
+        crime_fine_min INT UNSIGNED DEFAULT 10,
+        crime_fine_max INT UNSIGNED DEFAULT 40,
+        slut_fine_min INT UNSIGNED DEFAULT 10,
+        slut_fine_max INT UNSIGNED DEFAULT 20,
+        rob_fine_min INT UNSIGNED DEFAULT 10,
+        rob_fine_max INT UNSIGNED DEFAULT 30,
+        crime_fail_rate INT UNSIGNED DEFAULT 45,
+        slut_fail_rate INT UNSIGNED DEFAULT 35,
+        start_balance BIGINT UNSIGNED DEFAULT 0,
+        work_min BIGINT UNSIGNED DEFAULT 20,
+        work_max BIGINT UNSIGNED DEFAULT 250,
+        slut_min BIGINT UNSIGNED DEFAULT 100,
+        slut_max BIGINT UNSIGNED DEFAULT 400,
+        crime_min BIGINT UNSIGNED DEFAULT 250,
+        crime_max BIGINT UNSIGNED DEFAULT 700,
+        chat_min BIGINT UNSIGNED DEFAULT 10,
+        chat_max BIGINT UNSIGNED DEFAULT 100,
+        symbol VARCHAR(50) DEFAULT '$',
+        PRIMARY KEY (server_id)
+      ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE utf8mb4_unicode_ci;
+    `);
+
+    // Economy balances mysql conversion soon™️
+    // await connection.execute(/* sql */ `
+    /*  CREATE TABLE IF NOT EXISTS economy_balances (
       server_id VARCHAR(30) NOT NULL,
       user_id VARCHAR(30) NOT NULL,
       cash BIGINT DEFAULT 0,
@@ -827,235 +832,242 @@ const loadMysql = async () => {
   `);
   */
 
-  await connection.execute(/* sql */ `
-    CREATE TABLE IF NOT EXISTS user_playlists (
-      user_id VARCHAR(30) PRIMARY KEY,
-      playlists JSON NOT NULL
-    ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
-  `);
-
-  // Use guild_id so reminders don't get deleted when a servers data is deleted.
-  await connection.execute(/* sql */ `
-    CREATE TABLE IF NOT EXISTS reminders (
-      reminder_id VARCHAR(10) NOT NULL,
-      color VARCHAR(6) DEFAULT NULL,
-      original_message_id VARCHAR(30) DEFAULT NULL,
-      user_id VARCHAR(30) DEFAULT NULL,
-      channel_id VARCHAR(30) DEFAULT NULL,
-      guild_id VARCHAR(30) DEFAULT NULL,
-      reminder_text LONGTEXT DEFAULT NULL,
-      created_at BIGINT UNSIGNED NOT NULL,
-      trigger_on BIGINT UNSIGNED NOT NULL,
-      direct_message BOOLEAN DEFAULT FALSE,
-      PRIMARY KEY (reminder_id)
-    ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
-  `);
-
-  await connection.execute(/* sql */ `
-    CREATE TABLE IF NOT EXISTS auto_roles (
-      server_id VARCHAR(30) NOT NULL,
-      roles JSON,
-      PRIMARY KEY (server_id)
-    )
-  `);
-
-  await connection.execute(/* sql */ `
-    CREATE TABLE IF NOT EXISTS warns (
-      warn_id VARCHAR(10) NOT NULL,
-      server_id VARCHAR(30) NOT NULL,
-      user_id VARCHAR(30) NOT NULL,
-      mod_id VARCHAR(30) NOT NULL,
-      points INT NOT NULL DEFAULT 0,
-      reason TEXT,
-      message_url TEXT,
-      timestamp BIGINT NOT NULL,
-      PRIMARY KEY (warn_id),
-      INDEX idx_server_user (server_id, user_id)
-    );
-  `);
-
-  await connection.execute(/* sql */ `
-    CREATE TABLE IF NOT EXISTS log_settings (
-      server_id VARCHAR(30) NOT NULL PRIMARY KEY,
-      channel_id VARCHAR(30) NULL,
-      all_enabled BOOLEAN DEFAULT FALSE,
-      bulk_messages_deleted BOOLEAN DEFAULT FALSE,
-      channel_created BOOLEAN DEFAULT FALSE,
-      channel_deleted BOOLEAN DEFAULT FALSE,
-      channel_updated BOOLEAN DEFAULT FALSE,
-      emoji_created BOOLEAN DEFAULT FALSE,
-      emoji_deleted BOOLEAN DEFAULT FALSE,
-      emoji_updated BOOLEAN DEFAULT FALSE,
-      member_join BOOLEAN DEFAULT FALSE,
-      member_leave BOOLEAN DEFAULT FALSE,
-      member_timeout BOOLEAN DEFAULT FALSE,
-      message_deleted BOOLEAN DEFAULT FALSE,
-      message_updated BOOLEAN DEFAULT FALSE,
-      role_created BOOLEAN DEFAULT FALSE,
-      role_deleted BOOLEAN DEFAULT FALSE,
-      role_updated BOOLEAN DEFAULT FALSE,
-      sticker_created BOOLEAN DEFAULT FALSE,
-      sticker_deleted BOOLEAN DEFAULT FALSE,
-      sticker_updated BOOLEAN DEFAULT FALSE,
-      thread_created BOOLEAN DEFAULT FALSE,
-      thread_deleted BOOLEAN DEFAULT FALSE,
-      thread_updated BOOLEAN DEFAULT FALSE,
-      voice_channel_created BOOLEAN DEFAULT FALSE,
-      voice_channel_deleted BOOLEAN DEFAULT FALSE,
-      no_log_channels JSON
-    )
-  `);
-
-  await connection.execute(/* sql */ `
-    CREATE TABLE IF NOT EXISTS starboards (
-      id BIGINT AUTO_INCREMENT PRIMARY KEY,
-      server_id VARCHAR(30) NOT NULL,
-      name VARCHAR(255) NOT NULL,
-      enabled BOOLEAN DEFAULT TRUE,
-      channel_id VARCHAR(30) NOT NULL,
-      threshold INT DEFAULT 3,
-      threshold_remove VARCHAR(6) DEFAULT '0',
-      color VARCHAR(10),
-      emoji VARCHAR(60),
-      display_emoji VARCHAR(60),
-      downvote_emoji VARCHAR(60),
-      allow_bots BOOLEAN DEFAULT TRUE,
-      self_vote BOOLEAN DEFAULT FALSE,
-      ping_author BOOLEAN DEFAULT FALSE,
-      replied_to BOOLEAN DEFAULT TRUE,
-      link_deletes BOOLEAN DEFAULT FALSE,
-      link_edits BOOLEAN DEFAULT TRUE,
-      autoreact_upvote BOOLEAN DEFAULT TRUE,
-      autoreact_downvote BOOLEAN DEFAULT TRUE,
-      remove_invalid_reactions BOOLEAN DEFAULT TRUE,
-      require_image BOOLEAN DEFAULT FALSE,
-      extra_embeds BOOLEAN DEFAULT TRUE,
-      use_server_profile BOOLEAN DEFAULT TRUE,
-      show_thumbnail BOOLEAN DEFAULT TRUE,
-      older_than VARCHAR(20) NULL,
-      newer_than VARCHAR(20) NULL,
-      attachments_list BOOLEAN DEFAULT TRUE,
-      UNIQUE KEY (server_id, name)
-    ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
-  `);
-
-  await connection.execute(/* sql */ `
-    CREATE TABLE IF NOT EXISTS starboard_overrides (
-      id BIGINT AUTO_INCREMENT PRIMARY KEY,
-      starboard_id BIGINT NOT NULL,
-      name VARCHAR(255) NOT NULL,
-      channels JSON NULL,
-      threshold INT NULL,
-      threshold_remove VARCHAR(6) NULL,
-      emoji VARCHAR(60) NULL,
-      display_emoji VARCHAR(60) NULL,
-      downvote_emoji VARCHAR(60) NULL,
-      self_vote BOOLEAN NULL,
-      allow_bots BOOLEAN NULL,
-      require_image BOOLEAN NULL,
-      older_than VARCHAR(20) NULL,
-      newer_than VARCHAR(20) NULL,
-      enabled BOOLEAN NULL,
-      autoreact_upvote BOOLEAN NULL,
-      autoreact_downvote BOOLEAN NULL,
-      link_deletes BOOLEAN NULL,
-      link_edits BOOLEAN NULL,
-      remove_invalid_reactions BOOLEAN NULL,
-      ping_author BOOLEAN NULL,
-      extra_embeds BOOLEAN NULL,
-      use_server_profile BOOLEAN NULL,
-      color VARCHAR(10) NULL,
-      replied_to BOOLEAN NULL,
-      attachments_list BOOLEAN NULL,
-      show_thumbnail BOOLEAN NULL,
-      FOREIGN KEY (starboard_id) REFERENCES starboards (id) ON DELETE CASCADE,
-      UNIQUE KEY (starboard_id, name)
-    ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
-  `);
-
-  await connection.execute(/* sql */ `
-    CREATE TABLE IF NOT EXISTS starboard_messages (
-      starboard_id BIGINT NOT NULL,
-      original_msg_id VARCHAR(30) NOT NULL,
-      starboard_msg_id VARCHAR(30) NOT NULL,
-      stars INT DEFAULT 0,
-      author_id VARCHAR(30) NOT NULL,
-      channel_id VARCHAR(30) NOT NULL,
-      PRIMARY KEY (starboard_id, original_msg_id),
-      FOREIGN KEY (starboard_id) REFERENCES starboards (id) ON DELETE CASCADE
-    ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
-  `);
-
-  const [views] = await connection.query(/* sql */ `
-    SHOW FULL TABLES IN ${config.mysql.database}
-    WHERE
-      TABLE_TYPE LIKE 'VIEW'
-  `);
-  const viewExists = views.some((row) => Object.values(row).includes('globalruns'));
-
-  if (!viewExists) {
     await connection.execute(/* sql */ `
-      CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW globalruns AS
-      SELECT
-        (
-          SUM(command_stats.text_runs) + SUM(command_stats.slash_runs)
-        ) AS TOTAL_COMMANDS,
-        SUM(command_stats.text_runs) AS TEXT_RUNS,
-        SUM(command_stats.slash_runs) AS SLASH_RUNS
-      FROM
-        command_stats;
+      CREATE TABLE IF NOT EXISTS user_playlists (
+        user_id VARCHAR(30) PRIMARY KEY,
+        playlists JSON NOT NULL
+      ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
     `);
-  }
 
-  const [procedures] = await connection.query(
-    `
-      SELECT ROUTINE_NAME
-      FROM information_schema.ROUTINES
-      WHERE ROUTINE_TYPE = 'PROCEDURE'
-        AND ROUTINE_SCHEMA = ?
-        AND ROUTINE_NAME = 'updateCommandStats'
-    `,
-    [config.mysql.database],
-  );
+    // Use guild_id so reminders don't get deleted when a servers data is deleted.
+    await connection.execute(/* sql */ `
+      CREATE TABLE IF NOT EXISTS reminders (
+        reminder_id VARCHAR(10) NOT NULL,
+        color VARCHAR(6) DEFAULT NULL,
+        original_message_id VARCHAR(30) DEFAULT NULL,
+        user_id VARCHAR(30) DEFAULT NULL,
+        channel_id VARCHAR(30) DEFAULT NULL,
+        guild_id VARCHAR(30) DEFAULT NULL,
+        reminder_text LONGTEXT DEFAULT NULL,
+        created_at BIGINT UNSIGNED NOT NULL,
+        trigger_on BIGINT UNSIGNED NOT NULL,
+        direct_message BOOLEAN DEFAULT FALSE,
+        PRIMARY KEY (reminder_id)
+      ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+    `);
 
-  if (procedures.length === 0) {
-    await connection.query(/* sql */ `
-      CREATE PROCEDURE updateCommandStats (
-        p_command_name LONGTEXT,
-        p_text_runs INT,
-        p_slash_runs INT,
-        p_isAlias BOOLEAN,
-        p_aliasName LONGTEXT
+    await connection.execute(/* sql */ `
+      CREATE TABLE IF NOT EXISTS auto_roles (
+        server_id VARCHAR(30) NOT NULL,
+        roles JSON,
+        PRIMARY KEY (server_id)
       )
-      BEGIN
-      INSERT INTO
-        command_stats (command_name, total_runs, text_runs, slash_runs)
-      VALUES
-        (p_command_name, 1, p_text_runs, p_slash_runs) ON DUPLICATE KEY
-      UPDATE total_runs = total_runs + 1,
-      text_runs = text_runs +
-      VALUES
-        (text_runs),
-        slash_runs = slash_runs +
-      VALUES
-        (slash_runs);
-
-      IF (p_isAlias = 1) THEN
-      INSERT INTO
-        command_aliases (alias_name, base_command, uses)
-      VALUES
-        (p_aliasName, p_command_name, 1) ON DUPLICATE KEY
-      UPDATE uses = uses + 1;
-
-      END IF;
-
-      END
     `);
+
+    await connection.execute(/* sql */ `
+      CREATE TABLE IF NOT EXISTS warns (
+        warn_id VARCHAR(10) NOT NULL,
+        server_id VARCHAR(30) NOT NULL,
+        user_id VARCHAR(30) NOT NULL,
+        mod_id VARCHAR(30) NOT NULL,
+        points INT NOT NULL DEFAULT 0,
+        reason TEXT,
+        message_url TEXT,
+        timestamp BIGINT NOT NULL,
+        PRIMARY KEY (warn_id),
+        INDEX idx_server_user (server_id, user_id)
+      );
+    `);
+
+    await connection.execute(/* sql */ `
+      CREATE TABLE IF NOT EXISTS log_settings (
+        server_id VARCHAR(30) NOT NULL PRIMARY KEY,
+        channel_id VARCHAR(30) NULL,
+        all_enabled BOOLEAN DEFAULT FALSE,
+        bulk_messages_deleted BOOLEAN DEFAULT FALSE,
+        channel_created BOOLEAN DEFAULT FALSE,
+        channel_deleted BOOLEAN DEFAULT FALSE,
+        channel_updated BOOLEAN DEFAULT FALSE,
+        emoji_created BOOLEAN DEFAULT FALSE,
+        emoji_deleted BOOLEAN DEFAULT FALSE,
+        emoji_updated BOOLEAN DEFAULT FALSE,
+        member_join BOOLEAN DEFAULT FALSE,
+        member_leave BOOLEAN DEFAULT FALSE,
+        member_timeout BOOLEAN DEFAULT FALSE,
+        message_deleted BOOLEAN DEFAULT FALSE,
+        message_updated BOOLEAN DEFAULT FALSE,
+        role_created BOOLEAN DEFAULT FALSE,
+        role_deleted BOOLEAN DEFAULT FALSE,
+        role_updated BOOLEAN DEFAULT FALSE,
+        sticker_created BOOLEAN DEFAULT FALSE,
+        sticker_deleted BOOLEAN DEFAULT FALSE,
+        sticker_updated BOOLEAN DEFAULT FALSE,
+        thread_created BOOLEAN DEFAULT FALSE,
+        thread_deleted BOOLEAN DEFAULT FALSE,
+        thread_updated BOOLEAN DEFAULT FALSE,
+        voice_channel_created BOOLEAN DEFAULT FALSE,
+        voice_channel_deleted BOOLEAN DEFAULT FALSE,
+        no_log_channels JSON
+      )
+    `);
+
+    await connection.execute(/* sql */ `
+      CREATE TABLE IF NOT EXISTS starboards (
+        id BIGINT AUTO_INCREMENT PRIMARY KEY,
+        server_id VARCHAR(30) NOT NULL,
+        name VARCHAR(255) NOT NULL,
+        enabled BOOLEAN DEFAULT TRUE,
+        channel_id VARCHAR(30) NOT NULL,
+        threshold INT DEFAULT 3,
+        threshold_remove VARCHAR(6) DEFAULT '0',
+        color VARCHAR(10),
+        emoji VARCHAR(60),
+        display_emoji VARCHAR(60),
+        downvote_emoji VARCHAR(60),
+        allow_bots BOOLEAN DEFAULT TRUE,
+        self_vote BOOLEAN DEFAULT FALSE,
+        ping_author BOOLEAN DEFAULT FALSE,
+        replied_to BOOLEAN DEFAULT TRUE,
+        link_deletes BOOLEAN DEFAULT FALSE,
+        link_edits BOOLEAN DEFAULT TRUE,
+        autoreact_upvote BOOLEAN DEFAULT TRUE,
+        autoreact_downvote BOOLEAN DEFAULT TRUE,
+        remove_invalid_reactions BOOLEAN DEFAULT TRUE,
+        require_image BOOLEAN DEFAULT FALSE,
+        extra_embeds BOOLEAN DEFAULT TRUE,
+        use_server_profile BOOLEAN DEFAULT TRUE,
+        show_thumbnail BOOLEAN DEFAULT TRUE,
+        older_than VARCHAR(20) NULL,
+        newer_than VARCHAR(20) NULL,
+        attachments_list BOOLEAN DEFAULT TRUE,
+        UNIQUE KEY (server_id, name)
+      ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+    `);
+
+    await connection.execute(/* sql */ `
+      CREATE TABLE IF NOT EXISTS starboard_overrides (
+        id BIGINT AUTO_INCREMENT PRIMARY KEY,
+        starboard_id BIGINT NOT NULL,
+        name VARCHAR(255) NOT NULL,
+        channels JSON NULL,
+        threshold INT NULL,
+        threshold_remove VARCHAR(6) NULL,
+        emoji VARCHAR(60) NULL,
+        display_emoji VARCHAR(60) NULL,
+        downvote_emoji VARCHAR(60) NULL,
+        self_vote BOOLEAN NULL,
+        allow_bots BOOLEAN NULL,
+        require_image BOOLEAN NULL,
+        older_than VARCHAR(20) NULL,
+        newer_than VARCHAR(20) NULL,
+        enabled BOOLEAN NULL,
+        autoreact_upvote BOOLEAN NULL,
+        autoreact_downvote BOOLEAN NULL,
+        link_deletes BOOLEAN NULL,
+        link_edits BOOLEAN NULL,
+        remove_invalid_reactions BOOLEAN NULL,
+        ping_author BOOLEAN NULL,
+        extra_embeds BOOLEAN NULL,
+        use_server_profile BOOLEAN NULL,
+        color VARCHAR(10) NULL,
+        replied_to BOOLEAN NULL,
+        attachments_list BOOLEAN NULL,
+        show_thumbnail BOOLEAN NULL,
+        FOREIGN KEY (starboard_id) REFERENCES starboards (id) ON DELETE CASCADE,
+        UNIQUE KEY (starboard_id, name)
+      ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+    `);
+
+    await connection.execute(/* sql */ `
+      CREATE TABLE IF NOT EXISTS starboard_messages (
+        starboard_id BIGINT NOT NULL,
+        original_msg_id VARCHAR(30) NOT NULL,
+        starboard_msg_id VARCHAR(30) NOT NULL,
+        stars INT DEFAULT 0,
+        author_id VARCHAR(30) NOT NULL,
+        channel_id VARCHAR(30) NOT NULL,
+        PRIMARY KEY (starboard_id, original_msg_id),
+        FOREIGN KEY (starboard_id) REFERENCES starboards (id) ON DELETE CASCADE
+      ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+    `);
+
+    const [views] = await connection.query(/* sql */ `
+      SHOW FULL TABLES IN ${config.mysql.database}
+      WHERE
+        TABLE_TYPE LIKE 'VIEW'
+    `);
+    const viewExists = views.some((row) => Object.values(row).includes('globalruns'));
+
+    if (!viewExists) {
+      await connection.execute(/* sql */ `
+        CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW globalruns AS
+        SELECT
+          (
+            SUM(command_stats.text_runs) + SUM(command_stats.slash_runs)
+          ) AS TOTAL_COMMANDS,
+          SUM(command_stats.text_runs) AS TEXT_RUNS,
+          SUM(command_stats.slash_runs) AS SLASH_RUNS
+        FROM
+          command_stats;
+      `);
+    }
+
+    const [procedures] = await connection.query(
+      /* sql */
+      `
+        SELECT
+          ROUTINE_NAME
+        FROM
+          information_schema.ROUTINES
+        WHERE
+          ROUTINE_TYPE = 'PROCEDURE'
+          AND ROUTINE_SCHEMA = ?
+          AND ROUTINE_NAME = 'updateCommandStats'
+      `,
+      [config.mysql.database],
+    );
+
+    if (procedures.length === 0) {
+      await connection.query(/* sql */ `
+        CREATE PROCEDURE updateCommandStats (
+          p_command_name LONGTEXT,
+          p_text_runs INT,
+          p_slash_runs INT,
+          p_isAlias BOOLEAN,
+          p_aliasName LONGTEXT
+        )
+        BEGIN
+        INSERT INTO
+          command_stats (command_name, total_runs, text_runs, slash_runs)
+        VALUES
+          (p_command_name, 1, p_text_runs, p_slash_runs) ON DUPLICATE KEY
+        UPDATE total_runs = total_runs + 1,
+        text_runs = text_runs +
+        VALUES
+          (text_runs),
+          slash_runs = slash_runs +
+        VALUES
+          (slash_runs);
+
+        IF (p_isAlias = 1) THEN
+        INSERT INTO
+          command_aliases (alias_name, base_command, uses)
+        VALUES
+          (p_aliasName, p_command_name, 1) ON DUPLICATE KEY
+        UPDATE uses = uses + 1;
+
+        END IF;
+
+        END
+      `);
+    }
+
+    console.log('MySQL connection established.');
+  } catch (error) {
+    console.error('Error setting up MySQL tables and procedures:', error);
+  } finally {
+    connection.release();
   }
-
-  connection.release();
-
-  console.log('MySQL connection established.');
 };
 
 const init = async function init() {

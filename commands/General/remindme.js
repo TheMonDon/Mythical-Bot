@@ -16,15 +16,13 @@ class RemindMe extends Command {
   }
 
   async run(msg, args, level) {
-    const connection = await this.client.db.getConnection();
-
     // Set the maximum reminders a person can have
     const maxReminders = 10;
 
     // Generate an ID and check in the MySQL table until we find a free one
     let remID = this.client.util.randomString(5);
 
-    let [rows] = await connection.execute(
+    let [rows] = await this.client.db.execute(
       /* sql */ `
         SELECT
           1
@@ -40,7 +38,7 @@ class RemindMe extends Command {
 
     while (rows.length > 0) {
       remID = this.client.util.randomString(5);
-      [rows] = await connection.execute(
+      [rows] = await this.client.db.execute(
         /* sql */ `
           SELECT
             1
@@ -56,7 +54,7 @@ class RemindMe extends Command {
     }
 
     // Filter reminders by the ones an individual user has and check if it's greater than or equal to maxReminders
-    const [userReminders] = await connection.execute(
+    const [userReminders] = await this.client.db.execute(
       /* sql */ `
         SELECT
           *
@@ -102,7 +100,7 @@ class RemindMe extends Command {
     const originalMessage = await msg.channel.send({ embeds: [embed] }).catch(() => {});
     const directMessage = !msg.guild;
 
-    await connection.execute(
+    await this.client.db.execute(
       /* sql */
       `
         INSERT INTO

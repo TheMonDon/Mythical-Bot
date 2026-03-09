@@ -15,10 +15,8 @@ class Topic extends Command {
   }
 
   async run(msg, args) {
-    const connection = await this.client.db.getConnection();
-
     try {
-      const [rows] = await connection.execute(
+      const [rows] = await this.client.db.execute(
         /* sql */ `
           SELECT
             *
@@ -29,7 +27,7 @@ class Topic extends Command {
         `,
         [msg.guild.id],
       );
-      const [userCooldownRows] = await connection.execute(
+      const [userCooldownRows] = await this.client.db.execute(
         /* sql */ `
           SELECT
             *
@@ -59,7 +57,7 @@ class Topic extends Command {
 
       const roleID = rows[0].role_id;
       const role = msg.guild.roles.cache.get(roleID);
-      const [ownerRows] = await connection.execute(
+      const [ownerRows] = await this.client.db.execute(
         /* sql */
         `
           SELECT
@@ -89,7 +87,7 @@ class Topic extends Command {
       if (channelCooldown.active) {
         const timeleft = channelCooldown.time - Date.now();
         if (timeleft < 0 || timeleft > cooldown * 1000) {
-          await connection.execute(
+          await this.client.db.execute(
             /* sql */
             `
               UPDATE user_tickets
@@ -123,7 +121,7 @@ class Topic extends Command {
         .setDescription(`${msg.author} has changed the topic to: \n${topic}`);
       await msg.channel.send({ embeds: [em] });
 
-      await connection.execute(
+      await this.client.db.execute(
         /* sql */
         `
           INSERT INTO
@@ -145,8 +143,7 @@ class Topic extends Command {
       );
 
       setTimeout(async () => {
-        const connection = await this.client.db.getConnection();
-        await connection.execute(
+        await this.client.db.execute(
           /* sql */
           `
             UPDATE user_tickets
@@ -160,12 +157,9 @@ class Topic extends Command {
           `,
           [msg.guild.id, msg.channel.id, msg.author.id],
         );
-        connection.release();
       }, cooldown * 1000);
     } catch (err) {
       this.client.logger.error(err);
-    } finally {
-      connection.release();
     }
   }
 }

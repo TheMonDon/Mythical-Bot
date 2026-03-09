@@ -1,7 +1,5 @@
 const Command = require('../../base/Command.js');
 const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType } = require('discord.js');
-require('moment-duration-format');
-const moment = require('moment');
 
 class Reminders extends Command {
   constructor(client) {
@@ -14,8 +12,6 @@ class Reminders extends Command {
   }
 
   async run(msg, args) {
-    const connection = await this.client.db.getConnection();
-
     const emoji = {
       0: '0⃣',
       1: '1⃣',
@@ -44,7 +40,7 @@ class Reminders extends Command {
     ];
 
     if (!args[0]) {
-      const [userReminders] = await connection.execute(
+      const [userReminders] = await this.client.db.execute(
         /* sql */ `
           SELECT
             reminder_id AS reminderID,
@@ -59,7 +55,6 @@ class Reminders extends Command {
         `,
         [msg.author.id],
       );
-      connection.release();
 
       const pages = [];
       let i = 1;
@@ -84,9 +79,7 @@ class Reminders extends Command {
 
           embed.addFields([
             {
-              name: `**${numberEmojiArray.join('') + '.'}** I'll remind you ${moment(
-                triggerOn,
-              ).fromNow()} (ID: ${reminderID})`,
+              name: `**${numberEmojiArray.join('') + '.'}** I'll remind you <t:${Math.floor(triggerOn / 1000)}:R> (ID: ${reminderID})`,
               value: this.client.util.limitStringLength(reminderText, 0, 200),
             },
           ]);
@@ -171,7 +164,7 @@ class Reminders extends Command {
       return this.client.util.errorEmbed(msg, `Please input a valid reminder ID.`, 'Invalid Args');
     }
 
-    const [result] = await connection.execute(
+    const [result] = await this.client.db.execute(
       /* sql */ `
         DELETE FROM reminders
         WHERE
@@ -180,7 +173,6 @@ class Reminders extends Command {
       `,
       [remID, msg.author.id],
     );
-    connection.release();
 
     if (result.affectedRows === 0) {
       return this.client.util.errorEmbed(msg, `A reminder with the ID \`${remID}\` was not found.`);

@@ -12,7 +12,6 @@ exports.commandData = new SlashCommandBuilder()
 
 exports.run = async (interaction, level) => {
   await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-  const connection = await interaction.client.db.getConnection();
 
   const user = interaction.options.getUser('user');
   const warns = [];
@@ -27,7 +26,7 @@ exports.run = async (interaction, level) => {
       mem = level > 1 ? mem : interaction.member;
     }
 
-    const [otherWarns] = await connection.execute(
+    const [otherWarns] = await interaction.client.db.execute(
       /* sql */
       `
         SELECT
@@ -43,7 +42,7 @@ exports.run = async (interaction, level) => {
       [interaction.guild.id, mem.id],
     );
 
-    const [[pointsRow]] = await connection.execute(
+    const [[pointsRow]] = await interaction.client.db.execute(
       /* sql */
       `
         SELECT
@@ -89,7 +88,5 @@ exports.run = async (interaction, level) => {
   } catch (error) {
     console.log('Warnings Error:', error);
     return interaction.editReply(`An error occurred: ${error.message}`);
-  } finally {
-    connection.release();
   }
 };

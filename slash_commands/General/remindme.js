@@ -14,7 +14,6 @@ exports.commandData = new SlashCommandBuilder()
 
 exports.run = async (interaction, level) => {
   await interaction.deferReply();
-  const connection = await interaction.client.db.getConnection();
 
   // Set the maximum reminders a person can have
   const maxReminders = 10;
@@ -22,7 +21,7 @@ exports.run = async (interaction, level) => {
   // Generate an ID and check in the MySQL table until we find a free one
   let remID = interaction.client.util.randomString(5);
 
-  let [rows] = await connection.execute(
+  let [rows] = await interaction.client.db.execute(
     /* sql */ `
       SELECT
         1
@@ -38,7 +37,7 @@ exports.run = async (interaction, level) => {
 
   while (rows.length > 0) {
     remID = interaction.client.util.randomString(5);
-    [rows] = await connection.execute(
+    [rows] = await interaction.client.db.execute(
       /* sql */ `
         SELECT
           1
@@ -54,7 +53,7 @@ exports.run = async (interaction, level) => {
   }
 
   // Filter reminders by the ones an individual user has and check if it's greater than or equal to maxReminders
-  const [userReminders] = await connection.execute(
+  const [userReminders] = await interaction.client.db.execute(
     /* sql */ `
       SELECT
         *
@@ -107,7 +106,7 @@ exports.run = async (interaction, level) => {
   const originalMessage = await interaction.editReply({ embeds: [embed] }).catch(() => {});
   const directMessage = !interaction.guild;
 
-  await connection.execute(
+  await interaction.client.db.execute(
     /* sql */
     `
       INSERT INTO

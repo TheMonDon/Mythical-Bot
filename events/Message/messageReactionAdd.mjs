@@ -6,8 +6,6 @@ export async function run(client, messageReaction, user) {
   const msg = messageReaction.message;
 
   const starboardSystem = async function (client, msg) {
-    const connection = await client.db.getConnection();
-
     try {
       if (messageReaction.partial) {
         try {
@@ -25,7 +23,7 @@ export async function run(client, messageReaction, user) {
         }
       }
 
-      const [starboards] = await connection.query(
+      const [starboards] = await client.db.execute(
         /* sql */ `
           SELECT
             *
@@ -36,7 +34,7 @@ export async function run(client, messageReaction, user) {
         `,
         [msg.guild.id],
       );
-      const [overrides] = await connection.query(
+      const [overrides] = await client.db.execute(
         /* sql */
         `
           SELECT
@@ -132,7 +130,7 @@ export async function run(client, messageReaction, user) {
         // Reaction on a message in the starboard channel
         if (isStarboardChannel) {
           // Fetch the original message's channel ID from the database entry
-          const [rows] = await connection.query(
+          const [rows] = await client.db.execute(
             /* sql */
             `
               SELECT
@@ -237,7 +235,7 @@ export async function run(client, messageReaction, user) {
           ) {
             await msg.delete().catch(() => null);
 
-            await connection.query(
+            await client.db.execute(
               /* sql */
               `
                 DELETE FROM starboard_messages
@@ -249,7 +247,7 @@ export async function run(client, messageReaction, user) {
             );
           } else {
             // Update existing stars count
-            await connection.query(
+            await client.db.execute(
               /* sql */
               `
                 UPDATE starboard_messages
@@ -293,7 +291,7 @@ export async function run(client, messageReaction, user) {
         let netVotes = config.downvote_emoji ? upVoteCounter.size - downVoteCounter.size : upVoteCounter.size;
 
         // Fetch existing starboard message ID (if any)
-        const [rows] = await connection.query(
+        const [rows] = await client.db.execute(
           /* sql */
           `
             SELECT
@@ -462,7 +460,7 @@ export async function run(client, messageReaction, user) {
                   .edit({ embeds: embedsToUpdate })
                   .catch((e) => console.error('Error updating starboard message with new vote count:', e));
 
-                await connection.query(
+                await client.db.execute(
                   /* sql */
                   `
                     UPDATE starboard_messages
@@ -489,7 +487,7 @@ export async function run(client, messageReaction, user) {
                 }
 
                 // Replace DB entry with new message
-                await connection.query(
+                await client.db.execute(
                   /* sql */
                   `
                     INSERT INTO
@@ -530,7 +528,7 @@ export async function run(client, messageReaction, user) {
               }
 
               // Insert DB entry
-              await connection.query(
+              await client.db.execute(
                 /* sql */
                 `
                   INSERT INTO
@@ -563,7 +561,7 @@ export async function run(client, messageReaction, user) {
               const starMessage = await starChannel.messages.fetch(existingStarMsgId).catch(() => null);
               if (starMessage) {
                 await starMessage.delete();
-                await connection.query(
+                await client.db.execute(
                   /* sql */
                   `
                     DELETE FROM starboard_messages
@@ -589,7 +587,7 @@ export async function run(client, messageReaction, user) {
                 .edit({ embeds: newEmbeds })
                 .catch((e) => console.error('Error updating starboard message with new vote count:', e));
 
-              await connection.query(
+              await client.db.execute(
                 /* sql */
                 `
                   UPDATE starboard_messages
@@ -607,8 +605,6 @@ export async function run(client, messageReaction, user) {
       }
     } catch (error) {
       client.logger.error(error);
-    } finally {
-      connection.release();
     }
   };
 
