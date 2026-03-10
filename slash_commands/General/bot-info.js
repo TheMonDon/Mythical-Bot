@@ -1,8 +1,7 @@
 const { EmbedBuilder, SlashCommandBuilder, version } = require('discord.js');
 const { version: botVersion } = require('../../package.json');
 const { stripIndents } = require('common-tags');
-require('moment-duration-format');
-const moment = require('moment');
+const { Duration } = require('luxon');
 
 exports.conf = {
   permLevel: 'User',
@@ -12,10 +11,10 @@ exports.commandData = new SlashCommandBuilder().setName('bot-info').setDescripti
 
 exports.run = async (interaction) => {
   await interaction.deferReply();
-  await interaction.client.guilds.cache.forEach((g) => g.available && g.members.fetch());
-  const botUptime = moment
-    .duration(interaction.client.uptime)
-    .format('y[ years][,] M[ months][,] d[ days][,] h[ hours][,] m[ minutes][ and] s[ seconds]');
+
+  const botUptime = Duration.fromMillis(interaction.client.uptime)
+    .shiftTo('years', 'months', 'days', 'hours', 'minutes', 'seconds')
+    .toHuman({ showZeros: false });
 
   const [rows] = await interaction.client.db.execute(/* sql */ `
     SELECT
@@ -51,7 +50,7 @@ exports.run = async (interaction) => {
       },
       {
         name: 'Quick Bits',
-        value: stripIndents`[Invite Link](https://cisn.xyz/mythical)
+        value: stripIndents`[Invite Link](https://cisn.xyz/Mythical)
         [Source Code](https://github.com/TheMonDon/Mythical-Bot) 
         [Support Server](https://discord.com/invite/XvHzUNZDdR)
         [Website](https://mythical.cisn.xyz)`,

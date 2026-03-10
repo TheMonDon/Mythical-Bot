@@ -1,8 +1,6 @@
 /* eslint-disable no-unused-vars */
 const { EmbedBuilder, SlashCommandBuilder, InteractionContextType } = require('discord.js');
 const { QuickDB } = require('quick.db');
-require('moment-duration-format');
-const moment = require('moment');
 const db = new QuickDB();
 
 const attributes = [
@@ -317,8 +315,8 @@ exports.run = async (interaction) => {
             break;
           }
 
-          if (['yes', 'no'].includes(newValue.toLowerCase())) {
-            item.inventory = newValue.toLowerCase() === 'yes';
+          if ((interaction.client.util.yes || interaction.client.util.no).includes(newValue.toLowerCase())) {
+            item.inventory = interaction.client.util.yes.includes(newValue.toLowerCase());
             store[itemKey] = item;
           } else {
             return interaction.client.util.errorEmbed(
@@ -383,7 +381,7 @@ exports.run = async (interaction) => {
           if (isNaN(stock) || stock < 0) {
             return interaction.client.util.errorEmbed(
               interaction,
-              'Please re-run the command with a valid stock amount greater than zero.',
+              'Please re-run the command with a valid stock amount greater than zero. You can also use "infinite" for unlimited stock.',
             );
           }
 

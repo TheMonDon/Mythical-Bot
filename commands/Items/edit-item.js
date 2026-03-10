@@ -132,8 +132,8 @@ class EditItem extends Command {
           break;
         }
 
-        if (['yes', 'no'].includes(newValue.toLowerCase())) {
-          item.inventory = newValue.toLowerCase() === 'yes';
+        if ((this.client.util.yes || this.client.util.no).includes(newValue.toLowerCase())) {
+          item.inventory = this.client.util.yes.includes(newValue.toLowerCase());
           store[itemKey] = item;
         } else {
           return this.client.util.errorEmbed(msg, 'Please re-run the command with "yes" or "no" for inventory.');

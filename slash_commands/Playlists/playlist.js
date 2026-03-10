@@ -1,8 +1,7 @@
 const { EmbedBuilder, SlashCommandBuilder, InteractionContextType } = require('discord.js');
 const { stripIndents } = require('common-tags');
 const { v4: uuidv4 } = require('uuid');
-require('moment-duration-format');
-const moment = require('moment');
+const { DateTime } = require('luxon');
 
 exports.conf = {
   permLevel: 'User',
@@ -256,9 +255,16 @@ exports.run = async (interaction) => {
         }
 
         const tracksDuration = userPlaylist.tracks.reduce((acc, track) => acc + (track.info.duration || 0), 0);
-        const totalDuration = moment
-          .duration(tracksDuration)
-          .format('y[ years][,] M[ Months][,] d[ days][,] h[ hours][,] m[ minutes][ and] s[ seconds]');
+        const duration = DateTime.fromMillis(tracksDuration).shiftTo(
+          'years',
+          'months',
+          'days',
+          'hours',
+          'minutes',
+          'seconds',
+        );
+        const roundedDuration = duration.set({ seconds: Math.floor(duration.seconds) });
+        const totalDuration = roundedDuration.toHuman({ showZeros: false });
 
         const em = new EmbedBuilder()
           .setAuthor({ name: interaction.member.displayName, iconURL: interaction.member.displayAvatarURL() })

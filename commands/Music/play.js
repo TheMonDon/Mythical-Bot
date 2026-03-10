@@ -1,15 +1,14 @@
 const Command = require('../../base/Command.js');
 const { stripIndents } = require('common-tags');
 const { EmbedBuilder } = require('discord.js');
-require('moment-duration-format');
-const moment = require('moment');
+const { Duration } = require('luxon');
 
 class Play extends Command {
   constructor(client) {
     super(client, {
       name: 'play',
       description: 'Play music or add songs to the queue',
-      longDescription: 'Supports youtube search/links, youtube playlist, and spotify links.',
+      longDescription: 'Supports youtube search/links, youtube playlist, and deezer search/links.',
       category: 'Music',
       usage: 'play <song>',
       aliases: ['p'],
@@ -68,10 +67,18 @@ class Play extends Command {
       // Add track(s) to queue
       if (result.loadType === 'playlist') {
         await player.queue.add(result.tracks);
+
         const totalDuration = result.tracks.reduce((acc, track) => acc + (track.info.duration || 0), 0);
-        const durationString = moment
-          .duration(totalDuration)
-          .format('y[ years][,] M[ Months][,] d[ days][,] h[ hours][,] m[ minutes][ and] s[ seconds]');
+        const duration = Duration.fromMillis(totalDuration).shiftTo(
+          'years',
+          'months',
+          'days',
+          'hours',
+          'minutes',
+          'seconds',
+        );
+        const roundedDuration = duration.set({ seconds: Math.floor(duration.seconds) });
+        const durationString = roundedDuration.toHuman({ showZeros: false });
 
         const em = new EmbedBuilder()
           .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
@@ -95,16 +102,34 @@ class Play extends Command {
         msg.channel.send({ embeds: [em] });
       } else {
         const queuePosition = player.queue.tracks.length;
+
+        // Calculate the estimated time until the track will play
         let calculateEstimatedTime = player.queue.tracks.reduce((acc, track) => acc + (track.info.duration || 0), 0);
         if (player?.queue?.current) {
           calculateEstimatedTime += player.queue.current.info.duration || 0;
         }
-        const timeLeft = moment
-          .duration(calculateEstimatedTime)
-          .format('y[ years][,] M[ Months][,] d[ days][,] h[ hours][,] m[ minutes][ and] s[ seconds]');
-        const durationString = moment
-          .duration(result.tracks[0].info.duration || 0)
-          .format('y[ years][,] M[ Months][,] d[ days][,] h[ hours][,] m[ minutes][ and] s[ seconds]');
+        const timeLeftDuration = Duration.fromMillis(calculateEstimatedTime).shiftTo(
+          'years',
+          'months',
+          'days',
+          'hours',
+          'minutes',
+          'seconds',
+        );
+        const roundedTimeLeftDuration = timeLeftDuration.set({ seconds: Math.floor(timeLeftDuration.seconds) });
+        const timeLeft = roundedTimeLeftDuration.toHuman({ showZeros: false });
+
+        // Calculate the duration of the track
+        const duration = Duration.fromMillis(result.tracks[0].info.duration || 0).shiftTo(
+          'years',
+          'months',
+          'days',
+          'hours',
+          'minutes',
+          'seconds',
+        );
+        const roundedRoleDuration = duration.set({ seconds: Math.floor(duration.seconds) });
+        const durationString = roundedRoleDuration.toHuman({ showZeros: false });
 
         const em = new EmbedBuilder()
           .setTitle('✅ Track Added to Queue')

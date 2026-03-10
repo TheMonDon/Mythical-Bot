@@ -363,9 +363,16 @@ const loadLavalink = async () => {
       try {
         if (player.repeatMode === 'track') return;
 
-        const durationString = Duration.fromMillis(track.info.duration || 0)
-          .shiftTo('years', 'months', 'days', 'hours', 'minutes', 'seconds')
-          .toHuman({ showZeros: false });
+        const duration = Duration.fromMillis(track.info.duration || 0).shiftTo(
+          'years',
+          'months',
+          'days',
+          'hours',
+          'minutes',
+          'seconds',
+        );
+        const rounded = duration.set({ seconds: Math.floor(duration.seconds) });
+        const durationString = rounded.toHuman({ showZeros: false });
 
         let title = track.info.title;
         if (track.info.sourceName === 'youtube') {

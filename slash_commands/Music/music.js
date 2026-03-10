@@ -1,7 +1,6 @@
 const { EmbedBuilder, SlashCommandBuilder, InteractionContextType } = require('discord.js');
 const { stripIndents } = require('common-tags');
-require('moment-duration-format');
-const moment = require('moment');
+const { Duration } = require('luxon');
 
 exports.conf = {
   permLevel: 'User',
@@ -315,9 +314,16 @@ exports.run = async (interaction) => {
         // Add track(s) to queue
         if (result.loadType === 'playlist') {
           const totalDuration = result.tracks.reduce((acc, track) => acc + (track.info.duration || 0), 0);
-          const durationString = moment
-            .duration(totalDuration)
-            .format('y[ years][,] M[ Months][,] d[ days][,] h[ hours][,] m[ minutes][ and] s[ seconds]');
+          const duration = Duration.fromMillis(totalDuration).shiftTo(
+            'years',
+            'months',
+            'days',
+            'hours',
+            'minutes',
+            'seconds',
+          );
+          const roundedDuration = duration.set({ seconds: Math.floor(duration.seconds) });
+          const durationString = roundedDuration.toHuman({ showZeros: false });
 
           const em = new EmbedBuilder()
             .setTitle('✅ Playlist Added to Queue')
@@ -341,16 +347,34 @@ exports.run = async (interaction) => {
           await interaction.editReply({ embeds: [em] });
         } else {
           const queuePosition = player.queue.tracks.length;
+
+          // Calculate the estimated time until the track will play
           let calculateEstimatedTime = player.queue.tracks.reduce((acc, track) => acc + (track.info.duration || 0), 0);
           if (player?.queue?.current) {
             calculateEstimatedTime += player.queue.current.info.duration || 0;
           }
-          const timeLeft = moment
-            .duration(calculateEstimatedTime)
-            .format('y[ years][,] M[ Months][,] d[ days][,] h[ hours][,] m[ minutes][ and] s[ seconds]');
-          const durationString = moment
-            .duration(result.tracks[0].info.duration || 0)
-            .format('y[ years][,] M[ Months][,] d[ days][,] h[ hours][,] m[ minutes][ and] s[ seconds]');
+          const timeLeftDuration = Duration.fromMillis(calculateEstimatedTime).shiftTo(
+            'years',
+            'months',
+            'days',
+            'hours',
+            'minutes',
+            'seconds',
+          );
+          const roundedTimeLeftDuration = timeLeftDuration.set({ seconds: Math.floor(timeLeftDuration.seconds) });
+          const timeLeft = roundedTimeLeftDuration.toHuman({ showZeros: false });
+
+          // Calculate the duration of the track
+          const duration = Duration.fromMillis(result.tracks[0].info.duration || 0).shiftTo(
+            'years',
+            'months',
+            'days',
+            'hours',
+            'minutes',
+            'seconds',
+          );
+          const roundedDuration = duration.set({ seconds: Math.floor(duration.seconds) });
+          const durationString = roundedDuration.toHuman({ showZeros: false });
 
           const em = new EmbedBuilder()
             .setTitle('✅ Track Added to Queue')
@@ -522,11 +546,18 @@ exports.run = async (interaction) => {
         }
       }
 
+      // Calculate total duration of the queue
       const totalMilliseconds = player.queue.tracks.reduce((acc, track) => acc + (track.info.duration || 0), 0);
-
-      const timeLeft = moment
-        .duration(totalMilliseconds)
-        .format('y[ years][,] M[ Months][,] d[ days][,] h[ hours][,] m[ minutes][ and] s[ seconds]');
+      const duration = Duration.fromMillis(totalMilliseconds).shiftTo(
+        'years',
+        'months',
+        'days',
+        'hours',
+        'minutes',
+        'seconds',
+      );
+      const roundedDuration = duration.set({ seconds: Math.floor(duration.seconds) });
+      const timeLeft = roundedDuration.toHuman({ showZeros: false });
 
       const embed = new EmbedBuilder()
         .setColor(interaction.settings.embedColor)

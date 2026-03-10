@@ -1,7 +1,5 @@
 const Command = require('../../base/Command.js');
 const { EmbedBuilder } = require('discord.js');
-require('moment-duration-format');
-const moment = require('moment');
 
 class UserInfo extends Command {
   constructor(client) {
@@ -91,8 +89,8 @@ class UserInfo extends Command {
           { name: 'Username', value: `${infoMem.user.tag} (${infoMem})`, inline: true },
           { name: 'Nickname', value: infoMem.displayName, inline: true },
           { name: 'User ID', value: infoMem.id, inline: true },
-          { name: 'Joined Server', value: `<t:${joinedAtUnix}:F> \n (<t:${joinedAtUnix}:R>)`, inline: true },
-          { name: 'Account Created', value: `<t:${createdAtUnix}:F> \n (<t:${createdAtUnix}:R>)`, inline: true },
+          { name: 'Joined Server', value: `<t:${joinedAtUnix}:F> \n(<t:${joinedAtUnix}:R>)`, inline: true },
+          { name: 'Account Created', value: `<t:${createdAtUnix}:F> \n(<t:${createdAtUnix}:R>)`, inline: true },
           {
             name: 'Join Position',
             value: `${Number(joinPosition)?.toLocaleString()}/${msg.guild.memberCount.toLocaleString()}`,
@@ -115,8 +113,7 @@ class UserInfo extends Command {
     // Otherwise, if the user is not a guild member
 
     // Created At timestamp
-    const timestamp = moment(infoMem.createdAt);
-    const createdAt = timestamp.format('dddd, MMMM Do, YYYY, h:mm a');
+    const createdAtUnix = Math.floor(infoMem.createdAt.getTime() / 1000);
 
     // Create array of user flags / badges
     const userBadges = infoMem.flags?.toArray() || '';
@@ -138,7 +135,7 @@ class UserInfo extends Command {
         { name: 'User ID', value: infoMem.id.toString(), inline: true },
         { name: `Badges [${userBadges?.length || 0}]`, value: badgesArray || 'No Badges', inline: true },
         { name: 'Account Type', value: infoMem.bot ? ':robot: Bot' : ':person_standing: Human', inline: true },
-        { name: 'Account Created', value: createdAt, inline: true },
+        { name: 'Account Created', value: `<t:${createdAtUnix}:F> \n(<t:${createdAtUnix}:R>)`, inline: true },
         { name: 'Accent Color', value: infoMem.hexAccentColor?.toString().toUpperCase() || 'None', inline: true },
       ]);
     return msg.channel.send({ embeds: [embed] });

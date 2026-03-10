@@ -63,7 +63,7 @@ class Conf extends Command {
       );
 
       // If they respond with y or yes, continue.
-      if (['y', 'yes'].includes(response)) {
+      if (this.client.util.yes.includes(response)) {
         // We delete the default `key` here.
         delete defaults[key];
         this.client.settings.set('default', defaults);

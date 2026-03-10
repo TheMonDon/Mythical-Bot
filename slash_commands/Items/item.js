@@ -10,9 +10,8 @@ const {
   MessageCollector,
 } = require('discord.js');
 const { stripIndents } = require('common-tags');
+const { Duration, DateTime } = require('luxon');
 const { QuickDB } = require('quick.db');
-require('moment-duration-format');
-const moment = require('moment');
 const db = new QuickDB();
 
 exports.conf = {
@@ -207,9 +206,21 @@ exports.run = async (interaction) => {
         }
 
         // Replace Member
-        const memberCreatedAt = moment(interaction.user.createdAt);
-        const memberCreated = memberCreatedAt.format('D MM YY');
-        const memberCreatedDuration = memberCreatedAt.from(moment(), true);
+        // Calculate the duration since the member's account was created
+        const duration = Duration.fromMillis(Date.now() - interaction.user.createdAt.getTime()).shiftTo(
+          'years',
+          'months',
+          'days',
+          'hours',
+          'minutes',
+          'seconds',
+        );
+        const rounded = duration.set({ seconds: Math.floor(duration.seconds) });
+        const memberCreatedDuration = rounded.toHuman({ showZeros: false });
+
+        // Format the member's account creation date
+        const memberCreated = DateTime.fromMillis(interaction.user.createdAt.getTime()).toFormat('MMMM dd, yyyy');
+
         let replyMessage = item.replyMessage
           .replace('{member.id}', interaction.user.id)
           .replace('{member.username}', interaction.user.username)
@@ -219,16 +230,27 @@ exports.run = async (interaction) => {
           .replace('{member.created.duration}', memberCreatedDuration);
 
         // Replace Server
-        const guildCreatedAt = moment(interaction.guild.createdAt);
-        const serverCreated = guildCreatedAt.format('D MM YY');
-        const serverCreatedDuration = guildCreatedAt.from(moment(), true);
+        // Calculate the duration since the server was created
+        const serverDuration = Duration.fromMillis(Date.now() - interaction.guild.createdAt.getTime()).shiftTo(
+          'years',
+          'months',
+          'days',
+          'hours',
+          'minutes',
+          'seconds',
+        );
+        const roundedDuration = serverDuration.set({ seconds: Math.floor(serverDuration.seconds) });
+        const serverCreatedDuration = roundedDuration.toHuman({ showZeros: false });
+
+        // Format the server's creation date
+        const serverCreated = DateTime.fromMillis(interaction.guild.createdAt.getTime()).toFormat('MMMM dd, yyyy');
 
         replyMessage = replyMessage
           .replace('{server.id}', interaction.guild.id)
           .replace('{server.name}', interaction.guild.name)
           .replace('{server.members}', interaction.guild.memberCount.toLocaleString())
           .replace('{server.created}', serverCreated)
-          .replace('{servers.created.duration', serverCreatedDuration);
+          .replace('{server.created.duration}', serverCreatedDuration);
 
         const role =
           interaction.client.util.getRole(interaction, item.roleGiven) ||
@@ -236,9 +258,20 @@ exports.run = async (interaction) => {
           interaction.client.util.getRole(interaction, item.roleRequired);
 
         if (role) {
-          const roleCreatedAt = moment(role.createdAt);
-          const roleCreated = roleCreatedAt.format('D MM YY');
-          const roleCreatedDuration = roleCreatedAt.from(moment(), true);
+          // Calculate the duration since the role was created
+          const roleDuration = Duration.fromMillis(Date.now() - role.createdAt.getTime()).shiftTo(
+            'years',
+            'months',
+            'days',
+            'hours',
+            'minutes',
+            'seconds',
+          );
+          const roundedRoleDuration = roleDuration.set({ seconds: Math.floor(roleDuration.seconds) });
+          const roleCreatedDuration = roundedRoleDuration.toHuman({ showZeros: false });
+
+          // Format the role's creation date
+          const roleCreated = DateTime.fromMillis(role.createdAt.getTime()).toFormat('MMMM dd, yyyy');
 
           replyMessage = replyMessage
             .replace('{role.id}', role.id)
@@ -925,9 +958,21 @@ exports.run = async (interaction) => {
       }
 
       // Replace Member
-      const memberCreatedAt = moment(interaction.user.createdAt);
-      const memberCreated = memberCreatedAt.format('D MM YY');
-      const memberCreatedDuration = memberCreatedAt.from(moment(), true);
+      // Calculate the duration since the member's account was created
+      const duration = Duration.fromMillis(Date.now() - interaction.user.createdAt.getTime()).shiftTo(
+        'years',
+        'months',
+        'days',
+        'hours',
+        'minutes',
+        'seconds',
+      );
+      const rounded = duration.set({ seconds: Math.floor(duration.seconds) });
+      const memberCreatedDuration = rounded.toHuman({ showZeros: false });
+
+      // Format the member's account creation date
+      const memberCreated = DateTime.fromMillis(interaction.user.createdAt.getTime()).toFormat('MMMM dd, yyyy');
+
       let replyMessage = item.replyMessage
         .replace('{member.id}', interaction.user.id)
         .replace('{member.username}', interaction.user.username)
@@ -937,16 +982,27 @@ exports.run = async (interaction) => {
         .replace('{member.created.duration}', memberCreatedDuration);
 
       // Replace Server
-      const guildCreatedAt = moment(interaction.guild.createdAt);
-      const serverCreated = guildCreatedAt.format('D MM YY');
-      const serverCreatedDuration = guildCreatedAt.from(moment(), true);
+      // Calculate the duration since the server was created
+      const serverDuration = Duration.fromMillis(Date.now() - interaction.guild.createdAt.getTime()).shiftTo(
+        'years',
+        'months',
+        'days',
+        'hours',
+        'minutes',
+        'seconds',
+      );
+      const roundedDuration = serverDuration.set({ seconds: Math.floor(serverDuration.seconds) });
+      const serverCreatedDuration = roundedDuration.toHuman({ showZeros: false });
+
+      // Format the server's creation date
+      const serverCreated = DateTime.fromMillis(interaction.guild.createdAt.getTime()).toFormat('MMMM dd, yyyy');
 
       replyMessage = replyMessage
         .replace('{server.id}', interaction.guild.id)
         .replace('{server.name}', interaction.guild.name)
         .replace('{server.members}', interaction.guild.memberCount.toLocaleString())
         .replace('{server.created}', serverCreated)
-        .replace('{servers.created.duration', serverCreatedDuration);
+        .replace('{server.created.duration', serverCreatedDuration);
 
       const role =
         interaction.client.util.getRole(interaction, item.roleGiven) ||
@@ -954,9 +1010,20 @@ exports.run = async (interaction) => {
         interaction.client.util.getRole(interaction, item.roleRequired);
 
       if (role) {
-        const roleCreatedAt = moment(role.createdAt);
-        const roleCreated = roleCreatedAt.format('D MM YY');
-        const roleCreatedDuration = roleCreatedAt.from(moment(), true);
+        // Calculate the duration since the role was created
+        const roleDuration = Duration.fromMillis(Date.now() - role.createdAt.getTime()).shiftTo(
+          'years',
+          'months',
+          'days',
+          'hours',
+          'minutes',
+          'seconds',
+        );
+        const roundedRoleDuration = roleDuration.set({ seconds: Math.floor(roleDuration.seconds) });
+        const roleCreatedDuration = roundedRoleDuration.toHuman({ showZeros: false });
+
+        // Format the role's creation date
+        const roleCreated = DateTime.fromMillis(role.createdAt.getTime()).toFormat('MMMM dd, yyyy');
 
         replyMessage = replyMessage
           .replace('{role.id}', role.id)

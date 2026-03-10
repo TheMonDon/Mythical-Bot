@@ -1,6 +1,6 @@
 {
   "name": "mythical",
-  "version": "5.9.1",
+  "version": "5.10.0",
   "description": "Mythical Bot",
   "owner": "themondon",
   "main": "index.js",
@@ -50,7 +50,6 @@
     "luxon": "^3.1.1",
     "mathjs": "^13.0.3",
     "moment": "^2.29.4",
-    "moment-duration-format": "^2.3.2",
     "mysql2": "^3.19.0",
     "nearest-color": "^0.4.4",
     "nekos.life": "^3.0.0",

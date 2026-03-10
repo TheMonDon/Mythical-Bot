@@ -1,8 +1,7 @@
 const Command = require('../../base/Command.js');
 const { stripIndents } = require('common-tags');
 const { EmbedBuilder } = require('discord.js');
-require('moment-duration-format');
-const moment = require('moment');
+const { DateTime } = require('luxon');
 
 class LoadPlaylist extends Command {
   constructor(client) {
@@ -72,9 +71,16 @@ class LoadPlaylist extends Command {
       player.queue.add(userPlaylist.tracks);
 
       const tracksDuration = userPlaylist.tracks.reduce((acc, track) => acc + (track.info.duration || 0), 0);
-      const totalDuration = moment
-        .duration(tracksDuration)
-        .format('y[ years][,] M[ Months][,] d[ days][,] h[ hours][,] m[ minutes][ and] s[ seconds]');
+      const duration = DateTime.fromMillis(tracksDuration).shiftTo(
+        'years',
+        'months',
+        'days',
+        'hours',
+        'minutes',
+        'seconds',
+      );
+      const roundedDuration = duration.set({ seconds: Math.floor(duration.seconds) });
+      const totalDuration = roundedDuration.toHuman({ showZeros: false });
 
       const em = new EmbedBuilder()
         .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
