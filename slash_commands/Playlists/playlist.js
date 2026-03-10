@@ -310,10 +310,10 @@ exports.run = async (interaction) => {
         );
       }
 
-      if (playlists.length >= 20) {
+      if (playlists.length >= 10) {
         return interaction.client.util.errorEmbed(
           interaction,
-          'You have reached the maximum number of playlists allowed (20).',
+          'You have reached the maximum number of playlists allowed (10).',
         );
       }
 
@@ -341,7 +341,7 @@ exports.run = async (interaction) => {
         );
 
         return interaction.editReply(
-          `I have successfully created the playlist \`${playlistName}\` with ${player.queue.tracks.length} tracks. You can play it using the \`/playlist load\` command. (${playlists.length}/20)`,
+          `I have successfully created the playlist \`${playlistName}\` with ${player.queue.tracks.length} tracks. You can play it using the \`/playlist load\` command. (${playlists.length}/10)`,
         );
       } catch (error) {
         console.error('Save Playlist Error:', error);

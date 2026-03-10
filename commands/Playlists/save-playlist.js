@@ -52,8 +52,8 @@ class SavePlaylist extends Command {
       return this.client.util.errorEmbed(msg, 'You already have a playlist with that name.');
     }
 
-    if (currentPlaylists.length >= 20) {
-      return this.client.util.errorEmbed(msg, 'You have reached the maximum number of playlists allowed (20).');
+    if (currentPlaylists.length >= 10) {
+      return this.client.util.errorEmbed(msg, 'You have reached the maximum number of playlists allowed (10).');
     }
 
     const newPlaylist = {
@@ -80,7 +80,7 @@ class SavePlaylist extends Command {
       );
 
       return msg.channel.send(
-        `I have successfully created the playlist \`${playlistName}\` with ${player.queue.tracks.length} tracks. You can play it using the \`load-playlist\` command. (${currentPlaylists.length}/50)`,
+        `I have successfully created the playlist \`${playlistName}\` with ${player.queue.tracks.length} tracks. You can play it using the \`load-playlist\` command. (${currentPlaylists.length}/10)`,
       );
     } catch (error) {
       console.error('Save Playlist Error:', error);
