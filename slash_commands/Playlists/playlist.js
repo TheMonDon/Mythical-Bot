@@ -1,7 +1,7 @@
 const { EmbedBuilder, SlashCommandBuilder, InteractionContextType } = require('discord.js');
 const { stripIndents } = require('common-tags');
 const { v4: uuidv4 } = require('uuid');
-const { DateTime } = require('luxon');
+const { Duration } = require('luxon');
 
 exports.conf = {
   permLevel: 'User',
@@ -255,7 +255,7 @@ exports.run = async (interaction) => {
         }
 
         const tracksDuration = userPlaylist.tracks.reduce((acc, track) => acc + (track.info.duration || 0), 0);
-        const duration = DateTime.fromMillis(tracksDuration).shiftTo(
+        const duration = Duration.fromMillis(tracksDuration).shiftTo(
           'years',
           'months',
           'days',

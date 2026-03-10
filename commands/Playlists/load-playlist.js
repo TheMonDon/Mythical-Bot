@@ -1,7 +1,7 @@
 const Command = require('../../base/Command.js');
 const { stripIndents } = require('common-tags');
 const { EmbedBuilder } = require('discord.js');
-const { DateTime } = require('luxon');
+const { Duration } = require('luxon');
 
 class LoadPlaylist extends Command {
   constructor(client) {
@@ -71,7 +71,7 @@ class LoadPlaylist extends Command {
       player.queue.add(userPlaylist.tracks);
 
       const tracksDuration = userPlaylist.tracks.reduce((acc, track) => acc + (track.info.duration || 0), 0);
-      const duration = DateTime.fromMillis(tracksDuration).shiftTo(
+      const duration = Duration.fromMillis(tracksDuration).shiftTo(
         'years',
         'months',
         'days',
