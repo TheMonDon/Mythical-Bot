@@ -1,13 +1,14 @@
 const { WebhookClient, EmbedBuilder } = require('discord.js');
 const { botLogsWebhookURL } = require('../config.js');
-const moment = require('moment');
+const { DateTime } = require('luxon');
 const chalk = require('chalk');
 
 function log(content, type = 'log') {
-  const timestamp = `[${moment().format('YYYY-MM-DD HH:mm:ss')}]:`;
+  const timestamp = `[${DateTime.now().toLocaleString(DateTime.DATETIME_SHORT)}]:`;
   let logs;
   if (botLogsWebhookURL) logs = new WebhookClient({ url: botLogsWebhookURL });
   const embed = new EmbedBuilder().setDescription(content.toString().substring(0, 4096)).setTimestamp();
+
   switch (type) {
     case 'log': {
       embed.setTitle('Logging').setColor('#0099CC');

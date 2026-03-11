@@ -1,6 +1,6 @@
 {
   "name": "mythical",
-  "version": "5.10.1",
+  "version": "5.10.2",
   "description": "Mythical Bot",
   "owner": "themondon",
   "main": "index.js",
@@ -49,7 +49,6 @@
     "lavalink-client": "^2.9.7",
     "luxon": "^3.1.1",
     "mathjs": "^13.0.3",
-    "moment": "^2.29.4",
     "mysql2": "^3.19.0",
     "nearest-color": "^0.4.4",
     "nekos.life": "^3.0.0",

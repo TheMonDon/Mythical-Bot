@@ -1,7 +1,6 @@
 const Command = require('../../base/Command.js');
 const { EmbedBuilder } = require('discord.js');
 const fetch = require('node-superfetch');
-const moment = require('moment');
 
 class Github extends Command {
   constructor(client) {
@@ -44,6 +43,9 @@ class Github extends Command {
         .get(`https://api.github.com/repos/${author}/${repository}`)
         .set({ Authorization: `token ${this.client.config.github}` });
 
+      const createdAt = Math.floor(new Date(body.created_at).getTime() / 1000);
+      const updatedAt = Math.floor(new Date(body.updated_at).getTime() / 1000);
+
       const embed = new EmbedBuilder()
         .setColor(msg.settings.embedColor)
         .setAuthor({ name: 'GitHub', iconURL: 'https://i.imgur.com/e4HunUm.png', url: 'https://github.com/' })
@@ -59,8 +61,8 @@ class Github extends Command {
           { name: 'License', value: body.license ? body.license.name : 'None', inline: true },
           { name: 'Archived', value: body.archived ? 'Yes' : 'No', inline: true },
           { name: 'Size', value: `${(body.size / 1000).toLocaleString()} MB`, inline: true },
-          { name: 'Creation Date', value: moment.utc(body.created_at).format('MM/DD/YYYY h:mm A'), inline: true },
-          { name: 'Modification Date', value: moment.utc(body.updated_at).format('MM/DD/YYYY h:mm A'), inline: true },
+          { name: 'Creation Date', value: `<t:${createdAt}:s>`, inline: true },
+          { name: 'Modification Date', value: `<t:${updatedAt}:s>`, inline: true },
         ]);
 
       return msg.channel.send({ embeds: [embed] });

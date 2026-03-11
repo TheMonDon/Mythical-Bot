@@ -56,9 +56,16 @@ class Slut extends Command {
     if (expiresAt) {
       const timeleft = new Date(expiresAt) - Date.now();
       if (timeleft > 0 && timeleft <= cooldown * 1000) {
-        const tLeft = Duration.fromMillis(timeleft)
-          .shiftTo('years', 'months', 'days', 'hours', 'minutes', 'seconds')
-          .toHuman({ showZeros: false });
+        const timeLeftDuration = Duration.fromMillis(timeleft).shiftTo(
+          'years',
+          'months',
+          'days',
+          'hours',
+          'minutes',
+          'seconds',
+        );
+        const roundedTimeLeftDuration = timeLeftDuration.set({ seconds: Math.floor(timeLeftDuration.seconds) });
+        const tLeft = roundedTimeLeftDuration.toHuman({ showZeros: false });
 
         embed.setDescription(`Please wait ${tLeft} to be a slut again.`);
 

@@ -1,6 +1,6 @@
 const { EmbedBuilder, SlashCommandBuilder, InteractionContextType } = require('discord.js');
 const { QuickDB } = require('quick.db');
-const moment = require('moment');
+const { Duration } = require('luxon');
 const db = new QuickDB();
 
 exports.conf = {
@@ -52,10 +52,18 @@ exports.run = async (interaction) => {
   if (expiresAt) {
     const timeleft = new Date(expiresAt) - Date.now();
     if (timeleft > 0 && timeleft <= cooldown * 1000) {
-      const timeLeft = moment
-        .duration(timeleft)
-        .format('y[ years][,] M[ Months][,] d[ days][,] h[ hours][,] m[ minutes][ and] s[ seconds]'); // format to any format
-      embed.setDescription(`Please wait ${timeLeft} to commit a crime again.`);
+      const timeLeftDuration = Duration.fromMillis(timeleft).shiftTo(
+        'years',
+        'months',
+        'days',
+        'hours',
+        'minutes',
+        'seconds',
+      );
+      const roundedTimeLeftDuration = timeLeftDuration.set({ seconds: Math.floor(timeLeftDuration.seconds) });
+      const tLeft = roundedTimeLeftDuration.toHuman({ showZeros: false });
+
+      embed.setDescription(`Please wait ${tLeft} to commit a crime again.`);
 
       return interaction.editReply({ embeds: [embed] });
     }

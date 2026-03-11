@@ -275,8 +275,8 @@ exports.run = async (interaction) => {
             .get(`https://api.github.com/repos/${user.toLowerCase()}/${repo.toLowerCase()}`)
             .set({ Authorization: `token ${interaction.client.config.github}` });
 
-          const createdAt = new Date(body.created_at).getTime() / 1000;
-          const updatedAt = new Date(body.updated_at).getTime() / 1000;
+          const createdAt = Math.floor(new Date(body.created_at).getTime() / 1000);
+          const updatedAt = Math.floor(new Date(body.updated_at).getTime() / 1000);
 
           embed
             .setTitle(body.full_name)
@@ -292,18 +292,15 @@ exports.run = async (interaction) => {
               { name: 'License', value: body.license ? body.license.name : 'None', inline: true },
               { name: 'Archived', value: body.archived ? 'Yes' : 'No', inline: true },
               { name: 'Size', value: `${(body.size / 1000).toLocaleString()} MB`, inline: true },
-              { name: 'Creation Date', value: `<t:${createdAt}:f>`, inline: true },
-              {
-                name: 'Modification Date',
-                value: `<t:${updatedAt}:f>`,
-                inline: true,
-              },
+              { name: 'Creation Date', value: `<t:${createdAt}:s>`, inline: true },
+              { name: 'Modification Date', value: `<t:${updatedAt}:s>`, inline: true },
             ]);
 
           return interaction.editReply({ embeds: [embed] });
         } catch (err) {
-          if (err.status === 404)
+          if (err.status === 404) {
             return interaction.client.util.errorEmbed(interaction, 'No results were found for that repository.');
+          }
           return interaction.editReply(`Oh no, an error occurred: \`${err.message}\`. Try again later!`);
         }
       }
@@ -313,8 +310,8 @@ exports.run = async (interaction) => {
           .get(`https://api.github.com/users/${user.toLowerCase()}`)
           .set({ Authorization: `token ${interaction.client.config.github}` });
 
-        const createdAt = new Date(body.created_at).getTime() / 1000;
-        const updatedAt = new Date(body.updated_at).getTime() / 1000;
+        const createdAt = Math.floor(new Date(body.created_at).getTime() / 1000);
+        const updatedAt = Math.floor(new Date(body.updated_at).getTime() / 1000);
 
         embed
           .setTitle(body.login)
@@ -326,8 +323,8 @@ exports.run = async (interaction) => {
             { name: 'Company', value: body.company || 'None', inline: true },
             { name: 'Public Repositories', value: body.public_repos?.toString() || '0', inline: true },
             { name: 'Private Repositories', value: body.total_private_repos?.toString() || '0', inline: true },
-            { name: 'Creation Date', value: `<t:${createdAt}:f>`, inline: true },
-            { name: 'Modification Date', value: `<t:${updatedAt}:f>`, inline: true },
+            { name: 'Creation Date', value: `<t:${createdAt}:s>`, inline: true },
+            { name: 'Modification Date', value: `<t:${updatedAt}:s>`, inline: true },
             { name: 'Location', value: body.location, inline: true },
             { name: 'Following', value: body.following.toString(), inline: true },
             { name: 'Followers', value: body.followers.toString(), inline: true },
