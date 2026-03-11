@@ -14,10 +14,11 @@ class Command {
       permLevel = 'User',
       nsfw = false,
       requiredArgs = 0,
+      cooldown = 0,
     },
   ) {
     this.client = client;
-    this.conf = { enabled, guildOnly, aliases, permLevel, nsfw, requiredArgs };
+    this.conf = { enabled, guildOnly, aliases, permLevel, nsfw, requiredArgs, cooldown };
     this.help = { name, description, longDescription, category, usage, examples };
   }
 }

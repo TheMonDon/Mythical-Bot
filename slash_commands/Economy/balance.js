@@ -30,10 +30,21 @@ exports.run = async (interaction) => {
     [interaction.guild.id],
   );
 
-  const cash = BigInt(
-    (await db.get(`servers.${interaction.guildId}.users.${mem.id}.economy.cash`)) || economyRows[0]?.start_balance || 0,
+  const [balanceRows] = await interaction.client.db.execute(
+    /* sql */ `
+      SELECT
+        cash,
+        bank
+      FROM
+        economy_balances
+      WHERE
+        server_id = ?
+        AND user_id = ?
+    `,
+    [interaction.guild.id, mem.id],
   );
-  const bank = BigInt((await db.get(`servers.${interaction.guildId}.users.${mem.id}.economy.bank`)) || 0);
+  const cash = BigInt(balanceRows[0]?.cash ?? economyRows[0]?.start_balance ?? 0);
+  const bank = BigInt(balanceRows[0]?.bank ?? 0);
   const netWorth = cash + bank;
 
   const currencySymbol = economyRows[0]?.symbol || '$';

@@ -1,7 +1,5 @@
 const Command = require('../../base/Command.js');
 const { EmbedBuilder } = require('discord.js');
-const { QuickDB } = require('quick.db');
-const db = new QuickDB();
 
 class AutoRole extends Command {
   constructor(client) {
@@ -14,7 +12,7 @@ class AutoRole extends Command {
       usage: 'auto-role <add | remove | list> [role or page]',
       aliases: ['autorole', 'autoroles'],
       permLevel: 'Administrator',
-      examples: ['auto-role add @member', 'auto-role remove Moderator'],
+      examples: ['auto-role add @Moderator', 'auto-role remove Moderator'],
       requiredArgs: 1,
       guildOnly: true,
     });
@@ -119,7 +117,20 @@ class AutoRole extends Command {
 
           // Update the database if roles were removed
           if (validRoles.length !== autoRoles.length) {
-            await db.set(`servers.${msg.guild.id}.autoRoles`, validRoles);
+            await this.client.db.execute(
+              /* sql */
+              `
+                INSERT INTO
+                  auto_roles (server_id, roles)
+                VALUES
+                  (?, ?) ON DUPLICATE KEY
+                UPDATE roles =
+                VALUES
+                  (roles)
+              `,
+              [msg.guild.id, JSON.stringify(validRoles)],
+            );
+
             embed
               .setDescription('No valid auto-roles remain in the server. The list has been updated.')
               .setColor(msg.settings.embedColor);

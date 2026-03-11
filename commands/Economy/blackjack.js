@@ -1,8 +1,6 @@
 const { EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, MessageFlags } = require('discord.js');
 const { Blackjack } = require('blackjack-n-deck');
 const Command = require('../../base/Command.js');
-const { QuickDB } = require('quick.db');
-const db = new QuickDB();
 
 class BlackJack extends Command {
   constructor(client) {
@@ -113,11 +111,19 @@ class BlackJack extends Command {
     );
     const currencySymbol = economyRows[0]?.symbol || '$';
 
-    const cash = BigInt(
-      (await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`)) ||
-        economyRows[0]?.start_balance ||
-        0,
+    const [BalanceRows] = await this.client.db.execute(
+      /* sql */ `
+        SELECT
+          cash
+        FROM
+          economy_balances
+        WHERE
+          server_id = ?
+          AND user_id = ?
+      `,
+      [msg.guild.id, msg.member.id],
     );
+    const cash = BigInt(BalanceRows[0]?.cash || economyRows[0]?.start_balance || 0);
 
     const Arguments = args.join(' ').toLowerCase();
 
@@ -195,7 +201,20 @@ class BlackJack extends Command {
         ]);
 
       const newAmount = cash + winAmount;
-      await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAmount.toString());
+      await this.client.db.execute(
+        /* sql */
+        `
+          INSERT INTO
+            economy_balances (server_id, user_id, cash)
+          VALUES
+            (?, ?, ?) ON DUPLICATE KEY
+          UPDATE cash =
+          VALUES
+            (cash)
+        `,
+        [msg.guild.id, msg.member.id, newAmount.toString()],
+      );
+
       return msg.channel.send({ embeds: [embed] });
     }
 
@@ -217,7 +236,7 @@ class BlackJack extends Command {
       return embed;
     }
 
-    async function winCheck(selected) {
+    async function winCheck(client, selected) {
       if (selected === 'hit') {
         bj.hit();
       } else if (selected === 'stand') {
@@ -228,22 +247,55 @@ class BlackJack extends Command {
 
       const amount = BigInt(bj.bet);
       if (win) {
-        const newAmount = cash + amount;
-        await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAmount.toString());
+        await client.db.execute(
+          /* sql */
+          `
+            INSERT INTO
+              economy_balances (server_id, user_id, cash)
+            VALUES
+              (?, ?, ?) ON DUPLICATE KEY
+            UPDATE cash = cash +
+            VALUES
+              (cash)
+          `,
+          [msg.guild.id, msg.member.id, amount.toString()],
+        );
 
         let csAmount = currencySymbol + amount.toLocaleString();
         csAmount = csAmount.length > 1024 ? csAmount.slice(0, 1021) + '...' : csAmount;
         return cardEmbed(`Result: You win ${csAmount}`);
       } else if (blackjack) {
-        const newAmount = cash + amount;
-        await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAmount.toString());
+        await client.db.execute(
+          /* sql */
+          `
+            INSERT INTO
+              economy_balances (server_id, user_id, cash)
+            VALUES
+              (?, ?, ?) ON DUPLICATE KEY
+            UPDATE cash = cash +
+            VALUES
+              (cash)
+          `,
+          [msg.guild.id, msg.member.id, amount.toString()],
+        );
 
         let csAmount = currencySymbol + amount.toLocaleString();
         csAmount = csAmount.length > 1024 ? csAmount.slice(0, 1021) + '...' : csAmount;
         return cardEmbed(`Result: BlackJack, you win ${csAmount}`);
       } else if (bust) {
-        const newAmount = cash - amount;
-        await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAmount.toString());
+        await client.db.execute(
+          /* sql */
+          `
+            INSERT INTO
+              economy_balances (server_id, user_id, cash)
+            VALUES
+              (?, ?, ?) ON DUPLICATE KEY
+            UPDATE cash = cash -
+            VALUES
+              (cash)
+          `,
+          [msg.guild.id, msg.member.id, amount.toString()],
+        );
 
         let csAmount = currencySymbol + amount.toLocaleString();
         csAmount = csAmount.length > 1024 ? csAmount.slice(0, 1021) + '...' : csAmount;
@@ -297,7 +349,7 @@ class BlackJack extends Command {
           continue;
         }
 
-        const embed = await winCheck(selected);
+        const embed = await winCheck(this.client, selected);
         if (gameOver) {
           row.components[0].setDisabled(true);
           row.components[1].setDisabled(true);
@@ -311,7 +363,7 @@ class BlackJack extends Command {
           .delete()
           .catch(() => {});
 
-        const embed = await winCheck(selected);
+        const embed = await winCheck(this.client, selected);
         if (gameOver) {
           row.components[0].setDisabled(true);
           row.components[1].setDisabled(true);

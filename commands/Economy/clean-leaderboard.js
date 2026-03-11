@@ -1,7 +1,5 @@
 const Command = require('../../base/Command.js');
 const { EmbedBuilder } = require('discord.js');
-const { QuickDB } = require('quick.db');
-const db = new QuickDB();
 
 class CleanLeaderboard extends Command {
   constructor(client) {
@@ -13,43 +11,72 @@ class CleanLeaderboard extends Command {
       aliases: ['cl', 'cleanleaderboard', 'clean-lb'],
       permLevel: 'Administrator',
       guildOnly: true,
+      cooldown: 60,
     });
   }
 
   async run(msg) {
-    const users = (await db.get(`servers.${msg.guild.id}.users`)) || {};
-    const toRemove = [];
     const color = msg.settings.embedColor;
 
     const em = new EmbedBuilder()
       .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
       .setColor('#FFA500')
-      .setDescription('Please wait, this may take a while for bigger servers.');
+      .setDescription('Checking database for members who have left...');
 
     const message = await msg.channel.send({ embeds: [em] });
 
-    for (const i in users) {
-      if (!msg.guild.members.cache.get(i)) toRemove.push(i);
-    }
+    // 1. Fetch all current members into the cache to ensure accuracy
+    await msg.guild.members.fetch();
+    const currentMemberIds = Array.from(msg.guild.members.cache.keys());
 
-    if (toRemove.length === 0) {
-      em.setColor(color).setDescription('There are no users to remove from the leaderboard.');
+    // 2. Find users in the DB who are NOT in the current member list
+    // This query selects user_ids that exist for this server but aren't in our array
+    const [toRemoveRows] = await this.client.db.execute(
+      /* sql */
+      `
+        SELECT
+          user_id
+        FROM
+          economy_balances
+        WHERE
+          server_id = ?
+          AND user_id NOT IN (${currentMemberIds.map(() => '?').join(',')})
+      `,
+      [msg.guild.id, ...currentMemberIds],
+    );
+
+    const toRemoveCount = toRemoveRows.length;
+
+    if (toRemoveCount === 0) {
+      em.setColor(color).setDescription('The leaderboard is already clean! No ghost users found.');
       return message.edit({ embeds: [em] });
     }
 
+    // 3. Ask for confirmation
     em.setColor(color).setDescription(
-      `This will reset the balance and remove ${toRemove.length} members from the leaderboard. \nDo you wish to continue? (yes/no)`,
+      `Found **${toRemoveCount}** users in the database who are no longer in this server.\n\nDo you wish to remove them from the leaderboard? (yes/no)`,
     );
 
     await message.edit({ embeds: [em] });
     const verified = await this.client.util.verify(msg.channel, msg.author);
 
     if (verified) {
-      for (const i of toRemove) {
-        await db.delete(`servers.${msg.guild.id}.users.${i}`);
-      }
+      // 4. Delete the ghost users in one single query
+      const userIdsToDelete = toRemoveRows.map((row) => row.user_id);
 
-      return msg.channel.send(`${toRemove.length} users have been removed from the leaderboard.`);
+      await this.client.db.execute(
+        /* sql */
+        `
+          DELETE FROM economy_balances
+          WHERE
+            server_id = ?
+            AND user_id IN (${userIdsToDelete.map(() => '?').join(',')})
+        `,
+        [msg.guild.id, ...userIdsToDelete],
+      );
+
+      em.setDescription(`✅ Successfully removed **${toRemoveCount}** users from the database.`);
+      return message.edit({ embeds: [em] });
     } else {
       return msg.channel.send('Command Cancelled.');
     }

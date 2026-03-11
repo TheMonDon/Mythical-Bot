@@ -1,7 +1,5 @@
 const Command = require('../../base/Command.js');
 const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags } = require('discord.js');
-const { QuickDB } = require('quick.db');
-const db = new QuickDB();
 
 class Leaderboard extends Command {
   constructor(client) {
@@ -17,10 +15,11 @@ class Leaderboard extends Command {
   }
 
   async run(msg, args) {
+    // 1. Fetch Server Settings
     const [economyRows] = await this.client.db.execute(
       /* sql */ `
         SELECT
-          *
+          symbol
         FROM
           economy_settings
         WHERE
@@ -29,170 +28,153 @@ class Leaderboard extends Command {
       [msg.guild.id],
     );
     const currencySymbol = economyRows[0]?.symbol || '$';
-    const startingBalance = economyRows[0]?.start_balance || 0;
 
+    // 2. Setup Pagination and Filters
     let page = Math.max(parseInt(args[0]) || 1, 1);
     const cashOrBank = args.includes('-cash') ? 'cash' : args.includes('-bank') ? 'bank' : 'total';
-
-    const usersCount = Object.keys((await db.get(`servers.${msg.guild.id}.users`)) || {}).length;
+    const orderColumn = cashOrBank === 'cash' ? 'cash' : cashOrBank === 'bank' ? 'bank' : '(cash + bank)';
     const itemsPerPage = 10;
-    const maxPages = Math.ceil(usersCount / itemsPerPage);
 
+    // 3. Get Total User Count for Max Pages
+    const [countRows] = await this.client.db.execute(
+      /* sql */
+      `
+        SELECT
+          COUNT(*) AS count
+        FROM
+          economy_balances
+        WHERE
+          server_id = ?
+      `,
+      [msg.guild.id],
+    );
+    const usersCount = countRows[0].count;
+    const maxPages = Math.ceil(usersCount / itemsPerPage) || 1;
     if (page > maxPages) page = maxPages;
 
-    // Fetch data for the current page
-    const offset = (page - 1) * itemsPerPage;
-    const usersData = (await db.get(`servers.${msg.guild.id}.users`)) || {};
+    // 4. Helper function to generate the Rank string for the footer
+    const getRankDisplay = async () => {
+      const [rankRows] = await this.client.db.execute(
+        /* sql */
+        `SELECT rank FROM (
+          SELECT user_id, RANK() OVER (ORDER BY ${orderColumn} DESC) AS \`rank\`
+          FROM economy_balances WHERE server_id = ?
+        ) ranked WHERE user_id = ?`,
+        [msg.guild.id, msg.author.id],
+      );
 
-    const sortedLeaderboard = Object.entries(usersData)
-      .map(([userId, data]) => {
-        const cash = BigInt(data.economy?.cash || startingBalance);
-        const bank = BigInt(data.economy?.bank || 0);
-        const total = cash + bank;
+      const userRank = rankRows[0]?.rank;
+      if (!userRank) return 'You are not on the leaderboard';
 
-        const money = cashOrBank === 'cash' ? cash : cashOrBank === 'bank' ? bank : total;
-
-        return { userId, money };
-      })
-      .sort((a, b) => (b.money > a.money ? 1 : b.money < a.money ? -1 : 0))
-      .slice(offset, offset + itemsPerPage); // Pagination happens here
-
-    function getOrdinalSuffix(n) {
       const s = ['th', 'st', 'nd', 'rd'];
-      const v = n % 100;
-      return n + (s[(v - 20) % 10] || s[v] || s[0]);
-    }
+      const v = userRank % 100;
+      const ordinal = userRank + (s[(v - 20) % 10] || s[v] || s[0]);
+      return `Your leaderboard rank: ${ordinal}`;
+    };
 
-    const fullLeaderboard = Object.entries(usersData)
-      .map(([userId, data]) => {
-        const cash = BigInt(data.economy?.cash || startingBalance);
-        const bank = BigInt(data.economy?.bank || 0);
-        const total = cash + bank;
+    // 5. Helper function to fetch a specific page and build the embed
+    const generateEmbed = async (currentPage) => {
+      const offset = (currentPage - 1) * itemsPerPage;
+      const [rows] = await this.client.db.execute(
+        /* sql */
+        `
+          SELECT
+            user_id,
+            cash,
+            bank
+          FROM
+            economy_balances
+          WHERE
+            server_id = ?
+          ORDER BY
+            ${orderColumn} DESC
+          LIMIT
+            ?
+          OFFSET
+            ?
+        `,
+        [msg.guild.id, itemsPerPage, offset],
+      );
 
-        return { userId, money: cashOrBank === 'cash' ? cash : cashOrBank === 'bank' ? bank : total };
-      })
-      .sort((a, b) => (b.money > a.money ? 1 : b.money < a.money ? -1 : 0)); // Sort before slicing
+      const leaderboardLines = await Promise.all(
+        rows.map(async (row, index) => {
+          const user = this.client.users.cache.get(row.user_id) ||
+            (await this.client.users.fetch(row.user_id).catch(() => null)) || { tag: 'Unknown User' };
 
-    // Assign ranks to the entire leaderboard
-    fullLeaderboard.forEach((entry, index) => {
-      entry.rank = index + 1;
-    });
+          const cash = BigInt(row.cash || 0);
+          const bank = BigInt(row.bank || 0);
+          const money = cashOrBank === 'cash' ? cash : cashOrBank === 'bank' ? bank : cash + bank;
 
-    // Get the user's rank from the full leaderboard
-    const userRank = fullLeaderboard.find((entry) => entry.userId === msg.author.id);
-    const userRankDisplay = userRank
-      ? `Your leaderboard rank: ${getOrdinalSuffix(userRank.rank)}`
-      : 'You are not on the leaderboard';
+          const isNeg = money < 0n;
+          const absMoney = isNeg ? -money : money;
+          const formatted = this.client.util.limitStringLength(absMoney.toLocaleString(), 0, 150);
 
-    // Create embed content
-    const description =
-      (
-        await Promise.all(
-          sortedLeaderboard.map(async (entry, index) => {
-            const user = this.client.users.cache.get(entry.userId) ||
-              (await this.client.users.fetch(entry.userId).catch(() => null)) || { tag: 'Unknown User' };
+          return `**${offset + index + 1}.** ${user.tag}: ${isNeg ? '-' : ''}${currencySymbol}${formatted}`;
+        }),
+      );
 
-            const neg = entry.money < 0n;
-            const money = neg ? -entry.money : entry.money;
+      const userRankDisplay = await getRankDisplay();
 
-            return `**${offset + index + 1}.** ${user.tag}: ${
-              entry.money < 0n ? '-' : ''
-            }${currencySymbol}${this.client.util.limitStringLength(money.toLocaleString(), 0, 150)}`;
-          }),
-        )
-      ).join('\n') || 'None';
+      return new EmbedBuilder()
+        .setColor(msg.settings.embedColor)
+        .setTitle(`${msg.guild.name} ${cashOrBank.charAt(0).toUpperCase() + cashOrBank.slice(1)} Leaderboard`)
+        .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
+        .setDescription(leaderboardLines.join('\n') || 'No users found.')
+        .setFooter({ text: `Page ${currentPage} / ${maxPages} • ${userRankDisplay}` })
+        .setTimestamp();
+    };
 
-    const embed = new EmbedBuilder()
-      .setColor(msg.settings.embedColor)
-      .setTitle(
-        `${msg.guild.name} ${cashOrBank === 'cash' ? 'Cash' : cashOrBank === 'bank' ? 'Bank' : 'Total'} Leaderboard`,
-      )
-      .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
-      .setDescription(description)
-      .setFooter({ text: `Page ${page} / ${maxPages} • ${userRankDisplay}` })
-      .setTimestamp();
-
-    // Create pagination buttons
+    // 6. Initial Send
+    const embed = await generateEmbed(page);
     const row = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
-        .setCustomId('prev_page')
+        .setCustomId('prev')
         .setLabel('Previous')
         .setStyle(ButtonStyle.Primary)
         .setDisabled(page === 1),
       new ButtonBuilder()
-        .setCustomId('next_page')
+        .setCustomId('next')
         .setLabel('Next')
         .setStyle(ButtonStyle.Primary)
         .setDisabled(page === maxPages),
     );
 
-    // Send the embed
     const message = await msg.channel.send({ embeds: [embed], components: [row] });
 
-    // Button interaction handling
-    const collector = message.createMessageComponentCollector({ time: 3600000 });
+    // 7. Collector logic
+    const collector = message.createMessageComponentCollector({ time: 300000 }); // 5 minutes
+
     collector.on('collect', async (interaction) => {
       if (interaction.user.id !== msg.author.id) {
         return interaction.reply({ content: 'These buttons are not for you!', flags: MessageFlags.Ephemeral });
       }
 
-      if (interaction.customId === 'prev_page') page--;
-      if (interaction.customId === 'next_page') page++;
+      if (interaction.customId === 'prev') page--;
+      if (interaction.customId === 'next') page++;
 
-      // Calculate the offset and slice the leaderboard for the current page
-      const offset = (page - 1) * itemsPerPage; // itemsPerPage is the number of users per page (e.g., 10)
-      const currentPageLeaderboard = fullLeaderboard.slice(offset, offset + itemsPerPage);
-
-      // Fetch user data for the current page asynchronously
-      const displayedLeaderboard = await Promise.all(
-        currentPageLeaderboard.map(async (entry, index) => {
-          const user =
-            this.client.users.cache.get(entry.userId) ||
-            (await this.client.users.fetch(entry.userId).catch(() => null));
-          const formattedMoney = this.client.util.limitStringLength(entry.money.toLocaleString(), 0, 150);
-          return user
-            ? `**${offset + index + 1}.** ${user.tag}: ${currencySymbol}${formattedMoney}`
-            : `**${offset + index + 1}.** Unknown User: ${currencySymbol}${formattedMoney}`;
-        }),
-      );
-
-      // Update the embed
-      const updatedEmbed = new EmbedBuilder()
-        .setColor(msg.settings.embedColor)
-        .setTitle(`${msg.guild.name} Leaderboard`)
-        .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
-        .setDescription(displayedLeaderboard.join('\n') || 'None')
-        .setFooter({ text: `Page ${page} / ${maxPages} • ${userRankDisplay}` })
-        .setTimestamp();
-
-      // Update the row (buttons)
-      const updatedRow = new ActionRowBuilder().addComponents(
+      const newEmbed = await generateEmbed(page);
+      const newRow = new ActionRowBuilder().addComponents(
         new ButtonBuilder()
-          .setCustomId('prev_page')
+          .setCustomId('prev')
           .setLabel('Previous')
           .setStyle(ButtonStyle.Primary)
           .setDisabled(page === 1),
         new ButtonBuilder()
-          .setCustomId('next_page')
+          .setCustomId('next')
           .setLabel('Next')
           .setStyle(ButtonStyle.Primary)
           .setDisabled(page === maxPages),
       );
 
-      // Update the interaction response
-      await interaction.update({ embeds: [updatedEmbed], components: [updatedRow] });
+      await interaction.update({ embeds: [newEmbed], components: [newRow] });
     });
 
     collector.on('end', () => {
       const disabledRow = new ActionRowBuilder().addComponents(
-        new ButtonBuilder()
-          .setCustomId('prev_page')
-          .setLabel('Previous')
-          .setStyle(ButtonStyle.Primary)
-          .setDisabled(true),
-        new ButtonBuilder().setCustomId('next_page').setLabel('Next').setStyle(ButtonStyle.Primary).setDisabled(true),
+        new ButtonBuilder().setCustomId('prev').setLabel('Previous').setStyle(ButtonStyle.Primary).setDisabled(true),
+        new ButtonBuilder().setCustomId('next').setLabel('Next').setStyle(ButtonStyle.Primary).setDisabled(true),
       );
-      message.edit({ components: [disabledRow] });
+      message.edit({ components: [disabledRow] }).catch(() => null);
     });
   }
 }

@@ -1,8 +1,6 @@
 const Command = require('../../base/Command.js');
 const { EmbedBuilder } = require('discord.js');
-const { QuickDB } = require('quick.db');
 const { Duration } = require('luxon');
-const db = new QuickDB();
 
 class Rob extends Command {
   constructor(client) {
@@ -101,17 +99,39 @@ class Rob extends Command {
       [msg.guild.id],
     );
 
-    const authCash = BigInt(
-      (await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`)) ||
-        economyRows[0]?.start_balance ||
-        0,
+    // Get the user's net worth
+    const [balanceRows] = await this.client.db.execute(
+      /* sql */ `
+        SELECT
+          cash,
+          bank
+        FROM
+          economy_balances
+        WHERE
+          server_id = ?
+          AND user_id = ?
+      `,
+      [msg.guild.id, msg.member.id],
     );
-    const authBank = BigInt((await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`)) || 0);
+
+    const authCash = BigInt(balanceRows[0].cash || economyRows[0]?.start_balance || 0);
+    const authBank = BigInt(balanceRows[0].bank || 0);
     const authNet = authCash + authBank;
 
-    const memCash = BigInt(
-      (await db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`)) || economyRows[0]?.start_balance || 0,
+    // Get the target user's cash
+    const [targetBalanceRows] = await this.client.db.execute(
+      /* sql */ `
+        SELECT
+          cash
+        FROM
+          economy_balances
+        WHERE
+          server_id = ?
+          AND user_id = ?
+      `,
+      [msg.guild.id, mem.id],
     );
+    const memCash = BigInt(targetBalanceRows[0].cash || economyRows[0]?.start_balance || 0);
 
     if (memCash <= BigInt(0)) {
       return this.client.util.errorEmbed(msg, `${mem} does not have anything to rob`, 'No Money');
@@ -147,7 +167,19 @@ class Rob extends Command {
 
     if (ranNum <= failRate) {
       const newAmount = authCash - fineAmount;
-      await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAmount.toString());
+      await this.client.db.execute(
+        /* sql */
+        `
+          INSERT INTO
+            economy_balances (server_id, user_id, cash)
+          VALUES
+            (?, ?, ?) ON DUPLICATE KEY
+          UPDATE cash =
+          VALUES
+            (cash)
+        `,
+        [msg.guild.id, msg.member.id, newAmount.toString()],
+      );
 
       let csFineAmount = currencySymbol + fineAmount.toLocaleString();
       csFineAmount = this.client.util.limitStringLength(csFineAmount, 0, 1024);
@@ -162,10 +194,34 @@ class Rob extends Command {
       amount = BigInt(amount);
 
       const newMemCash = memCash - amount;
-      await db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, newMemCash.toString());
+      await this.client.db.execute(
+        /* sql */
+        `
+          INSERT INTO
+            economy_balances (server_id, user_id, cash)
+          VALUES
+            (?, ?, ?) ON DUPLICATE KEY
+          UPDATE cash =
+          VALUES
+            (cash)
+        `,
+        [msg.guild.id, mem.id, newMemCash.toString()],
+      );
 
       const newAuthCash = authCash + amount;
-      await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAuthCash.toString());
+      await this.client.db.execute(
+        /* sql */
+        `
+          INSERT INTO
+            economy_balances (server_id, user_id, cash)
+          VALUES
+            (?, ?, ?) ON DUPLICATE KEY
+          UPDATE cash =
+          VALUES
+            (cash)
+        `,
+        [msg.guild.id, msg.member.id, newAuthCash.toString()],
+      );
 
       let csAmount = currencySymbol + amount.toLocaleString();
       csAmount = this.client.util.limitStringLength(csAmount, 0, 1024);

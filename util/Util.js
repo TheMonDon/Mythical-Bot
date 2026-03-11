@@ -771,6 +771,13 @@ async function chatbotApiRequest(client, message) {
   if (message.channel.id !== client.config.chatbotThreadId && !message.mentions.has(client.user)) return;
   if (message.flags.has(MessageFlagsBitField.Flags.SuppressNotifications)) return;
 
+  // Don't respond if a bot role is mentioned or if @here or @everyone is mentioned
+  const botRoles = message.guild.members.me.roles.cache;
+  const roleMentions = message.mentions.roles;
+  const botRoleMentioned = botRoles.some((role) => roleMentions.has(role.id));
+  if (botRoleMentioned) return;
+  if (message.content.includes('@​here') || message.content.includes('@​everyone')) return;
+
   const [settingsRows] = await client.db.execute(
     /* sql */ `
       SELECT

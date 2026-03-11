@@ -1,6 +1,4 @@
 const Command = require('../../base/Command.js');
-const { QuickDB } = require('quick.db');
-const db = new QuickDB();
 
 class ResetMoney extends Command {
   constructor(client) {
@@ -27,10 +25,23 @@ class ResetMoney extends Command {
       [msg.guild.id],
     );
 
-    async function resetBalance(msg, mem) {
-      const amount = economyRows[0]?.start_balance || '0';
-      await db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, amount);
-      await db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`, '0');
+    async function resetBalance(client, msg, mem) {
+      const startingBalance = (economyRows[0]?.start_balance || '0').toString();
+
+      await client.db.execute(
+        /* sql */
+        `
+          INSERT INTO
+            economy_balances (server_id, user_id, cash, bank)
+          VALUES
+            (?, ?, ?, 0) ON DUPLICATE KEY
+          UPDATE cash =
+          VALUES
+            (cash),
+            bank = 0
+        `,
+        [msg.guild.id, mem.id, startingBalance],
+      );
       return true;
     }
 
@@ -68,7 +79,7 @@ This command requires level ${this.client.levelCache.Administrator} (Administrat
       const verification = await this.client.util.verify(msg.channel, msg.author);
       if (verification) {
         await reply.edit('Resetting money...');
-        await resetBalance(msg, mem);
+        await resetBalance(this.client, msg, mem);
         await new Promise((resolve) => setTimeout(resolve, 5000)); // Wait 5 seconds
         return await reply.edit(`Successfully reset ${mem.tag}'s money.`);
       } else {

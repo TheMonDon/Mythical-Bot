@@ -1,7 +1,5 @@
 const Command = require('../../base/Command.js');
 const { EmbedBuilder } = require('discord.js');
-const { QuickDB } = require('quick.db');
-const db = new QuickDB();
 
 class Deposit extends Command {
   constructor(client) {
@@ -33,13 +31,19 @@ class Deposit extends Command {
     );
     const currencySymbol = economyRows[0]?.symbol || '$';
 
-    const cash = BigInt(
-      (await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`)) ||
-        economyRows[0]?.start_balance ||
-        0,
+    const [balanceRows] = await this.client.db.execute(
+      /* sql */ `
+        SELECT
+          cash
+        FROM
+          economy_balances
+        WHERE
+          server_id = ?
+          AND user_id = ?
+      `,
+      [msg.guild.id, msg.member.id],
     );
-
-    const bank = BigInt((await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`)) || 0);
+    const cash = BigInt(balanceRows[0]?.cash || economyRows[0]?.start_balance || 0);
 
     const embed = new EmbedBuilder()
       .setColor(msg.settings.embedColor)
@@ -51,12 +55,34 @@ class Deposit extends Command {
     amount = amount.replace(/,/g, '').replace(currencySymbol, '');
     if (isNaN(amount) || !amount) {
       if (amount.toLowerCase() === 'all') {
-        if (cash <= BigInt(0))
+        if (cash <= BigInt(0)) {
           return this.client.util.errorEmbed(msg, "You don't have any cash to deposit.", 'Invalid Parameter');
+        }
 
-        await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, 0);
-        const newAmount = bank + cash;
-        await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`, newAmount.toString());
+        await this.client.db.execute(
+          /* sql */
+          `
+            INSERT INTO
+              economy_balances (server_id, user_id, cash)
+            VALUES
+              (?, ?, 0) ON DUPLICATE KEY
+            UPDATE cash = 0
+          `,
+          [msg.guild.id, msg.member.id],
+        );
+
+        await this.client.db.execute(
+          /* sql */ `
+            INSERT INTO
+              economy_balances (server_id, user_id, bank)
+            VALUES
+              (?, ?, ?) ON DUPLICATE KEY
+            UPDATE bank = bank +
+            VALUES
+              (bank)
+          `,
+          [msg.guild.id, msg.member.id, cash.toString()],
+        );
 
         embed.setDescription(`Deposited ${csCashAmount} to your bank.`);
         return msg.channel.send({ embeds: [embed] });
@@ -71,24 +97,51 @@ class Deposit extends Command {
         .replace(/,/g, ''), // Remove commas
     );
 
-    if (amount < BigInt(0))
+    if (amount < BigInt(0)) {
       return this.client.util.errorEmbed(msg, "You can't deposit negative amounts of cash", 'Invalid Parameter');
-    if (amount > cash)
+    }
+    if (amount > cash) {
       return this.client.util.errorEmbed(
         msg,
         `You don't have that much money to deposit. You currently have ${csCashAmount} in cash.`,
         'Invalid Parameter',
       );
-    if (cash <= BigInt(0))
+    }
+    if (cash <= BigInt(0)) {
       return this.client.util.errorEmbed(msg, "You don't have any cash to deposit", 'Invalid Parameter');
+    }
 
-    const newCashAmount = cash - amount;
-    await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newCashAmount.toString());
-    const newBankAmount = bank + amount;
-    await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`, newBankAmount.toString());
+    // Update cash balance
+    await this.client.db.execute(
+      /* sql */ `
+        INSERT INTO
+          economy_balances (server_id, user_id, cash)
+        VALUES
+          (?, ?, ?) ON DUPLICATE KEY
+        UPDATE cash = cash -
+        VALUES
+          (cash)
+      `,
+      [msg.guild.id, msg.member.id, amount.toString()],
+    );
+
+    // Update bank balance
+    await this.client.db.execute(
+      /* sql */ `
+        INSERT INTO
+          economy_balances (server_id, user_id, bank)
+        VALUES
+          (?, ?, ?) ON DUPLICATE KEY
+        UPDATE bank = bank +
+        VALUES
+          (bank)
+      `,
+      [msg.guild.id, msg.member.id, amount.toString()],
+    );
 
     let csAmount = currencySymbol + amount.toLocaleString();
     csAmount = this.client.util.limitStringLength(csAmount, 0, 1024);
+
     embed.setDescription(`Deposited ${csAmount} to your bank.`);
     return msg.channel.send({ embeds: [embed] });
   }

@@ -1,7 +1,5 @@
 const { EmbedBuilder, SlashCommandBuilder, InteractionContextType } = require('discord.js');
-const { QuickDB } = require('quick.db');
 const { Duration } = require('luxon');
-const db = new QuickDB();
 
 exports.conf = {
   permLevel: 'User',
@@ -80,14 +78,22 @@ exports.run = async (interaction) => {
     [interaction.guild.id],
   );
 
-  const cash = BigInt(
-    (await db.get(`servers.${interaction.guild.id}.users.${interaction.member.id}.economy.cash`)) ||
-      economyRows[0]?.start_balance ||
-      0,
+  const [balanceRows] = await interaction.client.db.execute(
+    /* sql */ `
+      SELECT
+        cash,
+        bank
+      FROM
+        economy_balances
+      WHERE
+        server_id = ?
+        AND user_id = ?
+    `,
+    [interaction.guild.id, interaction.member.id],
   );
-  const bank = BigInt(
-    (await db.get(`servers.${interaction.guild.id}.users.${interaction.member.id}.economy.bank`)) || 0,
-  );
+
+  const cash = BigInt(balanceRows[0].cash || economyRows[0]?.start_balance || 0);
+  const bank = BigInt(balanceRows[0].bank || 0);
   const authNet = cash + bank;
 
   const min = economyRows[0]?.slut_min || 100;
@@ -121,8 +127,19 @@ exports.run = async (interaction) => {
 
     await interaction.editReply({ embeds: [embed] });
 
-    const newAmount = cash - fineAmount;
-    await db.set(`servers.${interaction.guild.id}.users.${interaction.member.id}.economy.cash`, newAmount.toString());
+    await interaction.client.db.execute(
+      /* sql */
+      `
+        INSERT INTO
+          economy_balances (server_id, user_id, cash)
+        VALUES
+          (?, ?, ?) ON DUPLICATE KEY
+        UPDATE cash = cash -
+        VALUES
+          (cash)
+      `,
+      [interaction.guild.id, interaction.member.id, fineAmount.toString()],
+    );
   } else {
     delete require.cache[require.resolve('../../resources/messages/slut_success.json')];
     const slutSuccess = require('../../resources/messages/slut_success.json');
@@ -140,8 +157,19 @@ exports.run = async (interaction) => {
 
     await interaction.editReply({ embeds: [embed] });
 
-    const newAmount = cash + amount;
-    await db.set(`servers.${interaction.guild.id}.users.${interaction.member.id}.economy.cash`, newAmount.toString());
+    await interaction.client.db.execute(
+      /* sql */
+      `
+        INSERT INTO
+          economy_balances (server_id, user_id, cash)
+        VALUES
+          (?, ?, ?) ON DUPLICATE KEY
+        UPDATE cash = cash +
+        VALUES
+          (cash)
+      `,
+      [interaction.guild.id, interaction.member.id, amount.toString()],
+    );
   }
 
   await interaction.client.db.execute(

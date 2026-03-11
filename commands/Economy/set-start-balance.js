@@ -34,9 +34,9 @@ class SetStartBalance extends Command {
       const oldStartingBalance = economyRows[0].start_balance || 0;
 
       return msg.channel.send(
-        `The starting balance for this server is: ${currencySymbol}${oldStartingBalance.toLocaleString()} \nTo disable the starting balance, set it to 0. \nUsage: ${
+        `The starting balance for this server is: ${currencySymbol}${oldStartingBalance.toLocaleString()} \nTo disable the starting balance, set it to 0. \nUsage: \`${
           msg.settings.prefix
-        }set-start-balance <amount>`,
+        }set-start-balance <amount>\``,
       );
     }
 

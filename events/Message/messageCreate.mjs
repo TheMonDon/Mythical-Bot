@@ -1,9 +1,6 @@
 import { ChannelType, EmbedBuilder } from 'discord.js';
-import { QuickDB } from 'quick.db';
 import { promisify } from 'util';
 const setTimeoutPromise = promisify(setTimeout);
-
-const db = new QuickDB();
 
 async function hasPermissionToSendMessage(client, message) {
   if (!message.guild) return true;
@@ -82,14 +79,20 @@ async function handleEconomyEvent(client, message) {
       [message.guild.id, message.author.id, 'chat', cooldown],
     );
 
-    const amount = BigInt(Math.floor(Math.random() * (max - min + 1) + min));
-    const cash = BigInt(
-      (await db.get(`servers.${message.guild.id}.users.${message.author.id}.economy.cash`)) ||
-        economyRows[0]?.start_balance ||
-        0,
+    const amount = Math.floor(Math.random() * (max - min + 1) + min);
+    await client.db.execute(
+      /* sql */
+      `
+        INSERT INTO
+          economy_balances (server_id, user_id, cash)
+        VALUES
+          (?, ?, ?) ON DUPLICATE KEY
+        UPDATE cash = cash +
+        VALUES
+          (cash)
+      `,
+      [message.guild.id, message.author.id, amount],
     );
-    const newAmount = cash + amount;
-    await db.set(`servers.${message.guild.id}.users.${message.author.id}.economy.cash`, newAmount.toString());
   } catch (error) {
     client.logger.error(error);
   }
@@ -319,6 +322,46 @@ export async function run(client, message) {
         ]);
 
       return message.channel.send({ embeds: [embed] });
+    }
+
+    const cooldownSeconds = command.conf?.cooldown ?? 0;
+    if (cooldownSeconds > 0) {
+      const [rows] = await client.db.execute(
+        /* sql */
+        `
+          SELECT
+            expires_at
+          FROM
+            cooldowns
+          WHERE
+            server_id = ?
+            AND user_id = ?
+            AND cooldown_name = ?
+        `,
+        [message.guild.id, message.author.id, command.help.name],
+      );
+
+      const now = new Date();
+      if (rows.length && new Date(rows[0].expires_at) > now) {
+        const diff = (new Date(rows[0].expires_at) - now) / 1000;
+        // Command is on cooldown
+        return message.reply(`Chill, you're on cooldown for another ${diff.toFixed(1)} seconds.`);
+      }
+
+      const expiresAt = new Date(Date.now() + cooldownSeconds * 1000);
+      await client.db.execute(
+        /* sql */
+        `
+          INSERT INTO
+            cooldowns (server_id, user_id, cooldown_name, expires_at)
+          VALUES
+            (?, ?, ?, ?) ON DUPLICATE KEY
+          UPDATE expires_at =
+          VALUES
+            (expires_at)
+        `,
+        [message.guild.id, message.author.id, command.help.name, expiresAt],
+      );
     }
 
     if (command.conf.requiredArgs > args.length) {

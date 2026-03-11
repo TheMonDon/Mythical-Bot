@@ -1,7 +1,5 @@
 const { EmbedBuilder, SlashCommandBuilder, InteractionContextType } = require('discord.js');
-const { QuickDB } = require('quick.db');
 const { Duration } = require('luxon');
-const db = new QuickDB();
 
 exports.conf = {
   permLevel: 'User',
@@ -82,29 +80,27 @@ exports.run = async (interaction) => {
   );
 
   // Get the user's net worth
-  const cash = BigInt(
-    (await db.get(`servers.${interaction.guild.id}.users.${interaction.member.id}.economy.cash`)) ||
-      economyRows[0]?.start_balance ||
-      0,
+  const [balanceRows] = await interaction.client.db.execute(
+    /* sql */ `
+      SELECT
+        cash,
+        bank
+      FROM
+        economy_balances
+      WHERE
+        server_id = ?
+        AND user_id = ?
+    `,
+    [interaction.guild.id, interaction.member.id],
   );
-  const bank = BigInt(
-    (await db.get(`servers.${interaction.guild.id}.users.${interaction.member.id}.economy.bank`)) || 0,
-  );
+
+  const cash = BigInt(balanceRows[0].cash || economyRows[0]?.start_balance || 0);
+  const bank = BigInt(balanceRows[0].bank || 0);
   const authNet = cash + bank;
 
   // Get the min and max amounts of money the user can get
   const min = economyRows[0]?.crime_min || 500;
   const max = economyRows[0]?.crime_max || 2000;
-
-  // Get the min and max fine percentages
-  const minFine = economyRows[0]?.crime_fine_min || 10;
-  const maxFine = economyRows[0]?.crime_fine_max || 30;
-
-  // randomFine is a random number between the minimum and maximum fail rate
-  const randomFine = BigInt(Math.abs(Math.round(Math.random() * (maxFine - minFine + 1) + minFine)));
-
-  // fineAmount is the amount of money the user will lose if they fail the action
-  const fineAmount = interaction.client.util.bigIntAbs((authNet / BigInt(100)) * randomFine);
 
   const failRate = economyRows[0]?.crime_fail_rate || 45;
   const ranNum = Math.random() * 100;
@@ -112,6 +108,16 @@ exports.run = async (interaction) => {
   const currencySymbol = economyRows[0]?.symbol || '$';
 
   if (ranNum < failRate) {
+    // Get the min and max fine percentages
+    const minFine = economyRows[0]?.crime_fine_min || 10;
+    const maxFine = economyRows[0]?.crime_fine_max || 30;
+
+    // randomFine is a random number between the minimum and maximum fail rate
+    const randomFine = BigInt(Math.abs(Math.round(Math.random() * (maxFine - minFine + 1) + minFine)));
+
+    // fineAmount is the amount of money the user will lose if they fail the action
+    const fineAmount = interaction.client.util.bigIntAbs((authNet / BigInt(100)) * randomFine);
+
     delete require.cache[require.resolve('../../resources/messages/crime_fail.json')];
     const crimeFail = require('../../resources/messages/crime_fail.json');
 
@@ -125,8 +131,19 @@ exports.run = async (interaction) => {
 
     await interaction.editReply({ embeds: [embed] });
 
-    const newAmount = cash - fineAmount;
-    await db.set(`servers.${interaction.guild.id}.users.${interaction.member.id}.economy.cash`, newAmount.toString());
+    await interaction.client.db.execute(
+      /* sql */
+      `
+        INSERT INTO
+          economy_balances (server_id, user_id, cash)
+        VALUES
+          (?, ?, ?) ON DUPLICATE KEY
+        UPDATE cash = cash -
+        VALUES
+          (cash)
+      `,
+      [interaction.guild.id, interaction.member.id, fineAmount.toString()],
+    );
   } else {
     delete require.cache[require.resolve('../../resources/messages/crime_success.json')];
     const crimeSuccess = require('../../resources/messages/crime_success.json');
@@ -142,8 +159,19 @@ exports.run = async (interaction) => {
 
     await interaction.editReply({ embeds: [embed] });
 
-    const newAmount = cash + amount;
-    await db.set(`servers.${interaction.guild.id}.users.${interaction.member.id}.economy.cash`, newAmount.toString());
+    await interaction.client.db.execute(
+      /* sql */
+      `
+        INSERT INTO
+          economy_balances (server_id, user_id, cash)
+        VALUES
+          (?, ?, ?) ON DUPLICATE KEY
+        UPDATE cash = cash +
+        VALUES
+          (cash)
+      `,
+      [interaction.guild.id, interaction.member.id, amount.toString()],
+    );
   }
 
   await interaction.client.db.execute(

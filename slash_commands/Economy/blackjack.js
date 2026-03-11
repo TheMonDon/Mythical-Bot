@@ -120,11 +120,19 @@ exports.run = async (interaction) => {
   );
 
   const currencySymbol = economyRows[0]?.symbol || '$';
-  const cash = BigInt(
-    (await db.get(`servers.${interaction.guild.id}.users.${interaction.member.id}.economy.cash`)) ||
-      economyRows[0]?.start_balance ||
-      0,
+  const [BalanceRows] = await interaction.client.db.execute(
+    /* sql */ `
+      SELECT
+        cash
+      FROM
+        economy_balances
+      WHERE
+        server_id = ?
+        AND user_id = ?
+    `,
+    [interaction.guild.id, interaction.member.id],
   );
+  const cash = BigInt(BalanceRows[0]?.cash || economyRows[0]?.start_balance || 0);
 
   const bet = interaction.options.getInteger('bet');
   if (bet === Infinity) {
@@ -229,22 +237,55 @@ exports.run = async (interaction) => {
 
     const amount = BigInt(bj.bet);
     if (win) {
-      const newAmount = cash + amount;
-      await db.set(`servers.${interaction.guild.id}.users.${interaction.member.id}.economy.cash`, newAmount.toString());
+      await interaction.client.db.execute(
+        /* sql */
+        `
+          INSERT INTO
+            economy_balances (server_id, user_id, cash)
+          VALUES
+            (?, ?, ?) ON DUPLICATE KEY
+          UPDATE cash = cash +
+          VALUES
+            (cash)
+        `,
+        [interaction.guild.id, interaction.member.id, amount.toString()],
+      );
 
       let csAmount = currencySymbol + amount.toLocaleString();
       csAmount = interaction.client.util.limitStringLength(csAmount, 0, 1024);
       return cardEmbed(`Result: You win ${csAmount}`);
     } else if (blackjack) {
-      const newAmount = cash + amount;
-      await db.set(`servers.${interaction.guild.id}.users.${interaction.member.id}.economy.cash`, newAmount.toString());
+      await interaction.client.db.execute(
+        /* sql */
+        `
+          INSERT INTO
+            economy_balances (server_id, user_id, cash)
+          VALUES
+            (?, ?, ?) ON DUPLICATE KEY
+          UPDATE cash = cash +
+          VALUES
+            (cash)
+        `,
+        [interaction.guild.id, interaction.member.id, amount.toString()],
+      );
 
       let csAmount = currencySymbol + amount.toLocaleString();
       csAmount = interaction.client.util.limitStringLength(csAmount, 0, 1024);
       return cardEmbed(`Result: BlackJack, you win ${csAmount}`);
     } else if (bust) {
-      const newAmount = cash - amount;
-      await db.set(`servers.${interaction.guild.id}.users.${interaction.member.id}.economy.cash`, newAmount.toString());
+      await interaction.client.db.execute(
+        /* sql */
+        `
+          INSERT INTO
+            economy_balances (server_id, user_id, cash)
+          VALUES
+            (?, ?, ?) ON DUPLICATE KEY
+          UPDATE cash = cash -
+          VALUES
+            (cash)
+        `,
+        [interaction.guild.id, interaction.member.id, amount.toString()],
+      );
 
       let csAmount = currencySymbol + amount.toLocaleString();
       csAmount = interaction.client.util.limitStringLength(csAmount, 0, 1024);

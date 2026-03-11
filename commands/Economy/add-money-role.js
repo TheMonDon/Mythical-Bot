@@ -1,8 +1,6 @@
 const Command = require('../../base/Command.js');
 const { stripIndents } = require('common-tags');
 const { EmbedBuilder } = require('discord.js');
-const { QuickDB } = require('quick.db');
-const db = new QuickDB();
 
 class AddMoneyRole extends Command {
   constructor(client) {
@@ -81,21 +79,37 @@ class AddMoneyRole extends Command {
     if (type === 'bank') {
       members.forEach(async (mem) => {
         if (!mem.user.bot) {
-          const current = BigInt((await db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`)) || 0);
-          const newAmount = current + amount;
-          await db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`, newAmount.toString());
+          await this.client.db.execute(
+            /* sql */
+            `
+              INSERT INTO
+                economy_balances (server_id, user_id, bank)
+              VALUES
+                (?, ?, ?) ON DUPLICATE KEY
+              UPDATE bank = bank +
+              VALUES
+                (bank)
+            `,
+            [msg.guild.id, mem.id, amount.toString()],
+          );
         }
       });
     } else {
       members.forEach(async (mem) => {
         if (!mem.user.bot) {
-          const cash = BigInt(
-            (await db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`)) ||
-              economyRows[0]?.start_balance ||
-              0,
+          await this.client.db.execute(
+            /* sql */
+            `
+              INSERT INTO
+                economy_balances (server_id, user_id, cash)
+              VALUES
+                (?, ?, ?) ON DUPLICATE KEY
+              UPDATE cash = cash +
+              VALUES
+                (cash)
+            `,
+            [msg.guild.id, mem.id, amount.toString()],
           );
-          const newAmount = cash + amount;
-          await db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, newAmount.toString());
         }
       });
     }

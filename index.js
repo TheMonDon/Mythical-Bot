@@ -827,17 +827,15 @@ const loadMysql = async () => {
       ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE utf8mb4_unicode_ci;
     `);
 
-    // Economy balances mysql conversion soon™️
-    // await connection.execute(/* sql */ `
-    /*  CREATE TABLE IF NOT EXISTS economy_balances (
-      server_id VARCHAR(30) NOT NULL,
-      user_id VARCHAR(30) NOT NULL,
-      cash BIGINT DEFAULT 0,
-      bank BIGINT DEFAULT 0,
-      PRIMARY KEY (server_id, user_id)
-    ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE utf8mb4_unicode_ci;
-  `);
-  */
+    await connection.execute(/* sql */ `
+      CREATE TABLE IF NOT EXISTS economy_balances (
+        server_id VARCHAR(30) NOT NULL,
+        user_id VARCHAR(30) NOT NULL,
+        cash DECIMAL(65, 0) DEFAULT 0,
+        bank DECIMAL(65, 0) DEFAULT 0,
+        PRIMARY KEY (server_id, user_id)
+      ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+    `);
 
     await connection.execute(/* sql */ `
       CREATE TABLE IF NOT EXISTS user_playlists (
@@ -1045,10 +1043,23 @@ const loadMysql = async () => {
         )
         BEGIN
         INSERT INTO
-          command_stats (command_name, total_runs, text_runs, slash_runs)
+          command_stats (
+            command_name,
+            total_runs,
+            text_runs,
+            slash_runs,
+            last_run
+          )
         VALUES
-          (p_command_name, 1, p_text_runs, p_slash_runs) ON DUPLICATE KEY
+          (
+            p_command_name,
+            1,
+            p_text_runs,
+            p_slash_runs,
+            now()
+          ) ON DUPLICATE KEY
         UPDATE total_runs = total_runs + 1,
+        last_run = now(),
         text_runs = text_runs +
         VALUES
           (text_runs),
@@ -1058,10 +1069,11 @@ const loadMysql = async () => {
 
         IF (p_isAlias = 1) THEN
         INSERT INTO
-          command_aliases (alias_name, base_command, uses)
+          command_aliases (alias_name, base_command, uses, last_run)
         VALUES
-          (p_aliasName, p_command_name, 1) ON DUPLICATE KEY
-        UPDATE uses = uses + 1;
+          (p_aliasName, p_command_name, 1, now()) ON DUPLICATE KEY
+        UPDATE uses = uses + 1,
+        last_run = now();
 
         END IF;
 

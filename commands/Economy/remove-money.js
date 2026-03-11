@@ -1,7 +1,5 @@
 const Command = require('../../base/Command.js');
 const { EmbedBuilder } = require('discord.js');
-const { QuickDB } = require('quick.db');
-const db = new QuickDB();
 
 class RemoveMoney extends Command {
   constructor(client) {
@@ -64,16 +62,33 @@ class RemoveMoney extends Command {
 
     amount = BigInt(parseInt(amount));
     if (type === 'bank') {
-      const bank = BigInt((await db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`)) || 0);
-      const newAmount = bank - amount;
-      await db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.bank`, newAmount.toString());
-    } else {
-      const cash = BigInt(
-        (await db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`)) || economyRows[0]?.start_balance || 0,
+      await this.client.db.execute(
+        /* sql */
+        `
+          INSERT INTO
+            economy_balances (server_id, user_id, bank)
+          VALUES
+            (?, ?, ?) ON DUPLICATE KEY
+          UPDATE bank = bank -
+          VALUES
+            (bank)
+        `,
+        [msg.guild.id, mem.id, amount.toString()],
       );
-
-      const newAmount = cash - amount;
-      await db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, newAmount.toString());
+    } else {
+      await this.client.db.execute(
+        /* sql */
+        `
+          INSERT INTO
+            economy_balances (server_id, user_id, cash)
+          VALUES
+            (?, ?, ?) ON DUPLICATE KEY
+          UPDATE cash = cash -
+          VALUES
+            (cash)
+        `,
+        [msg.guild.id, mem.id, amount.toString()],
+      );
     }
 
     let csAmount = currencySymbol + amount.toLocaleString();

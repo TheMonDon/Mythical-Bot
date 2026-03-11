@@ -1,7 +1,5 @@
 const Command = require('../../base/Command.js');
 const { EmbedBuilder } = require('discord.js');
-const { QuickDB } = require('quick.db');
-const db = new QuickDB();
 
 class GiveMoney extends Command {
   constructor(client) {
@@ -44,10 +42,20 @@ class GiveMoney extends Command {
     );
     const currencySymbol = economyRows[0]?.symbol || '$';
 
-    const cashValue = await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`);
-    const startBalance = BigInt(economyRows[0]?.start_balance || 0);
+    const [balanceRows] = await this.client.db.execute(
+      /* sql */ `
+        SELECT
+          cash
+        FROM
+          economy_balances
+        WHERE
+          server_id = ?
+          AND user_id = ?
+      `,
+      [msg.guild.id, msg.member.id],
+    );
 
-    const authCash = cashValue === undefined ? startBalance : BigInt(cashValue);
+    const authCash = BigInt(balanceRows[0].cash || economyRows[0]?.start_balance || 0);
 
     let amount = args[1].replace(/,/g, '').replace(currencySymbol, '');
 
@@ -60,10 +68,32 @@ class GiveMoney extends Command {
           return this.client.util.errorEmbed(msg, "You can't pay someone when you have no money", 'Invalid Parameter');
         }
 
-        await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, 0);
-        const memCash = BigInt((await db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`)) || 0);
-        const newMemCash = memCash + authCash;
-        await db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, newMemCash.toString());
+        // Set the author's cash to 0
+        await this.client.db.execute(
+          /* sql */
+          `
+            INSERT INTO
+              economy_balances (server_id, user_id, cash)
+            VALUES
+              (?, ?, 0) ON DUPLICATE KEY
+            UPDATE cash = 0
+          `,
+          [msg.guild.id, msg.author.id],
+        );
+
+        // Add the cash to the recipient
+        await this.client.db.execute(
+          /* sql */ `
+            INSERT INTO
+              economy_balances (server_id, user_id, cash)
+            VALUES
+              (?, ?, ?) ON DUPLICATE KEY
+            UPDATE cash = cash +
+            VALUES
+              (cash)
+          `,
+          [msg.guild.id, mem.id, authCash.toString()],
+        );
 
         embed.setColor(msg.settings.embedColor).setDescription(`${mem} has received your ${csCashAmount}.`);
         return msg.channel.send({ embeds: [embed] });
@@ -104,13 +134,34 @@ class GiveMoney extends Command {
       return this.client.util.errorEMbed(msg, "You can't give someone nothing.", 'Invalid Parameter');
     }
 
-    const newAuthCash = authCash - amount;
-    await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAuthCash.toString());
-    const memCash = BigInt(
-      (await db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`)) || economyRows[0]?.start_balance || 0,
+    // Subtract the amount from the author's cash
+    await this.client.db.execute(
+      /* sql */
+      `
+        INSERT INTO
+          economy_balances (server_id, user_id, cash)
+        VALUES
+          (?, ?, ?) ON DUPLICATE KEY
+        UPDATE cash = cash -
+        VALUES
+          (cash)
+      `,
+      [msg.guild.id, msg.member.id, amount.toString()],
     );
-    const newMemCash = memCash + amount;
-    await db.set(`servers.${msg.guild.id}.users.${mem.id}.economy.cash`, newMemCash.toString());
+
+    // Add the amount to the recipient's cash
+    await this.client.db.execute(
+      /* sql */ `
+        INSERT INTO
+          economy_balances (server_id, user_id, cash)
+        VALUES
+          (?, ?, ?) ON DUPLICATE KEY
+        UPDATE cash = cash +
+        VALUES
+          (cash)
+      `,
+      [msg.guild.id, mem.id, amount.toString()],
+    );
 
     let csAmount = currencySymbol + amount.toLocaleString();
     csAmount = this.client.util.limitStringLength(csAmount, 0, 1024);

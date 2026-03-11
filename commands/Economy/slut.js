@@ -1,8 +1,6 @@
 const Command = require('../../base/Command.js');
 const { EmbedBuilder } = require('discord.js');
-const { QuickDB } = require('quick.db');
 const { Duration } = require('luxon');
-const db = new QuickDB();
 
 class Slut extends Command {
   constructor(client) {
@@ -17,8 +15,6 @@ class Slut extends Command {
   }
 
   async run(msg) {
-    const type = 'slut';
-
     const [cooldownRows] = await this.client.db.execute(
       /* sql */ `
         SELECT
@@ -85,12 +81,23 @@ class Slut extends Command {
       [msg.guild.id],
     );
 
-    const cash = BigInt(
-      (await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`)) ||
-        economyRows[0]?.start_balance ||
-        0,
+    // Get the users networth
+    const [balanceRows] = await this.client.db.execute(
+      /* sql */ `
+        SELECT
+          cash,
+          bank
+        FROM
+          economy_balances
+        WHERE
+          server_id = ?
+          AND user_id = ?
+      `,
+      [msg.guild.id, msg.member.id],
     );
-    const bank = BigInt((await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`)) || 0);
+
+    const cash = BigInt(balanceRows[0].cash || economyRows[0]?.start_balance || 0);
+    const bank = BigInt(balanceRows[0].bank || 0);
     const authNet = cash + bank;
 
     // Get the min and max fine percentages
@@ -122,14 +129,25 @@ class Slut extends Command {
 
       await msg.channel.send({ embeds: [embed] });
 
-      const newAmount = cash - fineAmount;
-      await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAmount.toString());
+      await this.client.db.execute(
+        /* sql */
+        `
+          INSERT INTO
+            economy_balances (server_id, user_id, cash)
+          VALUES
+            (?, ?, ?) ON DUPLICATE KEY
+          UPDATE cash = cash -
+          VALUES
+            (cash)
+        `,
+        [msg.guild.id, msg.member.id, fineAmount.toString()],
+      );
     } else {
       delete require.cache[require.resolve('../../resources/messages/slut_success.json')];
       const slutSuccess = require('../../resources/messages/slut_success.json');
 
-      const min = Number(await db.get(`servers.${msg.guild.id}.economy.${type}.min`)) || 100;
-      const max = Number(await db.get(`servers.${msg.guild.id}.economy.${type}.max`)) || 400;
+      const min = economyRows[0]?.slut_min || 100;
+      const max = economyRows[0]?.slut_max || 400;
 
       const amount = BigInt(Math.floor(Math.random() * (max - min + 1) + min));
 
@@ -146,8 +164,19 @@ class Slut extends Command {
 
       await msg.channel.send({ embeds: [embed] });
 
-      const newAmount = cash + amount;
-      await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAmount.toString());
+      await this.client.db.execute(
+        /* sql */
+        `
+          INSERT INTO
+            economy_balances (server_id, user_id, cash)
+          VALUES
+            (?, ?, ?) ON DUPLICATE KEY
+          UPDATE cash = cash +
+          VALUES
+            (cash)
+        `,
+        [msg.guild.id, msg.member.id, amount.toString()],
+      );
     }
 
     await this.client.db.execute(

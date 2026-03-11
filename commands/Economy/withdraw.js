@@ -1,7 +1,5 @@
 const Command = require('../../base/Command.js');
 const { EmbedBuilder } = require('discord.js');
-const { QuickDB } = require('quick.db');
-const db = new QuickDB();
 
 class Withdraw extends Command {
   constructor(client) {
@@ -36,8 +34,23 @@ class Withdraw extends Command {
     );
     const currencySymbol = economyRows[0]?.symbol || '$';
 
-    const bank = BigInt((await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`)) || 0);
-    const cash = BigInt((await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`)) || 0);
+    // Get the user's current cash and bank balance
+    const [balanceRows] = await this.client.db.execute(
+      /* sql */ `
+        SELECT
+          cash,
+          bank
+        FROM
+          economy_balances
+        WHERE
+          server_id = ?
+          AND user_id = ?
+      `,
+      [msg.guild.id, msg.member.id],
+    );
+
+    const cash = BigInt(balanceRows[0].cash || economyRows[0]?.start_balance || 0);
+    const bank = BigInt(balanceRows[0].bank || 0);
 
     let csBankAmount = currencySymbol + bank.toLocaleString();
     csBankAmount = this.client.util.limitStringLength(csBankAmount, 0, 1024);
@@ -47,9 +60,21 @@ class Withdraw extends Command {
       if (amount.toLowerCase() === 'all') {
         if (bank <= BigInt(0)) return msg.channel.send("You don't have any money to withdraw.");
 
-        await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`, 0);
         const newAmount = bank + cash;
-        await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAmount.toString());
+        await this.client.db.execute(
+          /* sql */
+          `
+            INSERT INTO
+              economy_balances (server_id, user_id, cash, bank)
+            VALUES
+              (?, ?, ?, 0) ON DUPLICATE KEY
+            UPDATE cash =
+            VALUES
+              (cash),
+              bank = 0
+          `,
+          [msg.guild.id, msg.member.id, newAmount.toString()],
+        );
 
         embed.setColor(msg.settings.embedColor).setDescription(`Withdrew ${csBankAmount} from your bank!`);
         return msg.channel.send({ embeds: [embed] });
@@ -66,21 +91,45 @@ class Withdraw extends Command {
     );
 
     if (amount < BigInt(0)) return this.client.util.errorEmbed(msg, "You can't withdraw negative amounts of money.");
+    if (bank <= BigInt(0)) return this.client.util.errorEmbed(msg, "You don't have any money to withdraw.");
     if (amount > bank)
       return this.client.util.errorEmbed(
         msg,
         `You don't have that much money to withdraw. You currently have ${csBankAmount} in the bank.`,
       );
 
-    if (bank <= BigInt(0)) return this.client.util.errorEmbed(msg, "You don't have any money to withdraw.");
-
     let csAmount = currencySymbol + amount.toLocaleString();
     csAmount = this.client.util.limitStringLength(csAmount, 0, 1024);
 
     const newBankAmount = bank - amount;
+    await this.client.db.execute(
+      /* sql */
+      `
+        INSERT INTO
+          economy_balances (server_id, user_id, bank)
+        VALUES
+          (?, ?, ?) ON DUPLICATE KEY
+        UPDATE bank =
+        VALUES
+          (bank)
+      `,
+      [msg.guild.id, msg.member.id, newBankAmount.toString()],
+    );
+
     const newCashAmount = cash + amount;
-    await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`, newBankAmount.toString());
-    await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newCashAmount.toString());
+    await this.client.db.execute(
+      /* sql */
+      `
+        INSERT INTO
+          economy_balances (server_id, user_id, cash)
+        VALUES
+          (?, ?, ?) ON DUPLICATE KEY
+        UPDATE cash =
+        VALUES
+          (cash)
+      `,
+      [msg.guild.id, msg.member.id, newCashAmount.toString()],
+    );
 
     embed.setColor(msg.settings.embedColor).setDescription(`Withdrew ${csAmount} from your bank.`);
     return msg.channel.send({ embeds: [embed] });

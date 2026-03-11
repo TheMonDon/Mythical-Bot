@@ -1,6 +1,4 @@
 const { EmbedBuilder, SlashCommandBuilder, InteractionContextType } = require('discord.js');
-const { QuickDB } = require('quick.db');
-const db = new QuickDB();
 
 exports.conf = {
   permLevel: 'Administrator',
@@ -55,17 +53,33 @@ exports.run = async (interaction) => {
 
     amount = BigInt(amount);
     if (destination === 'bank') {
-      const bank = BigInt((await db.get(`servers.${interaction.guild.id}.users.${target.user.id}.economy.bank`)) || 0);
-      const newAmount = bank - amount;
-      await db.set(`servers.${interaction.guild.id}.users.${target.user.id}.economy.bank`, newAmount.toString());
-    } else {
-      const cash = BigInt(
-        (await db.get(`servers.${interaction.guild.id}.users.${target.user.id}.economy.cash`)) ||
-          (await db.get(`servers.${interaction.guild.id}.economy.startBalance`)) ||
-          0,
+      await interaction.client.db.execute(
+        /* sql */
+        `
+          INSERT INTO
+            economy_balances (server_id, user_id, bank)
+          VALUES
+            (?, ?, ?) ON DUPLICATE KEY
+          UPDATE bank = bank -
+          VALUES
+            (bank)
+        `,
+        [interaction.guild.id, target.user.id, amount.toString()],
       );
-      const newAmount = cash - amount;
-      await db.set(`servers.${interaction.guild.id}.users.${target.user.id}.economy.cash`, newAmount.toString());
+    } else {
+      await interaction.client.db.execute(
+        /* sql */
+        `
+          INSERT INTO
+            economy_balances (server_id, user_id, cash)
+          VALUES
+            (?, ?, ?) ON DUPLICATE KEY
+          UPDATE cash = cash -
+          VALUES
+            (cash)
+        `,
+        [interaction.guild.id, target.user.id, amount.toString()],
+      );
     }
 
     let csAmount = currencySymbol + amount.toLocaleString();
@@ -78,8 +92,6 @@ exports.run = async (interaction) => {
     return interaction.editReply({ embeds: [embed] });
   } else {
     const role = target;
-    const currencySymbol = (await db.get(`servers.${interaction.guild.id}.economy.symbol`)) || '$';
-
     if (isNaN(amount)) return interaction.client.util.errorEmbed(interaction, 'Incorrect Usage');
 
     const members = [...role.members.values()];
@@ -88,21 +100,37 @@ exports.run = async (interaction) => {
     if (destination === 'bank') {
       members.forEach(async (mem) => {
         if (!mem.user.bot) {
-          const current = BigInt((await db.get(`servers.${interaction.guild.id}.users.${mem.id}.economy.bank`)) || 0);
-          const newAmount = current - amount;
-          await db.set(`servers.${interaction.guild.id}.users.${mem.id}.economy.bank`, newAmount.toString());
+          await interaction.client.db.execute(
+            /* sql */
+            `
+              INSERT INTO
+                economy_balances (server_id, user_id, bank)
+              VALUES
+                (?, ?, ?) ON DUPLICATE KEY
+              UPDATE bank = bank -
+              VALUES
+                (bank)
+            `,
+            [interaction.guild.id, mem.id, amount.toString()],
+          );
         }
       });
     } else {
       members.forEach(async (mem) => {
         if (!mem.user.bot) {
-          const cash = BigInt(
-            (await db.get(`servers.${interaction.guild.id}.users.${mem.id}.economy.cash`)) ||
-              (await db.get(`servers.${interaction.guild.id}.economy.startBalance`)) ||
-              0,
+          await interaction.client.db.execute(
+            /* sql */
+            `
+              INSERT INTO
+                economy_balances (server_id, user_id, cash)
+              VALUES
+                (?, ?, ?) ON DUPLICATE KEY
+              UPDATE cash = cash -
+              VALUES
+                (cash)
+            `,
+            [interaction.guild.id, mem.id, amount.toString()],
           );
-          const newAmount = cash - amount;
-          await db.set(`servers.${interaction.guild.id}.users.${mem.id}.economy.cash`, newAmount.toString());
         }
       });
     }

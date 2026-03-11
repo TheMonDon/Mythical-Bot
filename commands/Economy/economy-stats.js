@@ -1,7 +1,5 @@
 const Command = require('../../base/Command.js');
 const { EmbedBuilder } = require('discord.js');
-const { QuickDB } = require('quick.db');
-const db = new QuickDB();
 
 class EconomyStats extends Command {
   constructor(client) {
@@ -30,22 +28,25 @@ class EconomyStats extends Command {
     );
     const currencySymbol = economyRows[0]?.symbol || '$';
 
-    const usersData = (await db.get(`servers.${msg.guild.id}.users`)) || {};
+    // 1. Execute a SUM query to get totals for the specific server
+    const [rows] = await this.client.db.execute(
+      /* sql */
+      `
+        SELECT
+          SUM(cash) AS total_cash,
+          SUM(bank) AS total_bank
+        FROM
+          economy_balances
+        WHERE
+          server_id = ?
+      `,
+      [msg.guild.id],
+    );
 
-    let totalCash = 0n;
-    let totalBank = 0n;
-
-    for (const userId in usersData) {
-      const user = await this.client.users.cache.get(userId);
-      if (user) {
-        const cash = BigInt(usersData[userId].economy.cash || 0);
-        const bank = BigInt(usersData[userId].economy.bank || 0);
-        totalCash += cash;
-        totalBank += bank;
-      }
-    }
-
+    const totalCash = BigInt(rows[0]?.total_cash || 0);
+    const totalBank = BigInt(rows[0]?.total_bank || 0);
     const totalBalance = totalCash + totalBank;
+
     const embed = new EmbedBuilder()
       .setColor(msg.settings.embedColor)
       .setTitle(`${msg.guild.name}'s Economy Total`)

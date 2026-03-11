@@ -1,8 +1,6 @@
 const Command = require('../../base/Command.js');
 const { EmbedBuilder } = require('discord.js');
-const { QuickDB } = require('quick.db');
 const { Duration } = require('luxon');
-const db = new QuickDB();
 
 class Work extends Command {
   constructor(client) {
@@ -107,14 +105,19 @@ class Work extends Command {
       [msg.guild.id, msg.author.id, 'work', cooldown],
     );
 
-    const oldBalance = BigInt(
-      (await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`)) ||
-        economyRows[0]?.start_balance ||
-        0,
+    await this.client.db.execute(
+      /* sql */
+      `
+        INSERT INTO
+          economy_balances (server_id, user_id, cash)
+        VALUES
+          (?, ?, ?) ON DUPLICATE KEY
+        UPDATE cash = cash +
+        VALUES
+          (cash)
+      `,
+      [msg.guild.id, msg.member.id, amount.toString()],
     );
-
-    const newBalance = oldBalance + BigInt(amount);
-    await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newBalance.toString());
 
     embed
       .setColor(msg.settings.embedSuccessColor)

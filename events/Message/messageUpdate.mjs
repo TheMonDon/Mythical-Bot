@@ -273,6 +273,46 @@ export async function run(client, oldMessage, newMessage) {
         return newMessage.channel.send({ embeds: [embed] });
       }
 
+      const cooldownSeconds = cmd.conf?.cooldown ?? 0;
+      if (cooldownSeconds > 0) {
+        const [rows] = await client.db.execute(
+          /* sql */
+          `
+            SELECT
+              expires_at
+            FROM
+              cooldowns
+            WHERE
+              server_id = ?
+              AND user_id = ?
+              AND cooldown_name = ?
+          `,
+          [newMessage.guild.id, newMessage.author.id, cmd.help.name],
+        );
+
+        const now = new Date();
+        if (rows.length && new Date(rows[0].expires_at) > now) {
+          const diff = (new Date(rows[0].expires_at) - now) / 1000;
+          // Command is on cooldown
+          return newMessage.reply(`Chill, you're on cooldown for another ${diff.toFixed(1)} seconds.`);
+        }
+
+        const expiresAt = new Date(Date.now() + cooldownSeconds * 1000);
+        await client.db.execute(
+          /* sql */
+          `
+            INSERT INTO
+              cooldowns (server_id, user_id, cooldown_name, expires_at)
+            VALUES
+              (?, ?, ?, ?) ON DUPLICATE KEY
+            UPDATE expires_at =
+            VALUES
+              (expires_at)
+          `,
+          [newMessage.guild.id, newMessage.author.id, cmd.help.name, expiresAt],
+        );
+      }
+
       // If the command exists, **AND** the user has permission, run it.
       await cmd.run(newMessage, args, level);
 

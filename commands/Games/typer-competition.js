@@ -105,6 +105,8 @@ class TyperCompetition extends Command {
             highScoreUser = winner.tag;
           }
 
+          this.client.games.delete(msg.channel.id);
+
           const em1 = new EmbedBuilder()
             .setTitle('Winner!')
             .setColor(color)
@@ -114,7 +116,6 @@ class TyperCompetition extends Command {
                   Time: ${time} seconds`,
             )
             .addFields([{ name: 'High Score', value: `${highScore} seconds by ${highScoreUser}` }]);
-          this.client.games.delete(msg.channel.id);
           return msg.channel.send({ embeds: [em1] });
         });
       })

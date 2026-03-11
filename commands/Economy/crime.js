@@ -1,8 +1,6 @@
 const Command = require('../../base/Command.js');
 const { EmbedBuilder } = require('discord.js');
-const { QuickDB } = require('quick.db');
 const { Duration } = require('luxon');
-const db = new QuickDB();
 
 class Crime extends Command {
   constructor(client) {
@@ -84,27 +82,27 @@ class Crime extends Command {
     );
 
     // Get the user's net worth
-    const cash = BigInt(
-      (await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`)) ||
-        economyRows[0]?.start_balance ||
-        0,
+    const [balanceRows] = await this.client.db.execute(
+      /* sql */ `
+        SELECT
+          cash,
+          bank
+        FROM
+          economy_balances
+        WHERE
+          server_id = ?
+          AND user_id = ?
+      `,
+      [msg.guild.id, msg.member.id],
     );
-    const bank = BigInt((await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.bank`)) || 0);
+
+    const cash = BigInt(balanceRows[0].cash || economyRows[0]?.start_balance || 0);
+    const bank = BigInt(balanceRows[0].bank || 0);
     const authNet = cash + bank;
 
     // Get the min and max amounts of money the user can get
     const min = economyRows[0]?.crime_min || 250;
     const max = economyRows[0]?.crime_max || 700;
-
-    // Get the min and max fine percentages
-    const minFine = economyRows[0]?.crime_fine_min || 20;
-    const maxFine = economyRows[0]?.crime_fine_max || 40;
-
-    // randomFine is a random number between the minimum and maximum fail rate
-    const randomFine = BigInt(Math.abs(Math.round(Math.random() * (maxFine - minFine + 1) + minFine)));
-
-    // fineAmount is the amount of money the user will lose if they fail the action
-    const fineAmount = this.client.util.bigIntAbs((authNet / BigInt(100)) * randomFine);
 
     const failRate = economyRows[0]?.crime_fail_rate || 45;
     const ranNum = Math.random() * 100;
@@ -112,6 +110,16 @@ class Crime extends Command {
     const currencySymbol = economyRows[0]?.symbol || '$';
 
     if (ranNum < failRate) {
+      // Get the min and max fine percentages
+      const minFine = economyRows[0]?.crime_fine_min || 20;
+      const maxFine = economyRows[0]?.crime_fine_max || 40;
+
+      // randomFine is a random number between the minimum and maximum fail rate
+      const randomFine = BigInt(Math.abs(Math.round(Math.random() * (maxFine - minFine + 1) + minFine)));
+
+      // fineAmount is the amount of money the user will lose if they fail the action
+      const fineAmount = this.client.util.bigIntAbs((authNet / BigInt(100)) * randomFine);
+
       delete require.cache[require.resolve('../../resources/messages/crime_fail.json')];
       const crimeFail = require('../../resources/messages/crime_fail.json');
 
@@ -125,8 +133,19 @@ class Crime extends Command {
 
       await msg.channel.send({ embeds: [embed] });
 
-      const newAmount = cash - fineAmount;
-      await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAmount.toString());
+      await this.client.db.execute(
+        /* sql */
+        `
+          INSERT INTO
+            economy_balances (server_id, user_id, cash)
+          VALUES
+            (?, ?, ?) ON DUPLICATE KEY
+          UPDATE cash = cash -
+          VALUES
+            (cash)
+        `,
+        [msg.guild.id, msg.member.id, fineAmount.toString()],
+      );
     } else {
       delete require.cache[require.resolve('../../resources/messages/crime_success.json')];
       const crimeSuccess = require('../../resources/messages/crime_success.json');
@@ -142,8 +161,19 @@ class Crime extends Command {
 
       await msg.channel.send({ embeds: [embed] });
 
-      const newAmount = cash + amount;
-      await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, newAmount.toString());
+      await this.client.db.execute(
+        /* sql */
+        `
+          INSERT INTO
+            economy_balances (server_id, user_id, cash)
+          VALUES
+            (?, ?, ?) ON DUPLICATE KEY
+          UPDATE cash = cash +
+          VALUES
+            (cash)
+        `,
+        [msg.guild.id, msg.member.id, amount.toString()],
+      );
     }
 
     await this.client.db.execute(

@@ -1,7 +1,5 @@
 const Command = require('../../base/Command.js');
 const { EmbedBuilder } = require('discord.js');
-const { QuickDB } = require('quick.db');
-const db = new QuickDB();
 
 class RemoveMoneyRole extends Command {
   constructor(client) {
@@ -18,7 +16,7 @@ class RemoveMoneyRole extends Command {
         'remove-money-role cash bunny 100',
         'remove-money-role cash Admin 200',
         'remove-money-role Owner 300',
-        'remove-money-role bank @memberOrRole 420',
+        'remove-money-role bank @Role 420',
       ],
       guildOnly: true,
     });
@@ -70,17 +68,33 @@ class RemoveMoneyRole extends Command {
     members.forEach(async (member) => {
       if (member.user.bot) return;
       if (type === 'bank') {
-        const bank = BigInt((await db.get(`servers.${msg.guild.id}.users.${member.id}.economy.bank`)) || 0);
-        const newAmount = bank - amount;
-        await db.set(`servers.${msg.guild.id}.users.${member.id}.economy.bank`, newAmount.toString());
-      } else {
-        const cash = BigInt(
-          (await db.get(`servers.${msg.guild.id}.users.${member.id}.economy.cash`)) ||
-            economyRows[0]?.start_balance ||
-            0,
+        await this.client.db.execute(
+          /* sql */
+          `
+            INSERT INTO
+              economy_balances (server_id, user_id, bank)
+            VALUES
+              (?, ?, ?) ON DUPLICATE KEY
+            UPDATE bank = bank -
+            VALUES
+              (bank)
+          `,
+          [msg.guild.id, member.id, amount.toString()],
         );
-        const newAmount = cash - amount;
-        await db.set(`servers.${msg.guild.id}.users.${member.id}.economy.cash`, newAmount.toString());
+      } else {
+        await this.client.db.execute(
+          /* sql */
+          `
+            INSERT INTO
+              economy_balances (server_id, user_id, cash)
+            VALUES
+              (?, ?, ?) ON DUPLICATE KEY
+            UPDATE cash = cash -
+            VALUES
+              (cash)
+          `,
+          [msg.guild.id, member.id, amount.toString()],
+        );
       }
     });
 

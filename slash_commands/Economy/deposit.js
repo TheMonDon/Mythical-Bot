@@ -1,6 +1,4 @@
 const { EmbedBuilder, SlashCommandBuilder, InteractionContextType } = require('discord.js');
-const { QuickDB } = require('quick.db');
-const db = new QuickDB();
 
 exports.conf = {
   permLevel: 'User',
@@ -32,15 +30,19 @@ exports.run = async (interaction) => {
 
   const amount = BigInt(interaction.options.getInteger('amount'));
 
-  const cash = BigInt(
-    (await db.get(`servers.${interaction.guild.id}.users.${interaction.member.id}.economy.cash`)) ||
-      economyRows[0]?.start_balance ||
-      0,
+  const [balanceRows] = await interaction.client.db.execute(
+    /* sql */ `
+      SELECT
+        cash
+      FROM
+        economy_balances
+      WHERE
+        server_id = ?
+        AND user_id = ?
+    `,
+    [interaction.guild.id, interaction.member.id],
   );
-
-  const bank = BigInt(
-    (await db.get(`servers.${interaction.guild.id}.users.${interaction.member.id}.economy.bank`)) || 0,
-  );
+  const cash = BigInt(balanceRows[0]?.cash || economyRows[0]?.start_balance || 0);
 
   const embed = new EmbedBuilder()
     .setColor(interaction.settings.embedColor)
@@ -64,10 +66,33 @@ exports.run = async (interaction) => {
   if (cash <= BigInt(0))
     return interaction.client.util.errorEmbed(interaction, "You don't have any cash to deposit", 'Invalid Parameter');
 
-  const newCashAmount = cash - amount;
-  await db.set(`servers.${interaction.guild.id}.users.${interaction.member.id}.economy.cash`, newCashAmount.toString());
-  const newBankAmount = bank + amount;
-  await db.set(`servers.${interaction.guild.id}.users.${interaction.member.id}.economy.bank`, newBankAmount.toString());
+  // Update cash balance
+  await interaction.client.db.execute(
+    /* sql */ `
+      INSERT INTO
+        economy_balances (server_id, user_id, cash)
+      VALUES
+        (?, ?, ?) ON DUPLICATE KEY
+      UPDATE cash = cash -
+      VALUES
+        (cash)
+    `,
+    [interaction.guild.id, interaction.member.id, amount.toString()],
+  );
+
+  // Update bank balance
+  await interaction.client.db.execute(
+    /* sql */ `
+      INSERT INTO
+        economy_balances (server_id, user_id, bank)
+      VALUES
+        (?, ?, ?) ON DUPLICATE KEY
+      UPDATE bank = bank +
+      VALUES
+        (bank)
+    `,
+    [interaction.guild.id, interaction.member.id, amount.toString()],
+  );
 
   let csAmount = currencySymbol + amount.toLocaleString();
   csAmount = interaction.client.util.limitStringLength(csAmount, 0, 1024);

@@ -7,8 +7,6 @@ const {
   ComponentType,
   MessageFlags,
 } = require('discord.js');
-const { QuickDB } = require('quick.db');
-const db = new QuickDB();
 
 exports.conf = {
   permLevel: 'User',
@@ -23,122 +21,99 @@ exports.commandData = new SlashCommandBuilder()
   .addStringOption((option) =>
     option
       .setName('type')
-      .setDescription('Show only cash or bank balances')
-      .addChoices({ name: 'Bank', value: 'bank' }, { name: 'Cash', value: 'cash' }),
+      .setDescription('Show only cash, bank, or total balances')
+      .addChoices({ name: 'Total', value: 'total' }, { name: 'Bank', value: 'bank' }, { name: 'Cash', value: 'cash' }),
   );
 
 exports.run = async (interaction) => {
   await interaction.deferReply();
 
-  let page = interaction.options.getInteger('page') || 1;
+  // 1. Get Options & Settings
+  let page = Math.max(interaction.options.getInteger('page') || 1, 1);
   const cashOrBank = interaction.options.getString('type') || 'total';
-
-  /*
-  const usersCount = (await db.get(`servers.${interaction.guild.id}.users`))
-    ? Object.keys(await db.get(`servers.${interaction.guild.id}.users`)).length
-    : 0;
-*/
-  const usersCount = Object.keys((await db.get(`servers.${interaction.guild.id}.users`)) || {}).length;
+  const orderColumn = cashOrBank === 'cash' ? 'cash' : cashOrBank === 'bank' ? 'bank' : '(cash + bank)';
   const itemsPerPage = 10;
-  const maxPages = Math.ceil(usersCount / itemsPerPage);
 
-  if (page > maxPages) page = maxPages;
+  const [economyRows] = await interaction.client.db.execute(`SELECT symbol FROM economy_settings WHERE server_id = ?`, [
+    interaction.guild.id,
+  ]);
+  const currencySymbol = economyRows[0]?.symbol || '$';
 
-  const [economyRows] = await interaction.client.db.execute(
-    /* sql */ `
-      SELECT
-        *
-      FROM
-        economy_settings
-      WHERE
-        server_id = ?
-    `,
+  // 2. Get Max Pages
+  const [countRows] = await interaction.client.db.execute(
+    `SELECT COUNT(*) AS count FROM economy_balances WHERE server_id = ?`,
     [interaction.guild.id],
   );
-  const currencySymbol = economyRows[0]?.symbol || '$';
-  const startingBalance = economyRows[0]?.start_balance || 0;
+  const usersCount = countRows[0].count;
+  const maxPages = Math.ceil(usersCount / itemsPerPage) || 1;
+  if (page > maxPages) page = maxPages;
 
-  // Fetch data for the current page
-  const offset = (page - 1) * itemsPerPage;
-  const usersData = (await db.get(`servers.${interaction.guild.id}.users`)) || {};
+  // 3. Helper: Get User's Personal Rank
+  const getRankDisplay = async () => {
+    const [rankRows] = await interaction.client.db.execute(
+      `SELECT \`rank\` FROM (
+        SELECT user_id, RANK() OVER (ORDER BY ${orderColumn} DESC) AS \`rank\`
+        FROM economy_balances WHERE server_id = ?
+      ) ranked WHERE user_id = ?`,
+      [interaction.guild.id, interaction.user.id],
+    );
 
-  const sortedLeaderboard = Object.entries(usersData)
-    .map(([userId, data]) => {
-      const cash = BigInt(data.economy?.cash || startingBalance);
-      const bank = BigInt(data.economy?.bank || 0);
-      const total = cash + bank;
+    const userRank = rankRows[0]?.rank;
+    if (!userRank) return 'You are not on the leaderboard';
 
-      const money = cashOrBank === 'cash' ? cash : cashOrBank === 'bank' ? bank : total;
-
-      return { userId, money };
-    })
-    .sort((a, b) => (b.money > a.money ? 1 : b.money < a.money ? -1 : 0))
-    .slice(offset, offset + itemsPerPage); // Pagination happens here
-
-  function getOrdinalSuffix(n) {
     const s = ['th', 'st', 'nd', 'rd'];
-    const v = n % 100;
-    return n + (s[(v - 20) % 10] || s[v] || s[0]);
-  }
+    const v = userRank % 100;
+    const ordinal = userRank + (s[(v - 20) % 10] || s[v] || s[0]);
+    return `Your leaderboard rank: ${ordinal}`;
+  };
 
-  const fullLeaderboard = Object.entries(usersData)
-    .map(([userId, data]) => {
-      const cash = BigInt(data.economy?.cash || startingBalance);
-      const bank = BigInt(data.economy?.bank || 0);
-      const total = cash + bank;
+  // 4. Helper: Generate the Embed content
+  const generateEmbed = async (currentPage) => {
+    const offset = (currentPage - 1) * itemsPerPage;
+    const [rows] = await interaction.client.db.execute(
+      `SELECT user_id, cash, bank FROM economy_balances 
+       WHERE server_id = ? ORDER BY ${orderColumn} DESC LIMIT ? OFFSET ?`,
+      [interaction.guild.id, itemsPerPage, offset],
+    );
 
-      return { userId, money: cashOrBank === 'cash' ? cash : cashOrBank === 'bank' ? bank : total };
-    })
-    .sort((a, b) => (b.money > a.money ? 1 : b.money < a.money ? -1 : 0)); // Sort before slicing
+    const leaderboardLines = await Promise.all(
+      rows.map(async (row, index) => {
+        const user = interaction.client.users.cache.get(row.user_id) ||
+          (await interaction.client.users.fetch(row.user_id).catch(() => null)) || { tag: 'Unknown User' };
 
-  // Assign ranks to the entire leaderboard
-  fullLeaderboard.forEach((entry, index) => {
-    entry.rank = index + 1;
-  });
+        const cash = BigInt(row.cash || 0);
+        const bank = BigInt(row.bank || 0);
+        const money = cashOrBank === 'cash' ? cash : cashOrBank === 'bank' ? bank : cash + bank;
 
-  // Get the user's rank from the full leaderboard
-  const userRank = fullLeaderboard.find((entry) => entry.userId === interaction.user.id);
-  const userRankDisplay = userRank
-    ? `Your leaderboard rank: ${getOrdinalSuffix(userRank.rank)}`
-    : 'You are not on the leaderboard';
+        const isNeg = money < 0n;
+        const absMoney = isNeg ? -money : money;
+        const formatted = interaction.client.util.limitStringLength(absMoney.toLocaleString(), 0, 150);
 
-  const description =
-    (
-      await Promise.all(
-        sortedLeaderboard.map(async (entry, index) => {
-          const user = interaction.client.users.cache.get(entry.userId) ||
-            (await interaction.client.users.fetch(entry.userId).catch(() => null)) || { tag: 'Unknown User' };
+        return `**${offset + index + 1}.** ${user.tag}: ${isNeg ? '-' : ''}${currencySymbol}${formatted}`;
+      }),
+    );
 
-          const neg = entry.money < 0n;
-          const money = neg ? -entry.money : entry.money;
+    const userRankDisplay = await getRankDisplay();
 
-          return `**${offset + index + 1}.** ${user.tag}: ${
-            entry.money < 0n ? '-' : ''
-          }${currencySymbol}${interaction.client.util.limitStringLength(money.toLocaleString(), 0, 150)}`;
-        }),
-      )
-    ).join('\n') || 'None';
+    return new EmbedBuilder()
+      .setColor(interaction.settings.embedColor)
+      .setTitle(`${interaction.guild.name} ${cashOrBank.charAt(0).toUpperCase() + cashOrBank.slice(1)} Leaderboard`)
+      .setAuthor({ name: interaction.user.tag, iconURL: interaction.user.displayAvatarURL() })
+      .setDescription(leaderboardLines.join('\n') || 'No users found.')
+      .setFooter({ text: `Page ${currentPage} / ${maxPages} • ${userRankDisplay}` })
+      .setTimestamp();
+  };
 
-  const embed = new EmbedBuilder()
-    .setColor(interaction.settings.embedColor)
-    .setTitle(
-      `${interaction.guild.name} ${
-        cashOrBank === 'cash' ? 'Cash' : cashOrBank === 'bank' ? 'Bank' : 'Total'
-      } Leaderboard`,
-    )
-    .setAuthor({ name: interaction.user.tag, iconURL: interaction.user.displayAvatarURL() })
-    .setDescription(description)
-    .setFooter({ text: `Page ${page} / ${maxPages} • ${userRankDisplay}` })
-    .setTimestamp();
-
+  // 5. Initial Execution
+  const embed = await generateEmbed(page);
   const row = new ActionRowBuilder().addComponents(
     new ButtonBuilder()
-      .setCustomId('prev')
+      .setCustomId('prev_page')
       .setLabel('Previous')
       .setStyle(ButtonStyle.Primary)
       .setDisabled(page === 1),
     new ButtonBuilder()
-      .setCustomId('next')
+      .setCustomId('next_page')
       .setLabel('Next')
       .setStyle(ButtonStyle.Primary)
       .setDisabled(page === maxPages),
@@ -146,47 +121,22 @@ exports.run = async (interaction) => {
 
   const message = await interaction.editReply({ embeds: [embed], components: [row] });
 
-  const filter = (i) => i.user.id === interaction.user.id;
+  // 6. Interaction Collector
   const collector = message.createMessageComponentCollector({
-    filter,
     componentType: ComponentType.Button,
-    time: 3600000,
+    time: 300000,
   });
 
   collector.on('collect', async (btnInteraction) => {
     if (btnInteraction.user.id !== interaction.user.id) {
-      return interaction.reply({ content: 'These buttons are not for you!', flags: MessageFlags.Ephemeral });
+      return btnInteraction.reply({ content: 'These buttons are not for you!', flags: MessageFlags.Ephemeral });
     }
 
     if (btnInteraction.customId === 'prev_page') page--;
     if (btnInteraction.customId === 'next_page') page++;
 
-    // Calculate the offset and slice the leaderboard for the current page
-    const offset = (page - 1) * itemsPerPage; // itemsPerPage is the number of users per page (e.g., 10)
-    const currentPageLeaderboard = fullLeaderboard.slice(offset, offset + itemsPerPage);
-
-    // Fetch user data for the current page asynchronously
-    const displayedLeaderboard = await Promise.all(
-      currentPageLeaderboard.map(async (entry, index) => {
-        const user = await interaction.client.users.fetch(entry.userId).catch(() => null);
-        const formattedMoney = interaction.client.util.limitStringLength(entry.money.toLocaleString(), 0, 150);
-        return user
-          ? `**${offset + index + 1}.** ${user.tag}: ${currencySymbol}${formattedMoney}`
-          : `**${offset + index + 1}.** Unknown User: ${currencySymbol}${formattedMoney}`;
-      }),
-    );
-
-    // Update the embed
-    const updatedEmbed = new EmbedBuilder()
-      .setColor(interaction.settings.embedColor)
-      .setTitle(`${interaction.guild.name} Leaderboard`)
-      .setAuthor({ name: interaction.user.tag, iconURL: interaction.user.displayAvatarURL() })
-      .setDescription(displayedLeaderboard.join('\n') || 'None')
-      .setFooter({ text: `Page ${page} / ${maxPages} • ${userRankDisplay}` })
-      .setTimestamp();
-
-    // Update the row (buttons)
-    const updatedRow = new ActionRowBuilder().addComponents(
+    const newEmbed = await generateEmbed(page);
+    const newRow = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
         .setCustomId('prev_page')
         .setLabel('Previous')
@@ -199,8 +149,7 @@ exports.run = async (interaction) => {
         .setDisabled(page === maxPages),
     );
 
-    // Update the interaction response
-    await btnInteraction.update({ embeds: [updatedEmbed], components: [updatedRow] });
+    await btnInteraction.update({ embeds: [newEmbed], components: [newRow] });
   });
 
   collector.on('end', () => {
@@ -208,6 +157,6 @@ exports.run = async (interaction) => {
       new ButtonBuilder().setCustomId('prev_page').setLabel('Previous').setStyle(ButtonStyle.Primary).setDisabled(true),
       new ButtonBuilder().setCustomId('next_page').setLabel('Next').setStyle(ButtonStyle.Primary).setDisabled(true),
     );
-    message.edit({ components: [disabledRow] });
+    interaction.editReply({ components: [disabledRow] }).catch(() => null);
   });
 };

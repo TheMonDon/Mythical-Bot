@@ -1,7 +1,5 @@
 const { EmbedBuilder, SlashCommandBuilder, InteractionContextType } = require('discord.js');
-const { QuickDB } = require('quick.db');
 const { Duration } = require('luxon');
-const db = new QuickDB();
 
 exports.conf = {
   permLevel: 'User',
@@ -107,14 +105,19 @@ exports.run = async (interaction) => {
     [interaction.guild.id, interaction.user.id, 'work', cooldown],
   );
 
-  const oldBalance = BigInt(
-    (await db.get(`servers.${interaction.guild.id}.users.${interaction.member.id}.economy.cash`)) ||
-      economyRows[0]?.start_balance ||
-      0,
+  await interaction.client.db.execute(
+    /* sql */
+    `
+      INSERT INTO
+        economy_balances (server_id, user_id, cash)
+      VALUES
+        (?, ?, ?) ON DUPLICATE KEY
+      UPDATE cash = cash +
+      VALUES
+        (cash)
+    `,
+    [interaction.guild.id, interaction.member.id, amount.toString()],
   );
-
-  const newBalance = oldBalance + BigInt(amount);
-  await db.set(`servers.${interaction.guild.id}.users.${interaction.member.id}.economy.cash`, newBalance.toString());
 
   embed
     .setColor(interaction.settings.embedSuccessColor)
