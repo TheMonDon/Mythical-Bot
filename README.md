@@ -23,7 +23,7 @@ Mythical-Bot is a multi-utility Discord bot designed for server management and e
 
 - 🤖 **Invite Bot** — [cisn.xyz/mythical](https://cisn.xyz/Mythical)
 - 🗳 **Top.gg Page** — Coming Soon™️
-- 📚 **Commands List** — [cisn.xyz/commands](https://mythical.cisn.xyz/commands)
+- 📚 **Commands List** — [mythical.cisn.xyz/commands](https://mythical.cisn.xyz/commands)
 - 💬 **Support Server** — [cisn.xyz/support](https://cisn.xyz/Support)
 - 🧑‍💻 **GitHub Repository** — [TheMonDon/Mythical-Bot](https://github.com/TheMonDon/Mythical-Bot)
 
