@@ -52,6 +52,7 @@ class Balance extends Command {
       `,
       [msg.guild.id],
     );
+    const currencySymbol = economyRows[0]?.symbol || '$';
 
     const [balanceRows] = await this.client.db.execute(
       /* sql */ `
@@ -69,8 +70,6 @@ class Balance extends Command {
     const cash = BigInt(balanceRows[0]?.cash ?? economyRows[0]?.start_balance ?? 0);
     const bank = BigInt(balanceRows[0]?.bank ?? 0);
     const netWorth = cash + bank;
-
-    const currencySymbol = economyRows[0]?.symbol || '$';
 
     function formatCurrency(amount, symbol) {
       if (amount < 0) {

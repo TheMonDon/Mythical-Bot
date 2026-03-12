@@ -13,7 +13,7 @@ class CreateItem extends Command {
       usage: 'create-item [item name]',
       longDescription:
         'Use this command without any arguments to be guided through every option, and type `cancel` at any point to stop. \nUse this command, with the item name, to create a "simple" item you can edit later.',
-      aliases: ['createitem', 'new-item', 'item-create'],
+      aliases: ['createitem', 'new-item', 'item-create', 'item-setup'],
       permLevel: 'Administrator',
       guildOnly: true,
     });
@@ -398,7 +398,7 @@ class CreateItem extends Command {
     });
 
     await message.edit({
-      content: `**${number}.** How much stock of this item will there be? \nIf unlimited, just reply skip or infinity.`,
+      content: `**${number}.** How much stock of this item will there be? \nIf unlimited, just reply \`skip\` or \`infinity\`.`,
       embeds: [embed],
     });
 
@@ -733,7 +733,7 @@ class CreateItem extends Command {
         .awaitMessages({
           filter,
           max: 1,
-          time: 120000,
+          time: 300000,
           errors: ['time'],
         })
         .catch(() => null);

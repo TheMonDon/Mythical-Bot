@@ -28,7 +28,19 @@ class ItemInfo extends Command {
       return this.client.util.errorEmbed(msg, 'That item does not exist in the store.');
     }
 
-    const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
+    const [economyRows] = await this.client.db.execute(
+      /* sql */ `
+        SELECT
+          *
+        FROM
+          economy_settings
+        WHERE
+          server_id = ?
+      `,
+      [msg.guild.id],
+    );
+    const currencySymbol = economyRows[0]?.symbol || '$';
+
     const cost = currencySymbol + BigInt(item.cost).toLocaleString();
     const requiredBalance = item.requiredBalance
       ? currencySymbol + BigInt(item.requiredBalance).toLocaleString()

@@ -25,7 +25,19 @@ class Store extends Command {
       return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Incorrect Usage');
     }
 
-    const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
+    const [economyRows] = await this.client.db.execute(
+      /* sql */ `
+        SELECT
+          *
+        FROM
+          economy_settings
+        WHERE
+          server_id = ?
+      `,
+      [msg.guild.id],
+    );
+    const currencySymbol = economyRows[0]?.symbol || '$';
+
     const store = (await db.get(`servers.${msg.guild.id}.economy.store`)) || {};
 
     // Sort store by item cost

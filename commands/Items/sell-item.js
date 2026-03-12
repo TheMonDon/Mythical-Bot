@@ -48,7 +48,18 @@ class SellItem extends Command {
       return this.client.util.errorEmbed(msg, 'You do not have enough of this item in your inventory.');
     }
 
-    const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
+    const [economyRows] = await this.client.db.execute(
+      /* sql */ `
+        SELECT
+          *
+        FROM
+          economy_settings
+        WHERE
+          server_id = ?
+      `,
+      [msg.guild.id],
+    );
+    const currencySymbol = economyRows[0]?.symbol || '$';
 
     // Ask the seller for a price
     itemName = sellerInventory[itemIndex].name;
@@ -68,7 +79,21 @@ class SellItem extends Command {
       }
 
       // Check buyer's balance
-      let buyerCash = BigInt(await db.get(`servers.${msg.guild.id}.users.${member.id}.economy.cash`));
+      const [balanceRows] = await this.client.db.execute(
+        /* sql */ `
+          SELECT
+            cash,
+            bank
+          FROM
+            economy_balances
+          WHERE
+            server_id = ?
+            AND user_id = ?
+        `,
+        [msg.guild.id, member.id],
+      );
+      const buyerCash = BigInt(balanceRows[0]?.cash ?? economyRows[0]?.start_balance ?? 0);
+
       const totalCost = BigInt(price);
       if (buyerCash < totalCost) {
         const noMoneyEmbed = new EmbedBuilder().setDescription(`${member} cannot afford this.`);
@@ -93,12 +118,36 @@ class SellItem extends Command {
       confirmCollector.on('collect', async (confirmation) => {
         if (this.client.util.yes.includes(confirmation.content.toLowerCase())) {
           // Transfer money and update inventories
-          buyerCash -= totalCost;
-          await db.set(`servers.${msg.guild.id}.users.${member.id}.economy.cash`, buyerCash.toString());
 
-          let sellerCash = BigInt(await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`));
-          sellerCash += totalCost;
-          await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, sellerCash.toString());
+          // Update buyer's cash
+          await this.client.db.execute(
+            /* sql */
+            `
+              INSERT INTO
+                economy_balances (server_id, user_id, cash)
+              VALUES
+                (?, ?, ?) ON DUPLICATE KEY
+              UPDATE cash = cash -
+              VALUES
+                (cash)
+            `,
+            [msg.guild.id, member.id, totalCost.toString()],
+          );
+
+          // Update seller's cash
+          await this.client.db.execute(
+            /* sql */
+            `
+              INSERT INTO
+                economy_balances (server_id, user_id, cash)
+              VALUES
+                (?, ?, ?) ON DUPLICATE KEY
+              UPDATE cash = cash +
+              VALUES
+                (cash)
+            `,
+            [msg.guild.id, msg.member.id, totalCost.toString()],
+          );
 
           // Update seller's inventory
           sellerInventory[itemIndex].quantity -= quantity;

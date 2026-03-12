@@ -102,12 +102,12 @@ class UseItem extends Command {
     const memberCreated = DateTime.fromMillis(msg.author.createdAt.getTime()).toFormat('MMMM dd, yyyy');
 
     let replyMessage = item.replyMessage
-      .replace('{member.id}', msg.author.id)
-      .replace('{member.username}', msg.author.username)
-      .replace('{member.tag}', msg.author.tag)
-      .replace('{member.mention}', msg.author)
-      .replace('{member.created}', memberCreated)
-      .replace('{member.created.duration}', memberCreatedDuration);
+      .replace(/\{member\.id\}/gi, msg.author.id)
+      .replace(/\{member\.username\}/gi, msg.author.username)
+      .replace(/\{member\.tag\}/gi, msg.author.tag)
+      .replace(/\{member\.mention\}/gi, msg.author)
+      .replace(/\{member\.created\}/gi, memberCreated)
+      .replace(/\{member\.created\.duration\}/gi, memberCreatedDuration);
 
     // Replace Server
     // Calculate the duration since the server was created
@@ -126,11 +126,11 @@ class UseItem extends Command {
     const serverCreated = DateTime.fromMillis(msg.guild.createdAt.getTime()).toFormat('MMMM dd, yyyy');
 
     replyMessage = replyMessage
-      .replace('{server.id}', msg.guild.id)
-      .replace('{server.name}', msg.guild.name)
-      .replace('{server.members}', msg.guild.memberCount.toLocaleString())
-      .replace('{server.created}', serverCreated)
-      .replace('{server.created.duration}', serverCreatedDuration);
+      .replace(/\{server\.id\}/gi, msg.guild.id)
+      .replace(/\{server\.name\}/gi, msg.guild.name)
+      .replace(/\{server\.members\}/gi, msg.guild.memberCount.toLocaleString())
+      .replace(/\{server\.created\}/gi, serverCreated)
+      .replace(/\{server\.created\.duration\}/gi, serverCreatedDuration);
 
     const role =
       this.client.util.getRole(msg, item.roleGiven) ||
@@ -154,12 +154,12 @@ class UseItem extends Command {
       const roleCreated = DateTime.fromMillis(role.createdAt.getTime()).toFormat('MMMM dd, yyyy');
 
       replyMessage = replyMessage
-        .replace('{role.id}', role.id)
-        .replace('{role.name}', role.name)
-        .replace('{role.mention}', role)
-        .replace('{role.members}', role.members.size.toLocaleString())
-        .replace('{role.created}', roleCreated)
-        .replace('{role.created.duration}', roleCreatedDuration);
+        .replace(/\{role\.id\}/gi, role.id)
+        .replace(/\{role\.name\}/gi, role.name)
+        .replace(/\{role\.mention\}/gi, role)
+        .replace(/\{role\.members\}/gi, role.members.size.toLocaleString())
+        .replace(/\{role\.created\}/gi, roleCreated)
+        .replace(/\{role\.created\.duration\}/gi, roleCreatedDuration);
     }
 
     return msg.channel.send(replyMessage);

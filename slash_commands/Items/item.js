@@ -310,7 +310,18 @@ exports.run = async (interaction) => {
 
       await db.set(`servers.${interaction.guild.id}.users.${interaction.member.id}.economy.inventory`, userInventory);
 
-      const currencySymbol = (await db.get(`servers.${interaction.guild.id}.economy.symbol`)) || '$';
+      const [economyRows] = await interaction.client.db.execute(
+        /* sql */ `
+          SELECT
+            *
+          FROM
+            economy_settings
+          WHERE
+            server_id = ?
+        `,
+        [interaction.guild.id],
+      );
+      const currencySymbol = economyRows[0]?.symbol || '$';
       const itemCostQuantity = (itemCost * BigInt(quantity)).toLocaleString();
       const csCost = interaction.client.util.limitStringLength(currencySymbol + itemCostQuantity, 0, 700);
 
@@ -454,7 +465,18 @@ exports.run = async (interaction) => {
         return interaction.client.util.errorEmbed(interaction, 'That item does not exist in the store.');
       }
 
-      const currencySymbol = (await db.get(`servers.${interaction.guild.id}.economy.symbol`)) || '$';
+      const [economyRows] = await interaction.client.db.execute(
+        /* sql */ `
+          SELECT
+            *
+          FROM
+            economy_settings
+          WHERE
+            server_id = ?
+        `,
+        [interaction.guild.id],
+      );
+      const currencySymbol = economyRows[0]?.symbol || '$';
       const cost = currencySymbol + BigInt(item.cost).toLocaleString();
       const requiredBalance = item.requiredBalance
         ? currencySymbol + BigInt(item.requiredBalance).toLocaleString()
@@ -672,7 +694,18 @@ exports.run = async (interaction) => {
         );
       }
 
-      const currencySymbol = (await db.get(`servers.${interaction.guild.id}.economy.symbol`)) || '$';
+      const [economyRows] = await interaction.client.db.execute(
+        /* sql */ `
+          SELECT
+            *
+          FROM
+            economy_settings
+          WHERE
+            server_id = ?
+        `,
+        [interaction.guild.id],
+      );
+      const currencySymbol = economyRows[0]?.symbol || '$';
       itemName = sellerInventory[itemIndex].name;
 
       // Check buyer's balance
@@ -777,7 +810,18 @@ exports.run = async (interaction) => {
     case 'store': {
       let page = interaction.options.getInteger('page') || 1;
 
-      const currencySymbol = (await db.get(`servers.${interaction.guild.id}.economy.symbol`)) || '$';
+      const [economyRows] = await interaction.client.db.execute(
+        /* sql */ `
+          SELECT
+            *
+          FROM
+            economy_settings
+          WHERE
+            server_id = ?
+        `,
+        [interaction.guild.id],
+      );
+      const currencySymbol = economyRows[0]?.symbol || '$';
       const store = (await db.get(`servers.${interaction.guild.id}.economy.store`)) || {};
 
       // Sort store by item cost
@@ -974,12 +1018,12 @@ exports.run = async (interaction) => {
       const memberCreated = DateTime.fromMillis(interaction.user.createdAt.getTime()).toFormat('MMMM dd, yyyy');
 
       let replyMessage = item.replyMessage
-        .replace('{member.id}', interaction.user.id)
-        .replace('{member.username}', interaction.user.username)
-        .replace('{member.tag}', interaction.user.tag)
-        .replace('{member.mention}', interaction.user)
-        .replace('{member.created}', memberCreated)
-        .replace('{member.created.duration}', memberCreatedDuration);
+        .replace(/\{member\.id\}/gi, interaction.user.id)
+        .replace(/\{member\.username\}/gi, interaction.user.username)
+        .replace(/\{member\.tag\}/gi, interaction.user.tag)
+        .replace(/\{member\.mention\}/gi, interaction.user)
+        .replace(/\{member\.created\}/gi, memberCreated)
+        .replace(/\{member\.created\.duration\}/gi, memberCreatedDuration);
 
       // Replace Server
       // Calculate the duration since the server was created
@@ -998,11 +1042,11 @@ exports.run = async (interaction) => {
       const serverCreated = DateTime.fromMillis(interaction.guild.createdAt.getTime()).toFormat('MMMM dd, yyyy');
 
       replyMessage = replyMessage
-        .replace('{server.id}', interaction.guild.id)
-        .replace('{server.name}', interaction.guild.name)
-        .replace('{server.members}', interaction.guild.memberCount.toLocaleString())
-        .replace('{server.created}', serverCreated)
-        .replace('{server.created.duration', serverCreatedDuration);
+        .replace(/\{server\.id\}/gi, interaction.guild.id)
+        .replace(/\{server\.name\}/gi, interaction.guild.name)
+        .replace(/\{server\.members\}/gi, interaction.guild.memberCount.toLocaleString())
+        .replace(/\{server\.created\}/gi, serverCreated)
+        .replace(/\{server\.created\.duration\}/gi, serverCreatedDuration);
 
       const role =
         interaction.client.util.getRole(interaction, item.roleGiven) ||
@@ -1026,12 +1070,12 @@ exports.run = async (interaction) => {
         const roleCreated = DateTime.fromMillis(role.createdAt.getTime()).toFormat('MMMM dd, yyyy');
 
         replyMessage = replyMessage
-          .replace('{role.id}', role.id)
-          .replace('{role.name}', role.name)
-          .replace('{role.mention}', role)
-          .replace('{role.members}', role.members.size.toLocaleString())
-          .replace('{role.created}', roleCreated)
-          .replace('{role.created.duration}', roleCreatedDuration);
+          .replace(/\{role\.id\}/gi, role.id)
+          .replace(/\{role\.name\}/gi, role.name)
+          .replace(/\{role\.mention\}/gi, role)
+          .replace(/\{role\.members\}/gi, role.members.size.toLocaleString())
+          .replace(/\{role\.created\}/gi, roleCreated)
+          .replace(/\{role\.created\.duration\}/gi, roleCreatedDuration);
       }
 
       return interaction.editReply(replyMessage);

@@ -43,7 +43,33 @@ class BuyItem extends Command {
 
     const item = store[itemKey];
     const itemCost = BigInt(item.cost);
-    let userCash = BigInt(await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`));
+
+    const [economyRows] = await this.client.db.execute(
+      /* sql */ `
+        SELECT
+          *
+        FROM
+          economy_settings
+        WHERE
+          server_id = ?
+      `,
+      [msg.guild.id],
+    );
+    const currencySymbol = economyRows[0]?.symbol || '$';
+
+    const [balanceRows] = await this.client.db.execute(
+      /* sql */ `
+        SELECT
+          cash
+        FROM
+          economy_balances
+        WHERE
+          server_id = ?
+          AND user_id = ?
+      `,
+      [msg.guild.id, msg.member.id],
+    );
+    const userCash = BigInt(balanceRows[0]?.cash ?? economyRows[0]?.start_balance ?? 0);
     if (userCash < itemCost * BigInt(quantity)) return msg.reply('You do not have enough money to buy this item.');
 
     if (item.stock && item.stock < quantity) {
@@ -85,8 +111,20 @@ class BuyItem extends Command {
     }
 
     // Deduct the cost from the user's cash
-    userCash = userCash - itemCost * BigInt(quantity);
-    await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.cash`, userCash.toString());
+    const amount = itemCost * BigInt(quantity);
+    await this.client.db.execute(
+      /* sql */
+      `
+        INSERT INTO
+          economy_balances (server_id, user_id, cash)
+        VALUES
+          (?, ?, ?) ON DUPLICATE KEY
+        UPDATE cash = cash -
+        VALUES
+          (cash)
+      `,
+      [msg.guild.id, msg.member.id, amount.toString()],
+    );
 
     if (!item.inventory) {
       if (item.roleGiven) {
@@ -118,12 +156,12 @@ class BuyItem extends Command {
       const memberCreated = DateTime.fromMillis(msg.author.createdAt.getTime()).toFormat('MMMM dd, yyyy');
 
       let replyMessage = item.replyMessage
-        .replace('{member.id}', msg.author.id)
-        .replace('{member.username}', msg.author.username)
-        .replace('{member.tag}', msg.author.tag)
-        .replace('{member.mention}', msg.author)
-        .replace('{member.created}', memberCreated)
-        .replace('{member.created.duration}', memberCreatedDuration);
+        .replace(/\{member\.id\}/gi, msg.author.id)
+        .replace(/\{member\.username\}/gi, msg.author.username)
+        .replace(/\{member\.tag\}/gi, msg.author.tag)
+        .replace(/\{member\.mention\}/gi, msg.author.toString())
+        .replace(/\{member\.created\}/gi, memberCreated)
+        .replace(/\{member\.created\.duration\}/gi, memberCreatedDuration);
 
       // Replace Server
       // Calculate the duration since the server was created
@@ -142,11 +180,11 @@ class BuyItem extends Command {
       const serverCreated = DateTime.fromMillis(msg.guild.createdAt.getTime()).toFormat('MMMM dd, yyyy');
 
       replyMessage = replyMessage
-        .replace('{server.id}', msg.guild.id)
-        .replace('{server.name}', msg.guild.name)
-        .replace('{server.members}', msg.guild.memberCount.toLocaleString())
-        .replace('{server.created}', serverCreated)
-        .replace('{server.created.duration}', serverCreatedDuration);
+        .replace(/\{server\.id\}/gi, msg.guild.id)
+        .replace(/\{server\.name\}/gi, msg.guild.name)
+        .replace(/\{server\.members\}/gi, msg.guild.memberCount.toLocaleString())
+        .replace(/\{server\.created\}/gi, serverCreated)
+        .replace(/\{server\.created\.duration\}/gi, serverCreatedDuration);
 
       const role =
         this.client.util.getRole(msg, item.roleGiven) ||
@@ -170,12 +208,12 @@ class BuyItem extends Command {
         const roleCreated = DateTime.fromMillis(role.createdAt.getTime()).toFormat('MMMM dd, yyyy');
 
         replyMessage = replyMessage
-          .replace('{role.id}', role.id)
-          .replace('{role.name}', role.name)
-          .replace('{role.mention}', role)
-          .replace('{role.members}', role.members.size.toLocaleString())
-          .replace('{role.created}', roleCreated)
-          .replace('{role.created.duration}', roleCreatedDuration);
+          .replace(/\{role\.id\}/gi, role.id)
+          .replace(/\{role\.name\}/gi, role.name)
+          .replace(/\{role\.mention\}/gi, role)
+          .replace(/\{role\.members\}/gi, role.members.size.toLocaleString())
+          .replace(/\{role\.created\}/gi, roleCreated)
+          .replace(/\{role\.created\.duration\}/gi, roleCreatedDuration);
       }
       return msg.channel.send(replyMessage);
     }
@@ -205,7 +243,6 @@ class BuyItem extends Command {
 
     await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.inventory`, userInventory);
 
-    const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
     const itemCostQuantity = (itemCost * BigInt(quantity)).toLocaleString();
     const csCost = this.client.util.limitStringLength(currencySymbol + itemCostQuantity, 0, 700);
 
