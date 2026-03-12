@@ -1,7 +1,5 @@
 const Command = require('../../base/Command.js');
 const { EmbedBuilder } = require('discord.js');
-const { QuickDB } = require('quick.db');
-const db = new QuickDB();
 
 class Kick extends Command {
   constructor(client) {
@@ -18,10 +16,10 @@ class Kick extends Command {
 
   async run(msg, args) {
     if (msg.guild.members.me.permissions.has('ManageMessages')) msg.delete();
-    if (!msg.guild.members.me.permissions.has('KickMembers'))
+    if (!msg.guild.members.me.permissions.has('KickMembers')) {
       return this.client.util.errorEmbed(msg, 'The bot is missing the Kick Members permission.');
+    }
 
-    const logChan = await db.get(`servers.${msg.guild.id}.logs.channel`);
     const kickMem = await this.client.util.getMember(msg, args[0]);
     if (!kickMem) return this.client.util.errorEmbed(msg, 'Member is either not in server or is invalid.');
     if (!kickMem.kickable) return this.client.util.errorEmbed(msg, 'The member is not kickable by the bot.');
@@ -31,6 +29,22 @@ class Kick extends Command {
     const reason = args.join(' ');
 
     kickMem.kick(reason);
+
+    const [logRows] = await this.client.db.execute(
+      /* sql */ `
+        SELECT
+          channel_id,
+          member_kicked,
+          no_log_channels
+        FROM
+          log_settings
+        WHERE
+          server_id = ?
+      `,
+      [msg.guild.id],
+    );
+    const logChannelID = logRows[0].channel_id;
+    const logSystem = logRows[0].member_kicked;
 
     const em = new EmbedBuilder()
       .setTitle('User Kicked')
@@ -44,7 +58,7 @@ class Kick extends Command {
       .setFooter({ text: `User ID: ${kickMem.id}` })
       .setTimestamp();
 
-    if (logChan) {
+    if (logRows.length && logChannelID && logSystem === 1) {
       const em2 = new EmbedBuilder()
         .setTitle('User Kicked')
         .setColor('#FFA500')
@@ -52,7 +66,7 @@ class Kick extends Command {
         .setDescription('Full info posted in the log channel.');
 
       const reply = await msg.channel.send({ embeds: [em2] });
-      msg.guild.channels.cache.get(logChan).send({ embeds: [em] });
+      msg.guild.channels.cache.get(logChannelID).send({ embeds: [em] });
       setTimeout(() => {
         reply.delete();
       }, 30000);

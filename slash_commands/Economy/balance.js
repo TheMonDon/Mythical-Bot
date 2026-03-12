@@ -1,6 +1,4 @@
 const { EmbedBuilder, SlashCommandBuilder, InteractionContextType } = require('discord.js');
-const { QuickDB } = require('quick.db');
-const db = new QuickDB();
 
 exports.conf = {
   permLevel: 'User',
@@ -71,31 +69,32 @@ exports.run = async (interaction) => {
   let csNetWorthAmount = formatCurrency(netWorth, currencySymbol);
   csNetWorthAmount = interaction.client.util.limitStringLength(csNetWorthAmount, 0, 1024);
 
-  // Fetch all users data to find the rank
-  const usersData = (await db.get(`servers.${interaction.guildId}.users`)) || {};
-  const leaderboard = [];
+  const [rows] = await interaction.client.db.execute(
+    /* sql */
+    `
+      SELECT
+        rank
+      FROM
+        (
+          SELECT
+            user_id,
+            RANK() OVER (
+              ORDER BY
+                (cash + bank) DESC
+            ) AS rank
+          FROM
+            economy_balances
+          WHERE
+            server_id = ?
+        ) ranked
+      WHERE
+        user_id = ?
+    `,
+    [interaction.guild.id, mem.id],
+  );
 
-  // Cache users and add them to the leaderboard
-  for (const userId in usersData) {
-    try {
-      const user = await interaction.client.users.cache.get(userId);
-      if (user) {
-        const userCash = BigInt(usersData[userId].economy.cash || economyRows[0]?.start_balance || 0);
-        const userBank = BigInt(usersData[userId].economy.bank || economyRows[0]?.start_balance || 0);
-        const userMoney = userCash + userBank;
-        leaderboard.push({ user: user.tag, userId: user.id, money: userMoney });
-      }
-    } catch (err) {
-      console.error(`Leaderboard: ${err}`);
-    }
-  }
-
-  // Sort the leaderboard
-  const sortedLeaderboard = leaderboard.sort((a, b) => (b.money > a.money ? 1 : -1));
-
-  // Find the user's rank
-  const userRank = sortedLeaderboard.findIndex((entry) => entry.userId === mem.id) + 1;
-  const userRankDisplay = userRank > 0 ? `Leaderboard Rank: ${getOrdinalSuffix(userRank)}` : 'Not on Leaderboard';
+  const userRank = rows[0]?.rank ?? null;
+  const userRankDisplay = userRank ? `Leaderboard Rank: ${getOrdinalSuffix(userRank)}` : 'Not on Leaderboard';
 
   const embed = new EmbedBuilder()
     .setAuthor({ name: mem.user?.tag || mem.username, iconURL: mem.user?.displayAvatarURL() || mem.displayAvatarURL() })

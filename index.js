@@ -899,6 +899,8 @@ const loadMysql = async () => {
         member_join BOOLEAN DEFAULT FALSE,
         member_leave BOOLEAN DEFAULT FALSE,
         member_timeout BOOLEAN DEFAULT FALSE,
+        member_kicked BOOLEAN DEFAULT FALSE,
+        member_banned BOOLEAN DEFAULT FALSE,
         message_deleted BOOLEAN DEFAULT FALSE,
         message_updated BOOLEAN DEFAULT FALSE,
         role_created BOOLEAN DEFAULT FALSE,

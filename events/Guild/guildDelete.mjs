@@ -1,6 +1,3 @@
-import { QuickDB } from 'quick.db';
-const db = new QuickDB();
-
 export async function run(client, guild) {
   // Wait 1 second to try and solve guild somehow being undefined
   client.util.wait(1000);
@@ -12,8 +9,6 @@ export async function run(client, guild) {
       );
       client.logger.log(`Left guild: ${guild.name} (${guild.id}) with ${guild.memberCount} members`);
     }
-
-    await db.set(`servers.${guild.id}.leave_timestamp`, Date.now());
 
     const timestamp = Date.now();
     await client.db.execute(

@@ -1,6 +1,4 @@
 const { SlashCommandBuilder, InteractionContextType, EmbedBuilder } = require('discord.js');
-const { QuickDB } = require('quick.db');
-const db = new QuickDB();
 
 exports.conf = {
   permLevel: 'Administrator',
@@ -47,23 +45,46 @@ exports.run = async (interaction) => {
     .setColor(interaction.settings.embedColor)
     .setAuthor({ name: interaction.member.displayName, iconURL: interaction.member.displayAvatarURL() });
 
+  const [autoRoleRows] = await interaction.client.db.execute(
+    /* sql */ `
+      SELECT
+        roles
+      FROM
+        auto_roles
+      WHERE
+        server_id = ?
+    `,
+    [interaction.guild.id],
+  );
+  let autoRoles = autoRoleRows[0]?.roles ? JSON.parse(autoRoleRows[0].roles) : [];
+
   switch (type) {
     case 'add': {
-      const autoRoles = (await db.get(`servers.${interaction.guild.id}.autoRoles`)) || [];
       if (autoRoles.includes(role.id)) {
         embed.setDescription('This role is already set as an auto-role.');
         return interaction.editReply({ embeds: [embed] });
       }
 
       autoRoles.push(role.id);
-      await db.set(`servers.${interaction.guild.id}.autoRoles`, autoRoles);
+      await interaction.client.db.execute(
+        /* sql */
+        `
+          INSERT INTO
+            auto_roles (server_id, roles)
+          VALUES
+            (?, ?) ON DUPLICATE KEY
+          UPDATE roles =
+          VALUES
+            (roles)
+        `,
+        [interaction.guild.id, JSON.stringify(autoRoles)],
+      );
 
       embed.setDescription(`The ${role} role will be given to all new members when they join the server.`);
       return interaction.editReply({ embeds: [embed] });
     }
 
     case 'remove': {
-      let autoRoles = (await db.get(`servers.${interaction.guild.id}.autoRoles`)) || [];
       if (!autoRoles.includes(role.id)) {
         embed
           .setDescription(`The ${role} role is not as as an auto-role.`)
@@ -72,15 +93,25 @@ exports.run = async (interaction) => {
       }
 
       autoRoles = autoRoles.filter((r) => r !== role.id);
-      await db.set(`servers.${interaction.guild.id}.autoRoles`, autoRoles);
+      await interaction.client.db.execute(
+        /* sql */
+        `
+          INSERT INTO
+            auto_roles (server_id, roles)
+          VALUES
+            (?, ?) ON DUPLICATE KEY
+          UPDATE roles =
+          VALUES
+            (roles)
+        `,
+        [interaction.guild.id, JSON.stringify(autoRoles)],
+      );
 
       embed.setDescription(`The ${role} role will no longer be given to new members when they join the server.`);
       return interaction.editReply({ embeds: [embed] });
     }
 
     case 'list': {
-      const autoRoles = (await db.get(`servers.${interaction.guild.id}.autoRoles`)) || [];
-
       // Fetch all roles to ensure uncached roles are included
       const allRoles = await interaction.guild.roles.fetch();
 
@@ -89,7 +120,19 @@ exports.run = async (interaction) => {
 
       // Update the database if roles were removed
       if (validRoles.length !== autoRoles.length) {
-        await db.set(`servers.${interaction.guild.id}.autoRoles`, validRoles);
+        await interaction.client.db.execute(
+          /* sql */
+          `
+            INSERT INTO
+              auto_roles (server_id, roles)
+            VALUES
+              (?, ?) ON DUPLICATE KEY
+            UPDATE roles =
+            VALUES
+              (roles)
+          `,
+          [interaction.guild.id, JSON.stringify(validRoles)],
+        );
       }
 
       // If no valid roles remain, send an appropriate message

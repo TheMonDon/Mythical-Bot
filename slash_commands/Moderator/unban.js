@@ -1,6 +1,4 @@
 const { EmbedBuilder, SlashCommandBuilder, InteractionContextType, MessageFlags } = require('discord.js');
-const { QuickDB } = require('quick.db');
-const db = new QuickDB();
 
 exports.conf = {
   permLevel: 'Moderator',
@@ -17,10 +15,9 @@ exports.commandData = new SlashCommandBuilder()
 
 exports.run = async (interaction) => {
   await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-  if (!interaction.guild.members.me.permissions.has('BanMembers'))
+  if (!interaction.guild.members.me.permissions.has('BanMembers')) {
     return interaction.editReply('The bot is missing Ban Members permission.');
-
-  const logChan = await db.get(`servers.${interaction.guild.id}.logs.channel`);
+  }
 
   // Regex to check if the input for userID is a number
   const regex = /\d+/g;
@@ -41,6 +38,22 @@ exports.run = async (interaction) => {
       return interaction.editReply(`An error occurred: ${err}`);
     });
 
+    const [logRows] = await interaction.client.db.execute(
+      /* sql */ `
+        SELECT
+          channel_id,
+          member_banned,
+          no_log_channels
+        FROM
+          log_settings
+        WHERE
+          server_id = ?
+      `,
+      [interaction.guild.id],
+    );
+    const logChannelID = logRows[0].channel_id;
+    const logSystem = logRows[0].member_banned;
+
     const embed = new EmbedBuilder()
       .setTitle('Member Unbanned')
       .setAuthor({ name: interaction.member.displayName, iconURL: interaction.member.displayAvatarURL() })
@@ -53,14 +66,14 @@ exports.run = async (interaction) => {
       .setFooter({ text: `ID: ${unbanP.id}` })
       .setTimestamp();
 
-    if (logChan) {
+    if (logRows.length && logChannelID && logSystem === 1) {
       const em2 = new EmbedBuilder()
         .setTitle('User unbanned')
         .setColor(successColor)
         .setAuthor({ name: interaction.member.displayName, iconURL: interaction.member.displayAvatarURL() })
         .setDescription('Full info posted in the log channel.');
 
-      interaction.guild.channels.cache.get(logChan).send({ embeds: [embed] });
+      interaction.guild.channels.cache.get(logChannelID).send({ embeds: [embed] });
       return interaction.editReply({ embeds: [em2] });
     } else {
       return interaction.editReply({ embeds: [embed] });

@@ -1,7 +1,5 @@
 const Command = require('../../base/Command.js');
 const { EmbedBuilder } = require('discord.js');
-const { QuickDB } = require('quick.db');
-const db = new QuickDB();
 
 class Unban extends Command {
   constructor(client) {
@@ -17,10 +15,9 @@ class Unban extends Command {
   }
 
   async run(msg, args) {
-    if (!msg.guild.members.me.permissions.has('BanMembers'))
+    if (!msg.guild.members.me.permissions.has('BanMembers')) {
       return msg.channel.send('The bot is missing Ban Members permission.');
-
-    const logChan = await db.get(`servers.${msg.guild.id}.logs.channel`);
+    }
 
     // Regex to check if the input for userID is a number
     const regex = /\d+/g;
@@ -29,7 +26,11 @@ class Unban extends Command {
     const reason = args.join(' ');
     const successColor = msg.settings.embedSuccessColor;
 
-    if (!userID.matches(regex)) return msg.channel.send(`Please provide a valid User ID. \nInput: ${userID}`);
+    if (!userID.matches(regex)) {
+      return msg.channel.send(
+        `Please provide a valid User ID. \nInput: ${this.client.util.clean(this.client, userID)}`,
+      );
+    }
     if (msg.guild.members.me.permissions.has('ManageMessages')) msg.delete();
 
     try {
@@ -42,6 +43,23 @@ class Unban extends Command {
       const unbanP = await msg.guild.members.unban(userID, { reason }).catch((err) => {
         return msg.channel.send(`An error occurred: ${err}`);
       });
+
+      const [logRows] = await this.client.db.execute(
+        /* sql */ `
+          SELECT
+            channel_id,
+            member_banned,
+            no_log_channels
+          FROM
+            log_settings
+          WHERE
+            server_id = ?
+        `,
+        [msg.guild.id],
+      );
+      const logChannelID = logRows[0].channel_id;
+      const logSystem = logRows[0].member_banned;
+
       const embed = new EmbedBuilder()
         .setTitle('Member Unbanned')
         .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
@@ -54,14 +72,14 @@ class Unban extends Command {
         .setFooter({ text: `ID: ${unbanP.id}` })
         .setTimestamp();
 
-      if (logChan) {
+      if (logRows.length && logChannelID && logSystem === 1) {
         const em2 = new EmbedBuilder()
           .setTitle('User unbanned')
           .setColor(successColor)
           .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
           .setDescription('Full info posted in the log channel.');
 
-        msg.guild.channels.cache.get(logChan).send({ embeds: [embed] });
+        msg.guild.channels.cache.get(logChannelID).send({ embeds: [embed] });
         return msg.channel.send({ embeds: [em2] }).then((msg) => {
           setTimeout(() => msg.delete(), 30000);
         });

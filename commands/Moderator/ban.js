@@ -1,7 +1,5 @@
 const Command = require('../../base/Command.js');
 const { EmbedBuilder } = require('discord.js');
-const { QuickDB } = require('quick.db');
-const db = new QuickDB();
 
 class Ban extends Command {
   constructor(client) {
@@ -21,7 +19,6 @@ class Ban extends Command {
       return this.client.util.errorEmbed(msg, 'The bot is missing Ban Members permission.');
 
     const successColor = msg.settings.embedSuccessColor;
-    const logChan = await db.get(`servers.${msg.guild.id}.logs.channel`);
     const regex = /^\d{17,19}$/;
 
     let banMem = await this.client.util.getMember(msg, args[0]);
@@ -60,7 +57,23 @@ class Ban extends Command {
 
     msg.guild.members.ban(banMem, { reason });
 
-    if (logChan) {
+    const [logRows] = await this.client.db.execute(
+      /* sql */ `
+        SELECT
+          channel_id,
+          member_banned,
+          no_log_channels
+        FROM
+          log_settings
+        WHERE
+          server_id = ?
+      `,
+      [msg.guild.id],
+    );
+    const logChannelID = logRows[0].channel_id;
+    const logSystem = logRows[0].member_banned;
+
+    if (logRows.length && logChannelID && logSystem === 1) {
       // Embed for reply
       const em2 = new EmbedBuilder()
         .setTitle('User Banned')
@@ -69,7 +82,7 @@ class Ban extends Command {
         .setDescription('Full info posted in the log channel.');
 
       const reply = await msg.channel.send({ embeds: [em2] });
-      msg.guild.channels.cache.get(logChan).send({ embeds: [em] });
+      msg.guild.channels.cache.get(logChannelID).send({ embeds: [em] });
 
       setTimeout(() => {
         reply.delete();

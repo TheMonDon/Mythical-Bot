@@ -8,8 +8,6 @@ const {
   MessageFlags,
 } = require('discord.js');
 const { Blackjack } = require('blackjack-n-deck');
-const { QuickDB } = require('quick.db');
-const db = new QuickDB();
 
 exports.conf = {
   permLevel: 'User',
@@ -203,8 +201,20 @@ exports.run = async (interaction) => {
         { name: '**Dealer Hand**', value: `${dealerCards} \n\nScore: ${bj.dealer.score}`, inline: true },
       ]);
 
-    const newAmount = cash + winAmount;
-    await db.set(`servers.${interaction.guild.id}.users.${interaction.member.id}.economy.cash`, newAmount.toString());
+    await interaction.client.db.execute(
+      /* sql */
+      `
+        INSERT INTO
+          economy_balances (server_id, user_id, cash)
+        VALUES
+          (?, ?, ?) ON DUPLICATE KEY
+        UPDATE cash = cash +
+        VALUES
+          (cash)
+      `,
+      [interaction.guild.id, interaction.member.id, winAmount.toString()],
+    );
+
     return interaction.editReply({ embeds: [embed] });
   }
 
