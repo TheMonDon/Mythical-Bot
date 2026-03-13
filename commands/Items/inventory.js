@@ -1,7 +1,5 @@
 const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags } = require('discord.js');
 const Command = require('../../base/Command.js');
-const { QuickDB } = require('quick.db');
-const db = new QuickDB();
 
 class Inventory extends Command {
   constructor(client) {
@@ -31,7 +29,18 @@ class Inventory extends Command {
     }
     mem = mem.user ? mem.user : mem;
 
-    const userInventory = (await db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.inventory`)) || [];
+    const connection = await this.client.db.getConnection();
+    const [invRows] = await connection.execute(
+      /* sql */ `
+        SELECT inventory
+        FROM user_inventories
+        WHERE server_id = ?
+          AND user_id = ?
+      `,
+      [msg.guild.id, mem.id],
+    );
+    const userInventory = invRows[0]?.inventory || [];
+    connection.release();
     const itemsPerPage = 10;
     const maxPages = Math.ceil(userInventory.length / itemsPerPage) || 1;
 

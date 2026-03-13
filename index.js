@@ -838,6 +838,15 @@ const loadMysql = async () => {
     `);
 
     await connection.execute(/* sql */ `
+      CREATE TABLE IF NOT EXISTS user_inventories (
+        server_id VARCHAR(30) NOT NULL,
+        user_id VARCHAR(30) NOT NULL,
+        inventory JSON,
+        PRIMARY KEY (server_id, user_id)
+      ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+    `);
+
+    await connection.execute(/* sql */ `
       CREATE TABLE IF NOT EXISTS user_playlists (
         user_id VARCHAR(30) PRIMARY KEY,
         playlists JSON NOT NULL
