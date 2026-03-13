@@ -6,3 +6,6 @@ config.js
 testing.js
 data/
 *.sqlite
+
+#Ignore vscode AI rules
+.github/instructions/codacy.instructions.md
