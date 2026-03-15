@@ -339,23 +339,16 @@ export async function run(client) {
 
   // Delete expired items scheduler
   scheduleJob('DeleteExpiredItems', '* * * * *', async () => {
-    const servers = (await db.get('servers')) || {};
+    try {
+      const now = Date.now();
 
-    for (const [serverId, serverData] of Object.entries(servers)) {
-      const store = serverData?.economy?.store || {};
-      let updated = false;
-
-      for (const [itemName, itemData] of Object.entries(store)) {
-        if (itemData.timeRemaining && itemData.timeRemaining <= Date.now()) {
-          delete store[itemName]; // Remove expired item
-          updated = true;
-        }
-      }
-
-      // Save only if an item was deleted
-      if (updated) {
-        await db.set(`servers.${serverId}.economy.store`, store);
-      }
+      // 1. Delete expired items from the STORE
+      await this.client.db.execute(
+        'DELETE FROM economy_store WHERE time_remaining IS NOT NULL AND time_remaining <= ?',
+        [now],
+      );
+    } catch (err) {
+      console.error('[Scheduler Error] Failed to delete expired items:', err);
     }
   });
 }
