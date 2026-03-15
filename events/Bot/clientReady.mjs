@@ -341,8 +341,13 @@ export async function run(client) {
       const now = Date.now();
 
       // 1. Delete expired items from the STORE
-      await this.client.db.execute(
-        'DELETE FROM economy_store WHERE time_remaining IS NOT NULL AND time_remaining <= ?',
+      await client.db.execute(
+        /* sql */ `
+          DELETE FROM economy_store
+          WHERE
+            time_remaining IS NOT NULL
+            AND time_remaining <= ?
+        `,
         [now],
       );
     } catch (err) {
