@@ -572,8 +572,8 @@ exports.run = async (interaction) => {
           );
       }
 
-      const timeRemainingString = item.timeRemaining
-        ? `Deleted <t:${Math.floor(item.timeRemaining / 1000)}:R>`
+      const timeRemainingString = item.time_remaining
+        ? `Deleted <t:${Math.floor(item.time_remaining / 1000)}:R>`
         : 'No time limit';
 
       const [economyRows] = await interaction.client.db.execute(

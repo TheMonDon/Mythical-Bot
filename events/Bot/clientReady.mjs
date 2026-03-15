@@ -1,12 +1,10 @@
 import pkg from '../../config.js';
 import { EmbedBuilder, ChannelType, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
-import { QuickDB } from 'quick.db';
 import express from 'express';
 import cors from 'cors';
 import { scheduleJob } from 'node-schedule';
 import { Client } from 'botpanel.js';
 const { BotPanelID, BotPanelSecret, Port } = pkg;
-const db = new QuickDB();
 
 export async function run(client) {
   if (!client.settings.has('default')) {
