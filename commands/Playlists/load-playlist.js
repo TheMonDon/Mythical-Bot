@@ -71,16 +71,9 @@ class LoadPlaylist extends Command {
       player.queue.add(userPlaylist.tracks);
 
       const tracksDuration = userPlaylist.tracks.reduce((acc, track) => acc + (track.info.duration || 0), 0);
-      const duration = Duration.fromMillis(tracksDuration).shiftTo(
-        'years',
-        'months',
-        'days',
-        'hours',
-        'minutes',
-        'seconds',
-      );
-      const roundedDuration = duration.set({ seconds: Math.floor(duration.seconds) });
-      const totalDuration = roundedDuration.toHuman({ showZeros: false });
+      const totalDuration = Duration.fromMillis(tracksDuration)
+        .shiftTo('years', 'months', 'days', 'hours', 'minutes', 'seconds')
+        .toHuman({ maximumFractionDigits: 2, showZeros: false });
 
       const em = new EmbedBuilder()
         .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })

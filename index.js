@@ -363,16 +363,9 @@ const loadLavalink = async () => {
       try {
         if (player.repeatMode === 'track') return;
 
-        const duration = Duration.fromMillis(track.info.duration || 0).shiftTo(
-          'years',
-          'months',
-          'days',
-          'hours',
-          'minutes',
-          'seconds',
-        );
-        const rounded = duration.set({ seconds: Math.floor(duration.seconds) });
-        const durationString = rounded.toHuman({ showZeros: false });
+        const durationString = Duration.fromMillis(track.info.duration || 0)
+          .shiftTo('years', 'months', 'days', 'hours', 'minutes', 'seconds')
+          .toHuman({ maximumFractionDigits: 2, showZeros: false });
 
         let title = track.info.title;
         if (track.info.sourceName === 'youtube') {
@@ -834,6 +827,47 @@ const loadMysql = async () => {
         cash DECIMAL(65, 0) DEFAULT 0,
         bank DECIMAL(65, 0) DEFAULT 0,
         PRIMARY KEY (server_id, user_id)
+      ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+    `);
+
+    await connection.execute(/* sql */ `
+      CREATE TABLE IF NOT EXISTS economy_store (
+        server_id VARCHAR(30) NOT NULL,
+        item_id CHAR(36) NOT NULL,
+        item_name VARCHAR(200) NOT NULL,
+        cost DECIMAL(65, 0) DEFAULT 0,
+        description TEXT,
+        inventory TINYINT (1) DEFAULT 1,
+        time_remaining BIGINT DEFAULT NULL,
+        stock INT DEFAULT -1,
+        role_required VARCHAR(30) DEFAULT NULL,
+        role_given VARCHAR(30) DEFAULT NULL,
+        role_removed VARCHAR(30) DEFAULT NULL,
+        required_balance DECIMAL(65, 0) DEFAULT 0,
+        reply_message TEXT DEFAULT NULL,
+        PRIMARY KEY (server_id, item_name),
+        UNIQUE KEY (item_id)
+      ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+    `);
+
+    await connection.execute(/* sql */ `
+      CREATE TABLE IF NOT EXISTS economy_inventory (
+        server_id VARCHAR(30) NOT NULL,
+        user_id VARCHAR(30) NOT NULL,
+        item_id CHAR(36) NOT NULL,
+        item_name VARCHAR(200) NOT NULL,
+        quantity DECIMAL(65, 0) DEFAULT 0,
+        cost DECIMAL(65, 0) DEFAULT 0,
+        description TEXT,
+        inventory TINYINT (1) DEFAULT 1,
+        time_remaining BIGINT DEFAULT NULL,
+        stock INT DEFAULT -1,
+        role_required VARCHAR(30) DEFAULT NULL,
+        role_given VARCHAR(30) DEFAULT NULL,
+        role_removed VARCHAR(30) DEFAULT NULL,
+        required_balance DECIMAL(65, 0) DEFAULT 0,
+        reply_message TEXT DEFAULT NULL,
+        PRIMARY KEY (server_id, user_id, item_id)
       ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
     `);
 

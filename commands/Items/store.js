@@ -1,9 +1,13 @@
-const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags } = require('discord.js');
+const {
+  EmbedBuilder,
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  MessageFlags,
+  ComponentType,
+} = require('discord.js');
 const Command = require('../../base/Command.js');
 const { stripIndents } = require('common-tags');
-const { QuickDB } = require('quick.db');
-
-const db = new QuickDB();
 
 class Store extends Command {
   constructor(client) {
@@ -20,6 +24,7 @@ class Store extends Command {
 
   async run(msg, args) {
     let page = parseInt(args.join(' ')) || 1;
+    const itemsPerPage = 10;
 
     if (isNaN(page)) {
       return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Incorrect Usage');
@@ -28,7 +33,7 @@ class Store extends Command {
     const [economyRows] = await this.client.db.execute(
       /* sql */ `
         SELECT
-          *
+          symbol
         FROM
           economy_settings
         WHERE
@@ -38,36 +43,78 @@ class Store extends Command {
     );
     const currencySymbol = economyRows[0]?.symbol || '$';
 
-    const store = (await db.get(`servers.${msg.guild.id}.economy.store`)) || {};
+    // Get total item count to calculate max pages
+    const [countRows] = await this.client.db.execute(
+      /* sql */
+      `
+        SELECT
+          COUNT(*) AS count
+        FROM
+          economy_store
+        WHERE
+          server_id = ?
+      `,
+      [msg.guild.id],
+    );
+    const totalItems = countRows[0].count;
+    const maxPages = Math.ceil(totalItems / itemsPerPage) || 1;
 
-    // Sort store by item cost
-    const sortedStore = Object.entries(store).sort(([, itemInfoA], [, itemInfoB]) => itemInfoA.cost - itemInfoB.cost);
+    if (page > maxPages) page = maxPages;
+    if (page < 1) page = 1;
 
-    // Construct the message with item names
-    const itemDetails = sortedStore.map(([itemName, itemInfo]) => {
-      const csCost = currencySymbol + BigInt(itemInfo.cost).toLocaleString();
-      return {
-        name: `${this.client.util.limitStringLength(csCost, 0, 100)} - ${itemName}`,
-        value: `${itemInfo.description}`,
-        inline: false,
-      };
-    });
+    const generateStoreEmbed = async (currentPage) => {
+      const offset = (currentPage - 1) * itemsPerPage;
 
-    const maxPages = Math.ceil(itemDetails.length / 10) || 1;
+      // Fetch only the items for the current page, sorted by cost
+      const [rows] = await this.client.db.execute(
+        /* sql */
+        `
+          SELECT
+            item_name,
+            cost,
+            description
+          FROM
+            economy_store
+          WHERE
+            server_id = ?
+          ORDER BY
+            cost ASC
+          LIMIT
+            ?
+          OFFSET
+            ?
+        `,
+        [msg.guild.id, itemsPerPage, offset],
+      );
 
-    // Ensure page is within valid range
-    page = Math.max(1, Math.min(page, maxPages));
+      const embed = new EmbedBuilder()
+        .setColor(msg.settings.embedColor)
+        .setTitle(`${msg.guild.name} Store`)
+        .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
+        .setFooter({ text: `Page ${currentPage} / ${maxPages}` })
+        .setTimestamp();
 
-    let displayedStore = itemDetails.slice((page - 1) * 10, page * 10);
+      if (rows.length === 0) {
+        embed.setDescription(stripIndents`
+          The store is empty. Someone probably robbed it :shrug:
+          Add items to the store using \`${msg.settings.prefix}create-item\``);
+      } else {
+        const fields = rows.map((item) => {
+          const formattedCost = currencySymbol + BigInt(item.cost).toLocaleString();
+          return {
+            name: `${this.client.util.limitStringLength(formattedCost, 0, 100)} - ${item.item_name}`,
+            value: item.description || 'No description provided.',
+            inline: false,
+          };
+        });
+        embed.addFields(fields);
+      }
 
-    const embed = new EmbedBuilder()
-      .setColor(msg.settings.embedColor)
-      .setTitle(`${msg.guild.name} Store`)
-      .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
-      .addFields(displayedStore)
-      .setFooter({ text: `Page ${page} / ${maxPages}` })
-      .setTimestamp();
+      return embed;
+    };
 
+    // Initial Send
+    const embed = await generateStoreEmbed(page);
     const row = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
         .setCustomId('prev_page')
@@ -81,23 +128,13 @@ class Store extends Command {
         .setDisabled(page === maxPages),
     );
 
-    if (!itemDetails.length) {
-      const errorEmbed = new EmbedBuilder()
-        .setColor(msg.settings.embedColor)
-        .setTitle(`${msg.guild.name} Store`)
-        .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
-        .setDescription(
-          stripIndents`
-            The store is empty. Someone probably robbed it :shrug:
-            Add items to the store using the \`create-item\` command.`,
-        )
-        .setFooter({ text: `Page ${page} / ${maxPages}` });
-
-      return msg.channel.send({ embeds: [errorEmbed], components: [row] });
-    }
-
     const message = await msg.channel.send({ embeds: [embed], components: [row] });
-    const collector = message.createMessageComponentCollector({ time: 3600000 });
+
+    // Button Collector
+    const collector = message.createMessageComponentCollector({
+      componentType: ComponentType.Button,
+      time: 3600000,
+    });
 
     collector.on('collect', async (interaction) => {
       if (interaction.user.id !== msg.author.id) {
@@ -107,19 +144,7 @@ class Store extends Command {
       if (interaction.customId === 'prev_page') page--;
       if (interaction.customId === 'next_page') page++;
 
-      // Ensure page is within valid range
-      page = Math.max(1, Math.min(page, maxPages));
-
-      displayedStore = itemDetails.slice((page - 1) * 10, page * 10);
-
-      const updatedEmbed = new EmbedBuilder()
-        .setColor(msg.settings.embedColor)
-        .setTitle(`${msg.guild.name} Store`)
-        .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
-        .addFields(displayedStore)
-        .setFooter({ text: `Page ${page} / ${maxPages}` })
-        .setTimestamp();
-
+      const updatedEmbed = await generateStoreEmbed(page);
       const updatedRow = new ActionRowBuilder().addComponents(
         new ButtonBuilder()
           .setCustomId('prev_page')
@@ -145,7 +170,7 @@ class Store extends Command {
           .setDisabled(true),
         new ButtonBuilder().setCustomId('next_page').setLabel('Next').setStyle(ButtonStyle.Primary).setDisabled(true),
       );
-      message.edit({ components: [disabledRow] });
+      message.edit({ components: [disabledRow] }).catch(() => null);
     });
   }
 }

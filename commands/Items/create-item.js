@@ -1,7 +1,5 @@
 const Command = require('../../base/Command.js');
 const { EmbedBuilder } = require('discord.js');
-const { QuickDB } = require('quick.db');
-const db = new QuickDB();
 const { v4: uuidv4 } = require('uuid');
 
 class CreateItem extends Command {
@@ -22,48 +20,77 @@ class CreateItem extends Command {
   async run(msg, args) {
     let name = args.join(' ');
 
-    const store = (await db.get(`servers.${msg.guild.id}.economy.store`)) || {};
     const botMember = msg.guild.members.cache.get(this.client.user.id);
     const filter = (m) => m.author.id === msg.author.id;
-    const embed = new EmbedBuilder()
-      .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
-      .setColor(msg.settings.embedColor)
-      .setFooter({ text: 'Type cancel to quit.' })
-      .setTimestamp();
     let isValid = false;
     let collected;
     let messagesToDelete = [];
     let number = 1;
 
-    const storeSize = Object.keys(store).length;
-    if (storeSize > 50) {
-      return msg.channel.send(
-        'The store has reached the maximum number of items allowed (50). Please use `delete-item` command to delete some before creating more.',
+    // 2. Check current store size
+    const [countRows] = await this.client.db.execute(
+      /* sql */
+      `
+        SELECT
+          COUNT(*) AS count
+        FROM
+          economy_store
+        WHERE
+          server_id = ?
+      `,
+      [msg.guild.id],
+    );
+
+    if (countRows[0].count >= 50) {
+      return this.client.util.errorEmbed(
+        msg,
+        'The store has reached the maximum number of items allowed (50). Please delete some before creating more.',
       );
     }
 
-    const findItem = function (name) {
-      // Find the item in the store regardless of case
-      const item = Object.keys(store).find((key) => key.toLowerCase() === name.toLowerCase());
-      if (item) {
-        const itemEmbed = new EmbedBuilder()
-          .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
-          .setColor(msg.settings.embedErrorColor)
-          .setDescription('There is already an item with that name.');
-
-        return itemEmbed;
-      }
-      return false;
+    // Helper to check if an item name exists
+    const checkItemExists = async (itemName) => {
+      const [rows] = await this.client.db.execute(
+        /* sql */
+        `
+          SELECT
+            item_name
+          FROM
+            economy_store
+          WHERE
+            server_id = ?
+            AND LOWER(item_name) = LOWER(?)
+        `,
+        [msg.guild.id, itemName],
+      );
+      return rows.length > 0;
     };
 
+    const [economyRows] = await this.client.db.execute(
+      /* sql */ `
+        SELECT
+          *
+        FROM
+          economy_settings
+        WHERE
+          server_id = ?
+      `,
+      [msg.guild.id],
+    );
+    const currencySymbol = economyRows[0]?.symbol || '$';
+
+    const itemEmbed = new EmbedBuilder()
+      .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
+      .setColor(msg.settings.embedErrorColor)
+      .setDescription('There is already an item with that name.');
+
     if (name) {
-      const item = findItem(name);
-      if (item) return msg.channel.send({ embeds: [item] });
+      const item = await checkItemExists(name);
+      if (item) return msg.channel.send({ embeds: [itemEmbed] });
 
       const cost = 0;
-      const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
       const costString = currencySymbol + cost.toLocaleString();
-      const description = 'None provided';
+      const description = '<:transparent:1482197803999428709>';
       const inventory = true;
       const timeRemaining = null;
       const stock = null;
@@ -73,27 +100,13 @@ class CreateItem extends Command {
       const requiredBalance = null;
       const replyMessage = null;
 
-      store[name] = {
-        id: uuidv4(),
-        cost,
-        description,
-        inventory,
-        timeRemaining,
-        stock,
-        roleRequired,
-        roleGiven,
-        roleRemoved,
-        requiredBalance,
-        replyMessage,
-      };
-
       const finalEmbed = new EmbedBuilder()
         .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
         .setColor(msg.settings.embedColor)
         .addFields([
           { name: 'Name', value: name, inline: true },
           { name: 'Price', value: costString, inline: true },
-          { name: 'Description', value: 'None provided', inline: false },
+          { name: 'Description', value: '<:transparent:1482197803999428709>', inline: false },
           { name: 'Show in Inventory?', value: 'Yes', inline: true },
           { name: 'Time Remaining', value: 'No time limit', inline: true },
           { name: 'Stock Remaining', value: 'Infinity', inline: true },
@@ -105,12 +118,56 @@ class CreateItem extends Command {
         ])
         .setTimestamp();
 
-      await db.set(`servers.${msg.guild.id}.economy.store`, store);
+      await this.client.db.execute(
+        /* sql */
+        `
+          INSERT INTO
+            economy_store (
+              server_id,
+              item_id,
+              item_name,
+              cost,
+              description,
+              inventory,
+              time_remaining,
+              stock,
+              role_required,
+              role_given,
+              role_removed,
+              required_balance,
+              reply_message
+            )
+          VALUES
+            (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `,
+        [
+          msg.guild.id,
+          uuidv4(),
+          name,
+          cost.toString(),
+          description,
+          inventory ? 1 : 0,
+          timeRemaining,
+          stock ?? -1,
+          roleRequired,
+          roleGiven,
+          roleRemoved,
+          (requiredBalance || 0).toString(),
+          replyMessage || null,
+        ],
+      );
+
       return msg.channel.send({
         content: '✅ Item created successfully!',
         embeds: [finalEmbed],
       });
     }
+
+    const embed = new EmbedBuilder()
+      .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
+      .setColor(msg.settings.embedColor)
+      .setFooter({ text: 'Type cancel to quit.' })
+      .setTimestamp();
 
     // Add blank name field
     embed.addFields([{ name: 'Name', value: '​', inline: true }]);
@@ -138,13 +195,13 @@ class CreateItem extends Command {
       }
 
       name = collected.first().content;
-      const item = findItem(name);
+      const item = await checkItemExists(name);
 
       if (name.length > 200) {
         const invalidLengthMessage = await msg.channel.send('The name must be 200 characters or less in length.');
         messagesToDelete.push(invalidLengthMessage);
       } else if (item) {
-        const alreadyItemMessage = await msg.channel.send('There is already an item with that name.');
+        const alreadyItemMessage = await msg.channel.send({ embeds: [itemEmbed] });
         messagesToDelete.push(alreadyItemMessage);
       } else {
         isValid = true;
@@ -215,7 +272,6 @@ class CreateItem extends Command {
       }
     }
 
-    const currencySymbol = (await db.get(`servers.${msg.guild.id}.economy.symbol`)) || '$';
     const costString = currencySymbol + cost.toLocaleString();
     embed.addFields([{ name: 'Price', value: this.client.util.limitStringLength(costString, 0, 1024), inline: true }]);
     number++;
@@ -240,7 +296,7 @@ class CreateItem extends Command {
         .awaitMessages({
           filter,
           max: 1,
-          time: 120000,
+          time: 300000,
           errors: ['time'],
         })
         .catch(() => null);
@@ -766,21 +822,44 @@ class CreateItem extends Command {
         .catch(() => true);
     });
 
-    store[name] = {
-      id: uuidv4(),
-      cost,
-      description,
-      inventory,
-      timeRemaining,
-      stock,
-      roleRequired,
-      roleGiven,
-      roleRemoved,
-      requiredBalance,
-      replyMessage,
-    };
-
-    await db.set(`servers.${msg.guild.id}.economy.store`, store);
+    await this.client.db.execute(
+      /* sql */
+      `
+        INSERT INTO
+          economy_store (
+            server_id,
+            item_id,
+            item_name,
+            cost,
+            description,
+            inventory,
+            time_remaining,
+            stock,
+            role_required,
+            role_given,
+            role_removed,
+            required_balance,
+            reply_message
+          )
+        VALUES
+          (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `,
+      [
+        msg.guild.id,
+        uuidv4(),
+        name,
+        cost.toString(),
+        description,
+        inventory ? 1 : 0,
+        timeRemaining,
+        stock ?? -1,
+        roleRequired,
+        roleGiven,
+        roleRemoved,
+        (requiredBalance || 0).toString(),
+        replyMessage || null,
+      ],
+    );
     return message.edit({ content: '✅ Item created successfully!', embeds: [embed] });
   }
 }

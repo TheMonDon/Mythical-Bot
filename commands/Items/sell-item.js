@@ -1,7 +1,5 @@
 const Command = require('../../base/Command.js');
 const { MessageCollector, EmbedBuilder } = require('discord.js');
-const { QuickDB } = require('quick.db');
-const db = new QuickDB();
 
 class SellItem extends Command {
   constructor(client) {
@@ -11,7 +9,7 @@ class SellItem extends Command {
       description: 'Sell an item to another member.',
       usage: 'sell-item <member> [quantity] <item name>',
       examples: ['sell-item @User 2 pizza'],
-      aliases: ['sell'],
+      aliases: ['sell', 'sellitem'],
       guildOnly: true,
       requiredArgs: 2,
     });
@@ -32,19 +30,27 @@ class SellItem extends Command {
       itemName = args.slice(2).join(' ').toLowerCase();
     }
 
-    // Get the seller's inventory
-    const sellerInventory = (await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.inventory`)) || [];
+    const [inventoryRows] = await this.client.db.execute(
+      /* sql */ `
+        SELECT
+          *
+        FROM
+          economy_inventory
+        WHERE
+          server_id = ?
+          AND user_id = ?
+          AND LOWER(item_name) = ?
+      `,
+      [msg.guild.id, msg.member.id, itemName],
+    );
 
-    // Find the item in the seller's inventory
-    const itemIndex = (sellerInventory || []).findIndex((inventoryItem) => {
-      // Check if inventoryItem exists and has a name property
-      if (inventoryItem && inventoryItem.name) {
-        return inventoryItem.name.toLowerCase() === itemName;
-      }
-      return false;
-    });
+    const sellerItem = inventoryRows[0];
 
-    if (!itemIndex || itemIndex === -1 || sellerInventory[itemIndex].quantity < quantity) {
+    if (!sellerItem) {
+      return this.client.util.errorEmbed(msg, 'You do not have this item in your inventory.');
+    }
+
+    if (sellerItem.quantity < quantity) {
       return this.client.util.errorEmbed(msg, 'You do not have enough of this item in your inventory.');
     }
 
@@ -62,11 +68,12 @@ class SellItem extends Command {
     const currencySymbol = economyRows[0]?.symbol || '$';
 
     // Ask the seller for a price
-    itemName = sellerInventory[itemIndex].name;
     const embed = new EmbedBuilder()
       .setColor(msg.settings.embedColor)
       .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
-      .setDescription(`What price do you want to sell ${member} ${quantity} ${itemName}${quantity > 1 ? "'s" : ''}?`);
+      .setDescription(
+        `What price do you want to sell ${member} ${quantity} ${sellerItem.item_name}${quantity > 1 ? "'s" : ''}?`,
+      );
     await msg.channel.send({ embeds: [embed] });
 
     const filter = (response) => response.author.id === msg.author.id;
@@ -82,8 +89,7 @@ class SellItem extends Command {
       const [balanceRows] = await this.client.db.execute(
         /* sql */ `
           SELECT
-            cash,
-            bank
+            cash
           FROM
             economy_balances
           WHERE
@@ -96,7 +102,7 @@ class SellItem extends Command {
 
       const totalCost = BigInt(price);
       if (buyerCash < totalCost) {
-        const noMoneyEmbed = new EmbedBuilder().setDescription(`${member} cannot afford this.`);
+        const noMoneyEmbed = new EmbedBuilder().setDescription(`${member} does not have enough cash to afford this.`);
         return msg.channel.send({ embeds: [noMoneyEmbed] });
       }
 
@@ -105,7 +111,7 @@ class SellItem extends Command {
         .setColor(msg.settings.embedColor)
         .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
         .setDescription(
-          `${msg.author} wants to sell you ${quantity} ${itemName}${
+          `${msg.author} wants to sell you ${quantity}x ${sellerItem.item_name}${
             quantity > 1 ? "'s" : ''
           } for ${currencySymbol}${price}. \nDo you accept this? (yes/no)`,
         )
@@ -150,32 +156,115 @@ class SellItem extends Command {
           );
 
           // Update seller's inventory
-          sellerInventory[itemIndex].quantity -= quantity;
-          if (sellerInventory[itemIndex].quantity === 0) sellerInventory.splice(itemIndex, 1);
-          await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.inventory`, sellerInventory);
+          if (sellerItem.quantity > quantity) {
+            await this.client.db.execute(
+              /* sql */
+              `
+                UPDATE economy_inventory
+                SET
+                  quantity = quantity - ?
+                WHERE
+                  server_id = ?
+                  AND user_id = ?
+                  AND item_id = ?
+                  AND item_name = ?
+              `,
+              [quantity, msg.guild.id, msg.author.id, sellerItem.item_id, sellerItem.item_name],
+            );
+          } else {
+            await this.client.db.execute(
+              /* sql */
+              `
+                DELETE FROM economy_inventory
+                WHERE
+                  server_id = ?
+                  AND user_id = ?
+                  AND item_id = ?
+                  AND item_name = ?
+              `,
+              [msg.guild.id, msg.author.id, sellerItem.item_id, sellerItem.item_name],
+            );
+          }
 
           // Update buyer's inventory
-          const buyerInventory = (await db.get(`servers.${msg.guild.id}.users.${member.id}.economy.inventory`)) || [];
-          const buyerItemIndex = buyerInventory.findIndex((invItem) => invItem?.id === sellerInventory[itemIndex].id);
-          if (buyerItemIndex !== -1) {
-            buyerInventory[buyerItemIndex].quantity += quantity;
-          } else {
-            buyerInventory.push({
-              id: sellerInventory[itemIndex].id,
+          await this.client.db.execute(
+            /* sql */
+            `
+              INSERT INTO
+                economy_inventory (
+                  server_id,
+                  user_id,
+                  item_id,
+                  item_name,
+                  quantity,
+                  cost,
+                  description,
+                  inventory,
+                  time_remaining,
+                  role_required,
+                  role_given,
+                  role_removed,
+                  reply_message
+                )
+              VALUES
+                (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY
+              UPDATE quantity = quantity +
+              VALUES
+                (quantity),
+                item_name =
+              VALUES
+                (item_name),
+                cost =
+              VALUES
+                (cost),
+                description =
+              VALUES
+                (description),
+                inventory =
+              VALUES
+                (inventory),
+                time_remaining =
+              VALUES
+                (time_remaining),
+                role_required =
+              VALUES
+                (role_required),
+                role_given =
+              VALUES
+                (role_given),
+                role_removed =
+              VALUES
+                (role_removed),
+                reply_message =
+              VALUES
+                (reply_message)
+            `,
+            [
+              msg.guild.id,
+              member.id,
+              sellerItem.item_id,
+              sellerItem.item_name,
               quantity,
-              ...sellerInventory[itemIndex],
-            });
-          }
-          await db.set(`servers.${msg.guild.id}.users.${member.id}.economy.inventory`, buyerInventory);
+              sellerItem.cost,
+              sellerItem.description,
+              sellerItem.inventory,
+              sellerItem.time_remaining,
+              sellerItem.role_required,
+              sellerItem.role_given,
+              sellerItem.role_removed,
+              sellerItem.reply_message,
+            ],
+          );
 
           // Send confirmation message
           const confirmEmbed = new EmbedBuilder()
             .setColor(msg.settings.embedColor)
             .setDescription(
-              `✅ Trade Complete \n${member} has received ${quantity} ${sellerInventory[itemIndex].name}${
+              `✅ Trade Complete \n${member} has received ${quantity}x ${sellerItem.item_name}${
                 quantity > 1 ? 's' : ''
               } for ${currencySymbol}${price} from ${msg.author}`,
             );
+
           return msg.channel.send({ embeds: [confirmEmbed] });
         } else {
           this.client.util.errorEmbed(
@@ -192,7 +281,7 @@ class SellItem extends Command {
             .setColor(msg.settings.embedErrorColor)
             .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
             .setDescription(
-              `Cancelled the transaction of ${quantity} ${sellerInventory[itemIndex].name}${
+              `Cancelled the transaction of ${quantity}x ${sellerItem.item_name}${
                 quantity > 1 ? "'s" : ''
               } for ${currencySymbol}${price} between ${msg.author} and ${member}.`,
             );
@@ -207,7 +296,7 @@ class SellItem extends Command {
           .setColor(msg.settings.embedErrorColor)
           .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
           .setDescription(
-            `Cancelled the transaction of ${quantity} ${sellerInventory[itemIndex].name}${
+            `Cancelled the transaction of ${quantity}x ${sellerItem.item_name}${
               quantity > 1 ? "'s" : ''
             } between ${msg.author} and ${member}.`,
           );

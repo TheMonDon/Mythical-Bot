@@ -1,7 +1,5 @@
 const Command = require('../../base/Command.js');
 const { EmbedBuilder } = require('discord.js');
-const { QuickDB } = require('quick.db');
-const db = new QuickDB();
 
 class ItemInfo extends Command {
   constructor(client) {
@@ -18,16 +16,42 @@ class ItemInfo extends Command {
 
   async run(msg, args) {
     const itemName = args.join(' ').toLowerCase();
-    const store = (await db.get(`servers.${msg.guild.id}.economy.store`)) || {};
 
-    // Find the item in the store regardless of case
-    const itemKey = Object.keys(store).find((key) => key.toLowerCase() === itemName);
+    const [storeRows] = await this.client.db.execute(
+      /* sql */ `
+        SELECT
+          *
+        FROM
+          economy_store
+        WHERE
+          server_id = ?
+          AND LOWER(item_name) = ?
+      `,
+      [msg.guild.id, itemName],
+    );
 
-    const item = store[itemKey];
+    let item = storeRows[0];
     if (!item) {
-      return this.client.util.errorEmbed(msg, 'That item does not exist in the store.');
-    }
+      const [inventoryRows] = await this.client.db.execute(
+        /* sql */ `
+          SELECT
+            *
+          FROM
+            economy_inventory
+          WHERE
+            server_id = ?
+            AND user_id = ?
+            AND LOWER(item_name) = ?
+        `,
+        [msg.guild.id, msg.member.id, itemName],
+      );
+      item = inventoryRows[0];
 
+      if (!item) {
+        return this.client.util.errorEmbed(msg, 'That item does not exist in the store or your inventory.');
+      }
+    }
+ 
     const [economyRows] = await this.client.db.execute(
       /* sql */ `
         SELECT
@@ -42,11 +66,11 @@ class ItemInfo extends Command {
     const currencySymbol = economyRows[0]?.symbol || '$';
 
     const cost = currencySymbol + BigInt(item.cost).toLocaleString();
-    const requiredBalance = item.requiredBalance
-      ? currencySymbol + BigInt(item.requiredBalance).toLocaleString()
+    const requiredBalance = item.required_balance
+      ? currencySymbol + BigInt(item.required_balance).toLocaleString()
       : 'None';
-    const timeRemainingString = item.timeRemaining
-      ? `Deleted <t:${Math.floor(item.timeRemaining / 1000)}:R>`
+    const timeRemainingString = item.time_remaining
+      ? `Deleted <t:${Math.floor(item.time_remaining / 1000)}:R>`
       : 'No time limit';
 
     const embed = new EmbedBuilder()
@@ -54,25 +78,25 @@ class ItemInfo extends Command {
       .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
       .setTitle('Item Info')
       .addFields([
-        { name: 'Name', value: itemKey, inline: true },
+        { name: 'Name', value: item.item_name, inline: true },
         { name: 'Cost', value: this.client.util.limitStringLength(cost, 0, 1024), inline: true },
         { name: 'Description', value: item.description, inline: false },
         { name: 'Show in Inventory?', value: item.inventory ? 'Yes' : 'No', inline: true },
         { name: 'Time Remaining', value: timeRemainingString, inline: true },
-        { name: 'Stock Remaining', value: item.stock ? item.stock.toLocaleString() : 'Infinity', inline: true },
+        { name: 'Stock Remaining', value: item.stock !== -1 ? item.stock.toLocaleString() : 'Infinity', inline: true },
         {
           name: 'Role Required',
-          value: item.roleRequired ? this.client.util.getRole(msg, item.roleRequired).toString() : 'None',
+          value: item.role_required ? this.client.util.getRole(msg, item.role_required).toString() : 'None',
           inline: true,
         },
         {
           name: 'Role Given',
-          value: item.roleGiven ? this.client.util.getRole(msg, item.roleGiven).toString() : 'None',
+          value: item.role_given ? this.client.util.getRole(msg, item.role_given).toString() : 'None',
           inline: true,
         },
         {
           name: 'Role Removed',
-          value: item.roleRemoved ? this.client.util.getRole(msg, item.roleRemoved).toString() : 'None',
+          value: item.role_removed ? this.client.util.getRole(msg, item.role_removed).toString() : 'None',
           inline: true,
         },
         {
@@ -80,7 +104,7 @@ class ItemInfo extends Command {
           value: this.client.util.limitStringLength(requiredBalance, 0, 1024),
           inline: true,
         },
-        { name: 'Reply Message', value: item.replyMessage || 'None', inline: true },
+        { name: 'Reply Message', value: item.reply_message || 'None', inline: true },
       ]);
 
     return msg.channel.send({ embeds: [embed] });

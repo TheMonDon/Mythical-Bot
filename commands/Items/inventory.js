@@ -1,7 +1,5 @@
 const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags } = require('discord.js');
 const Command = require('../../base/Command.js');
-const { QuickDB } = require('quick.db');
-const db = new QuickDB();
 
 class Inventory extends Command {
   constructor(client) {
@@ -31,41 +29,82 @@ class Inventory extends Command {
     }
     mem = mem.user ? mem.user : mem;
 
-    const userInventory = (await db.get(`servers.${msg.guild.id}.users.${mem.id}.economy.inventory`)) || [];
+    // Get total item count to calculate max pages
+    const [countRows] = await this.client.db.execute(
+      /* sql */
+      `
+        SELECT
+          COUNT(*) AS count
+        FROM
+          economy_inventory
+        WHERE
+          server_id = ?
+          AND user_id = ?
+      `,
+      [msg.guild.id, mem.id],
+    );
+    const totalItems = countRows[0].count;
     const itemsPerPage = 10;
-    const maxPages = Math.ceil(userInventory.length / itemsPerPage) || 1;
+    const maxPages = Math.ceil(totalItems / itemsPerPage) || 1;
 
     // Ensure page is within valid range
     page = Math.max(1, Math.min(page, maxPages));
 
-    const start = (page - 1) * itemsPerPage;
-    const end = start + itemsPerPage;
-    const paginatedInventory = userInventory.slice(start, end);
+    const generateInventoryEmbed = async (currentPage) => {
+      const offset = (currentPage - 1) * itemsPerPage;
 
-    // Build the fields for the embed
-    const fields = paginatedInventory.map((item) => ({
-      name: `${item?.quantity || 1} - ${item?.name}`,
-      value: item?.description || 'No description available.',
-      inline: false,
-    }));
+      // Fetch only the items for the current page, sorted by cost
+      const [rows] = await this.client.db.execute(
+        /* sql */
+        `
+          SELECT
+            item_name,
+            quantity,
+            cost,
+            description
+          FROM
+            economy_inventory
+          WHERE
+            server_id = ?
+            AND user_id = ?
+          ORDER BY
+            quantity ASC
+          LIMIT
+            ?
+          OFFSET
+            ?
+        `,
+        [msg.guild.id, mem.id, itemsPerPage, offset],
+      );
 
-    let embed;
-    if (!fields || fields.length < 1) {
-      embed = new EmbedBuilder()
-        .setAuthor({ name: `${mem.username}'s Inventory`, iconURL: mem.displayAvatarURL() })
-        .setColor(msg.settings.embedErrorColor)
-        .setDescription(`You don't have any items, view available items with the \`store\` command.`)
+      const embed = new EmbedBuilder()
+        .setAuthor({
+          name: `${mem.username}'s Inventory`,
+          iconURL: mem.displayAvatarURL(),
+        })
+        .setFooter({ text: `Page ${currentPage} / ${maxPages}` })
         .setTimestamp();
-    } else {
-      embed = new EmbedBuilder()
-        .setAuthor({ name: `${mem.username}'s Inventory`, iconURL: mem.displayAvatarURL() })
-        .setColor(msg.settings.embedColor)
-        .setDescription(`Use an item with the \`use [quantity] <name>\` command`)
-        .addFields(fields)
-        .setFooter({ text: `Page ${page} / ${maxPages}` })
-        .setTimestamp();
-    }
 
+      if (rows.length > 0) {
+        const fields = rows.map((item) => ({
+          name: `${item?.quantity || 1}x - ${item?.item_name}`,
+          value: item?.description || 'No description available.',
+          inline: false,
+        }));
+        embed
+          .setColor(msg.settings.embedColor)
+          .addFields(fields)
+          .setDescription(`Use an item with \`${msg.settings.prefix}use [quantity] <name>\``);
+      } else {
+        embed
+          .setColor(msg.settings.embedErrorColor)
+          .setDescription(`You don't have any items, view available items with \`${msg.settings.prefix}store\``);
+      }
+
+      return embed;
+    };
+
+    const embed = await generateInventoryEmbed(page);
     const row = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
         .setCustomId('prev_page')
@@ -93,25 +132,7 @@ class Inventory extends Command {
       // Ensure page is within valid range
       page = Math.max(1, Math.min(page, maxPages));
 
-      const newStart = (page - 1) * itemsPerPage;
-      const newEnd = newStart + itemsPerPage;
-      const newPaginatedInventory = userInventory.slice(newStart, newEnd);
-
-      // Build the new fields for the updated embed
-      const newFields = newPaginatedInventory.map((item) => ({
-        name: `${item?.quantity || 1} -  ${item?.name}`,
-        value: item?.description || 'No description available.',
-        inline: false,
-      }));
-
-      const updatedEmbed = new EmbedBuilder()
-        .setColor(msg.settings.embedColor)
-        .setAuthor({ name: `${mem.username}'s Inventory`, iconURL: mem.displayAvatarURL() })
-        .setDescription(`Use an item with the \`use [quantity] <name>\` command`)
-        .addFields(newFields)
-        .setFooter({ text: `Page ${page} / ${maxPages}` })
-        .setTimestamp();
-
+      const embed = await generateInventoryEmbed(page);
       const updatedRow = new ActionRowBuilder().addComponents(
         new ButtonBuilder()
           .setCustomId('prev_page')
@@ -125,7 +146,7 @@ class Inventory extends Command {
           .setDisabled(page === maxPages),
       );
 
-      await interaction.update({ embeds: [updatedEmbed], components: [updatedRow] });
+      await interaction.update({ embeds: [embed], components: [updatedRow] });
     });
 
     collector.on('end', () => {

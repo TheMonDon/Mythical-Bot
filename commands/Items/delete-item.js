@@ -1,7 +1,5 @@
 const Command = require('../../base/Command.js');
 const { EmbedBuilder } = require('discord.js');
-const { QuickDB } = require('quick.db');
-const db = new QuickDB();
 
 class DeleteItem extends Command {
   constructor(client) {
@@ -19,22 +17,34 @@ class DeleteItem extends Command {
 
   async run(msg, args) {
     const itemName = args.join(' ').toLowerCase();
-    const store = (await db.get(`servers.${msg.guild.id}.economy.store`)) || {};
 
-    // Find the item in the store regardless of case
-    const itemKey = Object.keys(store).find((key) => key.toLowerCase() === itemName);
+    const [storeRows] = await this.client.db.execute(
+      /* sql */
+      `
+        SELECT
+          item_id
+        FROM
+          economy_store
+        WHERE
+          server_id = ?
+          AND LOWER(item_name) = LOWER(?)
+      `,
+      [msg.guild.id, itemName],
+    );
 
-    const item = store[itemKey];
-    if (!item) {
-      const embed = new EmbedBuilder()
-        .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
-        .setColor(msg.settings.embedErrorColor)
-        .setDescription('There is not an item with that name.');
-
-      return msg.channel.send({ embeds: [embed] });
+    if (storeRows.length === 0) {
+      return this.client.util.errorEmbed(msg, 'That item does not exist in the store.');
     }
 
-    await db.delete(`servers.${msg.guild.id}.economy.store.${itemKey}`);
+    await this.client.db.execute(
+      /* sql */ `
+        DELETE FROM economy_store
+        WHERE
+          server_id = ?
+          AND item_id = ?
+      `,
+      [msg.guild.id, storeRows[0].item_id],
+    );
 
     const embed = new EmbedBuilder()
       .setColor(msg.settings.embedColor)

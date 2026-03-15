@@ -1,8 +1,6 @@
 const Command = require('../../base/Command.js');
 const { Duration, DateTime } = require('luxon');
 const { EmbedBuilder } = require('discord.js');
-const { QuickDB } = require('quick.db');
-const db = new QuickDB();
 
 class BuyItem extends Command {
   constructor(client) {
@@ -35,13 +33,25 @@ class BuyItem extends Command {
 
     if (!itemName) return msg.reply('Please specify an item to buy.');
 
-    const store = (await db.get(`servers.${msg.guild.id}.economy.store`)) || {};
+    const [storeRows] = await this.client.db.execute(
+      /* sql */
+      `
+        SELECT
+          *
+        FROM
+          economy_store
+        WHERE
+          server_id = ?
+          AND LOWER(item_name) = LOWER(?)
+      `,
+      [msg.guild.id, itemName],
+    );
 
-    // Find the item in the store regardless of case
-    const itemKey = Object.keys(store).find((key) => key.toLowerCase() === itemName);
-    if (!itemKey) return msg.reply('That item does not exist in the store.');
+    if (storeRows.length === 0) {
+      return this.client.util.errorEmbed(msg, 'That item does not exist in the store.');
+    }
 
-    const item = store[itemKey];
+    const item = storeRows[0];
     const itemCost = BigInt(item.cost);
 
     const [economyRows] = await this.client.db.execute(
@@ -72,36 +82,49 @@ class BuyItem extends Command {
     const userCash = BigInt(balanceRows[0]?.cash ?? economyRows[0]?.start_balance ?? 0);
     if (userCash < itemCost * BigInt(quantity)) return msg.reply('You do not have enough money to buy this item.');
 
-    if (item.stock && item.stock < quantity) {
+    if (item.stock !== -1 && item.stock < quantity) {
       return msg.reply(`The store only has ${item.stock} stock remaining.`);
     }
 
-    if (item.stock) {
+    if (item.stock !== -1) {
       item.stock -= quantity;
       if (item.stock === 0) {
-        await db.delete(`servers.${msg.guild.id}.economy.store.${itemKey}`);
+        await this.client.db.execute(
+          /* sql */ `
+            DELETE FROM economy_store
+            WHERE
+              server_id = ?
+              AND item_id = ?
+          `,
+          [msg.guild.id, item.item_id],
+        );
       } else {
-        store[itemKey] = item;
-        await db.set(`servers.${msg.guild.id}.economy.store`, store);
+        await this.client.db.execute(
+          /* sql */ `
+            UPDATE economy_store
+            SET
+              stock = ?
+            WHERE
+              server_id = ?
+              AND item_id = ?
+          `,
+          [item.stock, msg.guild.id, item.item_id],
+        );
       }
     }
 
-    if (item.roleRequired) {
-      const roleRequired = this.client.util.getRole(msg, item.roleRequired);
+    if (item.role_required) {
+      const roleRequired = this.client.util.getRole(msg, item.role_required);
       if (roleRequired) {
         // Check if the member has the role
         const hasRole = msg.member.roles.cache.has(roleRequired.id);
         if (!hasRole) {
           return msg.reply(`You do not have the required role **${roleRequired.name}** to purchase this item.`);
         }
-      } else {
-        return msg.reply(
-          'The required role no longer exists, please contact a server administrator to purchase this item.',
-        );
       }
     }
 
-    if (item.roleGiven || item.roleRemoved) {
+    if (item.role_given || item.role_removed) {
       if (!msg.guild.members.me.permissions.has('ManageRoles'))
         return this.client.util.errorEmbed(
           msg,
@@ -127,35 +150,28 @@ class BuyItem extends Command {
     );
 
     if (!item.inventory) {
-      if (item.roleGiven) {
-        const role = this.client.util.getRole(msg, item.roleGiven);
+      if (item.role_given) {
+        const role = this.client.util.getRole(msg, item.role_given);
         await msg.member.roles.add(role).catch((error) => msg.channel.send(error));
       }
-      if (item.roleRemoved) {
-        const role = this.client.util.getRole(msg, item.roleRemoved);
+      if (item.role_removed) {
+        const role = this.client.util.getRole(msg, item.role_removed);
         await msg.member.roles.remove(role).catch((error) => msg.channel.send(error));
       }
-      if (!item.replyMessage) {
+      if (!item.reply_message) {
         return msg.channel.send('👍');
       }
 
       // Replace Member
       // Calculate the duration since the member's account was created
-      const duration = Duration.fromMillis(Date.now() - msg.author.createdAt.getTime()).shiftTo(
-        'years',
-        'months',
-        'days',
-        'hours',
-        'minutes',
-        'seconds',
-      );
-      const rounded = duration.set({ seconds: Math.floor(duration.seconds) });
-      const memberCreatedDuration = rounded.toHuman({ showZeros: false });
+      const memberCreatedDuration = Duration.fromMillis(Date.now() - msg.author.createdAt.getTime())
+        .shiftTo('years', 'months', 'days', 'hours', 'minutes', 'seconds')
+        .toHuman({ maximumFractionDigits: 2, showZeros: false });
 
       // Format the member's account creation date
       const memberCreated = DateTime.fromMillis(msg.author.createdAt.getTime()).toFormat('MMMM dd, yyyy');
 
-      let replyMessage = item.replyMessage
+      let replyMessage = item.reply_message
         .replace(/\{member\.id\}/gi, msg.author.id)
         .replace(/\{member\.username\}/gi, msg.author.username)
         .replace(/\{member\.tag\}/gi, msg.author.tag)
@@ -165,16 +181,9 @@ class BuyItem extends Command {
 
       // Replace Server
       // Calculate the duration since the server was created
-      const serverDuration = Duration.fromMillis(Date.now() - msg.guild.createdAt.getTime()).shiftTo(
-        'years',
-        'months',
-        'days',
-        'hours',
-        'minutes',
-        'seconds',
-      );
-      const roundedDuration = serverDuration.set({ seconds: Math.floor(serverDuration.seconds) });
-      const serverCreatedDuration = roundedDuration.toHuman({ showZeros: false });
+      const serverCreatedDuration = Duration.fromMillis(Date.now() - msg.guild.createdAt.getTime())
+        .shiftTo('years', 'months', 'days', 'hours', 'minutes', 'seconds')
+        .toHuman({ maximumFractionDigits: 2, showZeros: false });
 
       // Format the server's creation date
       const serverCreated = DateTime.fromMillis(msg.guild.createdAt.getTime()).toFormat('MMMM dd, yyyy');
@@ -187,22 +196,15 @@ class BuyItem extends Command {
         .replace(/\{server\.created\.duration\}/gi, serverCreatedDuration);
 
       const role =
-        this.client.util.getRole(msg, item.roleGiven) ||
-        this.client.util.getRole(msg, item.roleRemoved) ||
-        this.client.util.getRole(msg, item.roleRequired);
+        this.client.util.getRole(msg, item.role_given) ||
+        this.client.util.getRole(msg, item.role_removed) ||
+        this.client.util.getRole(msg, item.role_required);
 
       if (role) {
         // Calculate the duration since the role was created
-        const roleDuration = Duration.fromMillis(Date.now() - role.createdAt.getTime()).shiftTo(
-          'years',
-          'months',
-          'days',
-          'hours',
-          'minutes',
-          'seconds',
-        );
-        const roundedRoleDuration = roleDuration.set({ seconds: Math.floor(roleDuration.seconds) });
-        const roleCreatedDuration = roundedRoleDuration.toHuman({ showZeros: false });
+        const roleCreatedDuration = Duration.fromMillis(Date.now() - role.createdAt.getTime())
+          .shiftTo('years', 'months', 'days', 'hours', 'minutes', 'seconds')
+          .toHuman({ maximumFractionDigits: 2, showZeros: false });
 
         // Format the role's creation date
         const roleCreated = DateTime.fromMillis(role.createdAt.getTime()).toFormat('MMMM dd, yyyy');
@@ -218,30 +220,74 @@ class BuyItem extends Command {
       return msg.channel.send(replyMessage);
     }
 
-    const userInventory = (await db.get(`servers.${msg.guild.id}.users.${msg.member.id}.economy.inventory`)) || [];
-
-    // Find the item in the user's inventory by its unique ID instead of name
-    const itemIndex = userInventory.findIndex((inventoryItem) => inventoryItem?.id === item.id);
-
-    if (itemIndex !== -1) {
-      // If the item is found, increment the quantity
-      userInventory[itemIndex].quantity += quantity;
-      userInventory[itemIndex] = {
-        ...userInventory[itemIndex],
-        name: itemKey,
-        ...item,
-      };
-    } else {
-      // Ensure item has a unique ID and name when stored
-      userInventory.push({
-        id: item.id,
-        name: itemKey,
+    await this.client.db.execute(
+      /* sql */
+      `
+        INSERT INTO
+          economy_inventory (
+            server_id,
+            user_id,
+            item_id,
+            item_name,
+            quantity,
+            cost,
+            description,
+            inventory,
+            time_remaining,
+            role_required,
+            role_given,
+            role_removed,
+            reply_message
+          )
+        VALUES
+          (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY
+        UPDATE quantity = quantity +
+        VALUES
+          (quantity),
+          item_name =
+        VALUES
+          (item_name),
+          cost =
+        VALUES
+          (cost),
+          description =
+        VALUES
+          (description),
+          inventory =
+        VALUES
+          (inventory),
+          time_remaining =
+        VALUES
+          (time_remaining),
+          role_required =
+        VALUES
+          (role_required),
+          role_given =
+        VALUES
+          (role_given),
+          role_removed =
+        VALUES
+          (role_removed),
+          reply_message =
+        VALUES
+          (reply_message)
+      `,
+      [
+        msg.guild.id,
+        msg.author.id,
+        item.item_id,
+        item.item_name,
         quantity,
-        ...item,
-      });
-    }
-
-    await db.set(`servers.${msg.guild.id}.users.${msg.member.id}.economy.inventory`, userInventory);
+        item.cost,
+        item.description,
+        item.inventory,
+        item.time_remaining,
+        item.role_required,
+        item.role_given,
+        item.role_removed,
+        item.reply_message,
+      ],
+    );
 
     const itemCostQuantity = (itemCost * BigInt(quantity)).toLocaleString();
     const csCost = this.client.util.limitStringLength(currencySymbol + itemCostQuantity, 0, 700);
@@ -250,7 +296,7 @@ class BuyItem extends Command {
       .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
       .setTitle('Purchase Successful')
       .setDescription(
-        `You have bought ${quantity} ${itemKey}${
+        `You have bought ${quantity} ${item.item_name}${
           quantity > 1 ? "'s" : ''
         } for ${csCost}! This is now in your inventory. \nUse this item with the \`use-item\` command.`,
       )

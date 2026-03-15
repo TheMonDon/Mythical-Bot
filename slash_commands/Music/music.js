@@ -314,16 +314,9 @@ exports.run = async (interaction) => {
         // Add track(s) to queue
         if (result.loadType === 'playlist') {
           const totalDuration = result.tracks.reduce((acc, track) => acc + (track.info.duration || 0), 0);
-          const duration = Duration.fromMillis(totalDuration).shiftTo(
-            'years',
-            'months',
-            'days',
-            'hours',
-            'minutes',
-            'seconds',
-          );
-          const roundedDuration = duration.set({ seconds: Math.floor(duration.seconds) });
-          const durationString = roundedDuration.toHuman({ showZeros: false });
+          const durationString = Duration.fromMillis(totalDuration)
+            .shiftTo('years', 'months', 'days', 'hours', 'minutes', 'seconds')
+            .toHuman({ maximumFractionDigits: 2, showZeros: false });
 
           const em = new EmbedBuilder()
             .setTitle('✅ Playlist Added to Queue')
@@ -353,28 +346,14 @@ exports.run = async (interaction) => {
           if (player?.queue?.current) {
             calculateEstimatedTime += player.queue.current.info.duration || 0;
           }
-          const timeLeftDuration = Duration.fromMillis(calculateEstimatedTime).shiftTo(
-            'years',
-            'months',
-            'days',
-            'hours',
-            'minutes',
-            'seconds',
-          );
-          const roundedTimeLeftDuration = timeLeftDuration.set({ seconds: Math.floor(timeLeftDuration.seconds) });
-          const timeLeft = roundedTimeLeftDuration.toHuman({ showZeros: false });
+          const timeLeft = Duration.fromMillis(calculateEstimatedTime)
+            .shiftTo('years', 'months', 'days', 'hours', 'minutes', 'seconds')
+            .toHuman({ maximumFractionDigits: 2, showZeros: false });
 
           // Calculate the duration of the track
-          const duration = Duration.fromMillis(result.tracks[0].info.duration || 0).shiftTo(
-            'years',
-            'months',
-            'days',
-            'hours',
-            'minutes',
-            'seconds',
-          );
-          const roundedDuration = duration.set({ seconds: Math.floor(duration.seconds) });
-          const durationString = roundedDuration.toHuman({ showZeros: false });
+          const durationString = Duration.fromMillis(result.tracks[0].info.duration || 0)
+            .shiftTo('years', 'months', 'days', 'hours', 'minutes', 'seconds')
+            .toHuman({ maximumFractionDigits: 2, showZeros: false });
 
           const em = new EmbedBuilder()
             .setTitle('✅ Track Added to Queue')
@@ -548,7 +527,7 @@ exports.run = async (interaction) => {
 
       // Calculate total duration of the queue
       const totalMilliseconds = player.queue.tracks.reduce((acc, track) => acc + (track.info.duration || 0), 0);
-      const duration = Duration.fromMillis(totalMilliseconds).shiftTo(
+      const timeLeft = Duration.fromMillis(totalMilliseconds).shiftTo(
         'years',
         'months',
         'days',
@@ -556,8 +535,6 @@ exports.run = async (interaction) => {
         'minutes',
         'seconds',
       );
-      const roundedDuration = duration.set({ seconds: Math.floor(duration.seconds) });
-      const timeLeft = roundedDuration.toHuman({ showZeros: false });
 
       const embed = new EmbedBuilder()
         .setColor(interaction.settings.embedColor)

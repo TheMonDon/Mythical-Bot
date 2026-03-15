@@ -49,16 +49,9 @@ class Queue extends Command {
     }
 
     const totalMilliseconds = player.queue.tracks.reduce((acc, track) => acc + (track.info.duration || 0), 0);
-    const duration = Duration.fromMillis(totalMilliseconds).shiftTo(
-      'years',
-      'months',
-      'days',
-      'hours',
-      'minutes',
-      'seconds',
-    );
-    const roundedDuration = duration.set({ seconds: Math.floor(duration.seconds) });
-    const timeLeft = roundedDuration.toHuman({ showZeros: false });
+    const timeLeft = Duration.fromMillis(totalMilliseconds)
+      .shiftTo('years', 'months', 'days', 'hours', 'minutes', 'seconds')
+      .toHuman({ maximumFractionDigits: 2, showZeros: false });
 
     const embed = new EmbedBuilder()
       .setColor(msg.settings.embedColor)

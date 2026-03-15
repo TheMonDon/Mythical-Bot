@@ -7,8 +7,6 @@ const {
   MessageFlags,
 } = require('discord.js');
 const Command = require('../../base/Command.js');
-const { QuickDB } = require('quick.db');
-const db = new QuickDB();
 
 class ItemLeaderboard extends Command {
   constructor(client) {
@@ -30,63 +28,81 @@ class ItemLeaderboard extends Command {
     }
 
     let page = parseInt(args[1]?.replace(/[^0-9\\.]/g, '') || 1);
+ 
+    const [countRows] = await this.client.db.execute(
+      /* sql */
+      `
+        SELECT
+          COUNT(*) AS count
+        FROM
+          economy_inventory
+        WHERE
+          server_id = ?
+          AND LOWER(item_name) = ?
+      `,
+      [msg.guild.id, itemName.toLowerCase()],
+    );
+    const totalEntries = countRows[0].count;
 
-    // Fetch all inventories from the database
-    const serverData = (await db.get(`servers.${msg.guild.id}.users`)) || {};
-    const leaderboard = [];
-
-    // Aggregate data for the specified item
-    for (const userId in serverData) {
-      const inventory = serverData[userId]?.economy?.inventory || [];
-      inventory.forEach((item) => {
-        // Skip invalid items
-        if (!item || !item.name) return;
-
-        if (item.name.toLowerCase() === itemName.toLowerCase()) {
-          leaderboard.push({
-            userId,
-            quantity: item.quantity || 1,
-          });
-        }
-      });
-    }
-
-    if (leaderboard.length === 0) {
+    if (totalEntries === 0) {
       return this.client.util.errorEmbed(msg, `No one owns the item "${itemName}".`, 'Item Not Found');
     }
 
-    // Sort leaderboard by quantity
-    leaderboard.sort((a, b) => b.quantity - a.quantity);
-
     const itemsPerPage = 10; // Number of entries per page
-    const maxPages = Math.ceil(leaderboard.length / itemsPerPage) || 1;
+    const maxPages = Math.ceil(totalEntries / itemsPerPage) || 1;
 
     // Ensure the page is within range
     page = Math.max(1, Math.min(page, maxPages));
 
-    const start = (page - 1) * itemsPerPage;
-    const end = start + itemsPerPage;
-    const paginatedLeaderboard = leaderboard.slice(start, end);
+    const generateEmbed = async (currentPage) => {
+      const offset = (currentPage - 1) * itemsPerPage;
+      const [rows] = await this.client.db.execute(
+        /* sql */
+        `
+          SELECT
+            user_id,
+            item_name,
+            quantity
+          FROM
+            economy_inventory
+          WHERE
+            server_id = ?
+            AND LOWER(item_name) = ?
+          ORDER BY
+            quantity DESC
+          LIMIT
+            ?
+          OFFSET
+            ?
+        `,
+        [msg.guild.id, itemName.toLowerCase(), itemsPerPage, offset],
+      );
 
-    // Build the fields for the embed
-    const fields = await Promise.all(
-      paginatedLeaderboard.map(async (entry, index) => {
-        const user = await msg.guild.members.fetch(entry.userId);
-        return {
-          name: `#${start + index + 1} - ${user.user.tag}`,
-          value: `Quantity: **${entry.quantity}**`,
-          inline: false,
-        };
-      }),
-    );
+      const leaderboardLines = await Promise.all(
+        rows.map(async (row, index) => {
+          const user =
+            this.client.users.cache.get(row.user_id) || (await this.client.users.fetch(row.user_id).catch(() => null));
+          const username = user ? user.tag : `Unknown User (${row.user_id})`;
 
-    const embed = new EmbedBuilder()
-      .setTitle(`Leaderboard for "${itemName}"`)
-      .setColor(msg.settings.embedColor)
-      .addFields(fields)
-      .setFooter({ text: `Page ${page} / ${maxPages}` })
-      .setTimestamp();
+          return {
+            name: `#${offset + index + 1} - ${username}`,
+            value: `Quantity: **${row.quantity}**`,
+            inline: false,
+          };
+        }),
+      );
 
+      const embed = new EmbedBuilder()
+        .setTitle(`Leaderboard for "${itemName}"`)
+        .setColor(msg.settings.embedColor)
+        .addFields(leaderboardLines)
+        .setFooter({ text: `Page ${currentPage} / ${maxPages}` })
+        .setTimestamp();
+
+      return embed;
+    };
+
+    const embed = await generateEmbed(page);
     const row = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
         .setCustomId('prev_page')
@@ -116,28 +132,7 @@ class ItemLeaderboard extends Command {
 
       // Ensure page is within range
       page = Math.max(1, Math.min(page, maxPages));
-
-      const newStart = (page - 1) * itemsPerPage;
-      const newEnd = newStart + itemsPerPage;
-      const newPaginatedLeaderboard = leaderboard.slice(newStart, newEnd);
-
-      const newFields = await Promise.all(
-        newPaginatedLeaderboard.map(async (entry, index) => {
-          const user = await msg.guild.members.fetch(entry.userId);
-          return {
-            name: `#${newStart + index + 1} - ${user.user.tag}`,
-            value: `Quantity: **${entry.quantity}**`,
-            inline: false,
-          };
-        }),
-      );
-
-      const updatedEmbed = new EmbedBuilder()
-        .setTitle(`Leaderboard for "${itemName}"`)
-        .setColor(msg.settings.embedColor)
-        .addFields(newFields)
-        .setFooter({ text: `Page ${page} / ${maxPages}` })
-        .setTimestamp();
+      const updatedEmbed = await generateEmbed(page);
 
       const updatedRow = new ActionRowBuilder().addComponents(
         new ButtonBuilder()

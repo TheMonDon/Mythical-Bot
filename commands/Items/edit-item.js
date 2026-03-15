@@ -1,8 +1,5 @@
-/* eslint-disable no-case-declarations */
 const Command = require('../../base/Command.js');
 const { EmbedBuilder } = require('discord.js');
-const { QuickDB } = require('quick.db');
-const db = new QuickDB();
 
 class EditItem extends Command {
   constructor(client) {
@@ -32,10 +29,7 @@ class EditItem extends Command {
       // Find the ending index of the item name enclosed in double quotes
       const itemNameEndIndex = args.findIndex((arg) => arg.endsWith('"'));
       if (itemNameEndIndex === -1) {
-        return this.client.util.errorEmbed(
-          msg,
-          'Invalid item name format. Please enclose the item name in double quotes.',
-        );
+        return this.client.util.errorEmbed(msg, 'Please enclose the item name in double quotes', 'Invalid Format');
       }
 
       // Extract the item name and remove the double quotes
@@ -50,16 +44,39 @@ class EditItem extends Command {
       newValue = args.join(' ');
     }
 
-    const store = (await db.get(`servers.${msg.guild.id}.economy.store`)) || {};
+    const [storeRows] = await this.client.db.execute(
+      /* sql */ `
+        SELECT
+          *
+        FROM
+          economy_store
+        WHERE
+          server_id = ?
+          AND LOWER(item_name) = LOWER(?)
+      `,
+      [msg.guild.id, itemName],
+    );
 
-    // Find the item in the store regardless of case
-    let itemKey = Object.keys(store).find((key) => key.toLowerCase() === itemName.toLowerCase());
+    const item = storeRows[0];
 
-    if (!itemKey) {
+    if (!item) {
       return this.client.util.errorEmbed(msg, 'That item does not exist in the store.');
     }
 
-    const item = store[itemKey];
+    const updateStoreItem = async (itemId, column, value) => {
+      item[column] = value;
+      return await this.client.db.execute(
+        /* sql */ `
+          UPDATE economy_store
+          SET
+            ${column} = ?
+          WHERE
+            server_id = ?
+            AND item_id = ?
+        `,
+        [value, msg.guild.id, itemId],
+      );
+    };
 
     switch (attribute) {
       case 'name': {
@@ -67,16 +84,30 @@ class EditItem extends Command {
           return this.client.util.errorEmbed(msg, 'Please provide a new name for the item.');
         }
 
-        // Ensure the new name is not already taken
-        const newItemKey = newValue.toLowerCase();
-        if (Object.keys(store).find((key) => key.toLowerCase() === newItemKey)) {
-          return this.client.util.errorEmbed(msg, 'An item with that name already exists.');
+        if (newValue.length > 200) {
+          return this.client.util.errorEmbed(msg, 'Please re-run the command with a name under 200 characters.');
         }
 
-        // Update the item name
-        store[newValue] = item;
-        delete store[itemKey];
-        itemKey = newValue; // Update the reference to the new item key
+        // Ensure the new name is not already taken
+        const [countRows] = await this.client.db.execute(
+          /* sql */
+          `
+            SELECT
+              COUNT(*) AS count
+            FROM
+              economy_store
+            WHERE
+              server_id = ?
+              AND LOWER(item_name) = LOWER(?)
+          `,
+          [msg.guild.id, newValue],
+        );
+
+        if (countRows[0].count > 0) {
+          return this.client.util.errorEmbed(msg, 'An item with that name already exists in the store.');
+        }
+
+        await updateStoreItem(item.item_id, 'item_name', newValue);
         break;
       }
 
@@ -99,15 +130,13 @@ class EditItem extends Command {
           );
         }
 
-        item.cost = price;
-        store[itemKey] = item;
+        await updateStoreItem(item.item_id, 'cost', price);
         break;
       }
 
       case 'description': {
         if (!newValue) {
-          item.description = 'None provided';
-          store[itemKey] = item;
+          await updateStoreItem(item.item_id, 'description', '<:transparent:1482197803999428709>');
           break;
         }
 
@@ -118,8 +147,7 @@ class EditItem extends Command {
           );
         }
 
-        item.description = newValue.slice(0, 1000);
-        store[itemKey] = item;
+        await updateStoreItem(item.item_id, 'description', newValue);
         break;
       }
 
@@ -127,14 +155,13 @@ class EditItem extends Command {
       case 'inventory-item':
       case 'inventory': {
         if (!newValue) {
-          item.inventory = true; // Default to true if no value is provided
-          store[itemKey] = item;
+          await updateStoreItem(item.item_id, 'inventory', 1);
           break;
         }
 
         if ((this.client.util.yes || this.client.util.no).includes(newValue.toLowerCase())) {
-          item.inventory = this.client.util.yes.includes(newValue.toLowerCase());
-          store[itemKey] = item;
+          const inventoryValue = this.client.util.yes.includes(newValue.toLowerCase()) ? 1 : 0;
+          await updateStoreItem(item.item_id, 'inventory', inventoryValue);
         } else {
           return this.client.util.errorEmbed(msg, 'Please re-run the command with "yes" or "no" for inventory.');
         }
@@ -145,8 +172,7 @@ class EditItem extends Command {
       case 'timeremaining':
       case 'time-remaining': {
         if (!newValue) {
-          item.timeRemaining = null;
-          store[itemKey] = item;
+          await updateStoreItem(item.item_id, 'time_remaining', null);
           break;
         }
 
@@ -167,26 +193,23 @@ class EditItem extends Command {
         }
 
         if (timeLimit === 0) {
-          item.timeRemaining = null;
-          store[itemKey] = item;
+          await updateStoreItem(item.item_id, 'time_remaining', null);
           break;
         }
 
-        item.timeRemaining = Date.now() + timeLimit;
-        store[itemKey] = item;
+        const newTimeRemaining = Date.now() + timeLimit;
+        await updateStoreItem(item.item_id, 'time_remaining', newTimeRemaining);
         break;
       }
 
       case 'stock': {
         if (!newValue) {
-          item.stock = null;
-          store[itemKey] = item;
+          await updateStoreItem(item.item_id, 'stock', -1);
           break;
         }
 
         if (['infinite', 'infinity'].includes(newValue.toLowerCase())) {
-          item.stock = null;
-          store[itemKey] = item;
+          await updateStoreItem(item.item_id, 'stock', -1);
           break;
         }
 
@@ -198,16 +221,14 @@ class EditItem extends Command {
           );
         }
 
-        item.stock = stock;
-        store[itemKey] = item;
+        await updateStoreItem(item.item_id, 'stock', stock);
         break;
       }
 
       case 'rolerequired':
       case 'role-required': {
         if (!newValue) {
-          item.roleRequired = null;
-          store[itemKey] = item;
+          await updateStoreItem(item.item_id, 'role_required', null);
           break;
         }
 
@@ -216,16 +237,14 @@ class EditItem extends Command {
           return this.client.util.errorEmbed(msg, 'Please re-run the command with a valid role.');
         }
 
-        item.roleRequired = role.id;
-        store[itemKey] = item;
+        await updateStoreItem(item.item_id, 'role_required', role.id);
         break;
       }
 
       case 'rolegiven':
       case 'role-given': {
         if (!newValue) {
-          item.roleGiven = null;
-          store[itemKey] = item;
+          await updateStoreItem(item.item_id, 'role_given', null);
           break;
         }
 
@@ -239,16 +258,14 @@ class EditItem extends Command {
           );
         }
 
-        item.roleGiven = role.id;
-        store[itemKey] = item;
+        await updateStoreItem(item.item_id, 'role_given', role.id);
         break;
       }
 
       case 'roleremoved':
       case 'role-removed': {
         if (!newValue) {
-          item.roleRemoved = null;
-          store[itemKey] = item;
+          await updateStoreItem(item.item_id, 'role_removed', null);
           break;
         }
 
@@ -262,16 +279,14 @@ class EditItem extends Command {
           );
         }
 
-        item.roleRemoved = role.id;
-        store[itemKey] = item;
+        await updateStoreItem(item.item_id, 'role_removed', role.id);
         break;
       }
 
       case 'requiredbalance':
       case 'required-balance': {
         if (!newValue) {
-          item.requiredBalance = null;
-          store[itemKey] = item;
+          await updateStoreItem(item.item_id, 'required_balance', '0');
           break;
         }
 
@@ -288,8 +303,7 @@ class EditItem extends Command {
           );
         }
 
-        item.requiredBalance = requiredBalance;
-        store[itemKey] = item;
+        await updateStoreItem(item.item_id, 'required_balance', requiredBalance);
         break;
       }
 
@@ -297,8 +311,7 @@ class EditItem extends Command {
       case 'reply-message':
       case 'reply': {
         if (!newValue) {
-          item.replyMessage = null;
-          store[itemKey] = item;
+          await updateStoreItem(item.item_id, 'reply_message', null);
           break;
         }
 
@@ -309,8 +322,7 @@ class EditItem extends Command {
           );
         }
 
-        item.replyMessage = newValue;
-        store[itemKey] = item;
+        await updateStoreItem(item.item_id, 'reply_message', newValue);
         break;
       }
 
@@ -320,38 +332,51 @@ class EditItem extends Command {
         );
     }
 
-    await db.set(`servers.${msg.guild.id}.economy.store`, store);
     const timeRemainingString = item.timeRemaining
       ? `Deleted <t:${Math.floor(item.timeRemaining / 1000)}:R>`
       : 'No time limit';
+
+    const [economyRows] = await this.client.db.execute(
+      /* sql */ `
+        SELECT
+          *
+        FROM
+          economy_settings
+        WHERE
+          server_id = ?
+      `,
+      [msg.guild.id],
+    );
+    const currencySymbol = economyRows[0]?.symbol || '$';
+    const costString = currencySymbol + BigInt(item.cost).toLocaleString();
 
     const embed = new EmbedBuilder()
       .setTitle('Item Edited')
       .setColor(msg.settings.embedColor)
       .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
       .addFields([
-        { name: 'Name', value: itemKey, inline: true },
-        { name: 'Price', value: BigInt(item.cost).toLocaleString(), inline: true },
+        { name: 'Name', value: item.item_name, inline: true },
+        { name: 'Price', value: costString, inline: true },
         { name: 'Description', value: item.description, inline: false },
-        { name: 'Show in Inventory?', value: item.inventory ? 'Yes' : 'No', inline: true },
+        { name: 'Show in Inventory?', value: item.inventory !== -1 ? 'Yes' : 'No', inline: true },
         { name: 'Time Remaining', value: timeRemainingString, inline: true },
-        { name: 'Stock', value: item.stock ? item.stock.toLocaleString() : 'Infinity', inline: true },
+        { name: 'Stock', value: item.stock !== -1 ? item.stock.toLocaleString() : 'Infinity', inline: true },
         {
           name: 'Role Required',
-          value: item.roleRequired ? this.client.util.getRole(msg, item.roleRequired).toString() : 'None',
+          value: item.role_required ? this.client.util.getRole(msg, item.role_required).toString() : 'None',
           inline: true,
         },
         {
           name: 'Role Given',
-          value: item.roleGiven ? this.client.util.getRole(msg, item.roleGiven).toString() : 'None',
+          value: item.role_given ? this.client.util.getRole(msg, item.role_given).toString() : 'None',
           inline: true,
         },
         {
           name: 'Role Removed',
-          value: item.roleRemoved ? this.client.util.getRole(msg, item.roleRemoved).toString() : 'None',
+          value: item.role_removed ? this.client.util.getRole(msg, item.role_removed).toString() : 'None',
           inline: true,
         },
-        { name: 'Reply Message', value: item.replyMessage || 'None', inline: true },
+        { name: 'Reply Message', value: item.reply_message || 'None', inline: true },
       ])
       .setTimestamp();
 

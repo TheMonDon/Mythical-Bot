@@ -127,10 +127,46 @@ exports.commandData = new SlashCommandBuilder()
 exports.autoComplete = async (interaction) => {
   try {
     const focusedValue = interaction.options.getFocused();
-    const store = (await db.get(`servers.${interaction.guild.id}.economy.store`)) || {};
+    if (!focusedValue) {
+      const [rows] = await interaction.client.db.execute(
+        /* sql */ `
+          SELECT
+            *
+          FROM
+            economy_store
+          WHERE
+            server_id = ?
+          ORDER BY
+            cost ASC
+          LIMIT
+            25
+        `,
+        [interaction.guild.id],
+      );
+      const choices = rows.map((row) => row.item_name);
+      return interaction.respond(
+        choices.slice(0, 25).map((choice) => ({
+          name: choice,
+          value: choice,
+        })),
+      );
+    }
 
-    // Filter keys based on user input
-    const choices = Object.keys(store).filter((item) => item.toLowerCase().includes(focusedValue.toLowerCase()));
+    const [rows] = await interaction.client.db.execute(
+      /* sql */ `
+        SELECT
+          *
+        FROM
+          economy_store
+        WHERE
+          server_id = ?
+          AND LOWER(item_name) LIKE ?
+        LIMIT
+          25
+      `,
+      [interaction.guild.id, `%${focusedValue.toLowerCase()}%`],
+    );
+    const choices = rows.map((row) => row.item_name);
 
     // Respond with up to 25 choices (Discord limit)
     await interaction.respond(
@@ -148,7 +184,6 @@ exports.autoComplete = async (interaction) => {
 exports.run = async (interaction) => {
   await interaction.deferReply();
   const subcommand = interaction.options.getSubcommand();
-  const store = (await db.get(`servers.${interaction.guild.id}.economy.store`)) || {};
 
   switch (subcommand) {
     case 'create': {
@@ -183,32 +218,33 @@ exports.run = async (interaction) => {
       const itemName = interaction.options.getString('name');
       const cascade = interaction.options.getBoolean('cascade') || false;
 
-      // Find the item in the store regardless of case
-      const itemKey = Object.keys(store).find((key) => key.toLowerCase() === itemName);
+      const [storeRows] = await interaction.client.db.execute(
+        /* sql */
+        `
+          SELECT
+            item_id
+          FROM
+            economy_store
+          WHERE
+            server_id = ?
+            AND LOWER(item_name) = LOWER(?)
+        `,
+        [interaction.guild.id, itemName],
+      );
 
-      const item = store[itemKey];
-      if (!item) {
-        const embed = new EmbedBuilder()
-          .setAuthor({ name: interaction.member.displayName, iconURL: interaction.user.displayAvatarURL() })
-          .setColor(interaction.settings.embedErrorColor)
-          .setDescription('There is not an item with that name.');
-
-        return interaction.editReply({ embeds: [embed] });
+      if (storeRows.length === 0) {
+        return interaction.client.util.errorEmbed(interaction, 'That item does not exist in the store.');
       }
 
-      await db.delete(`servers.${interaction.guild.id}.economy.store.${itemKey}`);
-      if (cascade) {
-        // Remove all instances of this item from user inventories
-        const users = (await db.get(`servers.${interaction.guild.id}.users`)) || {};
-        for (const userId in users) {
-          const userInventory = users[userId].economy?.inventory || [];
-          const updatedInventory = userInventory.filter(
-            (inventoryItem) => inventoryItem.name.toLowerCase() !== itemKey.toLowerCase(),
-          );
-          users[userId].economy.inventory = updatedInventory;
-          await db.set(`servers.${interaction.guild.id}.users.${userId}.economy.inventory`, updatedInventory);
-        }
-      }
+      await interaction.client.db.execute(
+        /* sql */ `
+          DELETE FROM economy_store
+          WHERE
+            server_id = ?
+            AND item_id = ?
+        `,
+        [interaction.guild.id, storeRows[0].item_id],
+      );
 
       const embed = new EmbedBuilder()
         .setColor(interaction.settings.embedColor)
@@ -216,10 +252,21 @@ exports.run = async (interaction) => {
         .setDescription('Item has been removed from the store.');
 
       if (cascade) {
+        // Remove all instances of this item from user inventories
+        await interaction.client.db.execute(
+          /* sql */ `
+            DELETE FROM economy_inventory
+            WHERE
+              server_id = ?
+              AND item_id = ?
+          `,
+          [interaction.guild.id, storeRows[0].item_id],
+        );
+
         embed.addFields([
           {
             name: 'Cascade Deletion',
-            value: `All instances of **${itemKey}** have been removed from user inventories.`,
+            value: `All instances of **${storeRows[0].item_name}** have been removed from user inventories.`,
           },
         ]);
       }
@@ -235,16 +282,39 @@ exports.run = async (interaction) => {
       const attribute = interaction.options.getString('attribute');
       let newValue = interaction.options.getString('new_value');
 
-      const store = (await db.get(`servers.${interaction.guild.id}.economy.store`)) || {};
+      const [storeRows] = await interaction.client.db.execute(
+        /* sql */ `
+          SELECT
+            *
+          FROM
+            economy_store
+          WHERE
+            server_id = ?
+            AND LOWER(item_name) = LOWER(?)
+        `,
+        [interaction.guild.id, itemName],
+      );
 
-      // Find the item in the store regardless of case
-      let itemKey = Object.keys(store).find((key) => key.toLowerCase() === itemName.toLowerCase());
+      const item = storeRows[0];
 
-      if (!itemKey) {
+      if (!item) {
         return interaction.client.util.errorEmbed(interaction, 'That item does not exist in the store.');
       }
 
-      const item = store[itemKey];
+      const updateStoreItem = async (itemId, column, value) => {
+        item[column] = value;
+        return await interaction.client.db.execute(
+          /* sql */ `
+            UPDATE economy_store
+            SET
+              ${column} = ?
+            WHERE
+              server_id = ?
+              AND item_id = ?
+          `,
+          [value, interaction.guild.id, itemId],
+        );
+      };
 
       switch (attribute) {
         case 'name': {
@@ -252,16 +322,36 @@ exports.run = async (interaction) => {
             return interaction.client.util.errorEmbed(interaction, 'Please re-run the command with a new name.');
           }
 
-          // Ensure the new name is not already taken
-          const newItemKey = newValue.toLowerCase();
-          if (Object.keys(store).find((key) => key.toLowerCase() === newItemKey)) {
-            return interaction.client.util.errorEmbed(interaction, 'An item with that name already exists.');
+          if (newValue.length > 200) {
+            return interaction.client.util.errorEmbed(
+              interaction,
+              'Please re-run the command with a name under 200 characters.',
+            );
           }
 
-          // Update the item name
-          store[newValue] = item;
-          delete store[itemKey];
-          itemKey = newValue; // Update the reference to the new item key
+          // Ensure the new name is not already taken
+          const [countRows] = await interaction.client.db.execute(
+            /* sql */
+            `
+              SELECT
+                COUNT(*) AS count
+              FROM
+                economy_store
+              WHERE
+                server_id = ?
+                AND LOWER(item_name) = LOWER(?)
+            `,
+            [interaction.guild.id, newValue],
+          );
+
+          if (countRows[0].count > 0) {
+            return interaction.client.util.errorEmbed(
+              interaction,
+              'An item with that name already exists in the store, please re-run the command with a different name.',
+            );
+          }
+
+          await updateStoreItem(item.item_id, 'item_name', newValue);
           break;
         }
 
@@ -284,15 +374,13 @@ exports.run = async (interaction) => {
             );
           }
 
-          item.cost = price;
-          store[itemKey] = item;
+          await updateStoreItem(item.item_id, 'cost', price);
           break;
         }
 
         case 'description': {
           if (!newValue) {
-            item.description = 'None provided';
-            store[itemKey] = item;
+            await updateStoreItem(item.item_id, 'description', '<:transparent:1482197803999428709>');
             break;
           }
 
@@ -303,21 +391,19 @@ exports.run = async (interaction) => {
             );
           }
 
-          item.description = newValue.slice(0, 1000);
-          store[itemKey] = item;
+          await updateStoreItem(item.item_id, 'description', newValue);
           break;
         }
 
         case 'inventory': {
           if (!newValue) {
-            item.inventory = true; // Default to true if no value is provided
-            store[itemKey] = item;
+            await updateStoreItem(item.item_id, 'inventory', 1);
             break;
           }
 
           if ((interaction.client.util.yes || interaction.client.util.no).includes(newValue.toLowerCase())) {
-            item.inventory = interaction.client.util.yes.includes(newValue.toLowerCase());
-            store[itemKey] = item;
+            const inventoryValue = interaction.client.util.yes.includes(newValue.toLowerCase()) ? 1 : 0;
+            await updateStoreItem(item.item_id, 'inventory', inventoryValue);
           } else {
             return interaction.client.util.errorEmbed(
               interaction,
@@ -329,8 +415,7 @@ exports.run = async (interaction) => {
 
         case 'time-remaining': {
           if (!newValue) {
-            item.timeRemaining = null;
-            store[itemKey] = item;
+            await updateStoreItem(item.item_id, 'time_remaining', null);
             break;
           }
 
@@ -339,41 +424,38 @@ exports.run = async (interaction) => {
           if (isNaN(timeLimit) || timeLimit === null) {
             return interaction.client.util.errorEmbed(
               interaction,
-              'Please re-run the command with a valid `duration` given.',
+              'Please re-run the command with a valid `time-remaining` given.',
             );
           } else if (timeLimit < 600000) {
             return interaction.client.util.errorEmbed(
               interaction,
-              'Please re-run the command again with a duration greater than 10 minutes.',
+              'Please re-run the command again with a `time-remaining` greater than 10 minutes.',
             );
           } else if (timeLimit > 315576000000) {
             return interaction.client.util.errorEmbed(
               interaction,
-              'Please re-run the command again with a duration less than 10 years.',
+              'Please re-run the command again with a `time-remaining` less than 10 years.',
             );
           }
 
           if (timeLimit === 0) {
-            item.timeRemaining = null;
-            store[itemKey] = item;
+            await updateStoreItem(item.item_id, 'time_remaining', null);
             break;
           }
 
-          item.timeRemaining = Date.now() + timeLimit;
-          store[itemKey] = item;
+          const newTimeRemaining = Date.now() + timeLimit;
+          await updateStoreItem(item.item_id, 'time_remaining', newTimeRemaining);
           break;
         }
 
         case 'stock': {
           if (!newValue) {
-            item.stock = null;
-            store[itemKey] = item;
+            await updateStoreItem(item.item_id, 'stock', -1);
             break;
           }
 
           if (['infinite', 'infinity'].includes(newValue.toLowerCase())) {
-            item.stock = null;
-            store[itemKey] = item;
+            await updateStoreItem(item.item_id, 'stock', -1);
             break;
           }
 
@@ -385,15 +467,13 @@ exports.run = async (interaction) => {
             );
           }
 
-          item.stock = stock;
-          store[itemKey] = item;
+          await updateStoreItem(item.item_id, 'stock', stock);
           break;
         }
 
         case 'role-required': {
           if (!newValue) {
-            item.roleRequired = null;
-            store[itemKey] = item;
+            await updateStoreItem(item.item_id, 'role_required', null);
             break;
           }
 
@@ -402,15 +482,13 @@ exports.run = async (interaction) => {
             return interaction.client.util.errorEmbed(interaction, 'Please re-run the command with a valid role.');
           }
 
-          item.roleRequired = role.id;
-          store[itemKey] = item;
+          await updateStoreItem(item.item_id, 'role_required', role.id);
           break;
         }
 
         case 'role-given': {
           if (!newValue) {
-            item.roleGiven = null;
-            store[itemKey] = item;
+            await updateStoreItem(item.item_id, 'role_given', null);
             break;
           }
 
@@ -424,15 +502,13 @@ exports.run = async (interaction) => {
             );
           }
 
-          item.roleGiven = role.id;
-          store[itemKey] = item;
+          await updateStoreItem(item.item_id, 'role_given', role.id);
           break;
         }
 
         case 'role-removed': {
           if (!newValue) {
-            item.roleRemoved = null;
-            store[itemKey] = item;
+            await updateStoreItem(item.item_id, 'role_removed', null);
             break;
           }
 
@@ -446,15 +522,13 @@ exports.run = async (interaction) => {
             );
           }
 
-          item.roleRemoved = role.id;
-          store[itemKey] = item;
+          await updateStoreItem(item.item_id, 'role_removed', role.id);
           break;
         }
 
         case 'required-balance': {
           if (!newValue) {
-            item.requiredBalance = null;
-            store[itemKey] = item;
+            await updateStoreItem(item.item_id, 'required_balance', '0');
             break;
           }
 
@@ -471,15 +545,13 @@ exports.run = async (interaction) => {
             );
           }
 
-          item.requiredBalance = requiredBalance;
-          store[itemKey] = item;
+          await updateStoreItem(item.item_id, 'required_balance', requiredBalance);
           break;
         }
 
         case 'reply-message': {
           if (!newValue) {
-            item.replyMessage = null;
-            store[itemKey] = item;
+            await updateStoreItem(item.item_id, 'reply_message', null);
             break;
           }
 
@@ -490,8 +562,7 @@ exports.run = async (interaction) => {
             );
           }
 
-          item.replyMessage = newValue;
-          store[itemKey] = item;
+          await updateStoreItem(item.item_id, 'reply_message', newValue);
           break;
         }
 
@@ -501,42 +572,55 @@ exports.run = async (interaction) => {
           );
       }
 
-      await db.set(`servers.${interaction.guild.id}.economy.store`, store);
       const timeRemainingString = item.timeRemaining
         ? `Deleted <t:${Math.floor(item.timeRemaining / 1000)}:R>`
         : 'No time limit';
+
+      const [economyRows] = await interaction.client.db.execute(
+        /* sql */ `
+          SELECT
+            *
+          FROM
+            economy_settings
+          WHERE
+            server_id = ?
+        `,
+        [interaction.guild.id],
+      );
+      const currencySymbol = economyRows[0]?.symbol || '$';
+      const costString = currencySymbol + BigInt(item.cost).toLocaleString();
 
       const embed = new EmbedBuilder()
         .setTitle('Item Edited')
         .setColor(interaction.settings.embedColor)
         .setAuthor({ name: interaction.member.displayName, iconURL: interaction.user.displayAvatarURL() })
         .addFields([
-          { name: 'Name', value: itemKey, inline: true },
-          { name: 'Price', value: BigInt(item.cost).toLocaleString(), inline: true },
+          { name: 'Name', value: item.item_name, inline: true },
+          { name: 'Price', value: costString, inline: true },
           { name: 'Description', value: item.description, inline: false },
           { name: 'Show in Inventory?', value: item.inventory ? 'Yes' : 'No', inline: true },
           { name: 'Time Remaining', value: timeRemainingString, inline: true },
-          { name: 'Stock', value: item.stock ? item.stock.toLocaleString() : 'Infinity', inline: true },
+          { name: 'Stock', value: item.stock !== -1 ? item.stock.toLocaleString() : 'Infinity', inline: true },
           {
             name: 'Role Required',
-            value: item.roleRequired
-              ? interaction.client.util.getRole(interaction, item.roleRequired).toString()
+            value: item.role_required
+              ? interaction.client.util.getRole(interaction, item.role_required).toString()
               : 'None',
             inline: true,
           },
           {
             name: 'Role Given',
-            value: item.roleGiven ? interaction.client.util.getRole(interaction, item.roleGiven).toString() : 'None',
+            value: item.role_given ? interaction.client.util.getRole(interaction, item.role_given).toString() : 'None',
             inline: true,
           },
           {
             name: 'Role Removed',
-            value: item.roleRemoved
-              ? interaction.client.util.getRole(interaction, item.roleRemoved).toString()
+            value: item.role_removed
+              ? interaction.client.util.getRole(interaction, item.role_removed).toString()
               : 'None',
             inline: true,
           },
-          { name: 'Reply Message', value: item.replyMessage || 'None', inline: true },
+          { name: 'Reply Message', value: item.reply_message || 'None', inline: true },
         ])
         .setTimestamp();
 

@@ -11,8 +11,6 @@ const {
 } = require('discord.js');
 const { stripIndents } = require('common-tags');
 const { Duration, DateTime } = require('luxon');
-const { QuickDB } = require('quick.db');
-const db = new QuickDB();
 
 exports.conf = {
   permLevel: 'User',
@@ -107,10 +105,46 @@ exports.commandData = new SlashCommandBuilder()
 exports.autoComplete = async (interaction) => {
   try {
     const focusedValue = interaction.options.getFocused();
-    const store = (await db.get(`servers.${interaction.guild.id}.economy.store`)) || {};
+    if (!focusedValue) {
+      const [rows] = await interaction.client.db.execute(
+        /* sql */ `
+          SELECT
+            *
+          FROM
+            economy_store
+          WHERE
+            server_id = ?
+          ORDER BY
+            cost ASC
+          LIMIT
+            25
+        `,
+        [interaction.guild.id],
+      );
+      const choices = rows.map((row) => row.item_name);
+      return interaction.respond(
+        choices.slice(0, 25).map((choice) => ({
+          name: choice,
+          value: choice,
+        })),
+      );
+    }
 
-    // Filter keys based on user input
-    const choices = Object.keys(store).filter((item) => item.toLowerCase().includes(focusedValue.toLowerCase()));
+    const [rows] = await interaction.client.db.execute(
+      /* sql */ `
+        SELECT
+          *
+        FROM
+          economy_store
+        WHERE
+          server_id = ?
+          AND LOWER(item_name) LIKE ?
+        LIMIT
+          25
+      `,
+      [interaction.guild.id, `%${focusedValue.toLowerCase()}%`],
+    );
+    const choices = rows.map((row) => row.item_name);
 
     // Respond with up to 25 choices (Discord limit)
     await interaction.respond(
@@ -128,7 +162,6 @@ exports.autoComplete = async (interaction) => {
 exports.run = async (interaction) => {
   await interaction.deferReply();
   const subcommand = interaction.options.getSubcommand();
-  const store = (await db.get(`servers.${interaction.guild.id}.economy.store`)) || {};
 
   switch (subcommand) {
     case 'buy': {
@@ -137,33 +170,85 @@ exports.run = async (interaction) => {
       if (!itemName) return interaction.editReply('Please specify an item to buy.');
 
       // Find the item in the store regardless of case
-      const itemKey = Object.keys(store).find((key) => key.toLowerCase() === itemName);
-      if (!itemKey) return interaction.editReply('That item does not exist in the store.');
-
-      const item = store[itemKey];
-      const itemCost = BigInt(item.cost);
-      let userCash = BigInt(
-        await db.get(`servers.${interaction.guild.id}.users.${interaction.member.id}.economy.cash`),
+      const [storeRows] = await interaction.client.db.execute(
+        /* sql */ `
+          SELECT
+            *
+          FROM
+            economy_store
+          WHERE
+            server_id = ?
+            AND LOWER(item_name) = ?
+        `,
+        [interaction.guild.id, itemName],
       );
+      const item = storeRows[0];
+      if (!item) return interaction.editReply('That item does not exist in the store.');
+
+      const itemCost = BigInt(item.cost);
+
+      const [economyRows] = await interaction.client.db.execute(
+        /* sql */ `
+          SELECT
+            *
+          FROM
+            economy_settings
+          WHERE
+            server_id = ?
+        `,
+        [interaction.guild.id],
+      );
+      const currencySymbol = economyRows[0]?.symbol || '$';
+
+      const [balanceRows] = await interaction.client.db.execute(
+        /* sql */ `
+          SELECT
+            cash
+          FROM
+            economy_balances
+          WHERE
+            server_id = ?
+            AND user_id = ?
+        `,
+        [interaction.guild.id, interaction.member.id],
+      );
+      const userCash = BigInt(balanceRows[0]?.cash ?? economyRows[0]?.start_balance ?? 0);
       if (userCash < itemCost * BigInt(quantity))
         return interaction.editReply('You do not have enough money to buy this item.');
 
-      if (item.stock && item.stock < quantity) {
+      if (item.stock !== -1 && item.stock < quantity) {
         return interaction.editReply(`The store only has ${item.stock} stock remaining.`);
       }
 
-      if (item.stock) {
+      if (item.stock !== -1) {
         item.stock -= quantity;
         if (item.stock === 0) {
-          await db.delete(`servers.${interaction.guild.id}.economy.store.${itemKey}`);
+          await interaction.client.db.execute(
+            /* sql */ `
+              DELETE FROM economy_store
+              WHERE
+                server_id = ?
+                AND item_id = ?
+            `,
+            [interaction.guild.id, item.item_id],
+          );
         } else {
-          store[itemKey] = item;
-          await db.set(`servers.${interaction.guild.id}.economy.store`, store);
+          await interaction.client.db.execute(
+            /* sql */ `
+              UPDATE economy_store
+              SET
+                stock = ?
+              WHERE
+                server_id = ?
+                AND item_id = ?
+            `,
+            [item.stock, interaction.guild.id, item.item_id],
+          );
         }
       }
 
-      if (item.roleRequired) {
-        const roleRequired = interaction.client.util.getRole(interaction, item.roleRequired);
+      if (item.role_required) {
+        const roleRequired = interaction.client.util.getRole(interaction, item.role_required);
         if (roleRequired) {
           // Check if the member has the role
           const hasRole = interaction.member.roles.cache.has(roleRequired.id);
@@ -172,14 +257,10 @@ exports.run = async (interaction) => {
               `You do not have the required role **${roleRequired.name}** to purchase this item.`,
             );
           }
-        } else {
-          return interaction.editReply(
-            'The required role no longer exists, please contact a server administrator to purchase this item.',
-          );
         }
       }
 
-      if (item.roleGiven || item.roleRemoved) {
+      if (item.role_given || item.role_removed) {
         if (!interaction.guild.members.me.permissions.has('ManageRoles'))
           return interaction.client.util.errorEmbed(
             interaction,
@@ -189,39 +270,44 @@ exports.run = async (interaction) => {
       }
 
       // Deduct the cost from the user's cash
-      userCash = userCash - itemCost * BigInt(quantity);
-      await db.set(`servers.${interaction.guild.id}.users.${interaction.member.id}.economy.cash`, userCash.toString());
+      const amount = itemCost * BigInt(quantity);
+      await interaction.client.db.execute(
+        /* sql */
+        `
+          INSERT INTO
+            economy_balances (server_id, user_id, cash)
+          VALUES
+            (?, ?, ?) ON DUPLICATE KEY
+          UPDATE cash = cash -
+          VALUES
+            (cash)
+        `,
+        [interaction.guild.id, interaction.member.id, amount.toString()],
+      );
 
       if (!item.inventory) {
-        if (item.roleGiven) {
-          const role = interaction.client.util.getRole(interaction, item.roleGiven);
+        if (item.role_given) {
+          const role = interaction.client.util.getRole(interaction, item.role_given);
           await interaction.member.roles.add(role).catch((error) => interaction.channel.send(error));
         }
-        if (item.roleRemoved) {
-          const role = interaction.client.util.getRole(interaction, item.roleRemoved);
+        if (item.role_removed) {
+          const role = interaction.client.util.getRole(interaction, item.role_removed);
           await interaction.member.roles.remove(role).catch((error) => interaction.channel.send(error));
         }
-        if (!item.replyMessage) {
+        if (!item.reply_message) {
           return interaction.editReply('👍');
         }
 
         // Replace Member
         // Calculate the duration since the member's account was created
-        const duration = Duration.fromMillis(Date.now() - interaction.user.createdAt.getTime()).shiftTo(
-          'years',
-          'months',
-          'days',
-          'hours',
-          'minutes',
-          'seconds',
-        );
-        const rounded = duration.set({ seconds: Math.floor(duration.seconds) });
-        const memberCreatedDuration = rounded.toHuman({ showZeros: false });
+        const memberCreatedDuration = Duration.fromMillis(Date.now() - interaction.user.createdAt.getTime())
+          .shiftTo('years', 'months', 'days', 'hours', 'minutes', 'seconds')
+          .toHuman({ maximumFractionDigits: 2, showZeros: false });
 
         // Format the member's account creation date
         const memberCreated = DateTime.fromMillis(interaction.user.createdAt.getTime()).toFormat('MMMM dd, yyyy');
 
-        let replyMessage = item.replyMessage
+        let replyMessage = item.reply_message
           .replace('{member.id}', interaction.user.id)
           .replace('{member.username}', interaction.user.username)
           .replace('{member.tag}', interaction.user.tag)
@@ -231,16 +317,9 @@ exports.run = async (interaction) => {
 
         // Replace Server
         // Calculate the duration since the server was created
-        const serverDuration = Duration.fromMillis(Date.now() - interaction.guild.createdAt.getTime()).shiftTo(
-          'years',
-          'months',
-          'days',
-          'hours',
-          'minutes',
-          'seconds',
-        );
-        const roundedDuration = serverDuration.set({ seconds: Math.floor(serverDuration.seconds) });
-        const serverCreatedDuration = roundedDuration.toHuman({ showZeros: false });
+        const serverCreatedDuration = Duration.fromMillis(Date.now() - interaction.guild.createdAt.getTime())
+          .shiftTo('years', 'months', 'days', 'hours', 'minutes', 'seconds')
+          .toHuman({ maximumFractionDigits: 2, showZeros: false });
 
         // Format the server's creation date
         const serverCreated = DateTime.fromMillis(interaction.guild.createdAt.getTime()).toFormat('MMMM dd, yyyy');
@@ -259,16 +338,9 @@ exports.run = async (interaction) => {
 
         if (role) {
           // Calculate the duration since the role was created
-          const roleDuration = Duration.fromMillis(Date.now() - role.createdAt.getTime()).shiftTo(
-            'years',
-            'months',
-            'days',
-            'hours',
-            'minutes',
-            'seconds',
-          );
-          const roundedRoleDuration = roleDuration.set({ seconds: Math.floor(roleDuration.seconds) });
-          const roleCreatedDuration = roundedRoleDuration.toHuman({ showZeros: false });
+          const roleCreatedDuration = Duration.fromMillis(Date.now() - role.createdAt.getTime())
+            .shiftTo('years', 'months', 'days', 'hours', 'minutes', 'seconds')
+            .toHuman({ maximumFractionDigits: 2, showZeros: false });
 
           // Format the role's creation date
           const roleCreated = DateTime.fromMillis(role.createdAt.getTime()).toFormat('MMMM dd, yyyy');
@@ -284,44 +356,75 @@ exports.run = async (interaction) => {
         return interaction.editReply(replyMessage);
       }
 
-      const userInventory =
-        (await db.get(`servers.${interaction.guild.id}.users.${interaction.member.id}.economy.inventory`)) || [];
-
-      // Find the item in the user's inventory by its unique ID instead of name
-      const itemIndex = userInventory.findIndex((inventoryItem) => inventoryItem?.id === item.id);
-
-      if (itemIndex !== -1) {
-        // If the item is found, increment the quantity
-        userInventory[itemIndex].quantity += quantity;
-        userInventory[itemIndex] = {
-          ...userInventory[itemIndex],
-          name: itemKey,
-          ...item,
-        };
-      } else {
-        // Ensure item has a unique ID and name when stored
-        userInventory.push({
-          id: item.id,
-          name: itemKey,
-          quantity,
-          ...item,
-        });
-      }
-
-      await db.set(`servers.${interaction.guild.id}.users.${interaction.member.id}.economy.inventory`, userInventory);
-
-      const [economyRows] = await interaction.client.db.execute(
-        /* sql */ `
-          SELECT
-            *
-          FROM
-            economy_settings
-          WHERE
-            server_id = ?
+      await interaction.client.db.execute(
+        /* sql */
+        `
+          INSERT INTO
+            economy_inventory (
+              server_id,
+              user_id,
+              item_id,
+              item_name,
+              quantity,
+              cost,
+              description,
+              inventory,
+              time_remaining,
+              role_required,
+              role_given,
+              role_removed,
+              reply_message
+            )
+          VALUES
+            (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY
+          UPDATE quantity = quantity +
+          VALUES
+            (quantity),
+            item_name =
+          VALUES
+            (item_name),
+            cost =
+          VALUES
+            (cost),
+            description =
+          VALUES
+            (description),
+            inventory =
+          VALUES
+            (inventory),
+            time_remaining =
+          VALUES
+            (time_remaining),
+            role_required =
+          VALUES
+            (role_required),
+            role_given =
+          VALUES
+            (role_given),
+            role_removed =
+          VALUES
+            (role_removed),
+            reply_message =
+          VALUES
+            (reply_message)
         `,
-        [interaction.guild.id],
+        [
+          interaction.guild.id,
+          interaction.user.id,
+          item.item_id,
+          item.item_name,
+          quantity,
+          item.cost,
+          item.description,
+          item.inventory,
+          item.time_remaining,
+          item.role_required,
+          item.role_given,
+          item.role_removed,
+          item.reply_message,
+        ],
       );
-      const currencySymbol = economyRows[0]?.symbol || '$';
+
       const itemCostQuantity = (itemCost * BigInt(quantity)).toLocaleString();
       const csCost = interaction.client.util.limitStringLength(currencySymbol + itemCostQuantity, 0, 700);
 
@@ -329,7 +432,7 @@ exports.run = async (interaction) => {
         .setAuthor({ name: interaction.member.displayName, iconURL: interaction.member.displayAvatarURL() })
         .setTitle('Purchase Successful')
         .setDescription(
-          `You have bought ${quantity} ${itemKey}${
+          `You have bought ${quantity} ${item.item_name}${
             quantity > 1 ? "'s" : ''
           } for ${csCost}! This is now in your inventory. \nUse this item with the \`use-item\` command.`,
         )
@@ -343,41 +446,84 @@ exports.run = async (interaction) => {
       const mem = interaction.options.getUser('member') || interaction.user;
       let page = interaction.options.getInteger('page') || 1;
 
-      const userInventory = (await db.get(`servers.${interaction.guild.id}.users.${mem.id}.economy.inventory`)) || [];
+      // Get total item count to calculate max pages
+      const [countRows] = await interaction.client.db.execute(
+        /* sql */
+        `
+          SELECT
+            COUNT(*) AS count
+          FROM
+            economy_inventory
+          WHERE
+            server_id = ?
+            AND user_id = ?
+        `,
+        [interaction.guild.id, mem.id],
+      );
+      const totalItems = countRows[0].count;
       const itemsPerPage = 10;
-      const maxPages = Math.ceil(userInventory.length / itemsPerPage) || 1;
+      const maxPages = Math.ceil(totalItems / itemsPerPage) || 1;
 
       // Ensure page is within valid range
       page = Math.max(1, Math.min(page, maxPages));
 
-      const start = (page - 1) * itemsPerPage;
-      const end = start + itemsPerPage;
-      const paginatedInventory = userInventory.slice(start, end);
+      const generateInventoryEmbed = async (currentPage) => {
+        const offset = (currentPage - 1) * itemsPerPage;
 
-      // Build the fields for the embed
-      const fields = paginatedInventory.map((item) => ({
-        name: `${item?.quantity || 1} - ${item?.name}`,
-        value: item?.description || 'No description available.',
-        inline: false,
-      }));
+        // Fetch only the items for the current page, sorted by cost
+        const [rows] = await interaction.client.db.execute(
+          /* sql */
+          `
+            SELECT
+              item_name,
+              quantity,
+              cost,
+              description
+            FROM
+              economy_inventory
+            WHERE
+              server_id = ?
+              AND user_id = ?
+            ORDER BY
+              quantity ASC
+            LIMIT
+              ?
+            OFFSET
+              ?
+          `,
+          [interaction.guild.id, mem.id, itemsPerPage, offset],
+        );
 
-      let embed;
-      if (!fields || fields.length < 1) {
-        embed = new EmbedBuilder()
-          .setAuthor({ name: `${mem.username}'s Inventory`, iconURL: mem.displayAvatarURL() })
-          .setColor(interaction.settings.embedErrorColor)
-          .setDescription(`You don't have any items, view available items with the \`store\` command.`)
+        const embed = new EmbedBuilder()
+          .setAuthor({
+            name: `${mem.username}'s Inventory`,
+            iconURL: mem.displayAvatarURL(),
+          })
+          .setFooter({ text: `Page ${currentPage} / ${maxPages}` })
           .setTimestamp();
-      } else {
-        embed = new EmbedBuilder()
-          .setAuthor({ name: `${mem.username}'s Inventory`, iconURL: mem.displayAvatarURL() })
-          .setColor(interaction.settings.embedColor)
-          .setDescription(`Use an item with the \`use [quantity] <name>\` command`)
-          .addFields(fields)
-          .setFooter({ text: `Page ${page} / ${maxPages}` })
-          .setTimestamp();
-      }
 
+        if (rows.length > 0) {
+          const fields = rows.map((item) => ({
+            name: `${item?.quantity || 1}x - ${item?.item_name}`,
+            value: item?.description || 'No description available.',
+            inline: false,
+          }));
+          embed
+            .setColor(interaction.settings.embedColor)
+            .addFields(fields)
+            .setDescription(`Use an item with \`${interaction.settings.prefix}use [quantity] <name>\``);
+        } else {
+          embed
+            .setColor(interaction.settings.embedErrorColor)
+            .setDescription(
+              `You don't have any items, view available items with \`${interaction.settings.prefix}store\``,
+            );
+        }
+
+        return embed;
+      };
+
+      const embed = await generateInventoryEmbed(page);
       const row = new ActionRowBuilder().addComponents(
         new ButtonBuilder()
           .setCustomId('prev_page')
@@ -405,25 +551,7 @@ exports.run = async (interaction) => {
         // Ensure page is within valid range
         page = Math.max(1, Math.min(page, maxPages));
 
-        const newStart = (page - 1) * itemsPerPage;
-        const newEnd = newStart + itemsPerPage;
-        const newPaginatedInventory = userInventory.slice(newStart, newEnd);
-
-        // Build the new fields for the updated embed
-        const newFields = newPaginatedInventory.map((item) => ({
-          name: `${item?.quantity || 1} -  ${item?.name}`,
-          value: item?.description || 'No description available.',
-          inline: false,
-        }));
-
-        const updatedEmbed = new EmbedBuilder()
-          .setColor(interaction.settings.embedColor)
-          .setAuthor({ name: `${mem.username}'s Inventory`, iconURL: mem.displayAvatarURL() })
-          .setDescription(`Use an item with the \`use [quantity] <name>\` command`)
-          .addFields(newFields)
-          .setFooter({ text: `Page ${page} / ${maxPages}` })
-          .setTimestamp();
-
+        const updatedEmbed = await generateInventoryEmbed(page);
         const updatedRow = new ActionRowBuilder().addComponents(
           new ButtonBuilder()
             .setCustomId('prev_page')
@@ -457,12 +585,42 @@ exports.run = async (interaction) => {
     case 'info': {
       const itemName = interaction.options.getString('item').toLowerCase();
 
-      // Find the item in the store regardless of case
-      const itemKey = Object.keys(store).find((key) => key.toLowerCase() === itemName);
+      const [storeRows] = await interaction.client.db.execute(
+        /* sql */ `
+          SELECT
+            *
+          FROM
+            economy_store
+          WHERE
+            server_id = ?
+            AND LOWER(item_name) = ?
+        `,
+        [interaction.guild.id, itemName],
+      );
 
-      const item = store[itemKey];
+      let item = storeRows[0];
       if (!item) {
-        return interaction.client.util.errorEmbed(interaction, 'That item does not exist in the store.');
+        const [inventoryRows] = await interaction.client.db.execute(
+          /* sql */ `
+            SELECT
+              *
+            FROM
+              economy_inventory
+            WHERE
+              server_id = ?
+              AND user_id = ?
+              AND LOWER(item_name) = ?
+          `,
+          [interaction.guild.id, interaction.user.id, itemName],
+        );
+        item = inventoryRows[0];
+
+        if (!item) {
+          return interaction.client.util.errorEmbed(
+            interaction,
+            'That item does not exist in the store or your inventory.',
+          );
+        }
       }
 
       const [economyRows] = await interaction.client.db.execute(
@@ -478,11 +636,11 @@ exports.run = async (interaction) => {
       );
       const currencySymbol = economyRows[0]?.symbol || '$';
       const cost = currencySymbol + BigInt(item.cost).toLocaleString();
-      const requiredBalance = item.requiredBalance
-        ? currencySymbol + BigInt(item.requiredBalance).toLocaleString()
+      const requiredBalance = item.required_balance
+        ? currencySymbol + BigInt(item.required_balance).toLocaleString()
         : 'None';
-      const timeRemainingString = item.timeRemaining
-        ? `Deleted <t:${Math.floor(item.timeRemaining / 1000)}:R>`
+      const timeRemainingString = item.time_remaining
+        ? `Deleted <t:${Math.floor(item.time_remaining / 1000)}:R>`
         : 'No time limit';
 
       const embed = new EmbedBuilder()
@@ -490,28 +648,32 @@ exports.run = async (interaction) => {
         .setAuthor({ name: interaction.member.displayName, iconURL: interaction.member.displayAvatarURL() })
         .setTitle('Item Info')
         .addFields([
-          { name: 'Name', value: itemKey, inline: true },
+          { name: 'Name', value: item.item_name, inline: true },
           { name: 'Cost', value: interaction.client.util.limitStringLength(cost, 0, 1024), inline: true },
           { name: 'Description', value: item.description, inline: false },
-          { name: 'Show in Inventory?', value: item.inventory ? 'Yes' : 'No', inline: true },
+          { name: 'Show in Inventory?', value: item.inventory !== -1 ? 'Yes' : 'No', inline: true },
           { name: 'Time Remaining', value: timeRemainingString, inline: true },
-          { name: 'Stock Remaining', value: item.stock ? item.stock.toLocaleString() : 'Infinity', inline: true },
+          {
+            name: 'Stock Remaining',
+            value: item.stock !== -1 ? item.stock.toLocaleString() : 'Infinity',
+            inline: true,
+          },
           {
             name: 'Role Required',
-            value: item.roleRequired
-              ? interaction.client.util.getRole(interaction, item.roleRequired).toString()
+            value: item.role_required
+              ? interaction.client.util.getRole(interaction, item.role_required).toString()
               : 'None',
             inline: true,
           },
           {
             name: 'Role Given',
-            value: item.roleGiven ? interaction.client.util.getRole(interaction, item.roleGiven).toString() : 'None',
+            value: item.role_given ? interaction.client.util.getRole(interaction, item.role_given).toString() : 'None',
             inline: true,
           },
           {
             name: 'Role Removed',
-            value: item.roleRemoved
-              ? interaction.client.util.getRole(interaction, item.roleRemoved).toString()
+            value: item.role_removed
+              ? interaction.client.util.getRole(interaction, item.role_removed).toString()
               : 'None',
             inline: true,
           },
@@ -520,7 +682,7 @@ exports.run = async (interaction) => {
             value: interaction.client.util.limitStringLength(requiredBalance, 0, 1024),
             inline: true,
           },
-          { name: 'Reply Message', value: item.replyMessage || 'None', inline: true },
+          { name: 'Reply Message', value: item.reply_message || 'None', inline: true },
         ]);
 
       return interaction.editReply({ embeds: [embed] });
@@ -530,62 +692,81 @@ exports.run = async (interaction) => {
       let page = interaction.options.getInteger('page') || 1;
       const itemName = interaction.options.getString('item');
 
-      // Fetch all inventories from the database
-      const serverData = (await db.get(`servers.${interaction.guild.id}.users`)) || {};
-      const leaderboard = [];
+      const [countRows] = await interaction.client.db.execute(
+        /* sql */
+        `
+          SELECT
+            COUNT(*) AS count
+          FROM
+            economy_inventory
+          WHERE
+            server_id = ?
+            AND LOWER(item_name) = ?
+        `,
+        [interaction.guild.id, itemName.toLowerCase()],
+      );
+      const totalEntries = countRows[0].count;
 
-      // Aggregate data for the specified item
-      for (const userId in serverData) {
-        const inventory = serverData[userId]?.economy?.inventory || [];
-        inventory.forEach((item) => {
-          // Skip invalid items
-          if (!item || !item.name) return;
-
-          if (item.name.toLowerCase() === itemName.toLowerCase()) {
-            leaderboard.push({
-              userId,
-              quantity: item.quantity || 1,
-            });
-          }
-        });
-      }
-
-      if (leaderboard.length === 0) {
+      if (totalEntries === 0) {
         return interaction.client.util.errorEmbed(interaction, `No one owns the item "${itemName}".`, 'Item Not Found');
       }
 
-      // Sort leaderboard by quantity
-      leaderboard.sort((a, b) => b.quantity - a.quantity);
-
       const itemsPerPage = 10; // Number of entries per page
-      const maxPages = Math.ceil(leaderboard.length / itemsPerPage) || 1;
+      const maxPages = Math.ceil(totalEntries / itemsPerPage) || 1;
 
       // Ensure the page is within range
       page = Math.max(1, Math.min(page, maxPages));
 
-      const start = (page - 1) * itemsPerPage;
-      const end = start + itemsPerPage;
-      const paginatedLeaderboard = leaderboard.slice(start, end);
+      const generateEmbed = async (currentPage) => {
+        const offset = (currentPage - 1) * itemsPerPage;
+        const [rows] = await interaction.client.db.execute(
+          /* sql */
+          `
+            SELECT
+              user_id,
+              item_name,
+              quantity
+            FROM
+              economy_inventory
+            WHERE
+              server_id = ?
+              AND LOWER(item_name) = ?
+            ORDER BY
+              quantity DESC
+            LIMIT
+              ?
+            OFFSET
+              ?
+          `,
+          [interaction.guild.id, itemName.toLowerCase(), itemsPerPage, offset],
+        );
 
-      // Build the fields for the embed
-      const fields = await Promise.all(
-        paginatedLeaderboard.map(async (entry, index) => {
-          const user = await interaction.guild.members.fetch(entry.userId);
-          return {
-            name: `#${start + index + 1} - ${user.user.tag}`,
-            value: `Quantity: **${entry.quantity}**`,
-            inline: false,
-          };
-        }),
-      );
+        const leaderboardLines = await Promise.all(
+          rows.map(async (row, index) => {
+            const user =
+              interaction.client.users.cache.get(row.user_id) ||
+              (await interaction.client.users.fetch(row.user_id).catch(() => null));
+            const username = user ? user.tag : `Unknown User (${row.user_id})`;
 
-      const embed = new EmbedBuilder()
-        .setTitle(`Leaderboard for "${itemName}"`)
-        .setColor(interaction.settings.embedColor)
-        .addFields(fields)
-        .setFooter({ text: `Page ${page} / ${maxPages}` })
-        .setTimestamp();
+            return {
+              name: `#${offset + index + 1} - ${username}`,
+              value: `Quantity: **${row.quantity}**`,
+              inline: false,
+            };
+          }),
+        );
 
+        const embed = new EmbedBuilder()
+          .setTitle(`Leaderboard for "${itemName}"`)
+          .setColor(interaction.settings.embedColor)
+          .addFields(leaderboardLines)
+          .setFooter({ text: `Page ${currentPage} / ${maxPages}` })
+          .setTimestamp();
+
+        return embed;
+      };
+
+      const embed = await generateEmbed(page);
       const row = new ActionRowBuilder().addComponents(
         new ButtonBuilder()
           .setCustomId('prev_page')
@@ -616,28 +797,7 @@ exports.run = async (interaction) => {
         // Ensure page is within range
         page = Math.max(1, Math.min(page, maxPages));
 
-        const newStart = (page - 1) * itemsPerPage;
-        const newEnd = newStart + itemsPerPage;
-        const newPaginatedLeaderboard = leaderboard.slice(newStart, newEnd);
-
-        const newFields = await Promise.all(
-          newPaginatedLeaderboard.map(async (entry, index) => {
-            const user = await interaction.guild.members.fetch(entry.userId);
-            return {
-              name: `#${newStart + index + 1} - ${user.user.tag}`,
-              value: `Quantity: **${entry.quantity}**`,
-              inline: false,
-            };
-          }),
-        );
-
-        const updatedEmbed = new EmbedBuilder()
-          .setTitle(`Leaderboard for "${itemName}"`)
-          .setColor(interaction.settings.embedColor)
-          .addFields(newFields)
-          .setFooter({ text: `Page ${page} / ${maxPages}` })
-          .setTimestamp();
-
+        const updatedEmbed = await generateEmbed(page);
         const updatedRow = new ActionRowBuilder().addComponents(
           new ButtonBuilder()
             .setCustomId('prev_page')
@@ -674,20 +834,27 @@ exports.run = async (interaction) => {
       let itemName = interaction.options.getString('item').toLowerCase();
       const price = interaction.options.getInteger('price');
 
-      // Get the seller's inventory
-      const sellerInventory =
-        (await db.get(`servers.${interaction.guild.id}.users.${interaction.member.id}.economy.inventory`)) || [];
+      const [inventoryRows] = await interaction.client.db.execute(
+        /* sql */ `
+          SELECT
+            *
+          FROM
+            economy_inventory
+          WHERE
+            server_id = ?
+            AND user_id = ?
+            AND LOWER(item_name) = ?
+        `,
+        [interaction.guild.id, interaction.member.id, itemName],
+      );
 
-      // Find the item in the seller's inventory
-      const itemIndex = (sellerInventory || []).findIndex((inventoryItem) => {
-        // Check if inventoryItem exists and has a name property
-        if (inventoryItem && inventoryItem.name) {
-          return inventoryItem.name.toLowerCase() === itemName;
-        }
-        return false;
-      });
+      const sellerItem = inventoryRows[0];
 
-      if (!itemIndex || itemIndex === -1 || sellerInventory[itemIndex].quantity < quantity) {
+      if (!sellerItem) {
+        return interaction.client.util.errorEmbed(interaction, 'You do not have this item in your inventory.');
+      }
+
+      if (sellerItem.quantity < quantity) {
         return interaction.client.util.errorEmbed(
           interaction,
           'You do not have enough of this item in your inventory.',
@@ -706,10 +873,22 @@ exports.run = async (interaction) => {
         [interaction.guild.id],
       );
       const currencySymbol = economyRows[0]?.symbol || '$';
-      itemName = sellerInventory[itemIndex].name;
+      itemName = sellerItem.item_name;
 
       // Check buyer's balance
-      let buyerCash = BigInt(await db.get(`servers.${interaction.guild.id}.users.${member.id}.economy.cash`));
+      const [balanceRows] = await interaction.client.db.execute(
+        /* sql */ `
+          SELECT
+            cash
+          FROM
+            economy_balances
+          WHERE
+            server_id = ?
+            AND user_id = ?
+        `,
+        [interaction.guild.id, member.id],
+      );
+      const buyerCash = BigInt(balanceRows[0]?.cash ?? economyRows[0]?.start_balance ?? 0);
       const totalCost = BigInt(price);
       if (buyerCash < totalCost) {
         return interaction.client.util.errorEmbed(interaction, `${member} cannot afford this.`, 'Insufficient Funds');
@@ -737,49 +916,147 @@ exports.run = async (interaction) => {
       confirmCollector.on('collect', async (confirmation) => {
         if (interaction.client.util.yes.includes(confirmation.content.toLowerCase())) {
           // Transfer money and update inventories
-          buyerCash -= totalCost;
-          await db.set(`servers.${interaction.guild.id}.users.${member.id}.economy.cash`, buyerCash.toString());
 
-          let sellerCash = BigInt(
-            await db.get(`servers.${interaction.guild.id}.users.${interaction.member.id}.economy.cash`),
+          // Update buyer's cash
+          await interaction.client.db.execute(
+            /* sql */
+            `
+              INSERT INTO
+                economy_balances (server_id, user_id, cash)
+              VALUES
+                (?, ?, ?) ON DUPLICATE KEY
+              UPDATE cash = cash -
+              VALUES
+                (cash)
+            `,
+            [interaction.guild.id, member.id, totalCost.toString()],
           );
-          sellerCash += totalCost;
-          await db.set(
-            `servers.${interaction.guild.id}.users.${interaction.member.id}.economy.cash`,
-            sellerCash.toString(),
+
+          // Update seller's cash
+          await interaction.client.db.execute(
+            /* sql */
+            `
+              INSERT INTO
+                economy_balances (server_id, user_id, cash)
+              VALUES
+                (?, ?, ?) ON DUPLICATE KEY
+              UPDATE cash = cash +
+              VALUES
+                (cash)
+            `,
+            [interaction.guild.id, interaction.member.id, totalCost.toString()],
           );
 
           // Update seller's inventory
-          sellerInventory[itemIndex].quantity -= quantity;
-          if (sellerInventory[itemIndex].quantity === 0) sellerInventory.splice(itemIndex, 1);
-          await db.set(
-            `servers.${interaction.guild.id}.users.${interaction.member.id}.economy.inventory`,
-            sellerInventory,
-          );
+          if (sellerItem.quantity > quantity) {
+            await interaction.client.db.execute(
+              /* sql */
+              `
+                UPDATE economy_inventory
+                SET
+                  quantity = quantity - ?
+                WHERE
+                  server_id = ?
+                  AND user_id = ?
+                  AND item_id = ?
+                  AND item_name = ?
+              `,
+              [quantity, interaction.guild.id, interaction.user.id, sellerItem.item_id, sellerItem.item_name],
+            );
+          } else {
+            await interaction.client.db.execute(
+              /* sql */
+              `
+                DELETE FROM economy_inventory
+                WHERE
+                  server_id = ?
+                  AND user_id = ?
+                  AND item_id = ?
+                  AND item_name = ?
+              `,
+              [interaction.guild.id, interaction.user.id, sellerItem.item_id, sellerItem.item_name],
+            );
+          }
 
           // Update buyer's inventory
-          const buyerInventory =
-            (await db.get(`servers.${interaction.guild.id}.users.${member.id}.economy.inventory`)) || [];
-          const buyerItemIndex = buyerInventory.findIndex((invItem) => invItem?.id === sellerInventory[itemIndex].id);
-          if (buyerItemIndex !== -1) {
-            buyerInventory[buyerItemIndex].quantity += quantity;
-          } else {
-            buyerInventory.push({
-              id: sellerInventory[itemIndex].id,
+          await interaction.client.db.execute(
+            /* sql */
+            `
+              INSERT INTO
+                economy_inventory (
+                  server_id,
+                  user_id,
+                  item_id,
+                  item_name,
+                  quantity,
+                  cost,
+                  description,
+                  inventory,
+                  time_remaining,
+                  role_required,
+                  role_given,
+                  role_removed,
+                  reply_message
+                )
+              VALUES
+                (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY
+              UPDATE quantity = quantity +
+              VALUES
+                (quantity),
+                item_name =
+              VALUES
+                (item_name),
+                cost =
+              VALUES
+                (cost),
+                description =
+              VALUES
+                (description),
+                inventory =
+              VALUES
+                (inventory),
+                time_remaining =
+              VALUES
+                (time_remaining),
+                role_required =
+              VALUES
+                (role_required),
+                role_given =
+              VALUES
+                (role_given),
+                role_removed =
+              VALUES
+                (role_removed),
+                reply_message =
+              VALUES
+                (reply_message)
+            `,
+            [
+              interaction.guild.id,
+              member.id,
+              sellerItem.item_id,
+              sellerItem.item_name,
               quantity,
-              ...sellerInventory[itemIndex],
-            });
-          }
-          await db.set(`servers.${interaction.guild.id}.users.${member.id}.economy.inventory`, buyerInventory);
+              sellerItem.cost,
+              sellerItem.description,
+              sellerItem.inventory,
+              sellerItem.time_remaining,
+              sellerItem.role_required,
+              sellerItem.role_given,
+              sellerItem.role_removed,
+              sellerItem.reply_message,
+            ],
+          );
 
           // Send confirmation message
           const confirmEmbed = new EmbedBuilder()
             .setColor(interaction.settings.embedColor)
             .setDescription(
-              `✅ Trade Complete \n${member} has received ${quantity} ${sellerInventory[itemIndex].name}${
+              `✅ Trade Complete \n${member} has received ${quantity} ${sellerItem.item_name}${
                 quantity > 1 ? 's' : ''
               } for ${currencySymbol}${price} from ${interaction.user}`,
             );
+
           return interaction.channel.send({ embeds: [confirmEmbed] });
         } else {
           return interaction.client.util.errorEmbed(
@@ -796,7 +1073,7 @@ exports.run = async (interaction) => {
             .setColor(interaction.settings.embedErrorColor)
             .setAuthor({ name: interaction.member.displayName, iconURL: interaction.member.displayAvatarURL() })
             .setDescription(
-              `Cancelled the transaction of ${quantity} ${sellerInventory[itemIndex].name}${
+              `Cancelled the transaction of ${quantity} ${sellerItem.item_name}${
                 quantity > 1 ? "'s" : ''
               } for ${currencySymbol}${price} between ${interaction.user} and ${member}.`,
             );
@@ -813,7 +1090,7 @@ exports.run = async (interaction) => {
       const [economyRows] = await interaction.client.db.execute(
         /* sql */ `
           SELECT
-            *
+            symbol
           FROM
             economy_settings
           WHERE
@@ -822,36 +1099,79 @@ exports.run = async (interaction) => {
         [interaction.guild.id],
       );
       const currencySymbol = economyRows[0]?.symbol || '$';
-      const store = (await db.get(`servers.${interaction.guild.id}.economy.store`)) || {};
 
-      // Sort store by item cost
-      const sortedStore = Object.entries(store).sort(([, itemInfoA], [, itemInfoB]) => itemInfoA.cost - itemInfoB.cost);
+      // Get total item count to calculate max pages
+      const [countRows] = await interaction.client.db.execute(
+        /* sql */
+        `
+          SELECT
+            COUNT(*) AS count
+          FROM
+            economy_store
+          WHERE
+            server_id = ?
+        `,
+        [interaction.guild.id],
+      );
+      const totalItems = countRows[0].count;
+      const itemsPerPage = 10;
+      const maxPages = Math.ceil(totalItems / itemsPerPage) || 1;
 
-      // Construct the message with item names
-      const itemDetails = sortedStore.map(([itemName, itemInfo]) => {
-        const csCost = currencySymbol + BigInt(itemInfo.cost).toLocaleString();
-        return {
-          name: `${interaction.client.util.limitStringLength(csCost, 0, 100)} - ${itemName}`,
-          value: `${itemInfo.description}`,
-          inline: false,
-        };
-      });
+      const generateStoreEmbed = async (currentPage) => {
+        const offset = (currentPage - 1) * itemsPerPage;
 
-      const maxPages = Math.ceil(itemDetails.length / 10) || 1;
+        // Fetch only the items for the current page, sorted by cost
+        const [rows] = await interaction.client.db.execute(
+          /* sql */
+          `
+            SELECT
+              item_name,
+              cost,
+              description
+            FROM
+              economy_store
+            WHERE
+              server_id = ?
+            ORDER BY
+              cost ASC
+            LIMIT
+              ?
+            OFFSET
+              ?
+          `,
+          [interaction.guild.id, itemsPerPage, offset],
+        );
+
+        const embed = new EmbedBuilder()
+          .setColor(interaction.settings.embedColor)
+          .setTitle(`${interaction.guild.name} Store`)
+          .setAuthor({ name: interaction.member.displayName, iconURL: interaction.member.displayAvatarURL() })
+          .setFooter({ text: `Page ${currentPage} / ${maxPages}` })
+          .setTimestamp();
+
+        if (rows.length === 0) {
+          embed.setDescription(stripIndents`
+          The store is empty. Someone probably robbed it :shrug:
+          Add items to the store using \`${interaction.settings.prefix}create-item\``);
+        } else {
+          const fields = rows.map((item) => {
+            const formattedCost = currencySymbol + BigInt(item.cost).toLocaleString();
+            return {
+              name: `${interaction.client.util.limitStringLength(formattedCost, 0, 100)} - ${item.item_name}`,
+              value: item.description || 'No description provided.',
+              inline: false,
+            };
+          });
+          embed.addFields(fields);
+        }
+
+        return embed;
+      };
 
       // Ensure page is within valid range
       page = Math.max(1, Math.min(page, maxPages));
 
-      let displayedStore = itemDetails.slice((page - 1) * 10, page * 10);
-
-      const embed = new EmbedBuilder()
-        .setColor(interaction.settings.embedColor)
-        .setTitle(`${interaction.guild.name} Store`)
-        .setAuthor({ name: interaction.member.displayName, iconURL: interaction.member.displayAvatarURL() })
-        .addFields(displayedStore)
-        .setFooter({ text: `Page ${page} / ${maxPages}` })
-        .setTimestamp();
-
+      const embed = await generateStoreEmbed(page);
       const row = new ActionRowBuilder().addComponents(
         new ButtonBuilder()
           .setCustomId('prev_page')
@@ -864,21 +1184,6 @@ exports.run = async (interaction) => {
           .setStyle(ButtonStyle.Primary)
           .setDisabled(page === maxPages),
       );
-
-      if (!itemDetails.length) {
-        const errorEmbed = new EmbedBuilder()
-          .setColor(interaction.settings.embedColor)
-          .setTitle(`${interaction.guild.name} Store`)
-          .setAuthor({ name: interaction.member.displayName, iconURL: interaction.member.displayAvatarURL() })
-          .setDescription(
-            stripIndents`
-              The store is empty. Someone probably robbed it :shrug:
-              Add items to the store using the \`create-item\` command.`,
-          )
-          .setFooter({ text: `Page ${page} / ${maxPages}` });
-
-        return interaction.editReply({ embeds: [errorEmbed], components: [row] });
-      }
 
       const message = await interaction.editReply({ embeds: [embed], components: [row] });
       const collector = message.createMessageComponentCollector({ time: 3600000 });
@@ -894,16 +1199,7 @@ exports.run = async (interaction) => {
         // Ensure page is within valid range
         page = Math.max(1, Math.min(page, maxPages));
 
-        displayedStore = itemDetails.slice((page - 1) * 10, page * 10);
-
-        const updatedEmbed = new EmbedBuilder()
-          .setColor(interaction.settings.embedColor)
-          .setTitle(`${interaction.guild.name} Store`)
-          .setAuthor({ name: interaction.member.displayName, iconURL: interaction.member.displayAvatarURL() })
-          .addFields(displayedStore)
-          .setFooter({ text: `Page ${page} / ${maxPages}` })
-          .setTimestamp();
-
+        const updatedEmbed = await generateStoreEmbed(page);
         const updatedRow = new ActionRowBuilder().addComponents(
           new ButtonBuilder()
             .setCustomId('prev_page')
@@ -938,21 +1234,28 @@ exports.run = async (interaction) => {
       const itemName = interaction.options.getString('item').toLowerCase();
       const quantity = interaction.options.getInteger('quantity') || 1;
 
-      // Fetch user's inventory from the database
-      const userInventory =
-        (await db.get(`servers.${interaction.guild.id}.users.${interaction.user.id}.economy.inventory`)) || [];
+      const [inventoryRows] = await interaction.client.db.execute(
+        /* sql */ `
+          SELECT
+            *
+          FROM
+            economy_inventory
+          WHERE
+            server_id = ?
+            AND user_id = ?
+            AND LOWER(item_name) = ?
+        `,
+        [interaction.guild.id, interaction.user.id, itemName],
+      );
 
-      // Find the item in the store regardless of case
-      const itemIndex = userInventory.findIndex((inventoryItem) => inventoryItem?.name?.toLowerCase() === itemName);
-
-      // Check if the item exists in the user's inventory
-      if (!userInventory[itemIndex]) {
+      if (inventoryRows.length === 0) {
         return interaction.client.util.errorEmbed(interaction, 'You do not have this item in your inventory.');
       }
 
-      const item = userInventory[itemIndex];
-      if (item.roleRequired) {
-        const roleRequired = interaction.client.util.getRole(interaction, item.roleRequired);
+      const item = inventoryRows[0];
+
+      if (item.role_required) {
+        const roleRequired = interaction.client.util.getRole(interaction, item.role_required);
         if (roleRequired) {
           // Check if the member has the role
           const hasRole = interaction.member.roles.cache.has(roleRequired.id);
@@ -962,10 +1265,6 @@ exports.run = async (interaction) => {
               `You do not have the required role **${roleRequired.name}** to use this item.`,
             );
           }
-        } else {
-          return interaction.editReply(
-            'The required role no longer exists, please contact a server administrator to use this item.',
-          );
         }
       }
 
@@ -974,50 +1273,62 @@ exports.run = async (interaction) => {
       if (itemAmount < 0) {
         return interaction.client.util.errorEmbed(
           interaction,
-          `You do not have enough of this item to use. You only have ${item.quantity} of this item in your inventory.`,
+          `You only have ${item.quantity} of this item in your inventory.`,
         );
       }
 
-      item.quantity -= quantity;
-      let filteredInventory = userInventory;
-
-      if (!item.quantity || item.quantity < 1) {
-        delete userInventory[itemIndex];
-        // Remove null values
-        filteredInventory = await userInventory.filter((item) => item != null);
+      if (item.quantity > quantity) {
+        await interaction.client.db.execute(
+          /* sql */
+          `
+            UPDATE economy_inventory
+            SET
+              quantity = quantity - ?
+            WHERE
+              server_id = ?
+              AND user_id = ?
+              AND item_id = ?
+              AND item_name = ?
+          `,
+          [quantity, interaction.guild.id, interaction.user.id, item.item_id, item.item_name],
+        );
+      } else {
+        await interaction.client.db.execute(
+          /* sql */
+          `
+            DELETE FROM economy_inventory
+            WHERE
+              server_id = ?
+              AND user_id = ?
+              AND item_id = ?
+              AND item_name = ?
+          `,
+          [interaction.guild.id, interaction.user.id, item.item_id, item.item_name],
+        );
       }
 
-      await db.set(`servers.${interaction.guild.id}.users.${interaction.user.id}.economy.inventory`, filteredInventory);
-
-      if (item.roleGiven) {
-        const roleGiven = interaction.client.util.getRole(interaction, item.roleGiven);
+      if (item.role_given) {
+        const roleGiven = interaction.client.util.getRole(interaction, item.role_given);
         await interaction.member.roles.add(roleGiven).catch((error) => interaction.channel.send(error));
       }
-      if (item.roleRemoved) {
-        const roleRemoved = interaction.client.util.getRole(interaction, item.roleRemoved);
+      if (item.role_removed) {
+        const roleRemoved = interaction.client.util.getRole(interaction, item.role_removed);
         await interaction.member.roles.remove(roleRemoved).catch((error) => interaction.channel.send(error));
       }
-      if (!item.replyMessage) {
+      if (!item.reply_message) {
         return interaction.editReply('👍');
       }
 
       // Replace Member
       // Calculate the duration since the member's account was created
-      const duration = Duration.fromMillis(Date.now() - interaction.user.createdAt.getTime()).shiftTo(
-        'years',
-        'months',
-        'days',
-        'hours',
-        'minutes',
-        'seconds',
-      );
-      const rounded = duration.set({ seconds: Math.floor(duration.seconds) });
-      const memberCreatedDuration = rounded.toHuman({ showZeros: false });
+      const memberCreatedDuration = Duration.fromMillis(Date.now() - interaction.user.createdAt.getTime())
+        .shiftTo('years', 'months', 'days', 'hours', 'minutes', 'seconds')
+        .toHuman({ maximumFractionDigits: 2, showZeros: false });
 
       // Format the member's account creation date
       const memberCreated = DateTime.fromMillis(interaction.user.createdAt.getTime()).toFormat('MMMM dd, yyyy');
 
-      let replyMessage = item.replyMessage
+      let replyMessage = item.reply_message
         .replace(/\{member\.id\}/gi, interaction.user.id)
         .replace(/\{member\.username\}/gi, interaction.user.username)
         .replace(/\{member\.tag\}/gi, interaction.user.tag)
@@ -1027,16 +1338,9 @@ exports.run = async (interaction) => {
 
       // Replace Server
       // Calculate the duration since the server was created
-      const serverDuration = Duration.fromMillis(Date.now() - interaction.guild.createdAt.getTime()).shiftTo(
-        'years',
-        'months',
-        'days',
-        'hours',
-        'minutes',
-        'seconds',
-      );
-      const roundedDuration = serverDuration.set({ seconds: Math.floor(serverDuration.seconds) });
-      const serverCreatedDuration = roundedDuration.toHuman({ showZeros: false });
+      const serverCreatedDuration = Duration.fromMillis(Date.now() - interaction.guild.createdAt.getTime())
+        .shiftTo('years', 'months', 'days', 'hours', 'minutes', 'seconds')
+        .toHuman({ maximumFractionDigits: 2, showZeros: false });
 
       // Format the server's creation date
       const serverCreated = DateTime.fromMillis(interaction.guild.createdAt.getTime()).toFormat('MMMM dd, yyyy');
@@ -1049,22 +1353,15 @@ exports.run = async (interaction) => {
         .replace(/\{server\.created\.duration\}/gi, serverCreatedDuration);
 
       const role =
-        interaction.client.util.getRole(interaction, item.roleGiven) ||
-        interaction.client.util.getRole(interaction, item.roleRemoved) ||
-        interaction.client.util.getRole(interaction, item.roleRequired);
+        interaction.client.util.getRole(interaction, item.role_given) ||
+        interaction.client.util.getRole(interaction, item.role_removed) ||
+        interaction.client.util.getRole(interaction, item.role_required);
 
       if (role) {
         // Calculate the duration since the role was created
-        const roleDuration = Duration.fromMillis(Date.now() - role.createdAt.getTime()).shiftTo(
-          'years',
-          'months',
-          'days',
-          'hours',
-          'minutes',
-          'seconds',
-        );
-        const roundedRoleDuration = roleDuration.set({ seconds: Math.floor(roleDuration.seconds) });
-        const roleCreatedDuration = roundedRoleDuration.toHuman({ showZeros: false });
+        const roleCreatedDuration = Duration.fromMillis(Date.now() - role.createdAt.getTime())
+          .shiftTo('years', 'months', 'days', 'hours', 'minutes', 'seconds')
+          .toHuman({ maximumFractionDigits: 2, showZeros: false });
 
         // Format the role's creation date
         const roleCreated = DateTime.fromMillis(role.createdAt.getTime()).toFormat('MMMM dd, yyyy');

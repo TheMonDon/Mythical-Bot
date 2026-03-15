@@ -18,7 +18,7 @@ class BotInfo extends Command {
   async run(msg) {
     const botUptime = Duration.fromMillis(this.client.uptime)
       .shiftTo('years', 'months', 'days', 'hours', 'minutes', 'seconds')
-      .toHuman({ showZeros: false });
+      .toHuman({ maximumFractionDigits: 2, showZeros: false });
 
     const [rows] = await this.client.db.execute(/* sql */ `
       SELECT
@@ -54,7 +54,7 @@ class BotInfo extends Command {
         },
         {
           name: 'Quick Bits',
-          value: stripIndents`[Invite Link](https://cisn.xyz/mythical)
+          value: stripIndents`[Invite Link](https://cisn.xyz/Mythical)
             [Source Code](https://github.com/TheMonDon/Mythical-Bot) 
             [Support Server](https://discord.com/invite/XvHzUNZDdR)
             [Website](https://mythical.cisn.xyz)`,
