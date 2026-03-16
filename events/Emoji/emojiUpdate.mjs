@@ -7,8 +7,7 @@ export async function run(client, oldEmoji, newEmoji) {
     const [logRows] = await client.db.execute(
       /* sql */ `
         SELECT
-          channel_id,
-          emoji_updated
+          *
         FROM
           log_settings
         WHERE
@@ -18,7 +17,7 @@ export async function run(client, oldEmoji, newEmoji) {
     );
     if (!logRows.length) return;
 
-    const logChannelID = logRows[0].channel_id;
+    const logChannelID = logRows[0].misc_channel_id || logRows[0].channel_id;
     if (!logChannelID) return;
 
     const logSystem = logRows[0].emoji_updated;

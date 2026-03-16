@@ -5,8 +5,7 @@ export async function run(client, oldMember, newMember) {
     const [logRows] = await client.db.execute(
       /* sql */ `
         SELECT
-          channel_id,
-          member_timeout
+          *
         FROM
           log_settings
         WHERE
@@ -16,7 +15,7 @@ export async function run(client, oldMember, newMember) {
     );
     if (!logRows.length) return;
 
-    const logChannelID = logRows[0].channel_id;
+    const logChannelID = logRows[0].members_channel_id || logRows[0].channel_id;
     if (!logChannelID) return;
 
     const logSystem = logRows[0].member_timeout;

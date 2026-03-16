@@ -922,6 +922,10 @@ const loadMysql = async () => {
       CREATE TABLE IF NOT EXISTS log_settings (
         server_id VARCHAR(30) NOT NULL PRIMARY KEY,
         channel_id VARCHAR(30) NULL,
+        members_channel_id VARCHAR(30) NULL,
+        messages_channel_id VARCHAR(30) NULL,
+        channels_channel_id VARCHAR(30) NULL,
+        misc_channel_id VARCHAR(30) NULL,
         all_enabled BOOLEAN DEFAULT FALSE,
         bulk_messages_deleted BOOLEAN DEFAULT FALSE,
         channel_created BOOLEAN DEFAULT FALSE,

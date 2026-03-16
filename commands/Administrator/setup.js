@@ -29,16 +29,17 @@ class Setup extends Command {
 
     if (['ticket', 'tix', 'tickets'].includes(type)) {
       const filter = (m) => m.author.id === msg.author.id;
-      const filter2 = (m) => ['y', 'yes', 'n', 'no'].includes(m.content.toLowerCase()) && m.author.id === msg.author.id;
+      const filter2 = (m) =>
+        [this.client.util.yes, this.client.util.no].includes(m.content.toLowerCase()) && m.author.id === msg.author.id;
 
       if (!msg.guild.members.me.permissions.has('ManageChannels')) {
-        return this.client.util.errorEmbed(msg, 'The bot is missing Manage Channels permission.');
+        return this.client.util.errorEmbed(msg, 'The bot needs Manage Channels permission to use the ticket system.');
       }
       if (!msg.guild.members.me.permissions.has('ManageRoles')) {
-        return this.client.util.errorEmbed(msg, 'The bot is missing Manage Roles permission.');
+        return this.client.util.errorEmbed(msg, 'The bot needs Manage Roles permission to use the ticket system.');
       }
       if (!msg.guild.members.me.permissions.has('ManageMessages')) {
-        return this.client.util.errorEmbed(msg, 'The bot is missing Manage Messages permission');
+        return this.client.util.errorEmbed(msg, 'The bot needs Manage Messages permission to use the ticket system.');
       }
 
       // Check if the system is setup already
@@ -67,8 +68,8 @@ class Setup extends Command {
               2️⃣ Select new ticket creation and log channels.
               3️⃣ Disable and delete the tickets data.
               4️⃣ Update the max number of tickets a user can open.
-              (Reply a number or cancel)
-              `);
+              (Reply with a number or cancel)
+            `);
 
             const collected = await msg.channel.awaitMessages({ filter, max: 1, time: 60000, errors: ['time'] });
             if (!collected) {
@@ -88,7 +89,7 @@ class Setup extends Command {
               );
 
               const collectedMaxTicketsQuestion = await msg.channel.awaitMessages({
-                filter2,
+                filter,
                 max: 1,
                 time: 60000,
                 errors: ['time'],
@@ -290,14 +291,14 @@ class Setup extends Command {
                   stripIndents`What do you want the ticket creation message to say?
                   The color for the menu will be the bots embed success color.
                   Users will have to click a button to open a new ticket.
-                  You have 120 seconds.`,
+                  You have 5 minutes.`,
                 );
 
                 // This is to ask what to put inside the embed description for ticket creation message
                 const collectedCreationMessage = await msg.channel.awaitMessages({
                   filter,
                   max: 1,
-                  time: 120000,
+                  time: 300000,
                   errors: ['time'],
                 });
                 if (!collectedCreationMessage) {
@@ -672,36 +673,37 @@ class Setup extends Command {
     // Start of logging setup
     if (['logging', 'log', 'logs'].includes(type)) {
       try {
-        args.shift();
-        let text = args.join('');
-        let chan = this.client.util.getChannel(msg, text);
+        async function getChannelSelectionMenu(msg, placeholder, content) {
+          const menu = new ChannelSelectMenuBuilder()
+            .setCustomId('channel_select')
+            .setPlaceholder(placeholder)
+            .setMinValues(1)
+            .setMaxValues(1)
+            .addChannelTypes(ChannelType.GuildText);
 
-        if (!args || args.length < 1) {
-          text = await this.client.util.awaitReply(msg, 'What channel do you want to setup logging in?');
-          if (!text) {
-            return this.client.util.errorEmbed(msg, 'You did not reply in time, the command has been cancelled.');
+          const row = new ActionRowBuilder().addComponents(menu);
+          const menuMessage = await msg.channel.send({ content, components: [row] });
+
+          try {
+            const collected = await menuMessage.awaitMessageComponent({
+              componentType: ComponentType.ChannelSelect,
+              filter: (interaction) => interaction.user.id === msg.author.id,
+              time: 60000,
+            });
+
+            await collected.deferUpdate();
+            await menuMessage.delete();
+            return collected.channels.first(); // Return the selected channel
+          } catch (err) {
+            await menuMessage.delete();
+            return msg.channel.send('Channel selection timed out.');
           }
-          chan = this.client.util.getChannel(msg, text);
         }
 
-        let i = 2;
-        while (!chan) {
-          text = await this.client.util.awaitReply(
-            msg,
-            `That channel was not found, please try again with a valid server channel. Try #${i}`,
-          );
-          if (!text) {
-            return this.client.util.errorEmbed(msg, 'You did not reply in time, the command has been cancelled.');
-          }
-          chan = this.client.util.getChannel(msg, text);
-
-          i++;
-        }
-
-        const [settingsRows] = await this.client.db.execute(
+        const [loggingRows] = await this.client.db.execute(
           /* sql */ `
             SELECT
-              channel_id
+              *
             FROM
               log_settings
             WHERE
@@ -710,125 +712,808 @@ class Setup extends Command {
           [msg.guild.id],
         );
 
-        if (settingsRows.length) {
-          await this.client.db.execute(
-            /* sql */ `
-              UPDATE log_settings
-              SET
-                channel_id = ?
-              WHERE
-                server_id = ?
-            `,
-            [chan.id, msg.guild.id],
-          );
+        // If the system is already setup, ask if they want to update the channel(s)
+        if (loggingRows.length > 0) {
+          let channelsType;
 
-          const embed = new EmbedBuilder()
-            .setTitle('Successfully Updated')
-            .setColor(successColor)
-            .setThumbnail('https://i.cisn.xyz/piqe4/MovoNohA60/raw.png')
-            .setDescription(
-              `Everything related to logs will be posted in ${chan} from now on. \n\nUse ${msg.settings.prefix}help logging to see how to fine-tune the logging.`,
-            )
-            .setTimestamp();
+          // Check if they are using the single or multi channel setup
+          if (loggingRows[0].channel_id) {
+            channelsType = 'single';
+          } else if (
+            loggingRows[0].members_channel_id ||
+            loggingRows[0].messages_channel_id ||
+            loggingRows[0].channels_channel_id ||
+            loggingRows[0].misc_channel_id
+          ) {
+            channelsType = 'multiple';
+          }
 
-          return msg.channel.send({ embeds: [embed] });
-        } else {
-          await this.client.db.execute(
-            /* sql */
-            `
-              INSERT INTO
-                log_settings (
-                  server_id,
-                  channel_id,
-                  all_enabled,
-                  bulk_messages_deleted,
-                  channel_created,
-                  channel_deleted,
-                  channel_updated,
-                  emoji_created,
-                  emoji_deleted,
-                  emoji_updated,
-                  member_join,
-                  member_leave,
-                  member_timeout,
-                  message_deleted,
-                  message_updated,
-                  role_created,
-                  role_deleted,
-                  role_updated,
-                  sticker_created,
-                  sticker_deleted,
-                  sticker_updated,
-                  thread_created,
-                  thread_deleted,
-                  voice_channel_created,
-                  voice_channel_deleted
+          // Ask if they want to update the channel(s)
+          if (channelsType === 'single') {
+            const filter = (m) => m.author.id === msg.author.id;
+
+            await msg.channel.send(stripIndents`The logging system is already set up in this server.
+              The current logging channel is <#${loggingRows[0].channel_id}>.
+              
+              What would you like to do?
+              1️⃣ Update the logging channel.
+              2️⃣ Switch to multiple channels for different log types.
+              (Reply with a number or cancel)
+            `);
+
+            const collected = await msg.channel.awaitMessages({ filter, max: 1, time: 60000, errors: ['time'] });
+            if (!collected) {
+              return msg.channel.send('Setup cancelled due to no response.');
+            }
+
+            const choice = collected.first().content.toLowerCase();
+            if (choice === 'cancel') {
+              return msg.channel.send('Got it! Setup cancelled.');
+            }
+
+            // Update the logging channel
+            if (choice === '1') {
+              const chan = await getChannelSelectionMenu(
+                msg,
+                'Select the logs channel',
+                'What channel do you want to use for logs?',
+              );
+
+              await this.client.db.execute(
+                /* sql */ `
+                  UPDATE log_settings
+                  SET
+                    channel_id = ?
+                  WHERE
+                    server_id = ?
+                `,
+                [chan.id, msg.guild.id],
+              );
+
+              const embed = new EmbedBuilder()
+                .setTitle('Successfully Updated')
+                .setColor(successColor)
+                .setThumbnail('https://i.cisn.xyz/piqe4/MovoNohA60/raw.png')
+                .setDescription(
+                  `Everything related to logs will be posted in ${chan} from now on. \n\nUse ${msg.settings.prefix}help logging to see how to fine-tune the logging.`,
                 )
-              VALUES
-                (
-                  ?,
-                  ?,
-                  TRUE, -- all_enabled
-                  TRUE, -- bulk_messages_deleted
-                  TRUE, -- channel_created
-                  TRUE, -- channel_deleted
-                  TRUE, -- channel_updated
-                  TRUE, -- emoji_created
-                  TRUE, -- emoji_deleted
-                  TRUE, -- emoji_updated
-                  TRUE, -- member_join
-                  TRUE, -- member_leave
-                  TRUE, -- member_timeout
-                  TRUE, -- message_deleted
-                  TRUE, -- message_updated
-                  TRUE, -- role_created
-                  TRUE, -- role_deleted
-                  TRUE, -- role_updated
-                  TRUE, -- sticker_created
-                  TRUE, -- sticker_deleted
-                  TRUE, -- sticker_updated
-                  TRUE, -- thread_created
-                  TRUE, -- thread_deleted
-                  TRUE, -- voice_channel_created
-                  TRUE -- voice_channel_deleted
-                ) ON DUPLICATE KEY
-              UPDATE all_enabled = TRUE,
-              bulk_messages_deleted = TRUE,
-              channel_created = TRUE,
-              channel_deleted = TRUE,
-              channel_updated = TRUE,
-              emoji_created = TRUE,
-              emoji_deleted = TRUE,
-              emoji_updated = TRUE,
-              member_join = TRUE,
-              member_leave = TRUE,
-              member_timeout = TRUE,
-              message_deleted = TRUE,
-              message_updated = TRUE,
-              role_created = TRUE,
-              role_deleted = TRUE,
-              role_updated = TRUE,
-              sticker_created = TRUE,
-              sticker_deleted = TRUE,
-              sticker_updated = TRUE,
-              thread_created = TRUE,
-              thread_deleted = TRUE,
-              voice_channel_created = TRUE,
-              voice_channel_deleted = TRUE
+                .setTimestamp();
+
+              return msg.channel.send({ embeds: [embed] });
+            }
+
+            // Switch to multiple channels for different log types
+            if (choice === '2') {
+              const memberLogChan = await getChannelSelectionMenu(
+                msg,
+                'Select the member logs channel',
+                'What channel do you want to use for member logs (joins, leaves, bans, etc)?',
+              );
+
+              const messageLogChan = await getChannelSelectionMenu(
+                msg,
+                'Select the message logs channel',
+                'What channel do you want to use for message logs (deletions, updates, bulk deletions)?',
+              );
+
+              const channelLogChan = await getChannelSelectionMenu(
+                msg,
+                'Select the channel logs channel',
+                'What channel do you want to use for channel logs (creations, deletions, updates)?',
+              );
+
+              const miscLogChan = await getChannelSelectionMenu(
+                msg,
+                'Select the miscellaneous logs channel',
+                'What channel do you want to use for miscellaneous logs (emoji updates, role updates, etc)?',
+              );
+
+              await this.client.db.execute(
+                /* sql */
+                `
+                  INSERT INTO
+                    log_settings (
+                      server_id,
+                      channel_id,
+                      members_channel_id,
+                      messages_channel_id,
+                      channels_channel_id,
+                      misc_channel_id,
+                      all_enabled,
+                      bulk_messages_deleted,
+                      channel_created,
+                      channel_deleted,
+                      channel_updated,
+                      emoji_created,
+                      emoji_deleted,
+                      emoji_updated,
+                      member_banned,
+                      member_join,
+                      member_kicked,
+                      member_leave,
+                      member_timeout,
+                      message_deleted,
+                      message_updated,
+                      role_created,
+                      role_deleted,
+                      role_updated,
+                      sticker_created,
+                      sticker_deleted,
+                      sticker_updated,
+                      thread_created,
+                      thread_deleted,
+                      voice_channel_created,
+                      voice_channel_deleted
+                    )
+                  VALUES
+                    (
+                      ?,
+                      ?,
+                      ?,
+                      ?,
+                      ?,
+                      ?,
+                      TRUE,
+                      TRUE,
+                      TRUE,
+                      TRUE,
+                      TRUE,
+                      TRUE,
+                      TRUE,
+                      TRUE,
+                      TRUE,
+                      TRUE,
+                      TRUE,
+                      TRUE,
+                      TRUE,
+                      TRUE,
+                      TRUE,
+                      TRUE,
+                      TRUE,
+                      TRUE,
+                      TRUE,
+                      TRUE,
+                      TRUE,
+                      TRUE,
+                      TRUE,
+                      TRUE,
+                      TRUE
+                    ) ON DUPLICATE KEY
+                  UPDATE channel_id =
+                  VALUES
+                    (channel_id),
+                    members_channel_id =
+                  VALUES
+                    (members_channel_id),
+                    messages_channel_id =
+                  VALUES
+                    (messages_channel_id),
+                    channels_channel_id =
+                  VALUES
+                    (channels_channel_id),
+                    misc_channel_id =
+                  VALUES
+                    (misc_channel_id),
+                    all_enabled = TRUE,
+                    bulk_messages_deleted = TRUE,
+                    channel_created = TRUE,
+                    channel_deleted = TRUE,
+                    channel_updated = TRUE,
+                    emoji_created = TRUE,
+                    emoji_deleted = TRUE,
+                    emoji_updated = TRUE,
+                    member_banned = TRUE,
+                    member_join = TRUE,
+                    member_leave = TRUE,
+                    member_kicked = TRUE,
+                    member_timeout = TRUE,
+                    message_deleted = TRUE,
+                    message_updated = TRUE,
+                    role_created = TRUE,
+                    role_deleted = TRUE,
+                    role_updated = TRUE,
+                    sticker_created = TRUE,
+                    sticker_deleted = TRUE,
+                    sticker_updated = TRUE,
+                    thread_created = TRUE,
+                    thread_deleted = TRUE,
+                    voice_channel_created = TRUE,
+                    voice_channel_deleted = TRUE
+                `,
+                [msg.guild.id, null, memberLogChan.id, messageLogChan.id, channelLogChan.id, miscLogChan.id],
+              );
+
+              const embed = new EmbedBuilder()
+                .setTitle('Successfully Updated')
+                .setColor(successColor)
+                .setThumbnail('https://i.cisn.xyz/piqe4/MovoNohA60/raw.png')
+                .addFields([
+                  {
+                    name: 'Member Logs',
+                    value: `Joins, leaves, bans, kicks, timeouts, etc will be posted in ${memberLogChan}`,
+                  },
+                  {
+                    name: 'Message Logs',
+                    value: `Message deletions, updates, and bulk deletions will be posted in ${messageLogChan}`,
+                  },
+                  {
+                    name: 'Channel Logs',
+                    value: `Channel creations, deletions, and updates will be posted in ${channelLogChan}`,
+                  },
+                  {
+                    name: 'Miscellaneous Logs',
+                    value: `Emoji updates, role updates, sticker updates, thread updates, voice channel updates, and other logs will be posted in ${miscLogChan}`,
+                  },
+                ])
+                .setDescription(`Use \`${msg.settings.prefix}help logging\` to see how to fine-tune the logging.`)
+                .setTimestamp();
+
+              return msg.channel.send({ embeds: [embed] });
+            }
+          } else if (channelsType === 'multiple') {
+            // If they are using multiple channels, show them the current channels and ask if they want to update or switch to a single channel.
+            const filter = (m) => m.author.id === msg.author.id;
+
+            const embed = new EmbedBuilder()
+              .setTitle('Current Logging Channels')
+              .setDescription(
+                stripIndents`The logging system is already set up in this server.
+              
+              What would you like to do?
+              1️⃣ Update the logging channels.
+              2️⃣ Switch to a single channel for all logs.
+              (Reply with a number or cancel)
             `,
-            [msg.guild.id, chan.id],
-          );
+              )
+              .addFields([
+                {
+                  name: 'Member Logs',
+                  value: `Joins, leaves, bans, kicks, timeouts, etc are posted in <#${loggingRows[0].members_channel_id}>`,
+                },
+                {
+                  name: 'Message Logs',
+                  value: `Message deletions, updates, and bulk deletions are posted in <#${loggingRows[0].messages_channel_id}>`,
+                },
+                {
+                  name: 'Channel Logs',
+                  value: `Channel creations, deletions, and updates are posted in <#${loggingRows[0].channels_channel_id}>`,
+                },
+                {
+                  name: 'Miscellaneous Logs',
+                  value: `Emoji updates, role updates, sticker updates, thread updates, voice channel updates, and other logs are posted in <#${loggingRows[0].misc_channel_id}>`,
+                },
+              ]);
+            await msg.channel.send({ embeds: [embed] });
 
-          const embed = new EmbedBuilder()
-            .setTitle('Successfully Set')
-            .setColor(successColor)
-            .setThumbnail('https://i.cisn.xyz/piqe4/MovoNohA60/raw.png')
-            .setDescription(
-              `Everything related to logs will be posted in ${chan}. \n\nUse ${msg.settings.prefix}help logging to see how to fine-tune the logging.`,
-            )
-            .setTimestamp();
+            const collected = await msg.channel.awaitMessages({ filter, max: 1, time: 60000, errors: ['time'] });
+            if (!collected) {
+              return msg.channel.send('Setup cancelled due to no response.');
+            }
 
-          return msg.channel.send({ embeds: [embed] });
+            const choice = collected.first().content.toLowerCase();
+            if (choice === 'cancel') {
+              return msg.channel.send('Got it! Setup cancelled.');
+            }
+
+            if (!['1', '2'].includes(choice)) {
+              return msg.channel.send('You selected an invalid response, please re-run the setup command.');
+            }
+
+            // Update the logging channels
+            if (choice === '1') {
+              const memberLogChan = await getChannelSelectionMenu(
+                msg,
+                'Select the member logs channel',
+                'What channel do you want to use for member logs (joins, leaves, bans, etc)?',
+              );
+
+              const messageLogChan = await getChannelSelectionMenu(
+                msg,
+                'Select the message logs channel',
+                'What channel do you want to use for message logs (deletions, updates, bulk deletions)?',
+              );
+
+              const channelLogChan = await getChannelSelectionMenu(
+                msg,
+                'Select the channel logs channel',
+                'What channel do you want to use for channel logs (creations, deletions, updates)?',
+              );
+
+              const miscLogChan = await getChannelSelectionMenu(
+                msg,
+                'Select the miscellaneous logs channel',
+                'What channel do you want to use for miscellaneous logs (emoji updates, role updates, etc)?',
+              );
+
+              await this.client.db.execute(
+                /* sql */
+                `
+                  INSERT INTO
+                    log_settings (
+                      server_id,
+                      channel_id,
+                      members_channel_id,
+                      messages_channel_id,
+                      channels_channel_id,
+                      misc_channel_id,
+                      all_enabled,
+                      bulk_messages_deleted,
+                      channel_created,
+                      channel_deleted,
+                      channel_updated,
+                      emoji_created,
+                      emoji_deleted,
+                      emoji_updated,
+                      member_banned,
+                      member_join,
+                      member_kicked,
+                      member_leave,
+                      member_timeout,
+                      message_deleted,
+                      message_updated,
+                      role_created,
+                      role_deleted,
+                      role_updated,
+                      sticker_created,
+                      sticker_deleted,
+                      sticker_updated,
+                      thread_created,
+                      thread_deleted,
+                      voice_channel_created,
+                      voice_channel_deleted
+                    )
+                  VALUES
+                    (
+                      ?,
+                      ?,
+                      ?,
+                      ?,
+                      ?,
+                      ?,
+                      TRUE,
+                      TRUE,
+                      TRUE,
+                      TRUE,
+                      TRUE,
+                      TRUE,
+                      TRUE,
+                      TRUE,
+                      TRUE,
+                      TRUE,
+                      TRUE,
+                      TRUE,
+                      TRUE,
+                      TRUE,
+                      TRUE,
+                      TRUE,
+                      TRUE,
+                      TRUE,
+                      TRUE,
+                      TRUE,
+                      TRUE,
+                      TRUE,
+                      TRUE,
+                      TRUE,
+                      TRUE
+                    ) ON DUPLICATE KEY
+                  UPDATE channel_id =
+                  VALUES
+                    (channel_id),
+                    members_channel_id =
+                  VALUES
+                    (members_channel_id),
+                    messages_channel_id =
+                  VALUES
+                    (messages_channel_id),
+                    channels_channel_id =
+                  VALUES
+                    (channels_channel_id),
+                    misc_channel_id =
+                  VALUES
+                    (misc_channel_id),
+                    all_enabled = TRUE,
+                    bulk_messages_deleted = TRUE,
+                    channel_created = TRUE,
+                    channel_deleted = TRUE,
+                    channel_updated = TRUE,
+                    emoji_created = TRUE,
+                    emoji_deleted = TRUE,
+                    emoji_updated = TRUE,
+                    member_banned = TRUE,
+                    member_join = TRUE,
+                    member_leave = TRUE,
+                    member_kicked = TRUE,
+                    member_timeout = TRUE,
+                    message_deleted = TRUE,
+                    message_updated = TRUE,
+                    role_created = TRUE,
+                    role_deleted = TRUE,
+                    role_updated = TRUE,
+                    sticker_created = TRUE,
+                    sticker_deleted = TRUE,
+                    sticker_updated = TRUE,
+                    thread_created = TRUE,
+                    thread_deleted = TRUE,
+                    voice_channel_created = TRUE,
+                    voice_channel_deleted = TRUE
+                `,
+                [msg.guild.id, null, memberLogChan.id, messageLogChan.id, channelLogChan.id, miscLogChan.id],
+              );
+
+              const embed = new EmbedBuilder()
+                .setTitle('Successfully Updated')
+                .setColor(successColor)
+                .setThumbnail('https://i.cisn.xyz/piqe4/MovoNohA60/raw.png')
+                .addFields([
+                  {
+                    name: 'Member Logs',
+                    value: `Joins, leaves, bans, kicks, timeouts, etc will be posted in ${memberLogChan}`,
+                  },
+                  {
+                    name: 'Message Logs',
+                    value: `Message deletions, updates, and bulk deletions will be posted in ${messageLogChan}`,
+                  },
+                  {
+                    name: 'Channel Logs',
+                    value: `Channel creations, deletions, and updates will be posted in ${channelLogChan}`,
+                  },
+                  {
+                    name: 'Miscellaneous Logs',
+                    value: `Emoji updates, role updates, sticker updates, thread updates, voice channel updates, and other logs will be posted in ${miscLogChan}`,
+                  },
+                ])
+                .setDescription(`Use \`${msg.settings.prefix}help logging\` to see how to fine-tune the logging.`)
+                .setTimestamp();
+
+              return msg.channel.send({ embeds: [embed] });
+            }
+
+            // Switch to a single channel for all logs
+            if (choice === '2') {
+              const chan = await getChannelSelectionMenu(
+                msg,
+                'Select the logs channel',
+                'What channel do you want to use for logs?',
+              );
+
+              await this.client.db.execute(
+                /* sql */ `
+                  UPDATE log_settings
+                  SET
+                    channel_id = ?,
+                    members_channel_id = NULL,
+                    messages_channel_id = NULL,
+                    channels_channel_id = NULL,
+                    misc_channel_id = NULL
+                  WHERE
+                    server_id = ?
+                `,
+                [chan.id, msg.guild.id],
+              );
+
+              const embed = new EmbedBuilder()
+                .setTitle('Successfully Updated')
+                .setColor(successColor)
+                .setThumbnail('https://i.cisn.xyz/piqe4/MovoNohA60/raw.png')
+                .setDescription(
+                  `Everything related to logs will be posted in ${chan} from now on. \n\nUse ${msg.settings.prefix}help logging to see how to fine-tune the logging.`,
+                )
+                .setTimestamp();
+
+              return msg.channel.send({ embeds: [embed] });
+            }
+          }
+        } else {
+          // The system is not setup, ask the type of channel setup they want.
+          const filter = (m) => m.author.id === msg.author.id;
+          await msg.channel.send(stripIndents`The logging system is not set up in this server.
+            What type of channel setup do you want?
+            1️⃣ Single channel for all logs.
+            2️⃣ Multiple channels for different log types.
+            
+            (Reply with a number or cancel)
+          `);
+
+          const collected = await msg.channel.awaitMessages({ filter, max: 1, time: 60000, errors: ['time'] });
+          if (!collected) {
+            return msg.channel.send('Setup cancelled due to no response.');
+          }
+
+          const choice = collected.first().content.toLowerCase();
+          if (choice === 'cancel') {
+            return msg.channel.send('Got it! Setup cancelled.');
+          }
+
+          if (!['1', '2'].includes(choice)) {
+            return msg.channel.send('You selected an invalid response, please re-run the setup command.');
+          }
+
+          if (choice === '1') {
+            const chan = await getChannelSelectionMenu(
+              msg,
+              'Select the logging channel',
+              'What channel do you want to use for logging?',
+            );
+
+            await this.client.db.execute(
+              /* sql */
+              `
+                INSERT INTO
+                  log_settings (
+                    server_id,
+                    channel_id,
+                    all_enabled,
+                    bulk_messages_deleted,
+                    channel_created,
+                    channel_deleted,
+                    channel_updated,
+                    emoji_created,
+                    emoji_deleted,
+                    emoji_updated,
+                    member_banned,
+                    member_join,
+                    member_kicked,
+                    member_leave,
+                    member_timeout,
+                    message_deleted,
+                    message_updated,
+                    role_created,
+                    role_deleted,
+                    role_updated,
+                    sticker_created,
+                    sticker_deleted,
+                    sticker_updated,
+                    thread_created,
+                    thread_deleted,
+                    voice_channel_created,
+                    voice_channel_deleted
+                  )
+                VALUES
+                  (
+                    ?,
+                    ?,
+                    TRUE, -- all_enabled
+                    TRUE, -- bulk_messages_deleted
+                    TRUE, -- channel_created
+                    TRUE, -- channel_deleted
+                    TRUE, -- channel_updated
+                    TRUE, -- emoji_created
+                    TRUE, -- emoji_deleted
+                    TRUE, -- emoji_updated
+                    TRUE, -- member_banned
+                    TRUE, -- member_join
+                    TRUE, -- member_kicked
+                    TRUE, -- member_leave
+                    TRUE, -- member_timeout
+                    TRUE, -- message_deleted
+                    TRUE, -- message_updated
+                    TRUE, -- role_created
+                    TRUE, -- role_deleted
+                    TRUE, -- role_updated
+                    TRUE, -- sticker_created
+                    TRUE, -- sticker_deleted
+                    TRUE, -- sticker_updated
+                    TRUE, -- thread_created
+                    TRUE, -- thread_deleted
+                    TRUE, -- voice_channel_created
+                    TRUE -- voice_channel_deleted
+                  ) ON DUPLICATE KEY
+                UPDATE all_enabled = TRUE,
+                bulk_messages_deleted = TRUE,
+                channel_created = TRUE,
+                channel_deleted = TRUE,
+                channel_updated = TRUE,
+                emoji_created = TRUE,
+                emoji_deleted = TRUE,
+                emoji_updated = TRUE,
+                member_banned = TRUE,
+                member_join = TRUE,
+                member_leave = TRUE,
+                member_kicked = TRUE,
+                member_timeout = TRUE,
+                message_deleted = TRUE,
+                message_updated = TRUE,
+                role_created = TRUE,
+                role_deleted = TRUE,
+                role_updated = TRUE,
+                sticker_created = TRUE,
+                sticker_deleted = TRUE,
+                sticker_updated = TRUE,
+                thread_created = TRUE,
+                thread_deleted = TRUE,
+                voice_channel_created = TRUE,
+                voice_channel_deleted = TRUE
+              `,
+              [msg.guild.id, chan.id],
+            );
+
+            const embed = new EmbedBuilder()
+              .setTitle('Successfully Set')
+              .setColor(successColor)
+              .setThumbnail('https://i.cisn.xyz/piqe4/MovoNohA60/raw.png')
+              .setDescription(
+                `Everything related to logs will be posted in ${chan}. \n\nUse ${msg.settings.prefix}help logging to see how to fine-tune the logging.`,
+              )
+              .setTimestamp();
+
+            return msg.channel.send({ embeds: [embed] });
+          }
+
+          // Set up for multiple channels
+          if (choice === '2') {
+            const memberLogChan = await getChannelSelectionMenu(
+              msg,
+              'Select the member logs channel',
+              'What channel do you want to use for member logs (joins, leaves, bans, etc)?',
+            );
+
+            const messageLogChan = await getChannelSelectionMenu(
+              msg,
+              'Select the message logs channel',
+              'What channel do you want to use for message logs (deletions, updates, bulk deletions)?',
+            );
+
+            const channelLogChan = await getChannelSelectionMenu(
+              msg,
+              'Select the channel logs channel',
+              'What channel do you want to use for channel logs (creations, deletions, updates)?',
+            );
+
+            const miscLogChan = await getChannelSelectionMenu(
+              msg,
+              'Select the miscellaneous logs channel',
+              'What channel do you want to use for miscellaneous logs (emoji updates, role updates, etc)?',
+            );
+
+            await this.client.db.execute(
+              /* sql */
+              `
+                INSERT INTO
+                  log_settings (
+                    server_id,
+                    channel_id,
+                    members_channel_id,
+                    messages_channel_id,
+                    channels_channel_id,
+                    misc_channel_id,
+                    all_enabled,
+                    bulk_messages_deleted,
+                    channel_created,
+                    channel_deleted,
+                    channel_updated,
+                    emoji_created,
+                    emoji_deleted,
+                    emoji_updated,
+                    member_banned,
+                    member_join,
+                    member_kicked,
+                    member_leave,
+                    member_timeout,
+                    message_deleted,
+                    message_updated,
+                    role_created,
+                    role_deleted,
+                    role_updated,
+                    sticker_created,
+                    sticker_deleted,
+                    sticker_updated,
+                    thread_created,
+                    thread_deleted,
+                    voice_channel_created,
+                    voice_channel_deleted
+                  )
+                VALUES
+                  (
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    TRUE,
+                    TRUE,
+                    TRUE,
+                    TRUE,
+                    TRUE,
+                    TRUE,
+                    TRUE,
+                    TRUE,
+                    TRUE,
+                    TRUE,
+                    TRUE,
+                    TRUE,
+                    TRUE,
+                    TRUE,
+                    TRUE,
+                    TRUE,
+                    TRUE,
+                    TRUE,
+                    TRUE,
+                    TRUE,
+                    TRUE,
+                    TRUE,
+                    TRUE,
+                    TRUE,
+                    TRUE
+                  ) ON DUPLICATE KEY
+                UPDATE channel_id =
+                VALUES
+                  (channel_id),
+                  members_channel_id =
+                VALUES
+                  (members_channel_id),
+                  messages_channel_id =
+                VALUES
+                  (messages_channel_id),
+                  channels_channel_id =
+                VALUES
+                  (channels_channel_id),
+                  misc_channel_id =
+                VALUES
+                  (misc_channel_id),
+                  all_enabled = TRUE,
+                  bulk_messages_deleted = TRUE,
+                  channel_created = TRUE,
+                  channel_deleted = TRUE,
+                  channel_updated = TRUE,
+                  emoji_created = TRUE,
+                  emoji_deleted = TRUE,
+                  emoji_updated = TRUE,
+                  member_banned = TRUE,
+                  member_join = TRUE,
+                  member_leave = TRUE,
+                  member_kicked = TRUE,
+                  member_timeout = TRUE,
+                  message_deleted = TRUE,
+                  message_updated = TRUE,
+                  role_created = TRUE,
+                  role_deleted = TRUE,
+                  role_updated = TRUE,
+                  sticker_created = TRUE,
+                  sticker_deleted = TRUE,
+                  sticker_updated = TRUE,
+                  thread_created = TRUE,
+                  thread_deleted = TRUE,
+                  voice_channel_created = TRUE,
+                  voice_channel_deleted = TRUE
+              `,
+              [
+                msg.guild.id,
+                null, // Setting channel_id to null as requested
+                memberLogChan.id,
+                messageLogChan.id,
+                channelLogChan.id,
+                miscLogChan.id,
+              ],
+            );
+
+            const embed = new EmbedBuilder()
+              .setTitle('Successfully Set')
+              .setColor(successColor)
+              .setThumbnail('https://i.cisn.xyz/piqe4/MovoNohA60/raw.png')
+              .addFields([
+                {
+                  name: 'Member Logs',
+                  value: `Joins, leaves, bans, kicks, timeouts, etc will be posted in ${memberLogChan}`,
+                },
+                {
+                  name: 'Message Logs',
+                  value: `Message deletions, updates, and bulk deletions will be posted in ${messageLogChan}`,
+                },
+                {
+                  name: 'Channel Logs',
+                  value: `Channel creations, deletions, and updates will be posted in ${channelLogChan}`,
+                },
+                {
+                  name: 'Miscellaneous Logs',
+                  value: `Emoji updates, role updates, sticker updates, thread updates, voice channel updates, and other logs will be posted in ${miscLogChan}`,
+                },
+              ])
+              .setDescription(`Use \`${msg.settings.prefix}help logging\` to see how to fine-tune the logging.`)
+              .setTimestamp();
+
+            return msg.channel.send({ embeds: [embed] });
+          }
         }
       } catch (error) {
         this.client.logger.error(error);
@@ -938,7 +1623,7 @@ class Setup extends Command {
           name: 'Logging',
           value: stripIndents`
           To setup the logging system please use:
-          \`${msg.settings.prefix}Setup Logging <Channel Mention>\``,
+          \`${msg.settings.prefix}Setup Logging\``,
         },
         {
           name: 'Warnings',

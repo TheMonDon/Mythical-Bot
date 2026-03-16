@@ -5,8 +5,7 @@ export async function run(client, sticker) {
     const [logRows] = await client.db.execute(
       /* sql */ `
         SELECT
-          channel_id,
-          sticker_created
+          *
         FROM
           log_settings
         WHERE
@@ -16,7 +15,7 @@ export async function run(client, sticker) {
     );
     if (!logRows.length) return;
 
-    const logChannelID = logRows[0].channel_id;
+    const logChannelID = logRows[0].misc_channel_id || logRows[0].channel_id;
     if (!logChannelID) return;
 
     const logSystem = logRows[0].sticker_created;

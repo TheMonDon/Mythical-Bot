@@ -7,8 +7,7 @@ export async function run(client, channel) {
     const [logRows] = await client.db.execute(
       /* sql */ `
         SELECT
-          channel_id,
-          channel_created
+          *
         FROM
           log_settings
         WHERE
@@ -18,10 +17,15 @@ export async function run(client, channel) {
     );
     if (!logRows.length) return;
 
-    const logChannelID = logRows[0].channel_id;
+    const logChannelID = logRows[0].channels_channel_id || logRows[0].channel_id;
     if (!logChannelID) return;
 
-    const logSystem = logRows[0].channel_created;
+    let logSystem;
+    if (channel.type === 0) {
+      logSystem = logRows[0].channel_created;
+    } else if (channel.type === 2) {
+      logSystem = logRows[0].voice_channel_created;
+    }
     if (logSystem !== 1) return;
     if (channel.name.startsWith('ticket-')) return;
 

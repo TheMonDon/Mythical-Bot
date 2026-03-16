@@ -7,9 +7,7 @@ export async function run(client, thread) {
     const [logRows] = await client.db.execute(
       /* sql */ `
         SELECT
-          channel_id,
-          thread_created,
-          no_log_channels
+          *
         FROM
           log_settings
         WHERE
@@ -19,7 +17,7 @@ export async function run(client, thread) {
     );
     if (!logRows.length) return;
 
-    const logChannelID = logRows[0].channel_id;
+    const logChannelID = logRows[0].channels_channel_id || logRows[0].channel_id;
     if (!logChannelID) return;
 
     const logSystem = logRows[0].thread_created;

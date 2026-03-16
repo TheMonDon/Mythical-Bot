@@ -11,9 +11,7 @@ export async function run(client, message) {
       const [logRows] = await client.db.execute(
         /* sql */ `
           SELECT
-            channel_id,
-            message_deleted,
-            no_log_channels
+            *
           FROM
             log_settings
           WHERE
@@ -23,7 +21,7 @@ export async function run(client, message) {
       );
       if (!logRows.length) return;
 
-      const logChannelID = logRows[0].channel_id;
+      const logChannelID = logRows[0].messages_channel_id || logRows[0].channel_id;
       if (!logChannelID) return;
 
       const logSystem = logRows[0].message_deleted;

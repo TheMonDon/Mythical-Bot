@@ -8,8 +8,7 @@ export async function run(client, oldRole, newRole) {
     const [logRows] = await client.db.execute(
       /* sql */ `
         SELECT
-          channel_id,
-          role_updated
+          *
         FROM
           log_settings
         WHERE
@@ -19,7 +18,7 @@ export async function run(client, oldRole, newRole) {
     );
     if (!logRows.length) return;
 
-    const logChannelID = logRows[0].channel_id;
+    const logChannelID = logRows[0].misc_channel_id || logRows[0].channel_id;
     if (!logChannelID) return;
 
     const logSystem = logRows[0].role_updated;

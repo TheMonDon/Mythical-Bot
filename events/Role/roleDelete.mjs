@@ -5,8 +5,7 @@ export async function run(client, role) {
     const [logRows] = await client.db.execute(
       /* sql */ `
         SELECT
-          channel_id,
-          role_deleted
+          *
         FROM
           log_settings
         WHERE
@@ -16,7 +15,7 @@ export async function run(client, role) {
     );
     if (!logRows.length) return;
 
-    const logChannelID = logRows[0].channel_id;
+    const logChannelID = logRows[0].misc_channel_id || logRows[0].channel_id;
     if (!logChannelID) return;
 
     const logSystem = logRows[0].role_deleted;
@@ -46,5 +45,5 @@ export async function run(client, role) {
     return logChannel.send({ embeds: [embed] }).catch(() => {});
   } catch (error) {
     client.logger.error(error);
-  } 
+  }
 }

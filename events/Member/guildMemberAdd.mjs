@@ -8,8 +8,7 @@ export async function run(client, member) {
       const [logRows] = await client.db.execute(
         /* sql */ `
           SELECT
-            channel_id,
-            member_join
+            *
           FROM
             log_settings
           WHERE
