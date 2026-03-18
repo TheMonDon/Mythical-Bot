@@ -593,9 +593,7 @@ const loadLavalink = async () => {
 
 const loadMysql = async () => {
   if (!config.mysql?.host && !config.mysql?.database) {
-    console.error('MySQL configuration not found, skipping MySQL setup.');
-    console.error('Some features may not work as intended.');
-    return;
+    throw new Error('MySQL configuration is missing. Please provide the necessary MySQL configuration in config.js.');
   }
 
   const mysql = require('mysql2/promise');

@@ -18,7 +18,7 @@ export async function run(client, member) {
       );
       if (!logRows.length) return;
 
-      const logChannelID = logRows[0].channel_id;
+      const logChannelID = logRows[0].members_channel_id || logRows[0].channel_id;
       if (!logChannelID) return;
 
       const logSystem = logRows[0].member_join;
