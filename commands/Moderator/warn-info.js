@@ -19,7 +19,7 @@ class WarnInfo extends Command {
     const caseID = args.join(' ');
 
     try {
-      await msg.delete();
+      await msg.delete().catch(() => null);
 
       const [settingsRows] = await this.client.db.execute(
         /* sql */ `

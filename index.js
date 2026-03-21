@@ -1034,6 +1034,31 @@ const loadMysql = async () => {
       ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
     `);
 
+    await connection.execute(/* sql */ `
+      CREATE TABLE IF NOT EXISTS giveaways (
+        message_id VARCHAR(30) PRIMARY KEY,
+        channel_id VARCHAR(30) NOT NULL,
+        server_id VARCHAR(30) NOT NULL,
+        required_role VARCHAR(30),
+        prize VARCHAR(255) NOT NULL,
+        winner_count INT DEFAULT 1,
+        started_at BIGINT NOT NULL,
+        end_at BIGINT NOT NULL,
+        host_id VARCHAR(30) NOT NULL,
+        winners JSON,
+        status ENUM('active', 'ended') DEFAULT 'active'
+      );
+    `);
+
+    await connection.execute(/* sql */ `
+      CREATE TABLE IF NOT EXISTS giveaway_entries (
+        server_id VARCHAR(30),
+        message_id VARCHAR(30),
+        user_id VARCHAR(30),
+        PRIMARY KEY (message_id, user_id)
+      );
+    `);
+
     const [views] = await connection.query(/* sql */ `
       SHOW FULL TABLES IN ${config.mysql.database}
       WHERE

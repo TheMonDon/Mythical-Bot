@@ -147,7 +147,7 @@ class NewTicket extends Command {
         .setTimestamp();
       const reply = await msg.channel.send({ embeds: [userEmbed] });
       setTimeout(() => reply.delete(), 60000);
-      msg.delete();
+      msg.delete().catch(() => null);
 
       const logEmbed = new EmbedBuilder()
         .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })

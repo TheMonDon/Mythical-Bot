@@ -9,14 +9,12 @@ class EndGiveaway extends Command {
       requiredArgs: 1,
       category: 'Giveaways',
       aliases: ['endgiveaway', 'gend', 'giveawayend'],
+      permLevel: 'Administrator',
       guildOnly: true,
     });
   }
 
   async run(msg, args) {
-    if (!msg.member.permissions.has('ManageMessages'))
-      return this.client.util.errorEmbed(msg, 'You need to have the Manage Messages permission to delete giveaways');
-
     const query = args.join(' ');
 
     if (isNaN(query)) {

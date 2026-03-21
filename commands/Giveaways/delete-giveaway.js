@@ -9,19 +9,17 @@ class DeleteGiveaway extends Command {
       requiredArgs: 1,
       category: 'Giveaways',
       aliases: ['deletegiveaway', 'delgiveaway', 'gdelete'],
-      permLevel: 'Moderator',
+      permLevel: 'Administrator',
       guildOnly: true,
     });
   }
 
   async run(msg, args) {
-    if (!msg.member.permissions.has('ManageMessages')) {
-      return this.client.util.errorEmbed(msg, 'You need to have the Manage Messages permission to delete giveaways');
-    }
     const query = args.join(' ');
 
-    if (isNaN(query))
+    if (isNaN(query)) {
       return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Message ID');
+    }
 
     const giveaway = this.client.giveawaysManager.giveaways.find(
       (g) => g.messageId === query && g.guildId === msg.guild.id,

@@ -24,7 +24,7 @@ class Warn extends Command {
     let logMessage;
 
     try {
-      await msg.delete();
+      await msg.delete().catch(() => null);
       mem = await this.client.util.getMember(msg, args[0]);
 
       // Find the user by user ID
