@@ -8,6 +8,7 @@ const {
   ComponentType,
 } = require('discord.js');
 const ms = require('ms');
+const { parseStoredUserIds, selectGiveawayWinners, mergeWinnerHistory } = require('../../util/GiveawayUtil.js');
 
 exports.conf = {
   permLevel: 'Administrator',
@@ -659,11 +660,19 @@ exports.run = async (interaction) => {
 
       const giveaway = rows[0];
       if (!giveaway) {
-        return interaction.editReply({ content: 'Giveaway not found!' });
+        return interaction.client.util.errorEmbed(
+          interaction,
+          `Unable to find a giveaway for \`"${interaction.options.getString('giveaway')}"\`.`,
+          'Invalid Giveaway',
+        );
       }
 
       if (giveaway.status !== 'ended') {
-        return interaction.editReply({ content: 'Only giveaways that have ended can be rerolled!' });
+        return interaction.client.util.errorEmbed(
+          interaction,
+          'Only giveaways that have ended can be rerolled.',
+          'Invalid Giveaway',
+        );
       }
 
       const winnerAmount = interaction.options.getInteger('winners') || giveaway.winner_count;
@@ -677,33 +686,51 @@ exports.run = async (interaction) => {
             giveaway_entries
           WHERE
             message_id = ?
+            AND server_id = ?
         `,
-        [giveaway.message_id],
+        [giveaway.message_id, interaction.guild.id],
       );
 
       if (entryRows.length === 0) {
-        return interaction.editReply({ content: 'No entries found for this giveaway!' });
+        return interaction.client.util.errorEmbed(
+          interaction,
+          'No entries were found for this giveaway.',
+          'Invalid Giveaway',
+        );
       }
 
-      const winnerIds = entryRows.map((row) => row.user_id);
-      const shuffled = winnerIds.sort(() => 0.5 - Math.random());
-      const selectedWinners = shuffled.slice(0, winnerAmount);
+      const entryUserIds = entryRows.map((row) => row.user_id);
+      const previousWinnerIds = parseStoredUserIds(giveaway.winner_history || giveaway.winners);
+      const { eligibleEntryCount, winners } = selectGiveawayWinners(entryUserIds, previousWinnerIds, winnerAmount);
+
+      if (winners.length === 0) {
+        return interaction.client.util.errorEmbed(
+          interaction,
+          previousWinnerIds.length >= entryRows.length
+            ? 'Everyone who entered has already won this giveaway.'
+            : 'There were no eligible entries to reroll.',
+          'Unable to Reroll Giveaway',
+        );
+      }
+
+      const winnerHistory = mergeWinnerHistory(previousWinnerIds, winners);
 
       await interaction.client.db.execute(
         /* sql */
         `
           UPDATE giveaways
           SET
-            winners = ?
+            winners = ?,
+            winner_history = ?
           WHERE
             message_id = ?
             AND server_id = ?
         `,
-        [JSON.stringify(selectedWinners), giveaway.message_id, interaction.guild.id],
+        [JSON.stringify(winners), JSON.stringify(winnerHistory), giveaway.message_id, interaction.guild.id],
       );
 
       const entryCount = entryRows.length;
-      const winnerMentions = selectedWinners.map((id) => `<@${id}>`).join(', ');
+      const winnerMentions = winners.map((id) => `<@${id}>`).join(', ');
 
       const channel = await interaction.client.channels.fetch(giveaway.channel_id).catch(() => null);
       if (!channel) {
@@ -733,12 +760,14 @@ exports.run = async (interaction) => {
 
       await message.reply(`Congratulations ${winnerMentions}! You won the **${giveaway.prize}** giveaway!`);
 
+      const excludedWinnerCount = Math.max(0, entryCount - eligibleEntryCount);
+
       const successEmbed = new EmbedBuilder()
         .setTitle('Giveaway Rerolled!')
         .setDescription(
           `The giveaway for **${giveaway.prize}** has been rerolled. The new winner${
-            selectedWinners.length > 1 ? 's are' : ' is'
-          }: ${winnerMentions}`,
+            winners.length > 1 ? 's are' : ' is'
+          }: ${winnerMentions}\n\n${excludedWinnerCount} previous winner${excludedWinnerCount === 1 ? '' : 's'} ${excludedWinnerCount === 1 ? 'was' : 'were'} excluded from the draw.`,
         )
         .setColor(interaction.settings.embedSuccessColor)
         .setTimestamp();

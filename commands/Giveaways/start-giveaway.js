@@ -242,8 +242,8 @@ class StartGiveaway extends Command {
           const thumbnailURL = submitted.fields.getTextInputValue('thumbnailInput');
 
           giveawayData.description = description || null;
-          giveawayData.requiredRole = requiredRole.id || null;
-          giveawayData.pingRole = pingRole.id || null;
+          giveawayData.requiredRole = requiredRole?.id || null;
+          giveawayData.pingRole = pingRole?.id || null;
           giveawayData.thumbnailURL = thumbnailURL || null;
 
           await submitted.reply({ content: 'Advanced settings saved!', flags: MessageFlags.Ephemeral });

@@ -4,7 +4,9 @@ import express from 'express';
 import cors from 'cors';
 import { scheduleJob } from 'node-schedule';
 import { Client } from 'botpanel.js';
+import giveawayUtil from '../../util/GiveawayUtil.js';
 const { BotPanelID, BotPanelSecret, Port } = pkg;
+const { mergeWinnerHistory, selectGiveawayWinners } = giveawayUtil;
 
 export async function run(client) {
   if (!client.settings.has('default')) {
@@ -413,7 +415,7 @@ export async function run(client) {
             continue;
           }
 
-          const entriesResult = await client.db.execute(
+          const [entriesResult] = await client.db.execute(
             /* sql */ `
               SELECT
                 user_id
@@ -421,32 +423,28 @@ export async function run(client) {
                 giveaway_entries
               WHERE
                 message_id = ?
+                AND server_id = ?
             `,
-            [giveaway.message_id],
+            [giveaway.message_id, giveaway.server_id],
           );
 
-          const entryCount = entriesResult[0].length;
-          const entries = entriesResult[0].map((row) => row.user_id);
-          const winnerCount = Math.min(giveaway.winner_count, entries.length);
-          const winners = [];
-
-          while (winners.length < winnerCount && entries.length > 0) {
-            const randomIndex = Math.floor(Math.random() * entries.length);
-            const winner = entries.splice(randomIndex, 1)[0];
-            winners.push(winner);
-          }
+          const entryCount = entriesResult.length;
+          const entryUserIds = entriesResult.map((row) => row.user_id);
+          const { winners } = selectGiveawayWinners(entryUserIds, [], giveaway.winner_count);
+          const winnerHistory = mergeWinnerHistory([], winners);
 
           await client.db.execute(
             /* sql */ `
               UPDATE giveaways
               SET
                 status = 'ended',
-                winners = ?
+                winners = ?,
+                winner_history = ?
               WHERE
                 server_id = ?
                 AND message_id = ?
             `,
-            [JSON.stringify(winners), giveaway.server_id, giveaway.message_id],
+            [JSON.stringify(winners), JSON.stringify(winnerHistory), giveaway.server_id, giveaway.message_id],
           );
 
           const embed = EmbedBuilder.from(message.embeds[0]).setFields([
@@ -455,6 +453,7 @@ export async function run(client) {
               value: `**Ended:** <t:${Math.floor(giveaway.end_at / 1000)}:R>\n**Hosted by:** <@${giveaway.host_id}>${giveaway.required_role ? `\n**Required Role:** <@&${giveaway.required_role}>` : ''}`,
             },
           ]);
+
           const disabledButton = new ActionRowBuilder().addComponents(
             new ButtonBuilder()
               .setCustomId('giveaway_enter')
@@ -463,6 +462,7 @@ export async function run(client) {
               .setStyle(ButtonStyle.Primary)
               .setDisabled(true),
           );
+
           await message.edit({ embeds: [embed], components: [disabledButton] });
 
           if (winners.length > 0) {
