@@ -53,7 +53,7 @@ class ItemLeaderboard extends Command {
 
     // Ensure the page is within range
     page = Math.max(1, Math.min(page, maxPages));
-
+ 
     const generateEmbed = async (currentPage) => {
       const offset = (currentPage - 1) * itemsPerPage;
       const [rows] = await this.client.db.execute(

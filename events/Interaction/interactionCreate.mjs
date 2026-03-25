@@ -8,6 +8,7 @@ import {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
+  LabelBuilder,
 } from 'discord.js';
 import { stripIndents } from 'common-tags';
 import * as discordTranscripts from 'discord-html-transcripts';
@@ -156,7 +157,16 @@ export async function run(client, interaction) {
         }
 
         const [blacklistRows] = await client.db.execute(
-          `SELECT * FROM server_blacklists WHERE server_id = ? AND user_id = ?`,
+          /* sql */
+          `
+            SELECT
+              *
+            FROM
+              server_blacklists
+            WHERE
+              server_id = ?
+              AND user_id = ?
+          `,
           [interaction.guild.id, interaction.user.id],
         );
 
@@ -241,23 +251,198 @@ export async function run(client, interaction) {
         }
 
         // Create the modal
+        const modal = new ModalBuilder().setCustomId('close_ticket_reason').setTitle('Ticket Close Reason');
 
-        const reasonInput = new TextInputBuilder()
-          .setMinLength(1)
-          .setMaxLength(1024)
-          .setCustomId('reasonInput')
-          .setLabel('Reason')
-          .setStyle(TextInputStyle.Paragraph)
-          .setRequired(false);
+        const reasonLabel = new LabelBuilder()
+          .setLabel('Why are you closing this ticket?')
+          .setTextInputComponent(
+            new TextInputBuilder()
+              .setMinLength(1)
+              .setMaxLength(1024)
+              .setCustomId('reasonInput')
+              .setStyle(TextInputStyle.Paragraph)
+              .setRequired(false),
+          );
 
-        const ActionRow = new ActionRowBuilder().addComponents(reasonInput);
-
-        const modal = new ModalBuilder()
-          .setCustomId('close_ticket_reason')
-          .setTitle('Ticket Close Reason')
-          .addComponents(ActionRow);
+        modal.addLabelComponents(reasonLabel);
 
         await interaction.showModal(modal);
+      }
+
+      // Handle giveaway entry button
+      if (interaction.customId === 'giveaway_enter') {
+        const giveawayId = interaction.message.id;
+
+        const [giveawayRows] = await client.db.execute(
+          /* sql */ `
+            SELECT
+              *
+            FROM
+              giveaways
+            WHERE
+              server_id = ?
+              AND message_id = ?
+          `,
+          [interaction.guild.id, giveawayId],
+        );
+
+        if (giveawayRows.length === 0) {
+          return interaction.reply({
+            content: 'This giveaway is no longer active.',
+            flags: MessageFlags.Ephemeral,
+          });
+        }
+
+        const giveaway = giveawayRows[0];
+
+        if (giveaway.required_role) {
+          if (!interaction.member.roles.cache.has(giveaway.required_role)) {
+            const roleEmbed = new EmbedBuilder()
+              .setTitle('Role Required')
+              .setAuthor({ name: interaction.user.tag, iconURL: interaction.user.displayAvatarURL() })
+              .setColor(interaction.settings.embedErrorColor)
+              .setDescription(
+                `Sorry ${interaction.user.username}, you must have the <@&${giveaway.required_role}> role to enter this giveaway.`,
+              );
+
+            return interaction.reply({
+              embeds: [roleEmbed],
+              flags: MessageFlags.Ephemeral,
+            });
+          }
+        }
+
+        const [entryRows] = await client.db.execute(
+          /* sql */ `
+            SELECT
+              *
+            FROM
+              giveaway_entries
+            WHERE
+              server_id = ?
+              AND message_id = ?
+              AND user_id = ?
+          `,
+          [interaction.guild.id, interaction.message.id, interaction.user.id],
+        );
+
+        if (entryRows.length > 0) {
+          const embed = new EmbedBuilder()
+            .setTitle('Already Entered')
+            .setAuthor({ name: interaction.user.tag, iconURL: interaction.user.displayAvatarURL() })
+            .setColor(interaction.settings.embedErrorColor)
+            .setDescription('You have already entered this giveaway.');
+
+          const exitButton = new ActionRowBuilder().addComponents(
+            new ButtonBuilder()
+              .setCustomId(`giveaway_exit_${giveawayId}`)
+              .setLabel('Exit Giveaway')
+              .setEmoji('❌')
+              .setStyle(ButtonStyle.Danger),
+          );
+
+          return interaction.reply({ embeds: [embed], components: [exitButton], flags: MessageFlags.Ephemeral });
+        }
+
+        await client.db.execute(
+          /* sql */ `
+            INSERT INTO
+              giveaway_entries (server_id, message_id, user_id)
+            VALUES
+              (?, ?, ?)
+          `,
+          [interaction.guild.id, giveawayId, interaction.user.id],
+        );
+
+        const [rows] = await client.db.execute(
+          /* sql */
+          `
+            SELECT
+              COUNT(*) AS total
+            FROM
+              giveaway_entries
+            WHERE
+              message_id = ?
+          `,
+          [giveawayId],
+        );
+        const entryCount = rows[0].total;
+
+        const enterButton = new ActionRowBuilder().addComponents(
+          new ButtonBuilder()
+            .setCustomId('giveaway_enter')
+            .setLabel(`Enter (${entryCount})`)
+            .setEmoji('🎉')
+            .setStyle(ButtonStyle.Primary),
+        );
+
+        await interaction.message.edit({ components: [enterButton] });
+
+        const embed = new EmbedBuilder()
+          .setTitle('Giveaway Entry')
+          .setAuthor({ name: interaction.user.tag, iconURL: interaction.user.displayAvatarURL() })
+          .setColor(interaction.settings.embedSuccessColor)
+          .setDescription(`You have successfully entered the giveaway for **${giveaway.prize}**!`)
+          .setTimestamp();
+
+        return interaction.reply({
+          embeds: [embed],
+          flags: MessageFlags.Ephemeral,
+        });
+      }
+
+      // Handle giveaway exit button
+      if (interaction.customId.startsWith('giveaway_exit')) {
+        const giveawayId = interaction.customId.split('_')[2];
+
+        await client.db.execute(
+          /* sql */ `
+            DELETE FROM giveaway_entries
+            WHERE
+              message_id = ?
+              AND user_id = ?
+          `,
+          [giveawayId, interaction.user.id],
+        );
+
+        const [countRows] = await client.db.execute(
+          /* sql */
+          `
+            SELECT
+              COUNT(*) AS total
+            FROM
+              giveaway_entries
+            WHERE
+              message_id = ?
+          `,
+          [giveawayId],
+        );
+        const newCount = countRows[0].total;
+
+        const giveawayChannel = interaction.channel;
+        const originalMsg = await giveawayChannel.messages.fetch(giveawayId);
+
+        const updatedButton = new ActionRowBuilder().addComponents(
+          new ButtonBuilder()
+            .setCustomId('giveaway_enter')
+            .setLabel(`Enter (${newCount})`)
+            .setEmoji('🎉')
+            .setStyle(ButtonStyle.Primary),
+        );
+
+        await originalMsg.edit({ components: [updatedButton] });
+
+        const embed = new EmbedBuilder()
+          .setTitle('Giveaway Exit')
+          .setAuthor({ name: interaction.user.tag, iconURL: interaction.user.displayAvatarURL() })
+          .setColor(interaction.settings.embedSuccessColor)
+          .setDescription(`You have exited the giveaway for **${originalMsg.embeds[0].title}**.`)
+          .setTimestamp();
+
+        return interaction.update({
+          embeds: [embed],
+          flags: MessageFlags.Ephemeral,
+        });
       }
     }
 
@@ -342,8 +527,13 @@ export async function run(client, interaction) {
         });
 
         await client.db.execute(
-          `INSERT INTO user_tickets (server_id, channel_id, user_id)
-         VALUES (?, ?, ?)`,
+          /* sql */
+          `
+            INSERT INTO
+              user_tickets (server_id, channel_id, user_id)
+            VALUES
+              (?, ?, ?)
+          `,
           [interaction.guild.id, tixChan.id, member.id],
         );
 

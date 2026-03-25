@@ -61,7 +61,7 @@ class ServerInfo extends Command {
 
     const verificationLevel = ['None', 'Low', 'Medium', 'High', 'Very High'];
 
-    const owner = server.members.cache.get(server.ownerId).user;
+    const owner = server.members.cache.get(server.ownerId)?.user || 'Unknown User';
     const nonThreadChannels = msg.guild.channels.cache.filter((channel) => !(channel instanceof ThreadChannel));
     const unix = Math.floor(server.createdAt.getTime() / 1000);
 

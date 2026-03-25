@@ -4,7 +4,9 @@ import express from 'express';
 import cors from 'cors';
 import { scheduleJob } from 'node-schedule';
 import { Client } from 'botpanel.js';
+import giveawayUtil from '../../util/GiveawayUtil.js';
 const { BotPanelID, BotPanelSecret, Port } = pkg;
+const { mergeWinnerHistory, selectGiveawayWinners } = giveawayUtil;
 
 export async function run(client) {
   if (!client.settings.has('default')) {
@@ -123,6 +125,7 @@ export async function run(client) {
     });
 
     BotPanelClient.login();
+    console.log('✅ Successfully logged in to botpanel.xyz');
   }
 
   // Web server
@@ -352,6 +355,129 @@ export async function run(client) {
       );
     } catch (err) {
       console.error('[Scheduler Error] Failed to delete expired items:', err);
+    }
+  });
+
+  // Giveaway winner selection scheduler
+  scheduleJob('GiveawayWinners', '* * * * *', async () => {
+    try {
+      const now = Date.now();
+
+      const [endedGiveaways] = await client.db.execute(
+        /* sql */ `
+          SELECT
+            *
+          FROM
+            giveaways
+          WHERE
+            end_at <= ?
+            AND status = 'active'
+        `,
+        [now],
+      );
+
+      for (const giveaway of endedGiveaways) {
+        try {
+          const channel = await client.channels.fetch(giveaway.channel_id).catch(() => null);
+          if (!channel) {
+            console.warn(
+              `Channel ${giveaway.channel_id} not found for giveaway ${giveaway.message_id}. Marking as ended without sending results.`,
+            );
+            await client.db.execute(
+              /* sql */ `
+                UPDATE giveaways
+                SET
+                  status = 'ended'
+                WHERE
+                  server_id = ?
+                  AND message_id = ?
+              `,
+              [giveaway.server_id, giveaway.message_id],
+            );
+            continue;
+          }
+
+          const message = await channel.messages.fetch(giveaway.message_id).catch(() => null);
+          if (!message) {
+            console.warn(
+              `Message ${giveaway.message_id} not found in channel ${giveaway.channel_id} for giveaway ${giveaway.message_id}. Marking as ended without sending results.`,
+            );
+            await client.db.execute(
+              /* sql */ `
+                UPDATE giveaways
+                SET
+                  status = 'ended'
+                WHERE
+                  server_id = ?
+                  AND message_id = ?
+              `,
+              [giveaway.server_id, giveaway.message_id],
+            );
+            continue;
+          }
+
+          const [entriesResult] = await client.db.execute(
+            /* sql */ `
+              SELECT
+                user_id
+              FROM
+                giveaway_entries
+              WHERE
+                message_id = ?
+                AND server_id = ?
+            `,
+            [giveaway.message_id, giveaway.server_id],
+          );
+
+          const entryCount = entriesResult.length;
+          const entryUserIds = entriesResult.map((row) => row.user_id);
+          const { winners } = selectGiveawayWinners(entryUserIds, [], giveaway.winner_count);
+          const winnerHistory = mergeWinnerHistory([], winners);
+
+          await client.db.execute(
+            /* sql */ `
+              UPDATE giveaways
+              SET
+                status = 'ended',
+                winners = ?,
+                winner_history = ?
+              WHERE
+                server_id = ?
+                AND message_id = ?
+            `,
+            [JSON.stringify(winners), JSON.stringify(winnerHistory), giveaway.server_id, giveaway.message_id],
+          );
+
+          const embed = EmbedBuilder.from(message.embeds[0]).setFields([
+            {
+              name: '🎁 Giveaway Information',
+              value: `**Ended:** <t:${Math.floor(giveaway.end_at / 1000)}:R>\n**Hosted by:** <@${giveaway.host_id}>${giveaway.required_role ? `\n**Required Role:** <@&${giveaway.required_role}>` : ''}`,
+            },
+          ]);
+
+          const disabledButton = new ActionRowBuilder().addComponents(
+            new ButtonBuilder()
+              .setCustomId('giveaway_enter')
+              .setLabel(`Enter (${entryCount})`)
+              .setEmoji('🎉')
+              .setStyle(ButtonStyle.Primary)
+              .setDisabled(true),
+          );
+
+          await message.edit({ embeds: [embed], components: [disabledButton] });
+
+          if (winners.length > 0) {
+            const winnerMentions = winners.map((id) => `<@${id}>`).join(', ');
+            await message.reply(`Congratulations ${winnerMentions}! You won the **${giveaway.prize}** giveaway!`);
+          } else {
+            await message.reply('The giveaway has ended, but there were no entries.');
+          }
+        } catch (err) {
+          console.error(`Error ending giveaway ${giveaway.message_id}:`, err);
+        }
+      }
+    } catch (err) {
+      console.error('Error checking for ended giveaways:', err);
     }
   });
 }

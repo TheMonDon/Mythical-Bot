@@ -124,7 +124,7 @@ class Help extends Command {
       });
 
       const filter = (interaction) => interaction.user.id === msg.author.id;
-      const collector = msg.channel.createMessageComponentCollector({
+      const collector = message.createMessageComponentCollector({
         filter,
         time: 60000,
       });
@@ -165,13 +165,12 @@ class Help extends Command {
           let displayedCategory = this.client.util.toProperCase(selectedCategory);
           if (displayedCategory === 'Nsfw') displayedCategory = 'NSFW';
 
-          const pageFooter = totalPages === 1 ? '' : `Page ${pageNumber}/${totalPages}`;
           em.setTitle(`${displayedCategory} Commands`);
 
-          if (pageFooter) {
-            em.setFooter({
-              text: pageFooter,
-            });
+          if (totalPages > 1) {
+            em.setFooter({ text: `Page ${pageNumber}/${totalPages}` });
+          } else {
+            em.setFooter(null);
           }
 
           const prevButton = new ButtonBuilder()
@@ -216,6 +215,14 @@ class Help extends Command {
         currentButtonCollector.on('end', () => {
           currentButtonCollector = null;
         });
+      });
+
+      collector.on('end', async () => {
+        try {
+          await message.edit({ components: [] });
+        } catch (e) {
+          // Message may have been deleted
+        }
       });
 
       return;

@@ -24,7 +24,7 @@ class Warn extends Command {
     let logMessage;
 
     try {
-      await msg.delete();
+      await msg.delete().catch(() => {});
       mem = await this.client.util.getMember(msg, args[0]);
 
       // Find the user by user ID
@@ -197,7 +197,11 @@ class Warn extends Command {
       if (!userMessage) logEmbed.setFooter({ text: 'Failed to send a DM to the user. (User has DMs disabled)' });
 
       // Check if the logs channel exists and send the message
-      if (logChan) {
+      if (
+        logChan &&
+        msg.guild.members.me.permissions.has('ViewChannel') &&
+        msg.guild.channels.cache.get(logChan)?.permissionsFor(msg.guild.members.me)?.has('SendMessages')
+      ) {
         logMessage = await msg.guild.channels.cache
           .get(logChan)
           .send({ embeds: [logEmbed] })

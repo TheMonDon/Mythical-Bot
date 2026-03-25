@@ -30,7 +30,7 @@ class DeleteWarning extends Command {
     let color = msg.settings.embedColor;
 
     try {
-      await msg.delete();
+      await msg.delete().catch(() => null);
 
       const caseID = args.join(' ');
       const [[warning]] = await this.client.db.execute(

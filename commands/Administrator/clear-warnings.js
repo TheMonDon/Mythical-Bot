@@ -19,7 +19,7 @@ class ClearWarnings extends Command {
     let color = msg.settings.embedColor;
 
     try {
-      await msg.delete();
+      await msg.delete().catch(() => null);
 
       let mem = await this.client.util.getMember(msg, args.join(' '));
 

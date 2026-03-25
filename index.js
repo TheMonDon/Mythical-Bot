@@ -9,7 +9,6 @@ const {
   ButtonStyle,
   MessageFlags,
 } = require('discord.js');
-const { GiveawaysManager } = require('discord-giveaways');
 const { LavalinkManager } = require('lavalink-client');
 const { readdirSync, statSync } = require('fs');
 const { QuickDB } = require('quick.db');
@@ -255,65 +254,6 @@ const client = new Bot({
   ],
   partials: [Partials.Message, Partials.Channel, Partials.Reaction, Partials.GuildMember, Partials.User],
 });
-
-const loadGiveaways = async () => {
-  if (!Array.isArray(await db.get('giveaways'))) await db.set('giveaways', []);
-
-  const GiveawayManagerWithOwnDatabase = class extends GiveawaysManager {
-    // This function is called when the manager needs to get all giveaways which are stored in the database.
-    async getAllGiveaways() {
-      // Get all giveaways from the database
-      return await db.get('giveaways');
-    }
-
-    // This function is called when a giveaway needs to be saved in the database.
-    async saveGiveaway(_messageId, giveawayData) {
-      // Add the new giveaway to the database
-      await db.push('giveaways', giveawayData);
-      // Don't forget to return something!
-      return true;
-    }
-
-    // This function is called when a giveaway needs to be edited in the database.
-    async editGiveaway(messageId, giveawayData) {
-      // Get all giveaways from the database
-      const giveaways = await db.get('giveaways');
-      // Remove the unedited giveaway from the array
-      const newGiveawaysArray = giveaways.filter((giveaway) => giveaway.messageId !== messageId);
-      // Push the edited giveaway into the array
-      newGiveawaysArray.push(giveawayData);
-      // Save the updated array
-      await db.set('giveaways', newGiveawaysArray);
-      // Don't forget to return something!
-      return true;
-    }
-
-    // This function is called when a giveaway needs to be deleted from the database.
-    async deleteGiveaway(messageId) {
-      // Get all giveaways from the database
-      const giveaways = await db.get('giveaways');
-      // Remove the giveaway from the array
-      const newGiveawaysArray = giveaways.filter((giveaway) => giveaway.messageId !== messageId);
-      // Save the updated array
-      await db.set('giveaways', newGiveawaysArray);
-      // Don't forget to return something!
-      return true;
-    }
-  };
-
-  // Create a new instance of your new class
-  const manager = new GiveawayManagerWithOwnDatabase(client, {
-    default: {
-      botsCanWin: false,
-      embedColor: '#0099CC',
-      embedColorEnd: '#000000',
-      reaction: '🎉',
-    },
-  });
-
-  // We now have a giveawaysManager property to access the manager everywhere!
-  client.giveawaysManager = manager;
-};
 
 const loadLavalink = async () => {
   if (!Array.isArray(config.nodes) || config.nodes.length === 0) return;
@@ -1034,6 +974,32 @@ const loadMysql = async () => {
       ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
     `);
 
+    await connection.execute(/* sql */ `
+      CREATE TABLE IF NOT EXISTS giveaways (
+        message_id VARCHAR(30) PRIMARY KEY,
+        channel_id VARCHAR(30) NOT NULL,
+        server_id VARCHAR(30) NOT NULL,
+        required_role VARCHAR(30),
+        prize VARCHAR(255) NOT NULL,
+        winner_count INT DEFAULT 1,
+        started_at BIGINT NOT NULL,
+        end_at BIGINT NOT NULL,
+        host_id VARCHAR(30) NOT NULL,
+        winners JSON,
+        winner_history JSON,
+        status ENUM('active', 'ended') DEFAULT 'active'
+      );
+    `);
+
+    await connection.execute(/* sql */ `
+      CREATE TABLE IF NOT EXISTS giveaway_entries (
+        server_id VARCHAR(30),
+        message_id VARCHAR(30),
+        user_id VARCHAR(30),
+        PRIMARY KEY (message_id, user_id)
+      );
+    `);
+
     const [views] = await connection.query(/* sql */ `
       SHOW FULL TABLES IN ${config.mysql.database}
       WHERE
@@ -1191,7 +1157,6 @@ const init = async function init() {
 };
 
 loadMysql();
-loadGiveaways();
 loadLavalink();
 init();
 
