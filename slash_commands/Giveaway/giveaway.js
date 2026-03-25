@@ -323,9 +323,9 @@ exports.run = async (interaction) => {
 
       const channel = await interaction.client.channels.fetch(giveaway.channel_id).catch(() => null);
       if (channel) {
-        const msg = await channel.messages.fetch(giveaway.message_id).catch(() => null);
-        if (msg) {
-          await msg.delete().catch(() => null);
+        const message = await channel.messages.fetch(giveaway.message_id).catch(() => null);
+        if (message) {
+          await message.delete().catch(() => null);
         }
       }
 
@@ -348,18 +348,25 @@ exports.run = async (interaction) => {
 
       const giveaway = rows[0];
       if (!giveaway) {
-        return interaction.editReply({ content: 'Giveaway not found!' });
+        return interaction.client.util.errorEmbed(
+          interaction,
+          `Unable to find a giveaway for \`"${interaction.options.getString('giveaway')}"\`.`,
+          'Invalid Giveaway',
+        );
       }
 
       if (giveaway.status !== 'active') {
-        return interaction.editReply({ content: 'Only active giveaways can be ended!' });
+        return interaction.client.util.errorEmbed(
+          interaction,
+          'Only active giveaways can be ended!',
+          'Invalid Giveaway Status',
+        );
       }
 
       await interaction.client.db.execute(
         /* sql */ `
           UPDATE giveaways
           SET
-            status = 'ended',
             end_at = ?
           WHERE
             message_id = ?
@@ -370,7 +377,7 @@ exports.run = async (interaction) => {
 
       const embed = new EmbedBuilder()
         .setTitle('Giveaway Ended')
-        .setDescription(`The giveaway for **${giveaway.prize}** has been ended.`)
+        .setDescription(`The giveaway for **${giveaway.prize}** has been ended.\nWinners will be announced shortly.`)
         .setColor(interaction.settings.embedSuccessColor)
         .setTimestamp();
 

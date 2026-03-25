@@ -396,6 +396,7 @@ export async function run(client) {
             );
             continue;
           }
+
           const message = await channel.messages.fetch(giveaway.message_id).catch(() => null);
           if (!message) {
             console.warn(

@@ -1,57 +1,68 @@
 const Command = require('../../base/Command.js');
+const { EmbedBuilder } = require('discord.js');
 
 class EndGiveaway extends Command {
   constructor(client) {
     super(client, {
       name: 'end-giveaway',
-      description: 'End a giveaway',
+      description: 'End an active giveaway',
       usage: 'end-giveaway <Message ID>',
       requiredArgs: 1,
       category: 'Giveaways',
-      aliases: ['endgiveaway', 'gend', 'giveawayend'],
+      aliases: ['endgiveaway', 'giveawayend'],
       permLevel: 'Administrator',
       guildOnly: true,
     });
   }
 
   async run(msg, args) {
-    const query = args.join(' ');
+    const messageID = args.join(' ');
 
-    if (isNaN(query)) {
+    if (isNaN(messageID)) {
       return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Message ID');
     }
 
-    const giveaway = this.client.giveawaysManager.giveaways.find(
-      (g) => g.messageId === query && g.guildId === msg.guild.id,
+    const [giveawayRows] = await this.client.db.execute(
+      /* sql */ `
+        SELECT
+          *
+        FROM
+          giveaways
+        WHERE
+          message_id = ?
+          AND server_id = ?
+      `,
+      [messageID, msg.guild.id],
     );
 
-    if (!giveaway) return this.client.util.errorEmbed(msg, `Unable to find a giveaway for \`"${query}"\`.`);
-    if (giveaway.ended) return this.client.util.errorEmbed(msg, 'That giveaway has already ended.');
+    const giveaway = giveawayRows[0];
 
-    // Throw the 'are you sure?' text at them.
-    const response = await this.client.util.awaitReply(
-      msg,
-      `Are you sure you want to end the giveaway for \`${giveaway.prize}\`?`,
+    if (!giveaway) {
+      return this.client.util.errorEmbed(msg, `Unable to find a giveaway for \`"${messageID}"\`.`, 'Invalid Giveaway');
+    }
+    if (giveaway.status === 'ended') {
+      return this.client.util.errorEmbed(msg, 'Only active giveaways can be ended!', 'Invalid Giveaway Status');
+    }
+
+    await this.client.db.execute(
+      /* sql */ `
+        UPDATE giveaways
+        SET
+          end_at = ?
+        WHERE
+          message_id = ?
+          AND server_id = ?
+      `,
+      [Date.now(), messageID, msg.guild.id],
     );
 
-    // If they respond with yes, continue.
-    if (this.client.util.yes.includes(response)) {
-      // End the giveaway
-      this.client.giveawaysManager
-        .end(giveaway.messageId)
-        .then(() => {
-          // Success message
-          return msg.channel.send('The giveaway has ended.');
-        })
-        .catch((error) => {
-          return this.client.util.errorEmbed(msg, error, 'An error occurred');
-        });
-    }
+    const embed = new EmbedBuilder()
+      .setTitle('Giveaway Ended')
+      .setDescription(`The giveaway for **${giveaway.prize}** has been ended.\nWinners will be announced shortly.`)
+      .setColor(msg.settings.embedSuccessColor)
+      .setTimestamp();
 
-    // If they respond with no, we inform them that the action has been cancelled.
-    else if (this.client.util.no.includes(response)) {
-      return msg.reply('Action cancelled.');
-    }
+    return msg.channel.send({ embeds: [embed] });
   }
 }
 

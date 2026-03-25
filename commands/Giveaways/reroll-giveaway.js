@@ -18,10 +18,10 @@ class RerollGiveaway extends Command {
   }
 
   async run(msg, args) {
-    const messageId = args[0];
+    const messageID = args[0];
     let winnersCount = args[1] ? parseInt(args[1], 10) : null;
 
-    if (isNaN(messageId)) {
+    if (isNaN(messageID)) {
       return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Message ID');
     }
 
@@ -40,11 +40,11 @@ class RerollGiveaway extends Command {
           message_id = ?
           AND server_id = ?
       `,
-      [messageId, msg.guild.id],
+      [messageID, msg.guild.id],
     );
 
     if (!giveawayRows.length) {
-      return this.client.util.errorEmbed(msg, `Unable to find a giveaway for \`"${messageId}"\`.`);
+      return this.client.util.errorEmbed(msg, `Unable to find a giveaway for \`"${messageID}"\`.`);
     }
     const giveaway = giveawayRows[0];
 

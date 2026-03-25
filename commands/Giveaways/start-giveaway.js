@@ -126,19 +126,12 @@ class StartGiveaway extends Command {
 
           await interaction.showModal(modal);
 
-          // Get the Modal Submit Interaction that is emitted once the User submits the Modal
           const submitted = await interaction
             .awaitModalSubmit({
-              // Timeout after two minutes of not receiving any valid Modals
-              time: 120000,
-              // Make sure we only accept Modals from the User who sent the original Interaction we're responding to
+              time: 300000,
               filter: (i) => i.user.id === interaction.user.id,
             })
-            .catch((error) => {
-              // Catch any Errors that are thrown (e.g. if the awaitModalSubmit times out after 120000 ms)
-              console.error(error);
-              return null;
-            });
+            .catch(() => {});
 
           if (!submitted) {
             return interaction.followUp({
@@ -224,10 +217,7 @@ class StartGiveaway extends Command {
               time: 300000,
               filter: (i) => i.user.id === interaction.user.id,
             })
-            .catch((error) => {
-              console.error(error);
-              return null;
-            });
+            .catch(() => {});
 
           if (!submitted) {
             return interaction.followUp({
@@ -388,7 +378,9 @@ class StartGiveaway extends Command {
             new ButtonBuilder().setLabel('View Giveaway').setEmoji('🎉').setStyle(ButtonStyle.Link).setURL(sentMsg.url),
           );
 
-          return interaction.editReply({ embeds: [startedEmbed], components: [viewButton] });
+          await interaction.editReply({ embeds: [startedEmbed], components: [viewButton] });
+
+          collector.stop();
         }
       }
     });
