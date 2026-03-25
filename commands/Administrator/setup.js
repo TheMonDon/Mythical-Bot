@@ -30,7 +30,10 @@ class Setup extends Command {
     if (['ticket', 'tix', 'tickets'].includes(type)) {
       const filter = (m) => m.author.id === msg.author.id;
       const filter2 = (m) =>
-        [this.client.util.yes, this.client.util.no].includes(m.content.toLowerCase()) && m.author.id === msg.author.id;
+        (this.client.util.yes.includes(m.content.toLowerCase()) ||
+          this.client.util.no.includes(m.content.toLowerCase()) ||
+          m.content.toLowerCase() === 'cancel') &&
+        m.author.id === msg.author.id;
 
       if (!msg.guild.members.me.permissions.has('ManageChannels')) {
         return this.client.util.errorEmbed(msg, 'The bot needs Manage Channels permission to use the ticket system.');
@@ -55,6 +58,7 @@ class Setup extends Command {
         [msg.guild.id],
       );
 
+      // The ticket system is already setup
       if (rows.length > 0) {
         try {
           const catID = rows[0].category_id;
@@ -83,7 +87,6 @@ class Setup extends Command {
 
             // Update the max number of tickets
             if (choice === '4') {
-              // code goes here
               await msg.channel.send(
                 `How many tickets should a user be able to open? Please respond in number form, the default is 3 and the current is ${originalTicketLimit}.`,
               );
@@ -199,7 +202,7 @@ class Setup extends Command {
                 Type \`cancel\` to exit.`);
 
               const collectedCreationQuestion = await msg.channel.awaitMessages({
-                filter2,
+                filter: filter2,
                 max: 1,
                 time: 60000,
                 errors: ['time'],
@@ -351,7 +354,7 @@ class Setup extends Command {
               );
 
               const collectedChannelQuestion = await msg.channel.awaitMessages({
-                filter2,
+                filter: filter2,
                 max: 1,
                 time: 60000,
                 errors: ['time'],
@@ -427,14 +430,14 @@ class Setup extends Command {
                 stripIndents`What do you want the ticket creation message to say?
                 The color for the menu will be the bots embed success color.
                 Users will have to click a button to open a new ticket.
-                You have 120 seconds.`,
+                You have 10 minutes.`,
               );
 
               // This is to ask what to put inside the embed description for ticket creation message
               const collectedCreationMessage = await msg.channel.awaitMessages({
                 filter,
                 max: 1,
-                time: 120000,
+                time: 600000,
                 errors: ['time'],
               });
               if (!collectedCreationMessage) {
@@ -467,7 +470,7 @@ class Setup extends Command {
             return msg.channel.send('You selected an invalid response, please re-run the setup command.');
           }
         } catch (error) {
-          return msg.channel.send('An error occurred during setup:', error);
+          return msg.channel.send(`An error occurred during setup: ${error}`);
         }
       }
       // End of checking if the system is setup already
@@ -501,7 +504,11 @@ class Setup extends Command {
           collected.first().reply(`I found the following role to use: ${role.name} (${role.id})`);
         } else {
           collected.first().reply(`I will create a role named \`${response}\``);
-          role = await msg.guild.roles.create({ name: response, color: '#0099CC', reason: 'Ticket System' });
+          role = await msg.guild.roles.create({
+            name: response,
+            color: msg.settings.embedColor,
+            reason: 'Ticket System',
+          });
         }
 
         await msg.channel.send(stripIndents`Do you want to create a ticket creation menu? (yes/no)
@@ -510,7 +517,7 @@ class Setup extends Command {
         Type \`cancel\` to exit.`);
 
         const collectedCreationQuestion = await msg.channel.awaitMessages({
-          filter2,
+          filter: filter2,
           max: 1,
           time: 60000,
           errors: ['time'],
@@ -582,14 +589,14 @@ class Setup extends Command {
             stripIndents`What do you want the ticket creation message to say?
           The color for the menu will be the bots embed success color.
           Users will have to click a button to open a new ticket.
-          You have 120 seconds.`,
+          You have 10 minutes.`,
           );
 
           // This is to ask what to put inside the embed description for ticket creation message
           const collectedCreationMessage = await msg.channel.awaitMessages({
             filter,
             max: 1,
-            time: 120000,
+            time: 600000,
             errors: ['time'],
           });
           if (!collectedCreationMessage) {
@@ -656,14 +663,28 @@ class Setup extends Command {
             VALUES
               (logging_id)
           `,
-          [msg.guild.id, 3, role.id, category.id, tixLog.id],
+          [
+            msg.guild.id,
+            3, // ticket limit
+            role.id,
+            category.id,
+            tixLog.id,
+          ],
         );
 
-        return msg.channel.send(stripIndents`The ticket system is now fully functional.
-        To change settings or disable the system re-run the setup.
+        const embed = new EmbedBuilder()
+          .setTitle('Ticket System Setup Complete')
+          .setColor(successColor)
+          .setDescription(
+            stripIndents`The ticket system is now fully functional.
+          To change settings or disable the system re-run the setup.
 
-        Log Channel: ${tixLog}
-        Ticket Creation Channel: ${ticketCreationMenu === 'yes' ? ticketCreationChannel : 'Skipped'}`);
+          Log Channel: ${tixLog}
+          Ticket Creation Channel: ${ticketCreationMenu === 'yes' ? ticketCreationChannel : 'Skipped'}`,
+          )
+          .setColor(msg.settings.embedSuccessColor);
+
+        return msg.channel.send({ embeds: [embed] });
       } catch (error) {
         return msg.channel.send('An error occurred during setup:', error);
       }
