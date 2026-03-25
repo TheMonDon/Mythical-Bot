@@ -6,7 +6,7 @@ class Starboard extends Command {
     super(client, {
       name: 'starboard',
       description: 'Create/Delete starboard systems',
-      category: 'Starboard',
+      category: 'Starboards',
       usage: 'starboard <create|delete> [name]',
       guildOnly: true,
       permLevel: 'Administrator',
