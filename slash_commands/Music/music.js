@@ -16,7 +16,7 @@ exports.commandData = new SlashCommandBuilder()
     subcommand
       .setName('lyrics')
       .setDescription('Get the lyrics of the current song, or another song')
-      .addStringOption((option) => option.setName('song').setDescription('The song to get lyrics to')),
+      .addStringOption((option) => option.setName('song').setDescription('The song to get lyrics of')),
   )
   .addSubcommand((subcommand) => subcommand.setName('now-playing').setDescription('Shows what is currently playing'))
   .addSubcommand((subcommand) => subcommand.setName('pause').setDescription('Pause the music'))

@@ -8,7 +8,7 @@ class Play extends Command {
     super(client, {
       name: 'play',
       description: 'Play music or add songs to the queue',
-      longDescription: 'Supports youtube search/links, youtube playlist, and deezer search/links.',
+      longDescription: 'Supports youtube/spotify links/playlists and deezer search/links.',
       category: 'Music',
       usage: 'play <song>',
       aliases: ['p'],

@@ -6,7 +6,7 @@ class PlayNext extends Command {
     super(client, {
       name: 'play-next',
       description: 'Play music or add songs to the queue to be played next',
-      longDescription: 'Supports youtube search/links, youtube playlist, and spotify links.',
+      longDescription: 'Supports youtube/spotify links/playlists and deezer search/links.',
       category: 'Music',
       usage: 'play-next <song>',
       aliases: ['playnext', 'pn'],

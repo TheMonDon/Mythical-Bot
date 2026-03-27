@@ -1624,15 +1624,19 @@ class Setup extends Command {
         )
         .setTimestamp();
 
-      await msg.channel.send({ embeds: [em] });
-      return msg.guild.channels.cache.get(logChannel.id)?.send({ embeds: [em] });
+      if (msg.channel.id === logChannel.id) {
+        return msg.channel.send({ embeds: [em] });
+      } else {
+        await msg.channel.send({ embeds: [em] });
+        return msg.guild.channels.cache.get(logChannel.id)?.send({ embeds: [em] });
+      }
     }
     // End of the warns setup
 
     // Base command if there are not any args
     const embed = new EmbedBuilder()
       .setTitle('Systems Setup')
-      .setColor('#0000FF')
+      .setColor(msg.settings.embedColor)
       .addFields([
         {
           name: 'Tickets',
