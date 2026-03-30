@@ -163,13 +163,23 @@ export async function run(client, member) {
     // If welcome is off, don't proceed (don't welcome the user)
     if (settings.welcomeEnabled !== 'true') return;
 
+    // Normalize escaped newline sequences from stored settings and replace placeholders.
+    const normalizedWelcomeMessage = String(settings.welcomeMessage || '')
+      .replace(/\\\\r\\\\n/g, '\n')
+      .replace(/\\\\n/g, '\n')
+      .replace(/\\r\\n/g, '\n')
+      .replace(/\\n/g, '\n');
+
     // Replace the placeholders in the welcome message with actual data
-    const welcomeMessage = settings.welcomeMessage
+    const welcomeMessage = normalizedWelcomeMessage
       .replace('{{user}}', member.user.tag)
       .replace('{{userName}}', member.user.tag)
       .replace('{{globalName}}', member.user.globalName || member.user.id)
       .replace('{{guild}}', member.guild.name)
-      .replace('{{guildName}}', member.guild.name);
+      .replace('{{guildName}}', member.guild.name)
+      .replace('{{memberCount}}', member.guild.memberCount.toLocaleString())
+      .replace('{{mention}}', `<@${member.user.id}>`)
+      .replace('{{id}}', member.user.id);
 
     const embed = new EmbedBuilder()
       .setTitle('Member Joined')

@@ -110,13 +110,23 @@ export async function run(client, member) {
 
     if (settings.leaveEnabled !== 'true') return;
 
+    // Normalize escaped newline sequences from stored settings and replace placeholders.
+    const normalizedLeaveMessage = String(settings.leaveMessage || '')
+      .replace(/\\\\r\\\\n/g, '\n')
+      .replace(/\\\\n/g, '\n')
+      .replace(/\\r\\n/g, '\n')
+      .replace(/\\n/g, '\n');
+
     // Replace the placeholders in the leave message with actual data
-    const leaveMessage = settings.leaveMessage
+    const leaveMessage = normalizedLeaveMessage
       .replace('{{user}}', member.user.tag)
       .replace('{{userName}}', member.user.tag)
       .replace('{{globalName}}', member.user.globalName || member.user.id)
       .replace('{{guild}}', member.guild.name)
-      .replace('{{guildName}}', member.guild.name);
+      .replace('{{guildName}}', member.guild.name)
+      .replace('{{memberCount}}', member.guild.memberCount.toLocaleString())
+      .replace('{{mention}}', `<@${member.user.id}>`)
+      .replace('{{id}}', member.user.id);
 
     const em = new EmbedBuilder()
       .setColor(settings.embedColor)
