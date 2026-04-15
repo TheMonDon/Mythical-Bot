@@ -17,10 +17,12 @@ export async function run(client) {
     client.settings.set('default', client.config.defaultSettings);
   }
 
-  client.user.setActivity(`${client.settings.get('default').prefix}help | ${client.guilds.cache.size} Servers`);
+  client.user.setActivity(
+    `${client.settings.get('default').prefix}help | ${client.guilds.cache.size.toLocaleString()} Servers`,
+  );
 
   client.games.clear();
-  client.logger.log(`${client.user.tag}, ready to serve ${client.guilds.cache.size} guilds.`, 'ready');
+  client.logger.log(`${client.user.tag}, ready to serve ${client.guilds.cache.size.toLocaleString()} guilds.`, 'ready');
 
   for (const [, guild] of client.guilds.cache) {
     try {

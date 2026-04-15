@@ -68,7 +68,7 @@ class ServerInfo extends Command {
     const embed = new EmbedBuilder()
       .setTitle(`${server.name}'s Information`)
       .setColor(msg.settings.embedColor)
-      .setThumbnail(msg.guild.iconURL())
+      .setThumbnail(server.iconURL())
       .setAuthor({ name: msg.author.tag, iconURL: msg.author.displayAvatarURL() })
       .setFields([
         { name: 'Name', value: server.name, inline: true },
