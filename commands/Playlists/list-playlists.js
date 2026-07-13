@@ -16,7 +16,6 @@ class ListPlaylists extends Command {
   async run(msg, args) {
     let page = parseInt(args[0]) || 1;
 
-
     const [playlistRows] = await this.client.db.execute(
       /* sql */ `
         SELECT

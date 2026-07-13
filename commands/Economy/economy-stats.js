@@ -14,7 +14,7 @@ class EconomyStats extends Command {
     });
   }
 
-  async run(msg, _args) {
+  async run(msg) {
     const [economyRows] = await this.client.db.execute(
       /* sql */ `
         SELECT

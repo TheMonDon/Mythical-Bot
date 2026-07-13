@@ -13,7 +13,7 @@ class Roast extends Command {
     });
   }
 
-  async run(msg, _args) {
+  async run(msg) {
     delete require.cache[require.resolve('../../resources/messages/roasts.json')];
     const roasts = require('../../resources/messages/roasts.json');
 

@@ -1,4 +1,14 @@
-import { ChannelType, EmbedBuilder } from 'discord.js';
+import {
+  ChannelType,
+  EmbedBuilder,
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  ContainerBuilder,
+  SectionBuilder,
+  ThumbnailBuilder,
+  TextDisplayBuilder,
+} from 'discord.js';
 import { promisify } from 'util';
 const setTimeoutPromise = promisify(setTimeout);
 
@@ -148,7 +158,7 @@ async function handleChatbot(client, message) {
               content: chunks[i],
               allowedMentions: { repliedUser: false },
             });
-          } catch (_e) {
+          } catch {
             await message.channel.send({ content: chunks[i] });
           }
         } else {
@@ -177,6 +187,281 @@ async function handleChatbot(client, message) {
   }
 }
 
+async function sendHoneypotUserMessage(client, message, action) {
+  const [honeypotRows] = await client.db.execute(
+    /* sql */ `
+      SELECT
+        *
+      FROM
+        honeypots
+      WHERE
+        server_id = ?
+    `,
+    [message.guild.id],
+  );
+  const honeypotConfig = honeypotRows[0];
+  if (!honeypotConfig) return;
+
+  let description = `You have been ${action === 'ban' ? '**banned**' : '**kicked**'} from **${message.guild.name}** for sending a message in the honeypot channel.`;
+
+  if (honeypotConfig.options?.includes('reinvite') && honeypotConfig.action !== 'ban') {
+    description += `\n\nOnce you have figured out how your account was compromised, you can rejoin using this link: ${honeypotConfig.reinvite}`;
+  }
+
+  const embed = new EmbedBuilder()
+    .setTitle('Honeypot Triggered')
+    .setDescription(description)
+    .setColor(message.settings.embedColor)
+    .setFooter({ text: 'This is an automated message. Replies are not monitored.' });
+
+  await message.author.send({ embeds: [embed] }).catch(() => {});
+}
+
+async function refreshHoneypotWarningButton(client, message, action, warningMessageId) {
+  if (!warningMessageId) return;
+
+  try {
+    const [honeypotRows] = await client.db.execute(
+      /* sql */ `
+        SELECT
+          trigger_count,
+          action
+        FROM
+          honeypots
+        WHERE
+          server_id = ?
+      `,
+      [message.guild.id],
+    );
+
+    const triggerCount = honeypotRows[0]?.trigger_count ?? 0;
+    const action = honeypotRows[0]?.action ?? 'softban';
+
+    const warningMessage = await message.channel.messages.fetch(warningMessageId).catch(() => null);
+    if (!warningMessage) return;
+
+    const buttonLabel = action === 'ban' ? `Bans: ${triggerCount}` : `Kicks: ${triggerCount}`;
+    const actionText = action === 'ban' ? '**ban**' : '**softban**';
+
+    const warningButton = new ButtonBuilder()
+      .setCustomId('warning_button')
+      .setLabel(buttonLabel)
+      .setEmoji('🍯')
+      .setStyle(ButtonStyle.Secondary);
+
+    const honeypotButton = new ActionRowBuilder().addComponents(warningButton);
+
+    const sectionThumb = new SectionBuilder()
+      .addTextDisplayComponents(
+        new TextDisplayBuilder().setContent('## **DO NOT SEND MESSAGES IN THIS CHANNEL**'),
+        new TextDisplayBuilder().setContent(
+          `This channel is used to catch spam bots. Any messages sent here will result in a ${actionText}.`,
+        ),
+      )
+      .setThumbnailAccessory(
+        new ThumbnailBuilder({
+          media: { url: 'https://i.cisn.xyz/piqe4/xUyEwura01/raw.png' },
+        }),
+      );
+
+    const updatedContainer = new ContainerBuilder()
+      .addSectionComponents(sectionThumb)
+      .addActionRowComponents(honeypotButton);
+
+    await warningMessage.edit({ components: [updatedContainer] });
+  } catch (err) {
+    console.error('Failed to refresh honeypot warning button:', err);
+  }
+}
+
+async function handleHoneypot(client, message) {
+  try {
+    const [honeypotRows] = await client.db.execute(
+      /* sql */ `
+        SELECT
+          *
+        FROM
+          honeypots
+        WHERE
+          server_id = ?
+          AND channel_id = ?
+      `,
+      [message.guild.id, message.channel.id],
+    );
+    const honeypotConfig = honeypotRows[0];
+    if (!honeypotConfig) return false;
+
+    const action = honeypotConfig.action;
+    const logChannelId = honeypotConfig.log_channel_id;
+
+    if (action === 'disabled') return false;
+
+    if (action === 'softban') {
+      try {
+        await sendHoneypotUserMessage(client, message, action);
+
+        if (honeypotConfig.options?.includes('timeout-first')) {
+          await message.member.timeout(60 * 60 * 1000, 'Honeypot triggered');
+        }
+        await message.guild.members.ban(message.author.id, {
+          reason: 'Honeypot triggered',
+          deleteMessageSeconds: 3600,
+        });
+        await message.guild.members.unban(message.author.id, {
+          reason: 'Honeypot triggered',
+        });
+
+        if (logChannelId) {
+          const logChannel = message.guild.channels.cache.get(logChannelId);
+          if (logChannel) {
+            const embed = new EmbedBuilder()
+              .setTitle('Honeypot Triggered')
+              .setDescription(
+                `User ${message.author.tag} (${message.author.id}) triggered the honeypot in ${message.channel}.`,
+              )
+              .setColor('Red')
+              .setTimestamp();
+
+            await logChannel.send({ embeds: [embed] });
+          }
+        }
+
+        // Log the honeypot trigger in the database
+        await client.db.execute(
+          /* sql */
+          `
+            UPDATE honeypots
+            SET
+              trigger_count = trigger_count + 1
+            WHERE
+              server_id = ?
+          `,
+          [message.guild.id],
+        );
+
+        await client.db.execute(
+          /* sql */
+          `
+            INSERT INTO
+              honeypot_triggers (
+                server_id,
+                user_id,
+                channel_id,
+                message_id,
+                action_taken
+              )
+            VALUES
+              (?, ?, ?, ?, ?)
+          `,
+          [message.guild.id, message.author.id, message.channel.id, message.id, 'softban'],
+        );
+
+        await refreshHoneypotWarningButton(client, message, honeypotConfig.action, honeypotConfig.warning_message_id);
+
+        return true;
+      } catch (error) {
+        console.error('Failed to softban user:', error);
+
+        if (logChannelId) {
+          const logChannel = message.guild.channels.cache.get(logChannelId);
+          if (logChannel) {
+            const embed = new EmbedBuilder()
+              .setTitle('Honeypot Triggered - Action Failed')
+              .setDescription(
+                `User ${message.author.tag} (${message.author.id}) triggered the honeypot in ${message.channel}, but the bot failed to **softban** the user.`,
+              )
+              .setColor('Red')
+              .setTimestamp();
+
+            await logChannel.send({ embeds: [embed] });
+          }
+        }
+        return false;
+      }
+    } else if (action === 'ban') {
+      try {
+        await sendHoneypotUserMessage(client, message, action);
+
+        await message.guild.members.ban(message.author.id, {
+          reason: 'Honeypot triggered',
+          deleteMessageSeconds: 3600,
+        });
+
+        if (logChannelId) {
+          const logChannel = message.guild.channels.cache.get(logChannelId);
+          if (logChannel) {
+            const embed = new EmbedBuilder()
+              .setTitle('Honeypot Triggered')
+              .setDescription(
+                `User ${message.author.tag} (${message.author.id}) triggered the honeypot in ${message.channel}.`,
+              )
+              .setColor('Red')
+              .setTimestamp();
+
+            await logChannel.send({ embeds: [embed] });
+          }
+        }
+
+        // Log the honeypot trigger in the database
+        await client.db.execute(
+          /* sql */
+          `
+            UPDATE honeypots
+            SET
+              trigger_count = trigger_count + 1
+            WHERE
+              server_id = ?
+          `,
+          [message.guild.id],
+        );
+
+        await client.db.execute(
+          /* sql */
+          `
+            INSERT INTO
+              honeypot_triggers (
+                server_id,
+                user_id,
+                channel_id,
+                message_id,
+                action_taken
+              )
+            VALUES
+              (?, ?, ?, ?, ?)
+          `,
+          [message.guild.id, message.author.id, message.channel.id, message.id, 'ban'],
+        );
+
+        await refreshHoneypotWarningButton(client, message, honeypotConfig.action, honeypotConfig.warning_message_id);
+
+        return true;
+      } catch (error) {
+        console.error('Failed to ban user:', error);
+
+        if (logChannelId) {
+          const logChannel = message.guild.channels.cache.get(logChannelId);
+          if (logChannel) {
+            const embed = new EmbedBuilder()
+              .setTitle('Honeypot Triggered - Action Failed')
+              .setDescription(
+                `User ${message.author.tag} (${message.author.id}) triggered the honeypot in ${message.channel}, but the bot failed to **ban** the user.`,
+              )
+              .setColor('Red')
+              .setTimestamp();
+
+            await logChannel.send({ embeds: [embed] });
+          }
+        }
+        return false;
+      }
+    }
+
+    return false;
+  } catch {
+    return false;
+  }
+}
+
 export async function run(client, message) {
   if (message.author.bot) return;
   if (!(await hasPermissionToSendMessage(client, message))) return;
@@ -198,7 +483,11 @@ export async function run(client, message) {
   // Handle chatbot before economy event if not a command
   if (!isCommand) {
     handleChatbot(client, message);
-    handleEconomyEvent(client, message);
+    const triggered = await handleHoneypot(client, message);
+    if (!triggered) {
+      handleEconomyEvent(client, message);
+    }
+
     return;
   }
 
@@ -210,7 +499,9 @@ export async function run(client, message) {
       return message.channel.send(`The current prefix is: ${settings.prefix}`);
     }
 
-    if (message.guild && !message.member) await message.guild.fetchMember(message.author);
+    if (message.guild && !message.member) {
+      await message.guild.fetchMember(message.author);
+    }
 
     const level = await client.permlevel(message);
     let isAlias = false;
@@ -249,7 +540,10 @@ export async function run(client, message) {
       if (blacklisted && level < 4 && (command.help.name !== 'blacklist' || command.help.name !== 'global-blacklist')) {
         const embed = new EmbedBuilder()
           .setTitle('Server Blacklisted')
-          .setAuthor({ name: message.author.tag, iconURL: message.author.displayAvatarURL() })
+          .setAuthor({
+            name: message.author.tag,
+            iconURL: message.author.displayAvatarURL(),
+          })
           .setColor(message.settings.embedErrorColor)
           .setDescription(
             `Sorry ${message.author.username}, you are currently blacklisted from using commands in this server.`,
@@ -281,7 +575,10 @@ export async function run(client, message) {
       const blacklistReason = gblacklistRows[0]?.reason || 'No reason provided';
       const embed = new EmbedBuilder()
         .setTitle('Global Blacklisted')
-        .setAuthor({ name: message.author.tag, iconURL: message.author.displayAvatarURL() })
+        .setAuthor({
+          name: message.author.tag,
+          iconURL: message.author.displayAvatarURL(),
+        })
         .setColor(message.settings.embedErrorColor)
         .setDescription(`Sorry ${message.author.username}, you are currently blacklisted from using commands.`)
         .addFields([{ name: 'Reason', value: blacklistReason, inline: false }]);
@@ -306,7 +603,10 @@ export async function run(client, message) {
     if (level < client.levelCache[command.conf.permLevel]) {
       const embed = new EmbedBuilder()
         .setTitle('Missing Permission')
-        .setAuthor({ name: message.author.tag, iconURL: message.author.displayAvatarURL() })
+        .setAuthor({
+          name: message.author.tag,
+          iconURL: message.author.displayAvatarURL(),
+        })
         .setColor(settings.embedErrorColor)
         .addFields([
           {
@@ -366,13 +666,22 @@ export async function run(client, message) {
 
     if (command.conf.requiredArgs > args.length) {
       const embed = new EmbedBuilder()
-        .setAuthor({ name: message.author.username, iconURL: message.author.displayAvatarURL() })
+        .setAuthor({
+          name: message.author.username,
+          iconURL: message.author.displayAvatarURL(),
+        })
         .setColor(settings.embedErrorColor)
         .setTitle('Missing Command Arguments')
         .setFooter({ text: '[] = optional, <> = required' })
         .addFields([
-          { name: 'Incorrect Usage', value: settings.prefix + command.help.usage },
-          { name: 'Examples', value: command.help.examples?.join('\n') || 'None' },
+          {
+            name: 'Incorrect Usage',
+            value: settings.prefix + command.help.usage,
+          },
+          {
+            name: 'Examples',
+            value: command.help.examples?.join('\n') || 'None',
+          },
         ]);
 
       return message.channel.send({ embeds: [embed] });

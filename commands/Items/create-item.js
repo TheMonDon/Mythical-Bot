@@ -406,7 +406,6 @@ class CreateItem extends Command {
       }
       if (response === 'skip') {
         timeRemaining = null;
-        isValid = true;
         break;
       }
 
@@ -435,7 +434,6 @@ class CreateItem extends Command {
         messagesToDelete.push(tooLongLimitMessage);
       } else {
         timeRemaining = Date.now() + timeLimit;
-        isValid = true;
         break;
       }
     }
@@ -478,7 +476,6 @@ class CreateItem extends Command {
       }
       if (['skip', 'infinite', 'infinity'].includes(response)) {
         stock = null;
-        isValid = true;
         break;
       }
 
@@ -490,7 +487,6 @@ class CreateItem extends Command {
         const zeroStockMessage = await msg.channel.send('Please answer with a number larger than zero.');
         messagesToDelete.push(zeroStockMessage);
       } else {
-        isValid = true;
         break;
       }
     }
@@ -535,7 +531,6 @@ class CreateItem extends Command {
       }
       if (response === 'skip') {
         roleRequired = null;
-        isValid = true;
         break;
       }
 
@@ -595,7 +590,6 @@ class CreateItem extends Command {
       }
       if (response === 'skip') {
         roleGiven = null;
-        isValid = true;
         break;
       }
 
@@ -660,7 +654,6 @@ class CreateItem extends Command {
       }
       if (response === 'skip') {
         roleRemoved = null;
-        isValid = true;
         break;
       }
 
@@ -726,7 +719,6 @@ class CreateItem extends Command {
 
       if (rawCollected === 'skip') {
         requiredBalance = null;
-        isValid = true;
         break;
       }
 
@@ -815,11 +807,8 @@ class CreateItem extends Command {
 
     embed.addFields([{ name: 'Reply Message', value: !replyMessage ? 'None' : replyMessage, inline: true }]);
     embed.setFooter(null);
-    messagesToDelete = messagesToDelete.filter((delMessages) => {
-      return delMessages
-        .delete()
-        .then(() => false)
-        .catch(() => true);
+    messagesToDelete.forEach((delMessage) => {
+      delMessage.delete().catch(() => null);
     });
 
     await this.client.db.execute(

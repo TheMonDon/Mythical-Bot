@@ -1,4 +1,4 @@
-/* eslint-disable prefer-regex-literals */
+ 
 import { EmbedBuilder } from 'discord.js';
 
 export async function run(client, oldMessage, newMessage) {

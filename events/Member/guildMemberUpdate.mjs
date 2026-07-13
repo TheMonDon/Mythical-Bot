@@ -46,7 +46,7 @@ export async function run(client, oldMember, newMember) {
 
       embed.setTitle('Member Timeout Added').addFields([
         { name: 'User', value: oldMember.toString() },
-        { name: 'Timeout Removal', value: `<t:${time}:f>` || 'N/A' },
+        { name: 'Timeout Removal', value: `<t:${time}:f>` },
       ]);
 
       if (executor) embed.addFields([{ name: 'Moderator', value: executor.toString() }]);

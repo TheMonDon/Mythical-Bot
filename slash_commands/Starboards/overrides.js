@@ -352,7 +352,7 @@ exports.autoComplete = async (interaction) => {
 
     const choices = rows.map((r) => ({ name: r.name, value: r.name }));
     await interaction.respond(choices).catch(() => {});
-  } catch (error) {
+  } catch {
     return interaction.respond([]).catch(() => {});
   }
 };

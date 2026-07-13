@@ -34,7 +34,7 @@
     "cowsay": "^1.5.0",
     "custom-translate": "^2.2.8",
     "discord-html-transcripts": "^3.3.0-next-5eed3d",
-    "discord.js": "^14.26.2",
+    "discord.js": "^14.26.5",
     "duck-duck-scrape": "^2.2.7",
     "emoji-regex": "^10.4.0",
     "enmap": "^5.9.10",
@@ -68,13 +68,13 @@
     "youtube-sr": "^4.3.4"
   },
   "devDependencies": {
-    "eslint": "^8.54.0",
+    "@eslint/js": "^10.0.1",
+    "@eslint/json": "^2.0.1",
+    "eslint": "^10.7.0",
     "eslint-config-prettier": "^9.0.0",
-    "eslint-config-standard": "^17.1.0",
-    "eslint-plugin-import": "^2.29.0",
-    "eslint-plugin-node": "^11.1.0",
-    "eslint-plugin-promise": "^6.1.1",
-    "prettier": "^3.6.2",
+    "globals": "^17.7.0",
+    "prettier": "^3.9.5",
+    "prettier-eslint": "^17.1.1",
     "prettier-plugin-embed": "^0.5.0",
     "prettier-plugin-sql": "^0.19.2"
   }

@@ -74,7 +74,7 @@ class Color extends Command {
           cmyk: convert.rgb.cmyk(input),
           rgb: input,
         };
-      } catch (err) {
+      } catch {
         const rand = randomHexColor();
         embed.setTitle('Invalid color, random one assigned:');
 
@@ -103,7 +103,7 @@ class Color extends Command {
           cmyk: convert.hex.cmyk(input),
           hex: input,
         };
-      } catch (err) {
+      } catch {
         const rand = '000000'.replace(/0/g, function () {
           return (~~(Math.random() * 16)).toString(16);
         });
@@ -145,7 +145,7 @@ class Color extends Command {
             cmyk: convert.keyword.cmyk(input),
             css: nearestColor(input).name,
           };
-        } catch (err) {
+        } catch {
           const rand = randomHexColor();
           embed.setTitle('Invalid color, random one assigned:');
 

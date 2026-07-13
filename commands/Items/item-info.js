@@ -51,7 +51,7 @@ class ItemInfo extends Command {
         return this.client.util.errorEmbed(msg, 'That item does not exist in the store or your inventory.');
       }
     }
- 
+
     const [economyRows] = await this.client.db.execute(
       /* sql */ `
         SELECT

@@ -14,7 +14,7 @@ class ExportCommands extends Command {
     });
   }
 
-  async run(msg, args, level) {
+  async run(msg) {
     const allCommands = this.client.commands;
     const commandData = {};
 

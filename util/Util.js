@@ -241,10 +241,11 @@ function random(array) {
 async function getJoinPosition(id, guild) {
   let member = guild.members.cache.get(id);
   if (!member) {
-    member = await guild.members
+    await guild.members
       .fetch(id)
       .catch(() => console.error(`Failed to fetch member with ID ${id} for join position calculation.`));
   }
+
   if (!guild.members.cache.get(id)) return;
   const array = [...guild.members.cache.values()];
   array.sort((a, b) => a.joinedAt - b.joinedAt);
@@ -305,7 +306,7 @@ async function awaitReply(context, question, time = 60000) {
   try {
     const collected = await context.channel.awaitMessages({ filter, max: 1, time, errors: ['time'] });
     return collected.first().content;
-  } catch (e) {
+  } catch {
     return false;
   }
 }
@@ -879,7 +880,7 @@ async function chatbotApiRequest(client, message) {
   }
 
   function parseEmbeds(embeds) {
-    return embeds.map((embed, i) => {
+    return embeds.map((embed) => {
       const lines = [];
 
       lines.push('Below is a discord embed that you can see.');
@@ -964,7 +965,7 @@ async function chatbotApiRequest(client, message) {
         if (referenced.reference) {
           try {
             referenced = await referenced.fetchReference();
-          } catch (_e) {
+          } catch {
             break;
           }
         } else {

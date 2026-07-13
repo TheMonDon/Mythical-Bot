@@ -33,10 +33,10 @@ class Github extends Command {
       } else {
         return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Incorrect Usage');
       }
+    } else {
+      author = args[0];
+      repository = args[1];
     }
-
-    author = args[0];
-    repository = args[1];
 
     try {
       const { body } = await fetch

@@ -1,4 +1,3 @@
-/* eslint-disable no-eval */
 /* eslint-disable no-unused-vars */
 const { EmbedBuilder, SlashCommandBuilder } = require('discord.js');
 const { inspect } = require('util');

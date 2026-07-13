@@ -133,7 +133,7 @@ class Purge extends Command {
         const purgeMsg = await msg.channel.send(purgeText);
 
         while (count > 0) {
-          let messages = [];
+          let messages;
           try {
             messages = await getMessages(msg.channel, Math.min(count, 100), (m) => !m.pinned, msg.id);
           } catch (e) {

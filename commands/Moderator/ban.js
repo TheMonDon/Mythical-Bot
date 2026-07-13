@@ -31,7 +31,7 @@ class Ban extends Command {
         try {
           banMem = await this.client.users.fetch(id);
           inGuild = false;
-        } catch (err) {
+        } catch {
           return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Member');
         }
       }

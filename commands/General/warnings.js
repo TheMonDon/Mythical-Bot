@@ -28,7 +28,7 @@ class Warnings extends Command {
           const ID = args[0].replace(/<@|>/g, '');
           try {
             mem = await this.client.users.fetch(ID);
-          } catch (err) {
+          } catch {
             mem = msg.author;
           }
         }

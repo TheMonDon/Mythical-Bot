@@ -174,7 +174,7 @@ exports.run = async (interaction) => {
       });
   }
 
-  let resultMessage = '';
+  let resultMessage;
   switch (subcommand) {
     case 'any': {
       amount = amount - 1;
@@ -194,7 +194,7 @@ exports.run = async (interaction) => {
       await interaction.editReply(purgeText);
 
       while (amount > 0) {
-        let messages = [];
+        let messages;
         try {
           messages = await getMessages(
             interaction.channel,

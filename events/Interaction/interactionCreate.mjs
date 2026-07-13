@@ -9,9 +9,38 @@ import {
   ButtonBuilder,
   ButtonStyle,
   LabelBuilder,
+  TextDisplayBuilder,
+  ContainerBuilder,
+  SectionBuilder,
+  ThumbnailBuilder,
 } from 'discord.js';
 import { stripIndents } from 'common-tags';
 import * as discordTranscripts from 'discord-html-transcripts';
+import randomChannelNames from '../../resources/random-channel-names.json' with { type: 'json' };
+
+async function createHoneypotReinvite(client, interaction, channelId) {
+  if (!channelId) return null;
+
+  const channel =
+    interaction.guild.channels.cache.get(channelId) ??
+    (await interaction.guild.channels.fetch(channelId).catch(() => null));
+
+  if (!channel?.createInvite) return null;
+
+  try {
+    const invite = await channel.createInvite({
+      maxAge: 0,
+      maxUses: 0,
+      unique: false,
+      reason: 'Creating invite for reinvite option',
+    });
+
+    return invite?.url ?? null;
+  } catch (error) {
+    console.error('Failed to create honeypot reinvite link:', error);
+    return null;
+  }
+}
 
 export async function run(client, interaction) {
   interaction.settings = client.getSettings(interaction.guild);
@@ -444,6 +473,50 @@ export async function run(client, interaction) {
           flags: MessageFlags.Ephemeral,
         });
       }
+
+      // Handle honeypot warning button
+      if (interaction.customId === 'warning_button') {
+        // Fetch the honeypot settings from the database for this server and globally
+        const [honeypotRows] = await client.db.execute(
+          /* sql */ `
+            SELECT
+              SUM(trigger_count) AS total_triggers
+            FROM
+              honeypots
+            WHERE
+              server_id = ?
+          `,
+          [interaction.guild.id],
+        );
+        const honeypotConfig = honeypotRows[0];
+
+        const [rows] = await client.db.execute(/* sql */ `
+          SELECT
+            COUNT(*) AS total_triggers,
+            COUNT(DISTINCT server_id) AS servers_triggered,
+            COUNT(DISTINCT user_id) AS unique_users
+          FROM
+            honeypot_triggers
+        `);
+
+        const embed = new EmbedBuilder()
+          .setTitle('Honeypot Trigger Stats')
+          .setColor(interaction.settings.embedColor)
+          .setDescription(
+            stripIndents`**Server Stats:**
+            Total moderated in this server: \`${honeypotConfig.total_triggers.toLocaleString()}\`
+            
+            **Global Stats:**
+            Total triggers across all servers: \`${rows[0].total_triggers.toLocaleString()}\`
+            Total servers triggered: \`${rows[0].servers_triggered.toLocaleString()}\`
+            Total unique users triggered: \`${rows[0].unique_users.toLocaleString()}\``,
+          );
+
+        return interaction.reply({
+          embeds: [embed],
+          flags: MessageFlags.Ephemeral,
+        });
+      }
     }
 
     if (interaction.isModalSubmit()) {
@@ -715,8 +788,425 @@ export async function run(client, interaction) {
 
         return interaction.channel.send({ embeds: [embed] });
       }
+
+      // Handle modal submit for honeypot
+      if (interaction.customId === 'honeypot') {
+        await interaction.deferReply();
+
+        const [honeyRows] = await interaction.client.db.execute(
+          /* sql */ `
+            SELECT
+              *
+            FROM
+              honeypots
+            WHERE
+              server_id = ?
+          `,
+          [interaction.guild.id],
+        );
+
+        const oldConfig = honeyRows[0];
+        const honeypotChannel = interaction.fields.getSelectedChannels('honeypot_channel');
+        const honeypotLogChannel = interaction.fields.getSelectedChannels('honeypot_log_channel');
+        const honeypotOptions = interaction.fields.getStringSelectValues('honeypot_options');
+        const honeypotAction = interaction.fields.getRadioGroup('honeypot_action');
+
+        const newChannelId = honeypotChannel?.first()?.id ?? null;
+        const newLogChannelId = honeypotLogChannel?.first()?.id ?? null;
+        const newOptions = Array.isArray(honeypotOptions) ? [...honeypotOptions] : [];
+        const newAction = honeypotAction ?? 'softban';
+
+        const oldOptions = oldConfig?.options
+          ? typeof oldConfig.options === 'string'
+            ? JSON.parse(oldConfig.options)
+            : oldConfig.options
+          : [];
+        const normalizedOldOptions = Array.isArray(oldOptions) ? oldOptions : [];
+        const oldHadRandomChannelNaming = normalizedOldOptions.some(
+          (option) => option === 'random-channel-name' || option === 'random-channel-name-chaos',
+        );
+        const newHasRandomChannelNaming = newOptions.some(
+          (option) => option === 'random-channel-name' || option === 'random-channel-name-chaos',
+        );
+        const oldHadReinvite = normalizedOldOptions.includes('reinvite');
+        const newHasReinvite = newOptions.includes('reinvite');
+        const oldChannelId = oldConfig?.channel_id ?? null;
+        const activeChannelId = newChannelId || oldChannelId;
+        let reinviteLink = oldConfig?.reinvite ?? null;
+
+        if (newHasReinvite && (!oldHadReinvite || !reinviteLink || oldChannelId !== activeChannelId)) {
+          reinviteLink = await createHoneypotReinvite(client, interaction, activeChannelId);
+        }
+
+        const changes = {};
+
+        if ((oldConfig?.channel_id ?? null) !== newChannelId) {
+          changes.channel_id = newChannelId;
+        }
+
+        if ((oldConfig?.log_channel_id ?? null) !== newLogChannelId) {
+          changes.log_channel_id = newLogChannelId;
+        }
+
+        if ((oldConfig?.action ?? 'softban') !== newAction) {
+          changes.action = newAction;
+        }
+
+        if (JSON.stringify(normalizedOldOptions.slice().sort()) !== JSON.stringify(newOptions.slice().sort())) {
+          changes.options = JSON.stringify(newOptions);
+        }
+
+        if (newHasReinvite && (!oldHadReinvite || !oldConfig?.reinvite || oldChannelId !== activeChannelId)) {
+          changes.reinvite = reinviteLink;
+        }
+
+        let newName = 'honeypot';
+        const isChaos = newOptions.includes('random-channel-name-chaos');
+
+        if (isChaos) {
+          const length = Math.floor(Math.random() * 20) + 7;
+          newName = '';
+          const chars = 'abcdefghijklmnopqrstuvwxyz0123456789-';
+          for (let i = 0; i < length; i++) {
+            newName += chars.charAt(Math.floor(Math.random() * chars.length));
+          }
+        } else {
+          newName = randomChannelNames[Math.floor(Math.random() * randomChannelNames.length)];
+        }
+
+        // If there is no existing configuration, insert a new row into the database
+        if (!oldConfig) {
+          await interaction.client.db.execute(
+            /* sql */ `
+              INSERT INTO
+                honeypots (
+                  server_id,
+                  channel_id,
+                  log_channel_id,
+                  action,
+                  reinvite,
+                  options
+                )
+              VALUES
+                (?, ?, ?, ?, ?, ?)
+            `,
+            [
+              interaction.guild.id,
+              newChannelId ?? '',
+              newLogChannelId ?? '',
+              newAction,
+              reinviteLink,
+              JSON.stringify(newOptions),
+            ],
+          );
+
+          if (newAction !== 'disabled' && newOptions.includes('no-warning-message')) {
+            const honeypotChannelObj = interaction.guild.channels.cache.get(newChannelId);
+            if (honeypotChannelObj) {
+              try {
+                const textDisplay = new TextDisplayBuilder().setContent(`
+## Welcome to the honeypot channel! 
+- Any user that sends a message in this channel will be **automatically ${newAction === 'softban' ? 'softbanned**' + ' (banned and instantly unbanned to delete last 1hr messages)' : 'banned**' + ' (banned to delete last 1hr of messages)'} 
+- You can customize this and more with the /honeypot command
+- **Tips for maximum effectiveness:**
+  - Rename this channel to something unique (e.g., \`${newName}\`) so bots can’t easily guess and blacklist it
+  - Keep it near the top of your channel list - bots often target the first few channels
+  - Make sure the bots' highest role is set above any self-assignable roles, so it can act on all users
+
+-# This message will self destruct <t:${Math.floor((Date.now() + 5 * 60 * 1000) / 1000)}:R>
+`);
+
+                const message = await honeypotChannelObj.send({
+                  flags: MessageFlags.IsComponentsV2,
+                  components: [textDisplay],
+                });
+
+                setTimeout(
+                  async () => {
+                    try {
+                      await message.delete();
+                    } catch {
+                      // Ignore errors if the message was already deleted
+                    }
+                  },
+                  5 * 60 * 1000,
+                );
+              } catch (error) {
+                console.error('Failed to send honeypot warning message:', error);
+              }
+            }
+          } else {
+            const honeypotChannelObj = interaction.guild.channels.cache.get(newChannelId);
+            if (!honeypotChannelObj) {
+              return interaction.editReply({ content: 'Honeypot channel not found. Please re-run the command.' });
+            }
+
+            try {
+              const guildSettings = await client.settings.get(interaction.guild.id);
+
+              let buttonLabel;
+
+              if (newAction === 'softban') {
+                buttonLabel = 'Kicks: 0';
+              } else if (newAction === 'ban') {
+                buttonLabel = 'Bans: 0';
+              }
+
+              const warningButton = new ButtonBuilder()
+                .setCustomId('warning_button')
+                .setLabel(buttonLabel)
+                .setEmoji('🍯')
+                .setStyle(ButtonStyle.Secondary);
+
+              const honeypotButton = new ActionRowBuilder().addComponents(warningButton);
+
+              const sectionThumb = new SectionBuilder()
+                .addTextDisplayComponents(
+                  new TextDisplayBuilder().setContent('## **DO NOT SEND MESSAGES IN THIS CHANNEL**'),
+                  new TextDisplayBuilder().setContent(
+                    `This channel is used to catch spam bots. Any messages sent here will result in a ${newAction === 'softban' ? '**softban**' : '**ban**'}.`,
+                  ),
+                )
+                .setThumbnailAccessory(
+                  new ThumbnailBuilder({ media: { url: 'https://i.cisn.xyz/piqe4/xUyEwura01/raw.png' } }),
+                );
+
+              const container = new ContainerBuilder()
+                .addSectionComponents(sectionThumb)
+                .addActionRowComponents(honeypotButton);
+
+              const warningMessage = await honeypotChannelObj.send({
+                flags: MessageFlags.IsComponentsV2,
+                components: [container],
+              });
+
+              // Store the warning message ID in the database for future reference
+              await client.db.execute(
+                /* sql */ `
+                  UPDATE honeypots
+                  SET
+                    warning_message_id = ?
+                  WHERE
+                    server_id = ?
+                `,
+                [warningMessage.id, interaction.guild.id],
+              );
+
+              const textDisplay = new TextDisplayBuilder().setContent(`
+## Welcome to the honeypot channel! 
+- Any user that sends a message in this channel will be **automatically ${newAction === 'softban' ? 'softbanned**' + ' (banned and instantly unbanned to delete last 1hr messages)' : 'banned**' + ' (banned to delete last 1hr of messages)'} 
+- You can customize this and more with the /honeypot command
+- **Tips for maximum effectiveness:**
+  - Rename this channel to something unique (e.g., \`${newName}\`) so bots can’t easily guess and blacklist it
+  - Keep it near the top of your channel list - bots often target the first few channels
+  - Make sure the bots' highest role is set above any self-assignable roles, so it can act on all users
+
+-# This message will self destruct <t:${Math.floor((Date.now() + 5 * 60 * 1000) / 1000)}:R>
+`);
+
+              const message = await honeypotChannelObj.send({
+                flags: MessageFlags.IsComponentsV2,
+                components: [textDisplay],
+              });
+
+              setTimeout(
+                async () => {
+                  try {
+                    await message.delete();
+                  } catch (error) {
+                    console.error(error);
+                    // Ignore errors if the message was already deleted
+                  }
+                },
+                5 * 60 * 1000,
+              );
+            } catch (error) {
+              console.error('Failed to send honeypot warning message:', error);
+              return interaction.editReply({
+                content: 'Failed to send honeypot warning message. Please check bot permissions.',
+              });
+            }
+          }
+
+          return interaction.editReply({
+            content: stripIndents`Honeypot settings created.
+-# - Channel: ${newChannelId ? `<#${newChannelId}>` : 'No channel set'}
+-# - Log Channel: ${newLogChannelId ? `<#${newLogChannelId}>` : 'No log channel set'}
+-# - Action: \`${newAction}\`
+-# - Options: \`${newOptions.length > 0 ? newOptions.join(', ') : 'None'}\``,
+          });
+        }
+
+        if (Object.keys(changes).length === 0) {
+          return interaction.editReply({ content: 'No honeypot settings were changed.' });
+        }
+
+        const oldHadChaos = normalizedOldOptions.includes('random-channel-name-chaos');
+
+        // If the change includes the channel rename option, rename the channel immediately when enabling it
+        // or when switching between regular and chaos naming.
+        if (newAction !== 'disabled') {
+          if (changes.options && newHasRandomChannelNaming && (!oldHadRandomChannelNaming || oldHadChaos !== isChaos)) {
+            const honeypotChannelObj = interaction.guild.channels.cache.get(newChannelId);
+
+            if (honeypotChannelObj) {
+              try {
+                await honeypotChannelObj.setName(
+                  newName,
+                  'Honeypot random channel name option' + (isChaos ? ' (chaos)' : ''),
+                );
+              } catch (error) {
+                console.error('Failed to rename honeypot channel:', error);
+              }
+            }
+          }
+        }
+
+        const columns = Object.keys(changes)
+          .map((key) => `${key} = ?`)
+          .join(', ');
+        const values = Object.values(changes);
+
+        await interaction.client.db.execute(
+          /* sql */ `
+            UPDATE honeypots
+            SET
+              ${columns}
+            WHERE
+              server_id = ?
+          `,
+          [...values, interaction.guild.id],
+        );
+
+        if (newAction !== 'disabled' && !newOptions.includes('no-warning-message')) {
+          const honeypotChannelId = newChannelId || oldConfig.channel_id;
+          const honeypotChannelObj =
+            interaction.guild.channels.cache.get(honeypotChannelId) ??
+            (await interaction.guild.channels.fetch(honeypotChannelId).catch(() => null));
+
+          if (honeypotChannelObj) {
+            let warningMessageExists = false;
+            let existingWarningMessage = null;
+            if (oldConfig.warning_message_id) {
+              existingWarningMessage = await honeypotChannelObj.messages
+                .fetch(oldConfig.warning_message_id)
+                .catch(() => null);
+              if (existingWarningMessage) {
+                warningMessageExists = true;
+              }
+            }
+
+            const [updatedRows] = await client.db.execute(
+              /* sql */ `
+                SELECT
+                  trigger_count
+                FROM
+                  honeypots
+                WHERE
+                  server_id = ?
+              `,
+              [interaction.guild.id],
+            );
+            const triggerCount = updatedRows[0]?.trigger_count ?? 0;
+            const guildSettings = await client.settings.get(interaction.guild.id);
+
+            const buttonLabel = newAction === 'ban' ? `Bans: ${triggerCount}` : `Kicks: ${triggerCount}`;
+            const actionText = newAction === 'ban' ? '**ban**' : '**softban**';
+
+            const warningButton = new ButtonBuilder()
+              .setCustomId('warning_button')
+              .setLabel(buttonLabel)
+              .setEmoji('🍯')
+              .setStyle(ButtonStyle.Secondary);
+
+            const honeypotButton = new ActionRowBuilder().addComponents(warningButton);
+
+            const sectionThumb = new SectionBuilder()
+              .addTextDisplayComponents(
+                new TextDisplayBuilder().setContent('## **DO NOT SEND MESSAGES IN THIS CHANNEL**'),
+                new TextDisplayBuilder().setContent(
+                  `This channel is used to catch spam bots. Any messages sent here will result in a ${actionText}.`,
+                ),
+              )
+              .setThumbnailAccessory(
+                new ThumbnailBuilder({ media: { url: 'https://i.cisn.xyz/piqe4/xUyEwura01/raw.png' } }),
+              );
+
+            const container = new ContainerBuilder()
+              .addSectionComponents(sectionThumb)
+              .addActionRowComponents(honeypotButton);
+
+            if (!warningMessageExists) {
+              try {
+                const warningMessage = await honeypotChannelObj.send({
+                  flags: MessageFlags.IsComponentsV2,
+                  components: [container],
+                });
+
+                await client.db.execute(
+                  /* sql */ `
+                    UPDATE honeypots
+                    SET
+                      warning_message_id = ?
+                    WHERE
+                      server_id = ?
+                  `,
+                  [warningMessage.id, interaction.guild.id],
+                );
+              } catch (error) {
+                console.error('Failed to send honeypot warning message:', error);
+              }
+            } else if (warningMessageExists && changes.action) {
+              try {
+                await existingWarningMessage.edit({
+                  components: [container],
+                });
+              } catch (error) {
+                console.error('Failed to update honeypot warning message:', error);
+              }
+            }
+          }
+        } else if (newAction !== 'disabled' && newOptions.includes('no-warning-message')) {
+          const honeypotChannelId = oldConfig.channel_id;
+          const honeypotChannelObj =
+            interaction.guild.channels.cache.get(honeypotChannelId) ??
+            (await interaction.guild.channels.fetch(honeypotChannelId).catch(() => null));
+
+          if (honeypotChannelObj && oldConfig.warning_message_id) {
+            const existingWarningMessage = await honeypotChannelObj.messages
+              .fetch(oldConfig.warning_message_id)
+              .catch(() => null);
+
+            if (existingWarningMessage) {
+              try {
+                await existingWarningMessage.delete();
+                await client.db.execute(
+                  /* sql */ `
+                    UPDATE honeypots
+                    SET
+                      warning_message_id = NULL
+                    WHERE
+                      server_id = ?
+                  `,
+                  [interaction.guild.id],
+                );
+              } catch (error) {
+                console.error('Failed to delete honeypot warning message:', error);
+              }
+            }
+          }
+        }
+
+        return interaction.editReply({
+          content: stripIndents`Honeypot settings updated.
+-# - Channel: ${newChannelId ? `<#${newChannelId}>` : 'No channel set'}
+-# - Log Channel: ${newLogChannelId ? `<#${newLogChannelId}>` : 'No log channel set'}
+-# - Action: \`${newAction}\`
+-# - Options: \`${newOptions.length > 0 ? newOptions.join(', ') : 'None'}\``,
+        });
+      }
     }
   } catch (error) {
-    client.logger.error(error);
+    console.error('Failed to update honeypot settings:', error);
   }
 }

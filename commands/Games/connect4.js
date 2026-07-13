@@ -214,7 +214,7 @@ class Connect4 extends Command {
       }
 
       // Function to get the message for user and game board, add in the buttons and return the object for the message
-      async function getContent(currentUser, opponentUser, opponentEmoji, currentEmoji) {
+      async function getContent(currentUser, opponentUser, opponentEmoji) {
         // This should be currentUser but its not working, opponentUser is the correct user.
         let content = `${opponentEmoji} ${opponentUser}, which column do you pick?`;
         let move = `Previous Move: **${lastMove}**`;

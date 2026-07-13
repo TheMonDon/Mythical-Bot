@@ -15,7 +15,7 @@ class Permissions extends Command {
     });
   }
 
-  async run(msg, args, level) {
+  async run(msg, args) {
     let infoMemOrRole = msg.member;
 
     // If a user is mentioned, fetch them and set them as the infoMemOrRole

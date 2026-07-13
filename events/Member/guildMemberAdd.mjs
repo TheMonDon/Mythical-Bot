@@ -94,13 +94,15 @@ export async function run(client, member) {
       try {
         // Try bulk add first
         await member.roles.add(roles, reason);
-      } catch (error) {
+      } catch {
         // Fallback: add each role individually
         for (const roleId of roles) {
           try {
             await member.roles.add(roleId, reason);
             await setTimeoutPromise(1000);
-          } catch (err) {}
+          } catch {
+            // Ignore errors for individual roles
+          }
         }
       }
 
@@ -142,13 +144,15 @@ export async function run(client, member) {
       try {
         // Try bulk add first
         await member.roles.add(autoRoles, reason);
-      } catch (error) {
+      } catch {
         // Fallback: add each role individually
         for (const roleId of autoRoles) {
           try {
             await member.roles.add(roleId, reason);
             await setTimeoutPromise(1000);
-          } catch (err) {}
+          } catch {
+            // Ignore errors for individual roles
+          }
         }
       }
     } catch (error) {

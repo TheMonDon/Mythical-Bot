@@ -1,4 +1,3 @@
-/* eslint-disable no-eval */
 /* eslint-disable no-unused-vars */
 const Command = require('../../base/Command.js');
 const { EmbedBuilder } = require('discord.js');

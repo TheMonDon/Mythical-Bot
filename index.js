@@ -1000,6 +1000,41 @@ const loadMysql = async () => {
       );
     `);
 
+    await connection.execute(/* sql */ `
+      CREATE TABLE IF NOT EXISTS honeypots (
+        id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+        server_id VARCHAR(30) NOT NULL,
+        channel_id VARCHAR(30) NOT NULL,
+        warning_message_id VARCHAR(30) DEFAULT NULL,
+        log_channel_id VARCHAR(30) DEFAULT NULL,
+        action ENUM('disabled', 'softban', 'ban') NOT NULL DEFAULT 'softban',
+        reinvite VARCHAR(255) DEFAULT NULL,
+        options JSON NOT NULL,
+        trigger_count INT UNSIGNED NOT NULL DEFAULT 0,
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        PRIMARY KEY (id),
+        UNIQUE KEY uk_guild (server_id),
+        INDEX idx_channel (channel_id),
+        INDEX idx_log_channel (log_channel_id)
+      ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+    `);
+
+    await connection.execute(/* sql */ `
+      CREATE TABLE IF NOT EXISTS honeypot_triggers (
+        id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+        server_id BIGINT UNSIGNED NOT NULL,
+        user_id BIGINT UNSIGNED NOT NULL,
+        channel_id BIGINT UNSIGNED NOT NULL,
+        message_id BIGINT UNSIGNED DEFAULT NULL,
+        action_taken ENUM('softban', 'ban', 'none') NOT NULL,
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (id),
+        INDEX idx_guild_user (server_id, user_id),
+        INDEX idx_created (created_at)
+      ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+    `);
+
     const [views] = await connection.query(/* sql */ `
       SHOW FULL TABLES IN ${config.mysql.database}
       WHERE

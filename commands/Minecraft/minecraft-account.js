@@ -1,4 +1,3 @@
-/* eslint-disable prefer-regex-literals */
 const Command = require('../../base/Command.js');
 const { EmbedBuilder } = require('discord.js');
 const fetch = require('node-superfetch');
@@ -49,7 +48,7 @@ class MinecraftAccount extends Command {
         ]);
 
       return msg.channel.send({ embeds: [em] });
-    } catch (err) {
+    } catch {
       const em = new EmbedBuilder()
         .setTitle('Account Not Found')
         .setColor(errorColor)

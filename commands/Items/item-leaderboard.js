@@ -28,7 +28,7 @@ class ItemLeaderboard extends Command {
     }
 
     let page = parseInt(args[1]?.replace(/[^0-9\\.]/g, '') || 1);
- 
+
     const [countRows] = await this.client.db.execute(
       /* sql */
       `
@@ -53,7 +53,7 @@ class ItemLeaderboard extends Command {
 
     // Ensure the page is within range
     page = Math.max(1, Math.min(page, maxPages));
- 
+
     const generateEmbed = async (currentPage) => {
       const offset = (currentPage - 1) * itemsPerPage;
       const [rows] = await this.client.db.execute(

@@ -27,7 +27,7 @@ class ClearWarnings extends Command {
         const ID = args[0].replace(/<@|>/g, '');
         try {
           mem = await this.client.users.fetch(ID);
-        } catch (err) {
+        } catch {
           return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid Member');
         }
       }

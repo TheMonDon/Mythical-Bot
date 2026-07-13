@@ -5,6 +5,7 @@ import cors from 'cors';
 import { scheduleJob } from 'node-schedule';
 import { Client } from 'botpanel.js';
 import giveawayUtil from '../../util/GiveawayUtil.js';
+import randomChannelNames from '../../resources/random-channel-names.json' with { type: 'json' };
 const { BotPanelID, BotPanelSecret, Port } = pkg;
 const { mergeWinnerHistory, selectGiveawayWinners } = giveawayUtil;
 
@@ -64,7 +65,6 @@ export async function run(client) {
 
         guildData = settings;
 
-        // eslint-disable-next-line no-unused-expressions
         interaction.requestedElements.some((i) => possibleChannels.includes(i))
           ? client.channels.cache
               .filter((c) => c.guild.id === interaction.guildId)
@@ -480,6 +480,79 @@ export async function run(client) {
       }
     } catch (err) {
       console.error('Error checking for ended giveaways:', err);
+    }
+  });
+
+  // Honeypot Channel Rename (every day at midnight)
+  scheduleJob('honeypotChannelRename', '0 0 * * *', async () => {
+    try {
+      const [honeyRows] = await client.db.execute(/* sql */ `
+        SELECT
+          *
+        FROM
+          honeypots
+      `);
+
+      for (const honeypot of honeyRows) {
+        const existingOptions = (() => {
+          if (Array.isArray(honeypot?.options)) return honeypot.options;
+          if (typeof honeypot?.options === 'string') {
+            try {
+              const parsed = JSON.parse(honeypot.options);
+              return Array.isArray(parsed) ? parsed : [];
+            } catch {
+              return [];
+            }
+          }
+          return [];
+        })();
+
+        const isChaos = existingOptions.includes('random-channel-name-chaos');
+
+        if (honeypot.action === 'disabled') continue;
+        if (!honeypot.channel_id) continue;
+
+        let newName = 'honeypot';
+
+        if (isChaos) {
+          const length = Math.floor(Math.random() * 20) + 7;
+          newName = '';
+          const chars = 'abcdefghijklmnopqrstuvwxyz0123456789-';
+          for (let i = 0; i < length; i++) {
+            newName += chars.charAt(Math.floor(Math.random() * chars.length));
+          }
+        } else {
+          newName = randomChannelNames[Math.floor(Math.random() * randomChannelNames.length)];
+        }
+
+        let existingChannel = client.channels.cache.get(honeypot.channel_id);
+        if (!existingChannel) {
+          // If the channel is not in cache, try fetching it
+          existingChannel = await client.channels.fetch(honeypot.channel_id).catch(() => null);
+          if (!existingChannel) {
+            await client.db.execute(
+              /* sql */ `
+                UPDATE honeypots
+                SET
+                  channel_id = NULL,
+                  action = 'disabled'
+                WHERE
+                  server_id = ?
+              `,
+              [honeypot.server_id],
+            );
+            continue;
+          }
+
+          existingChannel
+            .setName(newName, 'Honeypot random channel name option' + (isChaos ? ' (chaos)' : ''))
+            .catch((err) => {
+              console.error('Failure in Honeypot Channel Renamer:', err);
+            });
+        }
+      }
+    } catch (err) {
+      console.error('Failure in Honeypot Channel Renamer:', err);
     }
   });
 }

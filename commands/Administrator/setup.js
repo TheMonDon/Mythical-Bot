@@ -173,7 +173,7 @@ class Setup extends Command {
                   await collected.deferUpdate();
                   await menuMessage.delete();
                   return collected.channels.first(); // Return the selected channel
-                } catch (err) {
+                } catch {
                   await menuMessage.delete();
                   return msg.channel.send('Channel selection timed out.');
                 }
@@ -394,7 +394,7 @@ class Setup extends Command {
                     await collected.deferUpdate();
                     await menuMessage.delete();
                     return collected.channels.first(); // Return the selected channel
-                  } catch (err) {
+                  } catch {
                     await menuMessage.delete();
                     return msg.channel.send('Channel selection timed out.');
                   }
@@ -715,7 +715,7 @@ class Setup extends Command {
             await collected.deferUpdate();
             await menuMessage.delete();
             return collected.channels.first(); // Return the selected channel
-          } catch (err) {
+          } catch {
             await menuMessage.delete();
             return msg.channel.send('Channel selection timed out.');
           }

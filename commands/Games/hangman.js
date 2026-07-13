@@ -256,7 +256,7 @@ class Hangman extends Command {
 
               hangmanEmbed.edit({ embeds: [firstEmbed] });
             }
-          } catch (error) {
+          } catch {
             msg.channel.send(
               `${
                 turn === 1 ? msg.author : mention

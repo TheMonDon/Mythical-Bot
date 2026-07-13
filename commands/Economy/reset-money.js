@@ -69,7 +69,7 @@ This command requires level ${this.client.levelCache.Administrator} (Administrat
         const fid = args.join(' ').replace(/<@|>/g, '');
         try {
           mem = await this.client.users.fetch(fid);
-        } catch (err) {
+        } catch {
           return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'Invalid User');
         }
       }

@@ -70,7 +70,9 @@ class Rob extends Command {
       const findId = args.join(' ').toLowerCase().replace(/<@|>/g, '');
       try {
         mem = await this.client.users.fetch(findId, { force: true });
-      } catch (_) {}
+      } catch {
+        // user not found, ignore
+      }
     }
 
     if (!mem) {

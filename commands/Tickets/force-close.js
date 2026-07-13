@@ -15,7 +15,6 @@ class forceClose extends Command {
   }
 
   async run(msg, args) {
-
     try {
       // Get ticket settings
       const [settingsRows] = await this.client.db.execute(

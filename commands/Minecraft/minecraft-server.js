@@ -47,7 +47,7 @@ class MinecraftServer extends Command {
           inline: false,
         },
         { name: 'Version:', value: body.version.toString() || 'N/A', inline: false },
-        { name: 'Players:', value: `${body.players.online}/${body.players.max}` || 'N/A', inline: false },
+        { name: 'Players:', value: `${body.players.online}/${body.players.max}`, inline: false },
         { name: 'MOTD:', value: body.motd.clean.toString() || 'N/A', inline: false },
       ]);
     return msg.channel.send({ embeds: [em] });

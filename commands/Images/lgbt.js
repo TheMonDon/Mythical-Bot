@@ -26,7 +26,9 @@ class LGBT extends Command {
       if (findId) {
         try {
           infoMem = await this.client.users.fetch(findId, { force: true });
-        } catch (_) {}
+        } catch {
+          // user not found, ignore
+        }
       }
     }
 

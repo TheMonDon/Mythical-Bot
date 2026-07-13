@@ -28,7 +28,9 @@ class UserInfo extends Command {
         try {
           fetchedUser = await this.client.users.fetch(findId, { force: true });
           infoMem = fetchedUser;
-        } catch (_) {}
+        } catch {
+          // user not found, ignore
+        }
       }
     }
 

@@ -129,7 +129,7 @@ exports.autoComplete = async (interaction) => {
       }));
 
     return interaction.respond(results).catch(() => {});
-  } catch (error) {
+  } catch {
     return interaction.respond([]).catch(() => {});
   }
 };

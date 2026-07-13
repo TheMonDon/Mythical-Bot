@@ -1,4 +1,3 @@
-/* eslint-disable prefer-regex-literals */
 const { EmbedBuilder, SlashCommandBuilder } = require('discord.js');
 const fetch = require('node-superfetch');
 
@@ -48,7 +47,7 @@ exports.run = async (interaction) => {
       ]);
 
     return interaction.editReply({ embeds: [em] });
-  } catch (err) {
+  } catch {
     const em = new EmbedBuilder()
       .setTitle('Account Not Found')
       .setColor(errorColor)

@@ -220,7 +220,7 @@ class Help extends Command {
       collector.on('end', async () => {
         try {
           await message.edit({ components: [] });
-        } catch (e) {
+        } catch {
           // Message may have been deleted
         }
       });

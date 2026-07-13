@@ -1,4 +1,3 @@
-/* eslint-disable prefer-regex-literals */
 const { EmbedBuilder, SlashCommandBuilder } = require('discord.js');
 const fetch = require('node-superfetch');
 
@@ -10,7 +9,7 @@ exports.commandData = new SlashCommandBuilder()
   .setName('minecraft-server')
   .setDescription('Get information about a Minecraft server')
   .addStringOption((option) =>
-    option.setName('username').setDescription('The username of the Minecraft account').setRequired(true),
+    option.setName('server').setDescription('The server to get information about').setRequired(true),
   );
 
 exports.run = async (interaction) => {
@@ -18,7 +17,6 @@ exports.run = async (interaction) => {
   let query = interaction.options.getString('server');
 
   const servers = {
-    'crafters-island': 'mc.crafters-island.com',
     hypixel: 'mc.hypixel.net',
     mineplex: 'us.mineplex.com',
     '2b2t': '2b2t.org',
@@ -46,7 +44,7 @@ exports.run = async (interaction) => {
         inline: false,
       },
       { name: 'Version:', value: body.version.toString() || 'N/A', inline: false },
-      { name: 'Players:', value: `${body.players.online}/${body.players.max}` || 'N/A', inline: false },
+      { name: 'Players:', value: `${body.players.online}/${body.players.max}`, inline: false },
       { name: 'MOTD:', value: body.motd.clean.toString() || 'N/A', inline: false },
     ]);
   return interaction.editReply({ embeds: [em] });

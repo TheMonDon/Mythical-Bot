@@ -33,7 +33,7 @@ class GlobalBlacklist extends Command {
         const userId = args[0].replace(/[<@!>]/g, ''); // Extract user ID from mention
         try {
           mem = await this.client.users.fetch(userId); // Fetch the user by ID
-        } catch (err) {
+        } catch {
           // If no user is found, return error
           return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'User not found');
         }
@@ -49,7 +49,7 @@ class GlobalBlacklist extends Command {
       const userId = args[1].replace(/[<@!>]/g, ''); // Extract user ID from mention
       try {
         mem = await this.client.users.fetch(userId); // Fetch the user by ID
-      } catch (err) {
+      } catch {
         // If no user is found, return error
         return this.client.util.errorEmbed(msg, msg.settings.prefix + this.help.usage, 'User not found');
       }
