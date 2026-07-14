@@ -543,13 +543,18 @@ export async function run(client) {
             );
             continue;
           }
-
-          existingChannel
-            .setName(newName, 'Honeypot random channel name option' + (isChaos ? ' (chaos)' : ''))
-            .catch((err) => {
-              console.error('Failure in Honeypot Channel Renamer:', err);
-            });
         }
+
+        try {
+          await existingChannel.setName(newName, `Honeypot random channel name option${isChaos ? ' (chaos)' : ''}`);
+        } catch (err) {
+          console.error(
+            `Failed to rename honeypot channel ${honeypot.channel_id} in server ${honeypot.server_id}:`,
+            err,
+          );
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, 1500));
       }
     } catch (err) {
       console.error('Failure in Honeypot Channel Renamer:', err);
