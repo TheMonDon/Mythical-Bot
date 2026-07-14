@@ -900,6 +900,24 @@ export async function run(client, interaction) {
             ],
           );
 
+          // If random channel naming is enabled on initial setup, attempt to rename immediately.
+          if (newHasRandomChannelNaming) {
+            const honeypotChannelObj =
+              interaction.guild.channels.cache.get(newChannelId) ??
+              (await interaction.guild.channels.fetch(newChannelId).catch(() => null));
+
+            if (honeypotChannelObj) {
+              try {
+                await honeypotChannelObj.setName(
+                  newName,
+                  'Honeypot random channel name option' + (isChaos ? ' (chaos)' : ''),
+                );
+              } catch (error) {
+                client.logger.error('Failed to rename honeypot channel on initial setup:', error);
+              }
+            }
+          }
+
           if (newAction !== 'disabled' && newOptions.includes('no-warning-message')) {
             const honeypotChannelObj = interaction.guild.channels.cache.get(newChannelId);
             if (honeypotChannelObj) {
