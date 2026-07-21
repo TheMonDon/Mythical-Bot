@@ -21,11 +21,11 @@ Mythical-Bot is a multi-utility Discord bot designed for server management and e
 
 ## 🔗 Links
 
-- 🤖 **Invite Bot** — https://cisn.xyz/Mythical
+- 🤖 **Invite Bot** — [cisn.xyz/mythical](https://cisn.xyz/Mythical)
 - 🗳 **Top.gg Page** — Coming Soon™️
-- 📚 **Commands List** — https://mythical.cisn.xyz/commands
-- 💬 **Support Server** — https://cisn.xyz/Support
-- 🧑‍💻 **GitHub Repository** — https://github.com/TheMonDon/Mythical-Bot
+- 📚 **Commands List** — [mythical.cisn.xyz/commands](https://mythical.cisn.xyz/commands)
+- 💬 **Support Server** — [cisn.xyz/support](https://cisn.xyz/Support)
+- 🧑‍💻 **GitHub Repository** — [TheMonDon/Mythical-Bot](https://github.com/TheMonDon/Mythical-Bot)
 
 ---
 
@@ -60,7 +60,7 @@ Adding Xeno Bot to your server is quick and easy.
 
 Use the invite link below:
 
-[https://cisn.xyz/Mythical](https://cisn.xyz/Mythical)
+[cisn.xyz/mythical](https://cisn.xyz/Mythical)
 
 ### 2️⃣ Grant permissions
 
@@ -128,13 +128,11 @@ If you encounter bugs or problems:
 
 ### GitHub Issues
 
-Report bugs or request features here:
-
-[https://github.com/TheMonDon/Mythical-Bot/issues](https://github.com/TheMonDon/Mythical-Bot/issues)
+Report bugs or request features [here](https://github.com/TheMonDon/Mythical-Bot/issues).
 
 ### Support Server
 
-Join the community support server: https://cisn.xyz/Support
+Join the community support server: [cisn.xyz/support](https://cisn.xyz/Support)
 
 ---
 
@@ -142,6 +140,4 @@ Join the community support server: https://cisn.xyz/Support
 
 This project is licensed under the **MIT License**.
 
-See the full license here:
-
-[https://github.com/TheMonDon/Mythical-Bot/blob/master/LICENSE](https://github.com/TheMonDon/Mythical-Bot/blob/master/LICENSE)
+See the full license [here](https://github.com/TheMonDon/Mythical-Bot/blob/master/LICENSE).
