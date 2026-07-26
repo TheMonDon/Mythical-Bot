@@ -34,7 +34,7 @@
     "cowsay": "^1.5.0",
     "custom-translate": "^2.2.8",
     "discord-html-transcripts": "^3.3.0-next-5eed3d",
-    "discord.js": "^14.26.5",
+    "discord.js": "^14.27.0",
     "duck-duck-scrape": "^2.2.7",
     "emoji-regex": "^10.4.0",
     "enmap": "^5.9.10",
