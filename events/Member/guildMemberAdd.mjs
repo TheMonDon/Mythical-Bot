@@ -8,7 +8,7 @@ export async function run(client, member) {
 
   // If the user actually joined more than 1 minute ago, ignore it completely
   if (joinAgeMs > oneMinute) {
-    client.logger.log(`[Ignored False Join] ${member.user.tag} joined ${Math.floor(joinAgeMs / 1000)}s ago.`);
+    console.log(`[Ignored False Join] ${member.user.tag} joined ${Math.floor(joinAgeMs / 1000)}s ago.`);
     return;
   }
 
