@@ -3,6 +3,15 @@ import { promisify } from 'util';
 const setTimeoutPromise = promisify(setTimeout);
 
 export async function run(client, member) {
+  const joinAgeMs = Date.now() - member.joinedTimestamp;
+  const oneMinute = 60 * 1000;
+
+  // If the user actually joined more than 1 minute ago, ignore it completely
+  if (joinAgeMs > oneMinute) {
+    client.logger.log(`[Ignored False Join] ${member.user.tag} joined ${Math.floor(joinAgeMs / 1000)}s ago.`);
+    return;
+  }
+
   async function LogSystem(client, member) {
     try {
       const [logRows] = await client.db.execute(
