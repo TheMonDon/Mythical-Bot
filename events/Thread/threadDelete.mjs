@@ -23,7 +23,10 @@ export async function run(client, thread) {
     if (thread.name.startsWith('ticket-')) return;
     if (thread.parent?.name?.startsWith('ticket-')) return;
 
-    const noLogChans = JSON.parse(logRows[0].no_log_channels || '[]');
+    const noLogChans =
+      typeof logRows[0].no_log_channels === 'string'
+        ? JSON.parse(logRows[0].no_log_channels || '[]')
+        : (logRows[0].no_log_channels ?? []);
     if (noLogChans.includes(thread.parent?.id)) return;
     if (noLogChans.includes(thread.id)) return;
 

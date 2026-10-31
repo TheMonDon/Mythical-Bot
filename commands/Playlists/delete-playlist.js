@@ -34,7 +34,8 @@ class DeletePlaylist extends Command {
 
     let userPlaylists = [];
     if (playlistRows.length) {
-      userPlaylists = JSON.parse(playlistRows[0].playlists);
+      const storedPlaylists = playlistRows[0].playlists;
+      userPlaylists = typeof storedPlaylists === 'string' ? JSON.parse(storedPlaylists) : storedPlaylists;
     }
 
     if (!userPlaylists || userPlaylists.length === 0) {

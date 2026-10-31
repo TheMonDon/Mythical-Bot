@@ -26,7 +26,6 @@ class Help extends Command {
       'information',
       'minecraft',
       'music',
-      'nsfw',
       'playlists',
       'search',
       'tickets',

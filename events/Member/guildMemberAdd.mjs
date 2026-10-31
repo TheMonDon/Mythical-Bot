@@ -7,10 +7,7 @@ export async function run(client, member) {
   const oneMinute = 60 * 1000;
 
   // If the user actually joined more than 1 minute ago, ignore it completely
-  if (joinAgeMs > oneMinute) {
-    console.log(`[Ignored False Join] ${member.user.tag} joined ${Math.floor(joinAgeMs / 1000)}s ago.`);
-    return;
-  }
+  if (joinAgeMs > oneMinute) return;
 
   async function LogSystem(client, member) {
     try {
@@ -165,7 +162,7 @@ export async function run(client, member) {
         }
       }
     } catch (error) {
-      console.error('Error assigning auto-roles:', error);
+      console.error(`Error assigning auto-roles for ${member.user.tag} in ${member.guild.name}:`, error);
     }
   }
 

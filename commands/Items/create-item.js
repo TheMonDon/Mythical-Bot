@@ -41,10 +41,28 @@ class CreateItem extends Command {
       [msg.guild.id],
     );
 
-    if (countRows[0].count >= 50) {
+    let maxItems = 25;
+
+    const [serverSettingsRows] = await this.client.db.execute(
+      /* sql */ `
+        SELECT
+          premium
+        FROM
+          server_settings
+        WHERE
+          server_id = ?
+      `,
+      [msg.guild.id],
+    );
+    const premiumStatus = serverSettingsRows[0]?.premium === true;
+    if (premiumStatus) {
+      maxItems = 5000;
+    }
+
+    if (countRows[0].count >= maxItems) {
       return this.client.util.errorEmbed(
         msg,
-        'The store has reached the maximum number of items allowed (50). Please delete some before creating more.',
+        `The store has reached the maximum number of items allowed (${maxItems}). Please delete some or upgrade to premium for more items.`,
       );
     }
 

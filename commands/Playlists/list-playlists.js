@@ -30,7 +30,8 @@ class ListPlaylists extends Command {
 
     let playlists = [];
     if (playlistRows.length) {
-      playlists = JSON.parse(playlistRows[0].playlists);
+      const storedPlaylists = playlistRows[0].playlists;
+      playlists = typeof storedPlaylists === 'string' ? JSON.parse(storedPlaylists) : storedPlaylists;
     }
 
     if (!playlists || playlists.length === 0) {

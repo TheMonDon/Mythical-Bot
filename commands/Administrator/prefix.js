@@ -23,7 +23,7 @@ class Prefix extends Command {
       return this.client.util.errorEmbed(msg, `The prefix is already set to ${msg.settings.prefix}`);
     }
 
-    this.client.settings.set(msg.guild.id, newPrefix, 'prefix');
+    await this.client.setGuildSetting(msg.guild.id, 'prefix', newPrefix);
     return msg.channel.send(`The prefix has been changed to: \`${newPrefix}\``);
   }
 }

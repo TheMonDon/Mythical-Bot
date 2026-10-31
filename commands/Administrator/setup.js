@@ -9,6 +9,7 @@ const {
 } = require('discord.js');
 const Command = require('../../base/Command.js');
 const { stripIndents } = require('common-tags');
+const config = require('../../config.js');
 
 class Setup extends Command {
   constructor(client) {
@@ -88,7 +89,7 @@ class Setup extends Command {
             // Update the max number of tickets
             if (choice === '4') {
               await msg.channel.send(
-                `How many tickets should a user be able to open? Please respond in number form, the default is 3 and the current is ${originalTicketLimit}.`,
+                `How many tickets should a user be able to open? Please respond in number form, the default is 3, the current is ${originalTicketLimit} and the max is ${config.ticketSettings.limit?.max || 10}.`,
               );
 
               const collectedMaxTicketsQuestion = await msg.channel.awaitMessages({
@@ -102,16 +103,17 @@ class Setup extends Command {
               }
               let ticketLimit = parseInt(collectedMaxTicketsQuestion.first().content.toLowerCase());
 
-              while (isNaN(ticketLimit)) {
+              while (isNaN(ticketLimit) || ticketLimit < 1 || ticketLimit > (config.ticketSettings.limit?.max || 10)) {
                 ticketLimit = await this.client.util.awaitReply(
                   msg,
-                  'How many tickets should a user be able to open? Please respond in number form, the default is 3.',
+                  `How many tickets should a user be able to open? Please respond in number form, the default is 3, the current is ${originalTicketLimit} and the max is ${config.ticketSettings.limit?.max || 10}.`,
                 );
                 if (!ticketLimit) {
                   return this.client.util.errorEmbed(msg, 'You did not reply in time, the command has been cancelled.');
                 }
                 ticketLimit = parseInt(ticketLimit);
               }
+
               await this.client.db.execute(
                 /* sql */ `
                   UPDATE ticket_settings
@@ -128,7 +130,7 @@ class Setup extends Command {
 
             // Disable the ticket system
             if (choice === '3') {
-              // Delete the database entry (Hopefully this works, copilot wrote it)
+              // Delete the database entry
               await this.client.db.execute(
                 /* sql */ `
                   DELETE FROM ticket_settings

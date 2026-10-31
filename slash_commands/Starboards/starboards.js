@@ -312,10 +312,27 @@ exports.run = async (interaction) => {
           const name = interaction.options.getString('name');
           const channel = interaction.options.getChannel('channel');
 
+          let maxStarboards = 2;
+          const [serverSettingsRows] = await interaction.client.db.execute(
+            /* sql */ `
+              SELECT
+                premium
+              FROM
+                server_settings
+              WHERE
+                server_id = ?
+            `,
+            [interaction.guild.id],
+          );
+          const premiumStatus = serverSettingsRows[0]?.premium === true;
+          if (premiumStatus) {
+            maxStarboards = 10;
+          }
+
           // Check max starboards
-          if (starboards.length >= 3) {
+          if (starboards.length >= maxStarboards) {
             return interaction.editReply(
-              'This server has reached the maximum number of starboards available (3). Please delete one before making a new one.',
+              `This server has reached the maximum number of starboards available (${maxStarboards}). Please delete one or upgrade to premium for more starboards.`,
             );
           }
 

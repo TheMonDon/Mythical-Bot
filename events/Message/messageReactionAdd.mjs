@@ -1,4 +1,7 @@
 import { EmbedBuilder } from 'discord.js';
+import util from '../../util/Util.js';
+
+const { parseJsonArray } = util;
 
 export async function run(client, messageReaction, user) {
   if (user?.bot) return;
@@ -54,7 +57,7 @@ export async function run(client, messageReaction, user) {
         if (!base) return null;
 
         const override = overrides.find(
-          (o) => o.starboard_name === starboardName && JSON.parse(o.channels || '[]').includes(channelID),
+          (o) => o.starboard_name === starboardName && parseJsonArray(o.channels).includes(channelID),
         );
 
         if (!override) return base;

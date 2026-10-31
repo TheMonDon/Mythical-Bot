@@ -15,10 +15,11 @@ class Command {
       nsfw = false,
       requiredArgs = 0,
       cooldown = 0,
+      requireSupporter = false,
     },
   ) {
     this.client = client;
-    this.conf = { enabled, guildOnly, aliases, permLevel, nsfw, requiredArgs, cooldown };
+    this.conf = { enabled, guildOnly, aliases, permLevel, nsfw, requiredArgs, cooldown, requireSupporter };
     this.help = { name, description, longDescription, category, usage, examples };
   }
 }

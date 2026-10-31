@@ -2,7 +2,6 @@
 const Command = require('../../base/Command.js');
 const { EmbedBuilder } = require('discord.js');
 const { inspect } = require('util');
-const { QuickDB } = require('quick.db');
 
 class Eval extends Command {
   constructor(client) {
@@ -19,7 +18,6 @@ class Eval extends Command {
   async run(msg, args, level) {
     const DiscordJS = require('discord.js');
     const util = this.client.util;
-    const db = new QuickDB();
     const client = this.client;
     const interaction = msg;
     let promise = false;

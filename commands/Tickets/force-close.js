@@ -1,4 +1,4 @@
-const discordTranscripts = require('discord-html-transcripts');
+const discordTranscripts = require('discord-html-transcripts-v2');
 const Command = require('../../base/Command.js');
 const { EmbedBuilder } = require('discord.js');
 

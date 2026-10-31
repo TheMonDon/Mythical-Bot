@@ -1,7 +1,6 @@
 /* eslint-disable no-unused-vars */
 const { EmbedBuilder, SlashCommandBuilder } = require('discord.js');
 const { inspect } = require('util');
-const { QuickDB } = require('quick.db');
 
 exports.conf = {
   permLevel: 'Bot Owner',
@@ -17,7 +16,6 @@ exports.commandData = new SlashCommandBuilder()
 exports.run = async (interaction, level) => {
   await interaction.deferReply();
 
-  const db = new QuickDB();
   const DiscordJS = require('discord.js');
   const util = interaction.client.util;
   const client = interaction.client;

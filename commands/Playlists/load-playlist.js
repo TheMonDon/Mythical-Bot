@@ -37,7 +37,8 @@ class LoadPlaylist extends Command {
 
     let currentPlaylists = [];
     if (playlistRows.length) {
-      currentPlaylists = JSON.parse(playlistRows[0].playlists);
+      const storedPlaylists = playlistRows[0].playlists;
+      currentPlaylists = typeof storedPlaylists === 'string' ? JSON.parse(storedPlaylists) : storedPlaylists;
     }
 
     // Find the playlist by name

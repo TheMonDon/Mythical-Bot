@@ -17,7 +17,22 @@ class RemindMe extends Command {
 
   async run(msg, args, level) {
     // Set the maximum reminders a person can have
-    const maxReminders = 10;
+    let maxReminders = 2;
+
+    const [userSettingsRows] = await this.client.db.execute(
+      /* sql */ `
+        SELECT
+          premium
+        FROM
+          user_settings
+        WHERE
+          user_id = ?
+      `,
+      [msg.author.id],
+    );
+    if (userSettingsRows[0]?.premium === 1) {
+      maxReminders = 20;
+    }
 
     // Generate an ID and check in the MySQL table until we find a free one
     let remID = this.client.util.randomString(5);
@@ -66,8 +81,11 @@ class RemindMe extends Command {
       [msg.author.id],
     );
 
-    if (userReminders.length >= maxReminders && level < 8) {
-      return this.client.util.errorEmbed(msg, 'You have reached the maximum number of reminders.');
+    if (userReminders.length >= maxReminders) {
+      return this.client.util.errorEmbed(
+        msg,
+        `You have reached the maximum number of reminders.${userSettingsRows[0]?.premium === 1 ? '' : '\nConsider upgrading to premium for more reminders.'}`,
+      );
     }
 
     // Clean the string from the user, and parse the results

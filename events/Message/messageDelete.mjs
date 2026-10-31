@@ -27,7 +27,10 @@ export async function run(client, message) {
       const logSystem = logRows[0].message_deleted;
       if (logSystem !== 1) return;
 
-      const noLogChans = JSON.parse(logRows[0].no_log_channels || '[]');
+      const noLogChans =
+        typeof logRows[0].no_log_channels === 'string'
+          ? JSON.parse(logRows[0].no_log_channels || '[]')
+          : (logRows[0].no_log_channels ?? []);
       if (noLogChans.includes(message.channel.id)) return;
 
       // Check if a game is being played by message author (hangman, connect4, etc)

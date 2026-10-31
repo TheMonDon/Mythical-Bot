@@ -1,6 +1,7 @@
 const { EmbedBuilder, SlashCommandBuilder } = require('discord.js');
 const { stripIndents } = require('common-tags');
 const emojiRegex = require('emoji-regex');
+const { parseJsonArray } = require('../../util/Util');
 
 exports.conf = {
   permLevel: 'Administrator',
@@ -574,8 +575,8 @@ exports.run = async (interaction) => {
           const { parseMS } = await import('human-ms');
 
           let overridesString;
-          const channels = JSON.parse(config.channels || '[]');
-          const channelsString = channels?.map((channelID) => `<#${channelID}>`)?.join(', ');
+          const channels = parseJsonArray(config.channels);
+          const channelsString = channels.map((channelID) => `<#${channelID}>`).join(', ');
           if (channelsString) {
             overridesString = `This override applies to the following channels: ${channelsString}`;
           } else {
@@ -929,7 +930,7 @@ exports.run = async (interaction) => {
       }
 
       const override = rows[0];
-      let channels = JSON.parse(override.channels || '[]');
+      let channels = parseJsonArray(override.channels);
 
       switch (subcommand) {
         case 'add': {

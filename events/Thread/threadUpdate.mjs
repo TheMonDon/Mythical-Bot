@@ -34,7 +34,10 @@ export async function run(client, oldThread, newThread) {
     if (oldThread.name.startsWith('ticket-')) return;
     if (oldThread.parent?.name?.startsWith('ticket-')) return;
 
-    const noLogChans = JSON.parse(logRows[0].no_log_channels || '[]');
+    const noLogChans =
+      typeof logRows[0].no_log_channels === 'string'
+        ? JSON.parse(logRows[0].no_log_channels || '[]')
+        : (logRows[0].no_log_channels ?? []);
     if (noLogChans.includes(oldThread.parent?.id)) return;
     if (noLogChans.includes(oldThread.id)) return;
 

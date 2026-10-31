@@ -25,7 +25,10 @@ export async function run(client, messages) {
     const logSystem = logRows[0].bulk_messages_deleted;
     if (logSystem !== 1) return;
 
-    const noLogChans = JSON.parse(logRows[0].no_log_channels || '[]');
+    const noLogChans =
+      typeof logRows[0].no_log_channels === 'string'
+        ? JSON.parse(logRows[0].no_log_channels || '[]')
+        : (logRows[0].no_log_channels ?? []);
     if (noLogChans.includes(channel.id)) return;
 
     const output = [];

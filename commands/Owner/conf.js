@@ -22,7 +22,7 @@ class Conf extends Command {
 
   async run(message, [action, key, ...value]) {
     // Retrieve Default Values from the default settings in the bot.
-    const defaults = this.client.settings.get('default');
+    const defaults = { ...this.client.settings.get('default') };
 
     // Adding a new key adds it to every guild (it will be visible to all of them)
     if (action === 'add') {
@@ -33,8 +33,7 @@ class Conf extends Command {
       // `value` being an array, we need to join it first.
       defaults[key] = value.join(' ');
 
-      // One the settings is modified, we write it back to the collection
-      this.client.settings.set('default', defaults);
+      await this.client.setDefaultSetting(key, defaults[key]);
       message.reply(`${key} successfully added with the value of ${value.join(' ')}`);
     }
 
@@ -46,7 +45,7 @@ class Conf extends Command {
 
       defaults[key] = value.join(' ');
 
-      this.client.settings.set('default', defaults);
+      await this.client.setDefaultSetting(key, defaults[key]);
       message.reply(`${key} successfully edited to ${value.join(' ')}`);
     }
 
@@ -65,15 +64,7 @@ class Conf extends Command {
       // If they respond with y or yes, continue.
       if (this.client.util.yes.includes(response)) {
         // We delete the default `key` here.
-        delete defaults[key];
-        this.client.settings.set('default', defaults);
-
-        // then we loop on all the guilds and remove this key if it exists.
-        // "if it exists" is done with the filter (if the key is present and it's not the default config!)
-        for (const [guildid, conf] of this.client.settings.filter((setting, id) => setting[key] && id !== 'default')) {
-          delete conf[key];
-          this.client.settings.set(guildid, conf);
-        }
+        await this.client.deleteDefaultSetting(key);
 
         message.reply(`${key} was successfully deleted.`);
       }

@@ -2,7 +2,6 @@ const { EmbedBuilder, SlashCommandBuilder } = require('discord.js');
 const { stripIndents } = require('common-tags');
 const fetch = require('node-superfetch');
 const DDG = require('duck-duck-scrape');
-const trev = require('trev-reborn');
 
 exports.conf = {
   permLevel: 'User',
@@ -11,14 +10,6 @@ exports.conf = {
 exports.commandData = new SlashCommandBuilder()
   .setName('search')
   .setDescription('Search for something')
-  .addSubcommand((subcommand) =>
-    subcommand
-      .setName('reddit')
-      .setDescription('Sends a random image from a subreddit of your choice.')
-      .addStringOption((option) =>
-        option.setName('subreddit').setDescription('The subreddit to search in').setRequired(true),
-      ),
-  )
   .addSubcommand((subcommand) =>
     subcommand
       .setName('movie')
@@ -68,37 +59,6 @@ exports.run = async (interaction) => {
   const subcommand = interaction.options.getSubcommand();
 
   switch (subcommand) {
-    case 'reddit': {
-      const subreddit = interaction.options.get('subreddit').value;
-
-      const post = await trev.getCustomSubreddit(subreddit);
-      if (!post)
-        return interaction.client.util.errorEmbed(interaction, 'Failed to fetch a post from reddit. Please try again');
-
-      const embed = new EmbedBuilder()
-        .setAuthor({ name: interaction.user.tag, iconURL: interaction.user.displayAvatarURL() })
-        .setTitle(post.title)
-        .setColor(interaction.settings.embedColor)
-        .setURL(post.permalink)
-        .setImage(post.media)
-        .setTimestamp();
-
-      if (post.text) {
-        const text = post.text?.length > 4000 ? post.text.slice(0, 4000) + '\nRead more on reddit.' : post.text;
-        embed.setDescription(text);
-      }
-
-      if (post.over_18 && interaction.channel.nsfw === false) {
-        return interaction.editReply('The post from that subreddit is NSFW and could not be sent in this channel.');
-      }
-
-      if (trev.isRedGifsLink(post.media)) {
-        return interaction.editReply(post.media);
-      } else {
-        return interaction.editReply({ embeds: [embed] });
-      }
-    }
-
     case 'movie': {
       const query = interaction.options.get('movie').value;
 

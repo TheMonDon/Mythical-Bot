@@ -624,6 +624,52 @@ export async function run(client, message) {
       return message.channel.send({ embeds: [embed] });
     }
 
+    let premiumStatus = false;
+    let [serverSettingsRows] = [];
+
+    if (message.guild) {
+      [serverSettingsRows] = await client.db.execute(
+        /* sql */ `
+          SELECT
+            premium
+          FROM
+            server_settings
+          WHERE
+            server_id = ?
+        `,
+        [message.guild.id],
+      );
+    }
+
+    const [userSettingsRows] = await client.db.execute(
+      /* sql */ `
+        SELECT
+          premium
+        FROM
+          user_settings
+        WHERE
+          user_id = ?
+      `,
+      [message.author.id],
+    );
+
+    if (serverSettingsRows?.[0]?.premium === true || userSettingsRows[0]?.premium === true) {
+      premiumStatus = true;
+    }
+
+    if (command.conf.requireSupporter && !premiumStatus) {
+      const embed = new EmbedBuilder()
+        .setTitle('Supporter Required')
+        .setAuthor({
+          name: message.author.tag,
+          iconURL: message.author.displayAvatarURL(),
+        })
+        .setColor(settings.embedErrorColor)
+        .setDescription('This command requires you or the server to be a supporter on Patreon.');
+
+      return message.channel.send({ embeds: [embed] });
+    }
+
     const cooldownSeconds = command.conf?.cooldown ?? 0;
     if (cooldownSeconds > 0) {
       const [rows] = await client.db.execute(

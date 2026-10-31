@@ -1,4 +1,5 @@
 # Mythical-Bot
+
 <div align="center">
   <br />
   <p>
@@ -30,27 +31,27 @@ Mythical-Bot is a multi-utility Discord bot designed for server management and e
 ---
 
 # ✨ Features
- - Built with **discord.js v14**
- - MySQL Support (In Progress)
- - Per-Server Economy (customizable currency, leaderboards, jobs, inventory, and more)
- - Warnings System & Moderation Tools (warnings, kick, ban, mute, blacklist, purge, auto-roles)
- - Detailed Logging (message, member, and channel logs with customizable modules)
- - Ticket System (create, manage, and close support tickets)
- - Music Playback (YouTube and Deezer support, queue system, playlists)
- - Role & Permission Management
- - Image and Avatar Utilities (fun overlays, emoji tools, color info, etc.)
- - Information Commands (user, server, channel info, weather, Wikipedia, etc.)
- - Fun & Games (blackjack, connect-four, wordle, rock-paper-scissors, hangman, more)
- - Reminder System
- - Minecraft Support (player and server lookups)
- - Search Commands (DuckDuckGo, GitHub, Steam, movies, TV shows)
- - Starboard Support
- - NSFW Commands
- - Playlists (save, load, and manage music playlists)
- - Owner & Admin Tools (eval, config, reload, deploy)
- - Permission-based Command Access (Administrator, Bot Admin, Bot Support, Moderator, Owner)
- - Per-Server Prefix Support
- - Designed for flexibility and ease of use
+
+- Built with **discord.js v14**
+- MySQL Support (In Progress)
+- Per-Server Economy (customizable currency, leaderboards, jobs, inventory, and more)
+- Warnings System & Moderation Tools (warnings, kick, ban, mute, blacklist, purge, auto-roles)
+- Detailed Logging (message, member, and channel logs with customizable modules)
+- Ticket System (create, manage, and close support tickets)
+- Music Playback (YouTube and Deezer support, queue system, playlists)
+- Role & Permission Management
+- Image and Avatar Utilities (fun overlays, emoji tools, color info, etc.)
+- Information Commands (user, server, channel info, weather, Wikipedia, etc.)
+- Fun & Games (blackjack, connect-four, wordle, rock-paper-scissors, hangman, more)
+- Reminder System
+- Minecraft Support (player and server lookups)
+- Search Commands (DuckDuckGo, GitHub, Steam, movies, TV shows)
+- Starboard Support
+- Playlists (save, load, and manage music playlists)
+- Owner & Admin Tools (eval, config, reload, deploy)
+- Permission-based Command Access (Administrator, Bot Admin, Bot Support, Moderator, Owner)
+- Per-Server Prefix Support
+- Designed for flexibility and ease of use
 
 # 🚀 Getting Started (For Users)
 
@@ -98,7 +99,7 @@ Clone the repository:
 ```bash
 git clone https://github.com/TheMonDon/Mythical-Bot.git
 cd Mythical-Bot
-````
+```
 
 Install dependencies:
 
@@ -113,6 +114,16 @@ cp config.js.example config.js
 ```
 
 Fill in your bot credentials inside `config.js`.
+
+### Migrate Existing Enmap Settings
+
+If you are upgrading an existing installation, stop the bot and back up `data/enmap.sqlite`. Then run:
+
+```bash
+npm run migrate:enmap-settings
+```
+
+The script copies the `settings` Enmap records into MySQL. It does not modify the SQLite file and skips records already present in MySQL. Run it before starting the updated bot so saved defaults and guild overrides are imported first.
 
 Start the bot:
 

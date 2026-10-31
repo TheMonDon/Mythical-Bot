@@ -24,6 +24,6 @@ exports.run = async (interaction) => {
     return interaction.editReply(`The prefix is already set to \`${interaction.settings.prefix}\``);
   }
 
-  interaction.client.settings.set(interaction.guild.id, newPrefix, 'prefix');
+  await interaction.client.setGuildSetting(interaction.guild.id, 'prefix', newPrefix);
   return interaction.editReply(`The prefix has been changed to: \`${newPrefix}\``);
 };

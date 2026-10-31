@@ -28,9 +28,7 @@ class Set extends Command {
     // First we need to retrieve current guild settings
     const settings = message.settings;
     const defaults = this.client.settings.get('default');
-    const overrides = this.client.settings.get(message.guild.id);
-    if (!this.client.settings.has(message.guild.id)) this.client.settings.set(message.guild.id, {});
-
+    const overrides = this.client.settings.get(message.guild.id) || {};
     // Secondly, if a user does `-set edit <key> <new value>`, let's change it
     if (action === 'edit') {
       // User must specify a key.
@@ -43,11 +41,7 @@ class Set extends Command {
       // User must specify a different value than the current one.
       if (joinedValue === settings[key]) return message.reply('This setting already has that value!');
 
-      // If the guild does not have any overrides, initialize it.
-      if (!this.client.settings.has(message.guild.id)) this.client.settings.set(message.guild.id, {});
-
-      // Modify the guild overrides directly.
-      this.client.settings.set(message.guild.id, joinedValue, key);
+      await this.client.setGuildSetting(message.guild.id, key, joinedValue);
       message.reply(`${key} successfully edited to ${joinedValue}`);
     }
 
@@ -66,7 +60,7 @@ class Set extends Command {
       // If they respond with yes, continue.
       if (this.client.util.yes.includes(response)) {
         // We reset the `key` here.
-        this.client.settings.delete(message.guild.id, key);
+        await this.client.deleteGuildSetting(message.guild.id, key);
         return message.reply(`${key} was successfully reset to default.`);
       }
 

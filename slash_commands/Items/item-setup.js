@@ -1,7 +1,5 @@
 /* eslint-disable no-unused-vars */
 const { EmbedBuilder, SlashCommandBuilder, InteractionContextType } = require('discord.js');
-const { QuickDB } = require('quick.db');
-const db = new QuickDB();
 
 const attributes = [
   'name',

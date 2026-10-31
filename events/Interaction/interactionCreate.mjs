@@ -15,7 +15,7 @@ import {
   ThumbnailBuilder,
 } from 'discord.js';
 import { stripIndents } from 'common-tags';
-import * as discordTranscripts from 'discord-html-transcripts';
+import * as discordTranscripts from 'discord-html-transcripts-v2';
 import randomChannelNames from '../../resources/random-channel-names.json' with { type: 'json' };
 
 async function createHoneypotReinvite(client, interaction, channelId) {
@@ -123,6 +123,48 @@ export async function run(client, interaction) {
         return interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
       }
 
+      if (slashCommand.conf.requireSupporter) {
+        // Check if the server is a supporter server in the database
+        const [serverRows] = await context.client.db.execute(
+          /* sql */ `
+            SELECT
+              premium
+            FROM
+              server_settings
+            WHERE
+              server_id = ?
+          `,
+          [context.guild ? context.guild.id : context.channel.guild.id],
+        );
+
+        // Check if the user has a premium status in the database
+        const [userRows] = await context.client.db.execute(
+          /* sql */ `
+            SELECT
+              premium
+            FROM
+              user_settings
+            WHERE
+              user_id = ?
+          `,
+          [context.user ? context.user.id : context.author.id],
+        );
+
+        // If neither the server nor the user has premium, return an error
+        if (!serverRows?.[0]?.premium || !userRows?.[0]?.premium) {
+          const embed = new EmbedBuilder()
+            .setTitle('Supporter Required')
+            .setAuthor({ name: interaction.user.tag, iconURL: interaction.user.displayAvatarURL() })
+            .setColor(interaction.settings.embedErrorColor)
+            .setDescription('This command requires you or the server to be a supporter on Patreon.');
+
+          return interaction.reply({
+            embeds: [embed],
+            flags: MessageFlags.Ephemeral,
+          });
+        }
+      }
+
       try {
         await slashCommand.run(interaction, level);
         const isText = false;
@@ -138,6 +180,7 @@ export async function run(client, interaction) {
           aliasName || null,
         ]);
       } catch (error) {
+        console.error(`Error executing slash command ${interaction.commandName}:`, error);
         client.logger.error(error);
         if (interaction.replied) {
           interaction

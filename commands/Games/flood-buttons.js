@@ -1,8 +1,6 @@
 const Command = require('../../base/Command.js');
 const { EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, MessageFlags } = require('discord.js');
-const { QuickDB } = require('quick.db');
 const { Duration } = require('luxon');
-const db = new QuickDB();
 
 class FloodButtons extends Command {
   constructor(client) {
@@ -77,14 +75,14 @@ class FloodButtons extends Command {
     }
 
     // Get the content of the embed
-    async function getContent() {
+    async function getContent(client) {
       let embed;
       if (gameOver === true) {
         const gameTimeMillis = gameEnd - gameStart;
         let gameTime;
-        if (!isNaN(gameTimeMillis))
+        if (!isNaN(gameTimeMillis)) {
           gameTime = Duration.fromMillis(gameTimeMillis).shiftTo('minutes', 'seconds').toHuman();
-        const gameTimeSeconds = gameTimeMillis / 1000;
+        }
         const turnResp = {
           winner: `Game beat in ${turn} turns! \nGame Time: ${gameTime}`,
           timeOut: 'Game timed out due to inactivity.',
@@ -98,33 +96,56 @@ class FloodButtons extends Command {
         let highScoreUser;
         let highScoreTime;
         if (result === 'winner') {
-          const HS = { score: turn, user: msg.author.tag, time: gameTimeSeconds };
-          const oldHS = await db.get('global.highScores.flood');
-          highScore = oldHS?.score || 0;
-          highScoreUser = oldHS?.user || 'N/A';
-          highScoreTime = oldHS?.time || 0;
-          if (HS.score < highScore || !oldHS) {
-            await db.set('global.highScores.flood', HS);
-            highScore = HS.score;
-            highScoreUser = 'You';
-            highScoreTime = gameTimeSeconds;
-          } else if (HS.score === highScore && HS.time <= highScoreTime) {
-            await db.set('global.highScores.flood', HS);
-            highScore = HS.score;
-            highScoreUser = 'You';
-            highScoreTime = gameTimeSeconds;
-          }
-        } else {
-          const oldHS = await db.get('global.highScores.flood');
-          highScore = oldHS?.score || 0;
-          highScoreUser = oldHS?.user || 'N/A';
-          highScoreTime = oldHS?.time || 0;
+          await client.db.execute(
+            /* sql */
+            `
+              INSERT INTO
+                game_scores (game_type, user_id, score, time_ms, guild_id)
+              VALUES
+                (?, ?, ?, ?, ?)
+            `,
+            ['flood', msg.author.id, turn, gameTimeMillis, msg.guild?.id ?? null],
+          );
         }
 
+        const [HighScore] = await client.db.execute(/* sql */
+        `
+          SELECT
+            CAST(user_id AS CHAR) AS user_id,
+            score,
+            time_ms,
+            played_at
+          FROM
+            game_scores
+          WHERE
+            game_type = 'flood'
+          ORDER BY
+            score DESC,
+            time_ms ASC
+          LIMIT
+            1;
+        `);
+
+        const highScoreData = HighScore[0];
+        const highScoreUserId = highScoreData?.user_id;
+
+        if (highScoreUserId) {
+          const highScoreUserObj =
+            client.users.cache.get(highScoreUserId) ??
+            (await client.users.fetch(highScoreUserId).catch((err) => {
+              console.error('Failed to fetch flood high-score user:', err);
+              return null;
+            }));
+
+          highScoreUser = highScoreUserObj?.username ?? 'Unknown';
+        } else {
+          highScoreUser = 'Unknown';
+        }
+
+        highScore = highScoreData?.score ?? 0;
+        highScoreTime = highScoreData?.time_ms ?? 0;
         if (!isNaN(highScoreTime)) {
-          highScoreTime = Duration.fromMillis(highScoreTime * 1000)
-            .shiftTo('minutes', 'seconds')
-            .toHuman();
+          highScoreTime = Duration.fromMillis(highScoreTime).shiftTo('minutes', 'seconds').toHuman();
         }
 
         embed = new EmbedBuilder()
@@ -233,7 +254,7 @@ Filling starts at the top left corner.`,
     }
 
     try {
-      const embed = await getContent();
+      const embed = await getContent(this.client);
       message = await msg.channel.send({ embeds: [embed], components: getButtons(gameOver) });
 
       const collector = message.createMessageComponentCollector({
@@ -283,7 +304,7 @@ Filling starts at the top left corner.`,
             return;
           }
 
-          const newEmbed = await getContent();
+          const newEmbed = await getContent(interaction.client);
           await message.edit({ embeds: [newEmbed] });
         } catch (err) {
           collector.stop('error');
@@ -304,7 +325,7 @@ Filling starts at the top left corner.`,
           }
 
           gameEnd = Date.now();
-          const finalEmbed = await getContent();
+          const finalEmbed = await getContent(this.client);
           await message.edit({ embeds: [finalEmbed], components: getButtons(true) });
         } catch (err) {
           this.client.logger.error(`Flood cleanup error: ${err}`);
@@ -315,7 +336,7 @@ Filling starts at the top left corner.`,
       this.client.logger.error(`Flood: ${err}`);
       gameOver = true;
       result = 'error';
-      const embed = await getContent();
+      const embed = await getContent(this.client);
       return message?.edit({ embeds: [embed], components: getButtons(gameOver) }).catch(() => {});
     }
   }

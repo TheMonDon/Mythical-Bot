@@ -78,7 +78,8 @@ exports.autoComplete = async (interaction) => {
 
     let userPlaylists = [];
     if (playlistRows.length) {
-      userPlaylists = JSON.parse(playlistRows[0].playlists);
+      const storedPlaylists = playlistRows[0].playlists;
+      userPlaylists = typeof storedPlaylists === 'string' ? JSON.parse(storedPlaylists) : storedPlaylists;
     }
 
     if (!userPlaylists || userPlaylists.length === 0) {
@@ -123,7 +124,8 @@ exports.run = async (interaction) => {
 
   let playlists = [];
   if (playlistRows.length) {
-    playlists = JSON.parse(playlistRows[0].playlists);
+    const storedPlaylists = playlistRows[0].playlists;
+    playlists = typeof storedPlaylists === 'string' ? JSON.parse(storedPlaylists) : storedPlaylists;
   }
 
   switch (subcommand) {
@@ -303,10 +305,28 @@ exports.run = async (interaction) => {
         );
       }
 
-      if (playlists.length >= 10) {
+      const [userSettingsRows] = await interaction.client.db.execute(
+        /* sql */ `
+          SELECT
+            premium
+          FROM
+            user_settings
+          WHERE
+            user_id = ?
+        `,
+        [interaction.user.id],
+      );
+
+      const premiumStatus = userSettingsRows[0]?.premium === true;
+      let maxPlaylists = 2; // Default max playlists for non-premium users
+      if (premiumStatus) {
+        maxPlaylists = 10; // Increase max playlists for premium users
+      }
+
+      if (playlists.length >= maxPlaylists) {
         return interaction.client.util.errorEmbed(
           interaction,
-          'You have reached the maximum number of playlists allowed (10).',
+          `You have reached the maximum number of playlists allowed (${maxPlaylists}). ${premiumStatus ? '' : 'Consider purchasing premium for more playlists.'}`,
         );
       }
 
@@ -334,7 +354,7 @@ exports.run = async (interaction) => {
         );
 
         return interaction.editReply(
-          `I have successfully created the playlist \`${playlistName}\` with ${player.queue.tracks.length} tracks. You can play it using the \`/playlist load\` command. (${playlists.length}/10)`,
+          `I have successfully created the playlist \`${playlistName}\` with ${player.queue.tracks.length} tracks. You can play it using the \`/playlist load\` command. (${playlists.length}/${maxPlaylists})`,
         );
       } catch (error) {
         console.error('Save Playlist Error:', error);

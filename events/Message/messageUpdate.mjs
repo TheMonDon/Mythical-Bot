@@ -1,5 +1,7 @@
- 
 import { EmbedBuilder } from 'discord.js';
+import util from '../../util/Util.js';
+
+const { parseJsonArray } = util;
 
 export async function run(client, oldMessage, newMessage) {
   async function LogSystem(client, oldMessage, newMessage) {
@@ -28,7 +30,10 @@ export async function run(client, oldMessage, newMessage) {
       const logSystem = logRows[0].message_updated;
       if (logSystem !== 1) return;
 
-      const noLogChans = JSON.parse(logRows[0].no_log_channels || '[]');
+      const noLogChans =
+        typeof logRows[0].no_log_channels === 'string'
+          ? JSON.parse(logRows[0].no_log_channels || '[]')
+          : (logRows[0].no_log_channels ?? []);
       if (noLogChans.includes(newMessage.channel.id)) return;
 
       let oldContent = ' ';
@@ -367,7 +372,7 @@ export async function run(client, oldMessage, newMessage) {
         if (!base) return null;
 
         const override = overrides.find(
-          (o) => o.starboard_name === starboardName && JSON.parse(o.channels || '[]').includes(channelID),
+          (o) => o.starboard_name === starboardName && parseJsonArray(o.channels).includes(channelID),
         );
 
         if (!override) return base;

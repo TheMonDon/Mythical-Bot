@@ -23,7 +23,7 @@ function log(content, type = 'log') {
     case 'error': {
       embed.setTitle('Error').setColor('#FF0000');
       logs?.send({ embeds: [embed] });
-      return console.log(`${timestamp} ${chalk.bgRed(type.toUpperCase())} ${content}`);
+      return console.log(`${timestamp} ${chalk.bgRed(type.toUpperCase())}`, content);
     }
     case 'debug': {
       return console.log(`${timestamp} ${chalk.green(type.toUpperCase())} ${content}`);

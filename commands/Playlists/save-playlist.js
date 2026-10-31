@@ -43,17 +43,39 @@ class SavePlaylist extends Command {
       [msg.author.id],
     );
 
+    const [userSettingsRows] = await this.client.db.execute(
+      /* sql */ `
+        SELECT
+          premium
+        FROM
+          user_settings
+        WHERE
+          user_id = ?
+      `,
+      [msg.author.id],
+    );
+
+    const premiumStatus = userSettingsRows[0]?.premium === true;
+    let maxPlaylists = 2; // Default max playlists for non-premium users
+    if (premiumStatus) {
+      maxPlaylists = 10; // Increase max playlists for premium users
+    }
+
     let currentPlaylists = [];
     if (playlistRows.length) {
-      currentPlaylists = JSON.parse(playlistRows[0].playlists);
+      const storedPlaylists = playlistRows[0].playlists;
+      currentPlaylists = typeof storedPlaylists === 'string' ? JSON.parse(storedPlaylists) : storedPlaylists;
     }
 
     if (currentPlaylists.some((p) => p.name === playlistName)) {
       return this.client.util.errorEmbed(msg, 'You already have a playlist with that name.');
     }
 
-    if (currentPlaylists.length >= 10) {
-      return this.client.util.errorEmbed(msg, 'You have reached the maximum number of playlists allowed (10).');
+    if (currentPlaylists.length >= maxPlaylists) {
+      return this.client.util.errorEmbed(
+        msg,
+        `You have reached the maximum number of playlists allowed (${maxPlaylists}). ${premiumStatus ? '' : 'Consider upgrading to premium for more playlists.'}`,
+      );
     }
 
     const newPlaylist = {
@@ -80,7 +102,7 @@ class SavePlaylist extends Command {
       );
 
       return msg.channel.send(
-        `I have successfully created the playlist \`${playlistName}\` with ${player.queue.tracks.length} tracks. You can play it using the \`load-playlist\` command. (${currentPlaylists.length}/10)`,
+        `I have successfully created the playlist \`${playlistName}\` with ${player.queue.tracks.length} tracks. You can play it using the \`load-playlist\` command. (${currentPlaylists.length}/${maxPlaylists})`,
       );
     } catch (error) {
       console.error('Save Playlist Error:', error);

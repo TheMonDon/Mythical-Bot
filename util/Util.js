@@ -37,6 +37,18 @@ function list(array, conj = 'and') {
   return `${array.slice(0, -1).join(', ')}${len > 1 ? `${len > 2 ? ',' : ''} ${conj} ` : ''}${array.slice(-1)}`;
 }
 
+function parseJsonArray(value) {
+  if (Array.isArray(value)) return value;
+  if (value == null || value === '') return [];
+
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
 /**
  * Verify yes/no answer in channel
  * @param {GuildChannel} channel - The channel to detect reply
@@ -281,7 +293,7 @@ function findWithAttr(array, attr, value) {
  */
 function randomString(length) {
   let str = '';
-  for (; str.length < length; ) str += Math.random().toString(36).substring(2);
+  for (; str.length < length;) str += Math.random().toString(36).substring(2);
   return str.substring(0, length);
 }
 
@@ -929,7 +941,7 @@ async function chatbotApiRequest(client, message) {
       while (referenced && pos < 10) {
         const contentPrefix = referenced.author.bot
           ? ''
-          : `${referenced.author.username} (${referenced.member?.displayName || referenced.author.username})`;
+          : `${referenced.author.username} (${referenced.member?.displayName || referenced.author.username}):`;
         let referencedContent = `${contentPrefix} ${referenced.content}`;
         if (referenced.embeds.length > 0) {
           const embedText = parseEmbeds(referenced.embeds).join('\n\n');
@@ -1157,6 +1169,7 @@ module.exports = {
   yes,
   no,
   list,
+  parseJsonArray,
   verify,
   toProperCase,
   wait,

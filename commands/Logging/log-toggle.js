@@ -39,7 +39,10 @@ class LogToggle extends Command {
       }
 
       const settings = rows[0];
-      const chans = settings.no_log_channels ? JSON.parse(settings.no_log_channels) : [];
+      const chans =
+        typeof settings.no_log_channels === 'string'
+          ? JSON.parse(settings.no_log_channels || '[]')
+          : (settings.no_log_channels ?? []);
 
       if (['enable', 'disable'].includes(args?.[0]?.toLowerCase())) {
         if (!args[1]) {

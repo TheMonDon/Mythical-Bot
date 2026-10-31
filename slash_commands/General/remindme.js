@@ -16,7 +16,21 @@ exports.run = async (interaction, level) => {
   await interaction.deferReply();
 
   // Set the maximum reminders a person can have
-  const maxReminders = 10;
+  let maxReminders = 2;
+  const [userSettingsRows] = await interaction.client.db.execute(
+    /* sql */ `
+      SELECT
+        premium
+      FROM
+        user_settings
+      WHERE
+        user_id = ?
+    `,
+    [interaction.user.id],
+  );
+  if (userSettingsRows[0]?.premium === 1) {
+    maxReminders = 20;
+  }
 
   // Generate an ID and check in the MySQL table until we find a free one
   let remID = interaction.client.util.randomString(5);
@@ -65,8 +79,11 @@ exports.run = async (interaction, level) => {
     [interaction.user.id],
   );
 
-  if (userReminders.length >= maxReminders && level < 8) {
-    return interaction.client.util.errorEmbed(interaction, 'You have reached the maximum number of reminders.');
+  if (userReminders.length >= maxReminders) {
+    return interaction.client.util.errorEmbed(
+      interaction,
+      `You have reached the maximum number of reminders.${userSettingsRows[0]?.premium === 1 ? '' : '\nConsider upgrading to premium for more reminders.'}`,
+    );
   }
 
   // Clean the string from the user, and parse the results

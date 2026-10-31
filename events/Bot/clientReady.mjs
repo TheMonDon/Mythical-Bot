@@ -6,23 +6,21 @@ import { scheduleJob } from 'node-schedule';
 import { Client } from 'botpanel.js';
 import giveawayUtil from '../../util/GiveawayUtil.js';
 import randomChannelNames from '../../resources/random-channel-names.json' with { type: 'json' };
-const { BotPanelID, BotPanelSecret, Port } = pkg;
+const { BotPanelID, BotPanelSecret, Port, economySettings, ticketSettings, panelSectionAliases } = pkg;
 const { mergeWinnerHistory, selectGiveawayWinners } = giveawayUtil;
 
+const normalizePanelSection = (section) =>
+  panelSectionAliases[
+    String(section || 'settings')
+      .toLowerCase()
+      .replace(/[^a-z]/g, '')
+  ];
+
 export async function run(client) {
-  if (!client.settings.has('default')) {
-    if (!client.config.defaultSettings) {
-      throw new Error('defaultSettings not preset in config.js or settings database. Bot cannot load.');
-    }
-
-    client.settings.set('default', client.config.defaultSettings);
-  }
-
   client.user.setActivity(
     `${client.settings.get('default').prefix}help | ${client.guilds.cache.size.toLocaleString()} Servers`,
   );
 
-  client.games.clear();
   client.logger.log(`${client.user.tag}, ready to serve ${client.guilds.cache.size.toLocaleString()} guilds.`, 'ready');
 
   for (const [, guild] of client.guilds.cache) {
@@ -55,15 +53,47 @@ export async function run(client) {
           [ChannelType.GuildCategory]: categories,
         };
 
-        const settings = (await client.settings.get(interaction.guildId)) || {};
-        const defaults = await client.settings.get('default');
-        if (Object.keys(settings).length !== Object.keys(defaults).length) {
-          for (const key in defaults) {
-            if (!settings[key]) settings[key] = defaults[key];
-          }
-        }
+        const [economyRows] = await client.db.execute(
+          /* sql */ `
+            SELECT
+              *
+            FROM
+              economy_settings
+            WHERE
+              server_id = ?
+          `,
+          [interaction.guildId],
+        );
+        const economySettingsData = economyRows[0] || {};
 
-        guildData = settings;
+        const [ticketRows] = await client.db.execute(
+          /* sql */ `
+            SELECT
+              *
+            FROM
+              ticket_settings
+            WHERE
+              server_id = ?
+          `,
+          [interaction.guildId],
+        );
+        const ticketSettingsData = ticketRows[0] || {};
+
+        guildData = {
+          ...client.getSettings(interaction.guildId),
+          ...Object.fromEntries(
+            Object.entries(economySettings).map(([name, definition]) => [
+              name,
+              economySettingsData[name] ?? definition.default,
+            ]),
+          ),
+          ...Object.fromEntries(
+            Object.entries(ticketSettings).map(([name, definition]) => [
+              name,
+              ticketSettingsData[name] ?? definition.default,
+            ]),
+          ),
+        };
 
         interaction.requestedElements.some((i) => possibleChannels.includes(i))
           ? client.channels.cache
@@ -95,34 +125,98 @@ export async function run(client) {
     BotPanelClient.on('MODIFY_GUILD_DATA', async (interaction) => {
       const {
         guildId,
-        input: { name, value },
+        input: { section, name, value },
       } = interaction;
-      const defaultSettings = await client.settings.get('default');
-      const guildSettings = await client.settings.get(guildId);
+      const rawValue = Array.isArray(value) ? value.join(',') : value;
 
-      if (!defaultSettings[name])
-        return interaction.acknowledge({
-          success: false,
-          message: 'Invalid setting name.',
-        });
-      if (value.length < 1)
+      if (rawValue === undefined || rawValue === null || String(rawValue).trim().length < 1)
         return interaction.acknowledge({
           success: false,
           message: 'Please provide a value.',
         });
-      const newValue = Array.isArray(value) ? value.join(',') : value;
-      if (!guildSettings) {
-        await client.settings.set(guildId, {
-          ...defaultSettings,
-          [name]: newValue,
-        });
+
+      const sectionKey = normalizePanelSection(section);
+
+      if (sectionKey === 'default') {
+        const defaults = client.settings.get('default') || {};
+        if (!Object.hasOwn(defaults, name)) {
+          return interaction.acknowledge({ success: false, message: 'Invalid setting name.' });
+        }
+
+        await client.setGuildSetting(guildId, name, String(rawValue));
+      } else if (sectionKey === 'economy') {
+        const definition = economySettings[name];
+        if (!Object.hasOwn(economySettings, name)) {
+          return interaction.acknowledge({ success: false, message: 'Invalid economy setting name.' });
+        }
+
+        let newValue;
+        if (definition.type === 'number') {
+          newValue = Number(rawValue);
+          if (!Number.isInteger(newValue) || newValue < definition.min || newValue > definition.max) {
+            return interaction.acknowledge({
+              success: false,
+              message: `Enter a whole number between ${definition.min} and ${definition.max}.`,
+            });
+          }
+        } else {
+          newValue = String(rawValue).trim();
+          if (newValue.length > definition.maxLength) {
+            return interaction.acknowledge({
+              success: false,
+              message: `Value must be ${definition.maxLength} characters or fewer.`,
+            });
+          }
+        }
+
+        await client.db.execute(
+          /* sql */ `
+            INSERT INTO economy_settings (server_id, \`${name}\`)
+            VALUES (?, ?)
+            ON DUPLICATE KEY UPDATE \`${name}\` = VALUES(\`${name}\`)
+          `,
+          [guildId, newValue],
+        );
+      } else if (sectionKey === 'tickets') {
+        const definition = ticketSettings[name];
+        if (!Object.hasOwn(ticketSettings, name)) {
+          return interaction.acknowledge({ success: false, message: 'Invalid ticket setting name.' });
+        }
+
+        let newValue;
+        if (definition.type === 'number') {
+          newValue = Number(rawValue);
+          if (!Number.isInteger(newValue) || newValue < definition.min || newValue > definition.max) {
+            return interaction.acknowledge({
+              success: false,
+              message: `Enter a whole number between ${definition.min} and ${definition.max}.`,
+            });
+          }
+        } else {
+          newValue = String(rawValue).trim();
+          if (newValue.length > definition.maxLength) {
+            return interaction.acknowledge({
+              success: false,
+              message: `Value must be ${definition.maxLength} characters or fewer.`,
+            });
+          }
+        }
+
+        await client.db.execute(
+          /* sql */ `
+            INSERT INTO ticket_settings (server_id, \`${name}\`)
+            VALUES (?, ?)
+            ON DUPLICATE KEY UPDATE \`${name}\` = VALUES(\`${name}\`)
+          `,
+          [guildId, newValue],
+        );
       } else {
-        await client.settings.set(guildId, { ...guildSettings, [name]: newValue });
+        return interaction.acknowledge({ success: false, message: 'Unknown settings section.' });
       }
 
-      interaction.acknowledge({
+      await interaction.acknowledge({
         success: true,
-        message: `Successfully set ${name} to ${newValue}`,
+        message: `Successfully set ${name} to ${Array.isArray(value) ? value.join(',') : value}`,
       });
     });
 
@@ -165,6 +259,8 @@ export async function run(client) {
 
   // Delete server data scheduler (every day at midnight) after 30 days of leaving
   scheduleJob('DeleteServerData', '0 0 * * *', async () => {
+    if (!client.db) return;
+
     const thirtyDaysInMs = 2592000000;
     const cutoffTimestamp = Date.now() - thirtyDaysInMs;
 
@@ -209,7 +305,7 @@ export async function run(client) {
 
       // 4. Clean up the local cache
       for (const serverId of serverIds) {
-        client.settings.delete(serverId);
+        await client.deleteGuildSettings(serverId);
       }
 
       client.logger.log(`Bulk deleted MySQL data for ${serverIds.length} servers.`);
@@ -220,6 +316,8 @@ export async function run(client) {
 
   // Reminder scheduler
   scheduleJob('Reminders', '* * * * *', async () => {
+    if (!client.db) return;
+
     try {
       const [reminders] = await client.db.execute(
         /* sql */
@@ -342,6 +440,8 @@ export async function run(client) {
 
   // Delete expired items scheduler
   scheduleJob('DeleteExpiredItems', '* * * * *', async () => {
+    if (!client.db) return;
+
     try {
       const now = Date.now();
 
@@ -362,6 +462,8 @@ export async function run(client) {
 
   // Giveaway winner selection scheduler
   scheduleJob('GiveawayWinners', '* * * * *', async () => {
+    if (!client.db) return;
+
     try {
       const now = Date.now();
 
@@ -485,6 +587,8 @@ export async function run(client) {
 
   // Honeypot Channel Rename (every day at midnight)
   scheduleJob('honeypotChannelRename', '0 0 * * *', async () => {
+    if (!client.db) return;
+
     try {
       const [honeyRows] = await client.db.execute(/* sql */ `
         SELECT

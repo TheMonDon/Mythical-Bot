@@ -11,13 +11,15 @@ const {
 } = require('discord.js');
 const { LavalinkManager } = require('lavalink-client');
 const { readdirSync, statSync } = require('fs');
-const { QuickDB } = require('quick.db');
 const config = require('./config.js');
 const { Duration } = require('luxon');
-const Enmap = require('enmap');
 const path = require('path');
 
-const db = new QuickDB();
+const normalizeLavalinkNodes = (nodes) =>
+  nodes.map((node) => ({
+    requestSignalTimeoutMS: 30_000,
+    ...node,
+  }));
 
 class Bot extends Client {
   constructor(options) {
@@ -29,13 +31,12 @@ class Bot extends Client {
     this.slashCommands = new Collection();
     this.util = require('./util/Util.js');
 
-    this.settings = new Enmap({ name: 'settings', cloneLevel: 'deep', fetchAll: false, autoFetch: true });
-    this.games = new Enmap({ name: 'games', cloneLevel: 'deep', fetchAll: false, autoFetch: true });
+    this.settings = new Map();
     this.pauseTimeouts = new Map();
 
     this.logger = require('./util/Logger.js');
 
-    // PERMISSION LEVEL DEFINITIONS.
+    // PERMISSION LEVEL DEFINITIONS
     this.permLevels = [
       {
         level: 0,
@@ -46,8 +47,33 @@ class Bot extends Client {
         level: 1,
         name: 'Supporter',
         checkPermissions: async (context) => {
-          const premium = await db.get(`users.${context.user ? context.user.id : context.author.id}.premium`);
-          return premium === true;
+          // Check if the server is a supporter server in the database
+          const [serverRows] = await context.client.db.execute(
+            /* sql */ `
+              SELECT
+                premium
+              FROM
+                server_settings
+              WHERE
+                server_id = ?
+            `,
+            [context.guild ? context.guild.id : context.channel.guild.id],
+          );
+
+          // Check if the user has a premium status in the database
+          const [userRows] = await context.client.db.execute(
+            /* sql */ `
+              SELECT
+                premium
+              FROM
+                user_settings
+              WHERE
+                user_id = ?
+            `,
+            [context.user ? context.user.id : context.author.id],
+          );
+
+          return serverRows?.[0]?.premium === true || userRows?.[0]?.premium === true;
         },
       },
       {
@@ -118,7 +144,7 @@ class Bot extends Client {
   async permlevel(object) {
     let permlvl = 0;
 
-    const permOrder = client.permLevels.slice(0).sort((p, c) => (p.level < c.level ? 1 : -1));
+    const permOrder = this.permLevels.slice(0).sort((p, c) => (p.level < c.level ? 1 : -1));
 
     while (permOrder.length) {
       const currentLevel = permOrder.shift();
@@ -210,28 +236,75 @@ class Bot extends Client {
   // enmap should only have *unique* overrides that are different from defaults.
   getSettings(guild) {
     const defaults = this.settings.get('default') || {};
-    const guildData = guild ? this.settings.get(guild.id) || {} : {};
-    const returnObject = {};
-    Object.keys(defaults).forEach((key) => {
-      returnObject[key] = guildData[key] ? guildData[key] : defaults[key];
-    });
-    return returnObject;
+    const guildId = typeof guild === 'string' ? guild : guild?.id;
+    const guildData = guildId ? this.settings.get(guildId) || {} : {};
+    return { ...defaults, ...guildData };
   }
 
-  // writeSettings overrides, or adds, any configuration item that is different
-  // than the defaults. This ensures less storage wasted and to detect overrides.
-  writeSettings(id, newSettings) {
-    const defaults = this.settings.get('default');
-    let settings = this.settings.get(id);
-    if (typeof settings !== 'object') settings = {};
-    for (const key in newSettings) {
-      if (defaults[key] !== newSettings[key]) {
-        settings[key] = newSettings[key];
-      } else {
-        delete settings[key];
-      }
+  async loadSettings() {
+    const [rows] = await this.db.execute('SELECT setting_id, settings FROM bot_settings');
+    this.settings.clear();
+    for (const row of rows) {
+      this.settings.set(row.setting_id, typeof row.settings === 'string' ? JSON.parse(row.settings) : row.settings);
     }
+
+    if (!this.settings.has('default')) {
+      if (!this.config.defaultSettings) {
+        throw new Error('defaultSettings not preset in config.js or the MySQL settings table.');
+      }
+      await this.saveSettings('default', this.config.defaultSettings);
+    }
+  }
+
+  async saveSettings(id, settings) {
+    await this.db.execute(
+      /* sql */ `
+        INSERT INTO
+          bot_settings (setting_id, settings)
+        VALUES
+          (?, ?) ON DUPLICATE KEY
+        UPDATE settings =
+        VALUES
+          (settings)
+      `,
+      [id, JSON.stringify(settings)],
+    );
     this.settings.set(id, settings);
+  }
+
+  async setGuildSetting(guildId, key, value) {
+    const settings = { ...(this.settings.get(guildId) || {}), [key]: value };
+    await this.saveSettings(guildId, settings);
+  }
+
+  async deleteGuildSetting(guildId, key) {
+    const settings = { ...(this.settings.get(guildId) || {}) };
+    delete settings[key];
+    await this.saveSettings(guildId, settings);
+  }
+
+  async deleteGuildSettings(guildId) {
+    await this.db.execute('DELETE FROM bot_settings WHERE setting_id = ?', [guildId]);
+    this.settings.delete(guildId);
+  }
+
+  async setDefaultSetting(key, value) {
+    const defaults = { ...(this.settings.get('default') || {}) };
+    defaults[key] = value;
+    await this.saveSettings('default', defaults);
+  }
+
+  async deleteDefaultSetting(key) {
+    const defaults = { ...(this.settings.get('default') || {}) };
+    delete defaults[key];
+    await this.saveSettings('default', defaults);
+
+    for (const [guildId, settings] of this.settings) {
+      if (guildId === 'default' || !Object.hasOwn(settings, key)) continue;
+      const updatedSettings = { ...settings };
+      delete updatedSettings[key];
+      await this.saveSettings(guildId, updatedSettings);
+    }
   }
 }
 
@@ -259,13 +332,14 @@ const loadLavalink = async () => {
   if (!Array.isArray(config.nodes) || config.nodes.length === 0) return;
 
   client.lavalink = new LavalinkManager({
-    nodes: config.nodes,
+    nodes: normalizeLavalinkNodes(config.nodes),
     sendToShard: (guildId, payload) => client.guilds.cache.get(guildId)?.shard?.send(payload),
     autoSkip: true,
     client: {
       id: 'PLACEHOLDER', // Will be updated when ready
       username: 'Mythical Bot',
     },
+    maxTimeoutMs: 60000,
     playerOptions: {
       applyVolumeAsFilter: false,
       clientBasedPositionUpdateInterval: 150,
@@ -288,7 +362,7 @@ const loadLavalink = async () => {
       console.log(`Connected to Lavalink node: ${node.id}`);
     })
     .on('disconnect', (node, reason) => {
-      console.warn(`Disconnected from Lavalink node: ${node.id}, Reason: ${reason}`);
+      console.warn(`Disconnected from Lavalink node: ${node.id}, Reason: ${JSON.stringify(reason)}`);
     })
     .on('error', (node, error) => {
       console.error(`Lavalink node ${node.id} error:`, error);
@@ -531,9 +605,102 @@ const loadLavalink = async () => {
   });
 };
 
+// Reloads the lavalink node config from config.js without restarting the bot.
+// - Re-reads config.js (bypassing the require cache) to pick up edits on disk
+// - Removes nodes that were removed from (or changed in) config, then recreates them
+// - Forces a reconnect for unchanged nodes that aren't currently connected
+// - If lavalink init() failed at startup (no node connected), retries init()
+const reloadLavalinkNodes = async () => {
+  if (!client.lavalink?.nodeManager) throw new Error('Lavalink is not initialized.');
+  if (!client.isReady()) throw new Error('Bot is not ready yet (still connecting to Discord).');
+
+  // Invalidate the require cache so edits to config.js get picked up.
+  const configPath = require.resolve('./config.js');
+  delete require.cache[configPath];
+  const newConfig = require(configPath);
+  client.config = newConfig;
+
+  const newNodeOptions = normalizeLavalinkNodes(Array.isArray(newConfig.nodes) ? newConfig.nodes : []);
+  const nodeManager = client.lavalink.nodeManager;
+
+  // The NodeManager keys nodes by options.id, falling back to host:port.
+  const nodeKey = (o) => o.id || `${o.host}:${o.port}`;
+  const differs = (a, b) => JSON.stringify(a) !== JSON.stringify(b);
+
+  const summary = { removed: [], created: [], reconnected: [], failed: [] };
+
+  // 1) Remove nodes that are gone from config or whose options changed.
+  //    movePlayers = true sends active players to another connected node first.
+  for (const [id, node] of [...nodeManager.nodes]) {
+    const newOpts = newNodeOptions.find((o) => nodeKey(o) === id);
+    const optionsChanged = !newOpts || Object.keys(newOpts).some((k) => differs(node.options?.[k], newOpts[k]));
+
+    if (!optionsChanged) continue;
+    try {
+      nodeManager.deleteNode(node, true);
+      summary.removed.push(id);
+    } catch (error) {
+      console.error(`Failed to remove lavalink node "${id}" during reload:`, error);
+      summary.failed.push(id);
+    }
+  }
+
+  // 2) Create (and connect) nodes that are missing from the running manager.
+  for (const nodeOpts of newNodeOptions) {
+    const key = nodeKey(nodeOpts);
+    if (nodeManager.nodes.has(key)) continue;
+    try {
+      const node = nodeManager.createNode(nodeOpts);
+      await node.connect();
+      summary.created.push(key);
+    } catch (error) {
+      console.error(`Failed to create/connect lavalink node "${key}":`, error);
+      summary.failed.push(key);
+    }
+  }
+
+  // 3) Force-reconnect unchanged nodes that are currently down.
+  for (const node of [...nodeManager.nodes.values()]) {
+    if (node.connected) continue;
+    try {
+      // Same approach the library uses internally (NodeManager.reconnectAll):
+      // destroy without deleting from the manager, then reconnect, reusing the
+      // old sessionId so existing sessions/players can resume if possible.
+      const sessionId = node.sessionId ? `${node.sessionId}` : undefined;
+      await node.destroy('Reloading lavalink node config', false);
+      await node.connect(sessionId);
+      summary.reconnected.push(node.id);
+    } catch (error) {
+      console.error(`Failed to reconnect lavalink node "${node.id}":`, error);
+      summary.failed.push(node.id);
+    }
+  }
+
+  // 4) If init() never succeeded at startup (initiated only flips true once at
+  //    least one node connects), retry it so the manager becomes useable.
+  if (!client.lavalink.initiated) {
+    try {
+      await client.lavalink.init(client.user);
+    } catch (error) {
+      console.error('Failed to re-run lavalink init during reload:', error);
+    }
+  }
+
+  const connectedCount = [...nodeManager.nodes.values()].filter((n) => n.connected).length;
+  console.log(
+    `[Lavalink] Node config reloaded. Removed: ${summary.removed.join(', ') || 'none'} | ` +
+      `Created: ${summary.created.join(', ') || 'none'} | ` +
+      `Reconnected: ${summary.reconnected.join(', ') || 'none'}` +
+      (summary.failed.length ? ` | Failed: ${summary.failed.join(', ')}` : '') +
+      ` | Connected nodes: ${connectedCount}`,
+  );
+  return summary;
+};
+
 const loadMysql = async () => {
   if (!config.mysql?.host && !config.mysql?.database) {
-    throw new Error('MySQL configuration is missing. Please provide the necessary MySQL configuration in config.js.');
+    console.error('MySQL configuration is missing. Please provide the necessary MySQL configuration in config.js.');
+    process.exit(1);
   }
 
   const mysql = require('mysql2/promise');
@@ -568,6 +735,14 @@ const loadMysql = async () => {
   const connection = await pool.getConnection();
 
   try {
+    await connection.execute(/* sql */ `
+      CREATE TABLE IF NOT EXISTS bot_settings (
+        setting_id VARCHAR(30) NOT NULL,
+        settings JSON NOT NULL,
+        PRIMARY KEY (setting_id)
+      ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+    `);
+
     // Create tables if they do not exist
     await connection.execute(/* sql */ `
       CREATE TABLE IF NOT EXISTS command_aliases (
@@ -622,8 +797,7 @@ const loadMysql = async () => {
     if (triggers.length === 0) {
       await connection.query(/* sql */ `
         CREATE TRIGGER chatbot_stats_AFTER_INSERT
-        AFTER
-        UPDATE ON chatbot_stats FOR EACH ROW
+        AFTER UPDATE ON chatbot_stats FOR EACH ROW
         BEGIN INSERT IGNORE INTO chatbot_daily_stats (date, total_runs)
         VALUES
           (CURDATE (), 0);
@@ -641,7 +815,7 @@ const loadMysql = async () => {
     await connection.execute(/* sql */ `
       CREATE TABLE IF NOT EXISTS ticket_settings (
         server_id VARCHAR(30) PRIMARY KEY,
-        ticket_limit INT DEFAULT 3,
+        ticket_limit INT DEFAULT ${config.ticketSettings.ticket_limit.default || 3},
         role_id VARCHAR(30) DEFAULT NULL,
         category_id VARCHAR(30) DEFAULT NULL,
         logging_id VARCHAR(30) DEFAULT NULL
@@ -673,12 +847,20 @@ const loadMysql = async () => {
         server_id VARCHAR(30) NOT NULL,
         persistent_roles BOOLEAN DEFAULT FALSE,
         premium BOOLEAN DEFAULT FALSE,
-        chatbot BOOLEAN DEFAULT TRUE,
+        chatbot BOOLEAN DEFAULT FALSE,
         leave_timestamp BIGINT UNSIGNED DEFAULT NULL,
         warn_kick_threshold INT NOT NULL DEFAULT 8,
         warn_ban_threshold INT NOT NULL DEFAULT 10,
         warn_log_channel VARCHAR(30) NULL,
         PRIMARY KEY (server_id)
+      );
+    `);
+
+    await connection.execute(/* sql */ `
+      CREATE TABLE IF NOT EXISTS user_settings (
+        user_id BIGINT UNSIGNED NOT NULL,
+        premium BOOLEAN DEFAULT FALSE,
+        PRIMARY KEY (user_id)
       );
     `);
 
@@ -736,24 +918,25 @@ const loadMysql = async () => {
     await connection.execute(/* sql */ `
       CREATE TABLE IF NOT EXISTS economy_settings (
         server_id VARCHAR(30) NOT NULL,
-        crime_fine_min INT UNSIGNED DEFAULT 10,
-        crime_fine_max INT UNSIGNED DEFAULT 40,
-        slut_fine_min INT UNSIGNED DEFAULT 10,
-        slut_fine_max INT UNSIGNED DEFAULT 20,
-        rob_fine_min INT UNSIGNED DEFAULT 10,
-        rob_fine_max INT UNSIGNED DEFAULT 30,
-        crime_fail_rate INT UNSIGNED DEFAULT 45,
-        slut_fail_rate INT UNSIGNED DEFAULT 35,
-        start_balance BIGINT UNSIGNED DEFAULT 0,
-        work_min BIGINT UNSIGNED DEFAULT 20,
-        work_max BIGINT UNSIGNED DEFAULT 250,
-        slut_min BIGINT UNSIGNED DEFAULT 100,
-        slut_max BIGINT UNSIGNED DEFAULT 400,
-        crime_min BIGINT UNSIGNED DEFAULT 250,
-        crime_max BIGINT UNSIGNED DEFAULT 700,
-        chat_min BIGINT UNSIGNED DEFAULT 10,
-        chat_max BIGINT UNSIGNED DEFAULT 100,
-        symbol VARCHAR(50) DEFAULT '$',
+        crime_fine_min INT UNSIGNED DEFAULT ${config?.economySettings?.crime_fine_min?.default || 10},
+        crime_fine_max INT UNSIGNED DEFAULT ${config?.economySettings?.crime_fine_max?.default || 40},
+        slut_fine_min INT UNSIGNED DEFAULT ${config?.economySettings?.slut_fine_min?.default || 10},
+        slut_fine_max INT UNSIGNED DEFAULT ${config?.economySettings?.slut_fine_max?.default || 20},
+        rob_fine_min INT UNSIGNED DEFAULT ${config?.economySettings?.rob_fine_min?.default || 10},
+        rob_fine_max INT UNSIGNED DEFAULT ${config?.economySettings?.rob_fine_max?.default || 30},
+        crime_fail_rate INT UNSIGNED DEFAULT ${config?.economySettings?.crime_fail_rate?.default || 45},
+        slut_fail_rate INT UNSIGNED DEFAULT ${config?.economySettings?.slut_fail_rate?.default || 35},
+        start_balance_cash BIGINT UNSIGNED DEFAULT ${config?.economySettings?.start_balance_cash?.default || 0},
+        start_balance_bank BIGINT UNSIGNED DEFAULT ${config?.economySettings?.start_balance_bank?.default || 0},
+        work_min BIGINT UNSIGNED DEFAULT ${config?.economySettings?.work_min?.default || 20},
+        work_max BIGINT UNSIGNED DEFAULT ${config?.economySettings?.work_max?.default || 250},
+        slut_min BIGINT UNSIGNED DEFAULT ${config?.economySettings?.slut_min?.default || 100},
+        slut_max BIGINT UNSIGNED DEFAULT ${config?.economySettings?.slut_max?.default || 400},
+        crime_min BIGINT UNSIGNED DEFAULT ${config?.economySettings?.crime_min?.default || 250},
+        crime_max BIGINT UNSIGNED DEFAULT ${config?.economySettings?.crime_max?.default || 700},
+        chat_min BIGINT UNSIGNED DEFAULT ${config?.economySettings?.chat_min?.default || 10},
+        chat_max BIGINT UNSIGNED DEFAULT ${config?.economySettings?.chat_max?.default || 100},
+        symbol VARCHAR(50) DEFAULT ${config?.economySettings?.symbol?.default || '$'},
         PRIMARY KEY (server_id)
       ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE utf8mb4_unicode_ci;
     `);
@@ -762,8 +945,8 @@ const loadMysql = async () => {
       CREATE TABLE IF NOT EXISTS economy_balances (
         server_id VARCHAR(30) NOT NULL,
         user_id VARCHAR(30) NOT NULL,
-        cash DECIMAL(65, 0) DEFAULT 0,
-        bank DECIMAL(65, 0) DEFAULT 0,
+        cash DECIMAL(65, 0) DEFAULT ${config?.economySettings?.start_balance_cash?.default || 0},
+        bank DECIMAL(65, 0) DEFAULT ${config?.economySettings?.start_balance_bank?.default || 0},
         PRIMARY KEY (server_id, user_id)
       ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
     `);
@@ -1023,15 +1206,33 @@ const loadMysql = async () => {
     await connection.execute(/* sql */ `
       CREATE TABLE IF NOT EXISTS honeypot_triggers (
         id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-        server_id BIGINT UNSIGNED NOT NULL,
-        user_id BIGINT UNSIGNED NOT NULL,
-        channel_id BIGINT UNSIGNED NOT NULL,
-        message_id BIGINT UNSIGNED DEFAULT NULL,
+        server_id VARCHAR(30) NOT NULL,
+        user_id VARCHAR(30) NOT NULL,
+        channel_id VARCHAR(30) NOT NULL,
+        message_id VARCHAR(30) DEFAULT NULL,
         action_taken ENUM('softban', 'ban', 'none') NOT NULL,
         created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
         PRIMARY KEY (id),
         INDEX idx_guild_user (server_id, user_id),
         INDEX idx_created (created_at)
+      ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+    `);
+
+    // Use guild_id so scores don't get deleted when a servers data is deleted.
+    await connection.execute(/* sql */ `
+      CREATE TABLE IF NOT EXISTS game_scores (
+        id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+        game_type VARCHAR(32) NOT NULL,
+        user_id VARCHAR(30) NOT NULL,
+        score BIGINT NULL,
+        time_ms INT UNSIGNED NULL,
+        guild_id VARCHAR(30) NULL,
+        played_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (id),
+        INDEX idx_game_score (game_type, score DESC, time_ms ASC),
+        INDEX idx_game_time (game_type, time_ms ASC, score DESC),
+        INDEX idx_user_game (user_id, game_type, played_at),
+        INDEX idx_guild_game (guild_id, game_type, score DESC)
       ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
     `);
 
@@ -1191,9 +1392,17 @@ const init = async function init() {
   client.login(config.token);
 };
 
-loadMysql();
-loadLavalink();
-init();
+const start = async () => {
+  await loadMysql();
+  await client.loadSettings();
+  await loadLavalink();
+  client.reloadLavalinkNodes = reloadLavalinkNodes; // Callable from owner commands: await client.reloadLavalinkNodes();
+  await init();
+};
+
+start().catch((error) => {
+  console.error('Failed to start bot:', error);
+});
 
 client.on('error', (e) => {
   console.error(e);
