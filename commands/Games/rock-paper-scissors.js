@@ -31,14 +31,14 @@ class RockPaperScissors extends Command {
     if (mem.user.id === msg.author.id)
       return this.client.util.errorEmbed(msg, "You can't play against yourself, silly.");
 
-    this.client.games.set(msg.channel.id, { name: this.help.name, user: msg.author.id });
+    // this.client.games.set(msg.channel.id, { name: this.help.name, user: msg.author.id });
 
     // If the opponent isn't a bot, ask them if they accept the challenge.
     if (!mem.user.bot) {
       await msg.channel.send(`${mem}, do you accept this challenge?`);
       const verification = await this.client.util.verify(msg.channel, mem);
       if (!verification) {
-        this.client.games.delete(msg.channel.id);
+        // this.client.games.delete(msg.channel.id);
         return msg.channel.send('Looks like they declined...');
       }
       reply = await msg.channel.send(
@@ -72,7 +72,7 @@ class RockPaperScissors extends Command {
             .catch(() => {
               msg.channel.send('Error: You did not reply in time.');
               reply.delete();
-              this.client.games.delete(msg.channel.id);
+              // this.client.games.delete(msg.channel.id);
               return chan.send('The game starter did not reply in time, so the game was forfeited.');
             });
         });
@@ -143,7 +143,7 @@ class RockPaperScissors extends Command {
             .catch(() => {
               msg.channel.send('Error: You did not reply in time.');
               reply.delete();
-              this.client.games.delete(msg.channel.id);
+              // this.client.games.delete(msg.channel.id);
               return chan.send('The game starter did not reply in time, so the game was forfeited.');
             });
         });
@@ -183,7 +183,7 @@ class RockPaperScissors extends Command {
     }
 
     if (reply) reply.delete();
-    this.client.games.delete(msg.channel.id);
+    // this.client.games.delete(msg.channel.id);
     return chan.send({ embeds: [embed] });
   }
 }

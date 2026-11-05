@@ -1,6 +1,5 @@
 const Command = require('../../base/Command.js');
 const {
-  EmbedBuilder,
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
@@ -137,7 +136,7 @@ class Reminders extends Command {
     });
 
     collector.on('end', () => {
-      message.edit({ components: [buildContainer(true)], flags: MessageFlags.IsComponentsV2 });
+      message?.edit({ components: [buildContainer(true)], flags: MessageFlags.IsComponentsV2 }).catch(() => {});
     });
   }
 }

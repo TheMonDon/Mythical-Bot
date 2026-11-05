@@ -131,7 +131,7 @@ class Connect4 extends Command {
         await msg.channel.send(`${opponent}, do you accept this challenge?`);
         const verification = await this.client.util.verify(msg.channel, opponent);
         if (!verification) {
-          this.client.games.delete(msg.channel.id);
+          // this.client.games.delete(msg.channel.id);
           return msg.channel.send('Looks like they declined...');
         }
 
@@ -167,7 +167,7 @@ class Connect4 extends Command {
         }
       }
 
-      this.client.games.set(msg.channel.id, { name: this.help.name, user: msg.author.id });
+      // this.client.games.set(msg.channel.id, { name: this.help.name, user: msg.author.id });
 
       // Create the game
       const colLevels = [5, 5, 5, 5, 5, 5, 5];
@@ -308,7 +308,7 @@ class Connect4 extends Command {
           // They never pressed the button, end the game due to time and edit the message directly since collected doesn't exist
           AIEngine.gameOver = true;
           winner = 'time';
-          this.client.games.delete(msg.channel.id);
+          // this.client.games.delete(msg.channel.id);
 
           const content = await getContent(currentUser, opponentUser, opponentEmoji, currentEmoji);
           return await message.edit(content).catch(console.error);
@@ -368,7 +368,7 @@ class Connect4 extends Command {
       }
 
       // Delete the game and set content to function rather than pasting it three times
-      this.client.games.delete(msg.channel.id);
+      // this.client.games.delete(msg.channel.id);
       const content = await getContent(currentUser, opponentUser, opponentEmoji, currentEmoji);
 
       // Announce winner
@@ -383,7 +383,7 @@ class Connect4 extends Command {
       return message.edit(content).catch(console.error);
     } catch (err) {
       // An error occurred, delete the game and send the error to chat.
-      this.client.games.delete(msg.channel.id);
+      // this.client.games.delete(msg.channel.id);
       msg.channel.send(err).catch(console.error);
     }
   }

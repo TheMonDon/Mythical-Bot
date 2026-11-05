@@ -33,11 +33,12 @@ export async function run(client, message) {
           : (logRows[0].no_log_channels ?? []);
       if (noLogChans.includes(message.channel.id)) return;
 
+      // Re-enable this code after implementing proper game handling logic again
       // Check if a game is being played by message author (hangman, connect4, etc)
-      const current = client.games.get(message.channel.id);
-      if (current && ['connect4', 'hangman', 'wordle'].includes(current.name) && current.user === message.author.id) {
-        return;
-      }
+      // const current = client.games.get(message.channel.id);
+      // if (current && ['connect4', 'hangman', 'wordle'].includes(current.name) && current.user === message.author.id) {
+      //   return;
+      // }
 
       let delby;
       if (message.guild.members.me.permissions.has('ViewAuditLog')) {

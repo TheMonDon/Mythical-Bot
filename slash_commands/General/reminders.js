@@ -1,12 +1,10 @@
 const {
-  EmbedBuilder,
   SlashCommandBuilder,
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
   ComponentType,
   ContainerBuilder,
-  UserSelectMenuBuilder,
   MessageFlags,
 } = require('discord.js');
 
@@ -136,6 +134,6 @@ exports.run = async (interaction) => {
   });
 
   collector.on('end', () => {
-    interaction.editReply({ components: [buildContainer(true)], flags: MessageFlags.IsComponentsV2 });
+    interaction?.editReply({ components: [buildContainer(true)], flags: MessageFlags.IsComponentsV2 }).catch(() => {});
   });
 };

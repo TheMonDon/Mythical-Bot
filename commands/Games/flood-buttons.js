@@ -48,7 +48,7 @@ class FloodButtons extends Command {
     if (current) {
       return this.client.util.errorEmbed(msg, `Please wait until the current game of \`${current.name}\` is finished.`);
     }
-    this.client.games.set(msg.channel.id, { name: this.help.name, user: msg.author.id });
+    // this.client.games.set(msg.channel.id, { name: this.help.name, user: msg.author.id });
 
     const up = (pos) => ({ x: pos.x, y: pos.y - 1 });
     const down = (pos) => ({ x: pos.x, y: pos.y + 1 });
@@ -314,7 +314,7 @@ Filling starts at the top left corner.`,
 
       collector.on('end', async (collected, reason) => {
         try {
-          this.client.games.delete(msg.channel.id);
+          // this.client.games.delete(msg.channel.id);
 
           if (reason === 'time') {
             gameOver = true;
@@ -332,7 +332,7 @@ Filling starts at the top left corner.`,
         }
       });
     } catch (err) {
-      this.client.games.delete(msg.channel.id);
+      // this.client.games.delete(msg.channel.id);
       this.client.logger.error(`Flood: ${err}`);
       gameOver = true;
       result = 'error';

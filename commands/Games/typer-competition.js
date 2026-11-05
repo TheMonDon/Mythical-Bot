@@ -22,7 +22,7 @@ class TyperCompetition extends Command {
     if (current) {
       return this.client.util.errorEmbed(msg, `Please wait until the current game of \`${current.name}\` is finished.`);
     }
-    this.client.games.set(msg.channel.id, { name: this.help.name, user: msg.author.id, data: Date.now() });
+    // this.client.games.set(msg.channel.id, { name: this.help.name, user: msg.author.id, data: Date.now() });
 
     const randWord = randomWords(1).toString();
     const canvas = createCanvas(290, 80);
@@ -131,7 +131,7 @@ class TyperCompetition extends Command {
       console.error('Typer competition failed:', err);
       return msg.channel.send('The typer competition ended unexpectedly.');
     } finally {
-      this.client.games.delete(msg.channel.id);
+      // this.client.games.delete(msg.channel.id);
     }
   }
 }

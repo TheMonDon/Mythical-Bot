@@ -17,7 +17,7 @@ class Hangman extends Command {
     if (current) {
       return this.client.util.errorEmbed(msg, `Please wait until the current game of \`${current.name}\` is finished.`);
     }
-    this.client.games.set(msg.channel.id, { name: this.help.name, user: msg.author.id });
+    // this.client.games.set(msg.channel.id, { name: this.help.name, user: msg.author.id });
     const color = msg.settings.embedColor;
 
     let chances = 15;
@@ -62,11 +62,11 @@ class Hangman extends Command {
       collector.on('collect', async (r) => {
         if (r.emoji.name === '👎') {
           if (msg.guild.members.me.permissions.has('ManageMessages')) await questionMessage.delete();
-          this.client.games.delete(msg.channel.id);
+          // this.client.games.delete(msg.channel.id);
           return msg.reply("We are sorry but the user doesn't want to play hangman against you!");
         } else if (!r || r.length < 1) {
           if (msg.guild.members.me.permissions.has('ManageMessages')) await questionMessage.delete();
-          this.client.games.delete(msg.channel.id);
+          // this.client.games.delete(msg.channel.id);
           return msg.reply("We are sorry but that user doesn't want to play hangman against you!");
         }
 
@@ -201,7 +201,7 @@ class Hangman extends Command {
 
                   await message.delete();
                   if (msg.guild.members.me.permissions.has('ManageMessages')) await response.first().delete();
-                  this.client.games.delete(msg.channel.id);
+                  // this.client.games.delete(msg.channel.id);
                   return msg.channel.send(`Nobody won! The word to guess was: "**${wordToGuess}**"`);
                 }
               }
@@ -230,7 +230,7 @@ class Hangman extends Command {
                   turn === 1 ? msg.author : mention
                 } won this game! The word to guess was: "**${response.first().content.toLowerCase()}**"`;
 
-                this.client.games.delete(msg.channel.id);
+                // this.client.games.delete(msg.channel.id);
                 await message.delete();
                 if (msg.guild.members.me.permissions.has('ManageMessages')) await response.first().delete();
                 return msg.channel.send(gameWonString);
@@ -268,9 +268,11 @@ class Hangman extends Command {
         }
       });
 
+      /* 
       return collector.on('end', (collected) => {
         if (!collected || collected.size < 1) this.client.games.delete(msg.channel.id);
       });
+      */
     }
 
     // Start normal hangman game!
@@ -308,7 +310,7 @@ class Hangman extends Command {
             const noAnswer = await msg.channel.send(
               `You didn't give an answer! The word to guess was "**${wordToGuess}**"`,
             );
-            this.client.games.delete(msg.channel.id);
+            // this.client.games.delete(msg.channel.id);
             return setTimeout(() => {
               noAnswer.delete();
             }, 10000);
@@ -362,7 +364,7 @@ class Hangman extends Command {
                   .first()
                   .delete()
                   .catch(() => {});
-              this.client.games.delete(msg.channel.id);
+              // this.client.games.delete(msg.channel.id);
               return msg.reply(`You won this game! The word to guess was: "**${wordToGuess}**"`);
             }
             continue;
@@ -404,7 +406,7 @@ class Hangman extends Command {
                 .first()
                 .delete()
                 .catch(() => {});
-            this.client.games.delete(msg.channel.id);
+            // this.client.games.delete(msg.channel.id);
             return msg.reply(`You lost this game! The word to guess was: "**${wordToGuess}**"`);
           }
         }
@@ -427,7 +429,7 @@ class Hangman extends Command {
                 .first()
                 .delete()
                 .catch(() => {});
-            this.client.games.delete(msg.channel.id);
+            // this.client.games.delete(msg.channel.id);
             return msg.reply(`You won this game! The word to guess was: "**${wordToGuess}**"`);
           }
 
@@ -461,7 +463,7 @@ class Hangman extends Command {
       } catch (error) {
         console.log(error);
         await msg.reply(`You didn't give an answer! The word to guess was "**${wordToGuess}**"`);
-        return this.client.games.delete(msg.channel.id);
+        return; // this.client.games.delete(msg.channel.id);
       }
     }
   }

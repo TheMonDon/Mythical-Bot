@@ -46,7 +46,7 @@ class Wordle extends Command {
       }
     }
 
-    this.client.games.set(msg.channel.id, { name: this.help.name, user: msg.author.id });
+    // this.client.games.set(msg.channel.id, { name: this.help.name, user: msg.author.id });
 
     // Take the guess and the answer and return an array of results (🟩, 🟨, ⬜)
     function testWord(guess, answer) {
@@ -195,7 +195,7 @@ class Wordle extends Command {
       await error?.delete().catch(() => {});
     }
 
-    this.client.games.delete(msg.channel.id);
+    // this.client.games.delete(msg.channel.id);
     if (gameOver && turn >= 5) {
       return message.edit({ embeds: getContent() });
     }

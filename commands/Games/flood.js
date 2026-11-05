@@ -39,7 +39,7 @@ class Flood extends Command {
     if (current) {
       return this.client.util.errorEmbed(msg, `Please wait until the current game of \`${current.name}\` is finished.`);
     }
-    this.client.games.set(msg.channel.id, { name: this.help.name, user: msg.author.id });
+    // this.client.games.set(msg.channel.id, { name: this.help.name, user: msg.author.id });
 
     const up = (pos) => ({ x: pos.x, y: pos.y - 1 });
     const down = (pos) => ({ x: pos.x, y: pos.y + 1 });
@@ -189,7 +189,7 @@ Filling starts at the top left corner.`,
         if (!collected || !collected.first()) {
           gameOver = true;
           result = 'timeOut';
-          this.client.games.delete(msg.channel.id);
+          // this.client.games.delete(msg.channel.id);
           message.reactions.removeAll();
           const embed = await getContent(this.client);
           return message.edit({ embeds: [embed] });
@@ -204,7 +204,7 @@ Filling starts at the top left corner.`,
         if (selected === '🛑') {
           gameOver = true;
           result = 'earlyEnd';
-          this.client.games.delete(msg.channel.id);
+          // this.client.games.delete(msg.channel.id);
           message?.reactions?.removeAll();
           const embed = await getContent(this.client);
           return message.edit({ embeds: [embed] });
@@ -260,14 +260,14 @@ Filling starts at the top left corner.`,
       }
 
       if (gameOver === true) {
-        this.client.games.delete(msg.channel.id);
+        // this.client.games.delete(msg.channel.id);
         message?.reactions?.removeAll();
         const embed = await getContent(this.client);
         return message.edit({ embeds: [embed] });
       }
 
       if (turn >= moves) {
-        this.client.games.delete(msg.channel.id);
+        // this.client.games.delete(msg.channel.id);
         message?.reactions?.removeAll();
         gameOver = true;
         result = 'maxTurns';
@@ -275,10 +275,10 @@ Filling starts at the top left corner.`,
         return message.edit({ embeds: [embed] });
       }
 
-      this.client.games.delete(msg.channel.id);
+      // this.client.games.delete(msg.channel.id);
       return msg.channel.send('Something went wrong, please try again later.');
     } catch (err) {
-      this.client.games.delete(msg.channel.id);
+      // this.client.games.delete(msg.channel.id);
       this.client.logger.error(`Flood: ${err}`);
       message?.reactions?.removeAll();
       gameOver = true;
