@@ -80,13 +80,13 @@ class CloseTicket extends Command {
       const components = [];
 
       // Upload transcript via botpanel if client is configured
-      if (this.client.botpanelClient?.connected) {
+      if (this.client.botPanelClient?.connected) {
         try {
           htmlTranscript = await discordTranscripts.createTranscript(msg.channel, {
             returnType: 'string',
             poweredBy: false,
           });
-          const transcriptUrl = await this.client.botpanelClient.uploadTranscript(msg.guild.id, htmlTranscript);
+          const transcriptUrl = await this.client.botPanelClient.uploadTranscript(msg.guild.id, htmlTranscript);
           transcriptIsUploaded = true;
 
           // Create button with link to transcript
@@ -143,8 +143,11 @@ class CloseTicket extends Command {
           { name: 'Channel', value: `${tName}: ${msg.channel.id}`, inline: false },
           { name: 'Reason', value: reason, inline: false },
         ])
-        .setTimestamp()
-        .setFooter({ text: received === false ? 'Could not message author' : '' });
+        .setTimestamp();
+
+      if (received === false) {
+        logEmbed.setFooter({ text: 'Could not message author' });
+      }
 
       const logChannel = await msg.guild.channels.cache.get(logID);
 
@@ -193,7 +196,22 @@ class CloseTicket extends Command {
         )
         .setTimestamp();
 
-      await msg.channel.send({ embeds: [closeEmbed] });
+      // Create action buttons for closed ticket
+      const reopenButton = new ButtonBuilder()
+        .setCustomId('reopen_ticket')
+        .setLabel('Still Need Help?')
+        .setEmoji('🔄')
+        .setStyle(ButtonStyle.Primary);
+
+      const deleteButton = new ButtonBuilder()
+        .setCustomId('delete_ticket_now')
+        .setLabel('Delete Now')
+        .setEmoji('🗑️')
+        .setStyle(ButtonStyle.Danger);
+
+      const buttonRow = new ActionRowBuilder().addComponents(reopenButton, deleteButton);
+
+      await msg.channel.send({ embeds: [closeEmbed], components: [buttonRow] });
     } catch (err) {
       this.client.logger.error(err);
       this.client.util.errorEmbed(msg, 'An error occurred while trying to close the ticket. Please try again later.');

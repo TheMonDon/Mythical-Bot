@@ -76,6 +76,16 @@ class AddMember extends Command {
 
       await msg.channel.permissionOverwrites.edit(mem.id, { ViewChannel: true });
 
+      // Store the added member in the database
+      await this.client.db.execute(
+        /* sql */
+        `
+          INSERT IGNORE INTO ticket_members (server_id, channel_id, user_id)
+          VALUES (?, ?, ?)
+        `,
+        [msg.guild.id, msg.channel.id, mem.id],
+      );
+
       const em = new EmbedBuilder()
         .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
         .setTitle('Member Added')

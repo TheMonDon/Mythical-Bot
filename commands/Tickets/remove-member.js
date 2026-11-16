@@ -78,6 +78,19 @@ class RemoveMember extends Command {
 
       msg.channel.permissionOverwrites.edit(mem.id, { ViewChannel: null });
 
+      // Remove the member from the database
+      await this.client.db.execute(
+        /* sql*/
+        `
+          DELETE FROM ticket_members
+          WHERE
+            server_id = ?
+            AND channel_id = ?
+            AND user_id = ?
+        `,
+        [msg.guild.id, msg.channel.id, mem.id],
+      );
+
       const em = new EmbedBuilder()
         .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
         .setTitle('Member Removed')

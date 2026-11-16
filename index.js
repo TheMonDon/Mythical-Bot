@@ -835,6 +835,16 @@ const loadMysql = async () => {
     `);
 
     await connection.execute(/* sql */ `
+      CREATE TABLE IF NOT EXISTS ticket_members (
+        server_id VARCHAR(30) NOT NULL,
+        channel_id VARCHAR(30) NOT NULL,
+        user_id VARCHAR(30) NOT NULL,
+        PRIMARY KEY (server_id, channel_id, user_id),
+        FOREIGN KEY (server_id, channel_id) REFERENCES user_tickets(server_id, channel_id) ON DELETE CASCADE
+      );
+    `);
+
+    await connection.execute(/* sql */ `
       CREATE TABLE IF NOT EXISTS music_last_track (
         server_id VARCHAR(30) NOT NULL,
         channel_id VARCHAR(30) NOT NULL,
