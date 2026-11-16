@@ -35,7 +35,11 @@ export async function run(client) {
   }
 
   if (BotPanelID?.length > 0 && BotPanelSecret?.length > 0) {
-    const BotPanelClient = new Client({ id: BotPanelID, secret: BotPanelSecret });
+    const BotPanelClient = new Client({
+      id: BotPanelID,
+      secret: BotPanelSecret,
+      wss: 'wss://wss-staging.discordbotpanel.com',
+    });
 
     BotPanelClient.on('GUILD_INTERACTION', async (interaction) => {
       const isBotInGuild = client.guilds.cache.has(interaction.guildId);
@@ -221,7 +225,8 @@ export async function run(client) {
     });
 
     BotPanelClient.login();
-    console.log('✅ Successfully logged in to botpanel.xyz');
+    client.botPanelClient = BotPanelClient;
+    console.log('✅ Successfully logged in to BotPanel');
   }
 
   // Web server
@@ -387,7 +392,8 @@ export async function run(client) {
                 components.push(
                   new ActionRowBuilder().addComponents(
                     new ButtonBuilder()
-                      .setLabel('Message Unavailable')
+                      .setCustomId('message_unavailable')
+                      .setLabel('Original Message Unavailable')
                       .setStyle(ButtonStyle.Secondary)
                       .setDisabled(true),
                   ),
@@ -396,7 +402,11 @@ export async function run(client) {
             } else {
               components.push(
                 new ActionRowBuilder().addComponents(
-                  new ButtonBuilder().setLabel('Channel Unavailable').setStyle(ButtonStyle.Secondary).setDisabled(true),
+                  new ButtonBuilder()
+                    .setCustomId('channel_unavailable')
+                    .setLabel('Original Channel Unavailable')
+                    .setStyle(ButtonStyle.Secondary)
+                    .setDisabled(true),
                 ),
               );
             }
@@ -662,6 +672,117 @@ export async function run(client) {
       }
     } catch (err) {
       console.error('Failure in Honeypot Channel Renamer:', err);
+    }
+  });
+
+  scheduleJob('CloseTicketCleanup', '0 * * * *', async () => {
+    if (!client.db) return;
+
+    const twentyFourHoursInMs = 86400000;
+    const cutoffTimestamp = Date.now() - twentyFourHoursInMs;
+
+    try {
+      const [closedTickets] = await client.db.execute(
+        /* sql */ `
+          SELECT
+            server_id,
+            channel_id,
+            user_id
+          FROM
+            user_tickets
+          WHERE
+            closed_at IS NOT NULL
+            AND closed_at <= FROM_UNIXTIME (?)
+        `,
+        [Math.floor(cutoffTimestamp / 1000)],
+      );
+
+      if (closedTickets.length === 0) return;
+
+      for (const ticket of closedTickets) {
+        try {
+          const guild = client.guilds.cache.get(ticket.server_id);
+          if (!guild) {
+            await client.db.execute(
+              /* sql */ `
+                DELETE FROM user_tickets
+                WHERE
+                  server_id = ?
+                  AND channel_id = ?
+              `,
+              [ticket.server_id, ticket.channel_id],
+            );
+            continue;
+          }
+
+          const channel = guild.channels.cache.get(ticket.channel_id);
+          if (!channel) {
+            await client.db.execute(
+              /* sql */ `
+                DELETE FROM user_tickets
+                WHERE
+                  server_id = ?
+                  AND channel_id = ?
+              `,
+              [ticket.server_id, ticket.channel_id],
+            );
+            continue;
+          }
+
+          let transcriptURL;
+          try {
+            const transcript = await require('discord-html-transcripts-v2').createTranscript(channel, {
+              returnType: 'string',
+              poweredBy: false,
+              saveImages: true,
+            });
+            transcriptURL = await client.botPanelClient.uploadTranscript(ticket.server_id, transcript);
+          } catch (err) {
+            console.error(
+              `Failed to create transcript for ticket ${ticket.channel_id} in server ${ticket.server_id}:`,
+              err,
+            );
+            transcriptURL = null;
+          }
+
+          const ticketOwner = await client.users.fetch(ticket.user_id).catch(() => null);
+          if (ticketOwner && transcriptURL) {
+            const userEmbed = new EmbedBuilder()
+              .setTitle('Ticket Archived')
+              .setColor('#E65DF4')
+              .setDescription('Your ticket has been archived and the channel will be deleted.')
+              .addFields([
+                { name: 'Server', value: guild.name, inline: false },
+                {
+                  name: 'Transcript',
+                  value: `[View Transcript](${transcriptURL})`,
+                  inline: false,
+                },
+              ])
+              .setTimestamp();
+
+            await ticketOwner.send({ embeds: [userEmbed] }).catch(() => {});
+          }
+
+          await channel.delete().catch(() => {});
+
+          await client.db.execute(
+            /* sql */ `
+              DELETE FROM user_tickets
+              WHERE
+                server_id = ?
+                AND channel_id = ?
+            `,
+            [ticket.server_id, ticket.channel_id],
+          );
+        } catch (err) {
+          console.error(`Error processing closed ticket ${ticket.channel_id} in server ${ticket.server_id}:`, err);
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      }
+    } catch (err) {
+      console.error('Failure in Close Ticket Cleanup job:', err);
     }
   });
 }

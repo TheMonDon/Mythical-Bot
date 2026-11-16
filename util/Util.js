@@ -18,10 +18,9 @@ const yes = [
 const no = ['no', 'n', 'nah', 'nope', 'fuck off', 'nada', 'cancel', 'stop', 'nuh uh', 'nu', 'fuck no', 'false'];
 
 const { getColor } = require('colorthief');
-const { Message, EmbedBuilder, MessageFlagsBitField } = require('discord.js');
+const { Message, EmbedBuilder } = require('discord.js');
 const { createCanvas, loadImage, registerFont } = require('canvas');
 const tinycolor = require('tinycolor2');
-const { Duration } = require('luxon');
 const https = require('https');
 const path = require('path');
 
@@ -778,89 +777,6 @@ async function generateNowPlayingCard({ player, song, requester }) {
 }
 
 async function chatbotApiRequest(client, message) {
-  if (!message.guild) return;
-  if (!client.config.chatbotServerIds.includes(message.guild.id)) return;
-  if (!client.config.chatbotApi) return;
-  if (message.channel.id !== client.config.chatbotThreadId && !message.mentions.has(client.user)) return;
-  if (message.flags.has(MessageFlagsBitField.Flags.SuppressNotifications)) return;
-
-  // Don't respond if a bot role is mentioned or if @here or @everyone is mentioned
-  const botRoles = message.guild.members.me.roles.cache;
-  const roleMentions = message.mentions.roles;
-  const botRoleMentioned = botRoles.some((role) => roleMentions.has(role.id));
-  if (botRoleMentioned) return;
-  if (message.content.includes('@​here') || message.content.includes('@​everyone')) return;
-
-  const [settingsRows] = await client.db.execute(
-    /* sql */ `
-      SELECT
-        *
-      FROM
-        server_settings
-      WHERE
-        server_id = ?
-    `,
-    [message.guild.id],
-  );
-  let enabled = settingsRows[0]?.chatbot === 1;
-
-  if (settingsRows.length === 0) {
-    // If no settings found, create default settings
-    await client.db.execute(
-      /* sql */ `
-        INSERT INTO
-          server_settings (server_id, chatbot)
-        VALUES
-          (?, 1)
-      `,
-      [message.guild.id],
-    );
-    enabled = true;
-  }
-
-  if (!enabled) {
-    return 'disabled';
-  }
-
-  const [cooldownRows] = await client.db.execute(
-    /* sql */ `
-      SELECT
-        duration
-      FROM
-        cooldown_settings
-      WHERE
-        server_id = ?
-        AND cooldown_name = 'chatbot'
-    `,
-    [message.guild.id],
-  );
-  const cooldown = cooldownRows[0]?.duration || 5;
-
-  const [userCooldownRows] = await client.db.execute(
-    /* sql */ `
-      SELECT
-        *
-      FROM
-        cooldowns
-      WHERE
-        user_id = ?
-        AND cooldown_name = 'chatbot'
-        AND expires_at > NOW()
-    `,
-    [message.author.id],
-  );
-  const expiresAt = userCooldownRows[0]?.expires_at;
-
-  // Check if the user is on cooldown
-  if (expiresAt) {
-    const timeleft = new Date(expiresAt).getTime() - Date.now();
-    if (timeleft > 0 && timeleft <= cooldown * 1000) {
-      const timeLeftFormatted = Duration.fromMillis(timeleft).shiftTo('minutes', 'seconds').toHuman();
-
-      return `Please wait ${timeLeftFormatted} before using the chatbot again.`;
-    }
-  }
-
   await message.channel.sendTyping();
   let commandPrompt = `Below are the commands that you have as a bot. You have a total of ${client.commands.size} commands and ${client.slashCommands.size} slash commands. You must read and understand each one and its properties.\n\n`;
 
@@ -1119,28 +1035,12 @@ async function chatbotApiRequest(client, message) {
     }
   }
 
-  const response = await fetch(client.config.chatbotApi, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(body),
+  const reply = await client.ollama.chat({
+    model: client.config.ollamaModel,
+    messages: body.messages,
   });
 
-  await client.db.execute(
-    /* sql */ `
-      INSERT INTO
-        cooldowns (server_id, user_id, cooldown_name, expires_at)
-      VALUES
-        (?, ?, ?, NOW() + INTERVAL ? SECOND) ON DUPLICATE KEY
-      UPDATE expires_at =
-      VALUES
-        (expires_at)
-    `,
-    [message.guild.id, message.author.id, 'chatbot', cooldown],
-  );
-
-  return await response.json();
+  return reply;
 
   async function toBase64FromUrl(imageUrl) {
     return new Promise((resolve, reject) => {

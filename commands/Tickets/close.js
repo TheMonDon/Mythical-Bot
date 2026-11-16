@@ -1,7 +1,7 @@
 const discordTranscripts = require('discord-html-transcripts-v2');
 const Command = require('../../base/Command.js');
 const { stripIndents } = require('common-tags');
-const { EmbedBuilder } = require('discord.js');
+const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 
 class CloseTicket extends Command {
   constructor(client) {
@@ -75,88 +75,125 @@ class CloseTicket extends Command {
         }
       }
 
-      const em = new EmbedBuilder()
-        .setAuthor({ name: msg.member.displayName, iconURL: msg.member.displayAvatarURL() })
-        .setTitle('Ticket Closed')
-        .setColor('#E65DF4').setDescription(stripIndents`${msg.author} has requested to close this ticket.
-        The ticket will close in 5 minutes if no further activity occurs.
-      
-        Reason: ${reason}
-      `);
-      await msg.channel.send({ embeds: [em] });
+      let htmlTranscript = null;
+      let transcriptIsUploaded = false;
+      const components = [];
 
-      const filter = (m) => m.content?.length > 0;
+      // Upload transcript via botpanel if client is configured
+      if (this.client.botpanelClient?.connected) {
+        try {
+          htmlTranscript = await discordTranscripts.createTranscript(msg.channel, {
+            returnType: 'string',
+            poweredBy: false,
+          });
+          const transcriptUrl = await this.client.botpanelClient.uploadTranscript(msg.guild.id, htmlTranscript);
+          transcriptIsUploaded = true;
 
-      const collected = await msg.channel
-        .awaitMessages({
-          filter,
-          max: 1,
-          time: 300000,
-          errors: ['time'],
-        })
-        .catch(() => null);
+          // Create button with link to transcript
+          const row = new ActionRowBuilder().addComponents(
+            new ButtonBuilder().setLabel('View Transcript').setStyle(ButtonStyle.Link).setURL(transcriptUrl),
+          );
+          components.push(row);
+        } catch (e) {
+          console.error('Failed to upload transcript via botpanel:', e);
 
-      if (!collected) {
-        const attachment = await discordTranscripts.createTranscript(msg.channel);
-        let received;
-
-        const userEmbed = new EmbedBuilder()
-          .setTitle('Ticket Closed')
-          .setColor('#E65DF4')
-          .addFields([
-            { name: 'Reason', value: reason, inline: false },
-            { name: 'Server', value: msg.guild.name, inline: false },
-          ])
-          .setTimestamp();
-        const user = await this.client.users.fetch(owner);
-        await user.send({ embeds: [userEmbed], files: [attachment] }).catch(() => {
-          received = 'no';
+          try {
+            htmlTranscript = await discordTranscripts.createTranscript(msg.channel, {
+              poweredBy: false,
+            });
+          } catch (err) {
+            console.error('Failed to create transcript:', err);
+            return msg.channel.send(`Failed to create transcript, please try again later.`);
+          }
+        }
+      } else {
+        htmlTranscript = await discordTranscripts.createTranscript(msg.channel, {
+          poweredBy: false,
         });
-
-        const logEmbed = new EmbedBuilder()
-          .setAuthor({ name: user.displayName, iconURL: user.displayAvatarURL() })
-          .setTitle('Ticket Closed')
-          .addFields([
-            { name: 'Author', value: `<@${owner}> (${owner})`, inline: false },
-            { name: 'Channel', value: `${tName}: ${msg.channel.id}`, inline: false },
-            { name: 'Reason', value: reason, inline: false },
-          ])
-          .setColor('#E65DF4')
-          .setTimestamp();
-        if (received === 'no') logEmbed.setFooter({ text: 'Could not message author' });
-
-        await msg.guild.channels.cache
-          .get(logID)
-          .send({ embeds: [logEmbed], files: [attachment] })
-          .catch((e) => this.client.logger.error(e));
-
-        await this.client.db.execute(
-          /* sql */
-          `
-            DELETE FROM user_tickets
-            WHERE
-              server_id = ?
-              AND channel_id = ?
-          `,
-          [msg.guild.id, msg.channel.id],
-        );
-
-        return msg.channel.delete();
       }
 
-      const response = collected.first().content;
-      const embed = new EmbedBuilder()
-        .setTitle('Ticket Re-Opened')
-        .setDescription(
-          stripIndents`
-        Closing of the ticket has been cancelled with the following reason:
-
-        ${response}`,
-        )
-        .setColor('#E65DF4')
+      const user = await this.client.users.fetch(owner);
+      const userEmbed = new EmbedBuilder()
+        .setTitle('Ticket Closed')
+        .setColor(msg.settings.embedColor)
+        .addFields([
+          { name: 'Reason', value: reason, inline: false },
+          { name: 'Server', value: msg.guild.name, inline: false },
+          { name: 'Note', value: 'This ticket will be automatically deleted in 24 hours.', inline: false },
+        ])
         .setTimestamp();
 
-      return msg.channel.send({ embeds: [embed] });
+      let received;
+      if (transcriptIsUploaded) {
+        await user.send({ embeds: [userEmbed], components }).catch(() => {
+          received = false;
+        });
+      } else {
+        await user.send({ embeds: [userEmbed], files: [htmlTranscript] }).catch(() => {
+          received = false;
+        });
+      }
+
+      const logEmbed = new EmbedBuilder()
+        .setAuthor({ name: user.displayName, iconURL: user.displayAvatarURL() })
+        .setTitle('Ticket Closed')
+        .setColor(msg.settings.embedColor)
+        .addFields([
+          { name: 'Author', value: `<@${owner}> (${owner})`, inline: false },
+          { name: 'Channel', value: `${tName}: ${msg.channel.id}`, inline: false },
+          { name: 'Reason', value: reason, inline: false },
+        ])
+        .setTimestamp()
+        .setFooter({ text: received === false ? 'Could not message author' : '' });
+
+      const logChannel = await msg.guild.channels.cache.get(logID);
+
+      if (transcriptIsUploaded) {
+        await logChannel.send({ embeds: [logEmbed], components }).catch((e) => console.error(e));
+      } else {
+        await logChannel.send({ embeds: [logEmbed], files: [htmlTranscript] }).catch((e) => console.error(e));
+      }
+
+      // Set closed_at timestamp in database
+      await this.client.db.execute(
+        /* sql */
+        `
+          UPDATE user_tickets
+          SET
+            closed_at = NOW()
+          WHERE
+            server_id = ?
+            AND channel_id = ?
+        `,
+        [msg.guild.id, msg.channel.id],
+      );
+
+      // Make channel view-only
+      await msg.channel.permissionOverwrites.set(
+        [
+          {
+            id: msg.guild.roles.everyone.id,
+            deny: ['SendMessages', 'AddReactions', 'CreatePublicThreads', 'CreatePrivateThreads'],
+          },
+          {
+            id: owner,
+            allow: ['ViewChannel', 'ReadMessageHistory'],
+            deny: ['SendMessages', 'AddReactions', 'CreatePublicThreads', 'CreatePrivateThreads'],
+          },
+        ],
+        'Ticket closed - channel set to view-only',
+      );
+
+      const closeEmbed = new EmbedBuilder()
+        .setTitle('Ticket Closed')
+        .setColor(msg.settings.embedColor)
+        .setDescription(
+          stripIndents`This ticket has been closed.
+        The channel will be automatically deleted in 24 hours.`,
+        )
+        .setTimestamp();
+
+      await msg.channel.send({ embeds: [closeEmbed] });
     } catch (err) {
       this.client.logger.error(err);
       this.client.util.errorEmbed(msg, 'An error occurred while trying to close the ticket. Please try again later.');

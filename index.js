@@ -829,6 +829,7 @@ const loadMysql = async () => {
         user_id VARCHAR(30) NOT NULL,
         topic_cooldown BOOLEAN DEFAULT FALSE,
         cooldown_until BIGINT DEFAULT NULL,
+        closed_at TIMESTAMP NULL DEFAULT NULL,
         PRIMARY KEY (server_id, channel_id)
       );
     `);
@@ -1392,11 +1393,21 @@ const init = async function init() {
   client.login(config.token);
 };
 
+const chatbot = async function () {
+  if (!client.config.ollamaHost) {
+    return;
+  }
+
+  const { Ollama } = require('ollama');
+  client.ollama = new Ollama({ host: client.config.ollamaHost });
+};
+
 const start = async () => {
   await loadMysql();
   await client.loadSettings();
   await loadLavalink();
   client.reloadLavalinkNodes = reloadLavalinkNodes; // Callable from owner commands: await client.reloadLavalinkNodes();
+  await chatbot();
   await init();
 };
 

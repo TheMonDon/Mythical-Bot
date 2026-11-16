@@ -8,8 +8,10 @@ import {
   SectionBuilder,
   ThumbnailBuilder,
   TextDisplayBuilder,
+  MessageFlagsBitField,
 } from 'discord.js';
 import { promisify } from 'util';
+import { Duration } from 'luxon';
 const setTimeoutPromise = promisify(setTimeout);
 
 async function hasPermissionToSendMessage(client, message) {
@@ -109,19 +111,118 @@ async function handleEconomyEvent(client, message) {
 }
 
 async function handleChatbot(client, message) {
+  let processingMessage;
   try {
-    const chatbotResponse = await client.util.chatbotApiRequest(client, message);
-    if (chatbotResponse?.toString().startsWith('Please wait')) {
-      await message.reply({
-        content: chatbotResponse,
-        allowedMentions: { repliedUser: false },
-      });
-      return;
-    } else if (chatbotResponse?.toString().startsWith('disabled')) {
+    if (!message.guild) return;
+    if (!client.config.chatbotServerIds.includes(message.guild.id)) return;
+    if (!client.config.ollamaHost) return;
+    if (!client.config.ollamaModel) return;
+    if (message.channel.id !== client.config.chatbotThreadId && !message.mentions.has(client.user)) return;
+    if (message.flags.has(MessageFlagsBitField.Flags.SuppressNotifications)) return;
+
+    // Don't respond if a bot role is mentioned or if @here or @everyone is mentioned
+    const botRoles = message.guild.members.me.roles.cache;
+    const roleMentions = message.mentions.roles;
+    const botRoleMentioned = botRoles.some((role) => roleMentions.has(role.id));
+    if (botRoleMentioned) return;
+    if (message.content.includes('@​here') || message.content.includes('@​everyone')) return;
+
+    const [settingsRows] = await client.db.execute(
+      /* sql */ `
+        SELECT
+          *
+        FROM
+          server_settings
+        WHERE
+          server_id = ?
+      `,
+      [message.guild.id],
+    );
+    let enabled = settingsRows[0]?.chatbot === 1;
+
+    if (settingsRows.length === 0) {
+      // If no settings found, create default settings
+      await client.db.execute(
+        /* sql */ `
+          INSERT INTO
+            server_settings (server_id, chatbot)
+          VALUES
+            (?, 1)
+        `,
+        [message.guild.id],
+      );
+      enabled = true;
+    }
+
+    if (!enabled) {
       return;
     }
 
-    let reply = chatbotResponse?.choices?.[0]?.message?.content?.replace('{message.guild.name}', message.guild.name);
+    const [cooldownRows] = await client.db.execute(
+      /* sql */ `
+        SELECT
+          duration
+        FROM
+          cooldown_settings
+        WHERE
+          server_id = ?
+          AND cooldown_name = 'chatbot'
+      `,
+      [message.guild.id],
+    );
+    const cooldown = cooldownRows[0]?.duration || 30;
+
+    const [userCooldownRows] = await client.db.execute(
+      /* sql */ `
+        SELECT
+          *
+        FROM
+          cooldowns
+        WHERE
+          user_id = ?
+          AND cooldown_name = 'chatbot'
+          AND expires_at > NOW()
+      `,
+      [message.author.id],
+    );
+    const expiresAt = userCooldownRows[0]?.expires_at;
+
+    // Check if the user is on cooldown
+    if (expiresAt) {
+      const timeleft = new Date(expiresAt).getTime() - Date.now();
+      if (timeleft > 0 && timeleft <= cooldown * 1000) {
+        const timeLeftFormatted = Duration.fromMillis(timeleft).shiftTo('minutes', 'seconds').toHuman();
+
+        return message.reply({
+          content: `Please wait ${timeLeftFormatted} before using the chatbot again.`,
+          allowedMentions: { repliedUser: false },
+        });
+      }
+    }
+
+    // Send initial processing message
+    try {
+      processingMessage = await message.reply({
+        content: '⏳ Processing your input... (Running on K80 GPU - this may take a moment)',
+        allowedMentions: { repliedUser: false },
+      });
+    } catch {
+      processingMessage = await message.channel.send({
+        content: '⏳ Processing your input... (Running on K80 GPU - this may take a moment)',
+        allowedMentions: { repliedUser: false },
+      });
+    }
+
+    const chatbotResponse = await client.util.chatbotApiRequest(client, message);
+
+    if (chatbotResponse?.toString().startsWith('Please wait')) {
+      await processingMessage.edit({
+        content: chatbotResponse,
+      });
+      return;
+    }
+
+    let reply = chatbotResponse?.message?.content?.replace('{message.guild.name}', message.guild.name);
     if (reply) {
       reply = await client.util.clean(client, reply);
       function splitMessage(text, maxLength = 2000) {
@@ -151,20 +252,23 @@ async function handleChatbot(client, message) {
 
       const chunks = splitMessage(reply);
 
-      for (let i = 0; i < chunks.length; i++) {
-        if (i === 0) {
-          try {
-            await message.reply({
-              content: chunks[i],
-              allowedMentions: { repliedUser: false },
-            });
-          } catch {
-            await message.channel.send({ content: chunks[i] });
-          }
-        } else {
-          await setTimeoutPromise(2000);
-          await message.channel.send({ content: chunks[i] });
+      // Edit the processing message with the first chunk
+      if (chunks.length > 0) {
+        try {
+          await processingMessage.edit({
+            content: chunks[0],
+            allowedMentions: { repliedUser: false },
+          });
+        } catch {
+          await processingMessage.delete().catch(() => {});
+          await message.channel.send({ content: chunks[0] });
         }
+      }
+
+      // Send remaining chunks if any
+      for (let i = 1; i < chunks.length; i++) {
+        await setTimeoutPromise(2000);
+        await message.channel.send({ content: chunks[i] });
       }
 
       await client.db.execute(/* sql */ `
@@ -177,12 +281,30 @@ async function handleChatbot(client, message) {
     } else if (chatbotResponse && !reply) {
       console.error('Chatbot response is empty or malformed:', chatbotResponse);
 
-      await message.reply({
+      await processingMessage.edit({
         content: "Sorry, I couldn't generate a response. Please try again later.",
         allowedMentions: { repliedUser: false },
       });
     }
+
+    await client.db.execute(
+      /* sql */ `
+        INSERT INTO
+          cooldowns (server_id, user_id, cooldown_name, expires_at)
+        VALUES
+          (?, ?, ?, NOW() + INTERVAL ? SECOND) ON DUPLICATE KEY
+        UPDATE expires_at =
+        VALUES
+          (expires_at)
+      `,
+      [message.guild.id, message.author.id, 'chatbot', cooldown],
+    );
   } catch (err) {
+    if (processingMessage) await processingMessage?.delete().catch(() => {});
+    await message.reply({
+      content: "Sorry, I couldn't generate a response due to an error. Please try again later.",
+      allowedMentions: { repliedUser: false },
+    });
     console.error('Chatbot error:', err);
   }
 }

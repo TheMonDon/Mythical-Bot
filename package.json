@@ -1,6 +1,6 @@
 {
   "name": "mythical",
-  "version": "6.0.0-beta.1",
+  "version": "6.0.0-beta.2",
   "description": "Mythical Bot",
   "owner": "themondon",
   "main": "index.js",
@@ -54,6 +54,7 @@
     "nekos.life": "^3.0.0",
     "node-schedule": "^2.1.0",
     "node-superfetch": "^0.2.3",
+    "ollama": "^0.6.4",
     "openweather-apis": "^4.4.2",
     "parse-duration": "^2.1.3",
     "random-words": "^1.2.0",

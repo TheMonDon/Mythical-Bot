@@ -125,7 +125,7 @@ export async function run(client, interaction) {
 
       if (slashCommand.conf.requireSupporter) {
         // Check if the server is a supporter server in the database
-        const [serverRows] = await context.client.db.execute(
+        const [serverRows] = await client.db.execute(
           /* sql */ `
             SELECT
               premium
@@ -134,11 +134,11 @@ export async function run(client, interaction) {
             WHERE
               server_id = ?
           `,
-          [context.guild ? context.guild.id : context.channel.guild.id],
+          [interaction.guild ? interaction.guild.id : interaction.channel.guild.id],
         );
 
         // Check if the user has a premium status in the database
-        const [userRows] = await context.client.db.execute(
+        const [userRows] = await client.db.execute(
           /* sql */ `
             SELECT
               premium
@@ -147,7 +147,7 @@ export async function run(client, interaction) {
             WHERE
               user_id = ?
           `,
-          [context.user ? context.user.id : context.author.id],
+          [interaction.user ? interaction.user.id : interaction.user.id],
         );
 
         // If neither the server nor the user has premium, return an error
@@ -661,7 +661,7 @@ export async function run(client, interaction) {
             { name: 'Channel', value: `${tixChan} \n(${tName}: ${tixChan.id})`, inline: false },
             { name: 'Reason', value: reason, inline: false },
           ])
-          .setColor('#E65DF4')
+          .setColor(interaction.settings.embedColor)
           .setTimestamp();
         const logChan = interaction.guild.channels.cache.get(logID);
         await logChan.send({ embeds: [logEmbed] }).catch(() => {});
@@ -671,7 +671,7 @@ export async function run(client, interaction) {
           .setTitle(`${member.displayName}'s Ticket`)
           .addFields([{ name: 'Reason', value: reason, inline: false }])
           .setDescription('Please wait patiently and our support team will be with you shortly.')
-          .setColor('#E65DF4')
+          .setColor(interaction.settings.embedColor)
           .setTimestamp();
 
         // Create the persistent close button
@@ -750,28 +750,46 @@ export async function run(client, interaction) {
 
         const reason = interaction.fields.getTextInputValue('reasonInput') || 'No reason specified';
 
-        const em = new EmbedBuilder().setTitle('Ticket Closed').setColor('#E65DF4')
-          .setDescription(stripIndents`${interaction.user} has requested to close this ticket.
-          The ticket will close in 5 minutes if no further activity occurs.
+        try {
+          let htmlTranscript = null;
+          let transcriptIsUploaded = false;
+          const components = [];
 
-          Reason: ${reason}
-        `);
-        await interaction.editReply({ embeds: [em] });
+          // Upload transcript via botpanel if client is configured
+          if (interaction.client.botpanelClient?.connected) {
+            try {
+              htmlTranscript = await discordTranscripts.createTranscript(interaction.channel, {
+                returnType: 'string',
+                poweredBy: false,
+              });
+              const transcriptUrl = await interaction.client.botpanelClient.uploadTranscript(
+                interaction.guild.id,
+                htmlTranscript,
+              );
+              transcriptIsUploaded = true;
 
-        const filter = (m) => m.content?.length > 0;
+              // Create button with link to transcript
+              const row = new ActionRowBuilder().addComponents(
+                new ButtonBuilder().setLabel('View Transcript').setStyle(ButtonStyle.Link).setURL(transcriptUrl),
+              );
+              components.push(row);
+            } catch (e) {
+              console.error('Failed to upload transcript via botpanel:', e);
 
-        const collected = await interaction.channel
-          .awaitMessages({
-            filter,
-            max: 1,
-            time: 300000,
-            errors: ['time'],
-          })
-          .catch(() => null);
-
-        if (!collected) {
-          const attachment = await discordTranscripts.createTranscript(interaction.channel);
-          let received;
+              try {
+                htmlTranscript = await discordTranscripts.createTranscript(interaction.channel, {
+                  poweredBy: false,
+                });
+              } catch (err) {
+                console.error('Failed to create transcript:', err);
+                return interaction.editReply(`Failed to create transcript, please try again later.`);
+              }
+            }
+          } else {
+            htmlTranscript = await discordTranscripts.createTranscript(interaction.channel, {
+              poweredBy: false,
+            });
+          }
 
           const userEmbed = new EmbedBuilder()
             .setTitle('Ticket Closed')
@@ -779,34 +797,52 @@ export async function run(client, interaction) {
             .addFields([
               { name: 'Reason', value: reason, inline: false },
               { name: 'Server', value: interaction.guild.name, inline: false },
+              { name: 'Note', value: 'This ticket will be automatically deleted in 24 hours.', inline: false },
             ])
             .setTimestamp();
+
           const user = await client.users.fetch(owner);
-          await user.send({ embeds: [userEmbed], files: [attachment] }).catch(() => {
-            received = 'no';
-          });
+          let received;
+          if (transcriptIsUploaded) {
+            await user.send({ embeds: [userEmbed], components }).catch(() => {
+              received = false;
+            });
+          } else {
+            await user.send({ embeds: [userEmbed], files: [htmlTranscript] }).catch(() => {
+              received = false;
+            });
+          }
 
           const logEmbed = new EmbedBuilder()
             .setAuthor({ name: user.displayName, iconURL: user.displayAvatarURL() })
             .setTitle('Ticket Closed')
+            .setColor(interaction.settings.embedColor)
             .addFields([
               { name: 'Author', value: `<@${owner}> (${owner})`, inline: false },
               { name: 'Channel', value: `${tName}: ${interaction.channel.id}`, inline: false },
               { name: 'Reason', value: reason, inline: false },
             ])
-            .setColor('#E65DF4')
-            .setTimestamp();
-          if (received === 'no') logEmbed.setFooter({ text: 'Could not message author' });
+            .setFooter({ text: received === false ? 'Could not message author' : '' });
 
-          await interaction.guild.channels.cache
-            .get(logID)
-            .send({ embeds: [logEmbed], files: [attachment] })
-            .catch((e) => client.logger.error(e));
+          if (transcriptUrl) {
+            logEmbed.addFields([{ name: 'Transcript', value: `[View Transcript](${transcriptUrl})`, inline: false }]);
+          }
 
+          const logChannel = await interaction.guild.channels.cache.get(logID).catch((e) => console.error(e));
+
+          if (transcriptIsUploaded) {
+            await logChannel.send({ embeds: [logEmbed], components }).catch((e) => console.error(e));
+          } else {
+            await logChannel.send({ embeds: [logEmbed], files: [htmlTranscript] }).catch((e) => console.error(e));
+          }
+
+          // Set closed_at timestamp in database
           await client.db.execute(
             /* sql */
             `
-              DELETE FROM user_tickets
+              UPDATE user_tickets
+              SET
+                closed_at = NOW()
               WHERE
                 server_id = ?
                 AND channel_id = ?
@@ -814,22 +850,37 @@ export async function run(client, interaction) {
             [interaction.guild.id, interaction.channel.id],
           );
 
-          return interaction.channel.delete();
+          // Make channel view-only
+          await interaction.channel.permissionOverwrites.set(
+            [
+              {
+                id: interaction.guild.roles.everyone.id,
+                deny: ['SendMessages', 'AddReactions', 'CreatePublicThreads', 'CreatePrivateThreads'],
+              },
+              {
+                id: owner,
+                allow: ['ViewChannel', 'ReadMessageHistory'],
+                deny: ['SendMessages', 'AddReactions', 'CreatePublicThreads', 'CreatePrivateThreads'],
+              },
+            ],
+            'Ticket closed - channel set to view-only',
+          );
+
+          const closeEmbed = new EmbedBuilder()
+            .setTitle('Ticket Closed')
+            .setColor(interaction.settings.embedColor)
+            .setDescription(
+              stripIndents`This ticket has been closed.
+              The channel will be automatically deleted in 24 hours.`,
+            )
+            .setTimestamp();
+
+          await interaction.channel.send({ embeds: [closeEmbed] });
+          return interaction.editReply('Ticket has been closed successfully!');
+        } catch (err) {
+          client.logger.error(err);
+          return interaction.editReply('An error occurred while closing the ticket.');
         }
-
-        const response = collected.first().content;
-        const embed = new EmbedBuilder()
-          .setTitle('Ticket Re-Opened')
-          .setDescription(
-            stripIndents`
-              Closing of the ticket has been cancelled with the following reason:
-      
-              ${response}`,
-          )
-          .setColor('#E65DF4')
-          .setTimestamp();
-
-        return interaction.channel.send({ embeds: [embed] });
       }
 
       // Handle modal submit for honeypot
@@ -966,16 +1017,16 @@ export async function run(client, interaction) {
             if (honeypotChannelObj) {
               try {
                 const textDisplay = new TextDisplayBuilder().setContent(`
-## Welcome to the honeypot channel! 
-- Any user that sends a message in this channel will be **automatically ${newAction === 'softban' ? 'softbanned**' + ' (banned and instantly unbanned to delete last 1hr messages)' : 'banned**' + ' (banned to delete last 1hr of messages)'} 
-- You can customize this and more with the /honeypot command
-- **Tips for maximum effectiveness:**
-  - Rename this channel to something unique (e.g., \`${newName}\`) so bots can’t easily guess and blacklist it
-  - Keep it near the top of your channel list - bots often target the first few channels
-  - Make sure the bots' highest role is set above any self-assignable roles, so it can act on all users
+          ## Welcome to the honeypot channel! 
+          - Any user that sends a message in this channel will be **automatically ${newAction === 'softban' ? 'softbanned**' + ' (banned and instantly unbanned to delete last 1hr messages)' : 'banned**' + ' (banned to delete last 1hr of messages)'} 
+          - You can customize this and more with the /honeypot command
+          - **Tips for maximum effectiveness:**
+            - Rename this channel to something unique (e.g., \`${newName}\`) so bots can’t easily guess and blacklist it
+            - Keep it near the top of your channel list - bots often target the first few channels
+            - Make sure the bots' highest role is set above any self-assignable roles, so it can act on all users
 
--# This message will self destruct <t:${Math.floor((Date.now() + 5 * 60 * 1000) / 1000)}:R>
-`);
+          -# This message will self destruct <t:${Math.floor((Date.now() + 5 * 60 * 1000) / 1000)}:R>
+          `);
 
                 const message = await honeypotChannelObj.send({
                   flags: MessageFlags.IsComponentsV2,
@@ -1003,8 +1054,6 @@ export async function run(client, interaction) {
             }
 
             try {
-              const guildSettings = await client.settings.get(interaction.guild.id);
-
               let buttonLabel;
 
               if (newAction === 'softban') {
@@ -1054,16 +1103,16 @@ export async function run(client, interaction) {
               );
 
               const textDisplay = new TextDisplayBuilder().setContent(`
-## Welcome to the honeypot channel! 
-- Any user that sends a message in this channel will be **automatically ${newAction === 'softban' ? 'softbanned**' + ' (banned and instantly unbanned to delete last 1hr messages)' : 'banned**' + ' (banned to delete last 1hr of messages)'} 
-- You can customize this and more with the /honeypot command
-- **Tips for maximum effectiveness:**
-  - Rename this channel to something unique (e.g., \`${newName}\`) so bots can’t easily guess and blacklist it
-  - Keep it near the top of your channel list - bots often target the first few channels
-  - Make sure the bots' highest role is set above any self-assignable roles, so it can act on all users
+          ## Welcome to the honeypot channel! 
+          - Any user that sends a message in this channel will be **automatically ${newAction === 'softban' ? 'softbanned**' + ' (banned and instantly unbanned to delete last 1hr messages)' : 'banned**' + ' (banned to delete last 1hr of messages)'} 
+          - You can customize this and more with the /honeypot command
+          - **Tips for maximum effectiveness:**
+            - Rename this channel to something unique (e.g., \`${newName}\`) so bots can’t easily guess and blacklist it
+            - Keep it near the top of your channel list - bots often target the first few channels
+            - Make sure the bots' highest role is set above any self-assignable roles, so it can act on all users
 
--# This message will self destruct <t:${Math.floor((Date.now() + 5 * 60 * 1000) / 1000)}:R>
-`);
+          -# This message will self destruct <t:${Math.floor((Date.now() + 5 * 60 * 1000) / 1000)}:R>
+          `);
 
               const message = await honeypotChannelObj.send({
                 flags: MessageFlags.IsComponentsV2,
@@ -1091,10 +1140,10 @@ export async function run(client, interaction) {
 
           return interaction.editReply({
             content: stripIndents`Honeypot settings created.
--# - Channel: ${newChannelId ? `<#${newChannelId}>` : 'No channel set'}
--# - Log Channel: ${newLogChannelId ? `<#${newLogChannelId}>` : 'No log channel set'}
--# - Action: \`${newAction}\`
--# - Options: \`${newOptions.length > 0 ? newOptions.join(', ') : 'None'}\``,
+          -# - Channel: ${newChannelId ? `<#${newChannelId}>` : 'No channel set'}
+          -# - Log Channel: ${newLogChannelId ? `<#${newLogChannelId}>` : 'No log channel set'}
+          -# - Action: \`${newAction}\`
+          -# - Options: \`${newOptions.length > 0 ? newOptions.join(', ') : 'None'}\``,
           });
         }
 
@@ -1169,7 +1218,6 @@ export async function run(client, interaction) {
               [interaction.guild.id],
             );
             const triggerCount = updatedRows[0]?.trigger_count ?? 0;
-            const guildSettings = await client.settings.get(interaction.guild.id);
 
             const buttonLabel = newAction === 'ban' ? `Bans: ${triggerCount}` : `Kicks: ${triggerCount}`;
             const actionText = newAction === 'ban' ? '**ban**' : '**softban**';
@@ -1260,14 +1308,14 @@ export async function run(client, interaction) {
 
         return interaction.editReply({
           content: stripIndents`Honeypot settings updated.
--# - Channel: ${newChannelId ? `<#${newChannelId}>` : 'No channel set'}
--# - Log Channel: ${newLogChannelId ? `<#${newLogChannelId}>` : 'No log channel set'}
--# - Action: \`${newAction}\`
--# - Options: \`${newOptions.length > 0 ? newOptions.join(', ') : 'None'}\``,
+          -# - Channel: ${newChannelId ? `<#${newChannelId}>` : 'No channel set'}
+          -# - Log Channel: ${newLogChannelId ? `<#${newLogChannelId}>` : 'No log channel set'}
+          -# - Action: \`${newAction}\`
+          -# - Options: \`${newOptions.length > 0 ? newOptions.join(', ') : 'None'}\``,
         });
       }
     }
   } catch (error) {
-    console.error('Failed to update honeypot settings:', error);
+    console.error('Failure inside interactionCreate handler:', error);
   }
 }
