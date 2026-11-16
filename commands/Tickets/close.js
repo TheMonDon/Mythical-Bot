@@ -1,4 +1,3 @@
-const discordTranscripts = require('discord-html-transcripts-v2');
 const Command = require('../../base/Command.js');
 const { stripIndents } = require('common-tags');
 const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
@@ -41,14 +40,12 @@ class CloseTicket extends Command {
         );
       }
 
-      const logID = rows[0].logging_id;
       const roleID = rows[0].role_id;
 
       if (!msg.channel.name.startsWith('ticket')) {
         return msg.channel.send('You need to be inside the ticket you want to close.');
       }
 
-      const tName = msg.channel.name;
       const role = msg.guild.roles.cache.get(roleID);
       const [ownerRows] = await this.client.db.execute(
         /* sql */
@@ -75,100 +72,19 @@ class CloseTicket extends Command {
         }
       }
 
-      let htmlTranscript = null;
-      let transcriptIsUploaded = false;
-      const components = [];
-
-      // Upload transcript via botpanel if client is configured
-      if (this.client.botPanelClient?.connected) {
-        try {
-          htmlTranscript = await discordTranscripts.createTranscript(msg.channel, {
-            returnType: 'string',
-            poweredBy: false,
-          });
-          const transcriptUrl = await this.client.botPanelClient.uploadTranscript(msg.guild.id, htmlTranscript);
-          transcriptIsUploaded = true;
-
-          // Create button with link to transcript
-          const row = new ActionRowBuilder().addComponents(
-            new ButtonBuilder().setLabel('View Transcript').setStyle(ButtonStyle.Link).setURL(transcriptUrl),
-          );
-          components.push(row);
-        } catch (e) {
-          console.error('Failed to upload transcript via botpanel:', e);
-
-          try {
-            htmlTranscript = await discordTranscripts.createTranscript(msg.channel, {
-              poweredBy: false,
-            });
-          } catch (err) {
-            console.error('Failed to create transcript:', err);
-            return msg.channel.send(`Failed to create transcript, please try again later.`);
-          }
-        }
-      } else {
-        htmlTranscript = await discordTranscripts.createTranscript(msg.channel, {
-          poweredBy: false,
-        });
-      }
-
-      const user = await this.client.users.fetch(owner);
-      const userEmbed = new EmbedBuilder()
-        .setTitle('Ticket Closed')
-        .setColor(msg.settings.embedColor)
-        .addFields([
-          { name: 'Reason', value: reason, inline: false },
-          { name: 'Server', value: msg.guild.name, inline: false },
-          { name: 'Note', value: 'This ticket will be automatically deleted in 24 hours.', inline: false },
-        ])
-        .setTimestamp();
-
-      let received;
-      if (transcriptIsUploaded) {
-        await user.send({ embeds: [userEmbed], components }).catch(() => {
-          received = false;
-        });
-      } else {
-        await user.send({ embeds: [userEmbed], files: [htmlTranscript] }).catch(() => {
-          received = false;
-        });
-      }
-
-      const logEmbed = new EmbedBuilder()
-        .setAuthor({ name: user.displayName, iconURL: user.displayAvatarURL() })
-        .setTitle('Ticket Closed')
-        .setColor(msg.settings.embedColor)
-        .addFields([
-          { name: 'Author', value: `<@${owner}> (${owner})`, inline: false },
-          { name: 'Channel', value: `${tName}: ${msg.channel.id}`, inline: false },
-          { name: 'Reason', value: reason, inline: false },
-        ])
-        .setTimestamp();
-
-      if (received === false) {
-        logEmbed.setFooter({ text: 'Could not message author' });
-      }
-
-      const logChannel = await msg.guild.channels.cache.get(logID);
-
-      if (transcriptIsUploaded) {
-        await logChannel.send({ embeds: [logEmbed], components }).catch((e) => console.error(e));
-      } else {
-        await logChannel.send({ embeds: [logEmbed], files: [htmlTranscript] }).catch((e) => console.error(e));
-      }
-
-      // Set closed_at timestamp in database
+      // Set closed_at timestamp and close reason in database (transcript will be sent when deleted)
       await this.client.db.execute(
         /* sql */
         `
           UPDATE user_tickets
           SET
-            closed_at = NOW()
+            closed_at = NOW(),
+            close_reason = ?
           WHERE
             server_id = ?
             AND channel_id = ?
         `,
-        [msg.guild.id, msg.channel.id],
+        [reason, msg.guild.id, msg.channel.id],
       );
 
       // Make channel view-only

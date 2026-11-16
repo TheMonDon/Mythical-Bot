@@ -560,6 +560,240 @@ export async function run(client, interaction) {
           flags: MessageFlags.Ephemeral,
         });
       }
+
+      // Handle reopen ticket button
+      if (interaction.customId === 'reopen_ticket') {
+        try {
+          const [rows] = await client.db.execute(
+            /* sql */ `
+              SELECT
+                *
+              FROM
+                ticket_settings
+              WHERE
+                server_id = ?
+            `,
+            [interaction.guild.id],
+          );
+
+          if (rows.length === 0) {
+            return interaction.reply({
+              content:
+                'The ticket system has not been setup in this server. Please contact a server administrator to re-run the setup command.',
+              flags: MessageFlags.Ephemeral,
+            });
+          }
+
+          const [ownerRows] = await client.db.execute(
+            /* sql */
+            `
+              SELECT
+                user_id
+              FROM
+                user_tickets
+              WHERE
+                server_id = ?
+                AND channel_id = ?
+            `,
+            [interaction.guild.id, interaction.channel.id],
+          );
+
+          const owner = ownerRows[0]?.user_id;
+
+          if (!owner) {
+            return interaction.reply({
+              content: 'This ticket does not have an owner.',
+              flags: MessageFlags.Ephemeral,
+            });
+          }
+
+          if (interaction.user.id !== owner) {
+            return interaction.reply({
+              content: 'Only the ticket owner can reopen this ticket.',
+              flags: MessageFlags.Ephemeral,
+            });
+          }
+
+          const modal = new ModalBuilder().setCustomId('reopen_ticket_reason').setTitle('Reopen Ticket');
+
+          const reasonInput = new TextInputBuilder()
+            .setCustomId('reopen_reason_input')
+            .setLabel('What do you still need help with?')
+            .setStyle(TextInputStyle.Paragraph)
+            .setRequired(true);
+
+          modal.addComponents(new ActionRowBuilder().addComponents(reasonInput));
+
+          return await interaction.showModal(modal);
+        } catch (err) {
+          client.logger.error(err);
+          return interaction.reply({
+            content: 'An error occurred while reopening the ticket.',
+            flags: MessageFlags.Ephemeral,
+          });
+        }
+      }
+
+      // Handle delete ticket now button
+      if (interaction.customId === 'delete_ticket_now') {
+        try {
+          await interaction.deferReply();
+
+          const [rows] = await client.db.execute(
+            /* sql */ `
+              SELECT
+                *
+              FROM
+                ticket_settings
+              WHERE
+                server_id = ?
+            `,
+            [interaction.guild.id],
+          );
+
+          if (rows.length === 0) {
+            return interaction.editReply({
+              content:
+                'The ticket system has not been setup in this server. Please contact a server administrator to re-run the setup command.',
+            });
+          }
+
+          const roleID = rows[0].role_id;
+          const logID = rows[0].logging_id;
+          const [ownerRows] = await client.db.execute(
+            /* sql */
+            `
+              SELECT
+                user_id,
+                close_reason
+              FROM
+                user_tickets
+              WHERE
+                server_id = ?
+                AND channel_id = ?
+            `,
+            [interaction.guild.id, interaction.channel.id],
+          );
+
+          const owner = ownerRows[0]?.user_id;
+          const closeReason = ownerRows[0]?.close_reason || 'No reason specified';
+
+          if (!owner) {
+            return interaction.editReply({
+              content: 'This ticket does not have an owner.',
+            });
+          }
+
+          // Check if user is owner or has support role
+          const role = interaction.guild.roles.cache.get(roleID);
+          if (interaction.user.id !== owner && !interaction.member.roles.cache.has(roleID)) {
+            return interaction.editReply({
+              content: `Only the ticket owner or members of ${role.name} can delete this ticket.`,
+            });
+          }
+
+          // Create transcript before deleting channel
+          let transcriptURL = null;
+          try {
+            const transcript = await discordTranscripts.createTranscript(interaction.channel, {
+              returnType: 'string',
+              poweredBy: false,
+              saveImages: true,
+            });
+            if (client.botPanelClient?.connected) {
+              transcriptURL = await client.botPanelClient.uploadTranscript(interaction.guild.id, transcript);
+            }
+          } catch (err) {
+            console.error(
+              `Failed to create transcript for ticket ${interaction.channel.id} in server ${interaction.guild.id}:`,
+              err,
+            );
+          }
+
+          // Send transcript and close info to ticket owner
+          const ticketOwner = await client.users.fetch(owner).catch(() => null);
+          if (ticketOwner) {
+            const userEmbed = new EmbedBuilder()
+              .setTitle('Ticket Closed & Deleted')
+              .setColor(interaction.settings.embedColor)
+              .setDescription('Your ticket has been deleted.')
+              .addFields([
+                { name: 'Server', value: interaction.guild.name, inline: false },
+                { name: 'Close Reason', value: closeReason, inline: false },
+              ]);
+
+            if (transcriptURL) {
+              userEmbed.addFields([
+                {
+                  name: 'Transcript',
+                  value: `[View Transcript](${transcriptURL})`,
+                  inline: false,
+                },
+              ]);
+            }
+
+            userEmbed.setTimestamp();
+            await ticketOwner.send({ embeds: [userEmbed] }).catch(() => {});
+          }
+
+          // Send notification to log channel
+          const logChannel = interaction.guild.channels.cache.get(logID);
+          if (logChannel) {
+            const logEmbed = new EmbedBuilder()
+              .setAuthor({ name: ticketOwner?.displayName || owner, iconURL: ticketOwner?.displayAvatarURL() })
+              .setTitle('Ticket Deleted by Owner/Support')
+              .setColor(interaction.settings.embedColor)
+              .addFields([
+                { name: 'Author', value: `<@${owner}> (${owner})`, inline: false },
+                { name: 'Channel', value: `${interaction.channel.name}: ${interaction.channel.id}`, inline: false },
+                { name: 'Close Reason', value: closeReason, inline: false },
+              ]);
+
+            if (transcriptURL) {
+              logEmbed.addFields([
+                {
+                  name: 'Transcript',
+                  value: `[View Transcript](${transcriptURL})`,
+                  inline: false,
+                },
+              ]);
+            }
+
+            logEmbed.setTimestamp();
+            await logChannel.send({ embeds: [logEmbed] }).catch((e) => console.error(e));
+          }
+
+          // Delete the ticket record from database
+          await client.db.execute(
+            /* sql */
+            `
+              DELETE FROM user_tickets
+              WHERE
+                server_id = ?
+                AND channel_id = ?
+            `,
+            [interaction.guild.id, interaction.channel.id],
+          );
+
+          // Delete ticket members
+          await client.db.execute(
+            /* sql*/
+            `
+              DELETE FROM ticket_members
+              WHERE
+                server_id = ?
+                AND channel_id = ?
+            `,
+            [interaction.guild.id, interaction.channel.id],
+          );
+
+          // Delete the channel
+          return interaction.channel.delete('Ticket deleted by owner or support');
+        } catch (err) {
+          client.logger.error(err);
+          return interaction.editReply('An error occurred while deleting the ticket.');
+        }
+      }
     }
 
     if (interaction.isModalSubmit()) {
@@ -722,10 +956,8 @@ export async function run(client, interaction) {
         }
 
         await interaction.deferReply();
-        const logID = rows[0].logging_id;
         const roleID = rows[0].role_id;
 
-        const tName = interaction.channel.name;
         const role = interaction.guild.roles.cache.get(roleID);
         const [ownerRows] = await client.db.execute(
           /* sql */
@@ -751,102 +983,19 @@ export async function run(client, interaction) {
         const reason = interaction.fields.getTextInputValue('reasonInput') || 'No reason specified';
 
         try {
-          let htmlTranscript = null;
-          let transcriptIsUploaded = false;
-          const components = [];
-
-          // Upload transcript via botpanel if client is configured
-          if (interaction.client.botPanelClient?.connected) {
-            try {
-              htmlTranscript = await discordTranscripts.createTranscript(interaction.channel, {
-                returnType: 'string',
-                poweredBy: false,
-              });
-              const transcriptUrl = await interaction.client.botPanelClient.uploadTranscript(
-                interaction.guild.id,
-                htmlTranscript,
-              );
-              transcriptIsUploaded = true;
-
-              // Create button with link to transcript
-              const row = new ActionRowBuilder().addComponents(
-                new ButtonBuilder().setLabel('View Transcript').setStyle(ButtonStyle.Link).setURL(transcriptUrl),
-              );
-              components.push(row);
-            } catch (e) {
-              console.error('Failed to upload transcript via botpanel:', e);
-
-              try {
-                htmlTranscript = await discordTranscripts.createTranscript(interaction.channel, {
-                  poweredBy: false,
-                });
-              } catch (err) {
-                console.error('Failed to create transcript:', err);
-                return interaction.editReply(`Failed to create transcript, please try again later.`);
-              }
-            }
-          } else {
-            htmlTranscript = await discordTranscripts.createTranscript(interaction.channel, {
-              poweredBy: false,
-            });
-          }
-
-          const userEmbed = new EmbedBuilder()
-            .setTitle('Ticket Closed')
-            .setColor(interaction.settings.embedColor)
-            .addFields([
-              { name: 'Reason', value: reason, inline: false },
-              { name: 'Server', value: interaction.guild.name, inline: false },
-              { name: 'Note', value: 'This ticket will be automatically deleted in 24 hours.', inline: false },
-            ])
-            .setTimestamp();
-
-          const user = await client.users.fetch(owner);
-          let received;
-          if (transcriptIsUploaded) {
-            await user.send({ embeds: [userEmbed], components }).catch(() => {
-              received = false;
-            });
-          } else {
-            await user.send({ embeds: [userEmbed], files: [htmlTranscript] }).catch(() => {
-              received = false;
-            });
-          }
-
-          const logEmbed = new EmbedBuilder()
-            .setAuthor({ name: user.displayName, iconURL: user.displayAvatarURL() })
-            .setTitle('Ticket Closed')
-            .setColor(interaction.settings.embedColor)
-            .addFields([
-              { name: 'Author', value: `<@${owner}> (${owner})`, inline: false },
-              { name: 'Channel', value: `${tName}: ${interaction.channel.id}`, inline: false },
-              { name: 'Reason', value: reason, inline: false },
-            ]);
-
-          if (received === false) {
-            logEmbed.setFooter({ text: 'Could not message author' });
-          }
-
-          const logChannel = await interaction.guild.channels.cache.get(logID);
-
-          if (transcriptIsUploaded) {
-            await logChannel.send({ embeds: [logEmbed], components }).catch((e) => console.error(e));
-          } else {
-            await logChannel.send({ embeds: [logEmbed], files: [htmlTranscript] }).catch((e) => console.error(e));
-          }
-
-          // Set closed_at timestamp in database
+          // Set closed_at timestamp and close reason in database (transcript will be sent when deleted)
           await client.db.execute(
             /* sql */
             `
               UPDATE user_tickets
               SET
-                closed_at = NOW()
+                closed_at = NOW(),
+                close_reason = ?
               WHERE
                 server_id = ?
                 AND channel_id = ?
             `,
-            [interaction.guild.id, interaction.channel.id],
+            [reason, interaction.guild.id, interaction.channel.id],
           );
 
           // Make channel view-only
@@ -870,7 +1019,8 @@ export async function run(client, interaction) {
             .setColor(interaction.settings.embedColor)
             .setDescription(
               stripIndents`This ticket has been closed.
-              The channel will be automatically deleted in 24 hours.`,
+              The channel will be automatically deleted in 24 hours.
+              Your transcript will be sent when the channel is deleted.`,
             )
             .setTimestamp();
 
@@ -897,61 +1047,58 @@ export async function run(client, interaction) {
         }
       }
 
-      // Handle reopen ticket button
-      if (interaction.customId === 'reopen_ticket') {
-        const [rows] = await client.db.execute(
-          /* sql */ `
-            SELECT
-              *
-            FROM
-              ticket_settings
-            WHERE
-              server_id = ?
-          `,
-          [interaction.guild.id],
-        );
-
-        if (rows.length === 0) {
-          return interaction.reply({
-            content:
-              'The ticket system has not been setup in this server. Please contact a server administrator to re-run the setup command.',
-            flags: MessageFlags.Ephemeral,
-          });
-        }
-
-        const roleID = rows[0].role_id;
-        const [ownerRows] = await client.db.execute(
-          /* sql */
-          `
-            SELECT
-              user_id
-            FROM
-              user_tickets
-            WHERE
-              server_id = ?
-              AND channel_id = ?
-          `,
-          [interaction.guild.id, interaction.channel.id],
-        );
-
-        const owner = ownerRows[0]?.user_id;
-
-        if (!owner) {
-          return interaction.reply({
-            content: 'This ticket does not have an owner.',
-            flags: MessageFlags.Ephemeral,
-          });
-        }
-
-        if (interaction.user.id !== owner) {
-          return interaction.reply({
-            content: 'Only the ticket owner can reopen this ticket.',
-            flags: MessageFlags.Ephemeral,
-          });
-        }
-
+      // Handle modal submit for reopening ticket with reason
+      if (interaction.customId === 'reopen_ticket_reason') {
         try {
           await interaction.deferReply();
+
+          const [rows] = await client.db.execute(
+            /* sql */ `
+              SELECT
+                *
+              FROM
+                ticket_settings
+              WHERE
+                server_id = ?
+            `,
+            [interaction.guild.id],
+          );
+
+          if (rows.length === 0) {
+            return interaction.editReply({
+              content:
+                'The ticket system has not been setup in this server. Please contact a server administrator to re-run the setup command.',
+            });
+          }
+
+          const roleID = rows[0].role_id;
+          const [ownerRows] = await client.db.execute(
+            /* sql */
+            `
+              SELECT
+                user_id
+              FROM
+                user_tickets
+              WHERE
+                server_id = ?
+                AND channel_id = ?
+            `,
+            [interaction.guild.id, interaction.channel.id],
+          );
+
+          const owner = ownerRows[0]?.user_id;
+
+          if (!owner) {
+            return interaction.editReply({
+              content: 'This ticket does not have an owner.',
+            });
+          }
+
+          if (interaction.user.id !== owner) {
+            return interaction.editReply({
+              content: 'Only the ticket owner can reopen this ticket.',
+            });
+          }
 
           // Clear the closed_at timestamp to mark it as reopened
           await client.db.execute(
@@ -1011,108 +1158,19 @@ export async function run(client, interaction) {
 
           await interaction.channel.permissionOverwrites.set(perms, 'Ticket reopened');
 
+          const reopenReason = interaction.fields.getTextInputValue('reopen_reason_input');
+
           const reopenEmbed = new EmbedBuilder()
             .setTitle('Ticket Reopened')
             .setColor(interaction.settings.embedColor)
-            .setDescription('This ticket has been reopened.')
+            .setDescription(reopenReason)
+            .setAuthor({ name: interaction.user.username, iconURL: interaction.user.displayAvatarURL() })
             .setTimestamp();
 
-          await interaction.channel.send({ embeds: [reopenEmbed] });
-          return interaction.editReply('Ticket has been reopened successfully!');
+          return interaction.editReply({ embeds: [reopenEmbed] });
         } catch (err) {
           client.logger.error(err);
           return interaction.editReply('An error occurred while reopening the ticket.');
-        }
-      }
-
-      // Handle delete ticket now button
-      if (interaction.customId === 'delete_ticket_now') {
-        const [rows] = await client.db.execute(
-          /* sql */ `
-            SELECT
-              *
-            FROM
-              ticket_settings
-            WHERE
-              server_id = ?
-          `,
-          [interaction.guild.id],
-        );
-
-        if (rows.length === 0) {
-          return interaction.reply({
-            content:
-              'The ticket system has not been setup in this server. Please contact a server administrator to re-run the setup command.',
-            flags: MessageFlags.Ephemeral,
-          });
-        }
-
-        const roleID = rows[0].role_id;
-        const [ownerRows] = await client.db.execute(
-          /* sql */
-          `
-            SELECT
-              user_id
-            FROM
-              user_tickets
-            WHERE
-              server_id = ?
-              AND channel_id = ?
-          `,
-          [interaction.guild.id, interaction.channel.id],
-        );
-
-        const owner = ownerRows[0]?.user_id;
-
-        if (!owner) {
-          return interaction.reply({
-            content: 'This ticket does not have an owner.',
-            flags: MessageFlags.Ephemeral,
-          });
-        }
-
-        // Check if user is owner or has support role
-        const role = interaction.guild.roles.cache.get(roleID);
-        if (interaction.user.id !== owner && !interaction.member.roles.cache.has(roleID)) {
-          return interaction.reply({
-            content: `Only the ticket owner or members of ${role.name} can delete this ticket.`,
-            flags: MessageFlags.Ephemeral,
-          });
-        }
-
-        try {
-          await interaction.deferReply();
-
-          // Delete the ticket record from database
-          await client.db.execute(
-            /* sql */
-            `
-              DELETE FROM user_tickets
-              WHERE
-                server_id = ?
-                AND channel_id = ?
-            `,
-            [interaction.guild.id, interaction.channel.id],
-          );
-
-          // Delete ticket members
-          await client.db.execute(
-            /* sql*/
-            `
-              DELETE FROM ticket_members
-              WHERE
-                server_id = ?
-                AND channel_id = ?
-            `,
-            [interaction.guild.id, interaction.channel.id],
-          );
-
-          // Delete the channel
-          await interaction.channel.delete('Ticket deleted by owner or support');
-          return interaction.editReply('Ticket has been deleted successfully!');
-        } catch (err) {
-          client.logger.error(err);
-          return interaction.editReply('An error occurred while deleting the ticket.');
         }
       }
 

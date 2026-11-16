@@ -830,6 +830,7 @@ const loadMysql = async () => {
         topic_cooldown BOOLEAN DEFAULT FALSE,
         cooldown_until BIGINT DEFAULT NULL,
         closed_at TIMESTAMP NULL DEFAULT NULL,
+        close_reason LONGTEXT DEFAULT NULL,
         PRIMARY KEY (server_id, channel_id)
       );
     `);

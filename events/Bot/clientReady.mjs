@@ -687,7 +687,8 @@ export async function run(client) {
           SELECT
             server_id,
             channel_id,
-            user_id
+            user_id,
+            close_reason
           FROM
             user_tickets
           WHERE
@@ -748,11 +749,12 @@ export async function run(client) {
           const ticketOwner = await client.users.fetch(ticket.user_id).catch(() => null);
           if (ticketOwner && transcriptURL) {
             const userEmbed = new EmbedBuilder()
-              .setTitle('Ticket Archived')
+              .setTitle('Ticket Closed & Archived')
               .setColor('#E65DF4')
-              .setDescription('Your ticket has been archived and the channel will be deleted.')
+              .setDescription('Your ticket has been archived and the channel has been deleted.')
               .addFields([
                 { name: 'Server', value: guild.name, inline: false },
+                { name: 'Close Reason', value: ticket.close_reason || 'No reason specified', inline: false },
                 {
                   name: 'Transcript',
                   value: `[View Transcript](${transcriptURL})`,
