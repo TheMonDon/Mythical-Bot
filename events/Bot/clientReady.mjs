@@ -6,6 +6,7 @@ import { scheduleJob } from 'node-schedule';
 import { Client } from 'botpanel.js';
 import giveawayUtil from '../../util/GiveawayUtil.js';
 import randomChannelNames from '../../resources/random-channel-names.json' with { type: 'json' };
+import * as discordTranscripts from 'discord-html-transcripts-v2';
 const { BotPanelID, BotPanelSecret, Port, economySettings, ticketSettings, panelSectionAliases } = pkg;
 const { mergeWinnerHistory, selectGiveawayWinners } = giveawayUtil;
 
@@ -702,6 +703,33 @@ export async function run(client) {
 
       for (const ticket of closedTickets) {
         try {
+          const [settingsRows] = await client.db.execute(
+            /* sql */ `
+              SELECT
+                *
+              FROM
+                ticket_settings
+              WHERE
+                server_id = ?
+            `,
+            [ticket.server_id],
+          );
+
+          if (settingsRows.length === 0) {
+            await client.db.execute(
+              /* sql */ `
+                DELETE FROM user_tickets
+                WHERE
+                  server_id = ?
+                  AND channel_id = ?
+              `,
+              [ticket.server_id, ticket.channel_id],
+            );
+            continue;
+          }
+
+          const loggingID = settingsRows[0]?.logging_id;
+
           const guild = client.guilds.cache.get(ticket.server_id);
           if (!guild) {
             await client.db.execute(
@@ -731,13 +759,20 @@ export async function run(client) {
           }
 
           let transcriptURL;
+          let transcriptAttachment = null;
           try {
-            const transcript = await require('discord-html-transcripts-v2').createTranscript(channel, {
+            const transcript = await discordTranscripts.createTranscript(channel, {
               returnType: 'string',
               poweredBy: false,
-              saveImages: true,
             });
-            transcriptURL = await client.botPanelClient.uploadTranscript(ticket.server_id, transcript);
+
+            if (client.botPanelClient?.connected) {
+              transcriptURL = await client.botPanelClient.uploadTranscript(ticket.server_id, transcript);
+            } else {
+              transcriptAttachment = new AttachmentBuilder(Buffer.from(transcript, 'utf-8'), {
+                name: `transcript-${ticket.channel_id}.html`,
+              });
+            }
           } catch (err) {
             console.error(
               `Failed to create transcript for ticket ${ticket.channel_id} in server ${ticket.server_id}:`,
@@ -747,10 +782,12 @@ export async function run(client) {
           }
 
           const ticketOwner = await client.users.fetch(ticket.user_id).catch(() => null);
+          const guildSettings = client.getSettings(ticket.server_id);
+
           if (ticketOwner && transcriptURL) {
             const userEmbed = new EmbedBuilder()
               .setTitle('Ticket Closed & Archived')
-              .setColor('#E65DF4')
+              .setColor(guildSettings.embedColor)
               .setDescription('Your ticket has been archived and the channel has been deleted.')
               .addFields([
                 { name: 'Server', value: guild.name, inline: false },

@@ -288,15 +288,18 @@ export async function run(client, interaction) {
           .setMinLength(1)
           .setMaxLength(1024)
           .setCustomId('reasonInput')
-          .setLabel('Reason')
           .setStyle(TextInputStyle.Paragraph)
           .setRequired(true);
 
-        const ActionRow = new ActionRowBuilder().addComponents(reasonInput);
+        const reasonLabel = new LabelBuilder()
+          .setLabel('Reason')
+          .setDescription('Please provide a reason for the ticket.')
+          .setTextInputComponent(reasonInput);
+
         const modal = new ModalBuilder()
           .setCustomId('ticket_reason')
           .setTitle('Ticket Reason')
-          .addComponents(ActionRow);
+          .addLabelComponents(reasonLabel);
 
         await interaction.showModal(modal);
       }
@@ -618,13 +621,19 @@ export async function run(client, interaction) {
 
           const reasonInput = new TextInputBuilder()
             .setCustomId('reopen_reason_input')
-            .setLabel('What do you still need help with?')
+            .setMinLength(1)
+            .setMaxLength(1024)
             .setStyle(TextInputStyle.Paragraph)
             .setRequired(true);
 
-          modal.addComponents(new ActionRowBuilder().addComponents(reasonInput));
+          const reasonlabel = new LabelBuilder()
+            .setLabel('What do you still need help with?')
+            .setDescription('Please provide a reason for reopening the ticket.')
+            .setTextInputComponent(reasonInput);
 
-          return await interaction.showModal(modal);
+          modal.addLabelComponents(reasonlabel);
+
+          return interaction.showModal(modal);
         } catch (err) {
           client.logger.error(err);
           return interaction.reply({
@@ -637,12 +646,13 @@ export async function run(client, interaction) {
       // Handle delete ticket now button
       if (interaction.customId === 'delete_ticket_now') {
         try {
-          await interaction.deferReply();
+          await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
-          const [rows] = await client.db.execute(
+          const [settingsRows] = await client.db.execute(
             /* sql */ `
               SELECT
-                *
+                role_id,
+                logging_id
               FROM
                 ticket_settings
               WHERE
@@ -651,15 +661,15 @@ export async function run(client, interaction) {
             [interaction.guild.id],
           );
 
-          if (rows.length === 0) {
+          if (settingsRows.length === 0) {
             return interaction.editReply({
               content:
                 'The ticket system has not been setup in this server. Please contact a server administrator to re-run the setup command.',
             });
           }
 
-          const roleID = rows[0].role_id;
-          const logID = rows[0].logging_id;
+          const roleID = settingsRows[0].role_id;
+          const logID = settingsRows[0].logging_id;
           const [ownerRows] = await client.db.execute(
             /* sql */
             `
@@ -685,33 +695,45 @@ export async function run(client, interaction) {
           }
 
           // Check if user is owner or has support role
-          const role = interaction.guild.roles.cache.get(roleID);
           if (interaction.user.id !== owner && !interaction.member.roles.cache.has(roleID)) {
+            const embed = new EmbedBuilder()
+              .setColor(interaction.settings.embedErrorColor)
+              .setDescription(`Only the ticket owner or members of <@&${roleID}> can delete this ticket.`);
+
             return interaction.editReply({
-              content: `Only the ticket owner or members of ${role.name} can delete this ticket.`,
+              embeds: [embed],
             });
           }
 
           // Create transcript before deleting channel
-          let transcriptURL = null;
+          let transcriptURL;
+          let transcriptAttachment = null;
+
           try {
             const transcript = await discordTranscripts.createTranscript(interaction.channel, {
               returnType: 'string',
               poweredBy: false,
-              saveImages: true,
             });
             if (client.botPanelClient?.connected) {
               transcriptURL = await client.botPanelClient.uploadTranscript(interaction.guild.id, transcript);
+            } else {
+              transcriptAttachment = new AttachmentBuilder(Buffer.from(transcript, 'utf-8'), {
+                name: `transcript-${interaction.channel.id}.html`,
+              });
             }
           } catch (err) {
             console.error(
               `Failed to create transcript for ticket ${interaction.channel.id} in server ${interaction.guild.id}:`,
               err,
             );
+            transcriptURL = null;
           }
 
           // Send transcript and close info to ticket owner
-          const ticketOwner = await client.users.fetch(owner).catch(() => null);
+          let receivedMessage = true;
+          const ticketOwner = await client.users.fetch(owner).catch(() => {
+            receivedMessage = false;
+          });
           if (ticketOwner) {
             const userEmbed = new EmbedBuilder()
               .setTitle('Ticket Closed & Deleted')
@@ -720,20 +742,24 @@ export async function run(client, interaction) {
               .addFields([
                 { name: 'Server', value: interaction.guild.name, inline: false },
                 { name: 'Close Reason', value: closeReason, inline: false },
-              ]);
+              ])
+              .setTimestamp();
 
+            let components = [];
+            let files = [];
             if (transcriptURL) {
-              userEmbed.addFields([
-                {
-                  name: 'Transcript',
-                  value: `[View Transcript](${transcriptURL})`,
-                  inline: false,
-                },
-              ]);
+              const linkButton = new ButtonBuilder()
+                .setLabel('View Transcript')
+                .setStyle(ButtonStyle.Link)
+                .setURL(transcriptURL);
+              components.push(new ActionRowBuilder().addComponents(linkButton));
+            } else if (transcriptAttachment) {
+              files.push(transcriptAttachment);
             }
 
-            userEmbed.setTimestamp();
-            await ticketOwner.send({ embeds: [userEmbed] }).catch(() => {});
+            await ticketOwner.send({ embeds: [userEmbed], components, files }).catch(() => {
+              receivedMessage = false;
+            });
           }
 
           // Send notification to log channel
@@ -747,20 +773,33 @@ export async function run(client, interaction) {
                 { name: 'Author', value: `<@${owner}> (${owner})`, inline: false },
                 { name: 'Channel', value: `${interaction.channel.name}: ${interaction.channel.id}`, inline: false },
                 { name: 'Close Reason', value: closeReason, inline: false },
-              ]);
+              ])
+              .setTimestamp();
 
-            if (transcriptURL) {
+            if (!receivedMessage) {
               logEmbed.addFields([
                 {
-                  name: 'Transcript',
-                  value: `[View Transcript](${transcriptURL})`,
+                  name: 'Notice',
+                  value: 'Failed to send message to ticket owner.',
                   inline: false,
                 },
               ]);
             }
 
-            logEmbed.setTimestamp();
-            await logChannel.send({ embeds: [logEmbed] }).catch((e) => console.error(e));
+            let components = [];
+            let files = [];
+            if (transcriptURL) {
+              const linkButton = new ButtonBuilder()
+                .setLabel('View Transcript')
+                .setStyle(ButtonStyle.Link)
+                .setURL(transcriptURL);
+
+              components.push(new ActionRowBuilder().addComponents(linkButton));
+            } else if (transcriptAttachment) {
+              files.push(transcriptAttachment);
+            }
+
+            await logChannel.send({ embeds: [logEmbed], components, files }).catch((e) => console.error(e));
           }
 
           // Delete the ticket record from database
@@ -955,7 +994,7 @@ export async function run(client, interaction) {
           });
         }
 
-        await interaction.deferReply();
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
         const roleID = rows[0].role_id;
 
         const role = interaction.guild.roles.cache.get(roleID);
