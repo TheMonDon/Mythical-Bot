@@ -703,6 +703,34 @@ export async function run(client) {
 
       for (const ticket of closedTickets) {
         try {
+          const guild = client.guilds.cache.get(ticket.server_id);
+          if (!guild) {
+            await client.db.execute(
+              /* sql */ `
+                DELETE FROM user_tickets
+                WHERE
+                  server_id = ?
+                  AND channel_id = ?
+              `,
+              [ticket.server_id, ticket.channel_id],
+            );
+            continue;
+          }
+
+          const ticketChannel = guild.channels.cache.get(ticket.channel_id);
+          if (!ticketChannel) {
+            await client.db.execute(
+              /* sql */ `
+                DELETE FROM user_tickets
+                WHERE
+                  server_id = ?
+                  AND channel_id = ?
+              `,
+              [ticket.server_id, ticket.channel_id],
+            );
+            continue;
+          }
+
           const [settingsRows] = await client.db.execute(
             /* sql */ `
               SELECT
@@ -729,39 +757,15 @@ export async function run(client) {
           }
 
           const loggingID = settingsRows[0]?.logging_id;
+          const loggingChannel = guild.channels.cache.get(loggingID);
 
-          const guild = client.guilds.cache.get(ticket.server_id);
-          if (!guild) {
-            await client.db.execute(
-              /* sql */ `
-                DELETE FROM user_tickets
-                WHERE
-                  server_id = ?
-                  AND channel_id = ?
-              `,
-              [ticket.server_id, ticket.channel_id],
-            );
-            continue;
-          }
-
-          const channel = guild.channels.cache.get(ticket.channel_id);
-          if (!channel) {
-            await client.db.execute(
-              /* sql */ `
-                DELETE FROM user_tickets
-                WHERE
-                  server_id = ?
-                  AND channel_id = ?
-              `,
-              [ticket.server_id, ticket.channel_id],
-            );
-            continue;
+          if (loggingChannel) {
           }
 
           let transcriptURL;
           let transcriptAttachment = null;
           try {
-            const transcript = await discordTranscripts.createTranscript(channel, {
+            const transcript = await discordTranscripts.createTranscript(ticketChannel, {
               returnType: 'string',
               poweredBy: false,
             });
@@ -781,16 +785,31 @@ export async function run(client) {
             transcriptURL = null;
           }
 
-          const ticketOwner = await client.users.fetch(ticket.user_id).catch(() => null);
+          let received = true;
+          const ticketOwner = await client.users.fetch(ticket.user_id).catch(() => {
+            received = false;
+          });
           const guildSettings = client.getSettings(ticket.server_id);
 
-          if (ticketOwner && transcriptURL) {
+          let components = [];
+          let files = [];
+          if (transcriptURL) {
+            const linkButton = new ButtonBuilder()
+              .setLabel('View Transcript')
+              .setStyle(ButtonStyle.Link)
+              .setURL(transcriptURL);
+            components.push(new ActionRowBuilder().addComponents(linkButton));
+          } else if (transcriptAttachment) {
+            files.push(transcriptAttachment);
+          }
+
+          if (ticketOwner) {
             const userEmbed = new EmbedBuilder()
               .setTitle('Ticket Closed & Archived')
               .setColor(guildSettings.embedColor)
               .setDescription('Your ticket has been archived and the channel has been deleted.')
               .addFields([
-                { name: 'Server', value: guild.name, inline: false },
+                { name: 'Server', value: ticketChannel.guild.name, inline: false },
                 { name: 'Close Reason', value: ticket.close_reason || 'No reason specified', inline: false },
                 {
                   name: 'Transcript',
@@ -800,10 +819,36 @@ export async function run(client) {
               ])
               .setTimestamp();
 
-            await ticketOwner.send({ embeds: [userEmbed] }).catch(() => {});
+            await ticketOwner.send({ embeds: [userEmbed], files, components }).catch(() => {
+              received = false;
+            });
           }
 
-          await channel.delete().catch(() => {});
+          if (loggingChannel) {
+            const logEmbed = new EmbedBuilder()
+              .setAuthor({ name: ticketOwner?.displayName, iconURL: ticketOwner?.displayAvatarURL() })
+              .setTitle('Ticket Deleted by Owner/Support')
+              .setColor(guildSettings.embedColor)
+              .addFields([
+                { name: 'Author', value: `<@${ticketOwner?.id}> (${ticketOwner})`, inline: false },
+                { name: 'Channel', value: `${ticketChannel.name}: ${ticketChannel.id}`, inline: false },
+                { name: 'Close Reason', value: closeReason, inline: false },
+              ])
+              .setTimestamp();
+
+            if (!received) {
+              logEmbed.addFields([
+                {
+                  name: 'Notice',
+                  value: 'Failed to send message to ticket owner.',
+                  inline: false,
+                },
+              ]);
+            }
+            await loggingChannel.send({ embeds: [logEmbed], files, components }).catch(() => {});
+          }
+
+          await ticketChannel.delete().catch(() => {});
 
           await client.db.execute(
             /* sql */ `

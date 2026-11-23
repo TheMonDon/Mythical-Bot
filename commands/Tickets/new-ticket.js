@@ -143,7 +143,7 @@ class NewTicket extends Command {
           { name: 'Channel', value: tixChan.toString() },
         ])
         .setFooter({ text: 'Self destructing in 2 minutes.' })
-        .setColor('#E65DF4')
+        .setColor(msg.settings.embedColor)
         .setTimestamp();
       const reply = await msg.channel.send({ embeds: [userEmbed] });
       setTimeout(() => reply.delete(), 60000);
@@ -157,7 +157,7 @@ class NewTicket extends Command {
           { name: 'Channel', value: `${tixChan} \n(${tName}: ${tixChan.id})`, inline: false },
           { name: 'Reason', value: reason, inline: false },
         ])
-        .setColor('#E65DF4')
+        .setColor(msg.settings.embedColor)
         .setTimestamp();
       const logChan = msg.guild.channels.cache.get(logID);
       await logChan.send({ embeds: [logEmbed] });
@@ -167,7 +167,7 @@ class NewTicket extends Command {
         .setTitle(`${msg.member.displayName}'s Ticket`)
         .addFields([{ name: 'Reason', value: reason, inline: false }])
         .setDescription('Please wait patiently and our support team will be with you shortly.')
-        .setColor('#E65DF4')
+        .setColor(msg.settings.embedColor)
         .setTimestamp();
 
       // Create the persistent close button

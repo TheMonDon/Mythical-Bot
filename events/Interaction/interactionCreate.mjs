@@ -332,7 +332,6 @@ export async function run(client, interaction) {
           .setLabel('Why are you closing this ticket?')
           .setTextInputComponent(
             new TextInputBuilder()
-              .setMinLength(1)
               .setMaxLength(1024)
               .setCustomId('reasonInput')
               .setStyle(TextInputStyle.Paragraph)
@@ -729,6 +728,18 @@ export async function run(client, interaction) {
             transcriptURL = null;
           }
 
+          let components = [];
+          let files = [];
+          if (transcriptURL) {
+            const linkButton = new ButtonBuilder()
+              .setLabel('View Transcript')
+              .setStyle(ButtonStyle.Link)
+              .setURL(transcriptURL);
+            components.push(new ActionRowBuilder().addComponents(linkButton));
+          } else if (transcriptAttachment) {
+            files.push(transcriptAttachment);
+          }
+
           // Send transcript and close info to ticket owner
           let receivedMessage = true;
           const ticketOwner = await client.users.fetch(owner).catch(() => {
@@ -744,18 +755,6 @@ export async function run(client, interaction) {
                 { name: 'Close Reason', value: closeReason, inline: false },
               ])
               .setTimestamp();
-
-            let components = [];
-            let files = [];
-            if (transcriptURL) {
-              const linkButton = new ButtonBuilder()
-                .setLabel('View Transcript')
-                .setStyle(ButtonStyle.Link)
-                .setURL(transcriptURL);
-              components.push(new ActionRowBuilder().addComponents(linkButton));
-            } else if (transcriptAttachment) {
-              files.push(transcriptAttachment);
-            }
 
             await ticketOwner.send({ embeds: [userEmbed], components, files }).catch(() => {
               receivedMessage = false;
@@ -784,19 +783,6 @@ export async function run(client, interaction) {
                   inline: false,
                 },
               ]);
-            }
-
-            let components = [];
-            let files = [];
-            if (transcriptURL) {
-              const linkButton = new ButtonBuilder()
-                .setLabel('View Transcript')
-                .setStyle(ButtonStyle.Link)
-                .setURL(transcriptURL);
-
-              components.push(new ActionRowBuilder().addComponents(linkButton));
-            } else if (transcriptAttachment) {
-              files.push(transcriptAttachment);
             }
 
             await logChannel.send({ embeds: [logEmbed], components, files }).catch((e) => console.error(e));
@@ -1089,7 +1075,7 @@ export async function run(client, interaction) {
       // Handle modal submit for reopening ticket with reason
       if (interaction.customId === 'reopen_ticket_reason') {
         try {
-          await interaction.deferReply();
+          await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
           const [rows] = await client.db.execute(
             /* sql */ `
@@ -1206,9 +1192,21 @@ export async function run(client, interaction) {
             .setAuthor({ name: interaction.user.username, iconURL: interaction.user.displayAvatarURL() })
             .setTimestamp();
 
+          // Find and edit the message with the reopen button (should be the most recent message with reopen_ticket customId)
+          const messages = await interaction.channel.messages.fetch({ limit: 10 });
+          const closeMessage = messages.find((msg) =>
+            msg.components.some((row) => row.components.some((component) => component.customId === 'reopen_ticket')),
+          );
+
+          if (closeMessage) {
+            await interaction.editReply({ embeds: [reopenEmbed] });
+            return closeMessage.edit({ embeds: [reopenEmbed], components: [] });
+          }
+
+          await interaction.channel.send({ embeds: [reopenEmbed] });
           return interaction.editReply({ embeds: [reopenEmbed] });
         } catch (err) {
-          client.logger.error(err);
+          console.error(err);
           return interaction.editReply('An error occurred while reopening the ticket.');
         }
       }
