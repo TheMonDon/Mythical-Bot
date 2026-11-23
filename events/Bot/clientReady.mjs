@@ -832,7 +832,7 @@ export async function run(client) {
               .addFields([
                 { name: 'Author', value: `<@${ticketOwner?.id}> (${ticketOwner})`, inline: false },
                 { name: 'Channel', value: `${ticketChannel.name}: ${ticketChannel.id}`, inline: false },
-                { name: 'Close Reason', value: closeReason, inline: false },
+                { name: 'Close Reason', value: ticket.close_reason || 'No reason specified', inline: false },
               ])
               .setTimestamp();
 
